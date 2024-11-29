@@ -40,6 +40,7 @@ import type {
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
+import type { RowMentionEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -125,6 +126,11 @@ export class AppHooksService {
       | AppEvents.COLUMN_DELETE
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.ROW_USER_MENTION,
+    listener: (data: RowMentionEvent) => void,
   ): () => void;
   on(
     event:
@@ -219,6 +225,7 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TRIGGER
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
@@ -270,9 +277,12 @@ export class AppHooksService {
     event: AppEvents.USER_EMAIL_VERIFICATION,
     data: UserEmailVerificationEvent,
   ): void;
+  emit(event: AppEvents.ROW_USER_MENTION, data: RowMentionEvent): void;
+
   emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
   emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;
   emit(event: AppEvents.EXTENSION_DELETE, data: any): void;
+
   emit(
     event:
       | AppEvents.INTEGRATION_CREATE

@@ -8,6 +8,11 @@ import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
 import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
+export const getReadableFileSize = (sizeInBytes: number) => {
+  const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
+  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
+}
+
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const { $api } = useNuxtApp()
@@ -135,11 +140,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           }
 
           // verify file size
-          if (file?.size && file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+          if (file?.size && file.size > attachmentMeta.maxAttachmentSize) {
             message.error(
-              `The size of ${(file as File)?.name || (file as AttachmentReqType)?.fileName} exceeds the maximum file size ${
-                attachmentMeta.maxAttachmentSize
-              } MB.`,
+              `The size of ${
+                (file as File)?.name || (file as AttachmentReqType)?.fileName
+              } exceeds the maximum file size ${getReadableFileSize(attachmentMeta.maxAttachmentSize)}.`,
             )
             continue
           }
@@ -214,7 +219,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         return updateModelValue(attachments.value)
       }
 
-      if (selectedFiles.length) {
+      if (files.length) {
         try {
           const data = await api.storage.upload(
             {
@@ -243,7 +248,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (!data) return
         newAttachments.push(...data)
       }
-      updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+      if (newAttachments?.length) updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {

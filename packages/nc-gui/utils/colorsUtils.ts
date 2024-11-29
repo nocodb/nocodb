@@ -71,6 +71,10 @@ export const themeV2Colors = {
 }
 
 export const themeV3Colors = {
+  base: {
+    white: '#FFFFFF',
+    black: '#000000',
+  },
   brand: {
     50: '#EBF0FF',
     100: '#D6E0FF',
@@ -179,6 +183,18 @@ export const themeV3Colors = {
     700: '#801044',
     800: '#690735',
     900: '#42001F',
+  },
+  green: {
+    50: '#ECFFF2',
+    100: '#D4F7E0',
+    200: '#A9EFC1',
+    300: '#7DE6A3',
+    400: '#52DE84',
+    500: '#27D665',
+    600: '#1FAB51',
+    700: '#17803D',
+    800: '#105628',
+    900: '#082B14',
   },
 }
 
@@ -352,4 +368,269 @@ export function isColorDark(hexColor: string) {
 
 export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light') {
   return enumColor[mode][i % enumColor[mode].length]
+}
+
+/**
+ * ### Light Theme Configuration
+ * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
+ * This setup introduces shorthand class names for various UI elements like text color, border color,
+ * background color, and more. The goal is to ensure design consistency and streamline the development
+ * process by directly reflecting Figma styles in our codebase.
+ *
+ * #### Why We Introduced This
+ *
+ * The light theme was introduced to:
+ * - **Maintain Consistency**: Ensures that the color scheme used in the design (Figma) is reflected accurately in the codebase.
+ * - **Ease of Use**: Simplifies the application of colors by using intuitive, design-referenced class names.
+ *
+ * #### Usage
+ *
+ * The configuration extends WindiCSS with custom screens, font sizes, font weights, colors, and other utilities.
+ * These can be used directly in files through class names.
+ *
+ * ###### Text Color
+ * To apply a text color, you can use:
+ * ```html
+ * <p class="text-nc-content-grey-subtle">This is subtle grey text.</p>
+ * ```
+ *
+ * ###### Border Color
+ * To apply a border color, you can use:
+ * ```html
+ * <div class="border-nc-border-gray-light">This div has a light grey border.</div>
+ * ```
+ *
+ * ###### Background Color
+ * To apply a background color, you can use:
+ * ```html
+ * <div class="bg-nc-bg-brand">This div has a brand color background.</div>
+ * <div class="bg-nc-bg-blue-dark">This div has a blue dark color background.</div>
+ * ```
+ *
+ * ###### Fill Color
+ * light theme fill colors are globally extended in WindiCSS and can be used for various purposes such as:
+ * - **SVG Fill**:
+ * ```html
+ * <svg class="fill-nc-fill-primary">...</svg>
+ * ```
+ * - **Text Color**:
+ * ```html
+ * <p class="text-nc-fill-red-dark">...</p>
+ * ```
+ * - **Border Color**:
+ * ```html
+ * <div class="border-nc-fill-primary">...</div>
+ * ```
+ * - **Background Color**:
+ * ```html
+ * <div class="bg-nc-fill-primary-hover">...</div>
+ * ```
+ * This setup ensures that your styles are consistent with your design specifications and easily maintainable across the project.
+ */
+export const lightTheme = {
+  content: {
+    'nc-content-gray': {
+      extreme: themeV3Colors.base.black,
+      emphasis: themeV3Colors.gray[900],
+      DEFAULT: themeV3Colors.gray[800],
+      subtle: themeV3Colors.gray[700],
+      subtle2: themeV3Colors.gray[600],
+      muted: themeV3Colors.gray[500],
+    },
+    'nc-content-brand': {
+      DEFAULT: themeV3Colors.brand[500],
+      disabled: themeV3Colors.brand[600],
+      hover: themeV3Colors.gray[300],
+    },
+    'nc-content-inverted-primary': {
+      DEFAULT: themeV3Colors.base.white,
+      hover: themeV3Colors.base.white,
+      disabled: themeV3Colors.gray[400],
+    },
+    'nc-content-inverted-secondary': {
+      DEFAULT: themeV3Colors.gray[700],
+      hover: themeV3Colors.gray[700],
+      disabled: themeV3Colors.gray[400],
+    },
+    'nc-content-red': {
+      dark: themeV3Colors.red[700],
+      medium: themeV3Colors.red[500],
+      light: themeV3Colors.red[300],
+    },
+    'nc-content-green': {
+      dark: themeV3Colors.green[700],
+      medium: themeV3Colors.green[500],
+      light: themeV3Colors.green[300],
+    },
+    'nc-content-yellow': {
+      dark: themeV3Colors.yellow[700],
+      medium: themeV3Colors.yellow[500],
+      light: themeV3Colors.yellow[300],
+    },
+    'nc-content-blue': {
+      dark: themeV3Colors.blue[700],
+      medium: themeV3Colors.blue[500],
+      light: themeV3Colors.blue[300],
+    },
+    'nc-content-purple': {
+      dark: themeV3Colors.purple[700],
+      medium: themeV3Colors.purple[500],
+      light: themeV3Colors.purple[300],
+    },
+    'nc-content-pink': {
+      dark: themeV3Colors.pink[700],
+      medium: themeV3Colors.pink[500],
+      light: themeV3Colors.pink[300],
+    },
+    'nc-content-orange': {
+      dark: themeV3Colors.orange[700],
+      medium: themeV3Colors.orange[500],
+      light: themeV3Colors.orange[300],
+    },
+    'nc-content-maroon': {
+      dark: themeV3Colors.maroon[700],
+      medium: themeV3Colors.maroon[500],
+      light: themeV3Colors.maroon[300],
+    },
+  },
+  background: {
+    'nc-bg-default': themeV3Colors.base.white,
+    'nc-bg-brand': themeV3Colors.brand[50],
+    'nc-bg-gray': {
+      extralight: themeV3Colors.gray[50],
+      light: themeV3Colors.gray[100],
+      medium: themeV3Colors.gray[200],
+      dark: themeV3Colors.gray[300],
+      extradark: themeV3Colors.gray[400],
+    },
+    'nc-bg-red': {
+      light: themeV3Colors.red[50],
+      dark: themeV3Colors.red[100],
+    },
+    'nc-bg-green': {
+      light: themeV3Colors.green[50],
+      dark: themeV3Colors.green[100],
+    },
+    'nc-bg-yellow': {
+      light: themeV3Colors.yellow[50],
+      dark: themeV3Colors.yellow[100],
+    },
+    'nc-bg-blue': {
+      light: themeV3Colors.blue[50],
+      dark: themeV3Colors.blue[100],
+    },
+    'nc-bg-purple': {
+      light: themeV3Colors.purple[50],
+      dark: themeV3Colors.purple[100],
+    },
+    'nc-bg-pink': {
+      light: themeV3Colors.pink[50],
+      dark: themeV3Colors.pink[100],
+    },
+    'nc-bg-orange': {
+      light: themeV3Colors.orange[50],
+      dark: themeV3Colors.orange[100],
+    },
+    'nc-bg-maroon': {
+      light: themeV3Colors.maroon[50],
+      dark: themeV3Colors.maroon[100],
+    },
+  },
+  border: {
+    'nc-border-brand': themeV3Colors.brand[500],
+    'nc-border-gray': {
+      extralight: themeV3Colors.gray[50],
+      light: themeV3Colors.gray[100],
+      medium: themeV3Colors.gray[200],
+      dark: themeV3Colors.gray[300],
+      extradark: themeV3Colors.gray[400],
+    },
+    'nc-border-red': {
+      DEFAULT: themeV3Colors.red[500],
+    },
+    'nc-border-green': {
+      DEFAULT: themeV3Colors.green[500],
+    },
+    'nc-border-yellow': {
+      DEFAULT: themeV3Colors.yellow[500],
+    },
+    'nc-border-blue': {
+      DEFAULT: themeV3Colors.blue[500],
+    },
+    'nc-border-purple': {
+      DEFAULT: themeV3Colors.purple[500],
+    },
+    'nc-border-pink': {
+      DEFAULT: themeV3Colors.pink[500],
+    },
+    'nc-border-orange': {
+      DEFAULT: themeV3Colors.orange[500],
+    },
+    'nc-border-maroon': {
+      DEFAULT: themeV3Colors.maroon[500],
+    },
+  },
+  fill: {
+    'nc-fill-primary': {
+      DEFAULT: themeV3Colors.brand[500],
+      hover: themeV3Colors.brand[600],
+      disabled: themeV3Colors.gray[300],
+      disabled2: themeV3Colors.brand[200],
+    },
+    'nc-fill-secondary': {
+      DEFAULT: themeV3Colors.base.white,
+      hover: themeV3Colors.gray[50],
+      disabled: themeV3Colors.base.white,
+    },
+    'nc-fill-warning': {
+      DEFAULT: themeV3Colors.red[500],
+      hover: themeV3Colors.red[600],
+      disabled: themeV3Colors.gray[50],
+    },
+    'nc-fill-success': {
+      DEFAULT: themeV3Colors.green[500],
+      hover: themeV3Colors.green[600],
+      disabled: themeV3Colors.gray[50],
+    },
+    'nc-fill-red': {
+      dark: themeV3Colors.red[700],
+      medium: themeV3Colors.red[500],
+      light: themeV3Colors.red[300],
+    },
+    'nc-fill-green': {
+      dark: themeV3Colors.green[700],
+      medium: themeV3Colors.green[500],
+      light: themeV3Colors.green[300],
+    },
+    'nc-fill-yellow': {
+      dark: themeV3Colors.yellow[700],
+      medium: themeV3Colors.yellow[500],
+      light: themeV3Colors.yellow[300],
+    },
+    'nc-fill-blue': {
+      dark: themeV3Colors.blue[700],
+      medium: themeV3Colors.blue[500],
+      light: themeV3Colors.blue[300],
+    },
+    'nc-fill-purple': {
+      dark: themeV3Colors.purple[700],
+      medium: themeV3Colors.purple[500],
+      light: themeV3Colors.purple[300],
+    },
+    'nc-fill-pink': {
+      dark: themeV3Colors.pink[700],
+      medium: themeV3Colors.pink[500],
+      light: themeV3Colors.pink[300],
+    },
+    'nc-fill-orange': {
+      dark: themeV3Colors.orange[700],
+      medium: themeV3Colors.orange[500],
+      light: themeV3Colors.orange[300],
+    },
+    'nc-fill-maroon': {
+      dark: themeV3Colors.maroon[700],
+      medium: themeV3Colors.maroon[500],
+      light: themeV3Colors.maroon[300],
+    },
+  },
 }

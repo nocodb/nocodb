@@ -1,11 +1,15 @@
 <script lang="ts" setup>
-const { isLoading, appInfo } = useGlobal()
+const { isLoading } = useGlobal()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
 
 const router = useRouter()
+
+const route = router.currentRoute
+
+const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true')
 
 onMounted(() => {
   // check if we are inside an iframe
@@ -50,6 +54,7 @@ export default {
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
       <a-layout-header
+        v-if="!disableTopbar"
         class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]"
       >
         <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
@@ -59,12 +64,7 @@ export default {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <NcTooltip placement="bottom" class="flex">
-              <template #title>
-                {{ appInfo.version }}
-              </template>
-              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
-            </NcTooltip>
+            <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
           </a>
 
           <div class="flex items-center gap-2 text-gray-900 text-sm truncate">
@@ -80,6 +80,16 @@ export default {
               <span class="truncate">
                 {{ sharedView?.title }}
               </span>
+
+              <NcTooltip v-if="sharedView?.description?.length" placement="bottom">
+                <template #title>
+                  {{ sharedView?.description }}
+                </template>
+
+                <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+                  <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon text-gray-600" />
+                </NcButton>
+              </NcTooltip>
             </div>
           </div>
         </div>

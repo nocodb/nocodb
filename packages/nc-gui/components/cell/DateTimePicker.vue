@@ -5,12 +5,13 @@ import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
@@ -295,31 +296,24 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   // To prevent event listener on non active cell
   if (!active.value) return
 
-  if (
-    e.altKey ||
-    e.ctrlKey ||
-    e.shiftKey ||
-    e.metaKey ||
-    !isGrid.value ||
-    isExpandedForm.value ||
-    isEditColumn.value ||
-    isExpandedFormOpenExist()
-  ) {
+  if (e.altKey || e.shiftKey || !isGrid.value || isExpandedForm.value || isEditColumn.value || isExpandedFormOpenExist()) {
     return
   }
 
-  switch (e.key) {
-    case ';':
-      localState.value = dayjs(new Date())
-      e.preventDefault()
-      break
-    default:
-      if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {
-        isClearedInputMode.value = true
-        isDatePicker.value ? datePickerRef.value?.focus() : timePickerRef.value?.focus()
-        editable.value = true
-        open.value = true
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === ';') {
+      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+        localState.value = dayjs(new Date())
+        e.preventDefault()
       }
+    } else return
+  }
+
+  if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {
+    isClearedInputMode.value = true
+    isDatePicker.value ? datePickerRef.value?.focus() : timePickerRef.value?.focus()
+    editable.value = true
+    open.value = true
   }
 })
 
@@ -425,6 +419,11 @@ const cellValue = computed(
     localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value) ??
     '',
 )
+
+const currentDate = ($event) => {
+  open.value = false
+  emit('currentDate', $event)
+}
 </script>
 
 <template>
@@ -510,7 +509,9 @@ const cellValue = computed(
             :is-open="isOpen"
             type="date"
             size="medium"
+            :show-current-date-option="showCurrentDateOption"
             @update:selected-date="handleSelectDate"
+            @current-date="currentDate"
           />
 
           <template v-else>
@@ -520,7 +521,9 @@ const cellValue = computed(
               is-min-granularity-picker
               :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
+              :show-current-date-option="showCurrentDateOption"
               @update:selected-date="handleSelectTime"
+              @current-date="currentDate"
             />
           </template>
         </div>

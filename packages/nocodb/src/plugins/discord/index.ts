@@ -1,9 +1,10 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import DiscordPlugin from './DiscordPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: DiscordPlugin,
+  id: 'discord',
   title: 'Discord',
   version: '0.0.1',
   logo: 'plugins/discord.png',

@@ -1,9 +1,10 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import SlackPlugin from './SlackPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SlackPlugin,
+  id: 'slack',
   title: 'Slack',
   version: '0.0.1',
   logo: 'plugins/slack.webp',

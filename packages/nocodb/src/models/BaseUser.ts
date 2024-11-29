@@ -1,4 +1,5 @@
 import { ProjectRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
 import type { NcContext } from '~/interface/config';
@@ -14,12 +15,19 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
+import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('BaseUser');
 
 export default class BaseUser {
   fk_workspace_id?: string;
   base_id: string;
   fk_user_id: string;
   roles?: string;
+  invited_by?: string;
+  starred?: boolean;
+  order?: number;
+  hidden?: boolean;
 
   constructor(data: BaseUser) {
     Object.assign(this, data);
@@ -35,7 +43,7 @@ export default class BaseUser {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = baseUsers.map((baseUser) =>
-      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles']),
+      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles', 'invited_by']),
     );
 
     if (!insertObj.length) {
@@ -72,6 +80,10 @@ export default class BaseUser {
         [d.base_id],
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
       );
+
+      cleanCommandPaletteCacheForUser(d.fk_user_id).catch(() => {
+        logger.error('Error cleaning command palette cache');
+      });
     }
   }
 
@@ -84,6 +96,10 @@ export default class BaseUser {
       'fk_user_id',
       'base_id',
       'roles',
+      'invited_by',
+      'starred',
+      'order',
+      'hidden',
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(
@@ -102,6 +118,10 @@ export default class BaseUser {
       `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
     );
 
+    cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return res;
   }
 
@@ -113,7 +133,7 @@ export default class BaseUser {
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<BaseUser & { is_mapped?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -158,6 +178,13 @@ export default class BaseUser {
         );
       }
     }
+
+    // decide if user is mapped to base by checking if base_id is present
+    // base_id will be null if base_user entry is not present
+    if (baseUser) {
+      baseUser.is_mapped = !!baseUser.base_id;
+    }
+
     return this.castType(baseUser);
   }
 
@@ -179,13 +206,7 @@ export default class BaseUser {
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
-    const fullVersionCols = [
-      'invite_token',
-      'main_roles',
-      'created_at',
-      'base_id',
-      'roles',
-    ];
+    const fullVersionCols = ['invite_token'];
 
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta
@@ -297,6 +318,10 @@ export default class BaseUser {
       roles,
     });
 
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return res;
   }
 
@@ -351,6 +376,10 @@ export default class BaseUser {
       `${CacheScope.BASE_USER}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
+
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
 
     return response;
   }
@@ -479,6 +508,7 @@ export default class BaseUser {
       return await this.insert(context, {
         base_id: baseId,
         fk_user_id: userId,
+        invited_by: baseUser.invited_by,
       });
     }
   }

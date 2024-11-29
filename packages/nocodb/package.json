@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.252.0",
+  "version": "0.258.3",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -21,27 +21,29 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "pnpm run docker:build",
-    "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "build:obfuscate": "EE=true webpack --config webpack.config.js",
+    "build:cli:module": "EE=true webpack --config webpack.cli.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
+    "registerIntegrations": "node build-utils/registerIntegrations.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "watch:run": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
-    "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
-    "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
-    "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env DB_TYPE=mysql NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
-    "watch:run:playwright:pg": "rm -f ./test_noco.db; cross-env DB_TYPE=pg NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
-    "watch:run:playwright": "rm -f ./test_*.db; cross-env DB_TYPE=sqlite DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
-    "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
-    "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
-    "test:unit": "cross-env EE=false TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
-    "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env EE=false TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
+    "watch:run": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
+    "watch:run:mysql": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
+    "watch:run:pg": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
+    "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env DB_TYPE=mysql NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
+    "watch:run:playwright:pg": "rm -f ./test_noco.db; cross-env DB_TYPE=pg NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
+    "watch:run:playwright": "rm -f ./test_*.db; cross-env DB_TYPE=sqlite DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
+    "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NODE_ENV=test DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
+    "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NODE_ENV=test NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
+    "test:unit": "cross-env EE=false NODE_ENV=test TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
+    "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env NODE_ENV=test EE=false TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
@@ -97,9 +99,10 @@
     "express": "^4.18.3",
     "fast-levenshtein": "^2.0.6",
     "fs-extra": "^9.1.0",
-    "glob": "^7.2.3",
+    "glob": "^10.4.5",
     "handlebars": "^4.7.8",
     "html-to-json-parser": "^2.0.1",
+    "iconv-lite": "^0.6.3",
     "import-fresh": "^3.3.0",
     "inflection": "^1.13.4",
     "ioredis": "^5.4.1",
@@ -116,15 +119,14 @@
     "lodash": "^4.17.21",
     "mailersend": "^1.5.0",
     "marked": "^4.3.0",
+    "mime": "^2.6.0",
     "minio": "^8.0.1",
     "mkdirp": "^2.1.6",
     "mssql": "^10.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.9.7",
     "nanoid": "^3.3.7",
-    "nc-help": "0.3.4",
-    "nc-lib-gui": "0.252.0",
-    "nc-plugin": "^0.1.6",
+    "nc-lib-gui": "0.258.3",
     "nestjs-throttler-storage-redis": "^0.4.4",
     "nocodb-sdk": "workspace:^",
     "nodemailer": "^6.9.13",
@@ -196,22 +198,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "webpack-cli": "^5.1.4"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

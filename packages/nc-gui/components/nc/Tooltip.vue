@@ -7,6 +7,7 @@ interface Props {
   // Key to be pressed on hover to trigger the tooltip
   modifierKey?: string
   tooltipStyle?: CSSProperties
+  attrs?: Record<string, unknown>
   // force disable tooltip
   color?: 'dark' | 'light'
   disabled?: boolean
@@ -28,10 +29,13 @@ const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
 const wrapChild = computed(() => props.wrapChild ?? 'div')
+const attributes = computed(() => props.attrs)
 
 const color = computed(() => (props.color ? props.color : 'dark'))
 
 const el = ref()
+
+const element = ref()
 
 const showTooltip = controlledRef(false, {
   onBeforeChange: (shouldShow) => {
@@ -40,6 +44,8 @@ const showTooltip = controlledRef(false, {
 })
 
 const isHovering = useElementHover(() => el.value)
+
+const isOverlayHovering = useElementHover(() => element.value)
 
 const attrs = useAttrs()
 
@@ -72,38 +78,51 @@ onKeyStroke(
   { eventName: 'keyup' },
 )
 
-watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, key, isDisabled]) => {
-  if (showOnTruncateOnly?.value) {
-    const targetElement = el?.value
-    const isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
-    if (!isElementTruncated) {
+watchDebounced(
+  [isOverlayHovering, isHovering, () => modifierKey.value, () => disabled.value],
+  ([overlayHovering, hovering, key, isDisabled]) => {
+    if (showOnTruncateOnly?.value) {
+      const targetElement = el?.value
+      const isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+      if (!isElementTruncated) {
+        if (overlayHovering) {
+          showTooltip.value = true
+          return
+        }
+        showTooltip.value = false
+        return
+      }
+    }
+    if (overlayHovering) {
+      showTooltip.value = true
+      return
+    }
+    if ((!hovering || isDisabled) && !props.mouseLeaveDelay) {
       showTooltip.value = false
       return
     }
-  }
 
-  if ((!hovering || isDisabled) && !props.mouseLeaveDelay) {
-    showTooltip.value = false
-    return
-  }
+    // Show tooltip on mouseover if no modifier key is provided
+    if (hovering && !key) {
+      showTooltip.value = true
+      return
+    }
 
-  // Show tooltip on mouseover if no modifier key is provided
-  if (hovering && !key) {
-    showTooltip.value = true
-    return
-  }
+    // While hovering if the modifier key was changed and the key is not pressed, hide tooltip
+    if (hovering && key && !isKeyPressed.value) {
+      showTooltip.value = false
+      return
+    }
 
-  // While hovering if the modifier key was changed and the key is not pressed, hide tooltip
-  if (hovering && key && !isKeyPressed.value) {
-    showTooltip.value = false
-    return
-  }
-
-  // When mouse leaves the element, then re-enters the element while key stays pressed, show the tooltip
-  if (!showTooltip.value && hovering && key && isKeyPressed.value) {
-    showTooltip.value = true
-  }
-})
+    // When mouse leaves the element, then re-enters the element while key stays pressed, show the tooltip
+    if (!showTooltip.value && hovering && key && isKeyPressed.value) {
+      showTooltip.value = true
+    }
+  },
+  {
+    debounce: 100,
+  },
+)
 
 const divStyles = computed(() => ({
   style: attrs.style as CSSProperties,
@@ -129,10 +148,20 @@ const onClick = () => {
     :mouse-leave-delay="mouseLeaveDelay"
   >
     <template #title>
-      <slot name="title" />
+      <div ref="element">
+        <slot name="title" />
+      </div>
     </template>
 
-    <component :is="wrapChild" ref="el" v-bind="divStyles" @mousedown="onClick">
+    <component
+      :is="wrapChild"
+      ref="el"
+      v-bind="{
+        ...divStyles,
+        ...attributes,
+      }"
+      @mousedown="onClick"
+    >
       <slot />
     </component>
   </a-tooltip>

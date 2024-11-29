@@ -4,6 +4,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -39,8 +40,11 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { LinkToAnotherRecordColumn } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 
 const { v4: uuidv4 } = require('uuid');
+
+const logger = new Logger('View');
 
 /*
 type ViewColumn =
@@ -61,6 +65,7 @@ type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
 export default class View implements ViewType {
   id?: string;
   title: string;
+  description?: string;
   uuid?: string;
   password?: string;
   show: boolean;
@@ -68,6 +73,8 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  created_by?: string;
+  owned_by?: string;
 
   fk_model_id: string;
   model?: Model;
@@ -258,6 +265,7 @@ export default class View implements ViewType {
       'id',
       'title',
       'is_default',
+      'description',
       'type',
       'fk_model_id',
       'base_id',
@@ -415,6 +423,7 @@ export default class View implements ViewType {
           {
             ...extractProps(filter, [
               'id',
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',
@@ -549,6 +558,10 @@ export default class View implements ViewType {
       { modelId: view.fk_model_id },
       ncMeta,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return View.get(context, view_id, ncMeta).then(async (v) => {
       await NocoCache.appendToList(
@@ -1250,17 +1263,22 @@ export default class View implements ViewType {
       password?: string;
       uuid?: string;
       meta?: any;
+      owned_by?: string;
+      created_by?: string;
     },
+    includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
       'title',
       'order',
+      'description',
       'show_system_fields',
       'lock_type',
       'password',
       'meta',
       'uuid',
+      ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
     ]);
 
     const oldView = await this.get(context, viewId, ncMeta);
@@ -1301,6 +1319,10 @@ export default class View implements ViewType {
 
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return view;
   }
@@ -1386,6 +1408,10 @@ export default class View implements ViewType {
     }
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await Model.getNonDefaultViewsCountAndReset(
       context,
@@ -1758,7 +1784,10 @@ export default class View implements ViewType {
 
     if (viewColumns) {
       for (let i = 0; i < viewColumns.length; i++) {
-        const column = viewColumns[i];
+        const column =
+          view.type === ViewTypes.FORM
+            ? prepareForDb(viewColumns[i])
+            : viewColumns[i];
 
         insertObjs.push({
           ...extractProps(column, [
@@ -1961,6 +1990,8 @@ export default class View implements ViewType {
         copy_from_id?: string;
         fk_grp_col_id?: string;
         calendar_range?: Partial<CalendarRange>[];
+        created_by: string;
+        owned_by: string;
       },
     model: {
       getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
@@ -1971,11 +2002,15 @@ export default class View implements ViewType {
       'id',
       'title',
       'is_default',
+      'description',
       'type',
       'fk_model_id',
       'base_id',
       'source_id',
       'meta',
+      'created_by',
+      'owned_by',
+      'lock_type',
     ]);
 
     if (!insertObj.order) {
@@ -2132,6 +2167,7 @@ export default class View implements ViewType {
 
           filterInsertObjs.push({
             ...extractProps(filter, [
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',

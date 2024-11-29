@@ -1,5 +1,5 @@
 import UITypes from '../UITypes';
-import { IDType } from '~/lib';
+import { ColumnType, IDType } from '~/lib';
 
 const dbTypes = [
   'int',
@@ -1281,6 +1281,7 @@ export class MysqlUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return [
           'char',
           'varchar',
@@ -1325,7 +1326,6 @@ export class MysqlUi {
           'multipolygon',
         ];
 
-      case 'Button':
       default:
         return dbTypes;
     }
@@ -1333,6 +1333,24 @@ export class MysqlUi {
 
   static getUnsupportedFnList() {
     return ['COUNTA', 'COUNT', 'DATESTR'];
+  }
+
+  static getCurrentDateDefault(col: Partial<ColumnType>) {
+    // if database datatype timestamp or datetime then return CURRENT_TIMESTAMP
+    if (
+      col.dt &&
+      (col.dt.toLowerCase() === 'timestamp' ||
+        col.dt.toLowerCase() === 'datetime')
+    ) {
+      return 'CURRENT_TIMESTAMP';
+    }
+
+    // database type is not defined(means column create) and ui datatype is datetime then return CURRENT_TIMESTAMP
+    // in this scenario it will create column with datatype timestamp/datetime
+    if (!col.dt && col.uidt === UITypes.DateTime) {
+      return 'CURRENT_TIMESTAMP';
+    }
+    return null;
   }
 
   static isEqual(dataType1: string, dataType2: string) {

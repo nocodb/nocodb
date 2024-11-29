@@ -9,6 +9,27 @@ export enum ViewTypes {
   CALENDAR = 6,
 }
 
+export const viewTypeAlias: Record<ViewTypes, string> = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+};
+
+export const viewTypeToStringMap: Record<ViewTypes, string> = {
+  ...viewTypeAlias,
+};
+
+// Generate reverse mapping from the original viewTypeAlias
+export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
+  viewTypeAlias
+).reduce((acc, [key, value]) => {
+  acc[value] = Number(key);
+  return acc;
+}, {});
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
@@ -176,6 +197,7 @@ export enum NcErrorType {
   FIELD_NOT_FOUND = 'FIELD_NOT_FOUND',
   RECORD_NOT_FOUND = 'RECORD_NOT_FOUND',
   GENERIC_NOT_FOUND = 'GENERIC_NOT_FOUND',
+  HOOK_NOT_FOUND = 'HOOK_NOT_FOUND',
   REQUIRED_FIELD_MISSING = 'REQUIRED_FIELD_MISSING',
   ERROR_DUPLICATE_RECORD = 'ERROR_DUPLICATE_RECORD',
   USER_NOT_FOUND = 'USER_NOT_FOUND',
@@ -194,6 +216,9 @@ export enum NcErrorType {
   TABLE_ASSOCIATED_WITH_LINK = 'TABLE_ASSOCIATED_WITH_LINK',
   INTEGRATION_NOT_FOUND = 'INTEGRATION_NOT_FOUND',
   INTEGRATION_LINKED_WITH_BASES = 'INTEGRATION_LINKED_WITH_BASES',
+  FORMULA_ERROR = 'FORMULA_ERROR',
+  PERMISSION_DENIED = 'PERMISSION_DENIED',
+  INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
 }
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;

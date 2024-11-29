@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
-import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
+import { nocoExecute } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { serializeCellValue } from '~/helpers/dataHelpers';
@@ -50,6 +50,11 @@ export class PublicDatasExportController {
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
       NcError.invalidSharedViewPassword();
+    }
+
+    // check if download is allowed, in general it's called as CSV download
+    if (!view.meta?.allowCSVDownload) {
+      NcError.forbidden('Download is not allowed for this view');
     }
 
     const model = await view.getModelWithInfo(context);
@@ -113,6 +118,11 @@ export class PublicDatasExportController {
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
       NcError.invalidSharedViewPassword();
+    }
+
+    // check if download is allowed
+    if (!view.meta?.allowCSVDownload) {
+      NcError.forbidden('Download is not allowed for this view');
     }
 
     const model = await view.getModelWithInfo(context);

@@ -16,6 +16,7 @@ import { TimeCellPageObject } from './TimeCell';
 import { GroupPageObject } from '../../Grid/Group';
 import { UserOptionCellPageObject } from './UserOptionCell';
 import { SurveyFormPage } from '../../SurveyForm';
+import { ButtonCellPageObject } from './ButtonCell';
 
 export interface CellProps {
   indexMap?: Array<number>;
@@ -35,6 +36,7 @@ export class CellPageObject extends BasePage {
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
   readonly userOption: UserOptionCellPageObject;
+  readonly button: ButtonCellPageObject;
 
   constructor(parent: GridPage | SharedFormPage | SurveyFormPage | GroupPageObject) {
     super(parent.rootPage);
@@ -49,6 +51,7 @@ export class CellPageObject extends BasePage {
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
     this.userOption = new UserOptionCellPageObject(this);
+    this.button = new ButtonCellPageObject(this);
   }
 
   get({ indexMap, index, columnHeader }: CellProps): Locator {

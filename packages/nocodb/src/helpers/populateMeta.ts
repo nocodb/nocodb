@@ -3,6 +3,7 @@ import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
+import type { UserType } from 'nocodb-sdk';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type Source from '~/models/Source';
@@ -205,9 +206,17 @@ export async function extractAndGenerateManyToManyRelations(
 
 export async function populateMeta(
   context: NcContext,
-  source: Source,
-  base: Base,
-  logger?: (message: string) => void,
+  {
+    source,
+    base,
+    logger,
+    user,
+  }: {
+    source: Source;
+    base: Base;
+    logger?: (message: string) => void;
+    user: UserType;
+  },
 ): Promise<any> {
   const info = {
     type: 'rest',
@@ -271,11 +280,13 @@ export async function populateMeta(
     };
   }
 
+  const userId = user?.id;
+
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
-    logger?.(`Populating meta for table '${table.title}'`);
     return async () => {
+      logger?.(`Populating meta for table '${table.title}'`);
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
         (r) => r.tn === table.tn || r.rtn === table.tn,
@@ -347,6 +358,7 @@ export async function populateMeta(
           title: table.title,
           type: table.type || 'table',
           order: table.order,
+          user_id: userId,
         },
       );
 
@@ -385,6 +397,8 @@ export async function populateMeta(
           }
           column.title = `${column.title}${c || ''}`;
           columnNames[column.title] = true;
+
+          logger?.(`Populating meta for column '${column.title}'`);
 
           const rel = column.hm || column.bt;
 
@@ -429,8 +443,12 @@ export async function populateMeta(
           } catch (e) {
             console.log(e);
           }
+
+          logger?.(`Populated meta for column '${column.title}'`);
         }
       });
+
+      logger?.(`Populated meta for table '${table.title}'`);
     };
   });
 
@@ -462,7 +480,6 @@ export async function populateMeta(
   info.viewsCount = views.length;
 
   const viewMetasInsert = views.map((table) => {
-    logger?.(`Populating meta for view '${table.title}'`);
     return async () => {
       const columns = (
         await sqlClient.columnList({
@@ -484,6 +501,7 @@ export async function populateMeta(
           // todo: sanitize
           type: ModelTypes.VIEW,
           order: table.order,
+          user_id: userId,
         },
       );
 
@@ -501,6 +519,8 @@ export async function populateMeta(
           uidt: getColumnUiType(source, column),
         });
       }
+
+      logger?.(`Populated meta for view '${table.title}'`);
     };
   });
 

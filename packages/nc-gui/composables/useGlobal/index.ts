@@ -40,23 +40,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
 
   const getters = useGlobalGetters(state)
 
-  const actions = useGlobalActions(state)
-
-  /** try to refresh token before expiry (5 min before expiry) */
-  watch(
-    () =>
-      !!(
-        state.jwtPayload.value &&
-        state.jwtPayload.value.exp &&
-        state.jwtPayload.value.exp - 5 * 60 < state.timestamp.value / 1000
-      ),
-    async (expiring: boolean) => {
-      if (getters.signedIn.value && state.jwtPayload.value && expiring) {
-        await actions.refreshToken()
-      }
-    },
-    { immediate: true },
-  )
+  const actions = useGlobalActions(state, getters)
 
   watch(
     state.jwtPayload,

@@ -1,8 +1,7 @@
 import type { Api } from 'nocodb-sdk'
-
 const DbNotFoundMsg = 'Database config not found'
 
-let refreshTokenPromise: Promise<string> | null = null
+const TIMEOUT_RETRY_COUNT = 1
 
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
@@ -15,8 +14,9 @@ export function addAxiosInterceptors(api: Api<any>) {
   axiosInstance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    // Add auth header only if signed in and if `xc-short-token` header is not present (for short-lived tokens used for token generation)
-    if (state.token.value && !config.headers['xc-short-token']) config.headers['xc-auth'] = state.token.value
+    if (state.token.value && !config.headers['xc-short-token']) {
+      config.headers['xc-auth'] = state.token.value
+    }
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles') && state.previewAs?.value) {
       config.headers['xc-preview'] = state.previewAs.value
@@ -39,101 +39,68 @@ export function addAxiosInterceptors(api: Api<any>) {
     return config
   })
 
-  // Return a successful response back to the calling service
   axiosInstance.interceptors.response.use(
-    (response) => {
-      return response
-    },
-    // Handle Error
-    (error) => {
-      if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/base/0')
+    (response) => response,
+    async (error) => {
+      const isSharedPage =
+        route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
 
-      // Return any error which is not due to authentication back to the calling service
+      if (error.code === 'ERR_CANCELED') return Promise.reject(error)
+
+      if (error.response?.data?.msg === DbNotFoundMsg) {
+        return router.replace('/base/0')
+      }
+
       if (!error.response || error.response.status !== 401) {
         return Promise.reject(error)
       }
 
-      // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/token/refresh') {
-        state.signOut()
+        await state.signOut({
+          redirectToSignin: !route.value.meta.public,
+          skipApiCall: true,
+        })
         return Promise.reject(error)
       }
 
-      let refreshTokenPromiseRes: (token: string) => void
-      let refreshTokenPromiseRej: (e: Error) => void
+      let retry = 0
+      do {
+        try {
+          const token = await state.refreshToken({
+            axiosInstance,
+            skipLogout: true,
+          })
 
-      // avoid multiple refresh token requests by multiple requests at the same time
-      // wait for the first request to finish and then retry the failed requests
-      if (refreshTokenPromise) {
-        // if previous refresh token request succeeds use the token and retry request
-        return refreshTokenPromise
-          .then((token) => {
-            // New request with new token
-            return new Promise((resolve, reject) => {
-              const config = error.config
-              config.headers['xc-auth'] = token
-              axiosInstance
-                .request(config)
-                .then((response) => {
-                  resolve(response)
-                })
-                .catch((error) => {
-                  reject(error)
-                })
+          if (!token) {
+            await state.signOut({
+              redirectToSignin: !isSharedPage,
+              skipApiCall: true,
             })
-          })
-          .catch(() => {
-            // ignore since it could have already been handled and redirected to sign in
-          })
-      } else {
-        refreshTokenPromise = new Promise<string>((resolve, reject) => {
-          refreshTokenPromiseRes = resolve
-          refreshTokenPromiseRej = reject
-        })
+            return Promise.reject(error)
+          }
 
-        // set a catch on the promise to avoid unhandled promise rejection
-        refreshTokenPromise.catch(() => {
-          // ignore
-        })
-      }
-
-      // Try request again with new token
-      return axiosInstance
-        .post('/auth/token/refresh', null, {
-          withCredentials: true,
-        })
-        .then((token) => {
-          // New request with new token
           const config = error.config
-          config.headers['xc-auth'] = token.data.token
-          state.signIn(token.data.token, true)
+          config.headers['xc-auth'] = token
 
-          // resolve the refresh token promise and reset
-          refreshTokenPromiseRes(token.data.token)
-          refreshTokenPromise = null
+          const response = await axiosInstance.request(config)
+          return response
+        } catch (refreshTokenError) {
+          if ((refreshTokenError as any)?.code === 'ERR_CANCELED') {
+            return Promise.reject(refreshTokenError)
+          }
 
-          return new Promise((resolve, reject) => {
-            axiosInstance
-              .request(config)
-              .then((response) => {
-                resolve(response)
-              })
-              .catch((error) => {
-                reject(error)
-              })
-          })
-        })
-        .catch(async (refreshTokenError) => {
-          await state.signOut()
+          // if shared execution error, don't sign out
+          if (!(refreshTokenError instanceof SharedExecutionError)) {
+            await state.signOut({
+              redirectToSignin: !isSharedPage,
+              skipApiCall: true,
+            })
+            return Promise.reject(error)
+          }
 
-          if (!route.value.meta.public) navigateTo('/signIn')
-
-          // reject the refresh token promise and reset
-          refreshTokenPromiseRej(refreshTokenError)
-          refreshTokenPromise = null
-
-          return Promise.reject(error)
-        })
+          if (retry >= TIMEOUT_RETRY_COUNT) return Promise.reject(error)
+        }
+      } while (retry++ < TIMEOUT_RETRY_COUNT)
     },
   )
 

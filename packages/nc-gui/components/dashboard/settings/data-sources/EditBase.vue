@@ -413,10 +413,12 @@ function handleAutoScroll(scroll: boolean, className: string) {
                       >
                         <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                           <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
-                            <GeneralBaseLogo
-                              v-if="integration.type"
-                              :source-type="integration.sub_type"
-                              class="flex-none h-4 w-4"
+                            <GeneralIntegrationIcon
+                              v-if="integration?.sub_type"
+                              :type="integration.sub_type"
+                              :style="{
+                                filter: 'grayscale(100%) brightness(115%)',
+                              }"
                             />
                             <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                               <template #title>
@@ -624,7 +626,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             :loading="testingConnection"
             :disabled="isLoading"
             icon-position="right"
-            @click="testConnection"
+            @click="testConnection()"
           >
             <template #icon>
               <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />

@@ -127,7 +127,7 @@ const mssql = {
         FORMAT(DATEADD(${String((await fn(pt.arguments[2])).builder).replace(
           /["']/g,
           '',
-        )}, 
+        )},
         ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${
           (await fn(pt.arguments[0])).builder
         }), 'yyyy-MM-dd HH:mm:ss')
@@ -135,7 +135,7 @@ const mssql = {
        FORMAT(DATEADD(${String((await fn(pt.arguments[2])).builder).replace(
          /["']/g,
          '',
-       )}, 
+       )},
        ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${
           (await fn(pt.arguments[0])).builder
         }), 'yyyy-MM-dd')
@@ -206,6 +206,17 @@ const mssql = {
           )
           .wrap('(', ')')
           .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
+      ),
+    };
+  },
+  JSON_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `CASE WHEN ISJSON(${
+          (await fn(pt.arguments[0])).builder
+        }) = 1 THEN JSON_VALUE(${(await fn(pt.arguments[0])).builder}, ${
+          (await fn(pt.arguments[1])).builder
+        }) ELSE NULL END${colAlias}`,
       ),
     };
   },

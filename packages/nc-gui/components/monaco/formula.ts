@@ -43,7 +43,17 @@ const generateLanguageDefinition = (identifiers: string[]) => {
         [/"/, { token: 'string.quote', bracket: '@open', next: '@dblString' }],
         [/'/, { token: 'string.quote', bracket: '@open', next: '@sglString' }],
         [
-          new RegExp(`\\{(${identifiers.join('|').replace(/[{}]/g, '')})\\}`),
+          new RegExp(
+            `\\{(${identifiers
+              .map((identifier) =>
+                identifier
+                  // remove curly braces wrapping the identifier
+                  .replace(/^\{([\s\S]+)\}$/, '$1')
+                  // escape special characters
+                  .replace(/[.*+?^${}()|[\]\\-]/g, '\\$&'),
+              )
+              .join('|')})\\}`,
+          ),
           {
             cases: {
               '@identifiers': 'identifier',
@@ -62,7 +72,7 @@ const generateLanguageDefinition = (identifiers: string[]) => {
         ],
         [/\d+/, 'number'],
         [/[-+/*=<>!]+/, 'operator'],
-        [/[{}()\[\]]/, '@brackets'],
+        [/[{}()]/, '@brackets'],
         [/[ \t\r\n]+/, 'white'],
       ],
 
@@ -86,12 +96,10 @@ const generateLanguageDefinition = (identifiers: string[]) => {
 const languageConfiguration: languages.LanguageConfiguration = {
   brackets: [
     ['{', '}'],
-    ['[', ']'],
     ['(', ')'],
   ],
   autoClosingPairs: [
     { open: '{', close: '}' },
-    { open: '[', close: ']' },
     { open: '(', close: ')' },
     { open: '"', close: '"' },
     { open: "'", close: "'" },

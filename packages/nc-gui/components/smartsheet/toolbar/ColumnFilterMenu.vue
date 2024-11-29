@@ -67,36 +67,43 @@ eventBus.on(async (event, column: ColumnType) => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
   >
-    <NcButton
-      v-e="['c:filter']"
-      :disabled="isLocked"
-      class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
-      size="small"
-      type="secondary"
-    >
-      <div class="flex items-center gap-1">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.filter" class="h-4 w-4" />
-          <!-- Filter -->
-          <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-            $t('activity.filter')
-          }}</span>
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+      <template #title>
+        {{ $t('activity.filter') }}
+      </template>
+
+      <NcButton
+        v-e="['c:filter']"
+        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
+        :show-as-disabled="isLocked"
+      >
+        <div class="flex items-center gap-1 min-h-5">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.filter" class="h-4 w-4" />
+            <!-- Filter -->
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+              $t('activity.filter')
+            }}</span>
+          </div>
+          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
         </div>
-        <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
-      </div>
-    </NcButton>
+      </NcButton>
+    </NcTooltip>
 
     <template #overlay>
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         v-model:draft-filter="draftFilter"
+        v-model:is-open="open"
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
-        :is-open="open"
+        :is-view-filter="true"
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>

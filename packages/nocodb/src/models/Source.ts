@@ -1,5 +1,4 @@
 import { UITypes } from 'nocodb-sdk';
-import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
@@ -24,7 +23,14 @@ import {
 } from '~/utils/modelUtils';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
-import { deepMerge, partialExtract } from '~/utils';
+import View from '~/models/View';
+import {
+  decryptPropIfRequired,
+  deepMerge,
+  encryptPropIfRequired,
+  isEncryptionRequired,
+  partialExtract,
+} from '~/utils';
 
 export default class Source implements SourceType {
   id?: string;
@@ -33,6 +39,7 @@ export default class Source implements SourceType {
   alias?: string;
   type?: DriverClient;
   is_meta?: BoolType;
+  is_local?: BoolType;
   is_schema_readonly?: BoolType;
   is_data_readonly?: BoolType;
   config?: string;
@@ -45,6 +52,7 @@ export default class Source implements SourceType {
   fk_integration_id?: string;
   integration_config?: string;
   integration_title?: string;
+  is_encrypted?: boolean;
 
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
@@ -54,6 +62,11 @@ export default class Source implements SourceType {
     return source && new Source(source);
   }
 
+  protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
+    obj.config = encryptPropIfRequired({ data: obj });
+    obj.is_encrypted = isEncryptionRequired();
+  }
+
   public static async createBase(
     context: NcContext,
     source: SourceType & {
@@ -61,6 +74,7 @@ export default class Source implements SourceType {
       created_at?;
       updated_at?;
       meta?: any;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -70,6 +84,7 @@ export default class Source implements SourceType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -78,34 +93,32 @@ export default class Source implements SourceType {
       'is_schema_readonly',
       'is_data_readonly',
       'fk_integration_id',
+      'is_encrypted',
     ]);
 
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(source.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.SOURCES, {
       base_id: source.baseId,
     });
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       insertObj,
     );
 
     const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
-      CacheScope.BASE,
+      CacheScope.SOURCE,
       [source.baseId],
-      `${CacheScope.BASE}:${id}`,
+      `${CacheScope.SOURCE}:${id}`,
     );
 
     return returnBase;
@@ -118,6 +131,7 @@ export default class Source implements SourceType {
       meta?: any;
       deleted?: boolean;
       fk_sql_executor_id?: string;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -130,6 +144,7 @@ export default class Source implements SourceType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -140,13 +155,11 @@ export default class Source implements SourceType {
       'is_schema_readonly',
       'is_data_readonly',
       'fk_integration_id',
+      'is_encrypted',
     ]);
 
     if (updateObj.config) {
-      updateObj.config = CryptoJS.AES.encrypt(
-        JSON.stringify(source.config),
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString();
+      this.encryptConfigIfRequired(updateObj);
     }
 
     // type property is undefined even if not provided
@@ -160,7 +173,7 @@ export default class Source implements SourceType {
 
     // if order is missing (possible in old versions), get next order
     if (!oldSource.order && !updateObj.order) {
-      updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+      updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.SOURCES, {
         base_id: oldSource.base_id,
       });
 
@@ -182,7 +195,7 @@ export default class Source implements SourceType {
 
       // if order is 1 for non-default source, move it to last
       if (oldSource.order <= 1 && !updateObj.order) {
-        updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+        updateObj.order = await ncMeta.metaGetNextOrder(MetaTable.SOURCES, {
           base_id: oldSource.base_id,
         });
       }
@@ -191,15 +204,20 @@ export default class Source implements SourceType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       prepareForDb(updateObj),
       oldSource.id,
     );
 
     await NocoCache.update(
-      `${CacheScope.BASE}:${sourceId}`,
+      `${CacheScope.SOURCE}:${sourceId}`,
       prepareForResponse(updateObj),
     );
+
+    // trigger cache clear and don't wait
+    this.updateRelatedCaches(context, sourceId, ncMeta).catch((e) => {
+      console.error(e);
+    });
 
     if (JobsRedis.available) {
       await JobsRedis.emitWorkerCommand(InstanceCommands.RELEASE, sourceId);
@@ -214,20 +232,22 @@ export default class Source implements SourceType {
     args: { baseId: string },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
-    const cachedList = await NocoCache.getList(CacheScope.BASE, [args.baseId]);
+    const cachedList = await NocoCache.getList(CacheScope.SOURCE, [
+      args.baseId,
+    ]);
     let { list: sourceDataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sourceDataList.length) {
       const qb = ncMeta
-        .knex(MetaTable.BASES)
-        .select(`${MetaTable.BASES}.*`)
-        .where(`${MetaTable.BASES}.base_id`, context.base_id)
+        .knex(MetaTable.SOURCES)
+        .select(`${MetaTable.SOURCES}.*`)
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id)
         .where((whereQb) => {
           whereQb
-            .where(`${MetaTable.BASES}.deleted`, false)
-            .orWhereNull(`${MetaTable.BASES}.deleted`);
+            .where(`${MetaTable.SOURCES}.deleted`, false)
+            .orWhereNull(`${MetaTable.SOURCES}.deleted`);
         })
-        .orderBy(`${MetaTable.BASES}.order`, 'asc');
+        .orderBy(`${MetaTable.SOURCES}.order`, 'asc');
 
       this.extendQb(qb, context);
 
@@ -238,7 +258,7 @@ export default class Source implements SourceType {
         source.meta = parseMetaProp(source, 'meta');
       }
 
-      await NocoCache.setList(CacheScope.BASE, [args.baseId], sourceDataList);
+      await NocoCache.setList(CacheScope.SOURCE, [args.baseId], sourceDataList);
     }
 
     sourceDataList.sort(
@@ -259,23 +279,23 @@ export default class Source implements SourceType {
     let sourceData =
       id &&
       (await NocoCache.get(
-        `${CacheScope.BASE}:${id}`,
+        `${CacheScope.SOURCE}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!sourceData) {
       const qb = ncMeta
-        .knex(MetaTable.BASES)
-        .select(`${MetaTable.BASES}.*`)
-        .where(`${MetaTable.BASES}.id`, id)
-        .where(`${MetaTable.BASES}.base_id`, context.base_id);
+        .knex(MetaTable.SOURCES)
+        .select(`${MetaTable.SOURCES}.*`)
+        .where(`${MetaTable.SOURCES}.id`, id)
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id);
 
       this.extendQb(qb, context);
 
       if (!force) {
         qb.where((whereQb) => {
           whereQb
-            .where(`${MetaTable.BASES}.deleted`, false)
-            .orWhereNull(`${MetaTable.BASES}.deleted`);
+            .where(`${MetaTable.SOURCES}.deleted`, false)
+            .orWhereNull(`${MetaTable.SOURCES}.deleted`);
         });
       }
 
@@ -285,12 +305,21 @@ export default class Source implements SourceType {
         sourceData.meta = parseMetaProp(sourceData, 'meta');
       }
 
-      await NocoCache.set(`${CacheScope.BASE}:${id}`, sourceData);
+      await NocoCache.set(`${CacheScope.SOURCE}:${id}`, sourceData);
     }
     return this.castType(sourceData);
   }
 
   public async getConnectionConfig(): Promise<any> {
+    if (this.is_meta || this.is_local) {
+      const metaConfig = await NcConnectionMgrv2.getDataConfig();
+      const config = { ...metaConfig };
+      if (config.client === 'sqlite3') {
+        config.connection = metaConfig;
+      }
+      return config;
+    }
+
     const config = this.getConfig();
 
     // todo: update sql-client args
@@ -301,7 +330,6 @@ export default class Source implements SourceType {
 
     return config;
   }
-
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
@@ -312,12 +340,9 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const config = decryptPropIfRequired({
+      data: this,
+    });
 
     if (skipIntegrationConfig) {
       return config;
@@ -327,12 +352,10 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const integrationConfig = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.integration_config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const integrationConfig = decryptPropIfRequired({
+      data: this,
+      prop: 'integration_config',
+    });
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
@@ -457,12 +480,12 @@ export default class Source implements SourceType {
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       this.id,
     );
 
     await NocoCache.deepDel(
-      `${CacheScope.BASE}:${this.id}`,
+      `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
@@ -487,7 +510,7 @@ export default class Source implements SourceType {
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 
     await NocoCache.deepDel(
-      `${CacheScope.BASE}:${this.id}`,
+      `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
@@ -509,14 +532,14 @@ export default class Source implements SourceType {
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
-        MetaTable.BASES,
+        MetaTable.SOURCES,
         {
           erd_uuid: this.erd_uuid,
         },
         this.id,
       );
 
-      await NocoCache.update(`${CacheScope.BASE}:${this.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${this.id}`, {
         erd_uuid: this.erd_uuid,
       });
     }
@@ -531,14 +554,14 @@ export default class Source implements SourceType {
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
-        MetaTable.BASES,
+        MetaTable.SOURCES,
         {
           erd_uuid: this.erd_uuid,
         },
         this.id,
       );
 
-      await NocoCache.update(`${CacheScope.BASE}:${this.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${this.id}`, {
         erd_uuid: this.erd_uuid,
       });
     }
@@ -550,9 +573,9 @@ export default class Source implements SourceType {
       if (_mode === 0) {
         return this.is_meta;
       }
-      return false;
+      return this.is_local;
     } else {
-      return this.is_meta;
+      return this.is_meta || this.is_local;
     }
   }
 
@@ -562,8 +585,26 @@ export default class Source implements SourceType {
       `${MetaTable.INTEGRATIONS}.title as integration_title`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
-      `${MetaTable.BASES}.fk_integration_id`,
+      `${MetaTable.SOURCES}.fk_integration_id`,
       `${MetaTable.INTEGRATIONS}.id`,
     );
+  }
+
+  private static async updateRelatedCaches(
+    context: NcContext,
+    sourceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get models
+    const models = await Model.list(
+      context,
+      { source_id: sourceId, base_id: context.base_id },
+      ncMeta,
+    );
+
+    // clear single query caches for models
+    for (const model of models) {
+      await View.clearSingleQueryCache(context, model.id, null, ncMeta);
+    }
   }
 }

@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { Readable } from 'stream';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import type { Readable } from 'stream';
+import { globStream } from 'glob';
+import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 export default class Local implements IStorageAdapterV2 {
-  constructor() {}
+  name = 'Local';
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
@@ -69,13 +70,21 @@ export default class Local implements IStorageAdapterV2 {
   public async fileCreateByStream(
     key: string,
     stream: Readable,
-  ): Promise<void> {
+  ): Promise<string | null> {
     return new Promise((resolve, reject) => {
       const destPath = validateAndNormaliseLocalPath(key);
       try {
         mkdirp(path.dirname(destPath)).then(() => {
           const writableStream = fs.createWriteStream(destPath);
-          writableStream.on('finish', () => resolve());
+          writableStream.on('finish', () => {
+            this.fileRead(destPath)
+              .then(() => {
+                resolve(null);
+              })
+              .catch((e) => {
+                reject(e);
+              });
+          });
           writableStream.on('error', (err) => reject(err));
           stream.pipe(writableStream);
         });
@@ -85,9 +94,16 @@ export default class Local implements IStorageAdapterV2 {
     });
   }
 
-  public async fileReadByStream(key: string): Promise<Readable> {
+  public async fileReadByStream(
+    key: string,
+    options: { encoding?: string },
+  ): Promise<Readable> {
     const srcPath = validateAndNormaliseLocalPath(key);
-    return fs.createReadStream(srcPath, { encoding: 'utf8' });
+    return fs.createReadStream(srcPath, {
+      ...(options?.encoding && {
+        encoding: options.encoding as BufferEncoding,
+      }),
+    });
   }
 
   public async getDirectoryList(key: string): Promise<string[]> {
@@ -95,9 +111,8 @@ export default class Local implements IStorageAdapterV2 {
     return fs.promises.readdir(destDir);
   }
 
-  // todo: implement
-  fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  fileDelete(path: string): Promise<any> {
+    return fs.promises.unlink(validateAndNormaliseLocalPath(path));
   }
 
   public async fileRead(filePath: string): Promise<any> {
@@ -109,6 +124,28 @@ export default class Local implements IStorageAdapterV2 {
     } catch (e) {
       throw e;
     }
+  }
+
+  public async scanFiles(globPattern: string) {
+    // Normalize the path separator
+    globPattern = globPattern.replace(/\//g, path.sep);
+
+    // remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
+
+    // remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Ensure the pattern starts with 'nc/uploads/'
+    if (!globPattern.startsWith(path.join('nc', 'uploads'))) {
+      globPattern = path.join('nc', 'uploads', globPattern);
+    }
+
+    const stream = globStream(globPattern, {
+      nodir: true,
+    });
+
+    return Readable.from(stream);
   }
 
   init(): Promise<any> {

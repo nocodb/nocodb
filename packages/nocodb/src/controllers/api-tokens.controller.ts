@@ -47,13 +47,16 @@ export class ApiTokensController {
   }
 
   @Delete([
-    '/api/v1/db/meta/projects/:baseId/api-tokens/:token',
-    '/api/v2/meta/bases/:baseId/api-tokens/:token',
+    '/api/v1/db/meta/projects/:baseId/api-tokens/:tokenId',
+    '/api/v2/meta/bases/:baseId/api-tokens/:tokenId',
   ])
   @Acl('baseApiTokenDelete')
-  async apiTokenDelete(@Req() req: NcRequest, @Param('token') token: string) {
+  async apiTokenDelete(
+    @Req() req: NcRequest,
+    @Param('tokenId') tokenId: string,
+  ) {
     return await this.apiTokensService.apiTokenDelete({
-      token,
+      tokenId,
       user: req['user'],
       req,
     });

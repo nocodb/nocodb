@@ -111,9 +111,9 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div class="nc-all-tables-view">
+  <div class="nc-all-tables-view px-6 pt-6">
     <div
-      class="flex flex-row gap-x-6 pt-6 pb-2 overflow-x-auto nc-scrollbar-thin"
+      class="flex flex-row gap-x-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -199,7 +199,7 @@ const onCreateBaseClick = () => {
       v-else-if="activeTables.length"
       class="flex mt-4"
       :style="{
-        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
+        height: 'calc(100vh - var(--topbar-height) - 218px)',
       }"
     >
       <NcTable
@@ -216,10 +216,10 @@ const onCreateBaseClick = () => {
         <template #bodyCell="{ column, record }">
           <div
             v-if="column.key === 'tableName'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800 font-semibold"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800"
             data-testid="proj-view-list__item-title"
           >
-            <div class="min-w-5 flex items-center justify-center">
+            <div class="min-w-6 flex items-center justify-center">
               <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
             </div>
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>

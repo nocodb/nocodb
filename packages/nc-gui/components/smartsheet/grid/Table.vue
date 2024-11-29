@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
+  ButtonActionsType,
   UITypes,
   ViewTypes,
   isCreatedOrLastModifiedByCol,
@@ -185,6 +186,8 @@ const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   changePage: changePage as any,
   isViewDataLoading,
 })
+
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 // #Variables
 const addColumnDropdown = ref(false)
@@ -446,6 +449,7 @@ const isReadonly = (col: ColumnType) => {
     isLookup(col) ||
     isRollup(col) ||
     isFormula(col) ||
+    isButton(col) ||
     isVirtualCol(col) ||
     isCreatedOrLastModifiedTimeCol(col) ||
     isCreatedOrLastModifiedByCol(col)
@@ -584,6 +588,7 @@ const {
   meta,
   fields,
   dataRef,
+  undefined,
   editEnabled,
   isPkAvail,
   contextMenu,
@@ -591,6 +596,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  undefined,
   async (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
@@ -768,6 +774,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  undefined,
   fillHandle,
   view,
   paginationDataRef,
@@ -785,7 +792,7 @@ async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
 
-function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {
@@ -838,6 +845,71 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.row = null
     activeCell.col = null
   })
+}
+
+const isSelectedOnlyAI = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
+      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const generateAIBulk = async () => {
+  if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  if (!field.id) return
+
+  const rows = dataRef.value.slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  let outputColumnIds = [field.id]
+
+  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
+
+  if (isAiButton) {
+    outputColumnIds =
+      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+        ? field.colOptions.output_column_ids.split(',')
+        : []
+  }
+
+  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+
+  generatingRows.value.push(...pks)
+  generatingColumnRows.value.push(field.id)
+
+  generatingColumns.value.push(...outputColumnIds)
+
+  const res = await generateRows(meta.value.id, field.id, pks)
+
+  if (res) {
+    // find rows using pk and update with generated rows
+    for (const row of res) {
+      const oldRow = dataRef.value.find(
+        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+      )
+
+      if (oldRow) {
+        oldRow.row = { ...oldRow.row, ...row }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
 const selectColumn = (columnId: string) => {
@@ -988,7 +1060,7 @@ const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 const scrollLeft = ref()
 
-function scrollToCell(row?: number | null, col?: number | null) {
+function scrollToCell(row?: number | null, col?: number | null, scrollBehaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
@@ -1019,32 +1091,38 @@ function scrollToCell(row?: number | null, col?: number | null) {
     }
 
     if (row === dataRef.value.length - 1) {
-      scrollWrapper.value.scrollTo({
-        top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
-        left:
-          col === fields.value.length - 1 // if corner cell
-            ? scrollWrapper.value.scrollWidth
-            : tdScroll.left,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
+          left:
+            col === fields.value.length - 1 // if corner cell
+              ? scrollWrapper.value.scrollWidth
+              : tdScroll.left,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     if (col === fields.value.length - 1) {
       // if last column make 'Add New Column' visible
-      scrollWrapper.value.scrollTo({
-        top: tdScroll.top,
-        left: scrollWrapper.value.scrollWidth,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: tdScroll.top,
+          left: scrollWrapper.value.scrollWidth,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     // scroll into the active cell
-    scrollWrapper.value.scrollTo({
-      top: tdScroll.top,
-      left: tdScroll.left,
-      behavior: 'smooth',
+    requestAnimationFrame(() => {
+      scrollWrapper.value.scrollTo({
+        top: tdScroll.top,
+        left: tdScroll.left,
+        behavior: 'instant',
+      })
     })
   }
 }
@@ -1103,36 +1181,41 @@ const saveOrUpdateRecords = async (
   }
 }
 
+const columnWidthLimit = {
+  [UITypes.Attachment]: {
+    minWidth: 80,
+    maxWidth: Number.POSITIVE_INFINITY,
+  },
+  [UITypes.Button]: {
+    minWidth: 100,
+    maxWidth: 320,
+  },
+}
+
+const normalizedWidth = (col: ColumnType, width: number) => {
+  if (col.uidt! in columnWidthLimit) {
+    const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
+
+    if (minWidth < width && width < maxWidth) return width
+    if (width < minWidth) return minWidth
+    if (width > maxWidth) return maxWidth
+  }
+  return width
+}
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
-  if (!colID) return
+  if (!colID || !ncIsString(event?.detail)) return
 
-  // Set 80px minimum width for attachment cells
-  if (metaColumnById.value[colID].uidt === UITypes.Attachment) {
-    const size = event.detail.split('px')[0]
-    if (+size < 80) {
-      updateGridViewColumn(colID, { width: '80px' })
-    } else {
-      updateGridViewColumn(colID, { width: event.detail })
-    }
-  } else {
-    updateGridViewColumn(colID, { width: event.detail })
-  }
+  const size = event.detail.split('px')[0]
+
+  updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
-  if (!cn) return
-  // Set 80px minimum width for attachment cells
-  if (metaColumnById.value[cn].uidt === UITypes.Attachment) {
-    const size = event.detail.split('px')[0]
-    if (+size < 80) {
-      gridViewCols.value[cn].width = '80px'
-    } else {
-      gridViewCols.value[cn].width = `${event.detail}`
-    }
-  } else {
-    gridViewCols.value[cn].width = `${event.detail}`
-  }
+  if (!cn || !ncIsString(event?.detail)) return
+
+  const size = event.detail.split('px')[0]
+  gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1145,9 +1228,19 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
   preloadColumn.value = {
     title,
     uidt: tp,
-    colOptions,
+    ...colOptions,
   }
   persistMenu.value = false
+}
+
+const editOrAddProviderRef = ref()
+
+const onVisibilityChange = () => {
+  addColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    addColumnDropdown.value = false
+    persistMenu.value = altModifier.value
+  }
 }
 
 // Virtual scroll
@@ -1367,6 +1460,17 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
+})
+
+watch(activeCell, (activeCell) => {
+  const row = activeCell.row !== null ? dataRef.value[activeCell.row].row : undefined
+  const col = row && activeCell.col !== null ? fields.value[activeCell.col] : undefined
+  const val = row && col ? row[col.title as string] : undefined
+
+  const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
+  const viewId = view.value?.id
+
+  eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
 })
 
 async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
@@ -1819,91 +1923,84 @@ onKeyStroke('ArrowDown', onDown)
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-grid-add-column"
-                      @visible-change="persistMenu = altModifier"
+                      @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
                         <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="isEeUI && persistMenu" #overlay>
-                        <NcMenu>
-                          <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
+                      <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
+                        <NcMenu class="predict-menu">
+                          <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictColumns') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <NcMenuItem>
-                                  <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-
-                              <NcMenuItem>
-                                <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                                  <div class="text-red-500 text-xs pl-2">
-                                    <MdiReload />
-                                    Generate Again
-                                  </div>
-                                </div>
+                            <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                              <NcMenuItem class="w-full flex items-center" @click="loadColumn(col.title, col.type)">
+                                <div class="text-xs">{{ col.title }}</div>
                               </NcMenuItem>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Columns -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                              <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictColumns') }}
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextColumn(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextColumn(meta.id)">
+                            <!-- Predict Columns -->
+                            <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictColumns') }}
                             </div>
                           </NcMenuItem>
-                          <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                          <NcSubMenu v-if="predictedNextFormulas?.length" key="predict-formula" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictFormulas') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <NcMenuItem>
-                                  <div
-                                    class="flex flex-row items-center py-3"
-                                    @click="
-                                      loadColumn(col.title, 'Formula', {
-                                        formula_raw: col.formula,
-                                      })
-                                    "
-                                  >
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Formulas -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                              <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                              <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictFormulas') }}
+                            <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                              <NcMenuItem
+                                class="flex flex-row items-center"
+                                @click="
+                                  loadColumn(col.title, 'Formula', {
+                                    formula_raw: col.formula,
+                                  })
+                                "
+                              >
+                                <div class="text-xs">{{ col.title }}</div>
+                              </NcMenuItem>
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextFormulas(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextFormulas(meta.id)">
+                            <!-- Predict Formulas -->
+                            <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictFormulas') }}
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -1912,6 +2009,7 @@ onKeyStroke('ArrowDown', onDown)
                         <div class="nc-edit-or-add-provider-wrapper">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
+                            ref="editOrAddProviderRef"
                             :preload="preloadColumn"
                             :column-position="columnOrder"
                             :class="{ hidden: isJsonExpand }"
@@ -2198,8 +2296,8 @@ onKeyStroke('ArrowDown', onDown)
                   @mouseup.stop
                   @click="addEmptyRow()"
                 >
-                  <div
-                    class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  <td
+                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                     :style="{
                       left: `-${leftOffset}px`,
                     }"
@@ -2209,7 +2307,7 @@ onKeyStroke('ArrowDown', onDown)
                       v-if="!isViewColumnsLoading"
                       class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
                     />
-                  </div>
+                  </td>
                   <td class="!border-gray-100" :colspan="visibleColLength"></td>
                 </tr>
               </tbody>
@@ -2281,6 +2379,29 @@ onKeyStroke('ArrowDown', onDown)
             <!--                {{ $t('activity.insertRow') }} -->
             <!--              </div> -->
             <!--            </NcMenuItem> -->
+
+            <NcTooltip
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
+              :disabled="!isSelectedOnlyAI.disabled"
+            >
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcMenuItem
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-bulk"
+                :disabled="isSelectedOnlyAI.disabled"
+                @click="generateAIBulk"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                  <!-- Generate All -->
+                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
 
             <NcMenuItem
               v-if="contextMenuTarget"
@@ -2566,6 +2687,12 @@ onKeyStroke('ArrowDown', onDown)
 
   @apply !rounded-lg;
 }
+
+.predict-menu {
+  .ant-dropdown-menu-title-content > div > div {
+    @apply !w-full;
+  }
+}
 </style>
 
 <style scoped lang="scss">
@@ -2580,7 +2707,7 @@ onKeyStroke('ArrowDown', onDown)
     @apply text-black !bg-gray-50;
   }
 
-  td,
+  td:not(.nc-grid-add-new-cell-item),
   th {
     @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
     min-height: 32px !important;
@@ -2605,11 +2732,11 @@ onKeyStroke('ArrowDown', onDown)
     @apply !border-b-1;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) {
+  td:not(:first-child):not(.nc-grid-add-new-cell-item) {
     @apply px-3;
 
     &.align-top {
@@ -2727,7 +2854,7 @@ onKeyStroke('ArrowDown', onDown)
     border-spacing: 0;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     text-overflow: ellipsis;
   }
 
@@ -2783,7 +2910,7 @@ onKeyStroke('ArrowDown', onDown)
     z-index: 5;
   }
 
-  tbody td:nth-child(1) {
+  tbody td:not(.nc-grid-add-new-cell-item):nth-child(1) {
     position: sticky !important;
     left: 0;
     z-index: 4;
@@ -2812,7 +2939,7 @@ onKeyStroke('ArrowDown', onDown)
       @apply border-r-1 !border-r-gray-50;
     }
 
-    tbody td:nth-child(2) {
+    tbody td:not(.nc-grid-add-new-cell-item):nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
   }
@@ -2872,7 +2999,7 @@ onKeyStroke('ArrowDown', onDown)
 
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active) {
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
     }
   }
@@ -2881,7 +3008,7 @@ onKeyStroke('ArrowDown', onDown)
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
-      td:nth-child(2):not(.active) {
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
         @apply border-b-gray-200;
       }
     }

@@ -3,7 +3,8 @@ name: Run BATS Tests
 on:
   push:
     paths:
-      - 'docker-compose/setup-script/noco.sh'
+      - 'docker-compose/1_Auto_Upstall/noco.sh'
+      - '.github/workflows/bats-test.yml'
   workflow_dispatch:
 
 jobs:
@@ -18,7 +19,7 @@ jobs:
       - name: Prepare matrix for test files
         id: set-matrix
         run: |
-          BATS_FILES=$(find docker-compose/setup-script/tests -name '*.bats')
+          BATS_FILES=$(find docker-compose/1_Auto_Upstall/tests -name '*.bats')
           MATRIX_JSON=$(echo $BATS_FILES | tr -d '\n' | jq -Rsc 'split(" ")' | tr '"' "'")
           echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
   test:
@@ -39,7 +40,7 @@ jobs:
 
       - name: Get working directory
         run: |
-          WORKING_DIR="$(pwd)/docker-compose/setup-script/tests"
+          WORKING_DIR="$(pwd)/docker-compose/1_Auto_Upstall/tests"
           echo "WORKING_DIR=$WORKING_DIR" >> $GITHUB_ENV
 
       - name: Run BATS test

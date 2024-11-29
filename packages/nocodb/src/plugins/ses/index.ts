@@ -1,11 +1,12 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import SESPlugin from './SESPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SESPlugin,
+  id: 'ses',
   title: 'SES',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/aws.png',
   description:
     'Amazon Simple Email Service (SES) is a cost-effective, flexible, and scalable email service that enables developers to send mail from within any application.',
@@ -61,7 +62,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and email notification will use Amazon SES',
+      'Successfully configured! Email notifications are now set up using Amazon SES.',
     msgOnUninstall: '',
   },
 };

@@ -17,6 +17,8 @@ const customColumns = toRef(restProps, 'columns')
 
 const meta = toRef(restProps, 'meta')
 
+const fieldNameAlias = inject(FieldNameAlias, ref({} as Record<string, string>))
+
 const { metas } = useMetas()
 
 const localValue = computed({
@@ -44,6 +46,7 @@ const options = computed<SelectProps['options']>(() =>
           return false
         }
       }
+      if (c.uidt === UITypes.Button) return false
       return true
     }) ||
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -71,7 +74,7 @@ const options = computed<SelectProps['options']>(() =>
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
@@ -109,7 +112,7 @@ const options = computed<SelectProps['options']>(() =>
     })
     ?.map((c: ColumnType) => ({
       value: c.id,
-      label: c.title,
+      label: fieldNameAlias.value[c.id!] || c.title,
       icon: h(
         isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
         {

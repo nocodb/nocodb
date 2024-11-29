@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
   type BoolType,
+  type ButtonType,
   type ColumnType,
   type LookupType,
   type RollupType,
@@ -93,7 +94,7 @@ const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
   const isXcDB = isXcdbBase(col.source_id)
 
   if (!isXcDB) {
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateTimeFormat).format(dateTimeFormat)
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue).format(dateTimeFormat)
   }
 
   if (isMssql(col.source_id)) {
@@ -197,7 +198,7 @@ const getIntValue = (modelValue: string | null | number) => {
 }
 
 const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
-  const isRichMode = typeof col.meta === 'string' ? JSON.parse(col.meta).richMode : col.meta?.richMode
+  const isRichMode = parseProp(col.meta).richMode
   if (isRichMode) {
     return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
   }
@@ -346,6 +347,11 @@ const parseValue = (value: any, col: ColumnType): string => {
     })
   }
 
+  if (isButton(col)) {
+    if ((col.colOptions as ButtonType).type === 'url') return value
+    else return col.colOptions?.label
+  }
+
   return value as unknown as string
 }
 </script>
@@ -355,7 +361,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     class="plain-cell before:px-1"
     :class="{
       '!font-bold': bold,
-      'italic': italic,
+      '!italic': italic,
       'underline': underline,
     }"
     data-testid="nc-plain-cell"
@@ -366,9 +372,12 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <style lang="scss" scoped>
 .plain-cell {
+  font-synthesis: initial !important;
   &::before {
     content: '•';
     padding: 0 4px;
+    display: inline-block;
+    text-decoration: none !important;
   }
   &:first-child::before {
     content: '';

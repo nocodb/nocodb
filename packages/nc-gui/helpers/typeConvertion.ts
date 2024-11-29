@@ -11,7 +11,10 @@ import { getCheckboxValue } from './parsers/parserHelpers'
  */
 function extractNumbers(str: string): number {
   const parts = str.replace(/[^\d.]/g, '').split('.')
+
   if (parts.length > 1) parts[0] += '.'
+
+  if (str.startsWith('-')) parts.unshift('-')
 
   return parseFloat(parts.join(''))
 }

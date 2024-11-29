@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
-import { nocoExecute } from 'nc-help';
 import { validatePayload } from 'src/helpers';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
@@ -52,6 +52,7 @@ export class DataTableService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
@@ -82,6 +83,7 @@ export class DataTableService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     if (view.type !== ViewTypes.GRID) {
@@ -313,7 +315,11 @@ export class DataTableService {
       // if composite primary key then join the values with ___
       else
         pk = model.primaryKeys
-          .map((pk) => row[pk.title] ?? row[pk.column_name])
+          .map((pk) =>
+            (row[pk.title] ?? row[pk.column_name])
+              ?.toString?.()
+              ?.replaceAll('_', '\\_'),
+          )
           .join('___');
       // if duplicate then throw error
       if (keys.has(pk)) {

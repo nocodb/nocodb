@@ -161,7 +161,25 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
+const { leftSidebarWidth, windowSize } = storeToRefs(useSidebarStore())
+
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
+
+const contentSize = computed(() => {
+  if (isPanelExpanded.value && extensionPanelSize.value) {
+    return 100 - extensionPanelSize.value
+  } else {
+    return 100
+  }
+})
+
+const contentMaxSize = computed(() => {
+  if (!isPanelExpanded.value) {
+    return 100
+  } else {
+    return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
+  }
+})
 
 const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
@@ -187,10 +205,10 @@ const onReady = () => {
       <Splitpanes
         v-if="openedViewsTab === 'view'"
         class="nc-extensions-content-resizable-wrapper"
-        @ready="onReady"
+        @ready="() => onReady()"
         @resized="onResize"
       >
-        <Pane class="flex flex-col h-full min-w-0" :size="isPanelExpanded && extensionPanelSize ? 100 - extensionPanelSize : 100">
+        <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div
             :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
@@ -232,10 +250,10 @@ const onReady = () => {
 
 .nc-extensions-content-resizable-wrapper > {
   .splitpanes__splitter {
-    @apply !w-0 relative overflow-visible;
+    @apply !w-0 relative overflow-visible z-40 -ml-1px;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
     content: '';
   }
 

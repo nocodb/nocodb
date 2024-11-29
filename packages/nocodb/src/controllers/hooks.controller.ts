@@ -155,4 +155,19 @@ export class HooksController {
       },
     );
   }
+
+  @Post(['/api/v2/meta/hooks/:hookId/trigger/:rowId'])
+  @Acl('hookTrigger')
+  async hookTrigger(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Param('rowId') rowId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.hooksService.hookTrigger(context, {
+      hookId,
+      req,
+      rowId,
+    });
+  }
 }

@@ -1,4 +1,4 @@
-import isURL from 'validator/lib/isURL'
+import isURL, { type IsURLOptions } from 'validator/lib/isURL'
 import { decode } from 'html-entities'
 
 export const replaceUrlsWithLink = (text: string): boolean | string => {
@@ -33,7 +33,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrl ? out : false
 }
 
-export const isValidURL = (str: string, extraProps?) => {
+export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
   return isURL(`${str}`, extraProps)
 }
 
@@ -62,4 +62,28 @@ export const isLinkExpired = async (url: string) => {
   }
 
   return true
+}
+
+export const extractYoutubeVideoId = (url: string) => {
+  if (typeof url !== 'string') {
+    return ''
+  }
+
+  // Regular expressions to match different YouTube URL formats
+  const patterns = [
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
+    /(?:https?:\/\/)?youtu\.be\/([^?]+)/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([^?]+)/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([^?]+)/,
+  ]
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match && match[1]) {
+      return match[1]
+    }
+  }
+
+  return ''
 }

@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import type {
@@ -14,6 +13,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -599,11 +599,11 @@ export class UsersService {
 
     if (!user['token_version']) {
       user['token_version'] = randomTokenString();
-    }
 
-    await User.update(user.id, {
-      token_version: user['token_version'],
-    });
+      await User.update(user.id, {
+        token_version: user['token_version'],
+      });
+    }
 
     await UserRefreshToken.insert({
       token: refreshToken,

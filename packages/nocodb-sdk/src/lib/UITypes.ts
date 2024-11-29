@@ -89,9 +89,10 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  AIButton: 'AI Button',
 };
 
-export const FieldNameFromUITypes = {
+export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',
   [UITypes.ForeignKey]: 'Foreign key',
@@ -180,6 +181,7 @@ export function isVirtualCol(
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
     UITypes.LastModifiedBy,
+    UITypes.Button,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
@@ -269,6 +271,7 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Lookup,
   UITypes.Rollup,
   UITypes.Formula,
+  UITypes.Button,
   UITypes.Barcode,
   UITypes.QrCode,
 ];

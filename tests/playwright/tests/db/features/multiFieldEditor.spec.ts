@@ -250,20 +250,20 @@ test.describe('Multi Field Editor', () => {
     await fields.saveChanges();
 
     let fieldsText = await fields.getAllFieldText();
-    expect(fieldsText[fieldsText.findIndex(field => field === defaultFieldName) + 1]).toBe(`${defaultFieldName}_copy`);
+    expect(fieldsText[fieldsText.findIndex(field => field === defaultFieldName) + 1]).toBe(`${defaultFieldName} copy`);
 
     // insert and verify
     await fields.createOrUpdate({ title: 'Above Inserted Field', insertAboveColumnTitle: defaultFieldName });
     await fields.createOrUpdate({ title: 'Below Inserted Field', insertBelowColumnTitle: defaultFieldName });
 
     // delete and verify
-    await fields.selectFieldAction({ title: `${defaultFieldName}_copy`, action: 'delete' });
-    await expect(fields.getField({ title: `${defaultFieldName}_copy` })).toContainText('Deleted field');
+    await fields.selectFieldAction({ title: `${defaultFieldName} copy`, action: 'delete' });
+    await expect(fields.getField({ title: `${defaultFieldName} copy` })).toContainText('Deleted field');
 
     await fields.saveChanges();
 
     fieldsText = await fields.getAllFieldText();
-    expect(!fieldsText.includes(`${defaultFieldName}_copy`)).toBeTruthy();
+    expect(!fieldsText.includes(`${defaultFieldName} copy`)).toBeTruthy();
 
     // verify grid column header
     await verifyGridColumnHeaders({ fields: fieldsText });

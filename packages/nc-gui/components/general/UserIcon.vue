@@ -1,16 +1,18 @@
 <script lang="ts" setup>
-import { isColorDark, stringToColor } from '~/utils/colorsUtils'
+import { isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{
     size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
     name?: string
     email?: string
+    disabled?: boolean
   }>(),
   {
     size: 'medium',
     name: '',
     email: '',
+    disabled: false,
   },
 )
 
@@ -19,11 +21,19 @@ const { size, email } = toRefs(props)
 const displayName = computed(() => props.name?.trim() || '')
 
 const backgroundColor = computed(() => {
+  if (props.disabled) {
+    return '#bbbbbb'
+  }
+
   // in comments we need to generate user icon from email
   return displayName.value ? stringToColor(displayName.value) : email.value ? stringToColor(email.value) : '#FFFFFF'
 })
 
 const usernameInitials = computed(() => {
+  if (props.disabled) {
+    return ''
+  }
+
   const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
 
   if (displayNameSplit.length > 0) {

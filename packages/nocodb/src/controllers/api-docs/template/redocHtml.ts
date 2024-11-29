@@ -1,7 +1,9 @@
 export default ({
   ncSiteUrl,
+  dashboardPath,
 }: {
   ncSiteUrl: string;
+  dashboardPath: string;
 }): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -39,6 +41,15 @@ export default ({
   xhttp.setRequestHeader("xc-auth", initialLocalStorage && initialLocalStorage.token);
 
   xhttp.onload = function () {
+    
+      // if invalid token then redirect to signin page
+      if (xmlhttp.status === 401) {
+        window.location.href = ${JSON.stringify(ncSiteUrl)} + ${JSON.stringify(
+  dashboardPath,
+)} + '#/signin?continueAfterSignIn=' + encodeURIComponent(window.location.href);
+        return;
+      } 
+    
       const swaggerJson = this.responseText;
       const swagger = JSON.parse(swaggerJson);
       Redoc.init(swagger, {

@@ -16,6 +16,8 @@ const basesStore = useBases()
 
 const workspaceStore = useWorkspace()
 
+const { baseRoles, workspaceRoles } = useRoles()
+
 const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
@@ -24,6 +26,9 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
+})
+const userRoles = computed(() => {
+  return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
 
 const inviteData = reactive({
@@ -46,6 +51,8 @@ const singleEmailValue = ref('')
 const emailBadges = ref<Array<string>>([])
 
 const allowedRoles = ref<[]>([])
+
+const disabledRoles = ref<[]>([])
 
 const isLoading = ref(false)
 
@@ -77,13 +84,15 @@ const focusOnDiv = () => {
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
-      // todo: enable after discussing with anbu
-      // const currentRoleIndex = Object.values(orderedRoles.value).findIndex(
-      //   (role) => userRoles.value && Object.keys(userRoles.value).includes(role),
-      // )
-      // if (currentRoleIndex !== -1) {
-      allowedRoles.value = Object.values(orderedRoles.value) // .slice(currentRoleIndex + 1)
-      // }
+      const rolesArr = Object.values(orderedRoles.value)
+      const currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+      if (currentRoleIndex !== -1) {
+        allowedRoles.value = rolesArr.slice(currentRoleIndex)
+        disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
+      } else {
+        allowedRoles.value = rolesArr
+        disabledRoles.value = []
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -350,6 +359,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             :description="false"
             :on-role-change="onRoleChange"
             :role="inviteData.roles"
+            :disabled-roles="disabledRoles"
             :roles="allowedRoles"
             class="!min-w-[152px] nc-invite-role-selector"
             size="lg"
@@ -407,15 +417,15 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
                   </a-input>
                 </div>
 
-                <div class="flex flex-col max-h-64 overflow-y-auto nc-scrollbar-md mt-2">
+                <div class="flex flex-col max-h-64 overflow-y-auto nc-scrollbar-md mt-2 px-2">
                   <div
                     v-for="ws in workSpaceSelectList"
                     :key="ws.id"
-                    class="px-4 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
+                    class="px-2 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
                     @click="checked[ws.id!] = !checked[ws.id!]"
                   >
                     <div class="flex gap-2 capitalize items-center">
-                      <GeneralWorkspaceIcon :hide-label="true" :workspace="ws" size="small" />
+                      <GeneralWorkspaceIcon :workspace="ws" size="medium" />
                       {{ ws.title }}
                     </div>
                     <div class="flex-1" />

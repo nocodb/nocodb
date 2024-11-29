@@ -1,6 +1,6 @@
 import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 import CountIcon from '~icons/mdi/counter'
@@ -24,6 +24,14 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       return { icon: iconMap.cellDb, color: 'text-grey' }
     case UITypes.Formula:
       return { icon: iconMap.cellFormula, color: 'text-grey' }
+    case UITypes.Button:
+      switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
+        case ButtonActionsType.Ai:
+          return { icon: iconMap.cellAiButton, color: 'text-grey' }
+        default:
+          return { icon: iconMap.cellButton, color: 'text-grey' }
+      }
+      return { icon: iconMap.cellButton, color: 'text-grey' }
     case UITypes.QrCode:
       return { icon: iconMap.cellQrCode, color: 'text-grey' }
     case UITypes.Barcode:

@@ -54,10 +54,10 @@ const navigateToIntegrations = () => {
   </template>
   <template v-else-if="!isSharedBase">
     <div class="xs:hidden flex flex-col p-1 mt-0.25 mb-0.5 truncate">
-      <DashboardSidebarTopSectionHeader />
+      <!-- <DashboardSidebarTopSectionHeader /> -->
 
       <NcButton
-        v-if="isUIAllowed('workspaceSettings')"
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
         v-e="['c:team:settings']"
         type="text"
         size="xsmall"

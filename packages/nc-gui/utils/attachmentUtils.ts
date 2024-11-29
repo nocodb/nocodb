@@ -25,7 +25,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
         }
         img.onerror = function () {
           console.error('Error loading image')
-          reject(null)
+          reject(new Error('Error loading image'))
         }
         img.src = thumbnailURL
       } else if (file.type.startsWith('video/')) {
@@ -52,7 +52,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
         }
         video.onerror = function () {
           console.error('Error loading video')
-          reject(null)
+          reject(new Error('Error loading video'))
         }
         video.src = thumbnailURL
       } else {
@@ -62,9 +62,33 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
 
     reader.onerror = function () {
       console.error('Error reading file')
-      reject(null)
+      reject(new Error('Error reading file'))
     }
 
     reader.readAsDataURL(file)
   })
+}
+
+export async function isURLExpired(url?: string) {
+  if (!url) return { isExpired: false, status: 0, error: 'URL is empty' }
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-0', // Request only the first byte
+      },
+      cache: 'no-store',
+    })
+
+    return {
+      isExpired: response.status === 403,
+      status: response.status,
+    }
+  } catch (error) {
+    return {
+      isExpired: true,
+      status: 0,
+      error: error.message,
+    }
+  }
 }

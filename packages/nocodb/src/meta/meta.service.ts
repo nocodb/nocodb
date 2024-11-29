@@ -210,6 +210,81 @@ export class MetaService {
   }
 
   /***
+   * Update multiple records in meta data
+   * @param workspace_id - Workspace id
+   * @param base_id - Base id
+   * @param target - Table name
+   * @param data - Data to be updated
+   * @param ids - Ids of the records to be updated
+   */
+  public async bulkMetaUpdate(
+    workspace_id: string,
+    base_id: string,
+    target: string,
+    data: any | any[],
+    ids: string[],
+    condition?: { [p: string]: any },
+  ): Promise<any> {
+    if (Array.isArray(data) ? !data.length : !data) {
+      return [];
+    }
+
+    const query = this.knexConnection(target);
+
+    const at = this.now();
+
+    if (workspace_id === base_id) {
+      if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
+        NcError.metaError({
+          message: 'Invalid scope',
+          sql: '',
+        });
+      }
+
+      if (!RootScopeTables[workspace_id].includes(target)) {
+        NcError.metaError({
+          message: 'Table not accessible from this scope',
+          sql: '',
+        });
+      }
+    } else {
+      if (!base_id) {
+        NcError.metaError({
+          message: 'Base ID is required',
+          sql: '',
+        });
+      }
+    }
+
+    const updateObj = {
+      ...data,
+      updated_at: at,
+    };
+
+    if (!condition) {
+      query.whereIn('id', ids).update(updateObj);
+    } else {
+      if (![MetaTable.FILE_REFERENCES].includes(target as MetaTable)) {
+        NcError.metaError({
+          message: 'This table does not support conditional bulk update',
+          sql: '',
+        });
+      }
+
+      query.where(condition);
+
+      // Check if a condition is present in the query builder and throw an error if not.
+      this.checkConditionPresent(query, 'update');
+
+      query.update(updateObj);
+    }
+
+    this.contextCondition(query, workspace_id, base_id, target);
+
+    return query;
+  }
+
+  /***
    * Generate nanoid for the given target
    * @param target - Table name
    * @returns {string} - Generated nanoid
@@ -217,7 +292,7 @@ export class MetaService {
   public async genNanoid(target: string) {
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
-      [MetaTable.BASES]: 'b',
+      [MetaTable.SOURCES]: 'b',
       [MetaTable.MODELS]: 'm',
       [MetaTable.COLUMNS]: 'c',
       [MetaTable.COL_RELATIONS]: 'l',
@@ -252,6 +327,9 @@ export class MetaService {
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
       [MetaTable.INTEGRATIONS]: 'int',
+      [MetaTable.FILE_REFERENCES]: 'at',
+      [MetaTable.COL_BUTTON]: 'btn',
+      [MetaTable.SNAPSHOT]: 'snap',
     };
 
     const prefix = prefixMap[target] || 'nc';

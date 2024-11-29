@@ -3,10 +3,10 @@ export default `<!DOCTYPE html>
 <head>
     <title>NocoDB - Verify Email</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-    <link href="<%- ncPublicUrl %>/css/fonts.roboto.css" rel="stylesheet">
-    <link href="<%- ncPublicUrl %>/css/materialdesignicons.5.x.min.css" rel="stylesheet">
-    <link href="<%- ncPublicUrl %>/css/vuetify.2.x.min.css" rel="stylesheet">
-    <script src="<%- ncPublicUrl %>/js/vue.2.6.14.min.js"></script>
+    <link href="<%= ncPublicUrl %>/css/fonts.roboto.css" rel="stylesheet">
+    <link href="<%= ncPublicUrl %>/css/materialdesignicons.5.x.min.css" rel="stylesheet">
+    <link href="<%= ncPublicUrl %>/css/vuetify.2.x.min.css" rel="stylesheet">
+    <script src="<%= ncPublicUrl %>/js/vue.2.6.14.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -31,8 +31,8 @@ export default `<!DOCTYPE html>
     </v-container>
     </v-app>
 </div>
-<script src="<%- ncPublicUrl %>/js/vuetify.2.x.min.js"></script>
-<script src="<%- ncPublicUrl %>/js/axios.0.19.2.min.js"></script>
+<script src="<%= ncPublicUrl %>/js/vuetify.2.x.min.js"></script>
+<script src="<%= ncPublicUrl %>/js/axios.0.19.2.min.js"></script>
 
 <script>
   var app = new Vue({
@@ -42,7 +42,7 @@ export default `<!DOCTYPE html>
       valid: null,
       errMsg: null,
       validForm: false,
-      token: <%- token %>,
+      token: <%= token %>,
       greeting: 'Password Reset',
       formdata: {
         password: '',
@@ -53,7 +53,7 @@ export default `<!DOCTYPE html>
     methods: {},
     async created() {
       try {
-        const valid = (await axios.post('<%- baseUrl %>/api/v1/auth/email/validate/' + this.token)).data;
+        const valid = (await axios.post('<%= baseUrl %>/api/v1/auth/email/validate/' + this.token)).data;
         this.valid = !!valid;
       } catch (e) {
         this.valid = false;

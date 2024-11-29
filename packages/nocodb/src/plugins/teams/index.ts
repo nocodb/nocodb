@@ -1,9 +1,10 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import TeamsPlugin from './TeamsPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: TeamsPlugin,
+  id: 'ms-teams',
   title: 'Microsoft Teams',
   version: '0.0.1',
   logo: 'plugins/teams.ico',

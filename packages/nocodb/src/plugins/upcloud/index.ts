@@ -1,11 +1,13 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import UpCloudPlugin from './UpCloudPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: UpCloudPlugin,
-  title: 'UpCloud Object Storage',
-  version: '0.0.2',
+  id: 'upcloud',
+  title: 'UpCloud',
+  recoveryTitle: 'UpCloud Object Storage',
+  version: '0.0.4',
   logo: 'plugins/upcloud.png',
   description:
     'The perfect home for your data. Thanks to the S3-compatible programmable interface,\n' +
@@ -67,7 +69,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in UpCloud Object Storage',
+      'Successfully configured! Attachments will now be stored in UpCloud Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

@@ -23,6 +23,7 @@ export function useViewFilters(
   isLink?: boolean,
   linkColId?: Ref<string>,
   fieldsToFilter?: Ref<ColumnType[]>,
+  parentColId?: Ref<string>,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -34,7 +35,7 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, allFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, isForm } = useSmartsheetStoreOrThrow()
 
   const { baseMeta } = storeToRefs(useBase())
 
@@ -54,10 +55,13 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return nestedMode.value && !isLink && !isWebhook ? currentFilters.value! : _filters.value
+      return (nestedMode.value && !isLink && !isWebhook) || (isForm.value && !isWebhook) ? currentFilters.value! : _filters.value
     },
     set: (value: ColumnFilterType[]) => {
-      if (nestedMode.value) {
+      if (isForm.value && !isWebhook) {
+        currentFilters.value = value
+        return
+      } else if (nestedMode.value) {
         currentFilters.value = value
         if (!isLink && !isWebhook) {
           if (!isNestedRoot) {
@@ -204,6 +208,7 @@ export function useViewFilters(
         fieldsToFilter?.value?.filter((col) => {
           return !isSystemColumn(col)
         })?.[0]?.id ?? undefined,
+      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
     }
   }
 
@@ -214,6 +219,7 @@ export function useViewFilters(
       is_group: true,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
     }
   }
 
@@ -258,7 +264,7 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id) return
 
-    if (nestedMode.value) {
+    if (nestedMode.value || (isForm.value && !isWebhook)) {
       // ignore restoring if not root filter group
       return
     }
@@ -363,7 +369,7 @@ export function useViewFilters(
 
     if (!view.value && !linkColId?.value) return
 
-    if (!undo) {
+    if (!undo && !(isForm.value && !isWebhook)) {
       const lastFilter = lastFilters.value[i]
       if (lastFilter) {
         const delta = clone(getFieldDelta(filter, lastFilter))
@@ -473,7 +479,7 @@ export function useViewFilters(
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
     // update the filter status
     filter.status = 'delete'
-    if (!undo && !filter.is_group) {
+    if (!undo && !filter.is_group && !(isForm.value && !isWebhook)) {
       addUndo({
         undo: {
           fn: async (fl: ColumnFilterType) => {
@@ -534,7 +540,7 @@ export function useViewFilters(
     filters.value.push(
       (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
     )
-    if (!undo) {
+    if (!undo && !(isForm.value && !isWebhook)) {
       addUndo({
         undo: {
           fn: async function undo(this: UndoRedoAction, i: number) {

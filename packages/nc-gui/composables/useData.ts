@@ -208,7 +208,7 @@ export function useData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           // if value is undefined treat it as null
           [property]: toUpdate.row[property] ?? null,
@@ -268,6 +268,7 @@ export function useData(args: {
 
         /** update row data(to sync formula and other related columns)
          * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+         * update attachment as well since id is required for further operations
          */
         Object.assign(
           toUpdate.row,
@@ -283,6 +284,8 @@ export function useData(args: {
                 col.uidt === UITypes.LastModifiedTime ||
                 col.uidt === UITypes.LastModifiedBy ||
                 col.uidt === UITypes.Lookup ||
+                col.uidt === UITypes.Button ||
+                col.uidt === UITypes.Attachment ||
                 col.au ||
                 (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
             )
@@ -547,10 +550,7 @@ export function useData(args: {
     try {
       const row = formattedData.value[rowIndex]
       if (!row.rowMeta.new) {
-        const id = meta?.value?.columns
-          ?.filter((c) => c.pk)
-          .map((c) => row.row[c.title!])
-          .join('___')
+        const id = extractPkFromRow(row.row, meta?.value?.columns)
 
         const fullRecord = await $api.dbTableRow.read(
           NOCO,

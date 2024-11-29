@@ -281,11 +281,6 @@ test.describe('Shared view', () => {
     await dashboard.grid.column.create({
       title: 'New Column',
     });
-    await dashboard.grid.addNewRow({
-      index: 25,
-      columnHeader: 'Country',
-      value: 'New Country',
-    });
 
     await dashboard.signOut();
 
@@ -313,7 +308,7 @@ test.describe('Shared view', () => {
     await sharedPage2.grid.toolbar.clickFilter();
     await sharedPage2.grid.toolbar.filter.add({
       title: 'Country',
-      value: 'New Country',
+      value: 'China',
       operation: 'is like',
       locallySaved: true,
     });
@@ -322,7 +317,7 @@ test.describe('Shared view', () => {
     await sharedPage2.grid.cell.verify({
       index: 0,
       columnHeader: 'Country',
-      value: 'New Country',
+      value: 'China',
     });
   });
 });

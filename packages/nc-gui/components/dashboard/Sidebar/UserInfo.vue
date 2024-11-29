@@ -15,17 +15,17 @@ const isLoggingOut = ref(false)
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const logout = async () => {
   isLoggingOut.value = true
   try {
     const isSsoUser = !!(user?.value as any)?.sso_client_id
 
-    await signOut(false)
-
-    // No need as all stores are cleared on signout
-    // await clearWorkspaces()
-
-    await navigateTo(isSsoUser ? '/sso' : '/signin')
+    await signOut({
+      redirectToSignin: true,
+      signinUrl: isSsoUser ? '/sso' : '/signin',
+    })
   } catch (e) {
     console.error(e)
   } finally {
@@ -50,6 +50,17 @@ const isMounted = ref(false)
 
 onMounted(() => {
   isMounted.value = true
+})
+
+const isExperimentalFeatureModalOpen = ref(false)
+
+const openExperimentationMenu = () => {
+  isMenuOpen.value = false
+  isExperimentalFeatureModalOpen.value = true
+}
+
+const accountUrl = computed(() => {
+  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
 </script>
 
@@ -179,14 +190,19 @@ onMounted(() => {
               <NcDivider />
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
+              <NcMenuItem @click="openExperimentationMenu">
+                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
+              </NcMenuItem>
 
-              <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
+              <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
             </template>
           </NcMenu>
         </template>
       </NcDropdown>
+      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
       <LazyNotificationMenu />
     </div>
 

@@ -1,10 +1,10 @@
 import { Readable } from 'stream';
 import path from 'path';
-import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import iconv from 'iconv-lite';
+import { Injectable, Logger } from '@nestjs/common';
 import moment from 'moment';
-import { type DataExportJobData, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import type { Job } from 'bull';
+import { type DataExportJobData } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { Model, PresignedUrl, View } from '~/models';
@@ -15,13 +15,12 @@ function getViewTitle(view: View) {
   return view?.is_default ? 'Default View' : view?.title;
 }
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class DataExportProcessor {
   private logger = new Logger(DataExportProcessor.name);
 
   constructor(private readonly exportService: ExportService) {}
 
-  @Process(JobTypes.DataExport)
   async job(job: Job<DataExportJobData>) {
     const {
       context,
@@ -63,10 +62,19 @@ export class DataExportProcessor {
 
       dataStream.setEncoding('utf8');
 
+      const encodedStream =
+        options?.encoding &&
+        options.encoding !== 'utf-8' &&
+        iconv.encodingExists(options.encoding)
+          ? dataStream
+              .pipe(iconv.decodeStream('utf-8'))
+              .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
+          : dataStream;
+
       let error = null;
 
       const uploadFilePromise = (storageAdapter as any)
-        .fileCreateByStream(destPath, dataStream)
+        .fileCreateByStream(destPath, encodedStream)
         .catch((e) => {
           this.logger.error(e);
           error = e;
@@ -98,6 +106,7 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
+          encoding: options?.encoding || 'utf-8',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
@@ -106,6 +115,7 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
+          encoding: options?.encoding || 'utf-8',
         });
       }
 

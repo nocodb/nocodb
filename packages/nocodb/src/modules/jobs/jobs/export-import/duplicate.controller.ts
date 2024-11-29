@@ -32,7 +32,7 @@ export class DuplicateController {
 
   @Post([
     '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
-    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v2/meta/duplicate/:workspaceId/shared/:sharedBaseId',
   ])
   @HttpCode(200)
   @Acl('duplicateSharedBase', {
@@ -96,11 +96,10 @@ export class DuplicateController {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
-      options:
-        {
-          ...body.options,
-          excludeHooks: true,
-        } || {},
+      options: {
+        ...body.options,
+        excludeHooks: true,
+      },
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -194,6 +193,7 @@ export class DuplicateController {
     @Param('modelId') modelId?: string,
     @Body()
     body?: {
+      title?: string;
       options?: {
         excludeData?: boolean;
         excludeViews?: boolean;
@@ -226,7 +226,7 @@ export class DuplicateController {
     const models = await source.getModels(context);
 
     const uniqueTitle = generateUniqueName(
-      `${model.title} copy`,
+      body.title || `${model.title} copy`,
       models.map((p) => p.title),
     );
 

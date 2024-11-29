@@ -39,6 +39,14 @@ export interface RowCommentEvent extends NcBaseEvent {
   ip?: string;
 }
 
+export interface RowMentionEvent extends NcBaseEvent {
+  model: TableType;
+  rowId: string;
+  user: UserType;
+  column: ColumnType;
+  mentions: string[];
+}
+
 export interface ProjectUserUpdateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
@@ -164,6 +172,11 @@ export interface WebhookEvent extends NcBaseEvent {
   hook: HookType;
 }
 
+export interface WebhookTriggerEvent extends NcBaseEvent {
+  hook: HookType;
+  data: any;
+}
+
 export interface ApiTokenCreateEvent extends NcBaseEvent {
   userId: string;
   tokenBody: ApiTokenReqType;
@@ -171,7 +184,7 @@ export interface ApiTokenCreateEvent extends NcBaseEvent {
 
 export interface ApiTokenDeleteEvent extends NcBaseEvent {
   userId: string;
-  token: string;
+  tokenId: string;
 }
 
 export interface PluginTestEvent extends NcBaseEvent {
@@ -224,6 +237,8 @@ export type AppEventPayload =
   | FilterEvent
   | SortEvent
   | RowCommentEvent
+  | RowMentionEvent
+  | WebhookTriggerEvent
   | ColumnEvent;
 
 export interface IntegrationEvent extends NcBaseEvent {

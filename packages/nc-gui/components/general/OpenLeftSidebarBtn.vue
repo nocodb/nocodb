@@ -11,7 +11,7 @@ const onClick = () => {
 </script>
 
 <template>
-  <div v-e="['c:leftSidebar:hideToggle']">
+  <div v-if="isMobileMode || !isLeftSidebarOpen" v-e="['c:leftSidebar:hideToggle']">
     <NcTooltip
       placement="topLeft"
       hide-on-click

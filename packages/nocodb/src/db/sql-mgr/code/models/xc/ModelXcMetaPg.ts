@@ -438,6 +438,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case 'double precision':
       case 'float4':
       case 'float8':
+      case 'numeric':
         return 'float';
 
       case 'gtsvector':
@@ -465,7 +466,6 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case 'macaddr':
       case 'money':
       case 'name':
-      case 'numeric':
       case 'numrange':
       case 'oid':
       case 'opaque':

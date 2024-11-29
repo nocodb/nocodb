@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
-import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import { AppEvents, ClientType } from 'nocodb-sdk';
+import { IntegrationsType } from 'nocodb-sdk';
+import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Base, Integration } from '~/models';
-import { NcBaseError, NcError } from '~/helpers/catchError'
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -14,6 +15,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
@@ -118,7 +120,7 @@ export class IntegrationsService {
 
       // get linked sources
       const sourceListQb = ncMeta
-        .knex(MetaTable.BASES)
+        .knex(MetaTable.SOURCES)
         .where({
           fk_integration_id: integration.id,
         })
@@ -150,20 +152,6 @@ export class IntegrationsService {
         NcError.integrationLinkedWithMultiple(bases, sources);
       }
 
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
-      }
-
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
@@ -177,19 +165,65 @@ export class IntegrationsService {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
+
     return true;
   }
 
   async integrationSoftDelete(
     context: Omit<NcContext, 'base_id'>,
-    param: { integrationId: string },
+    param: { integrationId: string; req: any },
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
       if (!integration) {
         NcError.integrationNotFound(param.integrationId);
       }
-      await integration.softDelete();
+
+      const ncMeta = await Noco.ncMeta.startTransaction();
+      try {
+        // get linked sources
+        const sourceListQb = ncMeta
+          .knex(MetaTable.SOURCES)
+          .where({
+            fk_integration_id: integration.id,
+          })
+          .where((qb) => {
+            qb.where('deleted', false).orWhere('deleted', null);
+          });
+
+        if (integration.fk_workspace_id) {
+          sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+        }
+
+        const sources: Pick<Source, 'id' | 'base_id'>[] =
+          await sourceListQb.select('id', 'base_id');
+
+        for (const source of sources) {
+          await this.sourcesService.baseSoftDelete(
+            {
+              workspace_id: integration.fk_workspace_id,
+              base_id: source.base_id,
+            },
+            {
+              sourceId: source.id,
+            },
+            ncMeta,
+          );
+        }
+
+        await integration.softDelete(ncMeta);
+        this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
+          integration,
+          req: param.req,
+          user: param.req?.user,
+        });
+
+        await ncMeta.commit();
+      } catch (e) {
+        await ncMeta.rollback(e);
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        NcError.badRequest(e);
+      }
     } catch (e) {
       NcError.badRequest(e);
     }
@@ -227,11 +261,58 @@ export class IntegrationsService {
     }
     param.logger?.('Creating the integration');
 
+    // for SQLite check for existing integration which refers to the same file
+    if (integrationBody.sub_type === 'sqlite3') {
+      // get all integrations of type sqlite3
+      const integrations = await Integration.list({
+        userId: param.req.user?.id,
+        includeDatabaseInfo: true,
+        type: IntegrationsType.Database,
+        sub_type: ClientType.SQLITE,
+        limit: 1000,
+        offset: 0,
+        includeSourceCount: false,
+        query: '',
+      });
+
+      if (integrations.list && integrations.list.length > 0) {
+        for (const integration of integrations.list) {
+          const config = integration.config as any;
+          if (
+            (config?.connection?.filename ||
+              config?.connection?.connection?.filename) ===
+            (integrationBody.config?.connection?.filename ||
+              integrationBody.config?.connection?.connection?.filename)
+          ) {
+            NcError.badRequest('Integration with same file already exists');
+          }
+        }
+      }
+    }
+
+    let uniqueTitle = '';
+
+    if (param.integration.copy_from_id) {
+      const integrations =
+        (
+          await Integration.list({
+            userId: param.req.user?.id,
+            limit: 1000,
+            offset: 0,
+            includeSourceCount: false,
+            query: '',
+          })
+        ).list || [];
+
+      uniqueTitle = generateUniqueName(
+        `${integrationBody.title} copy`,
+        integrations.map((p) => p.title),
+      );
+    }
+
     const integration = await Integration.createIntegration({
       ...integrationBody,
-      ...(param.integration.copy_from_id
-        ? { title: `${integrationBody.title}_copy` }
-        : {}),
+      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
       created_by: param.req.user.id,
     });
 
@@ -246,9 +327,39 @@ export class IntegrationsService {
     return integration;
   }
 
+  async integrationStore(
+    context: NcContext,
+    integration: Integration,
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    if (payload.op === 'list') {
+      return await integration.storeList(
+        context,
+        payload.limit,
+        payload.offset,
+      );
+    } else if (payload.op === 'sum') {
+      return await integration.storeSum(context, payload.fields);
+    } else if (payload.op === 'get') {
+      return await integration.storeGetLatest(context);
+    }
+  }
+
   // function to update all the integration source config which are using this integration
   // we are overwriting the source config with the new integration config excluding database name and schema name
-  private async updateIntegrationSourceConfig(
+  protected async updateIntegrationSourceConfig(
     {
       integration,
     }: {
@@ -260,7 +371,7 @@ export class IntegrationsService {
     const sources = await ncMeta.metaList2(
       integration.fk_workspace_id,
       RootScopes.WORKSPACE,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           fk_integration_id: integration.id,
@@ -287,7 +398,7 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.BASE}:${source.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
         integration_config: integration.config,
       });
 
@@ -300,5 +411,34 @@ export class IntegrationsService {
         await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
       }
     }
+  }
+
+  public async callIntegrationEndpoint(
+    context: NcContext,
+    params: {
+      integrationId: string;
+      endpoint: string;
+      payload?: any;
+    },
+  ) {
+    const integration = await Integration.get(context, params.integrationId);
+
+    const integrationMeta = integration.getIntegrationMeta();
+
+    const wrapper = integration.getIntegrationWrapper();
+
+    if (!integrationMeta || !wrapper) {
+      NcError.badRequest('Invalid integration');
+    }
+
+    if (
+      !integrationMeta.exposedEndpoints?.includes(params.endpoint) ||
+      !(params.endpoint in wrapper) ||
+      typeof wrapper[params.endpoint] !== 'function'
+    ) {
+      NcError.genericNotFound('Endpoint', params.endpoint);
+    }
+
+    return wrapper[params.endpoint](context, params.payload);
   }
 }

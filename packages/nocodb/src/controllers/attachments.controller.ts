@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import {
   Body,
   Controller,
@@ -17,6 +16,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import contentDisposition from 'content-disposition';
+import { PublicAttachmentScope } from 'nocodb-sdk';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -24,7 +24,11 @@ import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcContext, NcRequest } from '~/interface/config';
-import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
+import {
+  ATTACHMENT_ROOTS,
+  isPreviewAllowed,
+  localFileExists,
+} from '~/helpers/attachmentHelpers';
 import { DataTableService } from '~/services/data-table.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -43,11 +47,16 @@ export class AttachmentsController {
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: NcRequest) {
+  async upload(
+    @UploadedFiles() files: Array<FileType>,
+    @Req() req: NcRequest,
+    @Query('scope') scope?: PublicAttachmentScope,
+  ) {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path?.toString(),
       req,
+      scope,
     });
 
     return attachments;
@@ -61,11 +70,13 @@ export class AttachmentsController {
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
     @Req() req: NcRequest,
+    @Query('scope') scope?: PublicAttachmentScope,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
       path,
       req,
+      scope,
     });
 
     return attachments;
@@ -85,7 +96,7 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', filename),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 
@@ -126,7 +137,7 @@ export class AttachmentsController {
         ),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 
@@ -157,6 +168,7 @@ export class AttachmentsController {
 
       let queryResponseContentType = null;
       let queryResponseContentDisposition = null;
+      let queryResponseContentEncoding = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
@@ -164,24 +176,38 @@ export class AttachmentsController {
         queryResponseContentDisposition = query.get(
           'ResponseContentDisposition',
         );
+        queryResponseContentEncoding = query.get('ResponseContentEncoding');
       }
 
-      const filePath = param.split('/')[2] === 'thumbnails' ? '' : 'uploads';
+      const targetParam = param.split('/')[2];
+
+      const filePath = ATTACHMENT_ROOTS.includes(targetParam) ? '' : 'uploads';
 
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', filePath, fpath),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 
       if (queryResponseContentType) {
         res.setHeader('Content-Type', queryResponseContentType);
+
+        if (queryResponseContentEncoding) {
+          res.setHeader(
+            'Content-Type',
+            `${queryResponseContentType}; charset=${queryResponseContentEncoding}`,
+          );
+        }
       }
 
       if (queryResponseContentDisposition) {
         res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      if (queryResponseContentEncoding) {
+        res.setHeader('Content-Encoding', queryResponseContentEncoding);
       }
 
       res.sendFile(file.path);

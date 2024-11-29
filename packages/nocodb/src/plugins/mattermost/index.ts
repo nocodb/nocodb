@@ -1,9 +1,10 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import MattermostPlugin from './MattermostPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: MattermostPlugin,
+  id: 'mattermost',
   title: 'Mattermost',
   version: '0.0.1',
   logo: 'plugins/mattermost.png',

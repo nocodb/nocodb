@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -46,7 +46,17 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(viewsStore)
 
+    const { xWhere, view } = useSmartsheetStoreOrThrow()
+
+    const { formattedData, loadData } = useViewData(meta, view, xWhere)
+
+    const { isAiModeFieldModal, activeTabSelectedFields } = usePredictFields(ref(false))
+
     const disableSubmitBtn = ref(false)
+
+    const isWebhookCreateModalOpen = ref(false)
+
+    const isAiButtonConfigModalOpen = ref(false)
 
     const isEdit = computed(() => !!column?.value?.id)
 
@@ -71,25 +81,53 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
+
+    const removeAdditionalValidation = (key: string) => {
+      delete additionalValidations.value[key]
+    }
+
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
 
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
-    const formState = ref<Record<string, any>>({
+
+    const defaultFormState = {
       title: '',
-      uidt: fromTableExplorer?.value ? defaultType : null,
+      description: '',
+      uidt: null,
       custom: {},
+    }
+
+    const formState = ref<Record<string, any>>({
+      ...defaultFormState,
+      uidt: fromTableExplorer?.value ? defaultType : null,
       ...clone(column.value || {}),
     })
 
-    const onUidtOrIdTypeChange = () => {
+    const isAiMode = computed(() => {
+      if (formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai) {
+        return true
+      }
+
+      return false
+    })
+
+    const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
 
       const newTitle = updateFieldName(false)
 
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
+        ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
+          ? {
+              is_ai_field: formState.value?.is_ai_field,
+              ai_temp_id: formState.value?.ai_temp_id,
+              view_id: formState.value?.view_id,
+              description: formState.value?.description,
+            }
+          : {}),
         custom: {},
         ...(!isEdit.value && {
           // only take title, column_name and uidt when creating a column
@@ -114,6 +152,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         un: false,
         dtx: 'specificType',
         ...colProp,
+      }
+
+      if (preload) {
+        formState.value = { ...formState.value, ...preload }
       }
 
       formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
@@ -192,15 +234,28 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                 ) {
                   return reject(new Error(t('msg.error.duplicateSystemColumnName')))
                 }
+
+                const isAiFieldExist = isAiModeFieldModal.value
+                  ? activeTabSelectedFields.value.some((c) => {
+                      return (
+                        c.ai_temp_id !== formState.value?.ai_temp_id &&
+                        ((value || '').toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
+                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim() ||
+                          (value || '').toLowerCase().trim() === (c?.title || '').toLowerCase().trim())
+                      )
+                    })
+                  : false
+
                 if (
                   value !== '' &&
-                  (tableExplorerColumns?.value || meta.value?.columns)?.some(
+                  ((tableExplorerColumns?.value || meta.value?.columns)?.some(
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
                       ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
                         (value || '').toLowerCase() === (c.title || '').toLowerCase()),
-                  )
+                  ) ||
+                    isAiFieldExist)
                 ) {
                   return reject(new Error(t('msg.error.duplicateColumnName')))
                 }
@@ -363,6 +418,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     function updateFieldName(updateFormState: boolean = true) {
       if (
+        formState.value?.is_ai_field ||
         isEdit.value ||
         !fromTableExplorer?.value ||
         formState.value?.userHasChangedTitle ||
@@ -399,6 +455,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onDataTypeChange,
       onUidtOrIdTypeChange,
       setAdditionalValidations,
+      removeAdditionalValidation,
       resetFields,
       validate,
       validateInfos,
@@ -407,12 +464,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       sqlUi,
       isMssql,
       isPg,
+      isWebhookCreateModalOpen,
+      isAiButtonConfigModalOpen,
       isMysql,
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
+      isAiMode,
+      formattedData,
+      loadData,
+      tableExplorerColumns,
+      defaultFormState,
     }
   },
 )

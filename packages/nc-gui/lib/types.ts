@@ -74,6 +74,12 @@ interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta: {
+    // Used in InfiniteScroll Grid View
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+
     new?: boolean
     selected?: boolean
     commentCount?: number
@@ -93,11 +99,16 @@ interface Row {
     id?: string
     position?: string
     dayIndex?: number
-
     overLapIteration?: number
     numberOfOverlaps?: number
     minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
   }
+}
+
+interface Attachment {
+  url: string
 }
 
 interface CalendarRangeType {
@@ -236,6 +247,11 @@ interface FormFieldsLimitOptionsType {
 interface ImageCropperConfig {
   stencilProps?: {
     aspectRatio?: number
+    /**
+     * It can be used to force the cropper fills all visible area by default:
+     * @default true
+     */
+    fillDefault?: boolean
   }
   minHeight?: number
   minWidth?: number
@@ -277,6 +293,17 @@ interface NcTableColumnProps {
   [key: string]: any
 }
 
+interface ProductFeedItem {
+  Id: string
+  Title: string
+  Description: string
+  ['Feed Source']: 'Youtube' | 'Github' | 'All' | 'Cloud'
+  Url: string
+  Tags?: string
+  ['Published Time']: string
+  Image?: string | null
+}
+
 type SordDirectionType = 'asc' | 'desc' | undefined
 
 export type {
@@ -312,4 +339,6 @@ export type {
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,
+  ProductFeedItem,
+  Attachment,
 }

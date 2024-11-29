@@ -25,7 +25,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isEmail(column)) {
     return iconMap.cellEmail
   } else if (isYear(column, abstractType)) {
-    return iconMap.cellDate
+    return iconMap.cellYear
   } else if (isTime(column, abstractType)) {
     return iconMap.cellTime
   } else if (isRating(column)) {
@@ -51,6 +51,8 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
       return iconMap.cellUser
     }
     return iconMap.cellUser
+  } else if (isAI(column)) {
+    return iconMap.cellAi
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.cellNumber
   } else if (isString(column, abstractType)) {

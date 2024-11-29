@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  ButtonActionsType,
   FormulaDataTypes,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -16,6 +17,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
+import { parseMetaProp } from 'src/utils/modelUtils';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -33,6 +35,7 @@ import {
   CalendarRange,
   Column,
   FormulaColumn,
+  Hook,
   KanbanView,
   Model,
   Source,
@@ -45,7 +48,6 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   generateFkName,
-  randomID,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -133,6 +135,42 @@ async function reuseOrSave(
   return res;
 }
 
+async function getJunctionTableName(
+  param: {
+    base: Base;
+  },
+  parent: Model,
+  child: Model,
+) {
+  const parentTable = param.base?.prefix
+    ? parent.table_name.replace(`${param.base?.prefix}_`, '')
+    : parent.table_name;
+  const childTable = param.base?.prefix
+    ? child.table_name.replace(`${param.base?.prefix}_`, '')
+    : child.table_name;
+
+  const tableName = `${param.base?.prefix ?? ''}_nc_m2m_${parentTable.slice(
+    0,
+    15,
+  )}_${childTable.slice(0, 15)}`;
+  let suffix: number = null;
+  // check table name avail or not, if not then add incremental suffix
+  while (
+    await Noco.ncMeta.metaGet2(
+      (parent as any).fk_workspace_id,
+      parent.base_id,
+      MetaTable.MODELS,
+      {
+        table_name: `${tableName}${suffix ?? ''}`,
+        source_id: parent.source_id,
+      },
+    )
+  ) {
+    suffix = suffix ? suffix + 1 : 1;
+  }
+  return `${tableName}${suffix ?? ''}`;
+}
+
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -174,6 +212,62 @@ export class ColumnsService {
     }
   }
 
+  private async updateMetaAndDatabase(
+    context: NcContext,
+    args: {
+      table: Model;
+      column: Partial<Column>;
+      source: Source;
+      reuse: ReusableParams;
+      processColumn?: () => Promise<void>;
+    },
+  ) {
+    const { table, column, source, reuse } = args;
+
+    const tableUpdateBody = {
+      ...table,
+      tn: table.table_name,
+      originalColumns: table.columns.map((c) => ({
+        ...c,
+        cn: c.column_name,
+        cno: c.column_name,
+      })),
+      columns: await Promise.all(
+        table.columns.map(async (c) => {
+          if (c.id === column.id) {
+            const res = {
+              ...c,
+              ...column,
+              cn: column.column_name,
+              cno: c.column_name,
+              altered: Altered.UPDATE_COLUMN,
+            };
+
+            if (args.processColumn) {
+              await args.processColumn();
+            }
+
+            return Promise.resolve(res);
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return Promise.resolve(c);
+        }),
+      ),
+    };
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr(context, {
+        id: source.base_id,
+      }),
+    );
+    await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+    await Column.update(context, column.id, {
+      ...column,
+    });
+  }
+
   async columnUpdate(
     context: NcContext,
     param: {
@@ -200,10 +294,19 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
+    // TODO: Refactor the columnUpdate function to handle metaOnly changes and
+    // DB related changes, right now both are mixed up, making this fragile
+    if (param.column.description !== column.description) {
+      await Column.update(context, param.columnId, {
+        description: param.column.description,
+      });
+    }
+
+    // These are the column types whose meta is allowed to be updated
+    // It includes currency, date, datetime where formatting is allowed to update
     const isMetaOnlyUpdateAllowed =
       source?.is_schema_readonly &&
       partialUpdateAllowedTypes.includes(column.uidt);
-
     // check if source is readonly and column type is not allowed
     if (
       source?.is_schema_readonly &&
@@ -212,7 +315,23 @@ export class ColumnsService {
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
       !partialUpdateAllowedTypes.includes(column.uidt)
     ) {
+      /*
+      throw error if source is readonly and column type is not allowed
       NcError.sourceMetaReadOnly(source.alias);
+
+      Get all the columns in the table and return
+      */
+      await table.getColumns(context);
+
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        column,
+        user: param.req?.user,
+        ip: param.req?.clientIp,
+        req: param.req,
+      });
+
+      return table;
     }
 
     const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
@@ -221,6 +340,8 @@ export class ColumnsService {
 
     const sqlClientType = sqlClient.knex.clientType();
 
+    // The maxLength of column name is different for different databases
+    // This is the maximum length of column name allowed in the database
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     if (!isVirtualCol(param.column) && !isMetaOnlyUpdateAllowed) {
@@ -287,7 +408,10 @@ export class ColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.badRequest('Duplicate column alias');
+      // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
+      NcError.badRequest(
+        `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
+      );
     }
 
     let colBody = { ...param.column } as Column & {
@@ -295,6 +419,11 @@ export class ColumnsService {
       formula_raw?: string;
       parsed_tree?: any;
       colOptions?: any;
+      fk_webhook_id?: string;
+      type?: ButtonActionsType;
+      prompt?: string;
+      prompt_raw?: string;
+      fk_integration_id?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -310,6 +439,7 @@ export class ColumnsService {
         UITypes.Barcode,
         UITypes.ForeignKey,
         UITypes.Links,
+        UITypes.Button,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -357,7 +487,93 @@ export class ColumnsService {
             );
           } catch (e) {
             console.error(e);
-            NcError.badRequest('Invalid Formula');
+            throw e;
+          }
+
+          await Column.update(context, column.id, {
+            // title: colBody.title,
+            ...column,
+            ...colBody,
+          });
+        } else if (column.uidt === UITypes.Button) {
+          if (colBody.type === ButtonActionsType.Url) {
+            colBody.formula = await substituteColumnAliasWithIdInFormula(
+              colBody.formula_raw || colBody.formula,
+              table.columns,
+            );
+            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+              formula: colBody.formula || colBody.formula_raw,
+              columns: table.columns,
+              column,
+              clientOrSqlUi: source.type as any,
+              getMeta: async (modelId) => {
+                const model = await Model.get(context, modelId);
+                await model.getColumns(context);
+                return model;
+              },
+            });
+
+            try {
+              const baseModel = await reuseOrSave(
+                'baseModel',
+                reuse,
+                async () =>
+                  Model.getBaseModelSQL(context, {
+                    id: table.id,
+                    dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                      NcConnectionMgrv2.get(source),
+                    ),
+                  }),
+              );
+              await formulaQueryBuilderv2(
+                baseModel,
+                colBody.formula,
+                null,
+                table,
+                null,
+                {},
+                null,
+                true,
+                colBody.parsed_tree,
+              );
+            } catch (e) {
+              console.error(e);
+              NcError.badRequest('Invalid Formula');
+            }
+          } else if (colBody.type === ButtonActionsType.Webhook) {
+            if (!colBody.fk_webhook_id) {
+              NcError.badRequest('Webhook not found');
+            }
+
+            const hook = await Hook.get(context, colBody.fk_webhook_id);
+
+            if (!hook || !hook.active || hook.event !== 'manual') {
+              NcError.badRequest('Webhook not found');
+            }
+          } else if (colBody.type === ButtonActionsType.Ai) {
+            if (!colBody.fk_integration_id) {
+              NcError.badRequest('AI Integration not found');
+            }
+
+            /*
+              Substitute column alias with id in prompt
+            */
+            if (colBody.formula_raw) {
+              await table.getColumns(context);
+
+              colBody.formula = colBody.formula_raw.replace(
+                /{(.*?)}/g,
+                (match, p1) => {
+                  const column = table.columns.find((c) => c.title === p1);
+
+                  if (!column) {
+                    NcError.badRequest(`Field '${p1}' not found`);
+                  }
+
+                  return `{${column.id}}`;
+                },
+              );
+            }
           }
 
           await Column.update(context, column.id, {
@@ -383,6 +599,7 @@ export class ColumnsService {
               meta: colBody.meta,
             });
           }
+
           if (
             'validate' in colBody &&
             ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
@@ -890,43 +1107,13 @@ export class ColumnsService {
                   : '';
               }
 
-              const tableUpdateBody = {
-                ...table,
-                tn: table.table_name,
-                originalColumns: table.columns.map((c) => ({
-                  ...c,
-                  cn: c.column_name,
-                  cno: c.column_name,
-                })),
-                columns: await Promise.all(
-                  table.columns.map(async (c) => {
-                    if (c.id === param.columnId) {
-                      const res = {
-                        ...c,
-                        ...column,
-                        cn: column.column_name,
-                        cno: c.column_name,
-                        dtxp: temp_dtxp,
-                        altered: Altered.UPDATE_COLUMN,
-                      };
-                      return Promise.resolve(res);
-                    } else {
-                      (c as any).cn = c.column_name;
-                    }
-                    return Promise.resolve(c);
-                  }),
-                ),
-              };
+              column.dtxp = temp_dtxp;
 
-              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-                ProjectMgrv2.getSqlMgr(context, {
-                  id: source.base_id,
-                }),
-              );
-              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-              await Column.update(context, param.columnId, {
-                ...column,
+              await this.updateMetaAndDatabase(context, {
+                table,
+                column,
+                source,
+                reuse,
               });
             }
 
@@ -1108,47 +1295,39 @@ export class ColumnsService {
         }
       }
 
-      const tableUpdateBody = {
-        ...table,
-        tn: table.table_name,
-        originalColumns: table.columns.map((c) => ({
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name,
-        })),
-        columns: await Promise.all(
-          table.columns.map(async (c) => {
-            if (c.id === param.columnId) {
-              const res = {
-                ...c,
-                ...colBody,
-                cn: colBody.column_name,
-                cno: c.column_name,
-                altered: Altered.UPDATE_COLUMN,
-              };
-
-              // update formula with new column name
-              await this.updateFormulas(context, {
-                oldColumn: column,
-                colBody,
-              });
-              return Promise.resolve(res);
-            } else {
-              (c as any).cn = c.column_name;
-            }
-            return Promise.resolve(c);
-          }),
-        ),
-      };
-
-      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-      );
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-      await Column.update(context, param.columnId, {
-        ...colBody,
+      await this.updateMetaAndDatabase(context, {
+        table,
+        column: colBody,
+        source,
+        reuse,
+        processColumn: async () => {
+          await this.updateFormulas(context, {
+            oldColumn: column,
+            colBody,
+          });
+        },
       });
+
+      if (colBody.uidt === UITypes.SingleSelect) {
+        const kanbanViewsByColId = await KanbanView.getViewsByGroupingColId(
+          context,
+          column.id,
+        );
+
+        for (const kanbanView of kanbanViewsByColId) {
+          const view = await View.get(context, kanbanView.fk_view_id);
+          if (!view?.uuid) continue;
+          // Update groupingFieldColumn from view meta which will be used in shared kanban view
+          view.meta = parseMetaProp(view);
+          await View.update(context, view.id, {
+            ...view,
+            meta: {
+              ...view.meta,
+              groupingFieldColumn: colBody,
+            },
+          });
+        }
+      }
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
       if (typeof colBody.cdf !== 'string') {
@@ -1245,46 +1424,18 @@ export class ColumnsService {
         }
 
         colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
 
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
         });
       } else {
         // email/text to user
@@ -1353,46 +1504,18 @@ export class ColumnsService {
         ]);
 
         colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
 
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
         });
       }
     } else {
@@ -1423,52 +1546,34 @@ export class ColumnsService {
           baseModel.getTnPath(table.table_name),
           column.column_name,
         ]);
+      } else if (
+        column.uidt === UITypes.SingleSelect &&
+        column.uidt !== colBody.uidt &&
+        (await KanbanView.getViewsByGroupingColId(context, column.id)).length >
+          0
+      ) {
+        NcError.badRequest(
+          `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
+        );
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);
-      const tableUpdateBody = {
-        ...table,
-        tn: table.table_name,
-        originalColumns: table.columns.map((c) => ({
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name,
-        })),
-        columns: await Promise.all(
-          table.columns.map(async (c) => {
-            if (c.id === param.columnId) {
-              const res = {
-                ...c,
-                ...colBody,
-                cn: colBody.column_name,
-                cno: c.column_name,
-                altered: Altered.UPDATE_COLUMN,
-              };
 
-              // update formula with new column name
-              await this.updateFormulas(context, {
-                oldColumn: column,
-                colBody,
-              });
-              return Promise.resolve(res);
-            } else {
-              (c as any).cn = c.column_name;
-            }
-            return Promise.resolve(c);
-          }),
-        ),
-      };
-
-      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-      );
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-      await Column.update(context, param.columnId, {
-        ...colBody,
+      await this.updateMetaAndDatabase(context, {
+        table,
+        column: colBody,
+        source,
+        reuse,
+        processColumn: async () => {
+          await this.updateFormulas(context, {
+            oldColumn: column,
+            colBody,
+          });
+        },
       });
     }
 
+    // Get all the columns in the table and return
     await table.getColumns(context);
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -1501,6 +1606,11 @@ export class ColumnsService {
       reuse?: ReusableParams;
     },
   ) {
+    // if column_name is defined and title is not defined, set title to column_name
+    if (param.column.column_name && !param.column.title) {
+      param.column.title = param.column.column_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const reuse = param.reuse || {};
@@ -1538,7 +1648,7 @@ export class ColumnsService {
 
       if (!isVirtualCol(param.column)) {
         param.column.column_name = sanitizeColumnName(
-          param.column.column_name,
+          param.column.column_name || param.column.title,
           source.type,
         );
       }
@@ -1546,6 +1656,11 @@ export class ColumnsService {
       // trim leading and trailing spaces from column title as knex trim them by default
       if (param.column.title) {
         param.column.title = param.column.title.trim();
+      }
+
+      // if column_name missing then generate it from title
+      if (!param.column.column_name) {
+        param.column.column_name = param.column.title;
       }
 
       if (param.column.column_name) {
@@ -1707,7 +1822,7 @@ export class ColumnsService {
           );
         } catch (e) {
           console.error(e);
-          NcError.badRequest('Invalid Formula');
+          throw e;
         }
 
         await Column.insert(context, {
@@ -1716,6 +1831,93 @@ export class ColumnsService {
         });
 
         break;
+      case UITypes.Button: {
+        if (colBody.type === ButtonActionsType.Url) {
+          colBody.formula = await substituteColumnAliasWithIdInFormula(
+            colBody.formula_raw || colBody.formula,
+            table.columns,
+          );
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+            formula: colBody.formula,
+            columns: table.columns,
+            column: {
+              ...colBody,
+              colOptions: colBody,
+            },
+            clientOrSqlUi: source.type as any,
+            getMeta: async (modelId) => {
+              const model = await Model.get(context, modelId);
+              await model.getColumns(context);
+              return model;
+            },
+          });
+
+          try {
+            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+              Model.getBaseModelSQL(context, {
+                id: table.id,
+                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                  NcConnectionMgrv2.get(source),
+                ),
+              }),
+            );
+            await formulaQueryBuilderv2(
+              baseModel,
+              colBody.formula,
+              null,
+              table,
+              null,
+              {},
+              null,
+              true,
+              colBody.parsed_tree,
+            );
+          } catch (e) {
+            console.error(e);
+            NcError.badRequest('Invalid URL Formula');
+          }
+        } else if (colBody.type === ButtonActionsType.Webhook) {
+          if (!colBody.fk_webhook_id) {
+            colBody.fk_webhook_id = null;
+          }
+
+          const hook = await Hook.get(context, colBody.fk_webhook_id);
+
+          if (!hook || !hook.active || hook.event !== 'manual') {
+            colBody.fk_webhook_id = null;
+          }
+        } else if (colBody.type === ButtonActionsType.Ai) {
+          if (!colBody.fk_integration_id) {
+            NcError.badRequest('AI Integration not found');
+          }
+
+          /*
+            Substitute column alias with id in prompt
+          */
+          if (colBody.formula_raw) {
+            await table.getColumns(context);
+
+            colBody.formula = colBody.formula_raw.replace(
+              /{(.*?)}/g,
+              (match, p1) => {
+                const column = table.columns.find((c) => c.title === p1);
+
+                if (!column) {
+                  NcError.badRequest(`Field '${p1}' not found`);
+                }
+
+                return `{${column.id}}`;
+              },
+            );
+          }
+        }
+
+        await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+        break;
+      }
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
@@ -2168,6 +2370,7 @@ export class ColumnsService {
       case UITypes.Rollup:
       case UITypes.QrCode:
       case UITypes.Barcode:
+      case UITypes.Button:
         await Column.delete(context, param.columnId, ncMeta);
         break;
 
@@ -2425,7 +2628,8 @@ export class ColumnsService {
       }
       case UITypes.SingleSelect: {
         if (
-          await KanbanView.IsColumnBeingUsedAsGroupingField(context, column.id)
+          (await KanbanView.getViewsByGroupingColId(context, column.id))
+            .length > 0
         ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
@@ -2827,6 +3031,7 @@ export class ColumnsService {
       base: Base;
       reuse?: ReusableParams;
       colExtra?: any;
+      user: UserType;
     },
   ) {
     validateParams(['parentId', 'childId', 'type'], param.column);
@@ -3064,7 +3269,7 @@ export class ColumnsService {
         param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-      const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
+      const aTn = await getJunctionTableName(param, parent, child);
       const aTnAlias = aTn;
 
       const parentPK = parent.primaryKey;
@@ -3072,8 +3277,13 @@ export class ColumnsService {
 
       const associateTableCols = [];
 
-      const parentCn = 'table1_id';
-      const childCn = 'table2_id';
+      const parentCn = `${parent.table_name.slice(0, 30)}_id`;
+      let childCn = `${child.table_name.slice(0, 30)}_id`;
+
+      // handle duplicate column names in self referencing tables or if first 30 characters are same
+      if (parentCn === childCn) {
+        childCn = `${child.table_name.slice(0, 29)}1_id`;
+      }
 
       associateTableCols.push(
         {
@@ -3124,6 +3334,7 @@ export class ColumnsService {
           // todo: sanitize
           mm: true,
           columns: associateTableCols,
+          user_id: param.user.id,
         },
       );
 
@@ -3260,6 +3471,7 @@ export class ColumnsService {
             ...associateTableCols[0],
             fk_model_id: assocModel.id,
           }),
+          indexName: generateFkName(parent, child),
           source: param.source,
           sqlMgr,
         });
@@ -3268,6 +3480,7 @@ export class ColumnsService {
             ...associateTableCols[1],
             fk_model_id: assocModel.id,
           }),
+          indexName: generateFkName(parent, child),
           source: param.source,
           sqlMgr,
         });

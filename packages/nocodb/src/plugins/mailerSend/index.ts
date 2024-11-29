@@ -1,11 +1,12 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import MailerSendPlugin from './MailerSendPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: MailerSendPlugin,
+  id: 'mailersend',
   title: 'MailerSend',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/mailersend.svg',
   // icon: 'mdi-email-outline',
   description: 'MailerSend email client',
@@ -17,7 +18,7 @@ const config: XcPluginConfig = {
     items: [
       {
         key: 'api_key',
-        label: 'API KEy',
+        label: 'API key',
         placeholder: 'eg: ***************',
         type: XcType.Password,
         required: true,
@@ -31,7 +32,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'from_name',
-        label: 'From Name',
+        label: 'From name',
         placeholder: 'eg: Adam',
         type: XcType.SingleLineText,
         required: true,
@@ -52,7 +53,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and email notification will use MailerSend configuration',
+      'Successfully configured! Email notifications are now set up using MailerSend.',
     msgOnUninstall: '',
   },
 };

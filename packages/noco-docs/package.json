@@ -25,7 +25,9 @@
     "serve": "docusaurus serve --dir dist",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "remark": "remark",
+    "remark:once": "npm run remark -- --quiet --frail --use remark-validate-links docs/"
   },
   "dependencies": {
     "@docusaurus/core": "3.1.1",
@@ -48,6 +50,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.1.1",
     "@tsconfig/docusaurus": "^1.0.7",
+    "remark-cli": "^12.0.1",
+    "remark-validate-links": "^13.0.1",
     "typescript": "^4.9.5"
   },
   "browserslist": {

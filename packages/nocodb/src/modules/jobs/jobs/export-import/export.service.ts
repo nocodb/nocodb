@@ -7,7 +7,7 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { Base, Filter, Hook, Model, Source, View } from '~/models';
+import { Base, Comment, Filter, Hook, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   getViewAndModelByAliasOrId,
@@ -36,6 +36,7 @@ export class ExportService {
       excludeViews?: boolean;
       excludeHooks?: boolean;
       excludeData?: boolean;
+      excludeComments?: boolean;
     },
   ) {
     const { modelIds } = param;
@@ -43,6 +44,8 @@ export class ExportService {
     const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
+    const excludeComments =
+      param?.excludeComments || param?.excludeData || false;
 
     const serializedModels = [];
 
@@ -156,20 +159,22 @@ export class ExportService {
                 break;
               case 'formula':
                 // rewrite formula_raw with aliases
-                column.colOptions['formula_raw'] = column.colOptions[k].replace(
-                  /\{\{.*?\}\}/gm,
-                  (match) => {
-                    const col = model.columns.find(
-                      (c) => c.id === match.slice(2, -2),
-                    );
-                    return `{${col?.title}}`;
-                  },
-                );
+                column.colOptions['formula_raw'] = column.colOptions[
+                  k
+                ]?.replace(/\{\{.*?\}\}/gm, (match) => {
+                  const col = model.columns.find(
+                    (c) => c.id === match.slice(2, -2),
+                  );
+                  return `{${col?.title}}`;
+                });
 
-                column.colOptions[k] = column.colOptions[k].replace(
+                column.colOptions[k] = column.colOptions[k]?.replace(
                   /(?<=\{\{).*?(?=\}\})/gm,
                   (match) => idMap.get(match),
                 );
+                break;
+              case 'fk_webhook_id':
+                column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'id':
               case 'created_at':
@@ -240,6 +245,9 @@ export class ExportService {
           for (const fl of view.filter.children) {
             const tempFl = {
               id: `${idMap.get(view.id)}::${fl.id}`,
+              fk_parent_column_id: fl.fk_parent_column_id
+                ? idMap.get(fl.fk_parent_column_id)
+                : null,
               fk_column_id: idMap.get(fl.fk_column_id),
               fk_parent_id: `${idMap.get(view.id)}::${fl.fk_parent_id}`,
               is_group: fl.is_group,
@@ -372,15 +380,55 @@ export class ExportService {
         }
       }
 
+      const serializedComments = [];
+
+      if (!excludeComments) {
+        const READ_BATCH_SIZE = 100;
+        let comments: Comment[] = [];
+        let offset = 0;
+
+        while (true) {
+          const batchComments = await Comment.listByModel(context, model.id, {
+            limit: READ_BATCH_SIZE + 1,
+            offset
+          });
+
+          comments.push(...batchComments.slice(0, READ_BATCH_SIZE));
+
+          if (batchComments.length <= READ_BATCH_SIZE) break;
+          offset += READ_BATCH_SIZE;
+        }
+
+        for (const comment of comments) {
+          idMap.set(comment.id, `${idMap.get(model.id)}::${comment.id}`);
+
+          serializedComments.push({
+            id: idMap.get(comment.id),
+            fk_model_id: idMap.get(comment.fk_model_id),
+            row_id: comment.row_id,
+            comment: comment.comment,
+            parent_comment_id: comment.parent_comment_id
+              ? idMap.get(comment.parent_comment_id)
+              : null,
+            created_by: comment.created_by,
+            resolved_by: comment.resolved_by,
+            created_by_email: comment.created_by_email,
+            resolved_by_email: comment.resolved_by_email,
+          });
+        }
+      }
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
           prefix: base.prefix,
           title: model.title,
           table_name: clearPrefix(model.table_name, base.prefix),
+          description: model.description,
           pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => ({
+            description: column.description,
             id: idMap.get(column.id),
             ai: column.ai,
             column_name: column.column_name,
@@ -403,6 +451,7 @@ export class ExportService {
           })),
         },
         views: model.views.map((view) => ({
+          description: view.description,
           id: idMap.get(view.id),
           is_default: view.is_default,
           type: view.type,
@@ -414,6 +463,7 @@ export class ExportService {
           filter: view.filter,
           sorts: view.sorts,
           lock_type: view.lock_type,
+          owned_by: view.owned_by,
           columns: view.columns.map((column) => {
             const {
               id,
@@ -434,6 +484,7 @@ export class ExportService {
           view: view.view,
         })),
         hooks: serializedHooks,
+        comments: serializedComments,
       });
     }
 
@@ -568,6 +619,7 @@ export class ExportService {
                 break;
               case UITypes.Formula:
               case UITypes.Lookup:
+              case UITypes.Button:
               case UITypes.Rollup:
               case UITypes.Barcode:
               case UITypes.QrCode:

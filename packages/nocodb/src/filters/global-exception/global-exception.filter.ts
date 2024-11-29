@@ -2,7 +2,11 @@ import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
-import { NcErrorType } from 'nocodb-sdk';
+import {
+  NcErrorType,
+  NcSDKError,
+  BadRequest as SdkBadRequest,
+} from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import NocoCache from '~/cache/NocoCache';
@@ -17,6 +21,7 @@ import {
   NcBaseErrorv2,
   NotFound,
   SsoError,
+  TestConnectionError,
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
@@ -58,10 +63,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof Forbidden ||
         exception instanceof NotFound ||
         exception instanceof UnprocessableEntity ||
+        exception instanceof TestConnectionError ||
         exception instanceof SsoError ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
         exception instanceof ExternalError ||
+        exception instanceof SdkBadRequest ||
+        exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
             NcErrorType.INTERNAL_SERVER_ERROR,
@@ -107,9 +115,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
               (data.timestamp + 300000 - Date.now()) / 1000,
             );
 
-            NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch((err) => {
-              this.logger.error(err);
-            });
+            if (ttlInSeconds > 0) {
+              NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch(
+                (err) => {
+                  this.logger.error(err);
+                },
+              );
+            }
 
             // log every 50th request in last 5 minutes after first
             if (data.count % 50 === 0) {
@@ -179,8 +191,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response
         .status(400)
         .json({ msg: exception.message, errors: exception.errors });
-    } else if (exception instanceof UnprocessableEntity) {
+    } else if (
+      exception instanceof UnprocessableEntity ||
+      exception instanceof SdkBadRequest ||
+      exception instanceof NcSDKError
+    ) {
       return response.status(422).json({ msg: exception.message });
+    } else if (exception instanceof TestConnectionError) {
+      return response
+        .status(422)
+        .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
       return response.status(exception.code).json({
         error: exception.error,

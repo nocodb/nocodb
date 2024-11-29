@@ -193,13 +193,6 @@ const quickVerify = async ({
     await dashboard.webhookForm.close();
   }
 
-  // Verify pagination
-  await dashboard.grid.verifyActivePage({ pageNumber: '1' });
-  await dashboard.grid.clickPagination({ type: 'next-page', skipWait: true });
-  await dashboard.grid.verifyActivePage({ pageNumber: '2' });
-  await dashboard.grid.clickPagination({ type: 'prev-page', skipWait: true });
-  await dashboard.grid.verifyActivePage({ pageNumber: '1' });
-
   await dashboard.viewSidebar.openView({ title: 'Filter&Sort' });
 
   // Verify Fields, Filter & Sort

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { IWebhookNotificationAdapter } from 'nc-plugin';
+import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class Discord implements IWebhookNotificationAdapter {
   public init(): Promise<any> {

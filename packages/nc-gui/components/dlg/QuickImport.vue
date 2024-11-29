@@ -181,6 +181,9 @@ async function handlePreImport() {
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
+
+  isParsingData.value = false
+  preImportLoading.value = false
 }
 
 async function handleImport() {
@@ -318,9 +321,9 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile) => {
-  const exceedLimit = file.size! / 1024 / 1024 > 5
+  const exceedLimit = file.size! / 1024 / 1024 > 25
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 5MB.`)
+    message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
   }
   return !exceedLimit || Upload.LIST_IGNORE
 }
@@ -504,9 +507,6 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
   } catch (e: any) {
     console.log(e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isParsingData.value = false
-    preImportLoading.value = false
   }
 }
 

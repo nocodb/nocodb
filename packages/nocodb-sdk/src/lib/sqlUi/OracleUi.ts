@@ -1,4 +1,4 @@
-import { NormalColumnRequestType } from '../Api';
+import { ColumnType, NormalColumnRequestType } from '../Api';
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
@@ -950,6 +950,10 @@ export class OracleUi {
       'ROUNDUP',
       'DATESTR',
     ];
+  }
+
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return null;
   }
 
   static isEqual(dataType1: string, dataType2: string) {

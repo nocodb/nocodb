@@ -61,57 +61,68 @@ const onValidate = async (_: any, valid: boolean) => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
-    <div class="flex flex-col w-150">
-      <div class="flex font-bold text-xl" data-rec="true">{{ $t('labels.profile') }}</div>
-      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-        <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>
-        <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
-        <div class="flex flex-row mt-4">
-          <div class="flex h-20 mt-1.5">
-            <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
-          </div>
-          <div class="flex w-10"></div>
-          <a-form
-            ref="formValidator"
-            layout="vertical"
-            no-style
-            :model="form"
-            class="flex flex-col w-full"
-            @finish="onSubmit"
-            @validate="onValidate"
-          >
-            <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('general.name') }}</div>
-            <a-form-item name="title" :rules="formRules.title">
-              <a-input
-                v-model:value="form.title"
-                class="w-full !rounded-md !py-1.5"
-                :placeholder="$t('general.name')"
-                data-testid="nc-account-settings-rename-input"
-              />
-            </a-form-item>
-            <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
-            <a-input
-              v-model:value="email"
-              class="w-full !rounded-md !py-1.5"
-              :placeholder="$t('labels.email')"
-              disabled
-              data-testid="nc-account-settings-email-input"
-            />
-            <div class="flex flex-row w-full justify-end mt-8" data-rec="true">
-              <NcButton
-                type="primary"
-                html-type="submit"
-                :disabled="isErrored || (form?.title && form?.title === user?.display_name)"
-                :loading="isTitleUpdating"
-                data-testid="nc-account-settings-save"
-                @click="onSubmit"
-              >
-                <template #loading> {{ $t('general.saving') }} </template>
-                {{ $t('general.save') }}
-              </NcButton>
+  <div class="flex flex-col">
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon class="flex-none !h-5 !w-5" icon="user" />
+      </template>
+      <template #title>
+        <span data-rec="true">
+          {{ $t('labels.profile') }}
+        </span>
+      </template>
+    </NcPageHeader>
+    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+      <div class="flex flex-col w-150 mx-auto">
+        <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
+          <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>
+          <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
+          <div class="flex flex-row mt-4">
+            <div class="flex h-20 mt-1.5">
+              <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
             </div>
-          </a-form>
+            <div class="flex w-10"></div>
+            <a-form
+              ref="formValidator"
+              layout="vertical"
+              no-style
+              :model="form"
+              class="flex flex-col w-full"
+              @finish="onSubmit"
+              @validate="onValidate"
+            >
+              <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('general.name') }}</div>
+              <a-form-item name="title" :rules="formRules.title">
+                <a-input
+                  v-model:value="form.title"
+                  class="w-full !rounded-md !py-1.5"
+                  :placeholder="$t('general.name')"
+                  data-testid="nc-account-settings-rename-input"
+                />
+              </a-form-item>
+              <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+              <a-input
+                v-model:value="email"
+                class="w-full !rounded-md !py-1.5"
+                :placeholder="$t('labels.email')"
+                disabled
+                data-testid="nc-account-settings-email-input"
+              />
+              <div class="flex flex-row w-full justify-end mt-8" data-rec="true">
+                <NcButton
+                  type="primary"
+                  html-type="submit"
+                  :disabled="isErrored || (form?.title && form?.title === user?.display_name)"
+                  :loading="isTitleUpdating"
+                  data-testid="nc-account-settings-save"
+                  @click="onSubmit"
+                >
+                  <template #loading> {{ $t('general.saving') }} </template>
+                  {{ $t('general.save') }}
+                </NcButton>
+              </div>
+            </a-form>
+          </div>
         </div>
       </div>
     </div>

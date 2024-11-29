@@ -7,6 +7,7 @@ interface Props {
   isMinGranularityPicker?: boolean
   minGranularity?: number
   isOpen?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   minGranularity: 30,
   isOpen: false,
 })
-const emit = defineEmits(['update:selectedDate'])
+const emit = defineEmits(['update:selectedDate', 'currentDate'])
 
 const pageDate = ref<dayjs.Dayjs>(dayjs())
 
@@ -93,10 +94,24 @@ onMounted(() => {
       </div>
     </div>
     <div v-else></div>
-    <div class="px-2 py-1 box-border flex items-center justify-center">
+    <div class="px-2 py-1 box-border flex items-center justify-center gap-2">
       <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs())">
         <span class="text-small"> {{ $t('general.now') }} </span>
       </NcButton>
+      <NcTooltip v-if="showCurrentDateOption" :disabled="showCurrentDateOption !== 'disabled'">
+        <template #title>
+          {{ $t('tooltip.currentDateNotAvail') }}
+        </template>
+        <NcButton
+          class="nc-date-picker-now-btn !h-7"
+          size="small"
+          type="secondary"
+          :disabled="showCurrentDateOption === 'disabled'"
+          @click="emit('currentDate')"
+        >
+          <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

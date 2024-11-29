@@ -20,6 +20,7 @@ interface Props {
   // column could be possibly undefined when the filter is created
   column?: ColumnType
   filter: Filter
+  disabled?: boolean
 }
 
 interface Emits {
@@ -164,6 +165,16 @@ const componentProps = computed(() => {
       }
       return {}
     }
+    case 'isCurrency': {
+      return { hidePrefix: true }
+    }
+    case 'isRating': {
+      return {
+        style: {
+          minWidth: `${(column.value?.meta?.max || 5) * 19}px`,
+        },
+      }
+    }
     default: {
       return {}
     }
@@ -187,28 +198,35 @@ const isInputBoxOnFocus = ref(false)
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+
+const isSingleOrMultiSelect = computed(() => {
+  return filterType.value === 'isSingleSelect' || filterType.value === 'isMultiSelect'
+})
 </script>
 
 <template>
   <a-select
     v-if="column && isBoolean(column, abstractType)"
     v-model:value="filterInput"
-    :disabled="filter.readOnly"
+    :disabled="filter.readOnly || props.disabled"
     :options="booleanOptions"
   />
   <div
     v-else
     class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
-    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
+    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus, '!max-w-100': isSingleOrMultiSelect }"
     @mouseup.stop
   >
     <component
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
-      :disabled="filter.readOnly"
+      :disabled="filter.readOnly || props.disabled"
       placeholder="Enter a value"
       :column="column"
       class="flex !rounded-lg"
+      :class="{
+        'text-nc-content-gray-muted pointer-events-none': props.disabled,
+      }"
       v-bind="componentProps"
       location="filter"
       @focus="isInputBoxOnFocus = true"

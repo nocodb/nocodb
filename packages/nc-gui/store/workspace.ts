@@ -20,6 +20,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<any[] | null>()
 
+  const allCollaborators = ref<any[] | null>()
+
   const router = useRouter()
 
   const route = router.currentRoute
@@ -42,6 +44,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+
+  const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
@@ -226,13 +230,26 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // Todo: write logic to navigate to integrations
-  const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean) => {
+  const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     if (cmdOrCtrl) {
-      await navigateTo('/nc/integrations', {
+      await navigateTo(
+        { path: '/nc/integrations', query },
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
+    } else {
+      await navigateTo({ path: '/nc/integrations', query })
+    }
+  }
+
+  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean) => {
+    if (cmdOrCtrl) {
+      await navigateTo('/nc/feed', {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      await navigateTo('/nc/integrations')
+      await navigateTo('/nc/feed')
     }
   }
 
@@ -296,6 +313,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -323,10 +341,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     auditLogsQuery,
     audits,
     auditPaginationData,
-
+    navigateToFeed,
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
+    isFeedPageOpened,
   }
 })
 

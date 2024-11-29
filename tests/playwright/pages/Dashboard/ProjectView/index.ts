@@ -4,6 +4,7 @@ import BasePage from '../../Base';
 import { DataSourcePage } from './DataSourcePage';
 import { TablesViewPage } from './TablesViewPage';
 import { AccessSettingsPage } from './AccessSettingsPage';
+import { BaseSettingsPage } from './Settings';
 
 export class ProjectViewPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -12,6 +13,7 @@ export class ProjectViewPage extends BasePage {
   readonly dataSources: DataSourcePage;
   readonly tables: TablesViewPage;
   readonly accessSettings: AccessSettingsPage;
+  readonly settings: BaseSettingsPage;
 
   // assets
   readonly tab_allTables: Locator;
@@ -30,6 +32,7 @@ export class ProjectViewPage extends BasePage {
     this.tables = new TablesViewPage(this);
     this.dataSources = new DataSourcePage(this);
     this.accessSettings = new AccessSettingsPage(this);
+    this.settings = new BaseSettingsPage(this);
 
     this.tab_allTables = this.get().locator('[data-testid="proj-view-tab__all-tables"]');
     this.tab_dataSources = this.get().locator('[data-testid="proj-view-tab__data-sources"]');
@@ -55,9 +58,9 @@ export class ProjectViewPage extends BasePage {
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
       await this.tab_accessSettings.waitFor({ state: 'visible' });
-      expect(await this.tab_accessSettings.isVisible()).toBeTruthy();
+      expect(await this.tab_dataSources.isVisible()).toBeTruthy();
     } else {
-      expect(await this.tab_accessSettings.isVisible()).toBeFalsy();
+      expect(await this.tab_dataSources.isVisible()).toBeFalsy();
     }
 
     await this.tables.verifyAccess(role);

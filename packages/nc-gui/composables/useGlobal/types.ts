@@ -2,8 +2,8 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { ProjectRoles } from 'nocodb-sdk'
+import type { AxiosInstance } from 'axios'
 import type { NcProjectType } from '#imports'
-
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -39,6 +39,8 @@ export interface AppInfo {
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string
+  feedEnabled: boolean
+  sentryDSN: string
 }
 
 export interface StoredState {
@@ -80,10 +82,21 @@ export interface Getters {
   isLoading: WritableComputedRef<boolean>
 }
 
+export interface SignOutParams {
+  redirectToSignin?: boolean
+  signinUrl?: string
+  skipRedirect?: boolean
+  skipApiCall?: boolean
+}
+
 export interface Actions {
-  signOut: (skipRedirect?: boolean) => void
+  signOut: (signOutParams?: SignOutParams) => Promise<void>
   signIn: (token: string, keepProps?: boolean) => void
-  refreshToken: () => void
+  refreshToken: (params: {
+    axiosInstance?: AxiosInstance
+    skipLogout?: boolean
+    cognitoOnly?: boolean
+  }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void

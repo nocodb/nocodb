@@ -10,36 +10,7 @@ const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
 // cater existing v1 cases
-const iconList = [
-  {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  {
-    checked: 'mdi-check-circle-outline',
-    unchecked: 'mdi-checkbox-blank-circle-outline',
-  },
-  {
-    checked: 'mdi-star',
-    unchecked: 'mdi-star-outline',
-  },
-  {
-    checked: 'mdi-heart',
-    unchecked: 'mdi-heart-outline',
-  },
-  {
-    checked: 'mdi-moon-full',
-    unchecked: 'mdi-moon-new',
-  },
-  {
-    checked: 'mdi-thumb-up',
-    unchecked: 'mdi-thumb-up-outline',
-  },
-  {
-    checked: 'mdi-flag',
-    unchecked: 'mdi-flag-outline',
-  },
-]
+const iconList = checkboxIconList
 
 const picked = computed({
   get: () => vModel.value.meta.color,
@@ -54,6 +25,7 @@ const isOpenColorPicker = ref(false)
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Checkbox],
   ...(vModel.value.meta || {}),
+  icon: extractCheckboxIcon(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value

@@ -181,7 +181,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.genericNotFound('Webhook', params.hookId);
+        NcError.hookNotFound(params.hookId);
       }
 
       req.ncBaseId = hook.base_id;
@@ -497,11 +497,15 @@ export class AclMiddleware implements NestInterceptor {
             );
           })));
     if (!isAllowed) {
-      NcError.forbidden(
-        `${permissionName} - ${getRolesLabels(
-          Object.keys(roles).filter((k) => roles[k]),
-        )} : Not allowed`,
-      );
+      NcError.permissionDenied(permissionName, roles, extendedScopeRoles);
+
+      // NcError.forbidden(
+      //
+      //
+      //   `${permissionName} - ${getRolesLabels(
+      //     Object.keys(roles).filter((k) => roles[k]),
+      //   )} : Not allowed`,
+      // );
     }
 
     // check if permission have source level permission restriction

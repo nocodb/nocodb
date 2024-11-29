@@ -4,9 +4,10 @@ import type { SidebarTableNode } from '~/lib/types'
 import { generateUniqueTitle as generateTitle } from '#imports'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
-  const table = reactive<{ title: string; table_name: string; columns: string[]; is_hybrid: boolean }>({
+  const table = reactive<{ title: string; table_name: string; description?: string; columns: string[]; is_hybrid: boolean }>({
     title: '',
     table_name: '',
+    description: '',
     columns: SYSTEM_COLUMNS,
     is_hybrid: true,
   })
@@ -43,7 +44,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const openTable = async (table: SidebarTableNode, cmdOrCtrl: boolean = false) => {
+  const openTable = async (table: SidebarTableNode, cmdOrCtrl: boolean = false, navigate: boolean = true) => {
     if (!table.base_id) return
 
     let base = bases.value.get(table.base_id)
@@ -68,7 +69,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     }
 
     const navigateToTable = async () => {
-      if (openedViewsTab.value === 'view') {
+      if (navigate && openedViewsTab.value === 'view') {
         await navigateTo(
           `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
           cmdOrCtrl
@@ -85,7 +86,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
         await loadViews({ tableId: table.id as string })
 
         const views = viewsByTable.value.get(table.id as string) ?? []
-        if (openedViewsTab.value !== 'view' && views.length && views[0].id) {
+        if (navigate && openedViewsTab.value !== 'view' && views.length && views[0].id) {
           // find the default view and navigate to it, if not found navigate to the first one
           const defaultView = views.find((v) => v.is_default) || views[0]
 

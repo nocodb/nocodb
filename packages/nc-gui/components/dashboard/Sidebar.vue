@@ -5,7 +5,7 @@ const { isWorkspaceLoading } = storeToRefs(workspaceStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const treeViewDom = ref<HTMLElement>()
 
@@ -56,10 +56,11 @@ onUnmounted(() => {
     >
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" class="overflow-auto">
+    <div v-if="!isSharedBase" class="flex-none overflow-auto">
       <GeneralGift v-if="!isEeUI" />
       <div class="border-t-1 w-full"></div>
       <DashboardSidebarBeforeUserInfo />
+      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
       <DashboardSidebarUserInfo />
     </div>
   </div>

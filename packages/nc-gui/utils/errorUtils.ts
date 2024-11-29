@@ -1,7 +1,14 @@
 import { NcErrorType } from 'nocodb-sdk'
 
 export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
-  if (!e || !e.response) return e.message
+  if (!e || !e.response) {
+    if (e?.message?.includes('object ProgressEvent')) {
+      return 'Requested file was not accessible. Please check if server allows accessing the file. If you are sure the file exists, it might be a CORS issue.'
+    } else {
+      return e.message
+    }
+  }
+
   let msg
   let errors: any[] | null = null
   if (e.response.data instanceof Blob) {

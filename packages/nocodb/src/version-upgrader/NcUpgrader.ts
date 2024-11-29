@@ -1,19 +1,21 @@
 import debug from 'debug';
-import { T } from 'nc-help';
 import boxen from 'boxen';
-import ncAttachmentUpgrader from './ncAttachmentUpgrader';
-import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
-import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
-import ncFilterUpgrader_0104004 from './ncFilterUpgrader_0104004';
-import ncFilterUpgrader_0105003 from './ncFilterUpgrader_0105003';
-import ncFilterUpgrader from './ncFilterUpgrader';
-import ncHookUpgrader from './ncHookUpgrader';
-import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
-import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
-import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
-import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
+import ncAttachmentUpgrader from './upgraders/0101002_ncAttachmentUpgrader';
+import ncAttachmentUpgrader_0104002 from './upgraders/0104002_ncAttachmentUpgrader';
+import ncStickyColumnUpgrader from './upgraders/0105002_ncStickyColumnUpgrader';
+import ncFilterUpgrader_0104004 from './upgraders/0104004_ncFilterUpgrader';
+import ncFilterUpgrader_0105003 from './upgraders/0105003_ncFilterUpgrader';
+import ncFilterUpgrader from './upgraders/0100002_ncFilterUpgrader';
+import ncHookUpgrader from './upgraders/0105004_ncHookUpgrader';
+import ncProjectConfigUpgrader from './upgraders/0107004_ncProjectConfigUpgrader';
+import ncXcdbLTARUpgrader from './upgraders/0108002_ncXcdbLTARUpgrader';
+import ncXcdbLTARIndexUpgrader from './upgraders/0111002_ncXcdbLTARIndexUpgrader';
+import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './upgraders/0111005_ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
+import ncDatasourceDecrypt from './upgraders/0225002_ncDatasourceDecrypt';
+import ncDuplicatePluginMerge from './upgraders/0258003_ncDuplicatePluginMerge';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
+import { T } from '~/utils';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 const log = debug('nc:version-upgrader');
@@ -148,6 +150,8 @@ export default class NcUpgrader {
       { name: '0108002', handler: ncXcdbLTARUpgrader },
       { name: '0111002', handler: ncXcdbLTARIndexUpgrader },
       { name: '0111005', handler: ncXcdbCreatedAndUpdatedSystemFieldsUpgrader },
+      { name: '0225002', handler: ncDatasourceDecrypt },
+      { name: '0258003', handler: ncDuplicatePluginMerge },
     ];
   }
 }

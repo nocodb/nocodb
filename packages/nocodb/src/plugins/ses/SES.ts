@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 import { SendRawEmailCommand, SES as SESClient } from '@aws-sdk/client-ses';
-import type { IEmailAdapter } from 'nc-plugin';
+import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 

@@ -19,6 +19,7 @@ import type {
   View,
 } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { Comment, Hook } from '~/models';
 import { Base, Column, Model, Source } from '~/models';
 import {
   findWithIdentifier,
@@ -79,8 +80,15 @@ export class ImportService {
       baseId: string;
       sourceId: string;
       data:
-        | { models: { model: any; views: any[]; hooks?: any[] }[] }
-        | { model: any; views: any[]; hooks?: any[] }[];
+        | {
+            models: {
+              model: any;
+              views: any[];
+              hooks?: any[];
+              comments?: any[];
+            }[];
+          }
+        | { model: any; views: any[]; hooks?: any[]; comments?: any[] }[];
       req: NcRequest;
       externalModels?: Model[];
       existingModel?: Model;
@@ -144,6 +152,17 @@ export class ImportService {
           externalIdMap.set(
             `${model.base_id}::${model.source_id}::${model.id}::${view.id}`,
             view.id,
+          );
+        }
+
+        const hooks = await Hook.list(context, {
+          fk_model_id: model.id,
+        });
+
+        for (const hook of hooks) {
+          externalIdMap.set(
+            `${model.base_id}::${model.source_id}::${model.id}::${hook.id}`,
+            hook.id,
           );
         }
       }
@@ -238,6 +257,59 @@ export class ImportService {
       }
 
       tableReferences.set(modelData.id, table);
+    }
+
+    // create hooks
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (!data?.hooks) break;
+      const modelData = data.model;
+      const hookData = data.hooks;
+
+      const table = tableReferences.get(modelData.id);
+
+      for (const hook of hookData) {
+        const { filters, ...rest } = hook;
+
+        const hookData = withoutId({
+          ...rest,
+        });
+
+        const hk = await this.hooksService.hookCreate(context, {
+          tableId: table.id,
+          hook: {
+            ...hookData,
+          } as any,
+          req: param.req,
+        });
+
+        if (!hk) continue;
+
+        idMap.set(hook.id, hk.id);
+      }
+    }
+
+    // create comments
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (!data?.comments) break;
+      const modelData = data.model;
+      const commentsData = data.comments;
+
+      const table = tableReferences.get(modelData.id);
+
+      for (const commentD of commentsData) {
+        const comment = await Comment.insert(
+          context,
+          withoutId({
+            ...commentD,
+            fk_model_id: table.id,
+            parent_comment_id: idMap.get(commentD.parent_comment_id),
+          }),
+        );
+
+        idMap.set(commentD.id, comment.id);
+      }
     }
 
     elapsedTime(hrTime, 'create tables with static columns', 'importModels');
@@ -1030,6 +1102,7 @@ export class ImportService {
             (a.uidt === UITypes.Lookup ||
               a.uidt === UITypes.Rollup ||
               a.uidt === UITypes.Formula ||
+              a.uidt === UITypes.Button ||
               a.uidt === UITypes.QrCode ||
               a.uidt === UITypes.CreatedTime ||
               a.uidt === UITypes.LastModifiedTime ||
@@ -1057,7 +1130,7 @@ export class ImportService {
         relatedColIds.push(col.colOptions.fk_rollup_column_id);
       }
       if (col.colOptions?.formula) {
-        const colIds = col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
+        const colIds = col.colOptions?.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
         if (colIds && colIds.length > 0) {
           relatedColIds.push(
             ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
@@ -1090,7 +1163,6 @@ export class ImportService {
         );
       }
     }
-
     // create referenced columns
     // sort the column sets to create the system columns first
     for (const col of sortedReferencedColumnSet) {
@@ -1153,6 +1225,31 @@ export class ImportService {
             ...flatCol,
             ...{
               formula_raw: colOptions.formula_raw,
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.Button) {
+        const freshModelData = await this.columnsService.columnAdd(context, {
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              formula_raw: colOptions?.formula_raw,
+              label: colOptions?.label,
+              color: colOptions?.color,
+              theme: colOptions?.theme,
+              icon: colOptions?.icon,
+              type: colOptions?.type,
+              fk_webhook_id: getIdOrExternalId(colOptions?.fk_webhook_id),
             },
           }) as any,
           req: param.req,
@@ -1278,6 +1375,7 @@ export class ImportService {
             viewId: vw.id,
             filter: withoutId({
               ...fl,
+              fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
@@ -1385,38 +1483,19 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create views', 'importModels');
 
-    // create hooks
+    // create hook filters for hooks
     for (const data of param.data) {
       if (param.existingModel) break;
       if (!data?.hooks) break;
-      const modelData = data.model;
       const hookData = data.hooks;
 
-      const table = tableReferences.get(modelData.id);
-
       for (const hook of hookData) {
-        const { filters, ...rest } = hook;
-
-        const hookData = withoutId({
-          ...rest,
-        });
-
-        const hk = await this.hooksService.hookCreate(context, {
-          tableId: table.id,
-          hook: {
-            ...hookData,
-          } as any,
-          req: param.req,
-        });
-
-        if (!hk) continue;
-
-        idMap.set(hook.id, hk.id);
+        const { filters } = hook;
 
         // create filters
         for (const fl of filters) {
           const fg = await this.filtersService.hookFilterCreate(context, {
-            hookId: hk.id,
+            hookId: getIdOrExternalId(hook.id),
             filter: withoutId({
               ...fl,
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
@@ -1472,6 +1551,7 @@ export class ImportService {
         const gview = await this.gridsService.gridViewCreate(context, {
           tableId: md.id,
           grid: vw as ViewCreateReqType,
+          ownedBy: vw.owned_by,
           req,
         });
         const gridData = withoutNull(vw.view);
@@ -1489,6 +1569,7 @@ export class ImportService {
           tableId: md.id,
           body: vw as ViewCreateReqType,
           user,
+          ownedBy: vw.owned_by,
           req,
         });
         const formData = withoutNull(vw.view);
@@ -1504,6 +1585,7 @@ export class ImportService {
       case ViewTypes.CALENDAR: {
         return await this.calendarsService.calendarViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           calendar: {
             ...vw,
             calendar_range: (vw.view as CalendarView).calendar_range.map(
@@ -1520,6 +1602,7 @@ export class ImportService {
       case ViewTypes.GALLERY: {
         const glview = await this.galleriesService.galleryViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           gallery: vw as ViewCreateReqType,
           user,
           req,
@@ -1544,6 +1627,7 @@ export class ImportService {
       case ViewTypes.KANBAN: {
         const kview = await this.kanbansService.kanbanViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           kanban: vw as ViewCreateReqType,
           user,
           req,
@@ -1671,6 +1755,7 @@ export class ImportService {
             for (const file of dataFiles) {
               const readStream = await (storageAdapter as any).fileReadByStream(
                 `${path}/data/${file}`,
+                { encoding: 'utf8' },
               );
 
               const modelId = findWithIdentifier(
@@ -1688,6 +1773,7 @@ export class ImportService {
                 destProject,
                 destBase,
                 destModel: model,
+                req,
               });
 
               elapsedTime(
@@ -1702,7 +1788,9 @@ export class ImportService {
 
             const linkReadStream = await (
               storageAdapter as any
-            ).fileReadByStream(linkFile);
+            ).fileReadByStream(linkFile, {
+              encoding: 'utf8',
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             handledLinks = await this.importLinkFromCsvStream(context, {
@@ -1735,9 +1823,10 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       destModel: Model;
+      req: any;
     },
   ): Promise<void> {
-    const { idMap, dataStream, destBase, destProject, destModel } = param;
+    const { idMap, dataStream, destBase, destProject, destModel, req } = param;
 
     const headers: string[] = [];
     let chunk = [];
@@ -1804,7 +1893,7 @@ export class ImportService {
                     baseName: destProject.id,
                     tableName: destModel.id,
                     body: chunk,
-                    cookie: null,
+                    cookie: req,
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
@@ -1825,7 +1914,7 @@ export class ImportService {
                 baseName: destProject.id,
                 tableName: destModel.id,
                 body: chunk,
-                cookie: null,
+                cookie: req,
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,

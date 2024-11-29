@@ -19,6 +19,17 @@ import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/web
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
+import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
+import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+
+// Job Processor
+import { JobsProcessor } from '~/modules/jobs/jobs.processor';
+import { JobsMap } from '~/modules/jobs/jobs-map.service';
+
+// Migration Jobs
+import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
+import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
+import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -31,6 +42,8 @@ import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
+import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
+import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -42,6 +55,10 @@ export const JobsModuleMetadata = {
           }),
           BullModule.registerQueue({
             name: JOBS_QUEUE,
+            defaultJobOptions: {
+              removeOnComplete: true,
+              attempts: 1,
+            },
           }),
         ]
       : []),
@@ -60,7 +77,7 @@ export const JobsModuleMetadata = {
       : []),
   ],
   providers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
+    JobsMap,
     JobsEventService,
     ...(process.env.NC_REDIS_JOB_URL ? [] : [FallbackQueueService]),
     {
@@ -70,6 +87,7 @@ export const JobsModuleMetadata = {
         : FallbackJobsService,
     },
     JobsLogService,
+    JobsProcessor,
     ExportService,
     ImportService,
     DuplicateProcessor,
@@ -80,6 +98,15 @@ export const JobsModuleMetadata = {
     WebhookHandlerProcessor,
     DataExportProcessor,
     ThumbnailGeneratorProcessor,
+    AttachmentCleanUpProcessor,
+    UseWorkerProcessor,
+
+    // Migration Jobs
+    InitMigrationJobs,
+    AttachmentMigration,
+    ThumbnailMigration,
+    RecoverLinksMigration,
+    CleanupDuplicateColumnMigration,
   ],
   exports: ['JobsService'],
 };

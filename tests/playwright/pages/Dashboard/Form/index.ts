@@ -4,11 +4,13 @@ import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
 import { TopbarPage } from '../common/Topbar';
+import { FormConditionalFieldsPage } from './formConditionalFields';
 
 export class FormPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
   readonly topbar: TopbarPage;
+  readonly conditionalFields: FormConditionalFieldsPage;
 
   // todo: All the locator should be private
   readonly addOrRemoveAllButton: Locator;
@@ -34,6 +36,7 @@ export class FormPage extends BasePage {
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
     this.topbar = new TopbarPage(this);
+    this.conditionalFields = new FormConditionalFieldsPage(this);
 
     this.addOrRemoveAllButton = dashboard
       .get()
@@ -969,5 +972,16 @@ export class FormPage extends BasePage {
         }
       },
     };
+  }
+
+  async verifyFieldConfigError({ title, hasError }: { title: string; hasError: boolean }) {
+    const field = this.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
+    await field.scrollIntoViewIfNeeded();
+
+    if (hasError) {
+      await expect(field.locator('.nc-field-config-error')).toBeVisible();
+    } else {
+      await expect(field.locator('.nc-field-config-error')).not.toBeVisible();
+    }
   }
 }

@@ -1,27 +1,38 @@
-import type { ExtensionsEvents } from '#imports'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
-  // Egg
-  const extensionsEgg = ref(false)
-
-  const extensionsEggCounter = ref(0)
-
-  return { baseExtensions, extensionsEgg, extensionsEggCounter }
+  return { baseExtensions }
 })
 
-interface ExtensionManifest {
+export interface ExtensionManifest {
   id: string
   title: string
+  subTitle: string
   description: string
   entry: string
   version: string
   iconUrl: string
-  publisherName: string
-  publisherEmail: string
-  publisherUrl: string
+  publisher: {
+    name: string
+    email: string
+    url: string
+    icon?: {
+      src: string
+      width?: number
+      height?: number
+    }
+  }
   disabled?: boolean
+  links: {
+    title: string
+    href: string
+  }[]
+  config: {
+    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
+    contentMinHeight?: string
+  }
 }
 
 abstract class ExtensionType {
@@ -33,6 +44,7 @@ abstract class ExtensionType {
   abstract title: string
   abstract kvStore: any
   abstract meta: any
+  abstract order: number
   abstract setTitle(title: string): Promise<any>
   abstract setMeta(key: string, value: any): Promise<any>
   abstract clear(): Promise<any>
@@ -44,7 +56,7 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { baseExtensions, extensionsEgg, extensionsEggCounter } = extensionsState()
+  const { baseExtensions } = extensionsState()
 
   const { $api } = useNuxtApp()
 
@@ -55,6 +67,13 @@ export const useExtensions = createSharedComposable(() => {
   const extensionsLoaded = ref(false)
 
   const availableExtensions = ref<ExtensionManifest[]>([])
+
+  const availableExtensionIds = computed(() => {
+    return availableExtensions.value.map((e) => e.id)
+  })
+
+  // Object to store description content for each extension
+  const descriptionContent = ref<Record<string, string>>({})
 
   const extensionPanelSize = ref(40)
 
@@ -70,7 +89,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
+      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .sort((a: ExtensionType, b: ExtensionType) => {
+        return (a?.order ?? Infinity) - (b?.order ?? Infinity)
+      })
   })
 
   const toggleExtensionPanel = () => {
@@ -97,6 +120,10 @@ export const useExtensions = createSharedComposable(() => {
 
     if (newExtension) {
       baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+
+      nextTick(() => {
+        eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+      })
     }
 
     return newExtension
@@ -158,7 +185,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.extensions.create(base.value.id, {
       ...extensionData,
@@ -179,8 +206,21 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
+    let defaultKvStore = {}
+
+    switch (extension.extensionId) {
+      case 'nc-data-exporter': {
+        defaultKvStore = {
+          ...defaultKvStore,
+          deletedExports: extension.kvStore.get('deletedExports') || [],
+        }
+      }
+    }
+
     return updateExtension(extensionId, {
-      kv_store: {},
+      kv_store: {
+        ...defaultKvStore,
+      },
     })
   }
 
@@ -207,7 +247,7 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  const getExtensionIcon = (pathOrUrl: string) => {
+  const getExtensionAssetsUrl = (pathOrUrl: string) => {
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
     } else {
@@ -251,6 +291,7 @@ export const useExtensions = createSharedComposable(() => {
     private _title: string
     private _kvStore: KvStore
     private _meta: any
+    private _order: number
 
     public uiKey = 0
 
@@ -262,6 +303,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     get id() {
@@ -292,6 +334,10 @@ export const useExtensions = createSharedComposable(() => {
       return this._meta
     }
 
+    get order() {
+      return this._order
+    }
+
     serialize() {
       return {
         id: this._id,
@@ -301,6 +347,7 @@ export const useExtensions = createSharedComposable(() => {
         title: this._title,
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
+        order: this._order,
       }
     }
 
@@ -312,6 +359,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     setTitle(title: string): Promise<any> {
@@ -322,9 +370,13 @@ export const useExtensions = createSharedComposable(() => {
       return updateExtensionMeta(this.id, key, value)
     }
 
-    clear(): Promise<any> {
+    async clear(): Promise<any> {
       return clearKvStore(this.id).then(() => {
         this.uiKey++
+
+        nextTick(() => {
+          eventBus.emit(ExtensionsEvents.CLEARDATA, this.id)
+        })
       })
     }
 
@@ -333,29 +385,73 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  onMounted(() => {
-    const modules = import.meta.glob('../extensions/*/*.json')
+  // Function to load extensions
+  onMounted(async () => {
+    try {
+      // Load all JSON modules from the specified glob pattern
+      const modules = import.meta.glob('../extensions/*/*.json')
 
-    const extensionCount = modules ? Object.keys(modules).length : 0
+      const markdownModules = import.meta.glob('../extensions/*/*.md', {
+        query: '?raw',
+        import: 'default',
+      })
 
-    let disabledCount = 0
+      const extensionCount = Object.keys(modules).length
+      let disabledCount = 0
 
-    for (const path in modules) {
-      modules[path]().then((mod: any) => {
-        const manifest = mod.default as ExtensionManifest
+      // Array to hold the promises
+      const promises = Object.keys(modules).map(async (path) => {
+        try {
+          // Load the module
+          const mod = (await modules[path]()) as any
+          const manifest = mod.default as ExtensionManifest
 
-        if (manifest?.disabled !== true) {
-          availableExtensions.value.push(manifest)
-        } else {
-          disabledCount++
-        }
+          if (!Array.isArray(manifest.links)) {
+            manifest.links = []
+          }
 
-        if (availableExtensions.value.length + disabledCount === extensionCount) {
-          availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+          if (!manifest?.config || !manifest?.config?.modalSize) {
+            manifest.config = {
+              ...(manifest.config || {}),
+              modalSize: 'lg',
+            }
+          }
 
-          extensionsLoaded.value = true
+          if (manifest?.disabled !== true) {
+            availableExtensions.value.push(manifest)
+
+            // Load the descriptionMarkdown if available
+            if (manifest.description) {
+              const markdownPath = `../extensions/${manifest.description}`
+
+              if (markdownModules[markdownPath] && manifest?.id) {
+                try {
+                  const markdownContent = await markdownModules[markdownPath]()
+
+                  descriptionContent.value[manifest.id] = `${markdownContent}`
+                } catch (markdownError) {
+                  console.error(`Failed to load Markdown file at ${markdownPath}:`, markdownError)
+                }
+              }
+            }
+          } else {
+            disabledCount++
+          }
+        } catch (error) {
+          console.error(`Failed to load module at ${path}:`, error)
         }
       })
+
+      // Wait for all modules to be processed
+      await Promise.all(promises)
+
+      if (availableExtensions.value.length + disabledCount === extensionCount) {
+        // Sort extensions
+        availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+        extensionsLoaded.value = true
+      }
+    } catch (error) {
+      console.error('Error loading extensions:', error)
     }
   })
 
@@ -387,16 +483,10 @@ export const useExtensions = createSharedComposable(() => {
   // Extension market modal
   const isMarketVisible = ref(false)
 
-  const onEggClick = () => {
-    extensionsEggCounter.value++
-    if (extensionsEggCounter.value >= 2) {
-      extensionsEgg.value = true
-    }
-  }
-
   return {
     extensionsLoaded,
     availableExtensions,
+    descriptionContent,
     extensionList,
     isPanelExpanded,
     toggleExtensionPanel,
@@ -406,14 +496,12 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
-    getExtensionIcon,
+    getExtensionAssetsUrl,
     isDetailsVisible,
     detailsExtensionId,
     detailsFrom,
     showExtensionDetails,
     isMarketVisible,
-    onEggClick,
-    extensionsEgg,
     extensionPanelSize,
     eventBus,
   }

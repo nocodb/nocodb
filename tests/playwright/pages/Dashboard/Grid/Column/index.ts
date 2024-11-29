@@ -75,6 +75,8 @@ export class ColumnPageObject extends BasePage {
     ltarView,
     custom = false,
     refColumn,
+    buttonType,
+    webhookIndex = 0,
   }: {
     title: string;
     type?: string;
@@ -96,6 +98,8 @@ export class ColumnPageObject extends BasePage {
     ltarView?: string;
     custom?: boolean;
     refColumn?: string;
+    buttonType?: string;
+    webhookIndex?: number;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"]`).scrollIntoViewIfNeeded();
@@ -144,6 +148,19 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'Formula':
         await this.get().locator('.inputarea').fill(formula);
+        break;
+      case 'Button':
+        await this.get().locator('.nc-button-type-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${buttonType}"`).click();
+
+        await this.get().locator('.nc-button-webhook-select').click();
+
+        await this.rootPage.waitForSelector('.nc-list-with-search', {
+          state: 'visible',
+        });
+
+        await this.rootPage.locator(`.nc-unified-list-option-${webhookIndex}`).click();
+
         break;
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -530,13 +547,9 @@ export class ColumnPageObject extends BasePage {
       await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
     }
 
-    // select all menu access
-    await expect(
-      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]')
-    ).toHaveCount(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
-
     if (role === 'creator' || role === 'owner' || role === 'editor') {
-      await this.grid.selectAll();
+      await this.grid.selectRow(0);
+      await this.grid.selectRow(1);
       await this.grid.openAllRowContextMenu();
       await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
       await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);

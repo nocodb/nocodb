@@ -28,6 +28,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')
 
+const { isLinked, isLoading } = toRefs(props)
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))

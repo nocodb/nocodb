@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isSystemColumn } from 'nocodb-sdk';
+import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
-import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import { nocoExecute } from '~/utils';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
@@ -39,6 +40,27 @@ export class DatasService {
       );
       model = modelAndView.model;
       view = modelAndView.view;
+    }
+
+    // check for linkColumnId query param and handle it
+    if (param.query.linkColumnId) {
+      const linkColumn = await Column.get<LinkToAnotherRecordColumn>(context, {
+        colId: param.query.linkColumnId,
+      });
+
+      if (
+        !linkColumn ||
+        !isLinksOrLTAR(linkColumn) ||
+        linkColumn.colOptions.fk_related_model_id !== model.id
+      ) {
+        NcError.fieldNotFound(param.query?.linkColumnId, {
+          customMessage: `Link column with id ${param.query.linkColumnId} not found`,
+        });
+      }
+
+      if (linkColumn.colOptions.fk_target_view_id) {
+        view = await View.get(context, linkColumn.colOptions.fk_target_view_id);
+      }
     }
 
     return await this.getDataList(context, {
@@ -74,6 +96,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
@@ -102,6 +125,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.nestedInsert(param.body, null, param.cookie);
@@ -123,6 +147,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.updateByPk(
@@ -144,6 +169,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     // if xcdb base skip checking for LTAR
@@ -187,6 +213,7 @@ export class DatasService {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       }));
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -251,6 +278,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const args: any = { ...query };
@@ -283,6 +311,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const listArgs: any = { ...query };
@@ -320,6 +349,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
       getHiddenColumn: param.getHiddenColumn,
@@ -344,6 +374,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.exist(param.rowId);
@@ -381,6 +412,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -465,6 +497,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `${model.title}List`;
@@ -529,6 +562,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = 'List';
@@ -593,6 +627,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = 'List';
@@ -657,6 +692,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = 'List';
@@ -721,6 +757,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `${model.title}List`;
@@ -775,6 +812,7 @@ export class DatasService {
       const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       });
 
       const { ast, dependencyFields } = await getAst(context, {
@@ -808,6 +846,7 @@ export class DatasService {
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.insert(param.body, null, param.cookie);
@@ -832,6 +871,7 @@ export class DatasService {
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.updateByPk(
@@ -860,6 +900,7 @@ export class DatasService {
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     return await baseModel.delByPk(param.rowId, null, param.cookie);
@@ -889,6 +930,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     await baseModel.removeChild({
@@ -925,6 +967,7 @@ export class DatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     await baseModel.addChild({
@@ -988,6 +1031,7 @@ export class DatasService {
       id: view.model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { offset, dbRows, elapsed } = await getDbRows(context, {
@@ -1026,6 +1070,7 @@ export class DatasService {
       id: view.model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { offset, dbRows, elapsed } = await getDbRows(context, {

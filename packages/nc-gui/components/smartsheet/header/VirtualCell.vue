@@ -23,6 +23,12 @@ const { t } = useI18n()
 
 const column = toRef(props, 'column')
 
+const { base: activeBase, tables } = storeToRefs(useBase())
+
+const isExternalSource = computed(() =>
+  activeBase.value?.sources?.some((s) => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
+)
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const { isMobileMode } = useGlobal()
@@ -30,6 +36,8 @@ const { isMobileMode } = useGlobal()
 const editColumnDropdown = ref(false)
 
 const isDropDownOpen = ref(false)
+
+const enableDescription = ref(false)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -74,14 +82,32 @@ const tooltipMsg = computed(() => {
     return ''
   }
 
+  let suffix = ''
+  if (isLinksOrLTAR(column.value) && relatedTableTitle.value && isExternalSource.value) {
+    if (isMm(column.value)) {
+      const mmTableMeta =
+        tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
+        metas.value?.[column.value?.colOptions?.fk_mm_model_id as string]
+      suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
+    } else if (isHm(column.value)) {
+      const fkColumn = metas.value?.[column.value?.colOptions?.fk_related_model_id as string]?.columns?.find(
+        (c) => c.id === column.value?.colOptions?.fk_child_column_id,
+      )
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+    } else if (isBt(column.value)) {
+      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+    }
+  }
+
   if (isHm(column.value)) {
-    return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'`
+    return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'${suffix}`
   } else if (isMm(column.value)) {
-    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}`
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}${suffix}`
   } else if (isBt(column.value)) {
-    return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
+    return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'${suffix}`
   } else if (isOo(column.value)) {
-    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}${suffix}`
   } else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
@@ -115,12 +141,20 @@ const addField = async (payload: any) => {
   editColumnDropdown.value = true
 }
 
+const editOrAddProviderRef = ref()
+
 const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
 
-const openHeaderMenu = (e?: MouseEvent) => {
+watch(editColumnDropdown, (val) => {
+  if (!val) {
+    enableDescription.value = false
+  }
+})
+
+const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (
@@ -129,6 +163,9 @@ const openHeaderMenu = (e?: MouseEvent) => {
     !isMobileMode.value &&
     (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
   ) {
+    if (description) {
+      enableDescription.value = true
+    }
     editColumnDropdown.value = true
   }
 }
@@ -142,6 +179,14 @@ const openDropDown = (e: Event) => {
   e.stopPropagation()
 
   isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onVisibleChange = () => {
+  editColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    editColumnDropdown.value = false
+    enableDescription.value = false
+  }
 }
 
 const onClick = (e: Event) => {
@@ -177,7 +222,8 @@ const onClick = (e: Event) => {
     <div
       class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
+        'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
@@ -190,7 +236,9 @@ const onClick = (e: Event) => {
       </template>
       <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
-          {{ tooltipMsg }}
+          <template v-for="(msg, i) in tooltipMsg.split('\n')" :key="i">
+            <div>{{ msg }}</div>
+          </template>
         </template>
         <span
           :data-test-id="column.title"
@@ -203,7 +251,6 @@ const onClick = (e: Event) => {
       </NcTooltip>
 
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
-
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"
@@ -223,7 +270,7 @@ const onClick = (e: Event) => {
         :is-hidden-col="isHiddenCol"
         :virtual="true"
         @add-column="addField"
-        @edit="editColumnDropdown = true"
+        @edit="openHeaderMenu"
       />
     </template>
 
@@ -233,6 +280,7 @@ const onClick = (e: Event) => {
       :trigger="['click']"
       :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active' : ''}`"
+      @visible-change="onVisibleChange"
     >
       <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
@@ -240,9 +288,11 @@ const onClick = (e: Event) => {
         <div class="nc-edit-or-add-provider-wrapper">
           <LazySmartsheetColumnEditOrAddProvider
             v-if="editColumnDropdown"
+            ref="editOrAddProviderRef"
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"
+            :edit-description="enableDescription"
             @submit="closeAddColumnDropdown"
             @cancel="closeAddColumnDropdown"
             @click.stop

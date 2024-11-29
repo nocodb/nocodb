@@ -434,18 +434,26 @@ useMenuCloseOnEsc(open)
     v-model:visible="open"
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
+      <template #title>
+        {{
+          activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY
+            ? $t('title.editCards')
+            : $t('objects.fields')
+        }}
+      </template>
+
       <NcButton
         v-e="['c:fields']"
-        :disabled="isLocked"
         class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 min-h-5">
             <GeneralIcon
               v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
               class="h-4 w-4"
@@ -468,7 +476,7 @@ useMenuCloseOnEsc(open)
           </span>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
 
     <template #overlay>
       <div
@@ -484,12 +492,16 @@ useMenuCloseOnEsc(open)
 
           <div
             class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
+            :class="{
+              'nc-disabled': isLocked,
+            }"
           >
             <a-select
               v-model:value="coverImageColumnId"
               class="flex-1 max-w-[calc(100%_-_33px)]"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
               :bordered="false"
+              :disabled="isLocked"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
@@ -525,8 +537,16 @@ useMenuCloseOnEsc(open)
                 </div>
               </a-select-option>
             </a-select>
-            <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
-              <button class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
+            <NcDropdown
+              v-if="coverImageObjectFit"
+              v-model:visible="coverImageObjectFitDropdown.isOpen"
+              :disabled="isLocked"
+              placement="bottomRight"
+            >
+              <button
+                class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)"
+                :disabled="isLocked"
+              >
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
@@ -594,6 +614,7 @@ useMenuCloseOnEsc(open)
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
+              :disabled="isLocked"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
@@ -607,15 +628,30 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-100"
+                  class="pl-2 flex flex-row items-center rounded-md"
+                  :class="{
+                    'hover:bg-gray-100': !isLocked,
+                  }"
                   @click.stop
                 >
-                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                  <component
+                    :is="iconMap.drag"
+                    class="!h-3.75 text-gray-600 mr-1"
+                    :class="{
+                      'cursor-not-allowed': isLocked,
+                      'cursor-move': !isLocked,
+                    }"
+                  />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
+                    class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
+                    :class="{
+                      'cursor-pointer': !isLocked,
+                    }"
                     @click="
                       () => {
+                        if (isLocked) return
+
                         field.show = !field.show
                         toggleFieldVisibility(field.show, field)
                       }
@@ -636,6 +672,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-r-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
                         <component :is="iconMap.bold" class="!w-3 !h-3" />
@@ -647,6 +684,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-x-none !border-x-0 !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
                         <component :is="iconMap.italic" class="!w-3 !h-3" />
@@ -658,6 +696,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-l-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
                         <component :is="iconMap.underline" class="!w-3 !h-3" />
@@ -665,7 +704,7 @@ useMenuCloseOnEsc(open)
                     </div>
                     <NcSwitch
                       :checked="field.show"
-                      :disabled="field.isViewEssentialField"
+                      :disabled="field.isViewEssentialField || isLocked"
                       size="xsmall"
                       @change="$e('a:fields:show-hide')"
                     />
@@ -678,7 +717,13 @@ useMenuCloseOnEsc(open)
           </div>
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
-          <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
+          <NcButton
+            class="nc-fields-show-all-fields"
+            size="small"
+            type="ghost"
+            :disabled="isLocked"
+            @click="showAllColumns = !showAllColumns"
+          >
             {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
@@ -686,11 +731,14 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-system-fields"
             size="small"
             type="ghost"
+            :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
             {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
           </NcButton>
         </div>
+
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>
@@ -707,7 +755,11 @@ useMenuCloseOnEsc(open)
 
 .nc-fields-show-all-fields,
 .nc-fields-show-system-fields {
-  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100 hover:(!text-gray-600 bg-gray-200);
+  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100;
+
+  &:not(:disabled) {
+    @apply hover:(!text-gray-600 bg-gray-200);
+  }
 }
 
 .nc-cover-image-object-fit-dropdown-menu {
@@ -717,10 +769,10 @@ useMenuCloseOnEsc(open)
 }
 .nc-dropdown-cover-image-wrapper {
   @apply h-8;
-  &:not(:focus-within) {
+  &:not(.nc-disabled):not(:focus-within) {
     @apply shadow-default hover:shadow-hover;
   }
-  &:focus-within {
+  &:not(.nc-disabled):focus-within {
     @apply shadow-selected border-brand-500;
   }
 }

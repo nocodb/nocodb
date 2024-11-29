@@ -10,7 +10,9 @@ import {
   ProjectRoles,
   RelationTypes,
   UITypes,
+  ViewLockType,
 } from 'nocodb-sdk';
+import { LockType } from 'nc-gui/lib/enums';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
@@ -69,10 +71,10 @@ export class TablesService {
       NcError.badRequest('Model does not belong to base');
     }
 
-    // if meta present update meta and return
+    // if meta/description present update and return
     // todo: allow user to update meta  and other prop in single api call
-    if ('meta' in param.table) {
-      await Model.updateMeta(context, param.tableId, param.table.meta);
+    if ('meta' in param.table || 'description' in param.table) {
+      await Model.updateMeta(context, param.tableId, param.table);
 
       return true;
     }
@@ -353,9 +355,9 @@ export class TablesService {
     );
 
     //await View.list(param.tableId)
-    table.views = viewList.filter((table: any) => {
+    table.views = viewList.filter((view: any) => {
       return Object.keys(param.user?.roles).some(
-        (role) => param.user?.roles[role] && !table.disabled[role],
+        (role) => param.user?.roles[role] && !view.disabled[role],
       );
     });
 
@@ -466,6 +468,20 @@ export class TablesService {
       req?: any;
     },
   ) {
+    // before validating add title for columns if only column name is present
+    if (param.table.columns) {
+      param.table.columns.forEach((c) => {
+        if (!c.title && c.column_name) {
+          c.title = c.column_name;
+        }
+      });
+    }
+
+    // before validating add title for table if only table name is present
+    if (!param.table.title && param.table.table_name) {
+      param.table.title = param.table.table_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -558,13 +574,22 @@ export class TablesService {
       }
     }
 
+    if (!tableCreatePayLoad.title) {
+      NcError.badRequest('Missing table `title` property in request body');
+    }
+
+    if (!tableCreatePayLoad.table_name) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.title;
+    }
+
     if (
-      !tableCreatePayLoad.table_name ||
-      (base.prefix && base.prefix === tableCreatePayLoad.table_name)
+      !(await Model.checkAliasAvailable(context, {
+        title: tableCreatePayLoad.title,
+        base_id: base.id,
+        source_id: source.id,
+      }))
     ) {
-      NcError.badRequest(
-        'Missing table name `table_name` property in request body',
-      );
+      NcError.badRequest('Duplicate table alias');
     }
 
     if (source.type === 'databricks') {
@@ -608,16 +633,6 @@ export class TablesService {
       );
     }
 
-    if (
-      !(await Model.checkAliasAvailable(context, {
-        title: tableCreatePayLoad.title,
-        base_id: base.id,
-        source_id: source.id,
-      }))
-    ) {
-      NcError.badRequest('Duplicate table alias');
-    }
-
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
@@ -651,6 +666,11 @@ export class TablesService {
         (isCreatedOrLastModifiedByCol(column) && (column as any).system)
       ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+        // set column name using title if not present
+        if (!column.column_name && column.title) {
+          column.column_name = column.title;
+        }
 
         // - 5 is a buffer for suffix
         column.column_name = sanitizeColumnName(

@@ -7,8 +7,8 @@ export default defineComponent({
             return h("img", {
                 width: "24",
                 height: "24",
-                src: "https://app.nocodb.com/twitter.png",
-                alt: "Twitter Icon",
+                src: "https://cdn.nocodb.com/email/x.png",
+                alt: "𝕏 Icon",
             });
         };
     },

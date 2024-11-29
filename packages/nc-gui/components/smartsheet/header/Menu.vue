@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import { SmartsheetStoreEvents } from '#imports'
+import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
 
@@ -197,7 +197,7 @@ const openDuplicateDlg = async () => {
       },
     }
 
-    if (column.value.uidt === UITypes.Formula) {
+    if (column.value.uidt === UITypes.Formula || column.value.uidt === UITypes.Button) {
       nextTick(() => {
         duplicateDialogRef?.value?.duplicate()
       })
@@ -307,9 +307,9 @@ const handleDelete = () => {
   showDeleteColumnModal.value = true
 }
 
-const onEditPress = () => {
+const onEditPress = (event?: MouseEvent, enableDescription = false) => {
   isOpen.value = false
-  emit('edit')
+  emit('edit', event, enableDescription)
 }
 
 const onInsertBefore = () => {
@@ -334,7 +334,13 @@ const isDuplicateAllowed = computed(() => {
 })
 const isFilterSupported = computed(
   () =>
-    !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode].includes(f.uidt)),
+    !!(meta.value?.columns || []).find(
+      (f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(f.uidt),
+    ),
+)
+
+const isSortSupported = computed(
+  () => !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.Button].includes(f.uidt)),
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -395,20 +401,57 @@ const changeTitleField = () => {
   isOpen.value = false
   changeTitleFieldMenu.value = true
 }
+
+const openDropdown = () => {
+  if (isLocked) return
+  isOpen.value = !isOpen.value
+}
+
+const isFieldIdCopied = ref(false)
+
+const { copy } = useClipboard()
+
+const onClickCopyFieldUrl = async (field: ColumnType) => {
+  await copy(field.id!)
+
+  isFieldIdCopied.value = true
+}
 </script>
 
 <template>
   <a-dropdown
-    v-if="!isLocked"
     v-model:visible="isOpen"
+    :disabled="isLocked"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
-    @click.stop="isOpen = !isOpen"
+    @click.stop="openDropdown"
   >
-    <div @dblclick.stop>
+    <div class="flex gap-0.5 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
-      <GeneralIcon v-else icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+      <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
+        <template #title>
+          {{ column?.description }}
+        </template>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      </NcTooltip>
+
+      <NcTooltip class="flex items-center">
+        <GeneralIcon
+          v-if="isColumnInvalid(column) && !isExpandedForm"
+          class="text-orange-500 w-3.5 h-3.5 ml-2"
+          icon="alertTriangle"
+        />
+
+        <template #title>
+          {{ $t('msg.invalidColumnConfiguration') }}
+        </template>
+      </NcTooltip>
+      <GeneralIcon
+        v-if="!isExpandedForm && !isLocked"
+        icon="arrowDown"
+        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+      />
     </div>
     <template #overlay>
       <NcMenu
@@ -417,12 +460,42 @@ const changeTitleField = () => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
+        <NcTooltip
+          :attrs="{
+            class: 'w-full',
+          }"
+          placement="top"
+        >
+          <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
+
+          <div
+            class="nc-copy-field flex flex-row justify-between items-center w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md hover:bg-gray-100 cursor-pointer group"
+            data-testid="nc-field-item-action-copy-id"
+            @click.stop="onClickCopyFieldUrl(column)"
+          >
+            <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">
+              <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
+                {{
+                  $t('labels.idColon', {
+                    id: column.id,
+                  })
+                }}
+              </div>
+              <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
+                <GeneralIcon v-if="isFieldIdCopied" icon="check" class="h-4 w-4" />
+                <GeneralIcon v-else icon="copy" class="h-4 w-4" />
+              </NcButton>
+            </div>
+          </div>
+        </NcTooltip>
+
+        <a-divider class="!my-0" />
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem
             v-if="isUIAllowed('fieldAlter')"
             :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated.length"
             :title="linksAssociated.length ? 'Field is associated with a link column' : undefined"
-            @click="onEditPress"
+            @click="onEditPress($event, false)"
           >
             <div class="nc-column-edit nc-header-menu-item">
               <component :is="iconMap.ncEdit" class="text-gray-500" />
@@ -431,6 +504,31 @@ const changeTitleField = () => {
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
+        <template v-if="!isExpandedForm">
+          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
+            <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+              <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+                <component :is="iconMap.duplicate" class="text-gray-500" />
+                <!-- Duplicate -->
+                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+              </div>
+            </NcMenuItem>
+          </GeneralSourceRestrictionTooltip>
+          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
+            <NcMenuItem
+              v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+              :disabled="!isDuplicateAllowed"
+              @click="openDuplicateDlg"
+            >
+              <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+                <component :is="iconMap.duplicate" class="text-gray-500" />
+                <!-- Duplicate -->
+                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+              </div>
+            </NcMenuItem>
+          </GeneralSourceRestrictionTooltip>
+        </template>
+
         <NcMenuItem
           v-if="isUIAllowed('fieldAlter') && !!column?.pv"
           title="Select a new field as display value"
@@ -441,25 +539,19 @@ const changeTitleField = () => {
             {{ $t('labels.changeDisplayValueField') }}
           </div>
         </NcMenuItem>
+        <NcMenuItem v-if="isUIAllowed('fieldAlter')" title="Add field description" @click="onEditPress($event, true)">
+          <div class="nc-column-edit-description nc-header-menu-item">
+            <GeneralIcon icon="ncAlignLeft" class="text-gray-500 !w-4.25 !h-4.25" />
+            {{ $t('labels.editDescription') }}
+          </div>
+        </NcMenuItem>
+
         <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">
           <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
             <component :is="iconMap.cellLookup" class="text-gray-500 !w-4.5 !h-4.5" />
             {{ t('general.addLookupField') }}
           </div>
         </NcMenuItem>
-        <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
-          <NcMenuItem
-            v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
-            :disabled="!isDuplicateAllowed"
-            @click="openDuplicateDlg"
-          >
-            <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-              <component :is="iconMap.duplicate" class="text-gray-500" />
-              <!-- Duplicate -->
-              {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
-            </div>
-          </NcMenuItem>
-        </GeneralSourceRestrictionTooltip>
         <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
@@ -487,27 +579,32 @@ const changeTitleField = () => {
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-            <NcMenuItem @click="sortByColumn('asc')">
-              <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-                <component
-                  :is="iconMap.sortDesc"
-                  class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
-                  :style="{
-                    transform: 'rotate(180deg)',
-                  }"
-                />
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
+                <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+                  <component :is="iconMap.sortDesc" class="text-gray-500 transform !rotate-180 !w-4.25 !h-4.25" />
 
-                <!-- Sort Ascending -->
-                {{ $t('general.sortAsc') }}
-              </div>
-            </NcMenuItem>
-            <NcMenuItem @click="sortByColumn('desc')">
-              <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-                <!-- Sort Descending -->
-                <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
-                {{ $t('general.sortDesc').trim() }}
-              </div>
-            </NcMenuItem>
+                  <!-- Sort Ascending -->
+                  {{ $t('general.sortAsc') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('desc')">
+                <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+                  <!-- Sort Descending -->
+                  <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
+                  {{ $t('general.sortDesc').trim() }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
           </template>
 
           <a-divider class="!my-0" />
@@ -563,15 +660,6 @@ const changeTitleField = () => {
           </NcTooltip>
 
           <a-divider class="!my-0" />
-          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
-            <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-              <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-                <component :is="iconMap.duplicate" class="text-gray-500" />
-                <!-- Duplicate -->
-                {{ t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
-              </div>
-            </NcMenuItem>
-          </GeneralSourceRestrictionTooltip>
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
               <component :is="iconMap.colInsertAfter" class="text-gray-500 !w-4.5 !h-4.5" />
@@ -622,7 +710,10 @@ const changeTitleField = () => {
   <LazySmartsheetHeaderUpdateDisplayValue v-if="changeTitleFieldMenu" v-model:value="changeTitleFieldMenu" :column="column" />
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
+}
 .nc-header-menu-item {
   @apply text-dropdown flex items-center gap-2;
 }

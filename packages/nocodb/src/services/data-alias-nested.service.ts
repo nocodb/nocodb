@@ -32,6 +32,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -80,6 +81,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
@@ -123,6 +125,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -166,6 +169,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -208,6 +212,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -253,6 +258,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
@@ -300,6 +306,7 @@ export class DataAliasNestedService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const column = await getColumnByIdOrName(context, param.columnName, model);

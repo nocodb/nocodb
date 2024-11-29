@@ -85,6 +85,12 @@ onClickOutside(globalSearchWrapperRef, (e) => {
 
   showSearchBox.value = false
 })
+
+onMounted(() => {
+  if (search.value.query && !showSearchBox.value) {
+    showSearchBox.value = true
+  }
+})
 </script>
 
 <template>
@@ -126,6 +132,7 @@ onClickOutside(globalSearchWrapperRef, (e) => {
             :selected-option-id="search.field"
             show-selected-option
             :options="columns"
+            :search-input-placeholder="$t('placeholder.searchFields')"
             toolbar-menu="globalSearch"
             @selected="onSelectOption"
           />

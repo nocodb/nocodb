@@ -1,10 +1,10 @@
 import { Readable } from 'stream';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
 import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { Injectable } from '@nestjs/common';
+import type { Job } from 'bull';
+import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DuplicateBaseJobData,
   DuplicateColumnJobData,
@@ -18,12 +18,12 @@ import {
 } from '~/helpers/exportImportHelpers';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { JobTypes } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class DuplicateProcessor {
   private readonly debugLog = debug('nc:jobs:duplicate');
 
@@ -35,112 +35,156 @@ export class DuplicateProcessor {
     private readonly columnsService: ColumnsService,
   ) {}
 
-  @Process(JobTypes.DuplicateBase)
-  async duplicateBase(job: Job<DuplicateBaseJobData>) {
-    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
+  async duplicateBaseJob(
+    {
+      sourceBase,
+      targetBase,
+      dataSource,
+      req,
+      context,
+      options,
+      operation,
+      targetContext: _targetContext
+    }: {
+      sourceBase: Base; // Base to duplicate
+      targetBase: Base; // Base to duplicate to
+      dataSource: Source; // Data source to duplicate from
+      req: NcRequest;
+      context: NcContext // Context of the base to duplicate
+      targetContext?: NcContext // Context of the base to duplicate to
+      options: {
+        excludeData?: boolean;
+        excludeHooks?: boolean;
+        excludeViews?: boolean;
+        excludeComments?: boolean;
+      }
+      operation: string
+    }) {
     const hrTime = initTime();
 
-    const { context, sourceId, dupProjectId, req, options } = job.data;
-
-    const baseId = context.base_id;
-
-    const excludeData = options?.excludeData || false;
-    const excludeHooks = options?.excludeHooks || false;
-    const excludeViews = options?.excludeViews || false;
-
-    const base = await Base.get(context, baseId);
-    const dupProject = await Base.get(context, dupProjectId);
-    const source = await Source.get(context, sourceId);
-
-    const targetContext = {
-      workspace_id: dupProject.fk_workspace_id,
-      base_id: dupProject.id,
-    };
+    const targetContext = _targetContext ??  {
+      workspace_id: targetBase.fk_workspace_id,
+      base_id: targetBase.id,
+    }
 
     try {
-      if (!base || !dupProject || !source) {
+
+      if(!sourceBase || !targetBase || !dataSource) {
         throw new Error(`Base or source not found!`);
       }
 
       const user = (req as any).user;
 
-      const models = (await source.getModels(context)).filter(
-        // TODO revert this when issue with cache is fixed
-        (m) => m.source_id === source.id && !m.mm && m.type === 'table',
+      const models = (await dataSource.getModels(context)).filter(
+        (m) => m.source_id === dataSource.id && !m.mm && m.type === 'table',
       );
 
       const exportedModels = await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
-        excludeViews,
-        excludeHooks,
-        excludeData,
+        ...options
       });
 
       elapsedTime(
         hrTime,
-        `serialize models schema for ${source.base_id}::${source.id}`,
-        'duplicateBase',
+        `serialize models schema for ${dataSource.base_id}::${dataSource.id}`,
+        operation,
       );
 
       if (!exportedModels) {
-        throw new Error(`Export failed for source '${source.id}'`);
+        throw new Error(`Export failed for source '${dataSource.id}'`);
       }
 
-      await dupProject.getSources();
+      await targetBase.getSources();
 
-      const dupBase = dupProject.sources[0];
+      const targetBaseSource = targetBase.sources[0];
 
       const idMap = await this.importService.importModels(targetContext, {
         user,
-        baseId: dupProject.id,
-        sourceId: dupBase.id,
+        baseId: targetBase.id,
+        sourceId: targetBaseSource.id,
         data: exportedModels,
         req: req,
       });
 
-      elapsedTime(hrTime, `import models schema`, 'duplicateBase');
+      elapsedTime(hrTime, `import models schema`, operation);
 
       if (!idMap) {
-        throw new Error(`Import failed for source '${source.id}'`);
+        throw new Error(`Import failed for source '${dataSource.id}'`);
       }
 
-      if (!excludeData) {
+      if (!options?.excludeData) {
         await this.importModelsData(targetContext, context, {
           idMap,
-          sourceProject: base,
+          sourceProject: sourceBase,
           sourceModels: models,
-          destProject: dupProject,
-          destBase: dupBase,
+          destProject: targetBase,
+          destBase: targetBaseSource,
           hrTime,
+          req,
         });
       }
 
       await this.projectsService.baseUpdate(targetContext, {
-        baseId: dupProject.id,
+        baseId: targetBase.id,
         base: {
           status: null,
         },
         user: req.user,
         req,
       });
-    } catch (e) {
-      if (dupProject?.id) {
+
+    } catch(err) {
+      if (targetBase?.id) {
         await this.projectsService.baseSoftDelete(targetContext, {
-          baseId: dupProject.id,
+          baseId: targetBase.id,
           user: req.user,
           req,
         });
       }
-      throw e;
+      throw err;
+    }
+  }
+
+  async duplicateBase(job: Job<DuplicateBaseJobData>) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
+
+    const { context, sourceId, dupProjectId, req, options } = job.data;
+
+    const baseId = context.base_id;
+
+    // workspace templates placeholder user
+    if (req.user?.id === '1') {
+      delete req.user;
     }
 
-    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
+    const excludeData = options?.excludeData || false;
+    const excludeHooks = options?.excludeHooks || false;
+    const excludeViews = options?.excludeViews || false;
+    const excludeComments = options?.excludeComments || excludeData || false;
+
+    const base = await Base.get(context, baseId);
+    const dupProject = await Base.get(context, dupProjectId);
+    const source = await Source.get(context, sourceId);
+
+    await this.duplicateBaseJob({
+      sourceBase: base,
+      targetBase: dupProject,
+      dataSource: source,
+      req,
+      context,
+      options: {
+        excludeData,
+        excludeHooks,
+        excludeViews,
+        excludeComments
+      },
+      operation: JobTypes.DuplicateBase
+    })
 
     return { id: dupProject.id };
   }
 
-  @Process(JobTypes.DuplicateModel)
   async duplicateModel(job: Job<DuplicateModelJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
@@ -153,6 +197,7 @@ export class DuplicateProcessor {
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
+    const excludeComments = options?.excludeComments || excludeData || false;
 
     const base = await Base.get(context, baseId);
     const source = await Source.get(context, sourceId);
@@ -180,6 +225,7 @@ export class DuplicateProcessor {
         excludeViews,
         excludeHooks,
         excludeData,
+        excludeComments,
       })
     )[0];
 
@@ -241,6 +287,7 @@ export class DuplicateProcessor {
         hrTime,
         modelFieldIds: fields,
         externalModels: relatedModels,
+        req,
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateModel');
@@ -251,7 +298,6 @@ export class DuplicateProcessor {
     return { id: findWithIdentifier(idMap, sourceModel.id) };
   }
 
-  @Process(JobTypes.DuplicateColumn)
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
 
@@ -381,6 +427,7 @@ export class DuplicateProcessor {
           sourceModel,
           ...relatedModels.filter((m) => m.id !== sourceModel.id),
         ],
+        req,
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');
@@ -403,7 +450,7 @@ export class DuplicateProcessor {
       });
     }
 
-    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateColumn})`);
 
     return { id: findWithIdentifier(idMap, sourceColumn.id) };
   }
@@ -420,6 +467,7 @@ export class DuplicateProcessor {
       hrTime: { hrTime: [number, number] };
       modelFieldIds?: Record<string, string[]>;
       externalModels?: Model[];
+      req: any;
     },
   ) {
     const {
@@ -431,6 +479,7 @@ export class DuplicateProcessor {
       hrTime,
       modelFieldIds,
       externalModels,
+      req,
     } = param;
 
     let handledLinks = [];
@@ -474,6 +523,7 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         destModel: model,
+        req,
       });
 
       handledLinks = await this.importService.importLinkFromCsvStream(
@@ -599,7 +649,7 @@ export class DuplicateProcessor {
                             baseName: destProject.id,
                             tableName: model.id,
                             body: chunk,
-                            cookie: null,
+                            cookie: req,
                             raw: true,
                           },
                         );
@@ -623,7 +673,7 @@ export class DuplicateProcessor {
                       baseName: destProject.id,
                       tableName: model.id,
                       body: chunk,
-                      cookie: null,
+                      cookie: req,
                       raw: true,
                     });
                   }

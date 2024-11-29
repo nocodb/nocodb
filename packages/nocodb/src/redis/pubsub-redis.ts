@@ -47,9 +47,12 @@ export class PubSubRedis {
    * @param callback
    * @returns Returns a callback to unsubscribe
    */
-  static async subscribe(
+  static async subscribe<T = any>(
     channel: string,
-    callback: (message: any) => Promise<void>,
+    callback: (
+      message: T,
+      unsubscribe?: (keepRedisChannel?: boolean) => Promise<void>,
+    ) => Promise<void>,
   ): Promise<(keepRedisChannel?: boolean) => Promise<void>> {
     if (!PubSubRedis.initialized) {
       if (!PubSubRedis.available) {
@@ -60,6 +63,13 @@ export class PubSubRedis {
 
     await PubSubRedis.redisSubscriber.subscribe(channel);
 
+    const unsubscribe = async (keepRedisChannel = false) => {
+      // keepRedisChannel is used to keep the channel open for other subscribers
+      if (!keepRedisChannel)
+        await PubSubRedis.redisSubscriber.unsubscribe(channel);
+      PubSubRedis.redisSubscriber.off('message', onMessage);
+    };
+
     const onMessage = async (messageChannel, message) => {
       if (channel !== messageChannel) {
         return;
@@ -68,15 +78,10 @@ export class PubSubRedis {
       try {
         message = JSON.parse(message);
       } catch (e) {}
-      await callback(message);
+      await callback(message, unsubscribe);
     };
 
     PubSubRedis.redisSubscriber.on('message', onMessage);
-    return async (keepRedisChannel = false) => {
-      // keepRedisChannel is used to keep the channel open for other subscribers
-      if (!keepRedisChannel)
-        await PubSubRedis.redisSubscriber.unsubscribe(channel);
-      PubSubRedis.redisSubscriber.off('message', onMessage);
-    };
+    return unsubscribe;
   }
 }

@@ -103,24 +103,30 @@ watch(openedSubTab, () => {
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
 }
 
-:deep(.ant-tabs-nav) {
-  min-height: calc(var(--topbar-height) - 1.75px);
+:deep(.nc-details-tab > .ant-tabs-nav:first-of-type) {
+  min-height: calc(var(--toolbar-height) - 1px);
+
+  .ant-tabs-tab {
+    @apply pt-3 pb-3 text-small leading-[18px];
+  }
 }
 </style>
 
 <style lang="scss">
 .nc-details-tab.nc-tabs.centered {
   > .ant-tabs-nav {
+    @apply px-3;
     .ant-tabs-nav-wrap {
-      @apply absolute mx-auto -left-9.5;
+      @apply absolute mx-auto;
     }
   }
 }
 
 .nc-details-tab-left-sidebar-close > .nc-details-tab.nc-tabs.centered {
   > .ant-tabs-nav {
+    @apply px-3;
     .ant-tabs-nav-wrap {
-      @apply absolute mx-auto left-0;
+      @apply absolute mx-auto;
     }
   }
 }

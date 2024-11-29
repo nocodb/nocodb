@@ -7,6 +7,7 @@ const props = withDefaults(
   defineProps<{
     role: keyof typeof RoleLabels
     roles: (keyof typeof RoleLabels)[]
+    disabledRoles?: (keyof typeof RoleLabels)[]
     onRoleChange: (role: keyof typeof RoleLabels) => void
     border?: boolean
     description?: boolean
@@ -73,6 +74,21 @@ function onChangeRole(val: SelectValue) {
       class="py-1 !absolute top-0 left-0 w-20 h-full z-10 text-xs opacity-0"
       @change="onChangeRole"
     >
+      <a-select-option v-for="rl in props.disabledRoles || []" :key="rl" :value="rl" disabled>
+        <div
+          :class="{
+            'w-full': descriptionRef,
+            'w-[200px]': !descriptionRef,
+          }"
+          class="flex flex-col nc-role-select-dropdown gap-1"
+        >
+          <div class="flex items-center justify-between">
+            <RolesBadge disabled :border="false" :inherit="inheritRef === rl" :role="rl" />
+            <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary" />
+          </div>
+          <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
+        </div>
+      </a-select-option>
       <a-select-option v-for="rl in props.roles" :key="rl" v-e="['c:workspace:settings:user-role-change']" :value="rl">
         <div
           :class="{

@@ -41,10 +41,10 @@ export class SidebarPage extends BasePage {
     }
   }
 
-  async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
-    if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
-    else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
-  }
+  // async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
+  //   if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
+  //   else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
+  // }
 
   async verifyTeamAndSettings({ isVisible }: { isVisible: boolean }) {
     if (isVisible) await expect(this.get().getByTestId('nc-sidebar-team-settings-btn')).toBeVisible();
@@ -76,6 +76,12 @@ export class SidebarPage extends BasePage {
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
+    /*
+    TODO uncomment when AI Features are enabled by default
+
+    await this.rootPage.locator('.nc-create-base').waitFor();
+    await this.rootPage.locator('.nc-create-base').click();
+    */
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 

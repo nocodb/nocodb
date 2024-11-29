@@ -1,7 +1,8 @@
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
 const useForm = Form.useForm
 
@@ -17,16 +18,42 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
+    const { isMysql } = useBase()
+
+    const { getMeta } = useMetas()
+
     const formResetHook = createEventHook<void>()
+
+    const allViewFilters = ref<Record<string, FilterType[]>>({})
 
     const formState = ref<Record<string, any>>({})
 
-    const localColumns = ref<Record<string, any>[]>([])
-
     const activeRow = ref('')
 
-    const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
+    const localColumns = ref<Record<string, any>[]>([])
 
+    const localColumnsMapByFkColumnId = computed(() => {
+      return localColumns.value.reduce((acc, c) => {
+        acc[c.fk_column_id] = c
+
+        return acc
+      }, {} as Record<string, ColumnType & Record<string, any>>)
+    })
+
+    const fieldVisibilityValidator = computed(() => {
+      return new FormFilters({
+        nestedGroupedFilters: allViewFilters.value,
+        formViewColumns: localColumns.value,
+        formViewColumnsMapByFkColumnId: localColumnsMapByFkColumnId.value,
+        formState: formState.value,
+        isMysql,
+        getMeta,
+      })
+    })
+
+    const visibleColumns = computed(() =>
+      localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
+    )
     const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
 
     const activeColumn = computed(() => {
@@ -59,7 +86,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
           {
             validator: (_rule: RuleObject, value: any) => {
               return new Promise((resolve, reject) => {
-                if (isRequired(column, column.required)) {
+                if (isRequired(column, column.required) && column.visible) {
                   if (typeof value === 'string') {
                     value = value.trim()
                   }
@@ -72,6 +99,14 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                   }
                 }
 
+                return resolve()
+              })
+            },
+          },
+          {
+            validator: (_rule: RuleObject) => {
+              return new Promise((resolve) => {
+                checkFieldVisibility()
                 return resolve()
               })
             },
@@ -114,8 +149,30 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       } catch {}
     }
 
+    const isValidRedirectUrl = (): ValidateInfo => {
+      if (typeof formViewData.value?.redirect_url !== 'string') return { validateStatus: '', help: undefined }
+
+      const url = formViewData.value?.redirect_url?.trim() ?? ''
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return {
+          validateStatus: 'error',
+          help: 'Redirect url must starts with `http://` or `https://`',
+        }
+      }
+
+      return { validateStatus: '', help: undefined }
+    }
+
     const updateView = useDebounceFn(
       () => {
+        if (isValidRedirectUrl().validateStatus === 'error') {
+          formViewData.value = {
+            ...formViewData.value,
+            redirect_url: '',
+          }
+        }
+
         updateFormView(formViewData.value)
       },
       300,
@@ -145,6 +202,27 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return required || (columnObj && columnObj.rqd && !columnObj.cdf)
     }
 
+    const loadAllviewFilters = async () => {
+      if (!viewMeta.value?.id) return
+      try {
+        const formViewFilters = (await $api.dbTableFilter.read(viewMeta.value.id, { includeAllFilters: true })).list || []
+
+        if (!formViewFilters.length) return
+
+        const formFilter = new FormFilters({ data: formViewFilters })
+
+        const allFilters = formFilter.getNestedGroupedFilters()
+
+        allViewFilters.value = { ...allFilters }
+      } catch (e: any) {
+        console.error('Error loading view filters:', e)
+      }
+    }
+
+    async function checkFieldVisibility() {
+      await fieldVisibilityValidator.value.validateVisibility()
+    }
+
     return {
       onReset: formResetHook.on,
       formState,
@@ -160,6 +238,12 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       validateInfos,
       clearValidate,
       fieldMappings,
+      isValidRedirectUrl,
+      formViewData,
+      loadAllviewFilters,
+      allViewFilters,
+      localColumnsMapByFkColumnId,
+      checkFieldVisibility,
     }
   },
   'form-view-store',

@@ -22,9 +22,9 @@ export enum ProjectRoles {
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
-  VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
 }
 
@@ -120,6 +120,7 @@ export enum AppEvents {
   WEBHOOK_UPDATE = 'webhook.update',
   WEBHOOK_DELETE = 'webhook.delete',
   WEBHOOK_TEST = 'webhook.test',
+  WEBHOOK_TRIGGER = 'webhook.trigger',
 
   UI_ACL_UPDATE = 'ui.acl.update',
 
@@ -154,6 +155,8 @@ export enum AppEvents {
   INTEGRATION_DELETE = 'integration.delete',
   INTEGRATION_CREATE = 'integration.create',
   INTEGRATION_UPDATE = 'integration.update',
+
+  ROW_USER_MENTION = 'row.user.mention',
 }
 
 export enum ClickhouseTables {
@@ -400,8 +403,11 @@ export enum SyncDataType {
   STRIPE = 'stripe',
   QUICKBOOKS = 'quickbooks',
   // Ticketing
+  FRESHDESK = 'freshdesk',
   INTERCOM = 'intercom',
   ZENDESK = 'zendesk',
+  HUBSPOT_SERVICE_HUB = 'hubspot-service-hub',
+  SALESFORCE_SERVICE_CLOUD = 'salesforce-service-cloud',
   // Storage
   BOX = 'box',
   GOOGLE_DRIVE = 'google-drive',
@@ -417,6 +423,7 @@ export enum IntegrationCategoryType {
   DATABASE = 'database',
   AI = 'ai',
   COMMUNICATION = 'communication',
+  SPREAD_SHEET = 'spread-sheet',
   PROJECT_MANAGEMENT = 'project-management',
   CRM = 'crm',
   MARKETING = 'marketing',
@@ -426,4 +433,16 @@ export enum IntegrationCategoryType {
   TICKETING = 'ticketing',
   STORAGE = 'storage',
   OTHERS = 'others',
+}
+
+export enum ViewLockType {
+  Personal = 'personal',
+  Locked = 'locked',
+  Collaborative = 'collaborative',
+}
+
+export enum PublicAttachmentScope {
+  WORKSPACEPICS = 'workspacePics',
+  PROFILEPICS = 'profilePics',
+  ORGANIZATIONPICS = 'organizationPics',
 }

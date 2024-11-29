@@ -75,7 +75,6 @@ import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
-import Calendar from '~icons/lucide/calendar'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -138,7 +137,8 @@ import NcCheckCircle from '~icons/nc-icons/check-circle'
 import NcCheckFill from '~icons/nc-icons/checkFill'
 import NcExternalLink from '~icons/nc-icons/external-link'
 import NcCamera from '~icons/nc-icons/camera'
-
+import NcRefreshCW from '~icons/nc-icons/refresh-cw'
+import NcBulb from '~icons/nc-icons/bulb'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -150,11 +150,14 @@ import NcStrike from '~icons/nc-icons/strike-through'
 import NcCrop from '~icons/nc-icons/crop'
 import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
+import NcHome1 from '~icons/nc-icons/home1'
 import NcWorkspace from '~icons/nc-icons/workspace'
+import NcMegaPhone from '~icons/nc-icons/megaphone'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
 import NcCellDate from '~icons/nc-icons/cell-date'
+import NcCellYear from '~icons/nc-icons/cell-year'
 import NcCellEmail from '~icons/nc-icons/cell-email'
 import NcCellFormula from '~icons/nc-icons/cell-formula'
 import NcCellCurrency from '~icons/nc-icons/cell-currency'
@@ -184,6 +187,9 @@ import NcCellSystemKey from '~icons/nc-icons/system-key'
 import NcCellSystemUser from '~icons/nc-icons/system-user'
 import NcCellSystemText from '~icons/nc-icons/system-text'
 import NcCellAttachment from '~icons/nc-icons/cell-attachment'
+import NcCellButton from '~icons/nc-icons/cell-button'
+import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
+import NcCellAi from '~icons/nc-icons/cell-ai'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -193,6 +199,7 @@ import NcReddit from '~icons/nc-icons/reddit'
 import NcTwitter from '~icons/nc-icons/twitter'
 
 import NcFile from '~icons/nc-icons/file'
+import NcFileBig from '~icons/nc-icons/file-big'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
@@ -214,6 +221,7 @@ import NcGitCommit from '~icons/nc-icons/git-commit'
 import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
+import NcNocoDB from '~icons/nc-icons/nocodb'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -240,6 +248,7 @@ import NcTrello from '~icons/nc-icons/trello'
 import NcTypeform from '~icons/nc-icons/typeform'
 import NcWorkday from '~icons/nc-icons/workday'
 import NcZendesk from '~icons/nc-icons/zendesk'
+import NcFreshdesk from '~icons/nc-icons/freshdesk'
 
 import NcBookOpen from '~icons/nc-icons/book-open'
 import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
@@ -281,6 +290,289 @@ import NcOpenai from '~icons/nc-icons/openai'
 import NcClaude from '~icons/nc-icons/claude'
 import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
+
+// Buttons Icons V2
+
+import NcColumnsIcon from '~icons/nc-icons-v2/columns.svg'
+import NcUnderlineIcon from '~icons/nc-icons-v2/underline.svg'
+import NcGridIcon from '~icons/nc-icons-v2/grid.svg'
+import NcTriangleIcon from '~icons/nc-icons-v2/triangle.svg'
+import NcSearchIcon from '~icons/nc-icons-v2/search.svg'
+import NcVolume2Icon from '~icons/nc-icons-v2/volume-2.svg'
+import NcArrowUpCircleIcon from '~icons/nc-icons-v2/arrow-up-circle.svg'
+import NcPauseCircleIcon from '~icons/nc-icons-v2/pause-circle.svg'
+import NcCheckSquareIcon from '~icons/nc-icons-v2/check-square.svg'
+import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
+import NcCornerRightUpIcon from '~icons/nc-icons-v2/corner-right-up.svg'
+import NcChevronsRightIcon from '~icons/nc-icons-v2/chevrons-right.svg'
+import NcListIcon from '~icons/nc-icons-v2/list.svg'
+import NcChevronsDownIcon from '~icons/nc-icons-v2/chevrons-down.svg'
+import NcCornerUpRightIcon from '~icons/nc-icons-v2/corner-up-right.svg'
+import NcTargetIcon from '~icons/nc-icons-v2/target.svg'
+import NcScissorsIcon from '~icons/nc-icons-v2/scissors.svg'
+import NcMinimize2Icon from '~icons/nc-icons-v2/minimize-2.svg'
+import NcPlayCircleIcon from '~icons/nc-icons-v2/play-circle.svg'
+import NcCrosshairIcon from '~icons/nc-icons-v2/crosshair.svg'
+import NcAirplayIcon from '~icons/nc-icons-v2/airplay.svg'
+import NcXOctagonIcon from '~icons/nc-icons-v2/x-octagon.svg'
+import NcRepeatIcon from '~icons/nc-icons-v2/repeat.svg'
+import NcEdit3Icon from '~icons/nc-icons-v2/edit-3.svg'
+import NcVolume1Icon from '~icons/nc-icons-v2/volume-1.svg'
+import NcToggleRightIcon from '~icons/nc-icons-v2/toggle-right.svg'
+import NcUserIcon from '~icons/nc-icons-v2/user.svg'
+import NcFileMinusIcon from '~icons/nc-icons-v2/file-minus.svg'
+import NcXCircleIcon from '~icons/nc-icons-v2/x-circle.svg'
+import NcCircleIcon from '~icons/nc-icons-v2/circle.svg'
+import NcPhoneMissedIcon from '~icons/nc-icons-v2/phone-missed.svg'
+import NcEdit2Icon from '~icons/nc-icons-v2/edit-2.svg'
+import NcCornerLeftUpIcon from '~icons/nc-icons-v2/corner-left-up.svg'
+import NcHomeIcon from '~icons/nc-icons-v2/home.svg'
+import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
+import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
+import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
+import NcSlidersIcon from '~icons/nc-icons-v2/sliders.svg'
+import NcArrowUpLeftIcon from '~icons/nc-icons-v2/arrow-up-left.svg'
+import NcChevronDownIcon from '~icons/nc-icons-v2/chevron-down.svg'
+import NcHexagonIcon from '~icons/nc-icons-v2/hexagon.svg'
+import NcGithubIcon from '~icons/nc-icons-v2/github.svg'
+import NcCropIcon from '~icons/nc-icons-v2/crop.svg'
+import NcBriefcaseIcon from '~icons/nc-icons-v2/briefcase.svg'
+import NcRotateCwIcon from '~icons/nc-icons-v2/rotate-cw.svg'
+import NcInboxIcon from '~icons/nc-icons-v2/inbox.svg'
+import NcAlignJustifyIcon from '~icons/nc-icons-v2/align-justify.svg'
+import NcPlusSquareIcon from '~icons/nc-icons-v2/plus-square.svg'
+import NcPowerIcon from '~icons/nc-icons-v2/power.svg'
+import NcDatabaseIcon2 from '~icons/nc-icons-v2/database.svg'
+import NcCameraOffIcon from '~icons/nc-icons-v2/camera-off.svg'
+import NcToggleLeftIcon from '~icons/nc-icons-v2/toggle-left.svg'
+import NcFileIcon from '~icons/nc-icons-v2/file.svg'
+import NcMessageCircleIcon from '~icons/nc-icons-v2/message-circle.svg'
+import NcTerminalIcon from '~icons/nc-icons-v2/terminal.svg'
+import NcMoveIcon from '~icons/nc-icons-v2/move.svg'
+import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
+import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
+import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
+import NcFileTextIcon from '~icons/nc-icons-v2/file-text.svg'
+import NcDropletIcon from '~icons/nc-icons-v2/droplet.svg'
+import NcZapOffIcon from '~icons/nc-icons-v2/zap-off.svg'
+import NcXIcon from '~icons/nc-icons-v2/x.svg'
+import NcBarChartIcon from '~icons/nc-icons-v2/bar-chart.svg'
+import NcLockIcon from '~icons/nc-icons-v2/lock.svg'
+import NcLogInIcon from '~icons/nc-icons-v2/log-in.svg'
+import NcRefreshCwIcon from '~icons/nc-icons-v2/refresh-cw.svg'
+import NcChevronRightIcon from '~icons/nc-icons-v2/chevron-right.svg'
+import NcClipboardIcon from '~icons/nc-icons-v2/clipboard.svg'
+import NcPackageIcon from '~icons/nc-icons-v2/package.svg'
+import NcInstagramIcon from '~icons/nc-icons-v2/instagram.svg'
+import NcLinkIcon from '~icons/nc-icons-v2/link.svg'
+import NcVideoOffIcon from '~icons/nc-icons-v2/video-off.svg'
+import NcKeyIcon from '~icons/nc-icons-v2/key.svg'
+import NcCornerDownRightIcon from '~icons/nc-icons-v2/corner-down-right.svg'
+import NcArrowRightIcon from '~icons/nc-icons-v2/arrow-right.svg'
+import NcStopCircleIcon from '~icons/nc-icons-v2/stop-circle.svg'
+import NcLogOutIcon from '~icons/nc-icons-v2/log-out.svg'
+import NcArrowLeftCircleIcon from '~icons/nc-icons-v2/arrow-left-circle.svg'
+import NcBarChart2Icon from '~icons/nc-icons-v2/bar-chart-2.svg'
+import NcGitPullRequestIcon from '~icons/nc-icons-v2/git-pull-request.svg'
+import NcMinimizeIcon from '~icons/nc-icons-v2/minimize.svg'
+import NcMinusSquareIcon from '~icons/nc-icons-v2/minus-square.svg'
+import NcSettingsIcon from '~icons/nc-icons-v2/settings.svg'
+import NcCloudSnowIcon from '~icons/nc-icons-v2/cloud-snow.svg'
+import NcThumbsDownIcon from '~icons/nc-icons-v2/thumbs-down.svg'
+import NcTypeIcon from '~icons/nc-icons-v2/type.svg'
+import NcPhoneOutgoingIcon from '~icons/nc-icons-v2/phone-outgoing.svg'
+import NcPocketIcon from '~icons/nc-icons-v2/pocket.svg'
+import NcMailIcon from '~icons/nc-icons-v2/mail.svg'
+import NcShieldIcon from '~icons/nc-icons-v2/shield.svg'
+import NcDownloadIcon from '~icons/nc-icons-v2/download.svg'
+import NcPhoneForwardedIcon from '~icons/nc-icons-v2/phone-forwarded.svg'
+import NcCornerRightDownIcon from '~icons/nc-icons-v2/corner-right-down.svg'
+import NcBookOpenIcon from '~icons/nc-icons-v2/book-open.svg'
+import NcServerIcon from '~icons/nc-icons-v2/server.svg'
+import NcTvIcon from '~icons/nc-icons-v2/tv.svg'
+import NcSkipForwardIcon from '~icons/nc-icons-v2/skip-forward.svg'
+import NcVolumeIcon from '~icons/nc-icons-v2/volume.svg'
+import NcUserPlusIcon from '~icons/nc-icons-v2/user-plus.svg'
+import NcBatteryChargingIcon from '~icons/nc-icons-v2/battery-charging.svg'
+import NcLayersIcon from '~icons/nc-icons-v2/layers.svg'
+import NcSlashIcon from '~icons/nc-icons-v2/slash.svg'
+import NcRadioIcon from '~icons/nc-icons-v2/radio.svg'
+import NcBookIcon from '~icons/nc-icons-v2/book.svg'
+import NcUserMinusIcon from '~icons/nc-icons-v2/user-minus.svg'
+import NcBellIcon from '~icons/nc-icons-v2/bell.svg'
+import NcGitBranchIcon from '~icons/nc-icons-v2/git-branch.svg'
+import NcCodeIcon from '~icons/nc-icons-v2/code.svg'
+import NcCastIcon from '~icons/nc-icons-v2/cast.svg'
+import NcFlagIcon from '~icons/nc-icons-v2/flag.svg'
+import NcEyeOffIcon from '~icons/nc-icons-v2/eye-off.svg'
+import NcBatteryIcon from '~icons/nc-icons-v2/battery.svg'
+import NcDiscIcon from '~icons/nc-icons-v2/disc.svg'
+import NcFrownIcon from '~icons/nc-icons-v2/frown.svg'
+import NcToolIcon from '~icons/nc-icons-v2/tool.svg'
+import NcBoldIcon from '~icons/nc-icons-v2/bold.svg'
+import NcHashIcon from '~icons/nc-icons-v2/hash.svg'
+import NcShare2Icon from '~icons/nc-icons-v2/share-2.svg'
+import NcPlusIcon from '~icons/nc-icons-v2/plus.svg'
+import NcCheckIcon from '~icons/nc-icons-v2/check.svg'
+import NcRotateCcwIcon from '~icons/nc-icons-v2/rotate-ccw.svg'
+import NcHardDriveIcon from '~icons/nc-icons-v2/hard-drive.svg'
+import NcBluetoothIcon from '~icons/nc-icons-v2/bluetooth.svg'
+import NcPieChartIcon from '~icons/nc-icons-v2/pie-chart.svg'
+import NcRssIcon from '~icons/nc-icons-v2/rss.svg'
+import NcWifiIcon from '~icons/nc-icons-v2/wifi.svg'
+import NcCornerUpLeftIcon from '~icons/nc-icons-v2/corner-up-left.svg'
+import NcInfoIcon from '~icons/nc-icons-v2/info.svg'
+import NcUserXIcon from '~icons/nc-icons-v2/user-x.svg'
+import NcLoaderIcon from '~icons/nc-icons-v2/loader.svg'
+import NcRefreshCcwIcon from '~icons/nc-icons-v2/refresh-ccw.svg'
+import NcFolderPlusIcon from '~icons/nc-icons-v2/folder-plus.svg'
+import NcMicIcon from '~icons/nc-icons-v2/mic.svg'
+import NcCopyIcon from '~icons/nc-icons-v2/copy.svg'
+import NcZoomInIcon from '~icons/nc-icons-v2/zoom-in.svg'
+import NcArrowRightCircleIcon from '~icons/nc-icons-v2/arrow-right-circle.svg'
+import NcAlignRightIcon from '~icons/nc-icons-v2/align-right.svg'
+import NcImageIcon from '~icons/nc-icons-v2/image.svg'
+import NcMaximize2Icon from '~icons/nc-icons-v2/maximize-2.svg'
+import NcCheckCircleIcon from '~icons/nc-icons-v2/check-circle.svg'
+import NcSaveIcon from '~icons/nc-icons-v2/save.svg'
+import NcSmileIcon from '~icons/nc-icons-v2/smile.svg'
+import NcNavigationIcon from '~icons/nc-icons-v2/navigation.svg'
+import NcPaperclipIcon from '~icons/nc-icons-v2/paperclip.svg'
+import NcFastForwardIcon from '~icons/nc-icons-v2/fast-forward.svg'
+import NcXSquareIcon from '~icons/nc-icons-v2/x-square.svg'
+import NcAwardIcon from '~icons/nc-icons-v2/award.svg'
+import NcZoomOutIcon from '~icons/nc-icons-v2/zoom-out.svg'
+import NcBoxIcon from '~icons/nc-icons-v2/box.svg'
+import NcThumbsUpIcon from '~icons/nc-icons-v2/thumbs-up.svg'
+import NcPercentIcon from '~icons/nc-icons-v2/percent.svg'
+import NcSidebarIcon from '~icons/nc-icons-v2/sidebar.svg'
+import NcSquareIcon from '~icons/nc-icons-v2/square.svg'
+import NcPlayIcon from '~icons/nc-icons-v2/play.svg'
+import NcGitCommitIcon from '~icons/nc-icons-v2/git-commit.svg'
+import NcSendIcon from '~icons/nc-icons-v2/send.svg'
+import NcPhoneCallIcon from '~icons/nc-icons-v2/phone-call.svg'
+import NcCameraIcon from '~icons/nc-icons-v2/camera.svg'
+import NcLink2Icon from '~icons/nc-icons-v2/link-2.svg'
+import NcPrinterIcon from '~icons/nc-icons-v2/printer.svg'
+import NcFolderMinusIcon from '~icons/nc-icons-v2/folder-minus.svg'
+import NcArrowUpRightIcon from '~icons/nc-icons-v2/arrow-up-right.svg'
+import NcPenToolIcon from '~icons/nc-icons-v2/pen-tool.svg'
+import NcAtSignIcon from '~icons/nc-icons-v2/at-sign.svg'
+import NcTrashIcon from '~icons/nc-icons-v2/trash.svg'
+import NcWifiOffIcon from '~icons/nc-icons-v2/wifi-off.svg'
+import NcCornerLeftDownIcon from '~icons/nc-icons-v2/corner-left-down.svg'
+import NcDollarSignIcon from '~icons/nc-icons-v2/dollar-sign.svg'
+import NcStarIcon from '~icons/nc-icons-v2/star.svg'
+import NcCloudOffIcon from '~icons/nc-icons-v2/cloud-off.svg'
+import NcMessageSquareIcon from '~icons/nc-icons-v2/message-square.svg'
+import NcEditIcon from '~icons/nc-icons-v2/edit.svg'
+import NcAlertCircleIcon from '~icons/nc-icons-v2/alert-circle.svg'
+import NcChevronsUpIcon from '~icons/nc-icons-v2/chevrons-up.svg'
+import NcUploadCloudIcon from '~icons/nc-icons-v2/upload-cloud.svg'
+import NcYoutubeIcon from '~icons/nc-icons-v2/youtube.svg'
+import NcUnlockIcon from '~icons/nc-icons-v2/unlock.svg'
+import NcCompassIcon from '~icons/nc-icons-v2/compass.svg'
+import NcPlusCircleIcon from '~icons/nc-icons-v2/plus-circle.svg'
+import NcCreditCardIcon from '~icons/nc-icons-v2/credit-card.svg'
+import NcTrash2Icon from '~icons/nc-icons-v2/trash-2.svg'
+import NcSkipBackIcon from '~icons/nc-icons-v2/skip-back.svg'
+import NcFilePlusIcon from '~icons/nc-icons-v2/file-plus.svg'
+import NcDeleteIcon from '~icons/nc-icons-v2/delete.svg'
+import NcCommandIcon from '~icons/nc-icons-v2/command.svg'
+import NcClockIcon from '~icons/nc-icons-v2/clock.svg'
+import NcOctagonIcon from '~icons/nc-icons-v2/octagon.svg'
+import NcPhoneIcon from '~icons/nc-icons-v2/phone.svg'
+import NcEyeIcon from '~icons/nc-icons-v2/eye.svg'
+import NcPhoneOffIcon from '~icons/nc-icons-v2/phone-off.svg'
+import NcExternalLinkIcon from '~icons/nc-icons-v2/external-link.svg'
+import NcZapIcon from '~icons/nc-icons-v2/zap.svg'
+import NcMoreVerticalIcon from '~icons/nc-icons-v2/more-vertical.svg'
+import NcMicOffIcon from '~icons/nc-icons-v2/mic-off.svg'
+import NcShareIcon from '~icons/nc-icons-v2/share.svg'
+import NcArrowUpIcon from '~icons/nc-icons-v2/arrow-up.svg'
+import NcBellOffIcon from '~icons/nc-icons-v2/bell-off.svg'
+import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
+import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
+import NcActivityIcon from '~icons/nc-icons-v2/activity.svg'
+import NcMapPinIcon from '~icons/nc-icons-v2/map-pin.svg'
+import NcFilterIcon from '~icons/nc-icons-v2/filter.svg'
+import NcPhoneIncomingIcon from '~icons/nc-icons-v2/phone-incoming.svg'
+import NcItalicIcon from '~icons/nc-icons-v2/italic.svg'
+import NcChevronsLeftIcon from '~icons/nc-icons-v2/chevrons-left.svg'
+import NcCalendarIcon from '~icons/nc-icons-v2/calendar.svg'
+import NcGlobeIcon from '~icons/nc-icons-v2/globe.svg'
+import NcArrowLeftIcon from '~icons/nc-icons-v2/arrow-left.svg'
+import NcAlignCenterIcon from '~icons/nc-icons-v2/align-center.svg'
+import NcMinusCircleIcon from '~icons/nc-icons-v2/minus-circle.svg'
+import NcArrowDownRightIcon from '~icons/nc-icons-v2/arrow-down-right.svg'
+import NcVolumeXIcon from '~icons/nc-icons-v2/volume-x.svg'
+import NcCloudIcon from '~icons/nc-icons-v2/cloud.svg'
+import NcDownloadCloudIcon from '~icons/nc-icons-v2/download-cloud.svg'
+import NcShuffleIcon from '~icons/nc-icons-v2/shuffle.svg'
+import NcRewindIcon from '~icons/nc-icons-v2/rewind.svg'
+import NcUploadIcon from '~icons/nc-icons-v2/upload.svg'
+import NcTrendingDownIcon from '~icons/nc-icons-v2/trending-down.svg'
+import NcPauseIcon from '~icons/nc-icons-v2/pause.svg'
+import NcArrowDownCircleIcon from '~icons/nc-icons-v2/arrow-down-circle.svg'
+import NcBookmarkIcon from '~icons/nc-icons-v2/bookmark.svg'
+import NcAlertTriangleIcon from '~icons/nc-icons-v2/alert-triangle.svg'
+import NcUserCheckIcon from '~icons/nc-icons-v2/user-check.svg'
+import NcTabletIcon from '~icons/nc-icons-v2/tablet.svg'
+import NcAlertOctagonIcon from '~icons/nc-icons-v2/alert-octagon.svg'
+import NcMenuIcon from '~icons/nc-icons-v2/menu.svg'
+import NcChromeIcon from '~icons/nc-icons-v2/chrome.svg'
+import NcFolderIcon from '~icons/nc-icons-v2/folder.svg'
+import NcUsersIcon from '~icons/nc-icons-v2/users.svg'
+import NcCornerDownLeftIcon from '~icons/nc-icons-v2/corner-down-left.svg'
+import NcMonitorIcon from '~icons/nc-icons-v2/monitor.svg'
+import NcMinusIcon from '~icons/nc-icons-v2/minus.svg'
+import NcNavigation2Icon from '~icons/nc-icons-v2/navigation-2.svg'
+import NcChevronLeftIcon from '~icons/nc-icons-v2/chevron-left.svg'
+import NcFilmIcon from '~icons/nc-icons-v2/film.svg'
+import NcMoonIcon from '~icons/nc-icons-v2/moon.svg'
+import NcShieldOffIcon from '~icons/nc-icons-v2/shield-off.svg'
+import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
+import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
+import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
+import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
+import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
+import NcRedditIcon from '~icons/nc-icons/reddit.svg'
+import NcTwitterIcon from '~icons/nc-icons/twitter-x-line.svg'
+import NcDiscordIcon from '~icons/nc-icons/discord.svg'
+
+import NcSlash1 from '~icons/nc-icons/slash1'
+
+import NcChevronUpSmall from '~icons/nc-icons/chevron-up-small'
+import NcChevronDownSmall from '~icons/nc-icons/chevron-down-small'
+import NcChevronUpDownSmall from '~icons/nc-icons/chevron-up-down-small'
+
+// Api snippets lang
+import NcLangShell from '~icons/nc-icons/lang-shell.svg'
+import NcLangJavascript from '~icons/nc-icons/lang-js.svg'
+import NcLangNode from '~icons/nc-icons/lang-node.svg'
+import NcLangNocodbSdk from '~icons/nc-icons/lang-nc-sdk.svg'
+import NcLangPhp from '~icons/nc-icons/lang-php.svg'
+import NcLangPython from '~icons/nc-icons/lang-python.svg'
+import NcLangRuby from '~icons/nc-icons/lang-ruby.svg'
+import NcLangJava from '~icons/nc-icons/lang-java.svg'
+import NcLangC from '~icons/nc-icons/lang-c.svg'
+
+import NcGridViewIcon from '~icons/nc-icons/grid'
+import NcFormViewIcon from '~icons/nc-icons/form'
+import NcGalleryViewIcon from '~icons/nc-icons/gallery'
+import NcKanbanViewIcon from '~icons/nc-icons/kanban'
+import NcCalendarViewIcon from '~icons/nc-icons/calendar'
+import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
+import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
+
+import NcInfoSolid from '~icons/nc-icons/info-solid'
+import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcSpanner from '~icons/nc-icons/spanner'
+import NcScript from '~icons/nc-icons/script'
+import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
+import NcPlusAi from '~icons/nc-icons/plus-ai'
+import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
+import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -430,16 +722,25 @@ import NcGroq from '~icons/nc-icons/groq'
 } as const */
 
 export const iconMap = {
+  calendar: NcCalendarViewIcon,
+  grid: NcGridViewIcon,
+  form: NcFormViewIcon,
+  gallery: NcGalleryViewIcon,
+  kanban: NcKanbanViewIcon,
+
   strike: NcStrike,
   atSign: NcAtSign,
   slash: NcSlash,
+  ncSlash1: NcSlash1,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,
   home: NcHome,
-  cellBarcode: NcCellBarcode,
+  home1: NcHome1,
+  cellBarcode: h(NcCellBarcode, { stroke: 'transparent' }),
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,
+  cellYear: NcCellYear,
   cellEmail: NcCellEmail,
   cellFormula: NcCellFormula,
   cellCurrency: NcCellCurrency,
@@ -458,7 +759,7 @@ export const iconMap = {
   cellPhone: NcCellPhone,
   cellQrCode: NcCellQrCode,
   cellRating: NcCellRating,
-  cellRollup: NcCellRollup,
+  cellRollup: h(NcCellRollup, { stroke: 'transparent' }),
   cellSingleSelect: NcCellSingleSelect,
   cellText: NcCellText,
   cellTime: NcCellTime,
@@ -469,7 +770,13 @@ export const iconMap = {
   cellSystemUser: NcCellSystemUser,
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
+  cellButton: NcCellButton,
+  cellAiButton: h(NcCellAiButton, { stroke: 'transparent' }),
+  cellAi: h(NcCellAi, { stroke: 'transparent' }),
   camera: NcCamera,
+  megaPhone: NcMegaPhone,
+  nocodb: NcNocoDB,
+  bulb: NcBulb,
 
   office: NcOffice,
   sort: Sort,
@@ -486,7 +793,7 @@ export const iconMap = {
   workspaceDefault: MsGroup,
   project: Project,
   search: NcSearch,
-  calendar: Calendar,
+  // calendar: Calendar,
   checkCircle: NcCheckCircle,
   checkFill: NcCheckFill,
   externalLink: NcExternalLink,
@@ -635,11 +942,11 @@ export const iconMap = {
   xml: h('span', { class: 'material-symbols' }, 'code'),
   airtable: LogosAirtable,
   excelColored: VscodeIconsExcelColored,
-  grid: h('span', { class: 'material-symbols' }, 'grid_view'),
-  gallery: h('span', { class: 'material-symbols' }, 'image'),
-  form: h('span', { class: 'material-symbols' }, 'article'),
+  // grid: h('span', { class: 'material-symbols' }, 'grid_view'),
+  // gallery: h('span', { class: 'material-symbols' }, 'image'),
+  // form: h('span', { class: 'material-symbols' }, 'article'),
   map: h('span', { class: 'material-symbols' }, 'map'),
-  kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
+  // kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
   view: h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
@@ -699,6 +1006,7 @@ export const iconMap = {
   ncReddit: NcReddit,
   ncTwitter: NcTwitter,
   file: NcFile,
+  fileBig: NcFileBig,
   ncSettings: NcSettings,
   ncHelp: NcHelp,
   puzzle: MdiPuzzle,
@@ -748,6 +1056,7 @@ export const iconMap = {
   typeform: NcTypeform,
   workday: NcWorkday,
   zendesk: NcZendesk,
+  freshdesk: NcFreshdesk,
   bookOpen: NcBookOpen,
   circleCheckSolid: NcCircleCheckSolid,
   alertTriangleSolid: NcAlertTriangleSolid,
@@ -785,6 +1094,276 @@ export const iconMap = {
   claude: NcClaude,
   ollama: NcOllama,
   groq: NcGroq,
+  refreshCw: NcRefreshCW,
+  iconReddit: NcRedditIcon,
+  iconTwitter: NcTwitterIcon,
+  iconDiscord: NcDiscordIcon,
+
+  // Nc-IconsV2 Buttons
+  ncColumns: NcColumnsIcon,
+  ncUnderline: NcUnderlineIcon,
+  ncGrid: NcGridIcon,
+  ncTriangle: NcTriangleIcon,
+  ncSearch: NcSearchIcon,
+  ncVolume2: NcVolume2Icon,
+  ncArrowUpCircle: NcArrowUpCircleIcon,
+  ncPauseCircle: NcPauseCircleIcon,
+  ncCheckSquare: NcCheckSquareIcon,
+  ncArrowDown2: NcArrowDownIcon,
+  ncCornerRightUp: NcCornerRightUpIcon,
+  ncChevronsRight: NcChevronsRightIcon,
+  ncList: NcListIcon,
+  ncChevronsDown: NcChevronsDownIcon,
+  ncCornerUpRight: NcCornerUpRightIcon,
+  ncTarget: NcTargetIcon,
+  ncScissors: NcScissorsIcon,
+  ncMinimize2: NcMinimize2Icon,
+  ncPlayCircle: NcPlayCircleIcon,
+  ncCrosshair: NcCrosshairIcon,
+  ncAirplay: NcAirplayIcon,
+  ncXOctagon: NcXOctagonIcon,
+  ncRepeat: NcRepeatIcon,
+  ncEdit3: NcEdit3Icon,
+  ncVolume1: NcVolume1Icon,
+  ncToggleRight: NcToggleRightIcon,
+  ncUser: NcUserIcon,
+  ncFileMinus: NcFileMinusIcon,
+  ncXCircle: NcXCircleIcon,
+  ncCircle: NcCircleIcon,
+  ncPhoneMissed: NcPhoneMissedIcon,
+  ncEdit2: NcEdit2Icon,
+  ncCornerLeftUp: NcCornerLeftUpIcon,
+  ncHome: NcHomeIcon,
+  ncGitlab: NcGitlabIcon,
+  ncSmartphone: NcSmartphoneIcon,
+  ncMoreHorizontal: NcMoreHorizontalIcon,
+  ncSliders: NcSlidersIcon,
+  ncArrowUpLeft: NcArrowUpLeftIcon,
+  ncChevronDown: NcChevronDownIcon,
+  ncHexagon: NcHexagonIcon,
+  ncGithub: NcGithubIcon,
+  ncCrop: NcCropIcon,
+  ncBriefcase: NcBriefcaseIcon,
+  ncRotateCw: NcRotateCwIcon,
+  ncInbox: NcInboxIcon,
+  ncAlignJustify: NcAlignJustifyIcon,
+  ncPlusSquare: NcPlusSquareIcon,
+  ncPower: NcPowerIcon,
+  ncCameraOff: NcCameraOffIcon,
+  ncToggleLeft: NcToggleLeftIcon,
+  ncFile: NcFileIcon,
+  ncMessageCircle: NcMessageCircleIcon,
+  ncTerminal: NcTerminalIcon,
+  ncMove: NcMoveIcon,
+  ncMaximize: NcMaximizeIcon,
+  ncChevronUp: NcChevronUpIcon,
+  ncArrowDownLeft: NcArrowDownLeftIcon,
+  ncFileText: NcFileTextIcon,
+  ncDroplet: NcDropletIcon,
+  ncZapOff: NcZapOffIcon,
+  ncX: NcXIcon,
+  ncBarChart: NcBarChartIcon,
+  ncLock: NcLockIcon,
+  ncLogIn: NcLogInIcon,
+  ncRefreshCw: NcRefreshCwIcon,
+  ncChevronRight: NcChevronRightIcon,
+  ncClipboard: NcClipboardIcon,
+  ncPackage: NcPackageIcon,
+  ncInstagram: NcInstagramIcon,
+  ncLink: NcLinkIcon,
+  ncVideoOff: NcVideoOffIcon,
+  ncKey2: NcKeyIcon,
+  ncCornerDownRight: NcCornerDownRightIcon,
+  ncArrowRight2: NcArrowRightIcon,
+  ncStopCircle: NcStopCircleIcon,
+  ncLogOut: NcLogOutIcon,
+  ncArrowLeftCircle: NcArrowLeftCircleIcon,
+  ncBarChart2: NcBarChart2Icon,
+  ncGitPullRequest: NcGitPullRequestIcon,
+  ncMinimize: NcMinimizeIcon,
+  ncMinusSquare: NcMinusSquareIcon,
+  ncSettings2: NcSettingsIcon,
+  ncCloudSnow: NcCloudSnowIcon,
+  ncThumbsDown: NcThumbsDownIcon,
+  ncType: NcTypeIcon,
+  ncPhoneOutgoing: NcPhoneOutgoingIcon,
+  ncPocket: NcPocketIcon,
+  ncMail: NcMailIcon,
+  ncShield: NcShieldIcon,
+  ncDownload: NcDownloadIcon,
+  ncPhoneForwarded: NcPhoneForwardedIcon,
+  ncCornerRightDown: NcCornerRightDownIcon,
+  ncBookOpen: NcBookOpenIcon,
+  ncServer: NcServerIcon,
+  ncTv: NcTvIcon,
+  ncSkipForward: NcSkipForwardIcon,
+  ncVolume: NcVolumeIcon,
+  ncUserPlus: NcUserPlusIcon,
+  ncBatteryCharging: NcBatteryChargingIcon,
+  ncLayers: NcLayersIcon,
+  ncSlash: NcSlashIcon,
+  ncRadio: NcRadioIcon,
+  ncBook: NcBookIcon,
+  ncUserMinus: NcUserMinusIcon,
+  ncBell: NcBellIcon,
+  ncGitBranch: NcGitBranchIcon,
+  ncCode: NcCodeIcon,
+  ncCast: NcCastIcon,
+  ncFlag: NcFlagIcon,
+  ncEyeOff: NcEyeOffIcon,
+  ncBattery: NcBatteryIcon,
+  ncDisc: NcDiscIcon,
+  ncFrown: NcFrownIcon,
+  ncTool: NcToolIcon,
+  ncBold: NcBoldIcon,
+  ncHash: NcHashIcon,
+  ncShare2: NcShare2Icon,
+  ncPlus: NcPlusIcon,
+  ncCheck: NcCheckIcon,
+  ncRotateCcw: NcRotateCcwIcon,
+  ncHardDrive: NcHardDriveIcon,
+  ncBluetooth: NcBluetoothIcon,
+  ncPieChart: NcPieChartIcon,
+  ncRss: NcRssIcon,
+  ncWifi: NcWifiIcon,
+  ncCornerUpLeft: NcCornerUpLeftIcon,
+  ncInfo: NcInfoIcon,
+  ncUserX: NcUserXIcon,
+  ncLoader: NcLoaderIcon,
+  ncRefreshCcw: NcRefreshCcwIcon,
+  ncFolderPlus: NcFolderPlusIcon,
+  ncMic: NcMicIcon,
+  ncCopy: NcCopyIcon,
+  ncZoomIn: NcZoomInIcon,
+  ncArrowRightCircle: NcArrowRightCircleIcon,
+  ncAlignRight: NcAlignRightIcon,
+  ncImage: NcImageIcon,
+  ncMaximize2: NcMaximize2Icon,
+  ncCheckCircle: NcCheckCircleIcon,
+  ncSave2: NcSaveIcon,
+  ncSmile: NcSmileIcon,
+  ncNavigation: NcNavigationIcon,
+  ncPaperclip: NcPaperclipIcon,
+  ncFastForward: NcFastForwardIcon,
+  ncXSquare: NcXSquareIcon,
+  ncAward: NcAwardIcon,
+  ncZoomOut: NcZoomOutIcon,
+  ncBox: NcBoxIcon,
+  ncThumbsUp: NcThumbsUpIcon,
+  ncPercent: NcPercentIcon,
+  ncSidebar: NcSidebarIcon,
+  ncSquare: NcSquareIcon,
+  ncPlay: NcPlayIcon,
+  ncGitCommit: NcGitCommitIcon,
+  ncSend: NcSendIcon,
+  ncPhoneCall: NcPhoneCallIcon,
+  ncCamera: NcCameraIcon,
+  ncLink2: NcLink2Icon,
+  ncPrinter: NcPrinterIcon,
+  ncFolderMinus: NcFolderMinusIcon,
+  ncArrowUpRight: NcArrowUpRightIcon,
+  ncPenTool: NcPenToolIcon,
+  ncAtSign: NcAtSignIcon,
+  ncTrash: NcTrashIcon,
+  ncWifiOff: NcWifiOffIcon,
+  ncCornerLeftDown: NcCornerLeftDownIcon,
+  ncDollarSign: NcDollarSignIcon,
+  ncStar: NcStarIcon,
+  ncCloudOff: NcCloudOffIcon,
+  ncMessageSquare: NcMessageSquareIcon,
+  ncEDit2: NcEditIcon,
+  ncAlertCircle: NcAlertCircleIcon,
+  ncChevronsUp: NcChevronsUpIcon,
+  ncUploadCloud: NcUploadCloudIcon,
+  ncYoutube: NcYoutubeIcon,
+  ncUnlock: NcUnlockIcon,
+  ncCompass: NcCompassIcon,
+  ncPlusCircle: NcPlusCircleIcon,
+  ncCreditCard: NcCreditCardIcon,
+  ncTrash2: NcTrash2Icon,
+  ncSkipBack: NcSkipBackIcon,
+  ncFilePlus: NcFilePlusIcon,
+  ncDelete: NcDeleteIcon,
+  ncCommand: NcCommandIcon,
+  ncClock: NcClockIcon,
+  ncOctagon: NcOctagonIcon,
+  ncPhone: NcPhoneIcon,
+  ncEye: NcEyeIcon,
+  ncPhoneOff: NcPhoneOffIcon,
+  ncExternalLink: NcExternalLinkIcon,
+  ncZap: NcZapIcon,
+  ncMoreVertical: NcMoreVerticalIcon,
+  ncMicOff: NcMicOffIcon,
+  ncShare: NcShareIcon,
+  ncArrowUp2: NcArrowUpIcon,
+  ncBellOff: NcBellOffIcon,
+  ncLinkedin: NcLinkedinIcon,
+  ncVideo: NcVideoIcon,
+  ncActivity: NcActivityIcon,
+  ncMapPin: NcMapPinIcon,
+  ncFilter: NcFilterIcon,
+  ncPhoneIncoming: NcPhoneIncomingIcon,
+  ncItalic: NcItalicIcon,
+  ncChevronsLeft: NcChevronsLeftIcon,
+  ncCalendar: NcCalendarIcon,
+  ncGlobe: NcGlobeIcon,
+  ncArrowLeft2: NcArrowLeftIcon,
+  ncAlignCenter: NcAlignCenterIcon,
+  ncMinusCircle: NcMinusCircleIcon,
+  ncArrowDownRight: NcArrowDownRightIcon,
+  ncVolumeX: NcVolumeXIcon,
+  ncCloud: NcCloudIcon,
+  ncDownloadCloud: NcDownloadCloudIcon,
+  ncShuffle: NcShuffleIcon,
+  ncRewind: NcRewindIcon,
+  ncUpload: NcUploadIcon,
+  ncTrendingDown: NcTrendingDownIcon,
+  ncPause: NcPauseIcon,
+  ncArrowDownCircle: NcArrowDownCircleIcon,
+  ncBookmark: NcBookmarkIcon,
+  ncAlertTriangle: NcAlertTriangleIcon,
+  ncUserCheck: NcUserCheckIcon,
+  ncTablet: NcTabletIcon,
+  ncAlertOctagon: NcAlertOctagonIcon,
+  ncMenu: NcMenuIcon,
+  ncChrome: NcChromeIcon,
+  ncFolder: NcFolderIcon,
+  ncUsers: NcUsersIcon,
+  ncCornerDownLeft: NcCornerDownLeftIcon,
+  ncMonitor: NcMonitorIcon,
+  ncMinus: NcMinusIcon,
+  ncNavigation2: NcNavigation2Icon,
+  ncChevronLeft: NcChevronLeftIcon,
+  ncFilm: NcFilmIcon,
+  ncMoon: NcMoonIcon,
+  ncShieldOff: NcShieldOffIcon,
+  ncMousePointer: NcMousePointerIcon,
+  ncAlignLeft: NcAlignLeftIcon,
+  ncHeart: NcHeartIcon,
+  ncTrendingUp: NcTrendingUpIcon,
+  chevronUpSmall: NcChevronUpSmall,
+  chevronDownSmall: NcChevronDownSmall,
+  chevronUpDownSmall: NcChevronUpDownSmall,
+  langShell: NcLangShell,
+  langJavascript: NcLangJavascript,
+  langNode: NcLangNode,
+  langNocodbSdk: NcLangNocodbSdk,
+  langPhp: NcLangPhp,
+  langPython: NcLangPython,
+  langRuby: NcLangRuby,
+  langJava: NcLangJava,
+  langC: NcLangC,
+  ncPuzzleSolid: NcPuzzleSolid,
+  ncPuzzleOutline: NcPuzzleOutline,
+  ncInfoSolid: NcInfoSolid,
+  ncPlaceholderIcon: NcPlaceholderIcon,
+  ncSpanner: NcSpanner,
+  ncScript: NcScript,
+  youtube: NcYoutube2Icon,
+  ncAutoAwesome: h(NcAutoAwesome, { stroke: 'transparent' }),
+  ncPlusAi: h(NcPlusAi, { stroke: 'transparent' }),
+  ncPlusMultiple: NcPlusMultiple,
+  ncPlusSquareSolid: h(NcPlusSquareSolid, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -2300,3 +2879,865 @@ export const emojiIcons = [
   'globe-showing-asia-australia',
   'globe-with-meridians',
 ]
+
+export const searchableMap = {
+  ncColumns: { icon: NcColumnsIcon, keywords: ['Grid', 'Layout', 'Structure', 'Organization', 'Architecture'] },
+  ncUnderline: { icon: NcUnderlineIcon, keywords: ['text', 'formatting', 'highlight', 'emphasis', 'typography'] },
+  ncGrid: { icon: NcGridIcon, keywords: ['layout', 'structure', 'organization', 'pattern', 'matrix'] },
+  ncTriangle: { icon: NcTriangleIcon, keywords: ['Shape', 'Geometry', 'Angle', 'Polygon', 'Arrowhead'] },
+  ncSearch: { icon: NcSearchIcon, keywords: ['magnifying glass', 'find', 'look', 'query', 'explore'] },
+  ncVolume2: { icon: NcVolume2Icon, keywords: ['Sound', 'Audio', 'Loud', 'Music', 'Speaker'] },
+  ncArrowUpCircle: { icon: NcArrowUpCircleIcon, keywords: ['Up', 'Arrow', 'Circle', 'Increase', 'Ascend'] },
+  ncPauseCircle: { icon: NcPauseCircleIcon, keywords: ['pause', 'circle', 'stop', 'hold', 'wait'] },
+  ncCheckSquare: { icon: NcCheckSquareIcon, keywords: ['checked', 'box', 'verified', 'confirmed', 'approved'] },
+  ncArrowDown2: { icon: NcArrowDownIcon, keywords: ['down', 'arrow', 'direction', 'navigation', 'dropdown'] },
+  ncCornerRightUp: { icon: NcCornerRightUpIcon, keywords: ['Arrow', 'Direction', 'Navigation', 'Pointer', 'Upward'] },
+  ncChevronsRight: { icon: NcChevronsRightIcon, keywords: ['next', 'forward', 'arrow', 'direction', 'navigation'] },
+  ncList: { icon: NcListIcon, keywords: ['menu', 'catalog', 'index', 'directory', 'checklist'] },
+  ncChevronsDown: { icon: NcChevronsDownIcon, keywords: ['down', 'arrow', 'chevron', 'direction', 'expand'] },
+  ncCornerUpRight: { icon: NcCornerUpRightIcon, keywords: ['Arrow', 'Direction', 'Navigation', 'Pointer', 'Upward'] },
+  ncTarget: { icon: NcTargetIcon, keywords: ['Aim', 'Bullseye', 'Goal', 'Focus', 'Precision'] },
+  ncScissors: { icon: NcScissorsIcon, keywords: ['Cut', 'Clip', 'Trim', 'Slice', 'Craft'] },
+  ncMinimize2: { icon: NcMinimize2Icon, keywords: ['Collapse', 'Shrink', 'Down', 'Reduce', 'Contract'] },
+  ncPlayCircle: { icon: NcPlayCircleIcon, keywords: ['play', 'circle', 'video', 'music', 'start'] },
+  ncCrosshair: { icon: NcCrosshairIcon, keywords: ['target', 'aim', 'scope', 'sniper', 'precision'] },
+  ncAirplay: { icon: NcAirplayIcon, keywords: ['streaming', 'wireless', 'connection', 'mirroring', 'casting'] },
+  ncXOctagon: { icon: NcXOctagonIcon, keywords: ['stop', 'halt', 'cancel', 'close', 'exit'] },
+  ncRepeat: { icon: NcRepeatIcon, keywords: ['replay', 'loop', 'refresh', 'restart', 'redo'] },
+  ncEdit3: { icon: NcEdit3Icon, keywords: ['pencil', 'modify', 'update', 'write', 'compose'] },
+  ncVolume1: { icon: NcVolume1Icon, keywords: ['Sound', 'Audio', 'Music', 'Mute', 'Speaker'] },
+  ncToggleRight: { icon: NcToggleRightIcon, keywords: ['arrow', 'direction', 'navigation', 'right', 'switch'] },
+  ncUser: { icon: NcUserIcon, keywords: ['person', 'profile', 'account', 'people', 'avatar'] },
+  ncFileMinus: { icon: NcFileMinusIcon, keywords: ['delete', 'remove', 'subtract', 'exclude', 'erase'] },
+  ncXCircle: { icon: NcXCircleIcon, keywords: ['Close', 'Delete', 'Cancel', 'Remove', 'Exit'] },
+  ncCircle: { icon: NcCircleIcon, keywords: ['Ring', 'Round', 'Shape', 'Geometry', 'Orb'] },
+  ncPhoneMissed: {
+    icon: NcPhoneMissedIcon,
+    keywords: ['Missed call', 'phone notification', 'unanswered call', 'call alert', 'voicemail'],
+  },
+  ncEdit2: { icon: NcEdit2Icon, keywords: ['pencil', 'modify', 'update', 'change', 'rewrite'] },
+  ncCornerLeftUp: { icon: NcCornerLeftUpIcon, keywords: ['arrow', 'direction', 'navigation', 'pointer', 'up-left'] },
+  ncHome: { icon: NcHomeIcon, keywords: ['house', 'residence', 'building', 'shelter', 'dwelling'] },
+  ncGitlab: { icon: NcGitlabIcon, keywords: ['version control', 'repository', 'collaboration', 'development', 'coding'] },
+  ncSmartphone: { icon: NcSmartphoneIcon, keywords: ['phone', 'mobile', 'device', 'cell', 'handheld'] },
+  ncMoreHorizontal: { icon: NcMoreHorizontalIcon, keywords: ['dots', 'menu', 'navigation', 'options', 'ellipsis'] },
+  sliders: { icon: NcSlidersIcon, keywords: ['Settings', 'Options', 'Preferences', 'Adjustments', 'Controls'] },
+  ncArrowUpLeft: { icon: NcArrowUpLeftIcon, keywords: ['Navigate', 'Back', 'Previous', 'Direction', 'Return'] },
+  ncChevronDown: { icon: NcChevronDownIcon, keywords: ['arrow', 'dropdown', 'expand', 'menu', 'navigation'] },
+  ncHexagon: { icon: NcHexagonIcon, keywords: ['Geometry', 'Shape', 'Polygon', 'Six-sided', 'Symbol'] },
+  ncGithub: { icon: NcGithubIcon, keywords: ['repository', 'code', 'development', 'programming', 'version control'] },
+  ncCrop: { icon: NcCropIcon, keywords: ['Trim', 'Resize', 'Edit', 'Cut', 'Adjust'] },
+  ncBriefcase: { icon: NcBriefcaseIcon, keywords: ['Work', 'Business', 'Office', 'Career', 'Suitcase'] },
+  ncRotateCw: { icon: NcRotateCwIcon, keywords: ['rotate', 'clockwise', 'spin', 'turn', 'refresh'] },
+  ncInbox: { icon: NcInboxIcon, keywords: ['Email', 'Messages', 'Mailbox', 'Communications', 'Notifications'] },
+  ncAlignJustify: { icon: NcAlignJustifyIcon, keywords: ['justify', 'alignment', 'text', 'paragraph', 'formatting'] },
+  ncPlusSquare: {
+    icon: NcPlusSquareIcon,
+    keywords: ['add', 'create', 'expand', 'increase', 'new'],
+  },
+  ncPower: {
+    icon: NcPowerIcon,
+    keywords: ['Energy', 'Electricity', 'Strength', 'Control', 'Battery'],
+  },
+  ncDatabase: {
+    icon: NcDatabaseIcon2,
+    keywords: ['data', 'storage', 'server', 'information', 'archive'],
+  },
+  ncCameraOff: {
+    icon: NcCameraOffIcon,
+    keywords: ['Disable', 'Mute', 'Off', 'Private', 'Restricted'],
+  },
+  ncToggleLeft: {
+    icon: NcToggleLeftIcon,
+    keywords: ['arrow', 'left', 'direction', 'navigation', 'switch'],
+  },
+  ncFile: {
+    icon: NcFileIcon,
+    keywords: ['document', 'data', 'folder', 'archive', 'storage'],
+  },
+  ncMessageCircle: {
+    icon: NcMessageCircleIcon,
+    keywords: ['comment', 'discussion', 'feedback', 'conversation', 'chat'],
+  },
+  ncTerminal: {
+    icon: NcTerminalIcon,
+    keywords: ['command', 'console', 'coding', 'programming', 'computer'],
+  },
+  ncMove: {
+    icon: NcMoveIcon,
+    keywords: ['relocate', 'transfer', 'shift', 'drag', 'rearrange'],
+  },
+  ncMaximize: {
+    icon: NcMaximizeIcon,
+    keywords: ['Enlarge', 'Expand', 'Fullscreen', 'Resize', 'Zoom'],
+  },
+  ncChevronUp: {
+    icon: NcChevronUpIcon,
+    keywords: ['arrow', 'up', 'direction', 'navigation', 'expand'],
+  },
+  ncArrowDownLeft: {
+    icon: NcArrowDownLeftIcon,
+    keywords: ['Navigation', 'Direction', 'Pointer', 'Backward', 'Southwest'],
+  },
+  ncFileText: {
+    icon: NcFileTextIcon,
+    keywords: ['document', 'text', 'file', 'note', 'script'],
+  },
+  ncDroplet: {
+    icon: NcDropletIcon,
+    keywords: ['water', 'liquid', 'drop', 'splash', 'hydration'],
+  },
+  ncZapOff: {
+    icon: NcZapOffIcon,
+    keywords: ['Disable', 'Off', 'Lightning', 'Electricity', 'Deactivate'],
+  },
+  ncX: {
+    icon: NcXIcon,
+    keywords: ['Close', 'Delete', 'Cancel', 'Exit', 'Remove'],
+  },
+  ncBarChart: {
+    icon: NcBarChartIcon,
+    keywords: ['statistics', 'graph', 'data', 'analytics', 'chart'],
+  },
+  ncLock: {
+    icon: NcLockIcon,
+    keywords: ['Security', 'Password', 'Protection', 'Encryption', 'Privacy'],
+  },
+  ncLogIn: {
+    icon: NcLogInIcon,
+    keywords: ['Sign in', 'Authentication', 'Login', 'Access', 'Account'],
+  },
+  ncRefreshCw: {
+    icon: NcRefreshCwIcon,
+    keywords: ['Reload', 'Update', 'Rotate', 'Sync', 'Reboot'],
+  },
+  ncChevronRight: {
+    icon: NcChevronRightIcon,
+    keywords: ['next', 'arrow', 'forward', 'navigate', 'rightward'],
+  },
+  ncClipboard: {
+    icon: NcClipboardIcon,
+    keywords: ['notes', 'copy', 'paste', 'document', 'office'],
+  },
+  ncPackage: {
+    icon: NcPackageIcon,
+    keywords: ['Box', 'Delivery', 'Shipping', 'Parcel', 'Cargo'],
+  },
+  ncInstagram: {
+    icon: NcInstagramIcon,
+    keywords: ['social media', 'photography', 'sharing', 'networking', 'app'],
+  },
+  ncLink: {
+    icon: NcLinkIcon,
+    keywords: ['chain', 'connection', 'hyperlink', 'url', 'attachment'],
+  },
+  ncVideoOff: {
+    icon: NcVideoOffIcon,
+    keywords: ['Disable', 'Mute', 'Pause', 'Stop', 'Deactivate'],
+  },
+  ncKey: {
+    icon: NcKeyIcon,
+    keywords: ['Unlock', 'Password', 'Security', 'Access', 'Lock'],
+  },
+  ncCornerDownRight: {
+    icon: NcCornerDownRightIcon,
+    keywords: ['arrow', 'direction', 'navigation', 'pointer', 'dropdown'],
+  },
+  ncArrowRight: {
+    icon: NcArrowRightIcon,
+    keywords: ['next', 'forward', 'direction', 'navigation', 'proceed'],
+  },
+  ncStopCircle: {
+    icon: NcStopCircleIcon,
+    keywords: ['block', 'halt', 'pause', 'prohibit', 'cancel'],
+  },
+  ncLogOut: {
+    icon: NcLogOutIcon,
+    keywords: ['exit', 'logout', 'sign out', 'leave', 'disconnect'],
+  },
+  ncArrowLeftCircle: {
+    icon: NcArrowLeftCircleIcon,
+    keywords: ['back', 'previous', 'navigate', 'left', 'return'],
+  },
+  ncBarChart2: {
+    icon: NcBarChart2Icon,
+    keywords: ['Statistics', 'Graph', 'Data', 'Analytics', 'Chart'],
+  },
+  ncGitPullRequest: {
+    icon: NcGitPullRequestIcon,
+    keywords: ['merge', 'request', 'pull', 'code', 'review'],
+  },
+  ncMinimize: {
+    icon: NcMinimizeIcon,
+    keywords: ['shrink', 'reduce', 'downsize', 'compact', 'collapse'],
+  },
+  ncMinusSquare: {
+    icon: NcMinusSquareIcon,
+    keywords: ['Remove', 'Delete', 'Subtract', 'Minus', 'Uncheck'],
+  },
+  ncSettings: {
+    icon: NcSettingsIcon,
+    keywords: ['configuration', 'preferences', 'options', 'gear', 'customization'],
+  },
+  ncCloudSnow: {
+    icon: NcCloudSnowIcon,
+    keywords: ['weather', 'snowflake', 'winter', 'frost', 'precipitation'],
+  },
+  ncThumbsDown: {
+    icon: NcThumbsDownIcon,
+    keywords: ['Dislike', 'Reject', 'Disapprove', 'Negative', 'Unhappy'],
+  },
+  ncType: {
+    icon: NcTypeIcon,
+    keywords: ['Keyboard', 'Text', 'Input', 'Write', 'Font'],
+  },
+  ncPhoneOutgoing: {
+    icon: NcPhoneOutgoingIcon,
+    keywords: ['call', 'dial', 'outgoing', 'ring', 'telephone'],
+  },
+  ncPocket: {
+    icon: NcPocketIcon,
+    keywords: ['bag', 'pouch', 'wallet', 'clothing', 'storage'],
+  },
+  ncMail: {
+    icon: NcMailIcon,
+    keywords: ['Email', 'Letter', 'Envelope', 'Message', 'Inbox'],
+  },
+  ncShield: {
+    icon: NcShieldIcon,
+    keywords: ['Protection', 'Defense', 'Security', 'Safety', 'Armor'],
+  },
+  ncDownload: {
+    icon: NcDownloadIcon,
+    keywords: ['Save', 'Export', 'Transfer', 'Receive', 'Import'],
+  },
+  ncPhoneForwarded: {
+    icon: NcPhoneForwardedIcon,
+    keywords: ['call', 'redirect', 'transfer', 'forward', 'reroute'],
+  },
+  ncCornerRightDown: {
+    icon: NcCornerRightDownIcon,
+    keywords: ['arrow', 'direction', 'navigation', 'pointer', 'dropdown'],
+  },
+  ncBookOpen: {
+    icon: NcBookOpenIcon,
+    keywords: ['reading', 'education', 'literature', 'study', 'knowledge'],
+  },
+  ncServer: {
+    icon: NcServerIcon,
+    keywords: ['computer', 'network', 'hosting', 'data', 'infrastructure'],
+  },
+  ncTv: {
+    icon: NcTvIcon,
+    keywords: ['television', 'screen', 'entertainment', 'media', 'broadcasting'],
+  },
+  ncSkipForward: {
+    icon: NcSkipForwardIcon,
+    keywords: ['fast forward', 'next', 'skip', 'forward', 'jump'],
+  },
+  ncVolume: {
+    icon: NcVolumeIcon,
+    keywords: ['Sound', 'Audio', 'Music', 'Loud', 'Mute'],
+  },
+  ncUserPlus: {
+    icon: NcUserPlusIcon,
+    keywords: ['Add user', 'New user', 'Create account', 'Register', 'Sign up'],
+  },
+  ncBatteryCharging: {
+    icon: NcBatteryChargingIcon,
+    keywords: ['Power', 'Charging', 'Energy', 'Recharge', 'Electricity'],
+  },
+  ncLayers: {
+    icon: NcLayersIcon,
+    keywords: ['stack', 'overlap', 'hierarchy', 'levels', 'organization'],
+  },
+  ncSlash: {
+    icon: NcSlashIcon,
+    keywords: ['divide', 'split', 'separate', 'cut', 'diagonal'],
+  },
+  ncRadio: {
+    icon: NcRadioIcon,
+    keywords: ['music', 'audio', 'broadcast', 'speaker', 'sound'],
+  },
+  ncBook: {
+    icon: NcBookIcon,
+    keywords: ['reading', 'education', 'literature', 'library', 'knowledge'],
+  },
+  ncUserMinus: {
+    icon: NcUserMinusIcon,
+    keywords: ['Remove User', 'Delete Account', 'Subtract Person', 'Minus Profile', 'Eliminate Member'],
+  },
+  ncBell: {
+    icon: NcBellIcon,
+    keywords: ['Notification', 'Alert', 'Ring', 'Sound', 'Alarm'],
+  },
+  ncGitBranch: {
+    icon: NcGitBranchIcon,
+    keywords: ['version control', 'branching', 'repository', 'development', 'coding'],
+  },
+  ncCode: {
+    icon: NcCodeIcon,
+    keywords: ['programming', 'development', 'coding', 'software', 'script'],
+  },
+  ncCast: {
+    icon: NcCastIcon,
+    keywords: ['Chromecast', 'streaming', 'media', 'broadcast', 'television'],
+  },
+  ncFlag: {
+    icon: NcFlagIcon,
+    keywords: ['country', 'nation', 'patriotism', 'symbol', 'banner'],
+  },
+  ncEyeOff: {
+    icon: NcEyeOffIcon,
+    keywords: ['invisible', 'hide', 'unseen', 'private', 'disabled'],
+  },
+  ncBattery: {
+    icon: NcBatteryIcon,
+    keywords: ['Power', 'Energy', 'Charging', 'Electronics', 'Voltage'],
+  },
+  ncDisc: {
+    icon: NcDiscIcon,
+    keywords: ['CD', 'music', 'record', 'vinyl', 'album'],
+  },
+  ncFrown: {
+    icon: NcFrownIcon,
+    keywords: ['Sad', 'Unhappy', 'Disappointed', 'Depressed', 'Gloomy'],
+  },
+  ncTool: {
+    icon: NcToolIcon,
+    keywords: ['equipment', 'instrument', 'gadget', 'machinery', 'wrench'],
+  },
+  ncBold: {
+    icon: NcBoldIcon,
+    keywords: ['Font', 'Style', 'Text', 'Format', 'Typography'],
+  },
+  ncHash: {
+    icon: NcHashIcon,
+    keywords: ['Number', 'Symbol', 'Pound', 'Code', 'Tag'],
+  },
+  ncShare2: {
+    icon: NcShare2Icon,
+    keywords: ['share', 'social', 'exchange', 'distribute', 'forward'],
+  },
+  ncPlus: {
+    icon: NcPlusIcon,
+    keywords: ['Add', 'Create', 'Increase', 'Expand', 'More'],
+  },
+  ncCheck: {
+    icon: NcCheckIcon,
+    keywords: ['Verify', 'Confirm', 'Tick', 'Approval', 'Validate'],
+  },
+  ncRotateCcw: {
+    icon: NcRotateCcwIcon,
+    keywords: ['counterclockwise', 'rotate', 'turn', 'left', 'reverse'],
+  },
+  ncHardDrive: {
+    icon: NcHardDriveIcon,
+    keywords: ['Storage', 'Computer', 'Disk', 'Data', 'Hardware'],
+  },
+  ncBluetooth: {
+    icon: NcBluetoothIcon,
+    keywords: ['wireless', 'connectivity', 'device', 'technology', 'pairing'],
+  },
+  ncPieChart: {
+    icon: NcPieChartIcon,
+    keywords: ['statistics', 'graph', 'data', 'analysis', 'chart'],
+  },
+  ncRss: {
+    icon: NcRssIcon,
+    keywords: ['feed', 'news', 'subscription', 'blog', 'syndication'],
+  },
+  ncWifi: {
+    icon: NcWifiIcon,
+    keywords: ['Internet', 'Network', 'Connection', 'Wireless', 'Signal'],
+  },
+  ncCornerUpLeft: {
+    icon: NcCornerUpLeftIcon,
+    keywords: ['arrow', 'direction', 'navigation', 'pointer', 'back'],
+  },
+  ncInfo: {
+    icon: NcInfoIcon,
+    keywords: ['information', 'help', 'details', 'about', 'knowledge'],
+  },
+  ncUserX: {
+    icon: NcUserXIcon,
+    keywords: ['delete account', 'remove user', 'cancel profile', 'user delete', 'account removal'],
+  },
+  ncLoader: {
+    icon: NcLoaderIcon,
+    keywords: ['loading', 'progress', 'spinning', 'waiting', 'animation'],
+  },
+  ncRefreshCcw: {
+    icon: NcRefreshCcwIcon,
+    keywords: ['reload', 'update', 'rotate', 'counter-clockwise', 'sync'],
+  },
+  ncFolderPlus: {
+    icon: NcFolderPlusIcon,
+    keywords: ['add', 'create', 'new', 'organize', 'directory'],
+  },
+  ncMic: {
+    icon: NcMicIcon,
+    keywords: ['Microphone', 'Audio', 'Sound', 'Record', 'Speak'],
+  },
+  ncCopy: {
+    icon: NcCopyIcon,
+    keywords: ['Duplicate', 'Clone', 'Replicate', 'Paste', 'Duplicate File'],
+  },
+  ncZoomIn: {
+    icon: NcZoomInIcon,
+    keywords: ['magnify', 'enlarge', 'scale', 'focus', 'expand'],
+  },
+  ncArrowRightCircle: {
+    icon: NcArrowRightCircleIcon,
+    keywords: ['next', 'forward', 'navigate', 'direction', 'proceed'],
+  },
+  ncAlignRight: {
+    icon: NcAlignRightIcon,
+    keywords: ['Alignment', 'Text', 'Right', 'Justify', 'Format'],
+  },
+  ncImage: {
+    icon: NcImageIcon,
+    keywords: ['Picture', 'Photo', 'Graphic', 'Illustration', 'Snapshot'],
+  },
+  ncMaximize2: {
+    icon: NcMaximize2Icon,
+    keywords: ['enlarge', 'expand', 'full screen', 'resize', 'zoom'],
+  },
+  ncCheckCircle: {
+    icon: NcCheckCircleIcon,
+    keywords: ['Approved', 'Confirmation', 'Verified', 'Success', 'Validated'],
+  },
+  ncSave2: {
+    icon: NcSaveIcon,
+    keywords: ['Save', 'Disk', 'Download', 'Storage', 'Backup'],
+  },
+  ncSmile: {
+    icon: NcSmileIcon,
+    keywords: ['Happy', 'Face', 'Joy', 'Emotion', 'Grin'],
+  },
+  ncNavigation: {
+    icon: NcNavigationIcon,
+    keywords: ['direction', 'compass', 'map', 'location', 'GPS'],
+  },
+  ncPaperclip: {
+    icon: NcPaperclipIcon,
+    keywords: ['attachment', 'office', 'stationery', 'clip', 'document'],
+  },
+  ncFastForward: {
+    icon: NcFastForwardIcon,
+    keywords: ['Skip', 'Next', 'Speed', 'Advance', 'Playback'],
+  },
+  ncXSquare: {
+    icon: NcXSquareIcon,
+    keywords: ['Close', 'Delete', 'Remove', 'Cancel', 'Exit'],
+  },
+  ncAward: {
+    icon: NcAwardIcon,
+    keywords: ['Trophy', 'Prize', 'Medal', 'Recognition', 'Achievement'],
+  },
+  ncZoomOut: {
+    icon: NcZoomOutIcon,
+    keywords: ['magnify', 'minimize', 'scale', 'shrink', 'reduce'],
+  },
+  ncBox: {
+    icon: NcBoxIcon,
+    keywords: ['package', 'container', 'storage', 'shipping', 'parcel'],
+  },
+  ncThumbsUp: {
+    icon: NcThumbsUpIcon,
+    keywords: ['Approval', 'Like', 'Agree', 'Positive', 'Endorsement'],
+  },
+  ncPercent: {
+    icon: NcPercentIcon,
+    keywords: ['discount', 'percentage', 'proportion', 'rate', 'ratio'],
+  },
+  ncSidebar: {
+    icon: NcSidebarIcon,
+    keywords: ['menu', 'navigation', 'panel', 'column', 'dashboard'],
+  },
+  ncSquare: {
+    icon: NcSquareIcon,
+    keywords: ['Box', 'Rectangle', 'Shape', 'Block', 'Geometry'],
+  },
+  ncPlay: {
+    icon: NcPlayIcon,
+    keywords: ['Video', 'Music', 'Start', 'Button', 'Media'],
+  },
+  ncGitCommit: {
+    icon: NcGitCommitIcon,
+    keywords: ['version control', 'commit', 'git', 'code', 'repository'],
+  },
+  ncSend: {
+    icon: NcSendIcon,
+    keywords: ['Email', 'Message', 'Share', 'Transmit', 'Dispatch'],
+  },
+  ncPhoneCall: {
+    icon: NcPhoneCallIcon,
+    keywords: ['call', 'phone', 'contact', 'communication', 'dial'],
+  },
+  ncCamera: {
+    icon: NcCameraIcon,
+    keywords: ['photography', 'photo', 'picture', 'snapshot', 'lens'],
+  },
+  ncLink2: {
+    icon: NcLink2Icon,
+    keywords: ['chain', 'hyperlink', 'connection', 'attach', 'merge'],
+  },
+  ncPrinter: {
+    icon: NcPrinterIcon,
+    keywords: ['print', 'device', 'office', 'paper', 'hardware'],
+  },
+  ncFolderMinus: {
+    icon: NcFolderMinusIcon,
+    keywords: ['Remove', 'Delete', 'Exclude', 'Subtract', 'Unfile'],
+  },
+  ncArrowUpRight: {
+    icon: NcArrowUpRightIcon,
+    keywords: ['Direction', 'Navigation', 'Forward', 'Diagonal', 'Ascending'],
+  },
+  ncPenTool: {
+    icon: NcPenToolIcon,
+    keywords: ['vector', 'drawing', 'editing', 'illustration', 'design'],
+  },
+  ncAtSign: {
+    icon: NcAtSignIcon,
+    keywords: ['email', 'address', 'symbol', 'contact', 'sign'],
+  },
+  ncTrash: {
+    icon: NcTrashIcon,
+    keywords: ['delete', 'garbage', 'waste', 'bin', 'discard'],
+  },
+  ncWifiOff: {
+    icon: NcWifiOffIcon,
+    keywords: ['No internet', 'wifi disabled', 'no connection', 'offline', 'disconnected'],
+  },
+  ncCornerLeftDown: {
+    icon: NcCornerLeftDownIcon,
+    keywords: ['arrow', 'direction', 'navigation', 'pointer', 'southwest'],
+  },
+  ncDollarSign: {
+    icon: NcDollarSignIcon,
+    keywords: ['Money', 'Currency', 'Finance', 'Payment', 'Wealth'],
+  },
+  ncStar: {
+    icon: NcStarIcon,
+    keywords: ['Favorite', 'Rating', 'Review', 'Award', 'Excellence'],
+  },
+  ncCloudOff: {
+    icon: NcCloudOffIcon,
+    keywords: ['Cloud disabled', 'Cloud disconnected', 'No cloud', 'Cloud inactive', 'Offline cloud'],
+  },
+  ncMessageSquare: {
+    icon: NcMessageSquareIcon,
+    keywords: ['chat', 'conversation', 'discussion', 'note', 'comment'],
+  },
+  ncEdit: {
+    icon: NcEditIcon,
+    keywords: ['modify', 'update', 'change', 'write', 'revise'],
+  },
+  ncAlertCircle: {
+    icon: NcAlertCircleIcon,
+    keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Alert'],
+  },
+  ncChevronsUp: {
+    icon: NcChevronsUpIcon,
+    keywords: ['Up arrow', 'Increase', 'Expand', 'Rise', 'Ascend'],
+  },
+  ncUploadCloud: {
+    icon: NcUploadCloudIcon,
+    keywords: ['cloud storage', 'upload file', 'cloud computing', 'data transfer', 'online backup'],
+  },
+  ncYoutube: {
+    icon: NcYoutubeIcon,
+    keywords: ['video', 'social media', 'streaming', 'entertainment', 'online'],
+  },
+  ncUnlock: {
+    icon: NcUnlockIcon,
+    keywords: ['password', 'security', 'access', 'open', 'authorization'],
+  },
+  ncCompass: {
+    icon: NcCompassIcon,
+    keywords: ['Navigation', 'Direction', 'Map', 'Travel', 'Exploration'],
+  },
+  ncPlusCircle: {
+    icon: NcPlusCircleIcon,
+    keywords: ['Add', 'Create', 'New', 'Expand', 'Increase'],
+  },
+  ncCreditCard: {
+    icon: NcCreditCardIcon,
+    keywords: ['payment', 'finance', 'bank', 'money', 'transaction'],
+  },
+  ncTrash2: {
+    icon: NcTrash2Icon,
+    keywords: ['delete', 'garbage', 'waste', 'remove', 'discard'],
+  },
+  ncSkipBack: {
+    icon: NcSkipBackIcon,
+    keywords: ['previous', 'rewind', 'back', 'replay', 'restart'],
+  },
+  ncFilePlus: {
+    icon: NcFilePlusIcon,
+    keywords: ['add', 'create', 'document', 'new', 'upload'],
+  },
+  ncDelete: {
+    icon: NcDeleteIcon,
+    keywords: ['remove', 'trash', 'erase', 'cancel', 'discard'],
+  },
+  ncCommand: {
+    icon: NcCommandIcon,
+    keywords: ['Terminal', 'Console', 'Code', 'Programming', 'Execute'],
+  },
+  ncClock: {
+    icon: NcClockIcon,
+    keywords: ['Time', 'Schedule', 'Watch', 'Timer', 'Alarm'],
+  },
+  ncOctagon: {
+    icon: NcOctagonIcon,
+    keywords: ['shape', 'polygon', 'eight-sided', 'geometry', 'stop sign'],
+  },
+  ncPhone: {
+    icon: NcPhoneIcon,
+    keywords: ['call', 'mobile', 'device', 'communication', 'telephone'],
+  },
+  ncEye: {
+    icon: NcEyeIcon,
+    keywords: ['View', 'Look', 'See', 'Watch', 'Observe'],
+  },
+  ncPhoneOff: {
+    icon: NcPhoneOffIcon,
+    keywords: ['Mute', 'Silence', 'Disable', 'Offline', 'Disconnect'],
+  },
+  ncExternalLink: {
+    icon: NcExternalLinkIcon,
+    keywords: ['outbound', 'redirect', 'outside', 'website', 'hyperlink'],
+  },
+  ncZap: {
+    icon: NcZapIcon,
+    keywords: ['Lightning', 'Electricity', 'Energy', 'Shock', 'Bolt'],
+  },
+  ncMoreVertical: {
+    icon: NcMoreVerticalIcon,
+    keywords: ['dots', 'menu', 'vertical', 'ellipsis', 'options'],
+  },
+  ncMicOff: {
+    icon: NcMicOffIcon,
+    keywords: ['Mute', 'Microphone', 'Disabled', 'Silence', 'Off'],
+  },
+  ncShare: {
+    icon: NcShareIcon,
+    keywords: ['social', 'send', 'forward', 'distribute', 'exchange'],
+  },
+  ncArrowUp: {
+    icon: NcArrowUpIcon,
+    keywords: ['Up', 'Direction', 'Navigation', 'Ascending', 'Increase'],
+  },
+  ncBellOff: {
+    icon: NcBellOffIcon,
+    keywords: ['Notification off', 'Mute alert', 'Silence', 'Disabled alarm', 'Quiet mode'],
+  },
+  ncLinkedin: {
+    icon: NcLinkedinIcon,
+    keywords: ['linkedin', 'social media', 'networking', 'career', 'professional'],
+  },
+  ncVideo: {
+    icon: NcVideoIcon,
+    keywords: ['Film', 'Movie', 'Camera', 'Recording', 'Multimedia'],
+  },
+  ncActivity: {
+    icon: NcActivityIcon,
+    keywords: ['action', 'movement', 'exercise', 'fitness', 'sports'],
+  },
+  ncMapPin: {
+    icon: NcMapPinIcon,
+    keywords: ['location', 'navigation', 'marker', 'geography', 'pinpoint'],
+  },
+  ncFilter: {
+    icon: NcFilterIcon,
+    keywords: ['Sort', 'refine', 'categorize', 'organize', 'sift'],
+  },
+  ncPhoneIncoming: {
+    icon: NcPhoneIncomingIcon,
+    keywords: ['call', 'incoming', 'phone', 'ring', 'answer'],
+  },
+  ncItalic: {
+    icon: NcItalicIcon,
+    keywords: ['font', 'style', 'text', 'formatting', 'typography'],
+  },
+  ncChevronsLeft: {
+    icon: NcChevronsLeftIcon,
+    keywords: ['back', 'previous', 'navigate', 'left', 'arrow'],
+  },
+  ncCalendar: {
+    icon: NcCalendarIcon,
+    keywords: ['Schedule', 'Date', 'Time', 'Organizer', 'Planner'],
+  },
+  ncGlobe: {
+    icon: NcGlobeIcon,
+    keywords: ['Earth', 'World', 'Map', 'International', 'Geography'],
+  },
+  ncArrowLeft: {
+    icon: NcArrowLeftIcon,
+    keywords: ['back', 'previous', 'navigate', 'direction', 'left'],
+  },
+  ncAlignCenter: {
+    icon: NcAlignCenterIcon,
+    keywords: ['center', 'middle', 'alignment', 'layout', 'formatting'],
+  },
+  ncMinusCircle: {
+    icon: NcMinusCircleIcon,
+    keywords: ['Remove', 'Delete', 'Subtract', 'Cancel', 'Unsubscribe'],
+  },
+  ncArrowDownRight: {
+    icon: NcArrowDownRightIcon,
+    keywords: ['down', 'right', 'direction', 'navigation', 'diagonal'],
+  },
+  ncVolumeX: {
+    icon: NcVolumeXIcon,
+    keywords: ['Mute', 'Sound', 'Volume', 'Quiet', 'Silence'],
+  },
+  ncCloud: {
+    icon: NcCloudIcon,
+    keywords: ['weather', 'storage', 'computing', 'network', 'sky'],
+  },
+  ncDownloadCloud: {
+    icon: NcDownloadCloudIcon,
+    keywords: ['cloud storage', 'download', 'cloud computing', 'data transfer', 'file download'],
+  },
+  ncShuffle: {
+    icon: NcShuffleIcon,
+    keywords: ['randomize', 'mix', 'reorder', 'music', 'playlist'],
+  },
+  ncRewind: {
+    icon: NcRewindIcon,
+    keywords: ['back', 'previous', 'replay', 'reverse', 'undo'],
+  },
+  ncUpload: {
+    icon: NcUploadIcon,
+    keywords: ['cloud', 'upload', 'file', 'transfer', 'send'],
+  },
+  ncTrendingDown: {
+    icon: NcTrendingDownIcon,
+    keywords: ['Decline', 'Decrease', 'Downward', 'Drop', 'Loss'],
+  },
+  ncPause: {
+    icon: NcPauseIcon,
+    keywords: ['stop', 'hold', 'wait', 'break', 'suspend'],
+  },
+  ncArrowDownCircle: {
+    icon: NcArrowDownCircleIcon,
+    keywords: ['download', 'dropdown', 'expand', 'show more', 'collapse'],
+  },
+  ncBookmark: {
+    icon: NcBookmarkIcon,
+    keywords: ['save', 'favorite', 'mark', 'read', 'later'],
+  },
+  ncAlertTriangle: {
+    icon: NcAlertTriangleIcon,
+    keywords: ['Warning', 'Notification', 'Error', 'Caution', 'Danger'],
+  },
+  ncUserCheck: {
+    icon: NcUserCheckIcon,
+    keywords: ['Verify', 'Profile', 'Validate', 'Authentication', 'Confirmation'],
+  },
+  ncTablet: {
+    icon: NcTabletIcon,
+    keywords: ['computer', 'device', 'mobile', 'screen', 'technology'],
+  },
+  ncAlertOctagon: {
+    icon: NcAlertOctagonIcon,
+    keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Notification Symbol'],
+  },
+  ncMenu: {
+    icon: NcMenuIcon,
+    keywords: ['Navigation', 'Hamburger', 'Options', 'Settings', 'Dropdown'],
+  },
+  ncChrome: {
+    icon: NcChromeIcon,
+    keywords: ['browser', 'google', 'web', 'internet', 'surfing'],
+  },
+  ncFolder: {
+    icon: NcFolderIcon,
+    keywords: ['directory', 'file', 'storage', 'organize', 'documents'],
+  },
+  ncUsers: {
+    icon: NcUsersIcon,
+    keywords: ['people', 'profiles', 'accounts', 'members', 'team'],
+  },
+  ncCornerDownLeft: {
+    icon: NcCornerDownLeftIcon,
+    keywords: ['arrow', 'direction', 'navigation', 'pointer', 'southwest'],
+  },
+  ncMonitor: {
+    icon: NcMonitorIcon,
+    keywords: ['Computer', 'Screen', 'Display', 'Desktop', 'Technology'],
+  },
+  ncMinus: {
+    icon: NcMinusIcon,
+    keywords: ['Subtract', 'Remove', 'Delete', 'Negative', 'Decrease'],
+  },
+  ncNavigation2: {
+    icon: NcNavigation2Icon,
+    keywords: ['Direction', 'Location', 'Map', 'Compass', 'GPS'],
+  },
+  ncChevronLeft: {
+    icon: NcChevronLeftIcon,
+    keywords: ['back', 'previous', 'arrow', 'left', 'navigation'],
+  },
+  ncFilm: {
+    icon: NcFilmIcon,
+    keywords: ['Movie', 'Cinema', 'Video', 'Camera', 'Hollywood'],
+  },
+  ncMoon: {
+    icon: NcMoonIcon,
+    keywords: ['Lunar', 'Night', 'Space', 'Astronomy', 'Celestial'],
+  },
+  ncShieldOff: {
+    icon: NcShieldOffIcon,
+    keywords: ['Inactive', 'Disabled', 'Unprotected', 'Vulnerable', 'Security'],
+  },
+  ncMousePointer: {
+    icon: NcMousePointerIcon,
+    keywords: ['cursor', 'pointer', 'mouse', 'navigation', 'select'],
+  },
+  ncAlignLeft: {
+    icon: NcAlignLeftIcon,
+    keywords: ['text', 'alignment', 'left', 'justify', 'formatting'],
+  },
+  ncHeart: {
+    icon: NcHeartIcon,
+    keywords: ['Love', 'Valentine', 'Health', 'Favorite', 'Like'],
+  },
+  ncTrendingUp: {
+    icon: NcTrendingUpIcon,
+    keywords: ['Growth', 'Increase', 'Success', 'Chart', 'Upward'],
+  },
+  ncAutoAwesome: {
+    icon: h(NcAutoAwesome, { stroke: 'transparent' }),
+    keywords: ['Magic', 'ai', 'autoAwesome', 'awesome'],
+  },
+}
+
+export const searchIcons = (searchTerm: string) => {
+  if (!searchTerm)
+    return Object.entries(searchableMap).map(([iconName, iconData]) => ({
+      name: iconName,
+      icon: iconData.icon,
+      keywords: iconData.keywords,
+    }))
+
+  searchTerm = searchTerm.toLowerCase()
+
+  return Object.entries(searchableMap)
+    .filter(([iconName, iconData]) => {
+      if (iconName.toLowerCase().includes(searchTerm)) {
+        return true
+      }
+
+      return iconData.keywords.some((keyword) => keyword.toLowerCase().includes(searchTerm))
+    })
+    .map(([iconName, iconData]) => ({
+      name: iconName,
+      icon: iconData.icon,
+      keywords: iconData.keywords,
+    }))
+}

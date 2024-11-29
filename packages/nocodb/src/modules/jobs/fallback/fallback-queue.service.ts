@@ -1,16 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
-import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
-import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
-import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
-import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
-import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
-import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
-import { JobStatus, JobTypes } from '~/interface/Jobs';
-import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
+import { JobStatus } from '~/interface/Jobs';
+import { JobsMap } from '~/modules/jobs/jobs-map.service';
 
 export interface Job {
   id: string;
@@ -21,7 +14,7 @@ export interface Job {
 
 @Injectable()
 export class QueueService {
-  static queue = new PQueue({ concurrency: 1 });
+  static queue = new PQueue({ concurrency: 2 });
   static queueIdCounter = 1;
   static processed = 0;
   static queueMemory: Job[] = [];
@@ -29,14 +22,7 @@ export class QueueService {
 
   constructor(
     protected readonly jobsEventService: JobsEventService,
-    protected readonly duplicateProcessor: DuplicateProcessor,
-    protected readonly atImportProcessor: AtImportProcessor,
-    protected readonly metaSyncProcessor: MetaSyncProcessor,
-    protected readonly sourceCreateProcessor: SourceCreateProcessor,
-    protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
-    protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
-    protected readonly dataExportProcessor: DataExportProcessor,
-    protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
+    @Inject(forwardRef(() => JobsMap)) protected readonly jobsMap: JobsMap,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -65,56 +51,12 @@ export class QueueService {
     });
   }
 
-  jobMap = {
-    [JobTypes.DuplicateBase]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateBase,
-    },
-    [JobTypes.DuplicateModel]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateModel,
-    },
-    [JobTypes.DuplicateColumn]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateColumn,
-    },
-    [JobTypes.AtImport]: {
-      this: this.atImportProcessor,
-      fn: this.atImportProcessor.job,
-    },
-    [JobTypes.MetaSync]: {
-      this: this.metaSyncProcessor,
-      fn: this.metaSyncProcessor.job,
-    },
-    [JobTypes.SourceCreate]: {
-      this: this.sourceCreateProcessor,
-      fn: this.sourceCreateProcessor.job,
-    },
-    [JobTypes.SourceDelete]: {
-      this: this.sourceDeleteProcessor,
-      fn: this.sourceDeleteProcessor.job,
-    },
-    [JobTypes.HandleWebhook]: {
-      this: this.webhookHandlerProcessor,
-      fn: this.webhookHandlerProcessor.job,
-    },
-    [JobTypes.DataExport]: {
-      this: this.dataExportProcessor,
-      fn: this.dataExportProcessor.job,
-    },
-    [JobTypes.ThumbnailGenerator]: {
-      this: this.thumbnailGeneratorProcessor,
-      fn: this.thumbnailGeneratorProcessor.job,
-    },
-  };
-
   async jobWrapper(job: Job) {
     this.emitter.emit(JobStatus.ACTIVE, { job });
+
     try {
-      const result = await this.jobMap[job.name].fn.apply(
-        this.jobMap[job.name].this,
-        [job],
-      );
+      const { this: processor, fn = 'job' } = this.jobsMap.jobs[job.name];
+      const result = await processor[fn](job);
       this.emitter.emit(JobStatus.COMPLETED, { job, result });
     } catch (error) {
       this.emitter.emit(JobStatus.FAILED, { job, error });
@@ -141,11 +83,35 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any, opts?: { jobId?: string }) {
+  add(name: string, data: any, opts?: { jobId?: string; delay?: number }) {
     const id = opts?.jobId || `${this.queueIndex++}`;
-    const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
-    this.queueMemory.push(job);
-    this.queue.add(() => this.jobWrapper(job));
+    const existingJob = this.queueMemory.find((q) => q.id === id);
+
+    let job;
+
+    if (existingJob) {
+      if (existingJob.status !== JobStatus.WAITING) {
+        existingJob.status = JobStatus.WAITING;
+      }
+      job = existingJob;
+    } else {
+      job = { id: `${id}`, name, status: JobStatus.WAITING, data };
+    }
+
+    if (opts?.delay) {
+      setTimeout(() => {
+        if (!existingJob) {
+          this.queueMemory.push(job);
+        }
+        this.queue.add(() => this.jobWrapper(job));
+      }, opts.delay);
+    } else {
+      if (!existingJob) {
+        this.queueMemory.push(job);
+      }
+      this.queue.add(() => this.jobWrapper(job));
+    }
+
     return { id, name };
   }
 

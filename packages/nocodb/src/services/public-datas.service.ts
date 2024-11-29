@@ -1,8 +1,8 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { nocoExecute } from 'nc-help';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -65,6 +65,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -99,6 +100,55 @@ export class PublicDatasService {
     return new PagedResponseImpl(data, { ...param.query, count });
   }
 
+  async dataCount(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
+    ) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
+    try {
+      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
+    } catch (e) {}
+
+    const count: number = await baseModel.count(countArgs);
+
+    return { count };
+  }
+
   async dataAggregate(
     context: NcContext,
     param: {
@@ -129,6 +179,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const listArgs: any = { ...param.query };
@@ -198,6 +249,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast } = await getAst(context, { model, query: param.query, view });
@@ -293,6 +345,7 @@ export class PublicDatasService {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       });
 
       const listArgs: any = { ...query };
@@ -350,6 +403,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     await view.getViewWithInfo(context);
@@ -470,6 +524,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -558,6 +613,7 @@ export class PublicDatasService {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `List`;
@@ -637,6 +693,7 @@ export class PublicDatasService {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `List`;
@@ -711,6 +768,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const row = await baseModel.readByPk(rowId, false, query);
@@ -813,6 +871,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const listArgs: any = { ...param.query };

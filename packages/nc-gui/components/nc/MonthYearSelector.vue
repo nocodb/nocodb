@@ -8,6 +8,7 @@ interface Props {
   hideCalendar?: boolean
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   pickerType: 'date',
 })
-const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:pickerType'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:pickerType', 'currentDate'])
 
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -101,7 +102,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     >
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="nc-prev-page-btn !border-0" size="small" type="secondary" @click="paginate('prev')">
+          <NcButton class="nc-prev-page-btn !border-0" size="small" type="text" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -126,7 +127,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       >
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="nc-next-page-btn !border-0" size="small" type="secondary" @click="paginate('next')">
+          <NcButton class="nc-next-page-btn !border-0" size="small" type="text" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -182,6 +183,23 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             {{ year.format('YYYY') }}
           </span>
         </template>
+      </div>
+
+      <div v-if="showCurrentDateOption" class="flex items-center justify-center px-2 pb-2 pt-1">
+        <NcTooltip :disabled="showCurrentDateOption !== 'disabled'">
+          <template #title>
+            {{ $t('tooltip.currentDateNotAvail') }}
+          </template>
+          <NcButton
+            class="nc-date-picker-now-btn !h-7"
+            size="small"
+            type="secondary"
+            :disabled="showCurrentDateOption === 'disabled'"
+            @click="emit('currentDate')"
+          >
+            <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </div>

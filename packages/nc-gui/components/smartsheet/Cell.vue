@@ -19,6 +19,8 @@ const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editE
 
 const column = toRef(props, 'column')
 
+const meta = inject(MetaInj, ref())
+
 const active = toRef(props, 'active', false)
 
 const readOnly = toRef(props, 'readOnly', false)
@@ -51,11 +53,21 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(
-  column.value?.source_id && sqlUis.value[column.value?.source_id]
-    ? sqlUis.value[column.value?.source_id]
-    : Object.values(sqlUis.value)[0],
+const { generatingRows, generatingColumns } = useNocoAi()
+
+const pk = computed(() => {
+  if (!meta.value?.columns) return
+  return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const isGenerating = computed(
+  () =>
+    pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
 )
+
+const sourceId = meta.value?.source_id || column.value?.source_id
+
+const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -123,6 +135,17 @@ const onContextmenu = (e: MouseEvent) => {
     e.stopPropagation()
   }
 }
+
+const showCurrentDateOption = computed(() => {
+  if (!isEditColumnMenu.value || (!isDate(column.value, abstractType.value) && !isDateTime(column.value, abstractType.value)))
+    return false
+
+  return sqlUi.value?.getCurrentDateDefault?.(column.value) ? true : 'disabled'
+})
+
+const currentDate = () => {
+  vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
+}
 </script>
 
 <template>
@@ -150,7 +173,8 @@ const onContextmenu = (e: MouseEvent) => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
+      <GeneralLoader v-if="isGenerating" />
+      <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -166,13 +190,21 @@ const onContextmenu = (e: MouseEvent) => {
         :disable-option-creation="!!isEditColumnMenu"
         :row-index="props.rowIndex"
       />
-      <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellDatePicker
+        v-else-if="isDate(column, abstractType)"
+        v-model="vModel"
+        :is-pk="isPrimaryKey(column)"
+        :show-current-date-option="showCurrentDateOption"
+        @current-date="currentDate"
+      />
       <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellDateTimePicker
         v-else-if="isDateTime(column, abstractType)"
         v-model="vModel"
         :is-pk="isPrimaryKey(column)"
         :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
+        :show-current-date-option="showCurrentDateOption"
+        @current-date="currentDate"
       />
       <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
@@ -183,6 +215,7 @@ const onContextmenu = (e: MouseEvent) => {
       <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
       <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAI v-else-if="isAI(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
       <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
@@ -190,7 +223,12 @@ const onContextmenu = (e: MouseEvent) => {
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
       <div
-        v-if="((isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column) && !isTextArea(column)"
+        v-if="
+          ((isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
+          !isAttachment(column) &&
+          !isTextArea(column) &&
+          !isAI(column)
+        "
         class="nc-locked-overlay"
       />
     </template>

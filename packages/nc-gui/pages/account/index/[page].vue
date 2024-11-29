@@ -5,9 +5,8 @@ const { appInfo } = useGlobal()
 <template>
   <div>
     <AccountToken v-if="$route.params.page === 'tokens'" />
-    <div v-else-if="$route.params.page === 'audit'" class="h-[calc(100vh_-_4rem)] w-full px-6">
-      <WorkspaceAuditLogs />
-    </div>
+    <AccountSetup v-else-if="$route.params.page === 'setup'" />
+    <WorkspaceAuditLogs v-else-if="$route.params.page === 'audit'" />
     <AccountProfile v-else-if="$route.params.page === 'profile'" />
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
     <span v-else></span>

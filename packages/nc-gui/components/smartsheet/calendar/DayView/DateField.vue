@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import { UseVirtualList } from '@vueuse/components'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -36,9 +37,6 @@ const getFieldStyle = (field: ColumnType) => {
 // We loop through all the records and calculate the position of each record based on the range
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
-  let dayRecordCount = 0
-  const perRecordHeight = 28
-
   if (!calendarRange.value) return []
 
   const recordsByRange: Array<Row> = []
@@ -47,16 +45,18 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
-      for (const record of formattedData.value) {
+      const filteredData = formattedData.value.filter((record) => {
         const startDate = dayjs(record.row[fromCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 
-        dayRecordCount++
+        return startDate.isSameOrBefore(endDate, 'day')
+      })
 
-        const style: Partial<CSSStyleDeclaration> = {
-          top: `${(dayRecordCount - 1) * perRecordHeight}px`,
-          width: '100%',
-        }
+      for (const record of filteredData) {
+        const startDate = dayjs(record.row[fromCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
+
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
@@ -81,24 +81,21 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           rowMeta: {
             ...record.rowMeta,
             position,
-            style,
+            id,
             range: range as any,
           },
         })
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
-        dayRecordCount++
+        const id = record.rowMeta.id ?? generateRandomNumber()
+
         recordsByRange.push({
           ...record,
           rowMeta: {
             ...record.rowMeta,
+            id,
             range: range as any,
-            style: {
-              width: '100%',
-              left: '0',
-              top: `${(dayRecordCount - 1) * perRecordHeight}px`,
-            },
             position: 'rounded',
           },
         })
@@ -203,43 +200,47 @@ const newRecord = () => {
   <div
     v-if="recordsAcrossAllRange.length"
     ref="container"
-    class="w-full cursor-pointer relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full cursor-pointer relative overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @dblclick="newRecord"
     @drop="dropEvent"
   >
-    <div
-      v-for="(record, rowIndex) in recordsAcrossAllRange"
-      :key="rowIndex"
-      :style="record.rowMeta.style"
-      class="absolute mt-2"
-      data-testid="nc-calendar-day-record-card"
-      @mouseleave="hoverRecord = null"
-      @mouseover="hoverRecord = record.rowMeta.id as string"
-    >
-      <LazySmartsheetRow :row="record">
-        <LazySmartsheetCalendarRecordCard
-          :position="record.rowMeta.position"
-          :record="record"
-          :resize="false"
-          color="blue"
-          size="small"
+    <UseVirtualList height="calc(100vh - 5rem)" :list="recordsAcrossAllRange" :options="{ itemHeight: 36 }">
+      <template #default="{ data: record }">
+        <div
+          :key="record.rowMeta.id"
+          class="mt-2"
+          style="line-height: 18px"
+          data-testid="nc-calendar-day-record-card"
+          @mouseleave="hoverRecord = null"
           @click.prevent="emit('expandRecord', record)"
+          @mouseover="hoverRecord = record.rowMeta.id as string"
         >
-          <template v-for="(field, id) in fields" :key="id">
-            <LazySmartsheetPlainCell
-              v-if="!isRowEmpty(record, field!)"
-              v-model="record.row[field!.title!]"
-              class="text-xs"
-              :bold="getFieldStyle(field).bold"
-              :column="field"
-              :italic="getFieldStyle(field).italic"
-              :underline="getFieldStyle(field).underline"
-            />
-          </template>
-        </LazySmartsheetCalendarRecordCard>
-      </LazySmartsheetRow>
-    </div>
+          <LazySmartsheetRow :row="record">
+            <LazySmartsheetCalendarRecordCard
+              :record="record"
+              :hover="hoverRecord === record.rowMeta.id"
+              :resize="false"
+              :position="record.rowMeta.position"
+              size="small"
+              @click.prevent="emit('expandRecord', record)"
+            >
+              <template v-for="(field, id) in fields" :key="id">
+                <LazySmartsheetPlainCell
+                  v-if="!isRowEmpty(record, field!)"
+                  v-model="record.row[field!.title!]"
+                  class="text-xs"
+                  :bold="getFieldStyle(field).bold"
+                  :column="field"
+                  :italic="getFieldStyle(field).italic"
+                  :underline="getFieldStyle(field).underline"
+                />
+              </template>
+            </LazySmartsheetCalendarRecordCard>
+          </LazySmartsheetRow>
+        </div>
+      </template>
+    </UseVirtualList>
   </div>
 
   <div

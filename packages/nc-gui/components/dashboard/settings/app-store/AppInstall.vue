@@ -219,15 +219,17 @@ onMounted(async () => {
               </tr>
             </tbody>
 
-            <tr>
-              <td :colspan="plugin.formDetails.items.length" class="text-center">
-                <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
-                  <template #icon>
-                    <component :is="iconMap.plus" class="flex mx-auto" />
-                  </template>
-                </a-button>
-              </td>
-            </tr>
+            <tfoot>
+              <tr>
+                <td :colspan="plugin.formDetails.items.length" class="text-center">
+                  <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
+                    <template #icon>
+                      <component :is="iconMap.plus" class="flex mx-auto" />
+                    </template>
+                  </a-button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 

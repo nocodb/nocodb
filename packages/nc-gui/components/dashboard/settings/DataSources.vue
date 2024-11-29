@@ -294,8 +294,8 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div class="px-1 pt-3 mb-6 flex items-center justify-between gap-3">
+  <div class="flex flex-col h-full p-6" data-testid="nc-settings-datasources-tab">
+    <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
         type="text"
@@ -394,7 +394,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             <a-tab-pane key="acl">
               <template #tab>
                 <div class="tab" data-testid="nc-acl-tab">
-                  <div>{{ $t('labels.uiAcl') }}</div>
+                  <div>{{ $t('labels.viewHide') }}</div>
                 </div>
               </template>
 
@@ -429,7 +429,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             @source-created="loadBases(true)"
           />
         </template>
-        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mx-1 mb-4">
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
           <div class="ds-table-head sticky top-0 bg-white z-10">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>

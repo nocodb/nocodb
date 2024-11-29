@@ -16,11 +16,14 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
+const { aiIntegrationAvailable } = useNocoAi()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
 
 const isViewListLoading = ref(false)
-const toBeCreateType = ref<ViewTypes>()
+const toBeCreateType = ref<ViewTypes | 'AI'>()
 
 const isOpen = ref(false)
 
@@ -32,6 +35,27 @@ const overlayClassName = computed(() => {
   return 'nc-view-create-dropdown'
 })
 
+/**
+ * Opens a modal for creating or editing a view.
+ *
+ * @param options - The options for opening the modal.
+ * @param options.title - The title of the modal. Default is an empty string.
+ * @param options.type - The type of view to create or edit.
+ * @param options.copyViewId - The ID of the view to copy, if creating a copy.
+ * @param options.groupingFieldColumnId - The ID of the column to use for grouping, if applicable.
+ * @param options.calendarRange - The date range for calendar views.
+ * @param options.coverImageColumnId - The ID of the column to use for cover images, if applicable.
+ *
+ * @returns A Promise that resolves when the modal operation is complete.
+ *
+ * @remarks
+ * This function opens a modal dialog for creating or editing a view.
+ * It handles the dialog state, view creation, and navigation to the newly created view.
+ * After creating a view, it refreshes the command palette and reloads the views.
+ *
+ * @see {@link packages/nc-gui/components/smartsheet/topbar/ViewListDropdown.vue} for a similar implementation of view creation dialog.
+ * If this function is updated, consider updating the other implementations as well.
+ */
 async function onOpenModal({
   title = '',
   type,
@@ -41,7 +65,7 @@ async function onOpenModal({
   coverImageColumnId,
 }: {
   title?: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   copyViewId?: string
   groupingFieldColumnId?: string
   calendarRange?: Array<{
@@ -73,8 +97,9 @@ async function onOpenModal({
     calendarRange,
     groupingFieldColumnId,
     coverImageColumnId,
+    'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -89,14 +114,16 @@ async function onOpenModal({
         hasNonDefaultViews: true,
       }
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        doNotSwitchTab: true,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: table.value.id!,
+          baseId: base.value.id!,
+          doNotSwitchTab: true,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 
@@ -126,7 +153,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem v-if="!source.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcMenuItem v-if="!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
           <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
@@ -170,6 +197,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+          <NcDivider />
+          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                <div>{{ $t('labels.aiSuggested') }}</div>
+              </div>
+            </div>
+          </NcMenuItem>
+        </template>
       </NcMenu>
     </template>
   </NcDropdown>

@@ -1,6 +1,6 @@
 import { S3 as S3Client } from '@aws-sdk/client-s3';
 import type { S3ClientConfig } from '@aws-sdk/client-s3';
-import type { IStorageAdapterV2 } from 'nc-plugin';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
 
 interface SpacesObjectStorageInput {
@@ -12,6 +12,8 @@ interface SpacesObjectStorageInput {
 }
 
 export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
+  name = 'Spaces';
+
   protected input: SpacesObjectStorageInput;
 
   constructor(input: unknown) {

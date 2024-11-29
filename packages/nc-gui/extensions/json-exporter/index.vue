@@ -92,11 +92,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-2 border-1 rounded-lg">
-    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" placeholder="-select table-" @change="onTableSelect" />
-    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" placeholder="-select view-" @change="onViewSelect" />
-    <NcButton @click="exportJson">Export</NcButton>
-  </div>
+  <ExtensionsExtensionWrapper>
+    <div class="flex flex-col gap-2 p-3">
+      <NcSelect v-model:value="exportPayload.tableId" :options="tableList" placeholder="-select table-" @change="onTableSelect" />
+      <NcSelect v-model:value="exportPayload.viewId" :options="viewList" placeholder="-select view-" @change="onViewSelect" />
+      <NcButton @click="exportJson">Export</NcButton>
+    </div>
+  </ExtensionsExtensionWrapper>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss">
+.nc-nc-json-exporter .extension-content {
+  &:not(.fullscreen) {
+    @apply p-3;
+  }
+}
+</style>

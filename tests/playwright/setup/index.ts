@@ -149,6 +149,7 @@ const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 export interface NcContext {
   base: BaseType;
   token: string;
+  apiToken: string;
   dbType?: string;
   workerId?: string;
   rootUser: UserType & { password: string };
@@ -171,6 +172,7 @@ async function localInit({
   isSuperUser = false,
   dbType,
   resetSsoClients = false,
+  resetPlugins,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
@@ -178,6 +180,7 @@ async function localInit({
   isSuperUser?: boolean;
   dbType?: string;
   resetSsoClients?: boolean;
+  resetPlugins?: boolean;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
 
@@ -206,6 +209,17 @@ async function localInit({
       },
     });
 
+    let apiToken = null;
+
+    const apiTokens = await api.orgTokens.list();
+
+    if (apiTokens.list.length > 0) {
+      apiToken = apiTokens.list[0].token;
+    } else {
+      const { token: createdToken } = await api.orgTokens.create({ description: 'test' });
+      apiToken = createdToken;
+    }
+
     // const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
     const workspaceTitle = `ws_pgExtREST${workerId}`;
     const baseTitle = `pgExtREST${workerId}`;
@@ -220,6 +234,22 @@ async function localInit({
           await api.ssoClient.delete(client.id);
         } catch (e) {
           console.log(`Error deleting sso-client: ${client.id}`);
+        }
+      }
+    }
+
+    // if oss reset the plugins
+    if (!isEE() && resetPlugins) {
+      const plugins = (await api.plugin.list()).list ?? [];
+      for (const plugin of plugins) {
+        if (!plugin.input) continue;
+        try {
+          await api.plugin.update(plugin.id, {
+            input: null,
+            active: false,
+          });
+        } catch (e) {
+          console.log(`Error deleting plugin: ${plugin.id}`);
         }
       }
     }
@@ -345,7 +375,7 @@ async function localInit({
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { base, user, workspace, token, api }, status: 200 };
+    return { data: { base, user, workspace, token, api, apiToken }, status: 200 };
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
@@ -359,6 +389,7 @@ const setup = async ({
   isSuperUser = false,
   url,
   resetSsoClients = false,
+  resetPlugins,
 }: {
   baseType?: ProjectTypes;
   page: Page;
@@ -366,6 +397,7 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
   resetSsoClients?: boolean;
+  resetPlugins?: boolean;
 }): Promise<NcContext> => {
   console.time('Setup');
 
@@ -390,6 +422,7 @@ const setup = async ({
       isSuperUser,
       dbType,
       resetSsoClients,
+      resetPlugins,
     });
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
@@ -476,6 +509,7 @@ const setup = async ({
   return {
     base,
     token,
+    apiToken: response.data.apiToken,
     dbType,
     workerId,
     rootUser,

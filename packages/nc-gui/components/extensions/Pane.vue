@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import Draggable from 'vuedraggable'
+import type { ExtensionType } from '#imports'
 
 const {
   extensionList,
@@ -10,12 +12,47 @@ const {
   detailsFrom,
   isMarketVisible,
   extensionPanelSize,
-  toggleExtensionPanel,
+  updateExtension,
+  eventBus,
 } = useExtensions()
+
+const { $e } = useNuxtApp()
 
 const isReady = ref(false)
 
+const searchExtensionRef = ref<HTMLInputElement>()
+
+const extensionHeaderRef = ref<HTMLDivElement>()
+
 const searchQuery = ref<string>('')
+
+const showSearchBox = ref(false)
+
+const panelSize = computed(() => {
+  if (isPanelExpanded.value) {
+    return extensionPanelSize.value
+  }
+  return 0
+})
+
+const { width } = useElementSize(extensionHeaderRef)
+
+const isOpenSearchBox = computed(() => {
+  return !!(searchQuery.value || showSearchBox.value)
+})
+
+const handleShowSearchInput = () => {
+  showSearchBox.value = true
+
+  nextTick(() => {
+    searchExtensionRef.value?.focus()
+  })
+}
+
+const handleCloseSearchbox = () => {
+  showSearchBox.value = false
+  searchQuery.value = ''
+}
 
 const filteredExtensionList = computed(() =>
   (extensionList.value || []).filter((ext) => ext.title.toLowerCase().includes(searchQuery.value.toLowerCase())),
@@ -25,13 +62,43 @@ const toggleMarket = () => {
   isMarketVisible.value = !isMarketVisible.value
 }
 
-const normalizePaneMaxWidth = computed(() => {
-  if (isReady.value) {
-    return 60
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: ExtensionType } }) => {
+  let {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  element = extensionList.value?.find((ext) => ext.id === element.id) || element
+
+  if (!element?.id) return
+
+  newIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[newIndex].id)
+
+  oldIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[oldIndex].id)
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (extensionList.value.length - 1 === newIndex) {
+    // If moving to the end, set nextOrder greater than the maximum order in the list
+    nextOrder = Math.max(...extensionList.value.map((item) => item?.order ?? 0)) + 1
+  } else if (newIndex === 0) {
+    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+    nextOrder = Math.min(...extensionList.value.map((item) => item?.order ?? 0)) / 2
   } else {
-    return extensionPanelSize.value
+    nextOrder =
+      (parseFloat(String(extensionList.value[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(extensionList.value[newIndex + 1]?.order ?? 0))) /
+      2
   }
-})
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  await updateExtension(element.id, {
+    order: _nextOrder,
+  })
+
+  $e('a:extension:reorder')
+}
 
 defineExpose({
   onReady: () => {
@@ -46,112 +113,169 @@ watch(isPanelExpanded, (newValue) => {
     }, 300)
   }
 })
+
+onClickOutside(searchExtensionRef, () => {
+  if (searchQuery.value) {
+    return
+  }
+
+  showSearchBox.value = false
+})
+
+const handleAutoScroll = async (id: string) => {
+  await ncDelay(500)
+
+  await nextTick()
+
+  const extension = document.querySelector(`.nc-extension-list-wrapper .nc-extension-item-${id}`)
+
+  if (extension) {
+    extension.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+eventBus.on((event, payload) => {
+  if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && payload) {
+    handleAutoScroll(payload)
+  }
+})
+
+onMounted(() => {
+  if (searchQuery.value && !showSearchBox.value) {
+    showSearchBox.value = true
+  }
+})
 </script>
 
 <template>
   <Pane
-    v-if="isPanelExpanded"
-    :size="extensionPanelSize"
-    min-size="10%"
+    v-show="isPanelExpanded || isReady"
+    :size="panelSize"
     max-size="60%"
-    class="flex flex-col gap-3 bg-[#F0F3FF]"
-    :style="{
-      minWidth: isReady ? '300px' : `${normalizePaneMaxWidth}%`,
-      maxWidth: `${normalizePaneMaxWidth}%`,
-    }"
+    class="nc-extension-pane"
+    :style="
+      !isReady
+        ? {
+            maxWidth: `${extensionPanelSize}%`,
+          }
+        : {}
+    "
   >
-    <div class="flex justify-between items-center px-4 pt-3">
-      <div class="flex items-center gap-3 font-weight-700 text-brand-500 text-base">
-        <GeneralIcon icon="puzzle" class="h-5 w-5" /> Extensions
-      </div>
-      <NcTooltip class="flex" hide-on-click placement="topRight">
-        <template #title> Hide extensions </template>
-        <NcButton
-          size="xxsmall"
-          type="text"
-          class="!text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
-          @click="toggleExtensionPanel"
-        >
-          <div class="flex items-center justify-center">
-            <GeneralIcon icon="doubleRightArrow" class="flex-none !text-gray-500/75" />
-          </div>
-        </NcButton>
-      </NcTooltip>
-    </div>
-    <template v-if="extensionList.length === 0">
-      <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center px-4">
-        <div class="w-[180px] h-[180px] bg-[#d9d9d9] rounded-3xl mt-[100px]"></div>
-        <div class="font-weight-700 text-base">No extensions added</div>
-        <div>Add Extensions from the community extensions marketplace</div>
-        <NcButton size="small" @click="toggleMarket">
-          <div class="flex items-center gap-2 font-weight-600">
-            <GeneralIcon icon="plus" />
-            Add Extension
-          </div>
-        </NcButton>
-      </div>
-    </template>
-    <template v-else>
-      <div class="flex w-full items-center justify-between px-4">
-        <div class="flex flex-grow items-center mr-2">
-          <a-input
-            v-model:value="searchQuery"
-            type="text"
-            class="!h-8 !px-3 !py-1 !rounded-lg"
-            placeholder="Search Extension"
-            allow-clear
-          >
-            <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
-            </template>
-          </a-input>
-        </div>
-        <NcButton type="ghost" size="small" class="!text-primary !bg-white children:children:max-w-full" @click="toggleMarket">
-          <div class="flex items-center gap-1 text-xs max-w-full">
-            <GeneralIcon icon="plus" />
-            <NcTooltip
-              class="max-w-[calc(100%_-_16px)] truncate"
-              show-on-truncate-only
-              overlay-class-name="children:-ml-2"
-              modifier-key=""
-            >
-              <template #title> Add Extension </template>
-              Add Extension
-            </NcTooltip>
-          </div>
-        </NcButton>
-      </div>
-      <div
-        class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md"
-        :class="{
-          'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
-        }"
-      >
-        <ExtensionsWrapper v-for="ext in filteredExtensionList" :key="ext.id" :extension-id="ext.id" />
-
+    <Transition name="layout" :duration="150">
+      <div v-if="isPanelExpanded" class="flex flex-col h-full">
         <div
-          v-if="searchQuery && !filteredExtensionList.length && extensionList.length"
-          class="w-full h-full flex-1 flex items-center justify-center"
+          ref="extensionHeaderRef"
+          class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white"
         >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[164px] flex-none"
-              alt="No search results found"
-            />
-
-            {{ $t('title.noResultsMatchedYourSearch') }}
+          <div
+            class="flex items-center gap-3 font-weight-700 text-gray-700 text-base"
+            :class="{
+              'flex-1': !isOpenSearchBox,
+            }"
+          >
+            <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
+            <span v-if="!isOpenSearchBox || width >= 507">{{ $t('general.extensions') }}</span>
           </div>
+          <div
+            class="flex justify-end"
+            :class="{
+              'flex-1': isOpenSearchBox,
+            }"
+          >
+            <NcButton v-if="!isOpenSearchBox" size="xs" type="text" class="!px-1" @click="handleShowSearchInput">
+              <GeneralIcon icon="search" class="flex-none !text-gray-500" />
+            </NcButton>
+            <div v-else class="flex flex-grow items-center justify-end !max-w-[300px]">
+              <a-input
+                ref="searchExtensionRef"
+                v-model:value="searchQuery"
+                type="text"
+                class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg"
+                placeholder="Search Extension"
+                allow-clear
+                @keydown.esc="handleCloseSearchbox"
+              >
+                <template #prefix>
+                  <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+                </template>
+              </a-input>
+            </div>
+          </div>
+          <NcButton type="secondary" size="xs" @click="toggleMarket">
+            <div class="flex items-center gap-1 text-xs max-w-full -ml-3px">
+              <GeneralIcon icon="plus" />
+              {{ $t('general.add') }}
+            </div>
+          </NcButton>
         </div>
+        <template v-if="extensionList.length === 0">
+          <div class="flex-1 flex items-center justify-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
+            <div class="text-base font-bold text-nc-content-gray">Supercharge Your Workflow with Extensions</div>
+            <div class="text-sm text-nc-content-gray-subtle2">
+              Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available
+              extensions.
+            </div>
+            <NcButton size="small" @click="toggleMarket">
+              <div class="flex items-center gap-1 -ml-3px">
+                <GeneralIcon icon="plus" />
+                {{ $t('general.add') }} {{ $t('general.extension') }}
+              </div>
+            </NcButton>
+            <!-- Todo: add docs link  -->
+            <NcButton size="small" type="secondary">
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="externalLink" />
+                {{ $t('activity.goToDocs') }}
+              </div>
+            </NcButton>
+
+            <img src="~assets/img/placeholder/extension.png" class="!w-full min-w-[250px] max-w-[432px] flex-none" />
+          </div>
+        </template>
+        <template v-else>
+          <Draggable
+            :model-value="filteredExtensionList"
+            draggable=".nc-extension-item"
+            item-key="id"
+            handle=".nc-extension-drag-handler"
+            ghost-class="ghost"
+            class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md py-4"
+            :class="{
+              'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
+            }"
+            @start="(e) => e.target.classList.add('grabbing')"
+            @end="(e) => e.target.classList.remove('grabbing')"
+            @change="onMove($event)"
+          >
+            <template #item="{ element: ext }">
+              <div class="nc-extension-item w-full" :class="`nc-extension-item-${ext.id}`">
+                <ExtensionsWrapper :extension-id="ext.id" />
+              </div>
+            </template>
+            <template v-if="searchQuery && !filteredExtensionList.length && extensionList.length" #header>
+              <div class="w-full h-full flex-1 flex items-center justify-center">
+                <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+                  <img
+                    src="~assets/img/placeholder/no-search-result-found.png"
+                    class="!w-[164px] flex-none"
+                    alt="No search results found"
+                  />
+
+                  {{ $t('title.noResultsMatchedYourSearch') }}
+                </div>
+              </div>
+            </template>
+          </Draggable>
+        </template>
+        <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />
+        <ExtensionsDetails
+          v-if="isDetailsVisible && detailsExtensionId"
+          v-model="isDetailsVisible"
+          :extension-id="detailsExtensionId"
+          :from="detailsFrom"
+        />
       </div>
-    </template>
-    <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />
-    <ExtensionsDetails
-      v-if="isDetailsVisible && detailsExtensionId"
-      v-model="isDetailsVisible"
-      :extension-id="detailsExtensionId"
-      :from="detailsFrom"
-    />
+    </Transition>
   </Pane>
 </template>
 
@@ -160,5 +284,11 @@ watch(isPanelExpanded, (newValue) => {
   &:last-child {
     @apply pb-3;
   }
+}
+
+.nc-extension-pane {
+  @apply flex flex-col bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30 -mt-1px;
+
+  box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }
 </style>

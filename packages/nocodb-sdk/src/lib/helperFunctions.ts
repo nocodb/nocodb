@@ -1,6 +1,7 @@
 import UITypes, { isNumericCol } from './UITypes';
 import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
+import { IntegrationsType } from './Api';
 
 // import {RelationTypes} from "./globals";
 
@@ -186,9 +187,9 @@ function roundUpToPrecision(number: number, precision: number = 0) {
     let pair = `${number}e`.split('e');
     const value = Math.round(Number(`${pair[0]}e${+pair[1] + precision}`));
     pair = `${value}e`.split('e');
-    return +`${pair[0]}e${+pair[1] - precision}`;
+    return (+`${pair[0]}e${+pair[1] - precision}`).toFixed(precision);
   }
-  return Math.round(number);
+  return Math.round(number).toFixed(precision);
 }
 
 export {
@@ -222,3 +223,7 @@ export const getTestDatabaseName = (db: {
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };
+
+export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
+  return [IntegrationsType.Ai].includes(category);
+}

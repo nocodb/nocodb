@@ -271,7 +271,7 @@ onMounted(() => {
 <template>
   <div class="h-full">
     <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
-      <div v-if="sharedFormView" class="my-auto">
+      <div v-if="sharedFormView" class="my-auto z-2">
         <template v-if="!isStarted || submitted">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
@@ -316,7 +316,10 @@ onMounted(() => {
               </a-alert>
 
               <div
-                v-if="sharedFormView.show_blank_form || sharedFormView.submit_another_form"
+                v-if="
+                  typeof sharedFormView?.redirect_url !== 'string' &&
+                  (sharedFormView.show_blank_form || sharedFormView.submit_another_form)
+                "
                 class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
               >
                 <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
@@ -499,8 +502,8 @@ onMounted(() => {
           </Transition>
         </template>
       </div>
-      <div class="md:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
-        <div class="flex justify-end items-center gap-4">
+      <div class="lg:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10 pointer-events-none">
+        <div class="flex justify-end items-center gap-4 nc-survey-form-branding">
           <div class="flex justify-center">
             <GeneralFormBranding
               class="inline-flex mx-auto"
@@ -617,6 +620,12 @@ onMounted(() => {
     .ant-alert-icon {
       @apply flex items-start;
     }
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1170px) {
+  .nc-survey-form-branding {
+    @apply flex-col;
   }
 }
 </style>

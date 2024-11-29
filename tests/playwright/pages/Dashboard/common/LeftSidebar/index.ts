@@ -11,7 +11,7 @@ export class LeftSidebarPage extends BasePage {
 
   readonly btn_workspace: Locator;
   readonly btn_newProject: Locator;
-  readonly btn_cmdK: Locator;
+  // readonly btn_cmdK: Locator;
   readonly btn_teamAndSettings: Locator;
 
   readonly modal_workspace: Locator;
@@ -22,7 +22,7 @@ export class LeftSidebarPage extends BasePage {
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
     this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-base-btn"]');
-    this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
+    // this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
@@ -35,6 +35,14 @@ export class LeftSidebarPage extends BasePage {
   async createProject({ title, context }: { title: string; context: NcContext }) {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
+
+    /*
+    TODO uncomment when AI Features are enabled by default
+
+    await this.rootPage.locator('.nc-create-base').waitFor();
+    await this.rootPage.locator('.nc-create-base').click();
+    */
+
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').locator('input').fill(title);
     await this.rootPage

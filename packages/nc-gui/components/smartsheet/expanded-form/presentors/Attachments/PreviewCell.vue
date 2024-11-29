@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { AttachmentType } from 'nocodb-sdk'
+import { getReadableFileSize } from '../../../../cell/attachment/utils';
 
 /* interface */
 
@@ -79,22 +80,23 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
 
 <template>
   <div
-    class="w-full h-[64px] border-2 rounded-lg overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all overflow-clip"
+    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all overflow-clip"
     :class="{
-      'border-gray-200': !props.isExpanded,
-      'border-transparent': props.isExpanded,
-      '!border-2 !border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
+      'w-[56px] border-gray-200': !props.isExpanded,
+      'w-full border-transparent': props.isExpanded,
+      '!border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
     }"
+    style="scroll-margin-top: 28px;"
   >
     <div class="flex flex-col shrink-0 relative">
-      <div class="h-0 w-[60px] flex-1 relative">
+      <div class="h-0 w-[56px] flex-1 relative">
         <img
           v-if="isImage(props.attachment.title || '', props.attachment.mimetype)"
           :src="getPossibleAttachmentSrc(props.attachment, 'tiny')?.[0]"
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
-            'top-1 left-1 right-1 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] rounded-lg ring-1 ring-gray-300': props.isExpanded,
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-gray-300': props.isExpanded,
           }"
         />
         <GeneralIcon
@@ -103,7 +105,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
           class="text-white !transition-all !duration-300 absolute w-full h-full"
           :class="{
             'top-0 left-0 right-0 h-[calc(100%-16px)]': !props.isExpanded,
-            'top-0 left-0 right-0 h-full': props.isExpanded,
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[48px] w-[48px]': props.isExpanded,
           }"
         />
       </div>
@@ -117,11 +119,11 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
         {{ fileEntry.title }}
       </div>
     </div>
-    <div class="whitespace-nowrap flex flex-col justify-center pl-2">
+    <div class="whitespace-nowrap flex flex-col justify-center pl-1">
       <div>
         {{ props.attachment.title }}
       </div>
-      <div class="text-xs text-gray-500 -mt-1">{{ (props.attachment.size! / 1000).toFixed(2) }} KB</div>
+      <div class="text-xs text-gray-500">{{ getReadableFileSize(props.attachment.size!) }}</div>
     </div>
   </div>
 </template>

@@ -48,43 +48,7 @@ watch(activeAttachmentIndex, async () => {
       </div>
     </div>
     <div>
-      <div class="flex items-center border-t-1 border-gray-200 rounded-t-lg overflow-clip">
-        <NcButton
-          type="text"
-          class="w-0 flex-1 !border-r-1 !border-gray-200 !rounded-none"
-          :disabled="!props.attachments || activeAttachmentIndex === 0"
-          @click="activeAttachmentIndex = activeAttachmentIndex - 1"
-        >
-          <GeneralIcon icon="chevronUpSmall" />
-          <span
-            class="ml-2 transition duration-300"
-            :class="{
-              'invisible absolute opacity-0': !isExpanded,
-              'opacity-100': isExpanded,
-            }"
-          >
-            Previous
-          </span>
-        </NcButton>
-        <NcButton
-          type="text"
-          class="w-0 flex-1 !rounded-none"
-          :disabled="!props.attachments || activeAttachmentIndex === props.attachments.length - 1"
-          @click="activeAttachmentIndex = activeAttachmentIndex + 1"
-        >
-          <GeneralIcon icon="chevronDownSmall" />
-          <span
-            class="ml-2 transition duration-300"
-            :class="{
-              'invisible absolute opacity-0': !isExpanded,
-              'opacity-100': isExpanded,
-            }"
-          >
-            Next
-          </span>
-        </NcButton>
-      </div>
-      <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16" @click="emit('open:file-picker')">
+      <NcButton type="text" class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16" @click="emit('open:file-picker')">
         <div class="flex flex-col items-center">
           <MaterialSymbolsAttachFile class="text-gray-500 text-sm" />
           <span class="mt-2"> Add file(s) </span>

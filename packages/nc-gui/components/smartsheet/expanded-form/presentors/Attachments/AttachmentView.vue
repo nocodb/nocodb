@@ -23,26 +23,26 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
 <template>
   <div class="w-full h-full">
     <template v-if="isImageAttachment">
-      <div class="w-full h-full p-6">
+      <div class="w-full h-full">
         <img :src="getPossibleAttachmentSrc(props.attachment)?.[0]" class="w-full h-full object-contain" />
       </div>
     </template>
     <template v-else-if="isVideoAttachment">
-      <div class="w-full h-full p-6">
+      <div class="w-full h-full">
         <video class="w-full h-full object-contain" controls>
           <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
         </video>
       </div>
     </template>
     <template v-else-if="isAudioAttachment">
-      <div class="w-full h-full flex items-center justify-center p-6">
+      <div class="w-full h-full flex items-center justify-center">
         <audio class="w-full" controls>
           <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
         </audio>
       </div>
     </template>
     <template v-else-if="isPdfAttachment">
-      <div class="w-full h-full p-6">
+      <div class="w-full h-full">
         <embed :src="getPossibleAttachmentSrc(props.attachment)?.[0]" class="w-full h-full" />
       </div>
     </template>

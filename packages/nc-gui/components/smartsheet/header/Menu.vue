@@ -416,6 +416,10 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
 
   isFieldIdCopied.value = true
 }
+
+const onDeleteColumn = () => {
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+}
 </script>
 
 <template>
@@ -697,7 +701,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
       </NcMenu>
     </template>
   </a-dropdown>
-  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
   <DlgColumnDuplicate
     v-if="column"
     ref="duplicateDialogRef"

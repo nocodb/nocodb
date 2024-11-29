@@ -1,7 +1,7 @@
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
-import { CacheGetType } from '~/utils/globals';
+import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
 
 export default class NocoCache {
   private static client: CacheMgr;
@@ -21,7 +21,7 @@ export default class NocoCache {
 
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
-    this.prefix = `nc:${orgs}`;
+    this.prefix = `${CACHE_PREFIX}:${orgs}`;
   }
 
   public static async set(key, value): Promise<boolean> {

@@ -576,7 +576,7 @@ import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 
 /* file types */
 
-import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-excel'
+import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-csv'
 import NcFileTypePdf from '~icons/nc-icons-v2/file-type-pdf'
 import NcFileTypeWord from '~icons/nc-icons-v2/file-type-word'
 import NcFileTypePresentation from '~icons/nc-icons-v2/file-type-presentation'

@@ -157,10 +157,6 @@ export class DuplicateProcessor {
     if (req.user?.id === '1') {
       delete req.user;
     }
-  }
-
-  async duplicateBase(job: Job<DuplicateBaseJobData>) {
-    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;

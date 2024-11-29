@@ -2,16 +2,11 @@ import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
 import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
 import RenameFile from './RenameFile.vue'
-import MdiPdfBox from '~icons/mdi/pdf-box'
-import MdiFileWordOutline from '~icons/mdi/file-word-outline'
-import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
-import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
-import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
-
-export const getReadableFileSize = (sizeInBytes: number) => {
-  const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
-  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
-}
+import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
+import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
+import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
+import MdiFileExcelOutline from '~icons/nc-icons-v2/file-type-csv'
+import IcOutlineInsertDriveFile from '~icons/nc-icons-v2/file-type-unknown'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {

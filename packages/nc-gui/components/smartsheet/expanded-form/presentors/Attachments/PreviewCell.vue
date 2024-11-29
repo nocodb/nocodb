@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { AttachmentType } from 'nocodb-sdk'
-import { getReadableFileSize } from '../../../../cell/attachment/utils';
 
 /* interface */
 

@@ -83,7 +83,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
     :class="{
       'border-gray-200': !props.isExpanded,
       'border-transparent': props.isExpanded,
-      '!border-2 !border-primary ring-3 ring-[#3069fe44]': props.active,
+      '!border-2 !border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
     }"
   >
     <div class="flex flex-col shrink-0 relative">

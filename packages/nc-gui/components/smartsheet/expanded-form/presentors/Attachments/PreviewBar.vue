@@ -14,6 +14,15 @@ const activeAttachmentIndex = defineModel<number>('activeAttachmentIndex', {
 /* expansion */
 
 const isExpanded = ref(false)
+
+/* auto scroll */
+
+const previewBarCellsContainer = ref<HTMLDivElement | null>(null)
+
+watch(activeAttachmentIndex, async () => {
+  await nextTick()
+  previewBarCellsContainer.value?.querySelector('& > div.preview-cell-active')?.scrollIntoView({ behavior: 'smooth' })
+})
 </script>
 
 <template>
@@ -27,7 +36,7 @@ const isExpanded = ref(false)
     @mouseleave="isExpanded = false"
   >
     <div class="flex-1 h-0 flex flex-col items-center justify-center">
-      <div class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
+      <div ref="previewBarCellsContainer" class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
         <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
           v-for="(attachment, index) of props.attachments"
           :key="attachment.id"

@@ -1,0 +1,22 @@
+name: "Destroy Dev Environment"
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  destroy-dev-env:
+    runs-on: [k8s-runners]
+    env:
+      working-directory: ./packages/nocodb
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - name: Trigger dev environment creation
+        id: dev-env
+        run: |
+          RES=$(curl -X --location 'https://controller.mertmit.com/api/v1/devenv/${{ github.event.pull_request.number }}' --header 'Content-Type: application/json')
+          URL=$(echo $RES | jq -r '.Url')
+          echo "URL=${URL}" >> $GITHUB_OUTPUT

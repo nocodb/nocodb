@@ -44,6 +44,7 @@ import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fa
 import { JOBS_QUEUE } from '~/interface/Jobs';
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
+import { CACHE_PREFIX } from '~/utils/globals';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -52,6 +53,7 @@ export const JobsModuleMetadata = {
       ? [
           BullModule.forRoot({
             url: process.env.NC_REDIS_JOB_URL,
+            prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
           }),
           BullModule.registerQueue({
             name: JOBS_QUEUE,

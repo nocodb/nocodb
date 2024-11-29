@@ -67,18 +67,6 @@ const isAlreadyGenerated = ref(false)
 
 const isLoadingViewData = ref(false)
 
-const loadViewData = async () => {
-  if (!formattedData.value.length && !isLoadingViewData.value) {
-    isLoadingViewData.value = true
-
-    await loadData(undefined, false)
-
-    await ncDelay(250)
-
-    isLoadingViewData.value = false
-  }
-}
-
 const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 
 const sampleRecords = computed<
@@ -160,6 +148,22 @@ const outputColumnIds = computed({
   },
 })
 
+const loadViewData = async (selectDefaultRecord = false) => {
+  if (!formattedData.value.length && !isLoadingViewData.value) {
+    isLoadingViewData.value = true
+
+    await loadData(undefined, false)
+
+    await ncDelay(250)
+
+    isLoadingViewData.value = false
+  }
+
+  if (selectDefaultRecord && sampleRecords.value.length) {
+    selectedRecordPk.value = sampleRecords.value[0].value
+  }
+}
+
 const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
 }
@@ -228,6 +232,7 @@ provide(IsFormInj, ref(true))
 watch(isOpenConfigModal, (newValue) => {
   if (newValue) {
     isAiButtonConfigModalOpen.value = true
+    loadViewData(true)
   } else {
     setTimeout(() => {
       isAiButtonConfigModalOpen.value = false
@@ -262,7 +267,7 @@ const checkScrollTopMoreThanZero = () => {
 const handleResetOutput = () => {
   isAlreadyGenerated.value = false
 
-  previewOutputRow.value = { ...defaultRow }
+  previewOutputRow.value = { row: {}, oldRow: {}, rowMeta: {} }
 }
 
 watch(
@@ -567,9 +572,11 @@ onBeforeUnmount(() => {
                                     />
                                   </NcTooltip>
                                   <div v-else class="flex-1 flex items-center gap-2">- Select Record -</div>
+                                  <GeneralLoader v-if="isLoadingViewData && !isOpenSelectRecordDropdown" size="regular" />
                                   <GeneralIcon
+                                    v-else
                                     icon="chevronDown"
-                                    class="!text-current opacity-70 flex-none transform transition-transform duration-250 w-3.5 h-3.5 ml-1"
+                                    class="!text-current opacity-70 flex-none transform transition-transform duration-250 w-4 h-4 ml-1"
                                     :class="{ '!rotate-180': isOpenSelectRecordDropdown }"
                                   />
                                 </NcButton>

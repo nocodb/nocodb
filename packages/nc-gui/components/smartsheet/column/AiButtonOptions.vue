@@ -682,24 +682,57 @@ onBeforeUnmount(() => {
                   }"
                 >
                   <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>
-                  <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)">
+                  <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && inputColumns.length)">
                     <template #title>
-                      {{
-                        !vModel.formula_raw
-                          ? 'Prompt required for AI Button'
-                          : !outputColumnIds.length
-                          ? 'At least one output field is required for preview'
-                          : !selectedRecordPk
-                          ? 'Select sample record first'
-                          : ''
-                      }}
+                      <div class="flex flex-col gap-2">
+                        <div>Preview checklist</div>
+                        <div class="flex gap-2">
+                          <div
+                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            :class="
+                              inputColumns.length
+                                ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
+                                : 'bg-nc-bg-red-dark text-nc-content-red-dark'
+                            "
+                          >
+                            <GeneralIcon :icon="inputColumns.length ? 'check' : 'ncX'" />
+                          </div>
+                          <div>Use at least 1 Field in your Input prompt</div>
+                        </div>
+                        <div class="flex gap-2">
+                          <div
+                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            :class="
+                              outputColumnIds.length
+                                ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
+                                : 'bg-nc-bg-red-dark text-nc-content-red-dark'
+                            "
+                          >
+                            <GeneralIcon :icon="outputColumnIds.length ? 'check' : 'ncX'" />
+                          </div>
+                          <div>Choose at least 1 Output Field</div>
+                        </div>
+                        <div class="flex gap-2">
+                          <div
+                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            :class="
+                              selectedRecordPk
+                                ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
+                                : 'bg-nc-bg-red-dark text-nc-content-red-dark'
+                            "
+                          >
+                            <GeneralIcon :icon="selectedRecordPk ? 'check' : 'ncX'" />
+                          </div>
+                          <div>Select sample record</div>
+                        </div>
+                      </div>
                     </template>
                     <NcButton
                       size="small"
                       theme="ai"
                       type="primary"
                       class="nc-ai-button-test-generate"
-                      :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
+                      :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !inputColumns.length"
                       :loading="aiLoading && generatingPreview"
                       @click.stop="generate"
                     >

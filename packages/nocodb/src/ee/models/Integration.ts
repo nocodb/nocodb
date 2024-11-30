@@ -553,6 +553,10 @@ export default class Integration extends IntegrationCE {
       data: this,
     });
 
+    if (!Array.isArray(config?.models)) {
+      config.models = [];
+    }
+
     return config;
   }
 

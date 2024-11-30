@@ -451,6 +451,10 @@ export default class Integration implements IntegrationType {
       data: this,
     });
 
+    if (!Array.isArray(config?.models)) {
+      config.models = [];
+    }
+
     return config;
   }
 

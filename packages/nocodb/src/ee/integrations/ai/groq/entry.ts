@@ -62,7 +62,22 @@ export default class GroqIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): string[] {
-    return this.getConfig().models;
+  public getModelAlias(model: string): string {
+    const aliases = {
+      'llama-3.1-405b-reasoning': 'Llama 3.1 405B Reasoning',
+      'llama-3.1-70b-versatile': 'Llama 3.1 70B Versatile',
+      'llama-3.1-8b-instant': 'Llama 3.1 8B Instant',
+      'mixtral-8x7b-32768': 'Mixtral 8x7B 32768',
+      'gemma2-9b-it': 'Gemma2 9B IT',
+    };
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 }

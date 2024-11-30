@@ -29,7 +29,7 @@ const lastIntegrationId = ref<string | null>(null)
 
 const isDropdownOpen = ref(false)
 
-const availableModels = ref<string[]>([])
+const availableModels = ref<{ value: string; label: string }[]>([])
 
 const isLoadingAvailableModels = ref<boolean>(false)
 
@@ -50,10 +50,10 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 
   try {
     const response = await $api.integrations.endpoint(newFkINtegrationId, 'availableModels', {})
-    availableModels.value = response as string[]
+    availableModels.value = (response || []) as { value: string; label: string }[]
 
     if (!vModel.value && availableModels.value.length > 0) {
-      vModel.value = availableModels.value[0]
+      vModel.value = availableModels.value[0].value
     }
   } catch (error) {
     console.error(error)
@@ -157,17 +157,17 @@ onMounted(async () => {
                 :disabled="!vFkIntegrationId || availableModels.length === 0"
                 :loading="isLoadingAvailableModels"
               >
-                <a-select-option v-for="md in availableModels" :key="md" :value="md">
+                <a-select-option v-for="md in availableModels" :key="md.label" :value="md.value">
                   <div class="w-full flex gap-2 items-center">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>
-                        {{ md }}
+                        {{ md.label }}
                       </template>
-                      {{ md }}
+                      {{ md.label }}
                     </NcTooltip>
                     <component
                       :is="iconMap.check"
-                      v-if="vModel === md"
+                      v-if="vModel === md.value"
                       id="nc-selected-item-icon"
                       class="text-nc-content-purple-medium w-4 h-4"
                     />

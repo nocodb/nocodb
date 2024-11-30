@@ -67,7 +67,21 @@ export default class ClaudeIntegrationIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): string[] {
-    return this.getConfig().models;
+  public getModelAlias(model: string): string {
+    const aliases = {
+      'claude-3-5-sonnet-20240620': 'Claude 3.5 Sonnet',
+      'claude-3-opus-20240229': 'Claude 3 Opus',
+      'claude-3-sonnet-20240229': 'Claude 3 Sonnet',
+      'claude-3-haiku-20240307': 'Claude 3 Haiku',
+    };
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 }

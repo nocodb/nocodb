@@ -15,6 +15,7 @@ const props = withDefaults(
     allowClear?: boolean
     loading?: boolean
     suffixIcon?: keyof typeof iconMap
+    maxTagCount?: number
   }>(),
   {
     suffixIcon: 'arrowDown',
@@ -45,16 +46,17 @@ const onChange = (value: string) => {
 <template>
   <a-select
     v-model:value="vModel"
-    :size="size"
-    :allow-clear="allowClear"
+    :size
+    :allow-clear
     :disabled="loading"
-    :dropdown-class-name="dropdownClassName"
-    :dropdown-match-select-width="dropdownMatchSelectWidth"
-    :filter-option="filterOption"
-    :loading="loading"
-    :mode="mode"
-    :placeholder="placeholder"
-    :show-search="showSearch"
+    :dropdown-class-name
+    :dropdown-match-select-width
+    :filter-option
+    :loading
+    :mode
+    :placeholder
+    :show-search
+    :max-tag-count
     class="nc-select"
     @change="onChange"
   >

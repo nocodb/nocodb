@@ -2,7 +2,6 @@ import { RelationTypes, UITypes, buildFilterTree, isDateMonthFormat, isSystemCol
 import type { ColumnType, FilterType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { isColumnRequiredAndNull } from './columnUtils'
-import type { Row } from '~/lib/types'
 
 export const isValidValue = (val: unknown) => {
   if (ncIsNull(val) || ncIsUndefined(val)) {
@@ -141,10 +140,19 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
   return defaultData
 }
 
-export const isRowEmpty = (record: any, col: any) => {
+export const isRowEmpty = (record: Row, col: ColumnType) => {
   if (!record || !col) return true
 
-  const val = record.row[col.title]
+  const val = record.row[col.title!]
+  if (val === null || val === undefined || val === '') return true
+
+  return Array.isArray(val) && val.length === 0
+}
+
+export const isRowRecordEmpty = (record: Record<string, any>, col: ColumnType) => {
+  if (!record || !col) return true
+
+  const val = record[col.title!]
   if (val === null || val === undefined || val === '') return true
 
   return Array.isArray(val) && val.length === 0

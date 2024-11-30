@@ -134,16 +134,17 @@ watch(richMode, () => {
 
 <template>
   <div class="flex flex-col gap-3">
+    <a-form-item>
+      <div class="flex items-center gap-1">
+        <NcSwitch v-model:checked="richMode">
+          <div class="text-sm text-gray-800 select-none">
+            {{ $t('labels.enableRichText') }}
+          </div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+
     <div class="relative">
-      <a-form-item>
-        <div class="flex items-center gap-1">
-          <NcSwitch v-model:checked="richMode">
-            <div class="text-sm text-gray-800 select-none">
-              {{ $t('labels.enableRichText') }}
-            </div>
-          </NcSwitch>
-        </div>
-      </a-form-item>
       <a-form-item class="flex items-center">
         <NcSwitch
           v-model:checked="isEnabledGenerateText"
@@ -156,8 +157,9 @@ watch(richMode, () => {
               'text-nc-content-purple-dark': isEnabledGenerateText,
               'text-nc-content-gray': !isEnabledGenerateText,
             }"
-            >Generate text using AI</span
           >
+            Generate text using AI
+          </span>
         </NcSwitch>
         <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
           <template #title> Use AI to generate content based on record data. </template>

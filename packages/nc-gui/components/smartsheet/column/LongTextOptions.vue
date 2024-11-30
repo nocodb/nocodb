@@ -21,7 +21,7 @@ const availableFields = computed(() => {
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -127,9 +127,30 @@ const richMode = computed({
   },
 })
 
+const handleDisableSubmitBtn = () => {
+  if (!isEnabledGenerateText.value) {
+    if (disableSubmitBtn.value) {
+      disableSubmitBtn.value = false
+    }
+
+    return
+  }
+
+  if (isPreviewEnabled.value) {
+    disableSubmitBtn.value = false
+  } else {
+    disableSubmitBtn.value = true
+  }
+}
+
 watch(richMode, () => {
   vModel.value.cdf = null
 })
+
+watch(isPreviewEnabled, handleDisableSubmitBtn, {
+  immediate: true,
+})
+
 </script>
 
 <template>
@@ -156,6 +177,7 @@ watch(richMode, () => {
             v-model:checked="isEnabledGenerateText"
             :disabled="!aiIntegrationAvailable || richMode"
             class="nc-ai-field-generate-text nc-ai-input"
+            @change="handleDisableSubmitBtn"
           >
             <span
               class="text-sm font-semibold pl-1"

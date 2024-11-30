@@ -89,7 +89,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
 
-const JSON_COLUMN_TYPES = [UITypes.Button, UITypes.LongText];
+const JSON_COLUMN_TYPES = [UITypes.Button];
 
 export async function populatePk(
   context: NcContext,
@@ -8629,23 +8629,25 @@ class BaseModelSqlv2 {
     jsonColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
-    try {
-      if (d) {
-        for (const col of jsonColumns) {
-          if (d[col.id] && typeof d[col.id] === 'string') {
+    if (d) {
+      for (const col of jsonColumns) {
+        if (d[col.id] && typeof d[col.id] === 'string') {
+          try {
             d[col.id] = JSON.parse(d[col.id]);
-          }
+          } catch {}
+        }
 
-          if (d[col.id]?.length) {
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
+        if (d[col.id]?.length) {
+          for (let i = 0; i < d[col.id].length; i++) {
+            if (typeof d[col.id][i] === 'string') {
+              try {
                 d[col.id][i] = JSON.parse(d[col.id][i]);
-              }
+              } catch {}
             }
           }
         }
       }
-    } catch {}
+    }
     return d;
   }
 
@@ -8672,13 +8674,20 @@ class BaseModelSqlv2 {
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
+          const lookupNestedCol = await this.getNestedColumn(col);
+
           if (
-            JSON_COLUMN_TYPES.includes((await this.getNestedColumn(col))?.uidt)
+            JSON_COLUMN_TYPES.includes(lookupNestedCol) ||
+            (lookupNestedCol.uidt === UITypes.LongText &&
+              col.meta?.[LongTextAiMetaProp])
           ) {
             jsonCols.push(col);
           }
         } else {
-          if (JSON_COLUMN_TYPES.includes(col.uidt)) {
+          if (
+            JSON_COLUMN_TYPES.includes(col.uidt) ||
+            (col.uidt === UITypes.LongText && col.meta?.[LongTextAiMetaProp])
+          ) {
             jsonCols.push(col);
           }
         }

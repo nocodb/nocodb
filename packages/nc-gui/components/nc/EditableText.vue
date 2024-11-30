@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 /* interface */
 
+const props = defineProps<{
+  disabled?: boolean
+}>()
+
 const modelValue = defineModel<string>()
 
 /* internal text */
@@ -21,6 +25,9 @@ const inputRef = ref()
 const isInEditMode = ref(false)
 
 function goToEditMode() {
+  if (props.disabled) {
+    return
+  }
   isInEditMode.value = true
   nextTick(() => {
     inputRef.value?.select?.()
@@ -41,7 +48,7 @@ function cancelEdit() {
 <template>
   <div class="inline-block">
     <template v-if="!isInEditMode">
-      <span class="cursor-pointer" @dblclick="goToEditMode()">
+      <span :class="{ 'cursor-pointer': !disabled }" @dblclick="goToEditMode()">
         {{ internalText }}
       </span>
     </template>

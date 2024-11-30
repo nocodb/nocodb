@@ -11,6 +11,16 @@ const activeAttachmentIndex = defineModel<number>('activeAttachmentIndex', {
   required: true,
 })
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+/* stores */
+
+const { isUIAllowed } = useRoles()
+
+/* flags */
+
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
+
 /* expansion */
 
 const isExpanded = ref(false)
@@ -51,6 +61,7 @@ watch(activeAttachmentIndex, async () => {
       <NcButton
         type="text"
         class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16"
+        :disabled="readOnly"
         @click="emit('open:file-picker')"
       >
         <div class="flex flex-col items-center">

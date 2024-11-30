@@ -161,6 +161,7 @@ export default {
 
           <NcEditableText
             v-if="activeAttachment"
+            :disabled="readOnly"
             :model-value="activeAttachment.title"
             @update:model-value="updateAttachmentTitle(activeAttachmentIndex, $event)"
           />
@@ -178,7 +179,7 @@ export default {
                   Download current file
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem class="!text-red-500" @click="deleteCurrentFile()">
+                <NcMenuItem :disabled="readOnly" class="!text-red-500" @click="deleteCurrentFile()">
                   <GeneralIcon icon="delete" />
                   Delete current file
                 </NcMenuItem>
@@ -191,7 +192,7 @@ export default {
             <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
-              <NcButton type="secondary" size="small" class="mt-3" @click="openFilePicker()">
+              <NcButton type="secondary" size="small" class="mt-3" :disabled="readOnly" @click="openFilePicker()">
                 <template #icon>
                   <GeneralIcon icon="upload" />
                 </template>

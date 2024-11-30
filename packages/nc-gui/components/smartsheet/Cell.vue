@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AttachmentType, ColumnType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
 

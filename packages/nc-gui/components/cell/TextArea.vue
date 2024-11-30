@@ -608,7 +608,7 @@ watch(
             </div>
           </template>
         </div>
-        <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef">
+        <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef" class="border-b-1 border-gray-100">
           <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
             <div class="flex flex-col">

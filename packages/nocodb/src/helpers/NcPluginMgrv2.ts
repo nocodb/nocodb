@@ -132,11 +132,10 @@ class NcPluginMgrv2 {
      * NC_S3_REGION
      * */
 
-    if(process.env.NC_S3_BUCKET_NAME &&
-      (process.env.NC_S3_REGION || process.env.NC_S3_ENDPOINT) &&
-      process.env.NC_S3_ACCESS_KEY &&
-      process.env.NC_S3_ACCESS_SECRET) {
-
+    if (
+      process.env.NC_S3_BUCKET_NAME &&
+      (process.env.NC_S3_REGION || process.env.NC_S3_ENDPOINT)
+    ) {
       const s3Plugin = await Plugin.getPlugin(S3PluginConfig.id);
 
       const s3CfgData: Record<string, any> = {

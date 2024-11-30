@@ -160,7 +160,7 @@ onMounted(async () => {
   @apply relative;
 
   .nc-prompt-with-field-suggestion-btn {
-    @apply absolute top-[1px] right-[1px];
+    @apply absolute top-[2px] right-[1px];
   }
 
   .prompt-field-tag {

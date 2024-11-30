@@ -114,11 +114,13 @@ const { setCurrentViewExpandedFormMode } = useSharedView()
 const activeViewMode = ref(props.view?.expanded_record_mode ?? 'field')
 
 watch(activeViewMode, async (v) => {
+  const viewId = props.view?.id
+  if (!viewId) return
   if (v === 'field') {
-    await setCurrentViewExpandedFormMode(props.view?.id!, v)
+    await setCurrentViewExpandedFormMode(viewId, v)
   } else if (v === 'attachment') {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
-    await setCurrentViewExpandedFormMode(props.view?.id!, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
+    await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
 })
 
@@ -701,9 +703,9 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
+            v-model="activeViewMode"
             :disabled="!isUIAllowed('expandedFormModeEdit')"
             :tooltip="!isUIAllowed('expandedFormModeEdit') ? 'You do not have permission to change view mode.' : undefined"
-            v-model="activeViewMode"
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment' },

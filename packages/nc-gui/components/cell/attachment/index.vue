@@ -261,9 +261,16 @@ defineExpose({
             @click="onFileClick(item)"
           />
 
-          <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" class="text-white" @click="selectedFile = item" />
+          <component
+            :is="FileIcon(item.icon)"
+            v-else-if="item.icon"
+            :height="45"
+            :width="45"
+            class="text-white"
+            @click="selectedFile = item"
+          />
 
-          <GeneralIcon icon="ncFileTypeUnknown" v-else :height="45" :width="45" class="text-white" @click="selectedFile = item" />
+          <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" @click="selectedFile = item" />
         </div>
 
         <div class="relative px-1 flex" :title="item.title">
@@ -428,7 +435,7 @@ defineExpose({
             >
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
-              <GeneralIcon icon="ncFileTypeUnknown" class="text-white" v-else />
+              <GeneralIcon v-else icon="ncFileTypeUnknown" class="text-white" />
             </div>
           </NcTooltip>
         </template>

@@ -48,7 +48,11 @@ watch(activeAttachmentIndex, async () => {
       </div>
     </div>
     <div>
-      <NcButton type="text" class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16" @click="emit('open:file-picker')">
+      <NcButton
+        type="text"
+        class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16"
+        @click="emit('open:file-picker')"
+      >
         <div class="flex flex-col items-center">
           <MaterialSymbolsAttachFile class="text-gray-500 text-sm" />
           <span class="mt-2"> Add file(s) </span>

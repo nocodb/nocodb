@@ -40,7 +40,7 @@ const modelValue = defineModel<string>()
         class="tab"
         :class="{
           'pointer-events-none': props.disabled,
-          active: modelValue === item.value,
+          'active': modelValue === item.value,
         }"
         @click="modelValue = item.value"
       >

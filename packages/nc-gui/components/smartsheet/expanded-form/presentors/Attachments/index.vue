@@ -45,7 +45,10 @@ const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachm
 
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
-  setCurrentViewExpandedFormAttachmentColumn(props.view?.id!, selectedFieldId.value)
+  const viewId = props.view?.id
+  if (viewId) {
+    setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
+  }
 })
 
 watch(selectedFieldValue, () => {
@@ -125,9 +128,11 @@ export default {
           />
 
           <NcDropdownSelect
-            :disabled="!isUIAllowed('expandedFormModeEdit')"
-            :tooltip="!isUIAllowed('expandedFormModeEdit') ? 'You do not have permission to change attachment view field.' : undefined"
             v-model="selectedFieldId"
+            :disabled="!isUIAllowed('expandedFormModeEdit')"
+            :tooltip="
+              !isUIAllowed('expandedFormModeEdit') ? 'You do not have permission to change attachment view field.' : undefined
+            "
             :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
           >
             <NcTooltip>
@@ -137,7 +142,10 @@ export default {
                 <span class="w-[200px] truncate text-left pl-2 inline-block">
                   {{ selectedField?.title }}
                 </span>
-                <GeneralIcon icon="chevronDown" class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center" />
+                <GeneralIcon
+                  icon="chevronDown"
+                  class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
+                />
               </NcButton>
             </NcTooltip>
           </NcDropdownSelect>

@@ -85,7 +85,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
       'w-full border-transparent': props.isExpanded,
       '!border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
     }"
-    style="scroll-margin-top: 28px;"
+    style="scroll-margin-top: 28px"
   >
     <div class="flex flex-col shrink-0 relative">
       <div class="h-0 w-[56px] flex-1 relative">
@@ -95,7 +95,8 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
-            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-gray-300': props.isExpanded,
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-gray-300':
+              props.isExpanded,
           }"
         />
         <GeneralIcon

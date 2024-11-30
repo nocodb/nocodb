@@ -168,6 +168,7 @@ const rolePermissions = {
       viewFieldEdit: true,
       csvTableImport: true,
       hookTrigger: true,
+      expandedFormModeEdit: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

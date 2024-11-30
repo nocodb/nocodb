@@ -136,8 +136,8 @@ watch(richMode, () => {
   <div class="flex flex-col gap-3">
     <a-form-item>
       <div class="flex items-center gap-1">
-        <NcSwitch v-model:checked="richMode">
-          <div class="text-sm text-gray-800 select-none">
+        <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText">
+          <div class="text-sm text-gray-800 select-none font-semibold">
             {{ $t('labels.enableRichText') }}
           </div>
         </NcSwitch>
@@ -148,7 +148,7 @@ watch(richMode, () => {
       <a-form-item class="flex items-center">
         <NcSwitch
           v-model:checked="isEnabledGenerateText"
-          :disabled="!aiIntegrationAvailable"
+          :disabled="!aiIntegrationAvailable || richMode"
           class="nc-ai-field-generate-text nc-ai-input"
         >
           <span

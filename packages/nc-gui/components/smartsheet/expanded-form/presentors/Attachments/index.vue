@@ -35,7 +35,7 @@ const attachmentFields = computed(() => fields.value.filter((field) => field.uid
 
 const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentFields.value[0]?.id)
 
-const selectedField = computed(() => attachmentFields.value.find((field) => field.id === selectedFieldId.value))
+const selectedField = computed(() => attachmentFields.value.find((field) => field.id === selectedFieldId.value)!)
 
 const selectedFieldValue = computed(() => _row.value.row[selectedField.value?.title || ''])
 
@@ -71,24 +71,41 @@ const hasAnyAttachmentFields = computed(() => attachmentFields.value.length > 0)
 
 const hasAnyValueInAttachment = computed(() => selectedFieldValue.value?.length > 0)
 
-/* attachment actions */
+/* attachment interface */
 
-const smartsheetCell = ref()
+provide(ColumnInj, selectedField)
+
+const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const attachmentVModel = computed({
+  get: () => {
+    return _row.value.row[selectedField.value!.title!]
+  },
+  set: (val) => {
+    if (val !== attachmentVModel.value) {
+      currentRow.value.rowMeta.changed = true
+      _row.value.row[selectedField.value!.title!] = val
+      changedColumns.value.add(selectedField.value!.title!)
+    }
+  },
+})
+
+const refAttachmentCell = ref()
 
 function openFilePicker() {
-  smartsheetCell.value?.openAttachmentCellPicker()
+  refAttachmentCell.value?.openFilePicker()
 }
 
 function downloadCurrentFile() {
-  smartsheetCell.value?.downloadAttachment(activeAttachment.value)
+  refAttachmentCell.value?.downloadAttachment(activeAttachment.value)
 }
 
 function deleteCurrentFile() {
-  smartsheetCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
+  refAttachmentCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
 }
 
 function updateAttachmentTitle(index: number, title: string) {
-  smartsheetCell.value?.updateAttachmentTitle(index, title)
+  refAttachmentCell.value?.updateAttachmentTitle(index, title)
 }
 </script>
 
@@ -115,17 +132,9 @@ export default {
       </template>
       <template v-else>
         <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
-          <LazySmartsheetCell
-            v-if="selectedField"
-            ref="smartsheetCell"
-            v-model="_row.row[selectedField!.title!]"
-            :active="true"
-            :column="selectedField"
-            :edit-enabled="true"
-            :read-only="readOnly"
-            class="hidden"
-            @update:model-value="changedColumns.add(selectedField!.title!)"
-          />
+          <div class="hidden">
+            <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
+          </div>
 
           <NcDropdownSelect
             v-model="selectedFieldId"

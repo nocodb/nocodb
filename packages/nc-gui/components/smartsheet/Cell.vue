@@ -146,30 +146,6 @@ const showCurrentDateOption = computed(() => {
 const currentDate = () => {
   vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
-
-/* attachment cell interface */
-
-const attachmentCell = ref()
-
-/* expose */
-
-defineExpose({
-  openAttachmentCellPicker: () => {
-    attachmentCell.value?.openFilePicker()
-  },
-  downloadAttachment: (attachment: AttachmentType) => {
-    attachmentCell.value?.downloadAttachment(attachment)
-  },
-  renameAttachment: (attachment: AttachmentType, index: number) => {
-    attachmentCell.value?.renameAttachment(attachment, index)
-  },
-  removeAttachment: (attachmentTitle: string, index: number) => {
-    attachmentCell.value?.removeAttachment(attachmentTitle, index)
-  },
-  updateAttachmentTitle: (index: number, title: string) => {
-    attachmentCell.value?.updateAttachmentTitle(index, title)
-  },
-})
 </script>
 
 <template>

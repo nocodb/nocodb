@@ -141,16 +141,16 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
 }
 
 export const isRowEmpty = (record: Row, col: ColumnType): boolean => {
-  if (!record || !col || !col.title) return true;
+  if (!record || !col || !col.title) return true
 
-  return !isValidValue(record.row[col.title]);
-};
+  return !isValidValue(record.row[col.title])
+}
 
 export const isRowRecordEmpty = (record: Record<string, any>, col: ColumnType): boolean => {
-  if (!record || !col || !col.title) return true;
+  if (!record || !col || !col.title) return true
 
-  return !isValidValue(record[col.title]);
-};
+  return !isValidValue(record[col.title])
+}
 
 export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any) {
   if (!_filters.length) {

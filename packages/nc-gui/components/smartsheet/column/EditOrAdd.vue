@@ -655,7 +655,6 @@ watch(activeAiTab, (newValue) => {
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
-      'min-w-[446px]': formState.uidt === UITypes.LongText && formState.meta?.[LongTextAiMetaProp] === true,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
       '!pb-0': !embedMode && !aiAutoSuggestMode && formState.uidt,

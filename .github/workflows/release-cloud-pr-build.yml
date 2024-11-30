@@ -182,30 +182,30 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.tag-step.outputs.TARGET_TAG }}
 
       ### mux build and deploy starts here ###
-      - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: nc-sql-executor-pr
-          STAGING_IMAGE_TAG_ARG: ${{ format('-t {0}/nc-sql-executor-pr:{1}', steps.login-ecr.outputs.registry, steps.tag-step.outputs.TARGET_TAG) || '' }}
-          COMMIT_HASH: ${{ github.sha }}
-        run: |
-          cd packages/nc-sql-executor
-          npm run build
-          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      # - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: nc-sql-executor-pr
+      #     STAGING_IMAGE_TAG_ARG: ${{ format('-t {0}/nc-sql-executor-pr:{1}', steps.login-ecr.outputs.registry, steps.tag-step.outputs.TARGET_TAG) || '' }}
+      #     COMMIT_HASH: ${{ github.sha }}
+      #   run: |
+      #     cd packages/nc-sql-executor
+      #     npm run build
+      #     docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Push staging image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: nc-sql-executor-pr
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.tag-step.outputs.TARGET_TAG }}
+      # - name: Push staging image to ECR
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: nc-sql-executor-pr
+      #   run: |
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.tag-step.outputs.TARGET_TAG }}
 
       - name: Trigger dev environment creation
         id: dev-env
         run: |
-          RES=$(curl --location 'https://controller.mertmit.com/api/v1/devenv' --header 'Content-Type: application/json' --data '{"tag":"${{ steps.tag-step.outputs.TARGET_TAG }}", "mux_tag":"${{ steps.tag-step.outputs.TARGET_TAG }}"}')
+          RES=$(curl --location 'https://controller.mertmit.com/api/v1/devenv' --header 'Content-Type: application/json' --data '{"tag":"${{ steps.tag-step.outputs.TARGET_TAG }}"}')
           URL=$(echo $RES | jq -r '.Url')
           echo "URL=${URL}" >> $GITHUB_OUTPUT
 

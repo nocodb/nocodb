@@ -173,7 +173,7 @@ const columnsToRender = computed(() => {
         <slot name="extraRight">
           <div class="min-w-5 flex-none">
             <Transition>
-              <GeneralIcon v-if="isSelected" icon="circleCheckSolid" class="flex-none text-primary w-4 h-4" />
+              <GeneralIcon v-if="isSelected" icon="circleCheckSolid" class="flex-none text-primary w-5 h-5" />
             </Transition>
           </div>
         </slot>
@@ -258,6 +258,8 @@ const columnsToRender = computed(() => {
   }
 }
 .nc-link-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+
   :deep(.nc-cell-icon) {
     @apply !ml-0;
   }

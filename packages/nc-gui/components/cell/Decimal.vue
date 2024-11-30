@@ -41,7 +41,12 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1).toLocaleString()
+  if (meta.value.isLocaleString) {
+    return Number(roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)).toLocaleString(undefined, {
+      minimumFractionDigits: meta.value.precision ?? 1,
+      maximumFractionDigits: meta.value.precision ?? 1,
+    })
+  }
 
   return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
 })

@@ -612,10 +612,6 @@ async function validateAll() {
   await v$.value?.$validate()
 }
 
-function clearValidate() {
-  v$.value?.$reset()
-}
-
 async function bulkUpdateView(data: Record<string, any>) {
   if (!meta.value || !bulkUpdatePayload.value?.viewId) return
 

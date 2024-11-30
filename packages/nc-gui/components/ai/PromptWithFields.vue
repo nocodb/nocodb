@@ -22,7 +22,7 @@ const props = withDefaults(
     promptFieldTagClassName: '',
     suggestionIconClassName: '',
     /**
-     * Use \n to show placeholder as preline 
+     * Use \n to show placeholder as preline
      * @example: :placeholder="`Enter prompt here...\n\neg : Categorise this {Notes}`"
      */
     placeholder: 'Write your prompt here...',

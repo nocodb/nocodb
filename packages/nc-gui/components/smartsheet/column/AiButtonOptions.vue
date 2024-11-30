@@ -217,14 +217,6 @@ const handleUpdateExpansionInputPanel = () => {
 
 const expansionOutputPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.output])
 
-const handleUpdateExpansionOutputPanel = () => {
-  if (expansionOutputPanel.value.includes(ExpansionPanelKeys.output)) {
-    expansionOutputPanel.value = []
-  } else {
-    expansionOutputPanel.value = [ExpansionPanelKeys.output]
-  }
-}
-
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
@@ -554,11 +546,11 @@ onBeforeUnmount(() => {
                                 <NcButton
                                   size="xs"
                                   type="text"
-                                  @click.stop
                                   class="flex-1 children:children:w-full !font-bold !text-sm"
                                   :class="{
                                     '!text-gray-900 !bg-gray-100': isOpenSelectRecordDropdown,
                                   }"
+                                  @click.stop
                                 >
                                   <NcTooltip
                                     v-if="selectedRecordPk && displayField"
@@ -600,7 +592,6 @@ onBeforeUnmount(() => {
                                   <NcList
                                     v-else
                                     v-model:value="selectedRecordPk"
-                                    @update:value="handleResetOutput"
                                     v-model:open="isOpenSelectRecordDropdown"
                                     :list="sampleRecords"
                                     show-search-always
@@ -609,6 +600,7 @@ onBeforeUnmount(() => {
                                     class="!w-auto min-w-[500px]"
                                     container-class-name="!px-0 !pb-0"
                                     item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                                    @update:value="handleResetOutput"
                                   >
                                     <template #listItem="{ option, isSelected }">
                                       <NcListRecordItem

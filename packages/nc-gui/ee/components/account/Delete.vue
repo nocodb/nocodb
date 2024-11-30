@@ -66,7 +66,7 @@ const isDeleteModalVisible = ref(false)
 
 const toBeDeletedUserEmail = ref('')
 
-let loadingToBeDeletedTimeout: unknown
+let loadingToBeDeletedTimeout: any
 
 const onDelete = async () => {
   if (loadingToBeDeleted.value) return
@@ -80,6 +80,8 @@ const onDelete = async () => {
 
 const onInitDelete = async () => {
   if (loadingToBeDeleted.value) return
+
+  clearTimeout(loadingToBeDeletedTimeout)
 
   loadingToBeDeleted.value = true
 

@@ -3,9 +3,9 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
-import { WorkspaceIconType } from '#imports'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { PublicAttachmentScope } from 'nocodb-sdk'
+import { WorkspaceIconType } from '#imports'
 
 interface Props {
   icon: string | Record<string, any>

@@ -157,15 +157,6 @@ watch(
     }
   },
 )
-
-const onCancel = () => {
-  if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
-
-  if (currentWorkspace.value?.meta) {
-    if (currentWorkspace.value.meta?.icon) form.icon = currentWorkspace.value.meta.icon
-    if (currentWorkspace.value.meta?.iconType) form.iconType = currentWorkspace.value.meta.iconType
-  }
-}
 </script>
 
 <template>

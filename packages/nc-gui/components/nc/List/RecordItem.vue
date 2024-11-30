@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isLinksOrLTAR, isSystemColumn, isVirtualCol, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -26,8 +26,6 @@ provide(IsFormInj, ref(false))
 
 const { row: currentRow, columns: allColumns, isSelected, isLoading } = toRefs(props)
 
-const row = currentRow.value.row
-
 useProvideSmartsheetRowStore(currentRow)
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -48,7 +46,7 @@ const displayValueColumn = computed(() => {
 })
 
 const displayValue = computed(() => {
-  return displayValueColumn.value?.title ? row[displayValueColumn.value?.title] : null
+  return displayValueColumn.value?.title ? currentRow.value.row[displayValueColumn.value?.title] : null
 })
 
 const attachmentColumn = computed(() => {
@@ -57,10 +55,10 @@ const attachmentColumn = computed(() => {
 
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (attachmentColumn.value?.title && row[attachmentColumn.value.title]) {
-      return typeof row[attachmentColumn.value.title] === 'string'
-        ? JSON.parse(row[attachmentColumn.value.title])
-        : row[attachmentColumn.value.title]
+    if (attachmentColumn.value?.title && currentRow.value.row[attachmentColumn.value.title]) {
+      return typeof currentRow.value.row[attachmentColumn.value.title] === 'string'
+        ? JSON.parse(currentRow.value.row[attachmentColumn.value.title])
+        : currentRow.value.row[attachmentColumn.value.title]
     }
     return []
   } catch (e) {
@@ -150,19 +148,30 @@ const columnsToRender = computed(() => {
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(column)"
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column
+                      :column="column"
                       hide-menu
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column
+                      :column="column"
                       hide-menu
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(column)" :model-value="row[column.title!]" :row :column />
-                    <LazySmartsheetCell v-else :model-value="row[column.title!]" :column :edit-enabled="false" read-only />
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(column)"
+                      :model-value="currentRow.row[column.title!]"
+                      :row="currentRow"
+                      :column="column"
+                    />
+                    <LazySmartsheetCell
+                      v-else
+                      :model-value="currentRow.row[column.title!]"
+                      :column="column"
+                      :edit-enabled="false"
+                      read-only
+                    />
                   </div>
                 </NcTooltip>
               </div>

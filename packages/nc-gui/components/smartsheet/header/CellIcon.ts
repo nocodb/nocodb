@@ -20,6 +20,8 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.cellSingleSelect
   } else if (isBoolean(column, abstractType)) {
     return iconMap.cellCheckbox
+  } else if (isAI(column)) {
+    return iconMap.cellAi
   } else if (isTextArea(column)) {
     return iconMap.cellLongText
   } else if (isEmail(column)) {
@@ -51,8 +53,6 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
       return iconMap.cellUser
     }
     return iconMap.cellUser
-  } else if (isAI(column)) {
-    return iconMap.cellAi
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.cellNumber
   } else if (isString(column, abstractType)) {

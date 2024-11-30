@@ -72,6 +72,10 @@ onMounted(async () => {
     }
   } else {
     lastIntegrationId.value = vFkIntegrationId.value
+
+    if (!vModel.value || !availableModels.value.length) {
+      onIntegrationChange()
+    }
   }
 })
 </script>

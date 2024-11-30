@@ -194,7 +194,6 @@ const permissionScopes = {
     'relationDataRemove',
     'relationDataAdd',
     'baseUserList',
-    'expandedFormModeEdit',
 
     // Base API Tokens
     'baseApiTokenList',

@@ -156,7 +156,6 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
       reAssignViewOwner: true,
-      expandedFormModeEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {

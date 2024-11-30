@@ -129,9 +129,9 @@ export default {
 
           <NcDropdownSelect
             v-model="selectedFieldId"
-            :disabled="!isUIAllowed('expandedFormModeEdit')"
+            :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="
-              !isUIAllowed('expandedFormModeEdit') ? 'You do not have permission to change attachment view field.' : undefined
+              !isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined
             "
             :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
           >

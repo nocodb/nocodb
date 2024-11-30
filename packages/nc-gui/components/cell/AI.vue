@@ -106,6 +106,8 @@ const isLoading = computed(() => {
 })
 
 const handleSave = () => {
+  vModel.value = { ...vModel.value }
+
   emits('save')
 }
 

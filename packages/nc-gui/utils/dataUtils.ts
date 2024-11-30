@@ -140,16 +140,10 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
   return defaultData
 }
 
-export const isRowEmpty = (record: Row, col: ColumnType): boolean => {
+export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean => {
   if (!record || !col || !col.title) return true
 
   return !isValidValue(record.row[col.title])
-}
-
-export const isRowRecordEmpty = (record: Record<string, any>, col: ColumnType): boolean => {
-  if (!record || !col || !col.title) return true
-
-  return !isValidValue(record[col.title])
 }
 
 export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any) {

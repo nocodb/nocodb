@@ -46,19 +46,19 @@ const onChange = (value: string) => {
 <template>
   <a-select
     v-model:value="vModel"
-    :size
-    :allow-clear
+    :size="size"
+    :allow-clear="allowClear"
     :disabled="loading"
-    :dropdown-class-name
-    :dropdown-match-select-width
-    :filter-option
-    :loading
-    :mode
-    :placeholder
-    :show-search
-    :max-tag-count
+    :dropdown-class-name="dropdownClassName"
+    :dropdown-match-select-width="dropdownMatchSelectWidth"
+    :filter-option="filterOption"
+    :loading="loading"
+    :mode="mode"
+    :placeholder="placeholder"
+    :show-search="showSearch"
+    :max-tag-count="maxTagCount"
     class="nc-select"
-    @change="onChange"
+    @change="onChange as any"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />

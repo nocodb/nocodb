@@ -42,7 +42,7 @@ const onChange = (e: boolean, updateValue = false) => {
     :class="[
       contentWrapperClass,
       {
-        'cursor-not-allowed': disabled,
+        'cursor-not-allowed opacity-60': disabled,
         'cursor-pointer': !disabled,
       },
     ]"
@@ -69,7 +69,7 @@ const onChange = (e: boolean, updateValue = false) => {
     :class="[
       contentWrapperClass,
       {
-        'cursor-not-allowed': disabled,
+        'cursor-not-allowed opacity-60': disabled,
         'cursor-pointer': !disabled,
       },
     ]"

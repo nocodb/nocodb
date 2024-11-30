@@ -266,6 +266,8 @@ const displayValue = computed(() => {
   }
 }
 .nc-link-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+
   :deep(.nc-cell-icon) {
     @apply !ml-0;
   }

@@ -212,7 +212,7 @@ watch(richMode, () => {
               <div class="flex items-center gap-3">
                 <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
                 <NcTooltip class="flex cursor-pointer">
-                  <template #title> Preview is generated using the first record in ths table</template>
+                  <template #title> Preview is generated using the first record in this table</template>
                   <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70" />
                 </NcTooltip>
               </div>

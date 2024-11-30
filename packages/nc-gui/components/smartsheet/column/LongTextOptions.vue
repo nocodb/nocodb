@@ -135,32 +135,39 @@ watch(richMode, () => {
 <template>
   <div class="flex flex-col gap-4">
     <a-form-item>
-      <div class="flex items-center gap-1">
-        <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText">
-          <div class="text-sm text-gray-800 select-none font-semibold">
-            {{ $t('labels.enableRichText') }}
-          </div>
-        </NcSwitch>
-      </div>
+      <NcTooltip :disabled="!isEnabledGenerateText">
+        <template #title> Rich text formatting is not supported when generate text using AI is enabled </template>
+        <div class="flex items-center gap-1">
+          <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText">
+            <div class="text-sm text-gray-800 select-none font-semibold">
+              {{ $t('labels.enableRichText') }}
+            </div>
+          </NcSwitch>
+        </div>
+      </NcTooltip>
     </a-form-item>
 
     <div class="relative">
       <a-form-item class="flex items-center">
-        <NcSwitch
-          v-model:checked="isEnabledGenerateText"
-          :disabled="!aiIntegrationAvailable || richMode"
-          class="nc-ai-field-generate-text nc-ai-input"
-        >
-          <span
-            class="text-sm font-semibold pl-1"
-            :class="{
-              'text-nc-content-purple-dark': isEnabledGenerateText,
-              'text-nc-content-gray': !isEnabledGenerateText,
-            }"
+        <NcTooltip :disabled="!richMode" class="flex items-center">
+          <template #title> Generate text using AI is not supported when rich text formatting is enabled </template>
+
+          <NcSwitch
+            v-model:checked="isEnabledGenerateText"
+            :disabled="!aiIntegrationAvailable || richMode"
+            class="nc-ai-field-generate-text nc-ai-input"
           >
-            Generate text using AI
-          </span>
-        </NcSwitch>
+            <span
+              class="text-sm font-semibold pl-1"
+              :class="{
+                'text-nc-content-purple-dark': isEnabledGenerateText,
+                'text-nc-content-gray': !isEnabledGenerateText,
+              }"
+            >
+              Generate text using AI
+            </span>
+          </NcSwitch>
+        </NcTooltip>
         <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
           <template #title> Use AI to generate content based on record data. </template>
           <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70" />

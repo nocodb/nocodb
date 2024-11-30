@@ -40,5 +40,5 @@ jobs:
       - name: Trigger dev environment creation
         id: dev-env
         run: |
-          RES=$(curl --location --request DELETE 'https://controller.mertmit.com/api/v1/devenv/${{ github.event.pull_request.number }}' --header 'Content-Type: application/json')
+          RES=$(curl --location --request DELETE 'https://controller.nocopod.com/api/v1/devenv/${{ github.event.pull_request.number }}' --header 'Content-Type: application/json')
           echo "Response: $RES"

@@ -205,7 +205,7 @@ jobs:
       - name: Trigger dev environment creation
         id: dev-env
         run: |
-          RES=$(curl --location 'https://controller.mertmit.com/api/v1/devenv' --header 'Content-Type: application/json' --data '{"tag":"${{ steps.tag-step.outputs.TARGET_TAG }}"}')
+          RES=$(curl --location 'https://controller.nocopod.com/api/v1/devenv' --header 'Content-Type: application/json' --data '{"tag":"${{ steps.tag-step.outputs.TARGET_TAG }}"}')
           URL=$(echo $RES | jq -r '.Url')
           echo "URL=${URL}" >> $GITHUB_OUTPUT
 

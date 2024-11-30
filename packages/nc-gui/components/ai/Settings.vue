@@ -202,4 +202,10 @@ onMounted(async () => {
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.nc-select.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
+}
+</style>

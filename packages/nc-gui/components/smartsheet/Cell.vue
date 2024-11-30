@@ -193,6 +193,7 @@ const cellType = computed(() => {
         'h-10': !isEditColumnMenu && isForm && !isAttachment(column) && !isTextArea(column) && !isJSON(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-30': isTextArea(column) && (isForm || isSurveyForm),
+        'nc-cell-longtext-ai': cellType === 'ai',
       },
     ]"
     class="nc-cell w-full h-full relative"

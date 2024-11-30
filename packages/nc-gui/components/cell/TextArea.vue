@@ -406,7 +406,7 @@ watch(
           @selectstart.capture.stop
           @mousedown.stop
         />
-        <div v-if="!readOnly" class="-mt-1">
+        <div v-if="!readOnly && isExpandedFormOpen" class="-mt-1">
           <div v-if="props.isAi && props.aiMeta?.isStale" ref="aiWarningRef">
             <div class="flex items-start p-3 bg-nc-bg-purple-light gap-4">
               <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
@@ -695,7 +695,7 @@ textarea:focus {
 }
 
 .nc-data-cell {
-  &:has(.nc-cell-ai .nc-expanded-form-open) {
+  &:has(.nc-cell-longtext-ai .nc-expanded-form-open) {
     @apply !border-none -mx-1 -my-1;
     box-shadow: none !important;
 

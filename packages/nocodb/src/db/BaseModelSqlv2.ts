@@ -10098,7 +10098,7 @@ class BaseModelSqlv2 {
               lastModifiedTime: isModified
                 ? this.now()
                 : oldObj?.lastModifiedTime,
-              isStale,
+              isStale: isModified ? false : isStale,
             });
           }
 

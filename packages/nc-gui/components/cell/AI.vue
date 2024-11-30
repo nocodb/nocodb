@@ -58,7 +58,7 @@ const generate = async () => {
     ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id]).filter((id) => Boolean(id))
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -76,11 +76,18 @@ const generate = async () => {
       }
     } else {
       const obj: AIRecordType = resRow[column.value.title!]
+
       if (obj && typeof obj === 'object') {
         vModel.value = obj
         setTimeout(() => {
           isAiEdited.value = false
         }, 100)
+      } else {
+        vModel.value = {
+          ...(ncIsObject(vModel.value) ? vModel.value : {}),
+          isStale: false,
+          value: resRow[column.value.title!],
+        }
       }
     }
   }

@@ -133,7 +133,7 @@ watch(richMode, () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-4">
     <a-form-item>
       <div class="flex items-center gap-1">
         <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText">

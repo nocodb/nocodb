@@ -821,9 +821,9 @@ export default {
             @copy:record-url="copyRecordUrl()"
             @delete:row="onDeleteRowClick()"
             @save="save()"
-            @update:modelValue="emits('update:modelValue', $event)"
-            @createdRecord="emits('createdRecord', $event)"
-            @updateRowCommentCount="emits('updateRowCommentCount', $event)"
+            @update:model-value="emits('update:modelValue', $event)"
+            @created-record="emits('createdRecord', $event)"
+            @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
         <template v-else-if="activeViewMode === 'attachment'">
@@ -841,9 +841,9 @@ export default {
             @copy:record-url="copyRecordUrl()"
             @delete:row="onDeleteRowClick()"
             @save="save()"
-            @update:modelValue="emits('update:modelValue', $event)"
-            @createdRecord="emits('createdRecord', $event)"
-            @updateRowCommentCount="emits('updateRowCommentCount', $event)"
+            @update:model-value="emits('update:modelValue', $event)"
+            @created-record="emits('createdRecord', $event)"
+            @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
       </div>

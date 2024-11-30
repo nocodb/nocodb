@@ -67,6 +67,8 @@ const isAlreadyGenerated = ref(false)
 
 const isLoadingViewData = ref(false)
 
+const inputFieldPlaceholder = 'Enter prompt here...\n\n eg : Categorise this {Notes}'
+
 const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 
 const sampleRecords = computed<
@@ -392,7 +394,7 @@ onBeforeUnmount(() => {
                     <AiPromptWithFields
                       v-model="vModel.formula_raw"
                       :options="availableFields"
-                      :placeholder="`Enter prompt here...\n\n eg : Categorise this {Notes}`"
+                      :placeholder="inputFieldPlaceholder"
                       prompt-field-tag-class-name="!bg-nc-bg-gray-medium !text-nc-content-gray"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">

@@ -90,7 +90,7 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
   isLoading.value = true
 }
 
-const injectedFields = computedInject(FieldsInj, (_fields) => {
+const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
@@ -104,8 +104,6 @@ const injectedFields = computedInject(FieldsInj, (_fields) => {
   }
   return _fields?.value ?? []
 })
-
-const fields = computed(() => injectedFields.value ?? [])
 
 const tableTitle = computed(() => meta.value?.title)
 
@@ -813,7 +811,7 @@ export default {
           <SmartsheetExpandedFormPresentorsFields
             :store="expandedFormStore"
             :row-id="rowId"
-            :fields="fields"
+            :fields="fields ?? []"
             :hidden-fields="hiddenFields"
             :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
             :is-unsaved-form-exist="isUnsavedFormExist"
@@ -833,7 +831,7 @@ export default {
             :store="expandedFormStore"
             :row-id="rowId"
             :view="props.view"
-            :fields="fields"
+            :fields="fields ?? []"
             :hidden-fields="hiddenFields"
             :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
             :is-unsaved-form-exist="isUnsavedFormExist"

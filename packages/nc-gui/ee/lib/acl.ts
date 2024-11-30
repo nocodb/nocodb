@@ -156,6 +156,7 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
       reAssignViewOwner: true,
+      expandedFormModeEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -168,7 +169,6 @@ const rolePermissions = {
       viewFieldEdit: true,
       csvTableImport: true,
       hookTrigger: true,
-      expandedFormModeEdit: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

@@ -16,6 +16,7 @@ const props = withDefaults(
     placeholder: '- select view -',
     showSearch: false,
     suffixIcon: 'arrowDown',
+    ignoreLoading: false,
     forceLoadBaseTables: false,
     labelDefaultViewAsDefault: false,
   },
@@ -26,25 +27,32 @@ const NSelectComponent = ref()
 const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
 
-const viewsRef = computedAsync<ViewType[]>(async () => {
-  await viewsStore.loadViews(props.tableId, props.ignoreLoading, props.forceFetchViews)
-  let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
-  if (props.labelDefaultViewAsDefault) {
-    viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))
-  }
-  if (props.filterView) {
-    viewsList = viewsList.filter(props.filterView)
-  }
-
-  if (NSelectComponent.value) {
-    let selectedView = viewsList.find((v) => v.is_default)
-    if (!selectedView) {
-      selectedView = viewsList[0]
+const viewsRef = shallowRef<ViewType[]>([])
+watch(
+  () => [props.tableId, props.ignoreLoading, props.forceFetchViews],
+  async () => {
+    await viewsStore.loadViews({ tableId: props.tableId, ignoreLoading: props.ignoreLoading, force: props.forceFetchViews })
+    let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
+    if (props.labelDefaultViewAsDefault) {
+      viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))
     }
-    NSelectComponent.value.selectValue(selectedView?.id)
-  }
+    if (props.filterView) {
+      viewsList = viewsList.filter(props.filterView)
+    }
+    if (NSelectComponent.value) {
+      let selectedView = viewsList.find((v) => v.is_default)
+      if (!selectedView) {
+        selectedView = viewsList[0]
+      }
+      NSelectComponent.value.selectValue(selectedView?.id)
+    }
+    viewsRef.value = viewsList
+  },
+  { immediate: true },
+)
 
-  return viewsList
+defineExpose({
+  viewsRef
 })
 </script>
 

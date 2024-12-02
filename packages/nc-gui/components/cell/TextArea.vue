@@ -14,6 +14,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
+const meta = inject(MetaInj, ref())
+
 const column = inject(ColumnInj)
 
 const editEnabled = inject(EditModeInj, ref(false))
@@ -34,7 +36,9 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { showNull, user } = useGlobal()
 
-const { aiLoading, aiIntegrations } = useNocoAi()
+const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const { aiLoading, aiIntegrations, generatingRows, generatingColumnRows } = useNocoAi()
 
 const baseStore = useBase()
 
@@ -92,6 +96,19 @@ const inputRef = ref<HTMLTextAreaElement | null>(null)
 const aiWarningRef = ref<HTMLDivElement>()
 
 const { height: aiWarningRefHeight } = useElementSize(aiWarningRef)
+
+const rowId = computed(() => {
+  return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
+})
+
+const isAiGenerating = computed(() => {
+  return !!(
+    rowId.value &&
+    column?.value.id &&
+    generatingRows.value.includes(rowId.value) &&
+    generatingColumnRows.value.includes(column.value.id)
+  )
+})
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -458,12 +475,13 @@ watch(
                 theme="ai"
                 size="xs"
                 :disabled="!isFieldAiIntegrationAvailable"
-                :loading="aiLoading"
+                :loading="isAiGenerating"
                 @click.stop="generate"
               >
                 <template #icon>
-                  <GeneralIcon icon="ncAutoAwesome" />
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                 </template>
+                <template #loading> Re-generating... </template>
                 Re-generate
               </NcButton>
             </NcTooltip>
@@ -488,10 +506,8 @@ watch(
 
       <span v-else>{{ vModel }}</span>
 
-      <NcTooltip
-        v-if="!isVisible && !isForm"
-        placement="bottom"
-        class="nc-action-icon !absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+      <div
+        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 flex items-center gap-1"
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
@@ -504,17 +520,42 @@ watch(
             : undefined
         "
       >
-        <template #title>{{ $t('title.expand') }}</template>
-        <NcButton
-          type="secondary"
-          size="xsmall"
-          data-testid="attachment-cell-file-picker-button"
-          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
-          @click.stop="onExpand"
+        <NcTooltip
+          v-if="!isVisible && !isForm && !readOnly && props.isAi && !isExpandedFormOpen && !isEditColumn"
+          placement="bottom"
+          class="nc-action-icon"
         >
-          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
-        </NcButton>
-      </NcTooltip>
+          <template #title>
+            {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }}
+          </template>
+          <NcButton
+            type="secondary"
+            size="xsmall"
+            class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+            :loading="isAiGenerating"
+            :disabled="isAiGenerating"
+            loader-size="small"
+            @click.stop="generate"
+            icon-only
+          >
+            <template #icon>
+              <GeneralIcon icon="ncAutoAwesome" class="transform group-hover:(!text-grey-800) text-gray-700 w-3.5 h-3.5" />
+            </template>
+          </NcButton>
+        </NcTooltip>
+        <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
+          <template #title>{{ $t('title.expand') }}</template>
+          <NcButton
+            type="secondary"
+            size="xsmall"
+            data-testid="attachment-cell-file-picker-button"
+            class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+            @click.stop="onExpand"
+          >
+            <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
+          </NcButton>
+        </NcTooltip>
+      </div>
     </div>
     <a-modal
       v-if="isVisible"
@@ -600,8 +641,8 @@ watch(
                   @click.stop="generate"
                 >
                   <div class="flex items-center gap-2">
-                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': aiLoading }" />
-                    <span class="text-sm font-bold">Re-generate</span>
+                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': isAiGenerating }" />
+                    <span class="text-sm font-bold"> {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }} </span>
                   </div>
                 </NcButton>
               </NcTooltip>
@@ -679,7 +720,7 @@ textarea:focus {
 <style lang="scss">
 .cell:hover .nc-text-area-expand-btn,
 .long-text-wrapper:hover .nc-text-area-expand-btn {
-  @apply !block cursor-pointer;
+  @apply !flex cursor-pointer;
 }
 
 .nc-grid-cell {

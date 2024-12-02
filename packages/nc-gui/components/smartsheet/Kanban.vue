@@ -109,7 +109,7 @@ const coverImageObjectFitClass = computed(() => {
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
 
-const isRequiedGroupingFieldColumn = computed(() => {
+const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
@@ -503,7 +503,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                   'w-[44px]': stack.collapsed,
                   'hidden':
                     (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
-                    (isRequiedGroupingFieldColumn && stack.id === uncategorizedStackId),
+                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >

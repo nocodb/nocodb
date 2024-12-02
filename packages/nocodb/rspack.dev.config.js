@@ -1,8 +1,8 @@
-const { join, resolve } = require('path');
+const { join } = require('path');
 const { rspack } = require('@rspack/core');
+const nodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const nodeExternals = require('webpack-node-externals');
 
 const baseDevConfig = {
   mode: 'development',
@@ -53,7 +53,7 @@ const baseDevConfig = {
   externals: [
     nodeExternals({
       allowlist: ['webpack/hot/poll?1000'],
-    })
+    }),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],

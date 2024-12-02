@@ -18,6 +18,7 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'builtin:swc-loader',
         options: {
+          sourceMap: false,
           jsc: {
             parser: {
               syntax: 'typescript',
@@ -30,9 +31,16 @@ module.exports = {
               decoratorMetadata: true,
             },
             target: 'es2017',
+            loose: true,
+            externalHelpers: false,
+            keepClassNames: true,
           },
           module: {
             type: 'commonjs',
+            strict: false,
+            strictMode: true,
+            lazy: false,
+            noInterop: false,
           },
         },
       },

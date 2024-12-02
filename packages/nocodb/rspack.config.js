@@ -1,6 +1,7 @@
 const path = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
@@ -18,6 +19,7 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'builtin:swc-loader',
         options: {
+          sourceMap: false,
           jsc: {
             parser: {
               syntax: 'typescript',
@@ -30,9 +32,16 @@ module.exports = {
               decoratorMetadata: true,
             },
             target: 'es2017',
+            loose: true,
+            externalHelpers: false,
+            keepClassNames: true,
           },
           module: {
             type: 'commonjs',
+            strict: false,
+            strictMode: true,
+            lazy: false,
+            noInterop: false,
           },
         },
       },
@@ -52,11 +61,13 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals({
-    allowlist: ['nocodb-sdk']
-  })],
+  externals: [
+    nodeExternals({
+      allowlist: ['nocodb-sdk'],
+    }),
+  ],
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.json'],
+    extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
       configFile: path.resolve('tsconfig.json'),
     },
@@ -79,6 +90,11 @@ module.exports = {
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        configFile: resolve('./src/tsconfig.build.json'),
+      },
+    })
   ],
   target: 'node',
 };

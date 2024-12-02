@@ -31,9 +31,11 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals({
-    allowlist: ['nocodb-sdk']
-  })],
+  externals: [
+    nodeExternals({
+      allowlist: ['nocodb-sdk'],
+    }),
+  ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     tsConfig: {

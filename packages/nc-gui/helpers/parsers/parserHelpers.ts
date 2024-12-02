@@ -1,4 +1,4 @@
-import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes, UITypesName } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -478,7 +478,13 @@ export const generateUniqueColumnName = ({
 
     case UITypes.Button: {
       if (formState?.type === ButtonActionsType.Ai) {
-        defaultColumnName = `AI ${defaultColumnName}`
+        defaultColumnName = UITypesName.AIButton
+      }
+    }
+
+    case UITypes.LongText: {
+      if (formState?.meta?.[LongTextAiMetaProp] === true) {
+        defaultColumnName = UITypesName.AIPrompt
       }
     }
   }

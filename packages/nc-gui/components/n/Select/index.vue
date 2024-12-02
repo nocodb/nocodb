@@ -19,6 +19,15 @@ const { showSearch, dropdownMatchSelectWidth, loading, mode, placeholder } = toR
 const onChange = (value: SelectValue) => {
   emits('change', value)
 }
+
+const selectValue = (value: SelectValue) => {
+  selectedValue.value = value
+  onChange(value)
+}
+
+defineExpose({
+  selectValue,
+})
 </script>
 
 <template>

@@ -1,11 +1,12 @@
-import { DefaultOptionType } from 'ant-design-vue/es/vc-select/Select'
+import { DefaultOptionType } from 'ant-design-vue/lib/vc-select/Select'
+import type { SelectValue } from 'ant-design-vue/lib/select'
 
 export type NSelectMode = 'multiple' | 'tags'
 export type NSelectSize = 'small' | 'middle' | 'large'
 export type NSelectOption = DefaultOptionType
 
 export interface NSelectProps {
-  modelValue?: string | string[]
+  modelValue?: SelectValue
   placeholder?: string
   mode?: NSelectMode
   size?: NSelectSize

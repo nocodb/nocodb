@@ -2,23 +2,31 @@
 import type { NSelectProps } from './types'
 import type { TableType } from 'nocodb-sdk'
 
-const props = withDefaults(defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean }>(), {
-  placeholder: '- select table -',
-  showSearch: false,
-  suffixIcon: 'arrowDown',
-  forceLoadBaseTables: false,
-})
+const props = withDefaults(
+  defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean; filterTable?: (t: TableType) => boolean }>(),
+  {
+    placeholder: '- select table -',
+    showSearch: false,
+    suffixIcon: 'arrowDown',
+    forceLoadBaseTables: false,
+  },
+)
 
 const tableStore = useTablesStore()
 const { activeTables, baseTables } = storeToRefs(tableStore)
 
 const tablesRef = computedAsync<TableType[]>(async () => {
+  let tables: TableType[]
   if (props.baseId) {
     await tableStore.loadProjectTables(props.baseId, props.forceLoadBaseTables)
-    return baseTables.value.get(props.baseId)
+    tables = baseTables.value.get(props.baseId)
   } else {
-    return activeTables.value
+    tables = activeTables.value
   }
+  if (props.filterTable) {
+    return tables.filter(props.filterTable)
+  }
+  return tables
 })
 </script>
 

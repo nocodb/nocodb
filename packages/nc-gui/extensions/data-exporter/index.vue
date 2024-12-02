@@ -67,22 +67,6 @@ const exportPayload = ref<{
   encoding: SupportedExportCharset['utf-8'],
 })
 
-const viewList = computed(() => {
-  if (!exportPayload.value.tableId) return []
-  return (
-    views.value
-      .filter((view) => view.type === ViewTypes.GRID)
-      .map((view) => {
-        return {
-          label: view.is_default ? `Default View` : view.title,
-          value: view.id,
-          meta: view.meta,
-          type: view.type,
-        }
-      }) || []
-  )
-})
-
 const reloadViews = async () => {
   if (exportPayload.value.tableId) {
     views.value = await getViewsForTable(exportPayload.value.tableId)
@@ -350,7 +334,8 @@ onMounted(async () => {
                 :filter-option="filterOption"
                 dropdown-class-override="w-[250px]"
                 show-search
-                @change="onTableSelect"/>
+                @change="onTableSelect"
+              />
             </a-form-item>
 
             <a-form-item
@@ -360,34 +345,18 @@ onMounted(async () => {
                 'min-w-1/2 max-w-[175px]': !fullscreen,
               }"
             >
-              <NcSelect
-                v-model:value="exportPayload.viewId"
-                placeholder="-select view-"
+              <NSelectView
+                v-model="exportPayload.viewId"
+                :table-id="exportPayload.tableId"
                 :disabled="isExporting"
-                class="nc-data-exporter-view-select nc-select-shadow"
-                dropdown-class-name="w-[250px]"
+                class="nc-data-exporter-table-select nc-select-shadow"
                 :filter-option="filterOption"
+                :filter-view="(view: ViewType) => view.type === ViewTypes.GRID"
+                dropdown-class-override="w-[250px]"
                 show-search
-                placement="bottomRight"
+                label-default-view-as-default
                 @change="onViewSelect"
-              >
-                <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ view.label }}</template>
-                      <span>{{ view.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="exportPayload.viewId === view.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div> </a-select-option
-              ></NcSelect>
+              />
             </a-form-item>
           </div>
           <div class="flex-none flex justify-end">

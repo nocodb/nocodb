@@ -13,7 +13,12 @@ export class MiscSettingsPage extends BasePage {
     return this.settings.get().locator(`[data-testid="nc-settings-subtab-visibility"]`);
   }
 
+  async selectTab(tab: 'snapshots-tab' | 'visibility-tab') {
+    await this.settings.get().getByTestId(tab).click();
+  }
+
   async clickShowM2MTables() {
+    await this.selectTab('visibility-tab');
     const clickAction = () => this.get().locator('.nc-settings-meta-misc-m2m').first().click();
     await this.waitForResponse({
       uiAction: clickAction,
@@ -23,6 +28,7 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowNullEmptyFilters() {
+    await this.selectTab('visibility-tab');
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.nc-settings-show-null-and-empty-in-filter').first().click(),
       requestUrlPathToMatch: '/api/v1/db/meta/projects',

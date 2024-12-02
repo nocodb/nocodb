@@ -20,6 +20,7 @@
     "node": ">=18.19.1"
   },
   "web-types": "web-types.json",
+  
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",

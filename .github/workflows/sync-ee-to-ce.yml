@@ -7,7 +7,7 @@ on:
 jobs:
   sync-ee-to-ce:
     if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
-    runs-on: [self-hosted, aws]
+    runs-on: [self-hosted, runner]
     steps:
       - name: Setup Node
         uses: actions/setup-node@v3

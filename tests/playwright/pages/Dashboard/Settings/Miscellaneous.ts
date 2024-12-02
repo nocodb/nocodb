@@ -14,6 +14,7 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowM2MTables() {
+    await this.settings.get().locator(`[data-testid="visibility-tab"]`).click();
     const clickAction = () => this.get().locator('.nc-settings-meta-misc-m2m').first().click();
     await this.waitForResponse({
       uiAction: clickAction,
@@ -23,6 +24,7 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowNullEmptyFilters() {
+    await this.settings.get().locator(`[data-testid="visibility-tab"]`).click();
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator('.nc-settings-show-null-and-empty-in-filter').first().click(),
       requestUrlPathToMatch: '/api/v1/db/meta/projects',

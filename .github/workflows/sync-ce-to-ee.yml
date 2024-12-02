@@ -15,7 +15,7 @@ on:
 
 jobs:
   sync:
-    runs-on: [self-hosted, aws]
+    runs-on: [self-hosted, runner]
     steps:
       - name: Log event
         run: |

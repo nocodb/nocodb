@@ -13,23 +13,29 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, aws]
+    runs-on: [self-hosted, runner]
     timeout-minutes: 100
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18.19.1
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
+
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -37,31 +43,45 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+
       - name: setup pg
         working-directory: ./
         run: cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd; service postgresql restart
+
       - name: Set CI env
         run: export CI=true
+
       - name: Kill stale servers
         run: |
-          # export NODE_OPTIONS=\"--max_old_space_size=16384\";
           kill -9 $(lsof -t -i:8080) || echo "no process running on 8080"
           kill -9 $(lsof -t -i:3000) || echo "no process running on 3000"
+
       - name: Set NC Edition
         run: export EE=true
+
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
+
       - name: install dependencies
         run: pnpm bootstrap
+
+      - name: build nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: |
+          pnpm run generate:sdk:ee
+          pnpm run build:ee:main
+
       - name: Setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb/tests/pg-cy-quick/
         run: |
           sudo -u postgres psql -U postgres -f 01-cy-quick.sql
+
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor
         run: |
           pnpm run dev &
+
       - name: Install dependencies of sso idp
         working-directory: ./scripts/ee/playwright
         run: |
@@ -69,28 +89,42 @@ jobs:
           npm install
           cd ../saml-provider
           npm install
-      - name: run frontend
-        working-directory: ./packages/nc-gui
-        run: pnpm run ci:run:ee
-        timeout-minutes: 20
+
+      - name: Download pre-built UI
+        working-directory: ./packages/nc-gui/
+        run: |
+          rm -rf ee/.output.zip ee/.output
+          mkdir -p ee/.output
+          FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
+          cp /mnt/gh-artifacts/ui-builds/${FILE} ./output.zip
+          unzip -oq output.zip
+
+      - name: Start frontend
+        working-directory: ./packages/nc-gui/
+        run: pnpm run ci:start:ee &
+
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium
+
       - name: Wait for backend
         run: |
           while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
@@ -98,31 +132,34 @@ jobs:
             sleep 2
           done
         timeout-minutes: 2
+
       - name: Run Playwright Tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }}
         timeout-minutes: 60
-      # Stress test added/modified tests
+
       - name: Fetch develop branch
         working-directory: ./tests/playwright
         run: git fetch origin develop
+
       - name: Stress test
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
-      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
       - name: Run quick server and tests (pg)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
           pnpm run watch:run:playwright:pg:cyquick &
+
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
           pnpm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
+
       - name: Wait for backend & run quick tests
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./tests/playwright
@@ -132,20 +169,18 @@ jobs:
             sleep 2
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick pnpm run test:quick
+
       - name: Copy Artifacts to Local Artifacts Dir
         if: always()
         working-directory: ./
         run: |
-          # expects the variables to be available in runner context.
           path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
           target_dir="/mnt/${path}"
           mkdir -p ${target_dir}
           mkdir -p ${target_dir}/playwright-report
 
-          # start : add any artifacts to be copied here
           cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
           cp ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
-          # end: artifacts copy
 
           SUMMARY='[Artifacts](http://65.21.27.147/'${path}')
           [playwright-report](http://65.21.27.147/'${path}'/playwright-report)'

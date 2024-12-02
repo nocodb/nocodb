@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   cloud-docker-build:
-    runs-on: [k8s-runners]
+    runs-on: [k8s-builders]
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -350,7 +350,12 @@ onKeyStroke('ArrowDown', onDown)
                     <td class="cell-user">
                       <div>
                         <div v-if="audit.user && collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
-                          <GeneralUserIcon :email="collaboratorsMap.get(audit.user)?.email" size="base" class="flex-none" />
+                          <GeneralUserIcon
+                            :email="collaboratorsMap.get(audit.user)?.email"
+                            :name="collaboratorsMap.get(audit.user)?.display_name"
+                            size="base"
+                            class="flex-none"
+                          />
                           <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                             <div class="w-full flex gap-3">
                               <NcTooltip
@@ -521,7 +526,12 @@ onKeyStroke('ArrowDown', onDown)
                     v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
                     class="w-full flex gap-3 items-center"
                   >
-                    <GeneralUserIcon :email="collaboratorsMap.get(selectedAudit.user)?.email" size="base" class="flex-none" />
+                    <GeneralUserIcon
+                      :email="collaboratorsMap.get(selectedAudit.user)?.email"
+                      :name="collaboratorsMap.get(selectedAudit.user)?.display_name"
+                      size="base"
+                      class="flex-none"
+                    />
                     <div class="flex-1 flex flex-col">
                       <div class="w-full flex gap-3">
                         <span class="text-sm text-gray-800 capitalize font-semibold">

@@ -15,6 +15,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const addNewStackId = 'addNewStack'
 
+    const uncategorizedStackId = 'uncategorized'
+
     const { t } = useI18n()
 
     const { api } = useApi()
@@ -255,7 +257,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // handle deleted options
         const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+        const cols = stackMetaObj.value[fk_grp_col_id].filter(
+          ({ id }) => id !== uncategorizedStackId && !columnOptionIds.includes(id),
+        )
         for (const col of cols) {
           const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
           if (idx !== -1) {
@@ -292,7 +296,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[500] } as any,
+          { id: uncategorizedStackId, title: null, order: 0, color: themeV3Colors.gray[500] } as any,
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -719,6 +723,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       deleteRow,
       moveHistory,
       addNewStackId,
+      uncategorizedStackId,
     }
   },
   'kanban-view-store',

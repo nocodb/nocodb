@@ -127,15 +127,15 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
       <button
-        class="nc-cell-ai-button nc-cell-button h-7"
+        class="nc-cell-ai-button nc-cell-button h-6"
         size="small"
         :disabled="!isFieldAiIntegrationAvailable || isLoading"
         @click.stop="generate"
       >
         <div class="flex items-center gap-1">
-          <GeneralLoader v-if="isLoading" size="regular" class="!text-nc-content-purple-dark" />
-          <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark h-4 w-4" />
-          <span class="text-sm font-semibold">Generate</span>
+          <GeneralLoader v-if="isLoading" size="regular" />
+          <GeneralIcon v-else icon="ncAutoAwesome" class="h-4 w-4" />
+          <span class="text-small leading-[18px] truncate font-medium">Generate</span>
         </div>
       </button>
     </NcTooltip>
@@ -156,9 +156,18 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center border-1 border-nc-border-gray-medium;
+  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center bg-purple-100 hover:bg-purple-200 text-gray-700;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+
+  .nc-loader {
+    @apply !text-purple-600;
+  }
+
+  &:focus-within {
+    @apply outline-none ring-0;
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
 
   &[disabled] {
     @apply !bg-gray-100 opacity-50;
@@ -171,6 +180,10 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
   &:has(.nc-cell-ai-button) {
     @apply !border-none;
     box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
   }
 }
 </style>

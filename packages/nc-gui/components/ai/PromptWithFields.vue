@@ -172,6 +172,10 @@ onMounted(async () => {
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;
+
+    & > p {
+      @apply mr-3;
+    }
   }
 
   .ProseMirror-focused {

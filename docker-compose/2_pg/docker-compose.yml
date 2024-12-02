@@ -6,9 +6,9 @@ services:
         condition: service_healthy
     environment: 
       NC_DB: "pg://root_db:5432?u=postgres&p=password&d=root_db"
-    image: "imrandubai/no:latest"
+    image: "imrandubai/no:develop"
     ports: 
-      - "8080:8080"
+      - "8085:8085"
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"

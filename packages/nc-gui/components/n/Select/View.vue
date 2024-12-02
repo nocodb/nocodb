@@ -22,6 +22,8 @@ const props = withDefaults(
 
 const NSelectComponent = ref()
 
+const modelValue = useVModel(props, 'modelValue')
+
 const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
 
@@ -55,7 +57,7 @@ defineExpose({
 </script>
 
 <template>
-  <NSelect v-bind="props" ref="NSelectComponent">
+  <NSelect v-bind="props" v-model="modelValue" ref="NSelectComponent">
     <a-select-option v-for="view of viewsRef" :key="view.id" :value="view.id">
       <div class="w-full flex items-center gap-2">
         <div class="min-w-5 flex items-center justify-center">

@@ -10,6 +10,8 @@ const props = withDefaults(
   },
 )
 
+const modelValue = useVModel(props, 'modelValue')
+
 const tableStore = useTablesStore()
 const { activeTables, baseTables } = storeToRefs(tableStore)
 
@@ -33,7 +35,7 @@ defineExpose({
 </script>
 
 <template>
-  <NSelect v-bind="props">
+  <NSelect v-bind="props" v-model="modelValue">
     <a-select-option v-for="table of tablesRef" :key="table.id" :value="table.id">
       <div class="w-full flex items-center gap-2">
         <div class="min-w-5 flex items-center justify-center">

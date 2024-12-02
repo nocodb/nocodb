@@ -189,9 +189,9 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             </span>
           </NcSwitch>
         </NcTooltip>
-        <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
+        <NcTooltip class="ml-2 mr-[40px] flex cursor-pointer">
           <template #title> Use AI to generate content based on record data. </template>
-          <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70" />
+          <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
         </NcTooltip>
         <div class="flex-1"></div>
 
@@ -221,8 +221,8 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
             suggestion-icon-class-name="!text-nc-content-purple-medium"
           />
-          <div class="rounded-b-lg flex items-center gap-2 p-1">
-            <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
+          <div class="rounded-b-lg flex items-center gap-1.5 p-1">
+            <GeneralIcon icon="info" class="!text-nc-content-purple-medium w-3.5 h-3.5" />
             <span class="text-xs text-nc-content-gray-subtle2"
               >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
             >
@@ -239,11 +239,11 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             }"
           >
             <div class="flex flex-col flex-1 gap-1">
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
                 <NcTooltip class="flex cursor-pointer">
                   <template #title> Preview is generated using the first record in this table</template>
-                  <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70" />
+                  <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
                 </NcTooltip>
               </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">

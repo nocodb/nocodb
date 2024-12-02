@@ -13,6 +13,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
   apt-get install -y nodejs && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install PostgreSQL
+RUN apt-get update && \
+    apt-get -y install gnupg gnupg2 gnupg1 -y postgresql-14
+
+# Install MySQL
+RUN apt install mysql-server -y
+
 # Install Playwright
 RUN npx playwright install --with-deps chromium
 

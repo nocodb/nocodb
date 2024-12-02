@@ -23,31 +23,31 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
 <template>
   <div class="w-full h-full">
     <template v-if="isImageAttachment">
-      <div class="w-full h-full">
+      <div class="w-full h-full nc-files-viewer-image">
         <img :src="getPossibleAttachmentSrc(props.attachment)?.[0]" class="w-full h-full object-contain" />
       </div>
     </template>
     <template v-else-if="isVideoAttachment">
-      <div class="w-full h-full">
+      <div class="w-full h-full nc-files-viewer-video">
         <video class="w-full h-full object-contain" controls>
           <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
         </video>
       </div>
     </template>
     <template v-else-if="isAudioAttachment">
-      <div class="w-full h-full flex items-center justify-center">
+      <div class="w-full h-full flex items-center justify-center nc-files-viewer-audio">
         <audio class="w-full" controls>
           <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
         </audio>
       </div>
     </template>
     <template v-else-if="isPdfAttachment">
-      <div class="w-full h-full">
+      <div class="w-full h-full nc-files-viewer-pdf">
         <embed :src="getPossibleAttachmentSrc(props.attachment)?.[0]" class="w-full h-full" />
       </div>
     </template>
     <template v-else>
-      <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+      <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-viewer-unsupported">
         <GeneralIcon icon="alertTriangleSolid" class="text-yellow-500 w-[40px] h-[40px]" />
         <span class="text-base font-black mt-4"> Unsupported File Type </span>
         <span class="text-xs mt-3 w-[210px] text-center"> This file type is currently not supported for viewing. </span>

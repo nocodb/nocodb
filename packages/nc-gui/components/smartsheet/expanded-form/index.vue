@@ -681,7 +681,9 @@ export default {
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
             <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
               <GeneralIcon icon="table" />
-              {{ tableTitle }}
+              <span class="nc-expanded-form-table-name">
+                {{ tableTitle }}
+              </span>
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
@@ -701,6 +703,7 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
+            class="nc-expanded-form-mode-switch"
             v-model="activeViewMode"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"

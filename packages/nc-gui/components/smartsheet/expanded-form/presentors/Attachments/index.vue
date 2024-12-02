@@ -116,7 +116,7 @@ export default {
 </script>
 
 <template>
-  <div class="h-full flex flex-row">
+  <div class="h-full flex flex-row nc-files-mode-container">
     <div
       class="h-full overflow-clip flex flex-col"
       :class="{
@@ -125,18 +125,19 @@ export default {
       }"
     >
       <template v-if="!hasAnyAttachmentFields">
-        <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+        <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment-field">
           <span class="text-base font-black"> No Attachment field </span>
           <span class="text-xs mt-3 w-[200px] text-center"> Create an attachment field to use file mode. </span>
         </div>
       </template>
       <template v-else>
-        <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
+        <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3 nc-files-attachment-header">
           <div class="hidden">
             <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
           </div>
 
           <NcDropdownSelect
+            class="nc-files-current-field-dropdown"
             v-model="selectedFieldId"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="
@@ -148,7 +149,7 @@ export default {
               <template #title>{{ selectedField?.title }}</template>
               <NcButton type="secondary" size="small">
                 <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
-                <span class="w-[200px] truncate text-left pl-2 inline-block">
+                <span class="w-[200px] truncate text-left pl-2 inline-block nc-files-current-field-title">
                   {{ selectedField?.title }}
                 </span>
                 <GeneralIcon
@@ -161,6 +162,7 @@ export default {
 
           <NcEditableText
             v-if="activeAttachment"
+            class="nc-files-current-attachment-title"
             :disabled="readOnly"
             :model-value="activeAttachment.title"
             @update:model-value="updateAttachmentTitle(activeAttachmentIndex, $event)"
@@ -189,7 +191,7 @@ export default {
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
-            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment">
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
               <NcButton type="secondary" size="small" class="mt-3" :disabled="readOnly" @click="openFilePicker()">

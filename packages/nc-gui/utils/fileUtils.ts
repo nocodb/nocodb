@@ -19,6 +19,7 @@ const videoExt = [
   'webm',
   'mpg',
   'mp2',
+  'mp3',
   'mpeg',
   'ogg',
   'mp4',
@@ -35,19 +36,8 @@ const videoExt = [
   'ts',
 ]
 
-const wordExt = ['txt', 'doc', 'docx']
-
-const excelExt = ['xls', 'xlsx', 'csv']
-
-const presentationExt = ['ppt', 'pptx']
-
-const zipExt = ['zip', 'rar']
-
 const officeExt = [
-  ...wordExt,
-  ...excelExt,
-  ...presentationExt,
-  ...zipExt,
+  'txt',
   'css',
   'html',
   'php',
@@ -56,6 +46,12 @@ const officeExt = [
   'h',
   'hpp',
   'js',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
   'pdf',
   'pages',
   'ai',
@@ -67,6 +63,9 @@ const officeExt = [
   'ps',
   'ttf',
   'xps',
+  'zip',
+  'rar',
+  'csv',
 ]
 
 const isAudio = (name: string, mimetype?: string) => {
@@ -85,27 +84,11 @@ const isPdf = (name: string, mimetype?: string) => {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
 
-const isWord = (name: string, _mimetype?: string) => {
-  return wordExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
-}
-
-const isExcel = (name: string, _mimetype?: string) => {
-  return excelExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
-}
-
-const isPresentation = (name: string, _mimetype?: string) => {
-  return presentationExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
-}
-
 const isOffice = (name: string, _mimetype?: string) => {
   return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-const isZip = (name: string, _mimetype?: string) => {
-  return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
-}
-
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation }
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -162,9 +145,4 @@ export function extractImageSrcFromRawHtml(rawText: string) {
     // Extract the src attribute
     return imgElement.getAttribute('src')
   }
-}
-
-export const getReadableFileSize = (sizeInBytes: number) => {
-  const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
-  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
 }

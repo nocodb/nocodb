@@ -421,19 +421,6 @@ export function useSharedView() {
     } as RequestParams)
   }
 
-  const setCurrentViewExpandedFormMode = async (viewId: string, mode: 'field' | 'attachment', columnId?: string) => {
-    await $api.dbView.update(viewId, {
-      expanded_record_mode: mode,
-      attachment_mode_column_id: columnId,
-    })
-  }
-
-  const setCurrentViewExpandedFormAttachmentColumn = async (viewId: string, columnId: string) => {
-    await $api.dbView.update(viewId, {
-      attachment_mode_column_id: columnId,
-    })
-  }
-
   return {
     sharedView,
     loadSharedView,
@@ -454,7 +441,5 @@ export function useSharedView() {
     formColumns,
     allowCSVDownload,
     fetchCount,
-    setCurrentViewExpandedFormMode,
-    setCurrentViewExpandedFormAttachmentColumn,
   }
 }

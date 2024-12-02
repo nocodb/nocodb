@@ -177,7 +177,7 @@ const currentDate = () => {
       <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
-      <LazyCellAttachment v-else-if="isAttachment(column)" ref="attachmentCell" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect
         v-else-if="isSingleSelect(column)"
         v-model="vModel"

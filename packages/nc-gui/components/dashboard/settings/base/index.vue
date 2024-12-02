@@ -7,7 +7,9 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const router = useRouter()
 
-const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
+const activeMenu = ref(
+  isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
+)
 
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {

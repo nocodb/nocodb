@@ -1,17 +1,11 @@
 import {
   CommonAggregations,
-  ExpandedFormMode,
   isSystemColumn,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import type {
-  BoolType,
-  ColumnReqType,
-  ExpandedFormModeType,
-  ViewType,
-} from 'nocodb-sdk';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -47,7 +41,6 @@ import {
 } from '~/utils/modelUtils';
 import { LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
-import { isEE } from '~/utils';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -1272,8 +1265,6 @@ export default class View implements ViewType {
       meta?: any;
       owned_by?: string;
       created_by?: string;
-      expanded_record_mode?: ExpandedFormModeType;
-      attachment_mode_column_id?: string;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1288,16 +1279,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
-      ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
-
-    if (isEE) {
-      if (!updateObj?.attachment_mode_column_id) {
-        updateObj.expanded_record_mode = ExpandedFormMode.FIELD;
-      } else {
-        updateObj.expanded_record_mode = ExpandedFormMode.ATTACHMENT;
-      }
-    }
 
     const oldView = await this.get(context, viewId, ncMeta);
 
@@ -2010,8 +1992,6 @@ export default class View implements ViewType {
         calendar_range?: Partial<CalendarRange>[];
         created_by: string;
         owned_by: string;
-        expanded_record_mode?: ExpandedFormModeType;
-        attachment_mode_column_id?: string;
       },
     model: {
       getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
@@ -2031,16 +2011,7 @@ export default class View implements ViewType {
       'created_by',
       'owned_by',
       'lock_type',
-      ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
-
-    if (isEE) {
-      if (!insertObj?.attachment_mode_column_id) {
-        insertObj.expanded_record_mode = ExpandedFormMode.FIELD;
-      } else {
-        insertObj.expanded_record_mode = ExpandedFormMode.ATTACHMENT;
-      }
-    }
 
     if (!insertObj.order) {
       // get order value
@@ -2452,14 +2423,5 @@ export default class View implements ViewType {
 
   async delete(context: NcContext, ncMeta = Noco.ncMeta) {
     await View.delete(context, this.id, ncMeta);
-  }
-
-  static async updateIfColumnUsedAsExpandedMode(
-    _context: NcContext,
-    _columnId: string,
-    _modelId: string,
-    _ncMeta = Noco.ncMeta,
-  ) {
-    return;
   }
 }

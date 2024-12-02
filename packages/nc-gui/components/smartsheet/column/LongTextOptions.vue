@@ -150,7 +150,6 @@ watch(richMode, () => {
 watch(isPreviewEnabled, handleDisableSubmitBtn, {
   immediate: true,
 })
-
 </script>
 
 <template>

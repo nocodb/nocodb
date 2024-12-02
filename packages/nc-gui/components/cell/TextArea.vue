@@ -534,8 +534,8 @@ watch(
             class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
             :disabled="isAiGenerating"
             loader-size="small"
-            @click.stop="generate"
             icon-only
+            @click.stop="generate"
           >
             <template #icon>
               <GeneralIcon

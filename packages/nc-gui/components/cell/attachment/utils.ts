@@ -2,16 +2,11 @@ import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
 import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
 import RenameFile from './RenameFile.vue'
-import MdiPdfBox from '~icons/mdi/pdf-box'
-import MdiFileWordOutline from '~icons/mdi/file-word-outline'
-import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
-import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
-import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
-
-export const getReadableFileSize = (sizeInBytes: number) => {
-  const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
-  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
-}
+import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
+import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
+import MdiFilePowerpointBox from '~icons/nc-icons-v2/file-type-presentation'
+import MdiFileExcelOutline from '~icons/nc-icons-v2/file-type-csv'
+import IcOutlineInsertDriveFile from '~icons/nc-icons-v2/file-type-unknown'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
@@ -105,7 +100,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         attachments.value.splice(i, 1)
         selectedVisibleItems.value.splice(i, 1)
 
-        updateModelValue(JSON.stringify(attachments.value))
+        updateModelValue(attachments.value)
       }
     }
 
@@ -248,7 +243,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (!data) return
         newAttachments.push(...data)
       }
-      if (newAttachments?.length) updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+      if (newAttachments?.length) updateModelValue([...attachments.value, ...newAttachments])
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
@@ -271,14 +266,18 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    function updateAttachmentTitle(idx: number, title: string) {
+      attachments.value[idx].title = title
+      updateModelValue(attachments.value)
+    }
+
     async function renameFile(attachment: AttachmentType, idx: number, updateSelectedFile?: boolean) {
       return new Promise<boolean>((resolve) => {
         isRenameModalOpen.value = true
         const { close } = useDialog(RenameFile, {
           title: attachment.title,
           onRename: (newTitle: string) => {
-            attachments.value[idx].title = newTitle
-            updateModelValue(JSON.stringify(attachments.value))
+            updateAttachmentTitle(idx, newTitle)
             close()
 
             if (updateSelectedFile) {
@@ -359,9 +358,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         await apiPromise().then((res) => {
           if (res?.path) {
-            window.open(`${baseURL}/${res.path}`, '_blank')
+            window.open(`${baseURL}/${res.path}`, '_self')
           } else if (res?.url) {
-            window.open(res.url, '_blank')
+            window.open(res.url, '_self')
           } else {
             message.error('Failed to download file')
           }
@@ -440,6 +439,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       videoStream,
       permissionGranted,
       isRenameModalOpen,
+      updateAttachmentTitle,
     }
   },
   'useAttachmentCell',

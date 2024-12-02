@@ -9,9 +9,7 @@ on:
         required: false
         type: string
   pull_request:
-    # opened: pull request is created
-    # synchronize: commit(s) pushed to the pull request
-    types: [opened, synchronize]
+    types: [labeled, synchronize]
     paths:
       - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
@@ -23,6 +21,7 @@ concurrency:
 
 jobs:
   cloud-docker-build:
+    if: ${{ github.event.label.name == 'trigger-dev-env' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-dev-env')) }}
     runs-on: [k8s-builders]
     env:
       working-directory: ./packages/nocodb

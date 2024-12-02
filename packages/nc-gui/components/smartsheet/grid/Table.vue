@@ -2141,13 +2141,13 @@ onKeyStroke('ArrowDown', onDown)
                             </span>
                             <div
                               v-else-if="!row.rowMeta.saving"
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
                             >
                               <component
-                                :is="iconMap.expand"
+                                :is="iconMap.maximize"
                                 v-if="expandForm"
                                 v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                class="select-none nc-row-expand opacity-90 w-4 h-4"
                                 @click="expandAndLooseFocus(row, state)"
                               />
                             </div>

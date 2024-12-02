@@ -532,14 +532,17 @@ watch(
             type="secondary"
             size="xsmall"
             class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
-            :loading="isAiGenerating"
             :disabled="isAiGenerating"
             loader-size="small"
             @click.stop="generate"
             icon-only
           >
             <template #icon>
-              <GeneralIcon icon="ncAutoAwesome" class="transform group-hover:(!text-grey-800) text-gray-700 w-3.5 h-3.5" />
+              <GeneralIcon
+                icon="refresh"
+                class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3"
+                :class="{ 'animate-infinite animate-spin': isAiGenerating }"
+              />
             </template>
           </NcButton>
         </NcTooltip>

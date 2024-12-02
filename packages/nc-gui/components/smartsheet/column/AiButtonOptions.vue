@@ -467,7 +467,11 @@ onBeforeUnmount(() => {
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
                           <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
-                          <span>{{ op.title }}</span>
+                          <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
+                            <template #title>{{ op.title }}</template>
+                            {{ op.title }}
+                          </NcTooltip>
+
                           <div class="flex items-center p-0.5 mt-0.5">
                             <GeneralIcon
                               icon="close"

@@ -44,7 +44,7 @@ const calculateClockTimeStrings = () => {
   )
 }
 
-let calculateClockStringInterval: number;
+let calculateClockStringInterval: number
 onMounted(() => {
   calculateClockTimeStrings()
   // need to update every second since there can be difference in time and when user loads clock

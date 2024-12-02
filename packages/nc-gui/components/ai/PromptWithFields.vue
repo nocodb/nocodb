@@ -55,7 +55,12 @@ const editor = useEditor({
         ...suggestion(FieldList),
         items: ({ query }) => {
           if (query.length === 0) return props.options ?? []
-          return props.options?.filter((o) => o.title?.toLowerCase()?.includes(query.toLowerCase())) ?? []
+          return (
+            props.options?.filter(
+              (o) =>
+                o.title?.toLowerCase()?.includes(query.toLowerCase()) || `${o.title?.toLowerCase()}}` === query.toLowerCase(),
+            ) ?? []
+          )
         },
         char: '{',
         allowSpaces: true,

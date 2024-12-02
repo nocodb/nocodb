@@ -4,7 +4,7 @@ import { isColorDark, stringToColor } from '#imports'
 const props = withDefaults(
   defineProps<{
     size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
-    name?: string
+    name?: string | null
     email?: string
     disabled?: boolean
   }>(),
@@ -26,7 +26,11 @@ const backgroundColor = computed(() => {
   }
 
   // in comments we need to generate user icon from email
-  return displayName.value ? stringToColor(displayName.value) : email.value ? stringToColor(email.value) : '#FFFFFF'
+  return displayName.value?.trim()
+    ? stringToColor(displayName.value.trim())
+    : email.value?.trim()
+    ? stringToColor(email.value.trim())
+    : '#FFFFFF'
 })
 
 const usernameInitials = computed(() => {

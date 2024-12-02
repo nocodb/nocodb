@@ -29,6 +29,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
 
     const activeTableId = computed(() => route.params.viewId as string | undefined)
+    const activeViewId = computed(() => route.params.viewTitle as string | undefined)
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,
@@ -225,6 +226,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       showExpandBtn,
       fullscreenModalSize,
       activeTableId,
+      activeViewId,
       getViewsForTable,
       getData,
       getTableMeta,

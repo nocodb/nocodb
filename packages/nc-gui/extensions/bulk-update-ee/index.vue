@@ -1214,7 +1214,7 @@ provide(IsGalleryInj, ref(false))
                           type="text"
                           size="xs"
                           class="flex-none"
-                          iconPosition="right"
+                          icon-position="right"
                           @click="handleRemoveFieldConfig(fieldConfig.id)"
                         >
                           <template #icon>

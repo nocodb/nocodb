@@ -448,7 +448,7 @@ export const useExtensions = createSharedComposable(() => {
 
       if (availableExtensions.value.length + disabledCount === extensionCount) {
         // Sort extensions
-        availableExtensions.value.sort((a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity))
+        availableExtensions.value.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
         extensionsLoaded.value = true
       }
     } catch (error) {

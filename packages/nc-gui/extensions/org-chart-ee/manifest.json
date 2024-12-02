@@ -1,0 +1,22 @@
+{
+  "id": "org-chart-ee",
+  "title": "Org chart",
+  "subTitle": "Visualise the relationships between records in a self linked table.",
+  "description": "org-chart-ee/description.md",
+  "entry": "org-chart-ee",
+  "version": "0.1",
+  "iconUrl": "org-chart-ee/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "org-chart-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "config": {
+    "contentMinHeight": "340px"
+  }
+}

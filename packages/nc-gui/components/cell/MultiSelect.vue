@@ -280,7 +280,6 @@ async function addIfMissingAndSave() {
         updatedColMeta,
       )
 
-
       column.value.colOptions = data.columns.find((c) => c.id === column.value.id).colOptions
 
       activeOptCreateInProgress.value--

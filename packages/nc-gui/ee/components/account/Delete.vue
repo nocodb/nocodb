@@ -153,8 +153,8 @@ const onDeleteConfirm = async () => {
         type="danger"
         data-testid="nc-account-settings-delete"
         :loading="loadingToBeDeleted"
-        @click="onInitDelete"
         size="small"
+        @click="onInitDelete"
       >
         Delete Account
       </NcButton>

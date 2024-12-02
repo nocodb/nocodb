@@ -48,8 +48,8 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik_proxy"
       - "--entryPoints.ping.address=:8081"
-      - "--entrypoints.http.address=:80"
-      - "--entrypoints.https.address=:443"
+      - "--entrypoints.http.address=:8082"
+      - "--entrypoints.https.address=:8443"
       - "--entrypoints.https.http.tls.certresolver=letsencrypt"
       - "--entrypoints.https.http.tls.domains[0].main=${DOMAINNAME}"
       - "--entrypoints.https.http.tls.domains[0].sans=*.${DOMAINNAME}"
@@ -76,8 +76,8 @@ services:
       - default
       - traefik_proxy
     ports: 
-      - "80:80"
-      - "443:443"
+      - "8082:8082"
+      - "8443:8443"
     restart: always
     volumes: 
       - "letsencrypt:/letsencrypt"

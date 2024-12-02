@@ -67,16 +67,6 @@ const exportPayload = ref<{
   encoding: SupportedExportCharset['utf-8'],
 })
 
-const tableList = computed(() => {
-  return tables.value.map((table) => {
-    return {
-      label: table.title,
-      value: table.id,
-      meta: table.meta,
-    }
-  })
-})
-
 const viewList = computed(() => {
   if (!exportPayload.value.tableId) return []
   return (
@@ -256,9 +246,9 @@ onMounted(async () => {
   await reloadViews()
   await loadJobsForBase()
 
-  if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
-    onTableSelect()
-  }
+  // if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
+  //   onTableSelect()
+  // }
 })
 </script>
 
@@ -353,34 +343,14 @@ onMounted(async () => {
                 'min-w-1/2 max-w-[175px]': !fullscreen,
               }"
             >
-              <NcSelect
-                v-model:value="exportPayload.tableId"
-                placeholder="-select table-"
+              <NSelectTable
+                v-model="exportPayload.tableId"
                 :disabled="isExporting"
                 class="nc-data-exporter-table-select nc-select-shadow"
                 :filter-option="filterOption"
-                dropdown-class-name="w-[250px]"
+                dropdown-class-override="w-[250px]"
                 show-search
-                @change="onTableSelect"
-              >
-                <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ table.label }}</template>
-                      <span>{{ table.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="exportPayload.tableId === table.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
+                @change="onTableSelect"/>
             </a-form-item>
 
             <a-form-item

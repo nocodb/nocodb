@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { SelectValue } from 'ant-design-vue/lib/select'
-import type { SelectProps } from './types'
+import type { NSelectProps } from './types'
 
-const props = withDefaults(defineProps<SelectProps>(), {
+const props = withDefaults(defineProps<NSelectProps>(), {
   placeholder: '- select -',
   showSearch: false,
   suffixIcon: 'arrowDown',
+  disabled: false,
 })
 const emits = defineEmits<{
   'update:modelValue': [string | string[]]
@@ -24,8 +25,8 @@ const onChange = (value: SelectValue) => {
   <a-select
     v-model:value="selectedValue"
     :size="size"
-    :allow-clear = "allowClear"
-    :disabled="loading"
+    :allow-clear="allowClear"
+    :disabled="disabled || loading"
     :dropdown-class-name="`nc-select-dropdown ${dropdownClassOverride}`"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
     :filter-option="filterOption"
@@ -33,6 +34,7 @@ const onChange = (value: SelectValue) => {
     :mode="mode"
     :placeholder="placeholder"
     :show-search="showSearch"
+    :options="options"
     class="nc-select"
     @change="onChange"
   >
@@ -41,9 +43,14 @@ const onChange = (value: SelectValue) => {
       <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
     </template>
 
-    <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
-      <slot name="dropdownRender" :menu-node="menuNode" />
+    <template v-if="$slots.dropdownRender" #dropdownRender="props">
+      <slot name="dropdownRender" v-bind="props" />
     </template>
+
+    <template v-if="$slots.option" #option="option">
+      <slot name="option" v-bind="option" />
+    </template>
+
     <slot />
   </a-select>
 </template>

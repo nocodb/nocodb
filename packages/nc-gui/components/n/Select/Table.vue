@@ -1,23 +1,33 @@
 <script setup lang="ts">
-import NSelect from './index.vue'
-import type { SelectProps } from './types'
+import type { NSelectProps } from './types'
+import type { TableType } from 'nocodb-sdk'
 
-const props = withDefaults(defineProps<SelectProps>(), {
+const props = withDefaults(defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean }>(), {
   placeholder: '- select table -',
   showSearch: false,
   suffixIcon: 'arrowDown',
+  forceLoadBaseTables: false,
 })
 
 const tableStore = useTablesStore()
-const { activeTables: tables } = storeToRefs(tableStore)
+const { activeTables, baseTables } = storeToRefs(tableStore)
+
+const tablesRef = computedAsync<TableType[]>(async () => {
+  if (props.baseId) {
+    await tableStore.loadProjectTables(props.baseId, props.forceLoadBaseTables)
+    return baseTables.value.get(props.baseId)
+  } else {
+    return activeTables.value
+  }
+})
 </script>
 
 <template>
   <NSelect v-bind="props">
-    <a-select-option v-for="table of tables" :key="table.id" :value="table.id">
+    <a-select-option v-for="table of tablesRef" :key="table.id" :value="table.id">
       <div class="w-full flex items-center gap-2">
         <div class="min-w-5 flex items-center justify-center">
-          <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+          <NIconTable :table="table" class="text-gray-500" />
         </div>
         <NcTooltip class="flex-1 truncate" show-on-truncate-only>
           <template #title>{{ table.title }}</template>

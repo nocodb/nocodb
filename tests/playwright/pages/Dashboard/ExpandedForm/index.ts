@@ -11,6 +11,8 @@ export class ExpandedFormPage extends BasePage {
 
   readonly btn_save: Locator;
   readonly btn_moreActions: Locator;
+  readonly btn_nextField: Locator;
+  readonly btn_previousField: Locator;
 
   readonly span_tableName: Locator;
   readonly span_modeFields: Locator;
@@ -32,7 +34,8 @@ export class ExpandedFormPage extends BasePage {
 
     this.btn_save = this.dashboard.get().locator('button.nc-expand-form-save-btn');
     this.btn_moreActions = this.get().locator('.nc-expand-form-more-actions');
-
+    this.btn_nextField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-next-arrow');
+    this.btn_previousField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-prev-arrow');
     this.span_tableName = this.get().locator('.nc-expanded-form-header').last().locator('.nc-expanded-form-table-name');
     this.span_modeFields = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(0);
     this.span_modeFiles = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(1);
@@ -246,6 +249,14 @@ export class ExpandedFormPage extends BasePage {
     await this.rootPage.keyboard.press('Escape');
   }
 
+  async moveToNextField() {
+    await this.btn_nextField.click();
+  }
+
+  async moveToPreviousField() {
+    await this.btn_previousField.click();
+  }
+
   async verifyTableNameShown({ name }: { name: string }) {
     return await expect(this.span_tableName).toContainText(name);
   }
@@ -269,5 +280,12 @@ export class ExpandedFormPage extends BasePage {
   async verifyFilesViewerMode({ mode }: { mode: 'image' | 'video' | 'audio' | 'pdf' | 'unsupported' }) {
     await expect(this.get().locator(`.nc-files-mode-container .nc-files-viewer-${mode}`)).toBeVisible();
   }
-  å;
+
+  async verifyPreviewCellsCount({ count }: { count: number }) {
+    await expect(this.get().locator(`.nc-files-mode-container .nc-files-preview-cell`)).toHaveCount(count);
+  }
+
+  async selectNthFilePreviewCell({ index }: { index: number }) {
+    await this.get().locator(`.nc-files-mode-container .nc-files-preview-cell`).nth(index).click();
+  }
 }

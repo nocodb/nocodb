@@ -52,6 +52,7 @@ watch(activeAttachmentIndex, async () => {
           :key="attachment.id"
           :attachment="attachment"
           :active="activeAttachmentIndex === index"
+          class="nc-files-preview-cell"
           :is-expanded="isExpanded"
           @click="activeAttachmentIndex = index"
         />

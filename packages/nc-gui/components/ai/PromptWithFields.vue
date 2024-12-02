@@ -3,6 +3,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
+import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import FieldList from '~/helpers/tiptapExtensions/mention/FieldList'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
@@ -40,6 +41,8 @@ const vModel = computed({
 
 const { autoFocus } = toRefs(props)
 
+const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 1000)
+
 const editor = useEditor({
   content: vModel.value,
   extensions: [
@@ -66,12 +69,14 @@ const editor = useEditor({
         allowSpaces: true,
       },
       renderHTML: ({ node }) => {
+        const matchedOption = props.options?.find((option) => option.title === node.attrs.id)
+        const isAttachment = matchedOption?.uidt === UITypes.Attachment
         return [
           'span',
           {
-            class: `prompt-field-tag ${
-              props.options?.find((option) => option.title === node.attrs.id)?.uidt === UITypes.Attachment ? '!bg-green-200' : ''
-            } ${props.promptFieldTagClassName}`,
+            'class': `prompt-field-tag ${isAttachment ? '!bg-green-200' : ''} ${props.promptFieldTagClassName}`,
+            'style': 'max-width: 100px; white-space: nowrap; overflow: hidden; display: inline-block; text-overflow: ellipsis;', // Enforces truncation
+            'data-tooltip': node.attrs.id, // Tooltip content
           },
           `${node.attrs.id}`,
         ]
@@ -98,6 +103,8 @@ const editor = useEditor({
     text = text.trim()
 
     vModel.value = text
+
+    debouncedLoadMentionFieldTagTooltip()
   },
   editable: true,
   autofocus: autoFocus.value,
@@ -146,6 +153,27 @@ onMounted(async () => {
     }, 100)
   }
 })
+
+function loadMentionFieldTagTooltip() {
+  document.querySelectorAll('.nc-ai-prompt-with-fields .prompt-field-tag').forEach((el) => {
+    const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
+    if (!tooltip || el.scrollWidth <= el.clientWidth) return
+    // Show tooltip only on truncate
+    tippy(el, {
+      content: `<div class="tooltip text-xs">${tooltip.value}</div>`,
+      placement: 'top',
+      allowHTML: true,
+      arrow: true,
+      animation: 'fade',
+      duration: 0,
+      maxWidth: '200px',
+    })
+  })
+}
+
+onMounted(() => {
+  debouncedLoadMentionFieldTagTooltip()
+})
 </script>
 
 <template>
@@ -169,7 +197,7 @@ onMounted(async () => {
   }
 
   .prompt-field-tag {
-    @apply bg-gray-100 rounded-md px-1;
+    @apply bg-gray-100 rounded-md px-1 align-middle;
   }
 
   .ProseMirror {

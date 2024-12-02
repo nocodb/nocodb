@@ -14,8 +14,6 @@ const props = withDefaults(
   >(),
   {
     placeholder: '- select view -',
-    showSearch: false,
-    suffixIcon: 'arrowDown',
     ignoreLoading: false,
     forceLoadBaseTables: false,
     labelDefaultViewAsDefault: false,

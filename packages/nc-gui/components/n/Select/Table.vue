@@ -6,8 +6,6 @@ const props = withDefaults(
   defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean; filterTable?: (t: TableType) => boolean }>(),
   {
     placeholder: '- select table -',
-    showSearch: false,
-    suffixIcon: 'arrowDown',
     forceLoadBaseTables: false,
   },
 )

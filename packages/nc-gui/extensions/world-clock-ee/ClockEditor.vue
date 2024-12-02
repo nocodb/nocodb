@@ -1,0 +1,128 @@
+<script setup lang="ts">
+import Clock from './Clock.vue'
+import { cityToTimezone, timezoneData, type AcceptableCity } from './timezone-data'
+import { themes } from './theming'
+import type { ClockInstance, SelectOption } from './types'
+
+const props = defineProps<{
+  showNumbers: boolean
+  modelValue: ClockInstance
+  format: '12H' | '24H'
+  clockMode: 'Digital' | 'Analog' | 'Both'
+}>()
+
+const emits = defineEmits<{
+  'update:modelValue': [ClockInstance]
+  'removeInstance': [number]
+}>()
+
+const clockInstance = useVModel(props, 'modelValue', emits)
+
+const name = ref(clockInstance.value.name)
+const city = ref<AcceptableCity>(clockInstance.value.city)
+const themeId = ref<number>(clockInstance.value.theme)
+
+watch(name, () => {
+  name.value = name.value.slice(0, 25);
+})
+
+watch(clockInstance, () => {
+  name.value = clockInstance.value.name
+  city.value = clockInstance.value.city
+  themeId.value = clockInstance.value.theme
+})
+
+watchDebounced(
+  [name, city, themeId],
+  ([name, city, themeId]) => {
+    let nameToSave = name;
+    // city changed
+    if (clockInstance.value.city !== city) {
+      if (clockInstance.value.name === clockInstance.value.city.split(',')[0]) {
+        nameToSave = city.split(',')[0];
+      }
+    }
+    clockInstance.value = {
+      ...clockInstance.value,
+      name: nameToSave,
+      city,
+      theme: themeId,
+    }
+  },
+  { debounce: 100, maxWait: 1000 },
+)
+
+const timezoneOptions: SelectOption[] = Array.from(
+  timezoneData.map((d) => ({
+    value: d.city,
+  })),
+)
+
+const searchQuery = ref('')
+const aSelect = ref()
+const search = () => {
+  searchQuery.value = aSelect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+}
+const filteredOptions = computed(() =>
+  timezoneOptions.filter((el) => el.value.toLowerCase().includes(searchQuery.value.toLowerCase())),
+)
+</script>
+
+<template>
+  <div class="flex w-full h-full justify-center items-start py-8 overflow-y-scroll">
+    <div class="flex flex-col w-1/2 space-y-4 pb-4">
+      <div class="flex items-center">
+        <input
+          type="text"
+          class="bg-nc-bg-gray-light font-bold rounded-l-xl w-5/6 h-12 text-xl border-transparent focus:border-transparent focus:ring-0 outline-none"
+          v-model="name"
+        />
+        <div class="w-1/6 bg-nc-bg-gray-light flex items-center justify-end h-12 rounded-r-xl p-4">
+          <GeneralIcon class="w-6 h-6 text-nc-content-gray-muted" :icon="'edit'" />
+        </div>
+      </div>
+      <ASelect
+        v-model:value="city"
+        class="w-full nc-select-shadow"
+        placeholder="-selecte city-"
+        :show-search="true"
+        :options="filteredOptions"
+        ref="aSelect"
+        @search="search"
+      >
+        <template #suffixIcon>
+          <GeneralIcon class="text-gray-800 nc-select-expand-btn" icon="arrowDown" />
+        </template>
+        <template #option="{ value }">
+          {{ value }}
+        </template>
+      </ASelect>
+      <div class="flex flex-col space-y-1 pt-3">
+        <span class="text-sm text-zinc-700">Theme</span>
+        <div class="flex gap-4 w-full flex-wrap">
+          <button
+            class="w-7 h-7 rounded flex items-center justify-center border-nc-border-brand flex-none"
+            :class="{ 'border-1': themeId === i, 'shadow': themeId === i, 'shadow-brand-200': themeId === i }"
+            v-for="(theme, i) in themes"
+            :style="{ background: theme.icon }"
+            @click="themeId = i"
+          />
+        </div>
+      </div>
+      <div class="flex w-full items-start justify-center">
+        <Clock
+          :class="`${clockMode === 'Digital' ? 'w-full' : 'w-1/2'}`"
+          :show-numbers
+          :format
+          :timezone="cityToTimezone[city]"
+          :theme="themeId"
+          :mode="clockMode"
+          :edit-mode="true"
+        />
+      </div>
+      <NcButton type="secondary" size="small" @click="emits('removeInstance', clockInstance.id)">
+        <span class="text-red-600">Remove City</span>
+      </NcButton>
+    </div>
+  </div>
+</template>

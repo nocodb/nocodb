@@ -209,7 +209,7 @@ if (isEdit.value) {
   vModel.value.type = vModel.value?.type || buttonTypes[0].value
 
   if (vModel.value.type === ButtonActionsType.Ai) {
-    vModel.value.theme = 'text'
+    vModel.value.theme = 'light'
     vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'

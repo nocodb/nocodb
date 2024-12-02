@@ -62,7 +62,7 @@ test.describe('Expanded form files mode', () => {
     await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'unsupported' });
   });
 
-  test.only('Various file types correct rendering', async () => {
+  test('Various file types correct rendering', async () => {
     test.slow();
 
     await dashboard.treeView.openTable({ title: 'Country' });

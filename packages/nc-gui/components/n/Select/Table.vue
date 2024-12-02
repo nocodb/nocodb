@@ -28,6 +28,10 @@ const tablesRef = computedAsync<TableType[]>(async () => {
   }
   return tables
 })
+
+defineExpose({
+  tablesRef,
+})
 </script>
 
 <template>

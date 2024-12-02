@@ -22,7 +22,7 @@ const activeViewTitleOrId = computed(() => {
 
 const { eventBus } = useExtensions()
 
-const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
+const { extension, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
 
@@ -220,6 +220,9 @@ eventBus.on(async (event, payload) => {
   }
 })
 
+const nSelectTable = ref()
+const tableList = computed(() => nSelectTable.value?.tablesRef as any[] || [])
+
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','
@@ -230,9 +233,9 @@ onMounted(async () => {
   await reloadViews()
   await loadJobsForBase()
 
-  // if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
-  //   onTableSelect()
-  // }
+  if (!exportPayload.value.tableId && tableList.value.find((table) => table.id === activeTableId.value)) {
+    onTableSelect()
+  }
 })
 </script>
 
@@ -379,20 +382,87 @@ onMounted(async () => {
           'rounded-lg border-1 m-3': fullscreen,
         }"
       >
-        <div class="data-exporter-header">Recent Exports</div>
-        <div v-if="exportedFiles.length" class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]">
-          <template v-for="exp of exportedFiles">
-            <div
-              v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
-              :key="exp.id"
-              class="p-3 flex gap-2 justify-between border-b-1"
-              :class="{
-                'px-4 py-3': fullscreen,
-                'px-3 py-2': !fullscreen,
-                'bg-white hover:bg-gray-50': exp.status === JobStatus.COMPLETED,
-                'bg-nc-bg-red-light': exp.status !== JobStatus.COMPLETED,
-              }"
-            >
+        <div
+          v-if="fullscreen"
+          class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-white p-4 pt-t flex flex-col gap-5 nc-scrollbar-thin"
+        >
+          <div class="text-base font-bold text-nc-content-gray-extreme">Settings</div>
+          <div class="flex flex-col gap-2">
+            <div class="text-nc-content-gray font-medium">Table</div>
+            <a-form-item class="!my-0">
+              <NSelectTable
+                v-model="exportPayload.tableId"
+                :disabled="isExporting"
+                :filter-option="filterOption"
+                dropdown-class-override="w-[250px]"
+                show-search
+                @change="onTableSelect"
+                ref="nSelectTable"
+              />
+            </a-form-item>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="text-nc-content-gray font-medium">View</div>
+            <a-form-item class="!my-0 min-w-1/2">
+              <NSelectView
+                v-model="exportPayload.viewId"
+                :table-id="exportPayload.tableId"
+                :disabled="isExporting"
+                :filter-option="filterOption"
+                :filter-view="(view: ViewType) => view.type === ViewTypes.GRID"
+                dropdown-class-override="w-[250px]"
+                show-search
+                label-default-view-as-default
+                @change="onViewSelect"
+              />
+            </a-form-item>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div>Separator</div>
+            <a-form-item class="!my-0 flex-1">
+              <NSelect
+                v-model:value="exportPayload.delimiter"
+                placeholder="-select separator-"
+                :disabled="isExporting"
+                class="nc-data-exporter-separator nc-select-shadow"
+                dropdown-class-override="w-[180px]"
+                @change="saveChanges"
+              >
+                <a-select-option v-for="delimiter of csvColumnSeparatorOptions" :key="delimiter.value" :value="delimiter.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ delimiter.label }}</template>
+                      <span>{{ delimiter.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.delimiter === delimiter.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NSelect>
+            </a-form-item>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="min-w-[65px]">Encoding</div>
+            <a-form-item class="!my-0 flex-1">
+              <NSelectCharset
+                v-model:value="exportPayload.encoding"
+                class="nc-select-shadow"
+                dropdown-class-override="w-[190px]"
+                :filter-option="filterOption"
+                show-search
+                @change="saveChanges"
+              />
+            </a-form-item>
+          </div>
+        </div>
+        <div class="flex flex-col flex-1 nc-scrollbar-thin">
+          <div class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
+          <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
+            <template v-for="exp of exportedFiles">
               <div
                 class="flex-1 flex items-start gap-3"
                 :class="{

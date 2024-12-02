@@ -52,8 +52,8 @@ defineExpose({
       <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
     </template>
 
-    <template v-if="$slots.dropdownRender" #dropdownRender="props">
-      <slot name="dropdownRender" v-bind="props" />
+    <template v-if="$slots.dropdownRender" #dropdownRender="options">
+      <slot name="dropdownRender" v-bind="options" />
     </template>
 
     <template v-if="$slots.option" #option="option">

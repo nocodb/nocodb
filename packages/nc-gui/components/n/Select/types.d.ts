@@ -1,4 +1,4 @@
-import { DefaultOptionType } from 'ant-design-vue/lib/vc-select/Select'
+import type { DefaultOptionType } from 'ant-design-vue/lib/vc-select/Select'
 import type { SelectValue } from 'ant-design-vue/lib/select'
 
 export type NSelectMode = 'multiple' | 'tags'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
+import { SupportedExportCharset, type ViewType, ViewTypes, csvColumnSeparatorOptions } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -221,7 +221,7 @@ eventBus.on(async (event, payload) => {
 })
 
 const nSelectTable = ref()
-const tableList = computed(() => nSelectTable.value?.tablesRef as any[] || [])
+const tableList = computed(() => (nSelectTable.value?.tablesRef as any[]) || [])
 
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
@@ -391,13 +391,13 @@ onMounted(async () => {
             <div class="text-nc-content-gray font-medium">Table</div>
             <a-form-item class="!my-0">
               <NSelectTable
+                ref="nSelectTable"
                 v-model="exportPayload.tableId"
                 :disabled="isExporting"
                 :filter-option="filterOption"
                 dropdown-class-override="w-[250px]"
                 show-search
                 @change="onTableSelect"
-                ref="nSelectTable"
               />
             </a-form-item>
           </div>

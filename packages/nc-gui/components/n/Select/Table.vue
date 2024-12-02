@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { NSelectProps } from './types'
 import type { TableType } from 'nocodb-sdk'
+import type { NSelectProps } from './types'
 
 const props = withDefaults(
   defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean; filterTable?: (t: TableType) => boolean }>(),

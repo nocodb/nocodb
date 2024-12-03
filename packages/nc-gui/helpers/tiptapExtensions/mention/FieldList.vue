@@ -56,6 +56,12 @@ export default {
         return true
       }
 
+      if (event.key === '}') {
+        setTimeout(() => {
+          this.selectItem(this.selectedIndex)
+        }, 250)
+      }
+
       return false
     },
 
@@ -80,6 +86,7 @@ export default {
 
     selectItem(index, _e) {
       const item = this.items[index]
+
       if (item) {
         this.command({
           id: item.title,

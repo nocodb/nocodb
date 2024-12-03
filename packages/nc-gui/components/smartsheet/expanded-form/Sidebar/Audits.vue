@@ -83,7 +83,12 @@ watch(
         <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
           <div class="flex items-start justify-between">
             <div class="flex items-start gap-3 flex-1 w-full">
-              <GeneralUserIcon :email="audit?.created_by_email" :name="audit?.created_display_name" class="mt-0.5" size="medium" />
+              <GeneralUserIcon
+                :email="audit?.created_by_email"
+                :name="audit?.created_display_name"
+                class="mt-0.5"
+                size="medium"
+              />
               <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
                 <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
                   <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">

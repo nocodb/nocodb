@@ -57,6 +57,7 @@ const {
   isReadonly,
   storedFiles,
   removeFile,
+  updateAttachmentTitle,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -150,7 +151,7 @@ const openAttachmentModal = () => {
 }
 
 const open = (e: Event) => {
-  e.stopPropagation()
+  e?.stopPropagation()
 
   openAttachmentModal()
 }
@@ -220,6 +221,14 @@ const attachmentSize = computed(() => {
       return 'tiny'
   }
 })
+
+defineExpose({
+  openFilePicker: open,
+  downloadAttachment,
+  renameAttachment: renameFile,
+  removeAttachment: onRemoveFileClick,
+  updateAttachmentTitle,
+})
 </script>
 
 <template>
@@ -252,9 +261,16 @@ const attachmentSize = computed(() => {
             @click="onFileClick(item)"
           />
 
-          <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click="selectedFile = item" />
+          <component
+            :is="FileIcon(item.icon)"
+            v-else-if="item.icon"
+            :height="45"
+            :width="45"
+            class="text-white"
+            @click="selectedFile = item"
+          />
 
-          <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click="selectedFile = item" />
+          <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" @click="selectedFile = item" />
         </div>
 
         <div class="relative px-1 flex" :title="item.title">
@@ -419,7 +435,7 @@ const attachmentSize = computed(() => {
             >
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
-              <IcOutlineInsertDriveFile v-else />
+              <GeneralIcon v-else icon="ncFileTypeUnknown" class="text-white" />
             </div>
           </NcTooltip>
         </template>

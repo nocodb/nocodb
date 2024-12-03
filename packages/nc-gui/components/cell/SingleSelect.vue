@@ -47,8 +47,6 @@ const { $api } = useNuxtApp()
 
 const searchVal = ref()
 
-const { getMeta } = useMetas()
-
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()

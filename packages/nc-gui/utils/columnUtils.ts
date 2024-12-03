@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp } from 'nocodb-sdk'
 
 export interface UiTypesType {
@@ -266,23 +266,51 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
   return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
 }
 
-const isColumnInvalid = (col: ColumnType) => {
+const isColumnInvalid = (
+  col: ColumnType,
+  aiIntegrations: Partial<IntegrationType>[] = [],
+): { isInvalid: boolean; tooltip: string } => {
+  const result = {
+    isInvalid: false,
+    tooltip: 'msg.invalidColumnConfiguration',
+  }
+
   switch (col.uidt) {
     case UITypes.Formula:
-      return !!(col.colOptions as FormulaType).error
+      result.isInvalid = !!(col.colOptions as FormulaType).error
+      break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
       if (colOptions.type === ButtonActionsType.Webhook) {
-        return !colOptions.fk_webhook_id
+        result.isInvalid = !colOptions.fk_webhook_id
       } else if (colOptions.type === ButtonActionsType.Url) {
-        return !!colOptions.error
+        result.isInvalid = !!colOptions.error
+      } else if (colOptions.type === ButtonActionsType.Ai) {
+        result.isInvalid =
+          !colOptions.fk_integration_id ||
+          (!!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+        result.tooltip = 'title.aiIntegrationMissing'
+      }
+      break
+    }
+    case UITypes.LongText: {
+      if (parseProp(col.meta)[LongTextAiMetaProp]) {
+        const colOptions = col.colOptions as ButtonType
+
+        result.isInvalid =
+          !colOptions.fk_integration_id ||
+          (!!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+
+        result.tooltip = 'title.aiIntegrationMissing'
       }
     }
   }
 
   if (col.uidt === UITypes.Formula) {
-    return !!(col.colOptions as FormulaType).error
+    result.isInvalid = !!(col.colOptions as FormulaType).error
   }
+
+  return result
 }
 
 // cater existing v1 cases

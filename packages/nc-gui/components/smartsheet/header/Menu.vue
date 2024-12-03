@@ -45,7 +45,20 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
+const { aiIntegrations } = useNocoAi()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
+
+const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
+  if (!column?.value) {
+    return {
+      isInvalid: false,
+      tooltip: '',
+    }
+  }
+
+  return isColumnInvalid(column.value, aiIntegrations.value)
+})
 
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
@@ -431,7 +444,7 @@ const onDeleteColumn = () => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="openDropdown"
   >
-    <div class="flex gap-0.5 items-center" @dblclick.stop>
+    <div class="flex gap-1 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
       <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
         <template #title>
@@ -441,14 +454,10 @@ const onDeleteColumn = () => {
       </NcTooltip>
 
       <NcTooltip class="flex items-center">
-        <GeneralIcon
-          v-if="isColumnInvalid(column) && !isExpandedForm"
-          class="text-orange-500 w-3.5 h-3.5 ml-2"
-          icon="alertTriangle"
-        />
+        <GeneralIcon v-if="columnInvalid.isInvalid && !isExpandedForm" class="text-red-700 w-3.5 h-3.5" icon="alertTriangle" />
 
         <template #title>
-          {{ $t('msg.invalidColumnConfiguration') }}
+          {{ $t(columnInvalid.tooltip) }}
         </template>
       </NcTooltip>
       <GeneralIcon

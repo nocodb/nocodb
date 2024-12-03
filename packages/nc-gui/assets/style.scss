@@ -684,6 +684,11 @@ a {
   @apply hidden;
 }
 
+/* Hide the element with class nc-selected-item-icon */
+.ant-select-selection-item .nc-select-hide-item {
+  @apply hidden;
+}
+
 .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
   @apply bg-transparent;
 }

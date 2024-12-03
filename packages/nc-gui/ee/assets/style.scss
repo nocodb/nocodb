@@ -678,6 +678,11 @@ a {
   @apply hidden;
 }
 
+/* Hide the element with class nc-select-hide-item */
+.ant-select-selection-item .nc-select-hide-item {
+  @apply hidden;
+}
+
 .ant-select-selection-search-input:focus {
   @apply !ring-0;
 }
@@ -1047,7 +1052,6 @@ svg.nc-virtual-cell-icon {
     @apply cursor-not-allowed !text-nc-content-purple-light;
   }
 }
-
 
 .ant-dropdown {
   &.nc-dropdown-group-by-menu,

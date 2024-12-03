@@ -29,9 +29,9 @@ const updateClock = () => {
     const minuteAngle = minutes * 6 // 6 degrees per minute
     const hourAngle = hours * 30 // 30 degrees per hour
 
-    secondHand.value.setAttribute('transform', `rotate(${secondAngle}, 180, 180)`)
-    minuteHand.value.setAttribute('transform', `rotate(${minuteAngle}, 180, 180)`)
-    hourHand.value.setAttribute('transform', `rotate(${hourAngle}, 180, 180)`)
+    secondHand.value?.setAttribute('transform', `rotate(${secondAngle}, 180, 180)`)
+    minuteHand.value?.setAttribute('transform', `rotate(${minuteAngle}, 180, 180)`)
+    hourHand.value?.setAttribute('transform', `rotate(${hourAngle}, 180, 180)`)
     requestAnimationFrame(updateClock) // animate again
   })
 }

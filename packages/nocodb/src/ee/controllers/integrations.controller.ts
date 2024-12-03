@@ -10,7 +10,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  IntegrationReqType,
+  IntegrationsType,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -18,6 +22,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -143,6 +148,15 @@ export class IntegrationsController {
     @Query('offset') offset?: string,
     @Query('query') query?: string,
   ) {
+    if (
+      extractRolesObj(req.user.base_roles)?.editor &&
+      type !== IntegrationsType.Ai
+    ) {
+      NcError.forbidden(
+        `You do not have permission to perform the action "integrationList" with the roles: Editor.`,
+      );
+    }
+
     const integrations = await this.integrationsService.integrationList({
       workspaceId,
       req,
@@ -154,7 +168,7 @@ export class IntegrationsController {
       query,
     });
 
-    if (!includeDatabaseInfo) {
+    if (!includeDatabaseInfo && !extractRolesObj(req.user.base_roles)?.editor) {
       for (const integration of integrations.list) {
         integration.config = undefined;
       }

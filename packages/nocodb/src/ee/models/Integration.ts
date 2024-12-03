@@ -237,6 +237,7 @@ export default class Integration extends IntegrationCE {
   ): Promise<PagedResponseImpl<Integration>> {
     let globalDefault: Integration;
 
+    // TODO: remove offset & limit / limit maximum per workspace instead
     const { offset } = args;
     let { limit } = args;
 

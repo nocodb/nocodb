@@ -6,6 +6,7 @@ import {
   ButtonActionsType,
   UITypes,
   ViewTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,

@@ -3,7 +3,6 @@ import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
-  ButtonActionsType,
   UITypes,
   ViewTypes,
   isAIPromptCol,

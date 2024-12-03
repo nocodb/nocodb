@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ButtonActionsType,
   type ButtonType,
   type ColumnReqType,
   type ColumnType,

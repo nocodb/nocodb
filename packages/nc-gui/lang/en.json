@@ -1054,7 +1054,7 @@
     "lockView": "Lock view",
     "unlockView": "Unlock view",
     "aiSuggested": "AI suggested",
-    "generateFieldDataUsingAi": "Generate field data using AI",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
     "suggesting": "Suggesting...",
@@ -1378,7 +1378,7 @@
     "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields",
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
-    "generateFieldDataUsingAiButtonOption": "Generate data for multiple fields in this table using record information and NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "Search icons",

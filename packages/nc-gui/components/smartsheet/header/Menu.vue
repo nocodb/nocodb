@@ -454,7 +454,7 @@ const onDeleteColumn = () => {
       </NcTooltip>
 
       <NcTooltip class="flex items-center">
-        <GeneralIcon v-if="columnInvalid.isInvalid && !isExpandedForm" class="text-red-700 w-3.5 h-3.5" icon="alertTriangle" />
+        <GeneralIcon v-if="columnInvalid.isInvalid && !isExpandedForm" class="text-red-300 w-3.5 h-3.5" icon="alertTriangle" />
 
         <template #title>
           {{ $t(columnInvalid.tooltip) }}

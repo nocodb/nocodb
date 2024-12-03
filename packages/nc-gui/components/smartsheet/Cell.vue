@@ -213,7 +213,12 @@ const cellType = computed(() => {
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
       <LazyCellCheckbox v-else-if="cellType === 'checkbox'" v-model="vModel" />
-      <LazyCellAttachment v-else-if="cellType === 'attachment'" ref="attachmentCell" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAttachment
+        v-else-if="cellType === 'attachment'"
+        ref="attachmentCell"
+        v-model="vModel"
+        :row-index="props.rowIndex"
+      />
       <LazyCellSingleSelect
         v-else-if="cellType === 'singleSelect'"
         v-model="vModel"

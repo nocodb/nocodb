@@ -243,7 +243,10 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
                 <NcTooltip class="flex cursor-pointer">
                   <template #title> Preview is generated using the first record in this table</template>
-                  <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
+                  <GeneralIcon
+                    icon="info"
+                    class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
+                  />
                 </NcTooltip>
               </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">

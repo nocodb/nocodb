@@ -674,12 +674,12 @@ watch(
                         </div>
 
                         <a-textarea
-                          v-model:value="importURL"
                           :ref="
                             (el) => {
                               el?.$el?.focus()
                             }
                           "
+                          v-model:value="importURL"
                           class="!rounded-lg !min-h-[120px] !max-h-[250px] nc-scrollbar-thin"
                         ></a-textarea>
 

@@ -24,7 +24,6 @@ export interface ExtensionManifest {
       height?: number
     }
   }
-  disabled?: boolean
   links: {
     title: string
     href: string
@@ -33,6 +32,8 @@ export interface ExtensionManifest {
     modalSize?: 'xs' | 'sm' | 'md' | 'lg'
     contentMinHeight?: string
   }
+  order: number
+  disabled?: boolean
 }
 
 abstract class ExtensionType {

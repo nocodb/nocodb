@@ -245,3 +245,8 @@ export const RootScopeTables = {
     MetaTable.INTEGRATIONS_STORE,
   ],
 };
+
+export const CACHE_PREFIX =
+  process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
+    ? process.env.NC_CACHE_PREFIX
+    : 'nc';

@@ -136,15 +136,15 @@ export enum CsvColumnSeparator {
 
 export const csvColumnSeparatorOptions = [
   {
-    label: ',',
+    label: 'Comma (,)',
     value: CsvColumnSeparator[','],
   },
   {
-    label: ';',
+    label: 'Semi-colon (;)',
     value: CsvColumnSeparator[';'],
   },
   {
-    label: '|',
+    label: 'Pipe (|)',
     value: CsvColumnSeparator['|'],
   },
   {

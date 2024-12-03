@@ -41,6 +41,8 @@ const { copy } = useClipboard()
 
 const { isMobileMode } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
@@ -703,6 +705,7 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
+            v-if="isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             class="nc-expanded-form-mode-switch"
             v-model="activeViewMode"
             :disabled="!isUIAllowed('viewCreateOrEdit')"

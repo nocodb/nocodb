@@ -262,12 +262,7 @@ const showOrHideAll = (showAll: boolean) => {
               class="flex items-stretch gap-2"
             >
               <div>
-                <GeneralUserIcon
-                  size="auto"
-                  :name="element.display_name?.trim() ? element.display_name?.trim() : ''"
-                  :email="element.email"
-                  class="!text-[0.65rem]"
-                />
+                <GeneralUserIcon size="auto" :name="element.display_name" :email="element.email" class="!text-[0.65rem]" />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>

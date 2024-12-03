@@ -218,7 +218,7 @@ watch(selected, () => {
             <NcCheckbox v-model:checked="selected[recordIndex]" />
           </template>
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon :email="member?.email" size="base" class="flex-none" />
+            <GeneralUserIcon :email="member?.email" :name="member?.display_name" size="base" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip

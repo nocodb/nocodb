@@ -35,11 +35,11 @@ export interface ExtensionManifest {
   }
 }
 
-export interface IKvStore<T> {
-  get(key: string): T | null
-  set(key: string, value: T): Promise<void>
-  delete(key: string): Promise<void>
-  serialize(): Record<string, T>
+export interface IKvStore<T extends Record<string, any>> {
+  get<K extends keyof T>(key: K): T[K] | null;
+  set<K extends keyof T>(key: K, value: T[K]): Promise<void>;
+  delete<K extends keyof T>(key: K): Promise<void>;
+  serialize(): Record<string, T[keyof T]>;
 }
 
 abstract class ExtensionType {

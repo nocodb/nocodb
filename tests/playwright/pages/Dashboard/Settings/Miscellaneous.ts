@@ -13,6 +13,10 @@ export class MiscSettingsPage extends BasePage {
     return this.settings.get().locator(`[data-testid="nc-settings-subtab-visibility"]`);
   }
 
+  async selectTab(tab: 'snapshots-tab' | 'visibility-tab') {
+    await this.settings.get().getByTestId(tab).click();
+  }
+
   async clickShowM2MTables() {
     await this.settings.get().locator(`[data-testid="visibility-tab"]`).click();
     const clickAction = () => this.get().locator('.nc-settings-meta-misc-m2m').first().click();

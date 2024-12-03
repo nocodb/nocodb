@@ -239,7 +239,6 @@ const permissionScopes = {
     'aiData',
     'aiBaseSchema',
 
-
     // Snapshots
 
     'manageSnapshots',

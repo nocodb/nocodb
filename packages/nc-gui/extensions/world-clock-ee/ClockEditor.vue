@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Clock from './Clock.vue'
-import { cityToTimezone, timezoneData, type AcceptableCity } from './timezone-data'
+import { type AcceptableCity, cityToTimezone, timezoneData } from './timezone-data'
 import { themes } from './theming'
 import type { ClockInstance, SelectOption } from './types'
 
@@ -23,7 +23,7 @@ const city = ref<AcceptableCity>(clockInstance.value.city)
 const themeId = ref<number>(clockInstance.value.theme)
 
 watch(name, () => {
-  name.value = name.value.slice(0, 25);
+  name.value = name.value.slice(0, 25)
 })
 
 watch(clockInstance, () => {
@@ -35,11 +35,11 @@ watch(clockInstance, () => {
 watchDebounced(
   [name, city, themeId],
   ([name, city, themeId]) => {
-    let nameToSave = name;
+    let nameToSave = name
     // city changed
     if (clockInstance.value.city !== city) {
       if (clockInstance.value.name === clockInstance.value.city.split(',')[0]) {
-        nameToSave = city.split(',')[0];
+        nameToSave = city.split(',')[0]
       }
     }
     clockInstance.value = {
@@ -73,21 +73,21 @@ const filteredOptions = computed(() =>
     <div class="flex flex-col w-1/2 space-y-4 pb-4">
       <div class="flex items-center">
         <input
+          v-model="name"
           type="text"
           class="bg-nc-bg-gray-light font-bold rounded-l-xl w-5/6 h-12 text-xl border-transparent focus:border-transparent focus:ring-0 outline-none"
-          v-model="name"
         />
         <div class="w-1/6 bg-nc-bg-gray-light flex items-center justify-end h-12 rounded-r-xl p-4">
-          <GeneralIcon class="w-6 h-6 text-nc-content-gray-muted" :icon="'edit'" />
+          <GeneralIcon class="w-6 h-6 text-nc-content-gray-muted" icon="edit" />
         </div>
       </div>
       <ASelect
+        ref="aSelect"
         v-model:value="city"
         class="w-full nc-select-shadow"
         placeholder="-selecte city-"
         :show-search="true"
         :options="filteredOptions"
-        ref="aSelect"
         @search="search"
       >
         <template #suffixIcon>
@@ -101,9 +101,9 @@ const filteredOptions = computed(() =>
         <span class="text-sm text-zinc-700">Theme</span>
         <div class="flex gap-4 w-full flex-wrap">
           <button
+            v-for="(theme, i) in themes"
             class="w-7 h-7 rounded flex items-center justify-center border-nc-border-brand flex-none"
             :class="{ 'border-1': themeId === i, 'shadow': themeId === i, 'shadow-brand-200': themeId === i }"
-            v-for="(theme, i) in themes"
             :style="{ background: theme.icon }"
             @click="themeId = i"
           />

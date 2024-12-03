@@ -173,7 +173,13 @@ const currentDate = () => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <GeneralLoader v-if="isGenerating" />
+      <div v-if="isGenerating" class="flex items-center gap-2 w-full">
+        <GeneralLoader />
+        <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
+          <template #title> {{ $t('general.generating') }} </template>
+          {{ $t('general.generating') }}
+        </NcTooltip>
+      </div>
       <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />

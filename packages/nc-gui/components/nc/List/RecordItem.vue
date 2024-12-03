@@ -1,38 +1,36 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
-
-import MaximizeIcon from '~icons/nc-icons/maximize'
+import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
-    row: any
-    fields: any[]
-    attachment: any
-    relatedTableDisplayValueProp: string
-    displayValueTypeAndFormatProp: { type: string; format: string }
-    isLoading: boolean
-    isLinked: boolean
+    row: Row
+    columns: (ColumnType & { [key: string]: any })[]
+    attachmentColumn?: ColumnType
+    displayValueColumn?: ColumnType
+    isLoading?: boolean
+    isSelected?: boolean
+    displayValueClassName?: string
   }>(),
   {
     isLoading: false,
+    isSelected: false,
+    displayValueClassName: '',
   },
 )
-
-defineEmits(['expand', 'linkOrUnlink'])
 
 provide(IsExpandedFormOpenInj, ref(true))
 
 provide(RowHeightInj, ref(1 as const))
 
-const isForm = inject(IsFormInj, ref(false))
+provide(IsFormInj, ref(false))
 
-const row = useVModel(props, 'row')
+const { row: currentRow, columns: allColumns, isSelected, isLoading } = toRefs(props)
 
-const { isLinked, isLoading } = toRefs(props)
-
-const isPublic = inject(IsPublicInj, ref(false))
+useProvideSmartsheetRowStore(currentRow)
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const { isMobileMode } = useGlobal()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -43,12 +41,24 @@ interface Attachment {
   mimetype: string
 }
 
+const displayValueColumn = computed(() => {
+  return props.displayValueColumn || (allColumns.value || []).find((c) => c?.pv ?? null) || (allColumns.value || [])?.[0]
+})
+
+const displayValue = computed(() => {
+  return displayValueColumn.value?.title ? currentRow.value.row[displayValueColumn.value?.title] : null
+})
+
+const attachmentColumn = computed(() => {
+  return props.attachmentColumn || (allColumns.value || []).find((c) => isAttachment(c))
+})
+
 const attachments: ComputedRef<Attachment[]> = computed(() => {
   try {
-    if (props.attachment && row.value[props.attachment.title]) {
-      return typeof row.value[props.attachment.title] === 'string'
-        ? JSON.parse(row.value[props.attachment.title])
-        : row.value[props.attachment.title]
+    if (attachmentColumn.value?.title && currentRow.value.row[attachmentColumn.value.title]) {
+      return typeof currentRow.value.row[attachmentColumn.value.title] === 'string'
+        ? JSON.parse(currentRow.value.row[attachmentColumn.value.title])
+        : currentRow.value.row[attachmentColumn.value.title]
     }
     return []
   } catch (e) {
@@ -56,24 +66,24 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
   }
 })
 
-const displayValue = computed(() => {
-  if (
-    row.value[props.relatedTableDisplayValueProp] &&
-    props.displayValueTypeAndFormatProp.type &&
-    props.displayValueTypeAndFormatProp.format
-  ) {
-    return parseStringDateTime(
-      row.value[props.relatedTableDisplayValueProp],
-      props.displayValueTypeAndFormatProp.format,
-      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
-    )
-  }
-  return row.value[props.relatedTableDisplayValueProp]
+const columnsToRender = computed(() => {
+  return allColumns.value
+    .filter((c) => {
+      const isDisplayValueColumn = c.id === displayValueColumn.value?.id
+
+      return (
+        !isDisplayValueColumn && !isSystemColumn(c) && !isPrimary(c) && !isLinksOrLTAR(c) && !isAiButton(c) && !isAttachment(c)
+      )
+    })
+    .sort((a, b) => {
+      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+    })
+    .slice(0, isMobileMode.value ? 1 : 3)
 })
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent">
+  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent w-full">
     <a-card
       tabindex="0"
       class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
@@ -85,7 +95,7 @@ const displayValue = computed(() => {
       :hoverable="false"
     >
       <div class="flex items-center gap-3">
-        <template v-if="attachment">
+        <template v-if="attachmentColumn">
           <div v-if="attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
               <template #customPaging> </template>
@@ -108,41 +118,59 @@ const displayValue = computed(() => {
         </template>
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
-          <div class="flex justify-start">
-            <span class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]">
-              {{ displayValue }}
-            </span>
+          <div
+            v-if="displayValueColumn && displayValue"
+            class="flex justify-start font-semibold text-brand-500 nc-display-value"
+            :class="displayValueClassName"
+          >
+            <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
+              <template #title>
+                <LazySmartsheetPlainCell
+                  v-model="displayValue"
+                  :column="displayValueColumn"
+                  class="field-config-plain-cell-value"
+                />
+              </template>
+
+              <LazySmartsheetPlainCell
+                v-model="displayValue"
+                :column="displayValueColumn"
+                class="field-config-plain-cell-value"
+              />
+            </NcTooltip>
           </div>
 
-          <div
-            v-if="fields.length > 0 && !isPublic && !isForm"
-            class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
-          >
-            <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
-              <div v-if="!isRowEmpty({ row }, field)" class="flex flex-col gap-[-1]">
+          <div v-if="columnsToRender.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
+            <div v-for="column in columnsToRender" :key="column.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
+              <div v-if="!isRowEmpty({ row }, column)" class="flex flex-col gap-[-1]">
                 <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
                   <template #title>
                     <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(field)"
+                      v-if="isVirtualCol(column)"
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column="field"
-                      :hide-menu="true"
+                      :column="column"
+                      hide-menu
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column="field"
-                      :hide-menu="true"
+                      :column="column"
+                      hide-menu
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(column)"
+                      :model-value="currentRow.row[column.title!]"
+                      :row="currentRow"
+                      :column="column"
+                    />
                     <LazySmartsheetCell
                       v-else
-                      v-model="row[field.title]"
-                      :column="field"
+                      :model-value="currentRow.row[column.title!]"
+                      :column="column"
                       :edit-enabled="false"
-                      :read-only="true"
+                      read-only
                     />
                   </div>
                 </NcTooltip>
@@ -151,40 +179,13 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic && !readOnly" class="flex-none flex items-center w-7">
-          <NcTooltip class="flex">
-            <template #title>{{ $t('title.expand') }}</template>
-
-            <button
-              v-e="['c:row-expand:open']"
-              :tabindex="-1"
-              class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
-              @click.stop="$emit('expand', row)"
-            >
-              <MaximizeIcon class="flex-none w-4 h-4 scale-125" />
-            </button>
-          </NcTooltip>
-        </div>
-        <template v-if="(!isPublic && !readOnly) || isForm">
-          <NcTooltip class="z-10 flex">
-            <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
-
-            <button
-              tabindex="-1"
-              class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
-              :class="{
-                'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
-                'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
-              }"
-              @click="$emit('linkOrUnlink')"
-            >
-              <div v-if="isLoading" class="flex">
-                <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
-              </div>
-              <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
-            </button>
-          </NcTooltip>
-        </template>
+        <slot name="extraRight">
+          <div class="min-w-5 flex-none">
+            <Transition>
+              <GeneralIcon v-if="isSelected" icon="circleCheckSolid" class="flex-none text-primary w-5 h-5" />
+            </Transition>
+          </div>
+        </slot>
       </div>
     </a-card>
   </div>
@@ -279,7 +280,7 @@ const displayValue = computed(() => {
 
 <style lang="scss">
 .nc-list-item {
-  @apply border-1 border-transparent rounded-md;
+  @apply border-1 border-transparent;
 
   &:focus-visible {
     @apply border-brand-500;

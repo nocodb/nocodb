@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 
-test.describe('Expanded form files mode', () => {
+// Todo: Enable this test once we enable this feature for all
+test.describe.skip('Expanded form files mode', () => {
   let dashboard: DashboardPage;
   let context: any;
 

@@ -480,12 +480,14 @@ export const generateUniqueColumnName = ({
       if (formState?.type === ButtonActionsType.Ai) {
         defaultColumnName = UITypesName.AIButton
       }
+      break
     }
 
     case UITypes.LongText: {
       if (formState?.meta?.[LongTextAiMetaProp] === true) {
         defaultColumnName = UITypesName.AIPrompt
       }
+      break
     }
   }
 

@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import type { Api, ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '../lib/types'
 import { validateRowFilters } from '../utils/dataUtils'
@@ -916,7 +916,7 @@ export function useInfiniteData(args: {
           col.title &&
           col.title in updatedRowData &&
           (columnsToUpdate.has(col.uidt as UITypes) ||
-            (col.uidt === UITypes.LongText && parseProp(col.meta)?.[LongTextAiMetaProp] === true) ||
+            isAIPromptCol(col) ||
             col.au ||
             (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
         ) {

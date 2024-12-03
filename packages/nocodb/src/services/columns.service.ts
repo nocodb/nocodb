@@ -3,6 +3,7 @@ import {
   AppEvents,
   ButtonActionsType,
   FormulaDataTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -556,10 +557,6 @@ export class ColumnsService {
               NcError.badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
-            if (!colBody.fk_integration_id) {
-              NcError.badRequest('AI Integration not found');
-            }
-
             /*
               Substitute column alias with id in prompt
             */
@@ -1579,8 +1576,7 @@ export class ColumnsService {
       }
 
       if (
-        column.uidt === UITypes.LongText &&
-        column.meta?.[LongTextAiMetaProp] === true &&
+        isAIPromptCol(column) &&
         (colBody.uidt !== UITypes.LongText ||
           (colBody.uidt === UITypes.LongText &&
             colBody.meta?.[LongTextAiMetaProp] !== true))
@@ -1601,14 +1597,7 @@ export class ColumnsService {
           baseModel,
           sqlClient,
         });
-      } else if (
-        colBody.uidt === UITypes.LongText &&
-        colBody.meta?.[LongTextAiMetaProp] === true
-      ) {
-        if (!colBody.fk_integration_id) {
-          NcError.badRequest('AI Integration not found');
-        }
-
+      } else if (isAIPromptCol(colBody)) {
         let prompt = '';
 
         /*
@@ -1996,10 +1985,6 @@ export class ColumnsService {
             colBody.fk_webhook_id = null;
           }
         } else if (colBody.type === ButtonActionsType.Ai) {
-          if (!colBody.fk_integration_id) {
-            NcError.badRequest('AI Integration not found');
-          }
-
           /*
             Substitute column alias with id in prompt
           */
@@ -2294,14 +2279,7 @@ export class ColumnsService {
             }
           }
 
-          if (
-            colBody.uidt === UITypes.LongText &&
-            colBody.meta?.[LongTextAiMetaProp] === true
-          ) {
-            if (!colBody.fk_integration_id) {
-              NcError.badRequest('AI integration is required');
-            }
-
+          if (isAIPromptCol(colBody)) {
             let prompt = '';
 
             /*

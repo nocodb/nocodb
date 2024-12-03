@@ -10,6 +10,7 @@ import {
   AuditOperationTypes,
   ButtonActionsType,
   extractFilterFromXwhere,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -5717,7 +5718,9 @@ class BaseModelSqlv2 {
         await this.model.getColumns(this.context);
 
         await Promise.all(
-          insertDatas.map((d) => this.prepareNocoData(d, true, cookie)),
+          insertDatas.map((d) =>
+            this.prepareNocoData(d, true, cookie, null, { raw }),
+          ),
         );
       }
 
@@ -5936,7 +5939,7 @@ class BaseModelSqlv2 {
             }
           }
         } else {
-          await this.prepareNocoData(d, false, cookie);
+          await this.prepareNocoData(d, false, cookie, null, { raw });
 
           const wherePk = await this._wherePk(pkValues, true);
 
@@ -8678,16 +8681,12 @@ class BaseModelSqlv2 {
 
           if (
             JSON_COLUMN_TYPES.includes(lookupNestedCol) ||
-            (lookupNestedCol.uidt === UITypes.LongText &&
-              col.meta?.[LongTextAiMetaProp])
+            isAIPromptCol(lookupNestedCol)
           ) {
             jsonCols.push(col);
           }
         } else {
-          if (
-            JSON_COLUMN_TYPES.includes(col.uidt) ||
-            (col.uidt === UITypes.LongText && col.meta?.[LongTextAiMetaProp])
-          ) {
+          if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
             jsonCols.push(col);
           }
         }
@@ -9776,6 +9775,7 @@ class BaseModelSqlv2 {
     cookie?: { user?: any; system?: boolean },
     // oldData uses title as key where as data uses column_name as key
     oldData?,
+    extra?: { raw?: boolean },
   ) {
     for (const column of this.model.columns) {
       if (
@@ -10059,10 +10059,7 @@ class BaseModelSqlv2 {
         ) {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
-      } else if (
-        UITypes.LongText === column.uidt &&
-        column.meta?.[LongTextAiMetaProp] === true
-      ) {
+      } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {
           let value = data[column.column_name];
 
@@ -10108,10 +10105,7 @@ class BaseModelSqlv2 {
     }
 
     // AI column isStale handling
-    const aiColumns = this.model.columns.filter(
-      (c) =>
-        c.uidt === UITypes.LongText && c.meta?.[LongTextAiMetaProp] === true,
-    );
+    const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
 
     for (const aiColumn of aiColumns) {
       if (

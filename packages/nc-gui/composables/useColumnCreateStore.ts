@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -110,7 +110,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       }
 
-      if (formState.value.uidt === UITypes.LongText && formState.value.meta?.[LongTextAiMetaProp] === true) {
+      if (isAIPromptCol(formState.value)) {
         return true
       }
 

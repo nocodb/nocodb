@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, isAIPromptCol } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -625,9 +625,7 @@ const isAiButtonSelectOption = (uidt: string) => {
 }
 
 const isAiPromptSelectOption = (uidt: string) => {
-  return (
-    uidt === UITypes.LongText && formState.value.uidt === UITypes.LongText && formState.value.meta?.[LongTextAiMetaProp] === true
-  )
+  return uidt === UITypes.LongText && isAIPromptCol(formState.value)
 }
 
 const aiPromptInputRef = ref<HTMLElement>()

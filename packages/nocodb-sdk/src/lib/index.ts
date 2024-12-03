@@ -12,6 +12,7 @@ export {
   UITypesName,
   FieldNameFromUITypes,
   numericUITypes,
+  isAIPromptCol,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,

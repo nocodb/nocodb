@@ -1,5 +1,11 @@
 import { Readable } from 'stream';
-import { isLinksOrLTAR, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  LongTextAiMetaProp,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
@@ -137,7 +143,15 @@ export class ExportService {
               case 'fk_rollup_column_id':
               case 'fk_qr_value_column_id':
               case 'fk_barcode_value_column_id':
+              case 'fk_model_id':
                 column.colOptions[k] = idMap.get(v as string);
+                break;
+              // Preserve the values on export
+              // We will keep these only within same workspace as integration is only available within same workspace
+              case 'fk_workspace_id':
+              case 'fk_integrations_id':
+              case 'model':
+                column.colOptions[k] = v;
                 break;
               case 'fk_target_view_id':
                 if (v) {
@@ -602,6 +616,15 @@ export class ExportService {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {
                   row[colId] = v;
+                }
+                break;
+              case UITypes.LongText:
+                if (col.meta?.[LongTextAiMetaProp] && v) {
+                  try {
+                    row[colId] = JSON.stringify(v);
+                  } catch (e) {
+                    row[colId] = v;
+                  }
                 }
                 break;
               case UITypes.User:

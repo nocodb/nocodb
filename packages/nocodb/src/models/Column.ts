@@ -1,5 +1,6 @@
 import {
   AllowedColumnTypesForQrAndBarcodes,
+  isAIPromptCol,
   isLinksOrLTAR,
   LongTextAiMetaProp,
   UITypes,
@@ -450,10 +451,6 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.LongText: {
         if (column.meta?.[LongTextAiMetaProp] === true) {
-          if (!column.fk_integration_id) {
-            NcError.badRequest('Integration ID is required for AI column');
-          }
-
           await AIColumn.insert(
             context,
             {
@@ -908,10 +905,7 @@ export default class Column<T = any> implements ColumnType {
 
       parseMetaProp(col);
 
-      aiColumns = aiColumns.filter(
-        (c) =>
-          c.uidt === UITypes.LongText && c.meta?.[LongTextAiMetaProp] === true,
-      );
+      aiColumns = aiColumns.filter((c) => isAIPromptCol(c));
 
       for (const aiCol of aiColumns) {
         const ai = await new Column(aiCol).getColOptions<AIColumn>(

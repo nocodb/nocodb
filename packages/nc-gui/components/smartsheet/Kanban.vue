@@ -69,6 +69,7 @@ const {
   moveHistory,
   addNewStackId,
   removeRowFromUncategorizedStack,
+  uncategorizedStackId,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -106,6 +107,10 @@ const coverImageObjectFitClass = computed(() => {
 
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
+})
+
+const isRequiredGroupingFieldColumn = computed(() => {
+  return !!groupingFieldColumn.value?.rqd
 })
 
 const kanbanContainerRef = ref()
@@ -496,7 +501,9 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': stack.collapsed,
-                  'hidden': hideEmptyStack && !formattedData.get(stack.title)?.length,
+                  'hidden':
+                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
+                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >

@@ -1630,19 +1630,6 @@ export class ColumnsService {
 
         colBody.prompt = prompt;
 
-        await this.updateMetaAndDatabase(context, {
-          table,
-          column: colBody,
-          source,
-          reuse,
-          processColumn: async () => {
-            await this.updateFormulas(context, {
-              oldColumn: column,
-              colBody,
-            });
-          },
-        });
-
         // If column wasn't AI before, convert the data to AIRecordType format
         if (
           column.uidt !== UITypes.LongText ||
@@ -1660,7 +1647,7 @@ export class ColumnsService {
           await convertValueToAIRecordType({
             source,
             table,
-            column: colBody,
+            column,
             baseModel,
             sqlClient,
             user: param.user,

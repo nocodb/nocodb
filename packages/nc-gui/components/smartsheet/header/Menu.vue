@@ -428,6 +428,10 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
   await copy(field.id!)
 
   isFieldIdCopied.value = true
+
+  await ncDelay(5000)
+
+  isFieldIdCopied.value = false
 }
 
 const onDeleteColumn = () => {

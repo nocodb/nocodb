@@ -35,6 +35,13 @@ export interface ExtensionManifest {
   }
 }
 
+export interface IKvStore<T> {
+  get(key: string): T | null
+  set(key: string, value: T): Promise<void>
+  delete(key: string): Promise<void>
+  serialize(): Record<string, T>
+}
+
 abstract class ExtensionType {
   abstract id: string
   abstract uiKey: number
@@ -42,7 +49,7 @@ abstract class ExtensionType {
   abstract fkUserId: string
   abstract extensionId: string
   abstract title: string
-  abstract kvStore: any
+  abstract kvStore: IKvStore<any>
   abstract meta: any
   abstract order: number
   abstract setTitle(title: string): Promise<any>
@@ -255,11 +262,11 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  class KvStore {
+  class KvStore<T = any> implements IKvStore<T> {
     private _id: string
-    private data: Record<string, any>
+    private data: Record<string, T>
 
-    constructor(id: string, data: any) {
+    constructor(id: string, data: Record<string, T>) {
       this._id = id
       this.data = data || {}
     }
@@ -273,9 +280,9 @@ export const useExtensions = createSharedComposable(() => {
       return updateExtension(this._id, { kv_store: this.data })
     }
 
-    delete(key: string) {
+    async delete(key: string) {
       delete this.data[key]
-      return updateExtension(this._id, { kv_store: this.data })
+      await updateExtension(this._id, { kv_store: this.data })
     }
 
     serialize() {

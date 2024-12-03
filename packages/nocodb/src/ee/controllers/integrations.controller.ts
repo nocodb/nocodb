@@ -148,15 +148,6 @@ export class IntegrationsController {
     @Query('offset') offset?: string,
     @Query('query') query?: string,
   ) {
-    if (
-      extractRolesObj(req.user.base_roles)?.editor &&
-      type !== IntegrationsType.Ai
-    ) {
-      NcError.forbidden(
-        `You do not have permission to perform the action "integrationList" with the roles: Editor.`,
-      );
-    }
-
     const integrations = await this.integrationsService.integrationList({
       workspaceId,
       req,
@@ -168,7 +159,7 @@ export class IntegrationsController {
       query,
     });
 
-    if (!includeDatabaseInfo && !extractRolesObj(req.user.base_roles)?.editor) {
+    if (!includeDatabaseInfo) {
       for (const integration of integrations.list) {
         integration.config = undefined;
       }

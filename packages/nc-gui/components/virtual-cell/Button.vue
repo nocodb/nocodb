@@ -42,9 +42,7 @@ const isFieldAiIntegrationAvailable = computed(() => {
 
   const fkIntegrationId = column.value?.colOptions?.fk_integration_id
 
-  if (!fkIntegrationId) return false
-
-  return ncIsArrayIncludes(aiIntegrations.value, fkIntegrationId, 'id')
+  return !!fkIntegrationId
 })
 
 const generate = async () => {

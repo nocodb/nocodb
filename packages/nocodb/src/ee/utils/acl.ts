@@ -483,7 +483,6 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
-      workspace_integrationList: true,
     },
   },
   [ProjectRoles.CREATOR]: {

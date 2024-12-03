@@ -1241,6 +1241,12 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Button) {
+        if (base.fk_workspace_id !== colOptions.fk_workspace_id) {
+          colOptions.fk_workspace_id = null;
+          colOptions.fk_integration_id = null;
+          colOptions.model = null;
+        }
+
         const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
@@ -1253,6 +1259,13 @@ export class ImportService {
               icon: colOptions?.icon,
               type: colOptions?.type,
               fk_webhook_id: getIdOrExternalId(colOptions?.fk_webhook_id),
+              output_column_ids: (
+                colOptions?.output_column_ids?.split(',') || []
+              )
+                .map((a) => getIdOrExternalId(a))
+                .join(','),
+              fk_integration_id: colOptions?.fk_integration_id,
+              model: colOptions?.model,
             },
           }) as any,
           req: param.req,

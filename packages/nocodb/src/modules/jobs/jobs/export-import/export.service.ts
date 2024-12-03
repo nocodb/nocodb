@@ -153,6 +153,11 @@ export class ExportService {
               case 'model':
                 column.colOptions[k] = v;
                 break;
+              case 'output_column_ids':
+                column.colOptions[k] = ((v as string)?.split(',') || [])
+                  .map((id) => idMap.get(id))
+                  .join(',');
+                break;
               case 'fk_target_view_id':
                 if (v) {
                   const view = await View.get(context, v as string);
@@ -172,6 +177,8 @@ export class ExportService {
                 }
                 break;
               case 'formula':
+                if (column.uidt === UITypes.Button) break;
+
                 // rewrite formula_raw with aliases
                 column.colOptions['formula_raw'] = column.colOptions[
                   k

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { ColumnReqType, LinkToAnotherColumnReqType, LinkToAnotherRecordType, UserType } from 'nocodb-sdk';
 import {
   AppEvents,
   ButtonActionsType,
@@ -18,29 +19,13 @@ import {
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
 import { parseMetaProp } from 'src/utils/modelUtils';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  UserType,
-} from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
+import { BaseUser, CalendarRange, Column, FormulaColumn, Hook, KanbanView, Model, Source, View } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
-import {
-  BaseUser,
-  CalendarRange,
-  Column,
-  FormulaColumn,
-  Hook,
-  KanbanView,
-  Model,
-  Source,
-  View,
-} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -56,10 +41,7 @@ import {
 } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '~/helpers/getUniqueName';
+import { getUniqueColumnAliasName, getUniqueColumnName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
 import Noco from '~/Noco';
@@ -1573,6 +1555,10 @@ export class ColumnsService {
       });
     }
 
+    if (column.uidt === UITypes.Attachment && colBody.uidt !== UITypes.Attachment) {
+      await View.updateIfColumnUsedAsExpandedMode(context, column.id, column.fk_model_id);
+    }
+
     // Get all the columns in the table and return
     await table.getColumns(context);
 
@@ -2693,6 +2679,8 @@ export class ColumnsService {
         ncMeta,
       );
     }
+
+    await View.updateIfColumnUsedAsExpandedMode(context, column.id, column.fk_model_id, ncMeta);
 
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
       table,

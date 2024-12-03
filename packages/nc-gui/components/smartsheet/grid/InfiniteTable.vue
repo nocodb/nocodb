@@ -8,6 +8,7 @@ import {
   UITypes,
   type ViewType,
   ViewTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -1024,8 +1025,8 @@ const isSelectedOnlyAI = computed(() => {
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
     return {
-      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
-      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+      enabled: isAIPromptCol(field) || isAiButton(field),
+      disabled: !(field?.colOptions as ButtonType)?.fk_integration_id,
     }
   }
 
@@ -1048,9 +1049,7 @@ const generateAIBulk = async () => {
 
   let outputColumnIds = [field.id]
 
-  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
-
-  if (isAiButton) {
+  if (isAiButton(field)) {
     outputColumnIds =
       ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
         ? field.colOptions.output_column_ids.split(',')

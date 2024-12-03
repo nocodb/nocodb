@@ -131,7 +131,7 @@ const columnTypeName = computed(() => {
     return UITypesName[UITypes.Links]
   }
 
-  if (column.value.uidt === UITypes.Button && column.value.colOptions?.type === ButtonActionsType.Ai) {
+  if (isAiButton(column.value)) {
     return UITypesName.AIButton
   }
 

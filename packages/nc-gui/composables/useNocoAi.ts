@@ -5,6 +5,8 @@ const aiIntegrationNotFound = 'AI integration not found'
 export const useNocoAi = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const { isUIAllowed } = useRoles()
+
   const workspaceStore = useWorkspace()
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -339,6 +341,8 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const loadAiIntegrations = async () => {
+    if (!isUIAllowed('dataEdit')) return
+
     aiIntegrations.value = (await listIntegrationByType(IntegrationsType.Ai)) || []
 
     if (aiIntegrations.value.length) {

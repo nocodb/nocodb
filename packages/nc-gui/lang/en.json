@@ -217,6 +217,7 @@
     "function": "Function",
     "confirm": "Confirm",
     "generate": "Generate",
+    "generating": "Generating...",
     "copy": "Copy",
     "copied": "Copied",
     "are": "are",

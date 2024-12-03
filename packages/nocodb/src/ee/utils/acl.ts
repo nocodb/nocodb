@@ -239,7 +239,6 @@ const permissionScopes = {
     'aiData',
     'aiBaseSchema',
 
-
     // Snapshots
 
     'manageSnapshots',
@@ -484,6 +483,7 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      workspace_integrationList: true,
     },
   },
   [ProjectRoles.CREATOR]: {

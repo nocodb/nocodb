@@ -295,6 +295,7 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+      org_integrationList: true,
     },
   },
   [ProjectRoles.CREATOR]: {

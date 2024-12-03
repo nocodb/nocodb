@@ -131,6 +131,7 @@ const componentProps = computed(() => {
     return {
       disabled:
         isPublic.value ||
+        !isUIAllowed('dataEdit') ||
         !isFieldAiIntegrationAvailable.value ||
         isLoading.value ||
         (pk.value &&

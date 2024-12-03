@@ -8,7 +8,7 @@ on:
       - ".github/workflows/ci-cd.yml"
       - "tests/playwright/**"
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    types: [opened, reopened, synchronize, ready_for_review]
     branches: [develop]
     paths:
       - "packages/nc-gui/**"
@@ -32,7 +32,7 @@ jobs:
   unit-tests-pg:
     runs-on: [self-hosted, runner]
     timeout-minutes: 80
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -80,12 +80,12 @@ jobs:
         run: pnpm run test:unit:pg:ee
 
   pre-build-for-playwright:
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/pre-build-for-playwright.yml
 
   playwright-pg-shard-1:
     needs: pre-build-for-playwright
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg
@@ -93,7 +93,7 @@ jobs:
 
   playwright-pg-shard-2:
     needs: pre-build-for-playwright
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg
@@ -101,7 +101,7 @@ jobs:
 
   playwright-pg-shard-3:
     needs: pre-build-for-playwright
-    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/playwright-test-workflow.yml
     with:
       db: pg

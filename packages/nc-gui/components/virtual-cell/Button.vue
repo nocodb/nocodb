@@ -14,16 +14,6 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
-const isFieldAiIntegrationAvailable = computed(() => {
-  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
-
-  const fkIntegrationId = column.value?.colOptions?.fk_integration_id
-
-  if (!fkIntegrationId) return false
-
-  return ncIsArrayIncludes(aiIntegrations.value, fkIntegrationId, 'id')
-})
-
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -45,6 +35,16 @@ const isLoading = ref(false)
 const pk = computed(() => {
   if (!meta.value?.columns) return
   return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const isFieldAiIntegrationAvailable = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
+
+  const fkIntegrationId = column.value?.colOptions?.fk_integration_id
+
+  if (!fkIntegrationId) return false
+
+  return ncIsArrayIncludes(aiIntegrations.value, fkIntegrationId, 'id')
 })
 
 const generate = async () => {
@@ -130,6 +130,7 @@ const componentProps = computed(() => {
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
+        isPublic.value ||
         !isFieldAiIntegrationAvailable.value ||
         isLoading.value ||
         (pk.value &&
@@ -148,7 +149,7 @@ const componentProps = computed(() => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic" class="flex">
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>

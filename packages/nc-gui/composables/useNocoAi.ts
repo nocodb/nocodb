@@ -5,8 +5,6 @@ const aiIntegrationNotFound = 'AI integration not found'
 export const useNocoAi = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
-
   const workspaceStore = useWorkspace()
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)

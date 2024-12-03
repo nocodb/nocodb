@@ -705,9 +705,9 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
-            v-if="isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
-            class="nc-expanded-form-mode-switch"
+            v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             v-model="activeViewMode"
+            class="nc-expanded-form-mode-switch"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
             :items="[

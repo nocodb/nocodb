@@ -148,7 +148,7 @@ const componentProps = computed(() => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic" class="flex">
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')" class="flex">
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>

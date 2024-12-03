@@ -353,7 +353,7 @@ const isCollaborator = (userIdOrEmail) => {
                 <div>
                   <GeneralUserIcon
                     size="auto"
-                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                    :name="op.display_name"
                     :email="op.email"
                     class="!text-[0.65rem]"
                     :disabled="!isCollaborator(op.id)"
@@ -498,12 +498,7 @@ const isCollaborator = (userIdOrEmail) => {
                 :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
-                    :email="op.email"
-                    class="!text-[0.65rem]"
-                  />
+                  <GeneralUserIcon size="auto" :name="op.display_name" :email="op.email" class="!text-[0.65rem]" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>

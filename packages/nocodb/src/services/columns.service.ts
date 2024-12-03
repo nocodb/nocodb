@@ -1573,6 +1573,17 @@ export class ColumnsService {
       });
     }
 
+    if (
+      column.uidt === UITypes.Attachment &&
+      colBody.uidt !== UITypes.Attachment
+    ) {
+      await View.updateIfColumnUsedAsExpandedMode(
+        context,
+        column.id,
+        column.fk_model_id,
+      );
+    }
+
     // Get all the columns in the table and return
     await table.getColumns(context);
 
@@ -2693,6 +2704,13 @@ export class ColumnsService {
         ncMeta,
       );
     }
+
+    await View.updateIfColumnUsedAsExpandedMode(
+      context,
+      column.id,
+      column.fk_model_id,
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
       table,

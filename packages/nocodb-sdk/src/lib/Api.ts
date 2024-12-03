@@ -3293,6 +3293,31 @@ export interface ExtensionType {
   order?: number;
 }
 
+/**
+ * Model for Snapshot
+ */
+export interface SnapshotType {
+  /** Unique ID */
+  id?: IdType;
+  /** Title of the Snapshot */
+  title?: string;
+  /** Foreign Key to Base */
+  base_id?: IdType;
+  /** Foreign Key to Snapshot Base */
+  snapshot_base_id?: IdType;
+  /** Foreign Key to Workspace */
+  fk_workspace_id?: IdType;
+  /**
+   * Date of creation
+   * @format date
+   */
+  created_at?: string;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /** Status of the Snapshot */
+  status?: string;
+}
+
 export interface ExtensionReqType {
   /** Unique Base ID */
   base_id?: IdType;

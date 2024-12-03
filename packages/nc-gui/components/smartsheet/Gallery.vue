@@ -390,11 +390,7 @@ reloadViewDataHook?.on(async () => {
           </NcMenuItem>
         </NcMenu>
       </template>
-      <div
-        :class="{
-          'h-full': totalRows < 30,
-        }"
-      >
+      <div class="flex-1">
         <div :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
           <div class="nc-gallery-container grid gap-3 p-3">

@@ -683,8 +683,8 @@ onBeforeUnmount(() => {
                 <div
                   class="flex justify-center nc-ai-button-test-generate-wrapper"
                   :class="{
-                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
-                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && inputColumns.length),
+                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && inputColumns.length),
                   }"
                 >
                   <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>

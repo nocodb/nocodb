@@ -67,6 +67,8 @@ const handleRemoveIcon = (closeDropdown = true) => {
   vIcon.value = ''
   vIconType.value = ''
 
+  emits('submit')
+
   if (closeDropdown) {
     isOpen.value = false
   }

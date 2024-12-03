@@ -694,7 +694,7 @@ onBeforeUnmount(() => {
                         <div>Preview checklist</div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               inputColumns.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -707,7 +707,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               outputColumnIds.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               selectedRecordPk
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'

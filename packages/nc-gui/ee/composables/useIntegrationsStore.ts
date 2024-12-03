@@ -391,7 +391,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     return list
   }
 
-  onMounted(async () => {
+  const loadDynamicIntegrations = async () => {
     if (integrationsInitialized.value) return
 
     integrationsInitialized.value = true
@@ -440,7 +440,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       integrationsRefreshKey.value++
     }
-  })
+  }
 
   const integrationsIconMap = computed(() => {
     // eslint-disable-next-line no-unused-expressions
@@ -485,6 +485,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     setDefaultIntegration,
     integrationsIconMap,
     listIntegrationByType,
+    loadDynamicIntegrations,
   }
 }, 'integrations-store')
 

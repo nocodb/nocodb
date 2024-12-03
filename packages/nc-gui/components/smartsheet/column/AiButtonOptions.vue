@@ -495,7 +495,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="flex flex-col gap-6 h-[calc(100%_-_45px)] nc-scrollbar-thin py-6">
                 <div v-if="aiError" class="nc-ai-button-config-right-section">
-                  <div class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
+                  <div class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg w-full">
                     <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
                     <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
@@ -511,11 +511,11 @@ onBeforeUnmount(() => {
 
                 <div class="nc-ai-button-config-right-section">
                   <div class="px-3 py-1 text-nc-content-gray-subtle2 text-sm">Input fields</div>
-                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl mt-2">
+                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl mt-2 w-full">
                     <a-collapse
                       v-model:active-key="expansionInputPanel"
                       ghost
-                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-input"
+                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-input w-full"
                     >
                       <template #expandIcon> </template>
                       <a-collapse-panel :key="ExpansionPanelKeys.input" collapsible="disabled">
@@ -586,7 +586,7 @@ onBeforeUnmount(() => {
                                 <template #overlay>
                                   <div
                                     v-if="isLoadingViewData"
-                                    class="min-w-[500px] min-h-[296px] relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                                    class="min-w-[500px] max-w-[576px] min-h-[296px] relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
                                   >
                                     <GeneralLoader size="large" class="flex-none" />
                                     Loading records
@@ -599,7 +599,7 @@ onBeforeUnmount(() => {
                                     show-search-always
                                     search-input-placeholder="Search records"
                                     :item-height="60"
-                                    class="!w-auto min-w-[500px]"
+                                    class="!w-auto min-w-[500px] max-w-[576px]"
                                     container-class-name="!px-0 !pb-0"
                                     item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
                                     @update:value="handleResetOutput"
@@ -623,7 +623,7 @@ onBeforeUnmount(() => {
                         <div v-if="!inputColumns.length" class="flex-1 flex text-nc-content-gray-muted text-small leading-[18px]">
                           No input fields selected
                         </div>
-                        <div v-else class="flex flex-col gap-4">
+                        <div v-else class="flex flex-col gap-4 w-full">
                           <LazySmartsheetRow :key="selectedRecordPk" :row="selectedRecord.row">
                             <template v-for="field in inputColumns">
                               <a-form-item
@@ -643,7 +643,7 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <LazySmartsheetDivDataCell
-                                  class="relative flex items-center min-h-8 children:h-full bg-nc-bg-gray-extralight"
+                                  class="relative flex items-center min-h-8 children:h-full bg-nc-bg-gray-extralight max-w-full"
                                   :class="{
                                     '!select-text nc-system-field': isReadOnlyVirtualCell(field),
                                     '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
@@ -773,7 +773,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="nc-ai-button-config-right-section">
                   <div
-                    class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl"
+                    class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl w-full"
                     :class="{
                       'nc-is-already-generated': isAlreadyGenerated,
                     }"
@@ -781,7 +781,7 @@ onBeforeUnmount(() => {
                     <a-collapse
                       v-model:active-key="expansionOutputPanel"
                       ghost
-                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-output"
+                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-output w-full"
                     >
                       <template #expandIcon> </template>
                       <a-collapse-panel :key="ExpansionPanelKeys.output" collapsible="disabled">
@@ -792,7 +792,7 @@ onBeforeUnmount(() => {
                         >
                           No output fields selected
                         </div>
-                        <div v-else class="flex flex-col gap-4">
+                        <div v-else class="flex flex-col gap-4 w-full">
                           <LazySmartsheetRow :row="previewOutputRow">
                             <template v-for="field in outputFieldOptions">
                               <a-form-item
@@ -812,7 +812,7 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <LazySmartsheetDivDataCell
-                                  class="relative min-h-8 flex items-center children:h-full"
+                                  class="relative min-h-8 flex items-center children:h-full max-w-full"
                                   :class="{
                                     '!select-text nc-system-field': isReadOnlyVirtualCell(field),
                                     '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
@@ -887,9 +887,12 @@ onBeforeUnmount(() => {
 
 .nc-ai-button-config-left-section {
   @apply mx-auto p-6 w-full max-w-[568px];
+  width: min(100%, 568px);
 }
 .nc-ai-button-config-right-section {
   @apply mx-auto px-6 w-full max-w-[576px] flex flex-col;
+
+  width: min(100%, 576px);
 
   .nc-is-already-generated {
     box-shadow: 0px 12px 16px -4px rgba(75, 23, 123, 0.12), 0px 4px 6px -2px rgba(75, 23, 123, 0.08);

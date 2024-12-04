@@ -7,9 +7,11 @@ const props = withDefaults(
     workspaceId: string
     scope?: string
     showTooltip?: boolean
+    isEditColumn?: boolean
   }>(),
   {
     showTooltip: true,
+    isEditColumn: false,
   },
 )
 
@@ -18,6 +20,8 @@ const emits = defineEmits(['update:fkIntegrationId', 'update:model', 'update:ran
 const vFkIntegrationId = useVModel(props, 'fkIntegrationId', emits)
 
 const vModel = useVModel(props, 'model', emits)
+
+const { isEditColumn } = toRefs(props)
 
 // const vRandomness = useVModel(props, 'randomness', emits)
 
@@ -35,6 +39,8 @@ const isLoadingAvailableModels = ref<boolean>(false)
 
 const onIntegrationChange = async (newFkINtegrationId?: string) => {
   if (!vFkIntegrationId.value && !newFkINtegrationId) return
+
+  console.log('onIntegrationChange')
 
   if (!newFkINtegrationId) {
     newFkINtegrationId = vFkIntegrationId.value
@@ -63,6 +69,11 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 }
 
 onMounted(async () => {
+  console.log('vFkIntegrationId', vFkIntegrationId.value, vModel.value)
+  if (isEditColumn.value) {
+    return
+  }
+
   if (!vFkIntegrationId.value) {
     if (aiIntegrations.value.length > 0 && aiIntegrations.value[0].id) {
       vFkIntegrationId.value = aiIntegrations.value[0].id
@@ -77,6 +88,10 @@ onMounted(async () => {
       onIntegrationChange()
     }
   }
+})
+
+watchEffect(() => {
+  console.log('vModel', vFkIntegrationId.value)
 })
 </script>
 
@@ -115,6 +130,7 @@ onMounted(async () => {
                 v-model:value="vFkIntegrationId"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
+                placeholder="- select integration -"
                 @change="onIntegrationChange"
               >
                 <a-select-option v-for="integration in aiIntegrations" :key="integration.id" :value="integration.id">
@@ -154,6 +170,7 @@ onMounted(async () => {
                 v-model:value="vModel"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
+                placeholder="- select model -"
                 :disabled="!vFkIntegrationId || availableModels.length === 0"
                 :loading="isLoadingAvailableModels"
               >

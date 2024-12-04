@@ -202,6 +202,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
             v-model:randomness="vModel.randomness"
             :workspace-id="activeWorkspaceId"
             :show-tooltip="false"
+            :is-edit-column="isEdit"
             placement="bottomRight"
           >
             <NcButton size="xs" theme="ai" class="!px-1" type="text">

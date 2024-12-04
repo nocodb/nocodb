@@ -21,6 +21,12 @@ export const useNocoAi = createSharedComposable(() => {
 
   const aiIntegrationAvailable = computed(() => !!aiIntegrations.value.length)
 
+  const isAiIntegrationAvailableInList = (integrationId?: string) => {
+    if (!aiIntegrationAvailable) return false
+
+    return ncIsArrayIncludes(aiIntegrations.value, integrationId, 'id')
+  }
+
   const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
       const baseId = customBaseId || activeProjectId.value
@@ -338,6 +344,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   return {
     aiIntegrationAvailable,
+    isAiIntegrationAvailableInList,
     aiLoading,
     aiError,
     predictFieldType,

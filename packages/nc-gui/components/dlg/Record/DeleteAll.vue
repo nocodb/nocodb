@@ -34,12 +34,10 @@ const close = () => {
       {{ 'Delete all records' }}
     </div>
     <div data-testid="nc-expand-table-modal" class="flex flex-col">
-      <div class="mb-2 nc-content-gray">Are you sure you want to delete all the records present in this view?</div>
+      <div class="mb-2 nc-content-gray">Are you sure you want to delete all {{ rows }} records present in this view?</div>
     </div>
 
     <div class="bg-nc-bg-red-light p-4 border-1 flex items-center gap-4 w-full border-nc-gray-medium rounded-lg">
-      <GeneralIcon class="text-nc-fill-red-dark" icon="ncInfoSolid" />
-
       <div class="leading-5 font-semibold text-nc-content-gray">This action cannot be undone.</div>
     </div>
 

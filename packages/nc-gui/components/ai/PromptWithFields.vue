@@ -16,6 +16,7 @@ const props = withDefaults(
     promptFieldTagClassName?: string
     suggestionIconClassName?: string
     placeholder?: string
+    readOnly?: boolean
   }>(),
   {
     options: () => [],
@@ -27,6 +28,7 @@ const props = withDefaults(
      * @example: :placeholder="`Enter prompt here...\n\neg : Categorise this {Notes}`"
      */
     placeholder: 'Write your prompt here...',
+    readOnly: false,
   },
 )
 
@@ -39,7 +41,7 @@ const vModel = computed({
   },
 })
 
-const { autoFocus } = toRefs(props)
+const { autoFocus, readOnly } = toRefs(props)
 
 const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 1000)
 
@@ -106,7 +108,7 @@ const editor = useEditor({
 
     debouncedLoadMentionFieldTagTooltip()
   },
-  editable: true,
+  editable: !readOnly.value,
   autofocus: autoFocus.value,
   editorProps: { scrollThreshold: 100 },
 })
@@ -180,9 +182,24 @@ onMounted(() => {
   <div class="nc-ai-prompt-with-fields w-full">
     <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
 
-    <NcButton size="xs" type="text" class="nc-prompt-with-field-suggestion-btn !px-1" @click.stop="newFieldSuggestionNode">
+    <NcButton
+      size="xs"
+      type="text"
+      class="nc-prompt-with-field-suggestion-btn !px-1"
+      @click.stop="newFieldSuggestionNode"
+      :disabled="readOnly"
+    >
       <slot name="triggerIcon">
-        <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand" :class="`${suggestionIconClassName}`" />
+        <GeneralIcon
+          icon="ncPlusSquareSolid"
+          class="text-nc-content-brand"
+          :class="[
+            `${suggestionIconClassName}`,
+            {
+              'opacity-75': readOnly,
+            },
+          ]"
+        />
       </slot>
     </NcButton>
   </div>

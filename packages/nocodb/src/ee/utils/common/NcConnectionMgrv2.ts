@@ -163,6 +163,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     if (process.env.NC_DATA_DB) {
       if (!this.dataConfig)
         this.dataConfig = await metaUrlToDbConfig(process.env.NC_DATA_DB);
+
       return this.dataConfig;
       // if data db json is set, use it for generating knex connection
     } else if (process.env.NC_DATA_DB_JSON) {

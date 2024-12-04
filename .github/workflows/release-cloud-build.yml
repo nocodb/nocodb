@@ -134,7 +134,7 @@ jobs:
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
-          EE=true pnpm exec webpack --config webpack.ee-cloud.config.js &&
+          EE=true pnpm exec rspack --config rspack.ee-cloud.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
           pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
 

@@ -52,33 +52,35 @@ export class JobsMap extends JobsMapCE {
     );
   }
 
-  protected _jobMap = {
-    ...this._jobMap,
-    [JobTypes.HealthCheck]: {
-      this: this.healthCheckProcessor,
-    },
-    [JobTypes.UpdateModelStat]: {
-      this: this.updateStatsProcessor,
-      fn: 'updateModelStat',
-    },
-    [JobTypes.UpdateWsStat]: {
-      this: this.updateStatsProcessor,
-      fn: 'updateWorkspaceStat',
-    },
-    [JobTypes.UpdateSrcStat]: {
-      this: this.updateStatsProcessor,
-      fn: 'updateSourceStat',
-    },
-    [JobTypes.CleanUp]: {
-      this: this.cleanUpProcessor,
-    },
-    [JobTypes.CreateSnapshot]: {
-      this: this.snapshotProcessor,
-      fn: 'createSnapshot',
-    },
-    [JobTypes.RestoreSnapshot]: {
-      this: this.snapshotProcessor,
-      fn: 'restoreSnapshot',
-    },
-  };
+  protected get _jobMap() {
+    return {
+      ...super._jobMap,
+      [JobTypes.HealthCheck]: {
+        this: this.healthCheckProcessor,
+      },
+      [JobTypes.UpdateModelStat]: {
+        this: this.updateStatsProcessor,
+        fn: 'updateModelStat',
+      },
+      [JobTypes.UpdateWsStat]: {
+        this: this.updateStatsProcessor,
+        fn: 'updateWorkspaceStat',
+      },
+      [JobTypes.UpdateSrcStat]: {
+        this: this.updateStatsProcessor,
+        fn: 'updateSourceStat',
+      },
+      [JobTypes.CleanUp]: {
+        this: this.cleanUpProcessor,
+      },
+      [JobTypes.CreateSnapshot]: {
+        this: this.snapshotProcessor,
+        fn: 'createSnapshot',
+      },
+      [JobTypes.RestoreSnapshot]: {
+        this: this.snapshotProcessor,
+        fn: 'restoreSnapshot',
+      },
+    };
+  }
 }

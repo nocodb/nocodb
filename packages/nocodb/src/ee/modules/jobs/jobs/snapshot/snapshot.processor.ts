@@ -6,7 +6,6 @@ import type {
 } from '~/interface/Jobs';
 import type { Job } from 'bull';
 import { JobTypes } from '~/interface/Jobs';
-import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { Base, Source } from '~/models';
 import Snapshot from '~/models/Snapshot';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
@@ -15,14 +14,12 @@ import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.
 export class SnapshotProcessor {
   private readonly debugLog = debug('nc:jobs:snapshot');
 
-  constructor(
-    private readonly duplicateProcessorService: DuplicateProcessor,
-  ) {}
+  constructor(private readonly duplicateProcessorService: DuplicateProcessor) {}
 
   async createSnapshot(job: Job<CreateSnapshotJobData>) {
     this.debugLog(`Job started for ${job.id} (${JobTypes.CreateSnapshot})`);
 
-    const { context, snapshot, snapshotBaseId, sourceId, req, user } = job.data;
+    const { context, snapshot, snapshotBaseId, sourceId, req } = job.data;
 
     const baseId = context.base_id;
 
@@ -38,16 +35,15 @@ export class SnapshotProcessor {
         req,
         context,
         options: {},
-        operation: JobTypes.CreateSnapshot
-      })
+        operation: JobTypes.CreateSnapshot,
+      });
 
       await Snapshot.update(context, snapshot.id, {
         status: 'success',
       });
     } catch (err) {
-
-      await Snapshot.delete(context, snapshot.id)
-      throw err
+      await Snapshot.delete(context, snapshot.id);
+      throw err;
     }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.CreateSnapshot})`);
@@ -56,15 +52,14 @@ export class SnapshotProcessor {
 
   async restoreSnapshot(job: Job<RestoreSnapshotJobData>) {
     this.debugLog(`Job started for ${job.id} (${JobTypes.RestoreSnapshot})`);
-    const hrTime = initTime();
 
-    const { context, snapshot, targetBaseId, req, user, targetContext } = job.data;
+    const { context, targetBaseId, req, targetContext } = job.data;
 
     const baseId = context.base_id;
 
     const sourceBase = await Base.get(context, baseId);
 
-    await sourceBase.getSources(true)
+    await sourceBase.getSources(true);
 
     const targetBase = await Base.get(context, targetBaseId);
 
@@ -78,8 +73,8 @@ export class SnapshotProcessor {
       context,
       options: {},
       operation: JobTypes.RestoreSnapshot,
-      targetContext
-    })
+      targetContext,
+    });
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.RestoreSnapshot})`);
     return { id: targetBaseId };

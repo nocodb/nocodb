@@ -1,9 +1,4 @@
 {
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  },
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
@@ -41,5 +36,5 @@
     ]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud"]
+  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
 }

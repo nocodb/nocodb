@@ -5,16 +5,15 @@ import {
   Get,
   Param,
   Patch,
-  Post,
   UseGuards,
 } from '@nestjs/common';
 import type { SnapshotType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { SnapshotService } from '~/services/snapshot.service';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()

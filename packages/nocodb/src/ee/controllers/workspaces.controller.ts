@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Logger,
   Param,
   Patch,
@@ -23,8 +22,7 @@ import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcContext, NcRequest } from '~/interface/config';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
 
 @Controller()

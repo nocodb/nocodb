@@ -56,20 +56,17 @@ export default class Comment implements CommentType {
           fk_model_id,
         },
         orderBy: {
-          id: 'asc'
+          id: 'asc',
         },
         limit: pagination?.limit,
         offset: pagination?.offset,
         xcCondition: {
-          _or: [
-            { is_deleted: { eq: null } },
-            { is_deleted: { eq: true } },
-          ]
-        }
-      }
+          _or: [{ is_deleted: { eq: null } }, { is_deleted: { eq: true } }],
+        },
+      },
     );
 
-    return comments.map(comment => new Comment(comment));
+    return comments.map((comment) => new Comment(comment));
   }
 
   public static async list(

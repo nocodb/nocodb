@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  extractRolesObj,
   IntegrationReqType,
   IntegrationsType,
 } from 'nocodb-sdk';
@@ -22,7 +21,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
-import { NcError } from '~/helpers/catchError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

@@ -27,8 +27,7 @@ export class SnapshotService {
   }
 
   async deleteSnapshot(context: NcContext, baseId: string, snapshotId: string) {
-
-    const ncMeta = await Noco.ncMeta.startTransaction()
+    const ncMeta = await Noco.ncMeta.startTransaction();
 
     const snapshot = await Snapshot.get(context, snapshotId, ncMeta);
 
@@ -40,7 +39,7 @@ export class SnapshotService {
 
     await Base.delete(context, snapshot.snapshot_base_id, ncMeta);
 
-    await ncMeta.commit()
+    await ncMeta.commit();
 
     return true;
   }

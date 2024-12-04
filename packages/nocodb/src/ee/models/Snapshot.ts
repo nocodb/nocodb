@@ -160,11 +160,16 @@ export default class Snapshot implements SnapshotType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const count = await ncMeta.metaCount(context.workspace_id, context.base_id, MetaTable.SNAPSHOT, {
-      condition: {
-        base_id: baseId
-      }
-    })
-    return count
+    const count = await ncMeta.metaCount(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SNAPSHOT,
+      {
+        condition: {
+          base_id: baseId,
+        },
+      },
+    );
+    return count;
   }
 }

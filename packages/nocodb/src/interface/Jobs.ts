@@ -1,4 +1,10 @@
-import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType, SnapshotType } from 'nocodb-sdk';
+import type {
+  AttachmentResType,
+  PublicAttachmentScope,
+  SnapshotType,
+  SupportedExportCharset,
+  UserType,
+} from 'nocodb-sdk';
 
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
@@ -183,7 +189,7 @@ export interface RestoreSnapshotJobData extends JobData {
   targetContext: {
     workspace_id: string;
     base_id: string;
-  }
+  };
   snapshot: SnapshotType;
   req: NcRequest;
 }

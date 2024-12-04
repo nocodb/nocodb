@@ -83,8 +83,7 @@ export default class View extends ViewCE implements ViewType {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ) {
-
-    const views = await this.list(context, modelId, ncMeta )
+    const views = await this.list(context, modelId, ncMeta);
 
     if (!views.length) return;
 

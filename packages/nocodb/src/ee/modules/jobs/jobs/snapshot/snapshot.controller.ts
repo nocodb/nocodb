@@ -52,7 +52,9 @@ export class SnapshotController {
     if (count === 1) {
       const snapshots = await Snapshot.list(context, baseId);
 
-      const lastCreatedSnapshot = snapshots?.sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
+      const lastCreatedSnapshot = snapshots?.sort(
+        (a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix(),
+      )[0];
 
       if (dayjs().diff(dayjs(lastCreatedSnapshot.created_at), 'hour') < 3) {
         NcError.badRequest('You can only create a snapshot every 3 hours');
@@ -117,13 +119,15 @@ export class SnapshotController {
     @Param('snapshotId') snapshotId: string,
     @Req() req: NcRequest,
     @Param('baseId') baseId: string,
-    @Body() {workspaceId: _ws}: {
-      workspaceId: string
+    @Body()
+    {
+      workspaceId: _ws,
+    }: {
+      workspaceId: string;
     },
   ) {
-
     // TODO: Followup
-  /*  if (!workspaceId) {
+    /*  if (!workspaceId) {
       NcError.badRequest('Workspace id is required');
     }
 

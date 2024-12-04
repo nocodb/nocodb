@@ -1,10 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  },
   "compilerOptions": {
     "outDir": "./dist",
     "baseUrl": "./",
@@ -31,6 +26,12 @@
   ],
   "exclude": [
     "./src/ee-on-prem",
-    "./src/ee-cloud"
+    "./src/ee-cloud",
+    "./src/**/*.spec.ts",
+    "./src/ee/controllers/dashboards/**",
+    "./src/ee/controllers/docs/**",
+    "./src/ee/services/dashboards/**",
+    "./src/ee/services/docs/**",
+    "./src/ee/daos/**"
   ]
 }

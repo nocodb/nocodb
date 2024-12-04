@@ -2,7 +2,6 @@ import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
-  extractCondition,
   extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -1490,13 +1489,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   async bulkUpsert(
     datas: any[],
     {
-      chunkSize = 100,
+      _chunkSize = 100,
       cookie,
       raw = false,
       foreign_key_checks = true,
       insertOneByOneAsFallback = false,
     }: {
-      chunkSize?: number;
+      _chunkSize?: number;
       cookie?: any;
       raw?: boolean;
       foreign_key_checks?: boolean;
@@ -1536,7 +1535,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           dataWithPks.push({ pk: pkValues, data });
         } else {
           // const insertObj = this.handleValidateBulkInsert(data, columns);
-          await this.prepareNocoData(data, true, cookie)
+          await this.prepareNocoData(data, true, cookie);
           dataWithoutPks.push(data);
         }
       }
@@ -1555,7 +1554,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
-          await this.prepareNocoData(data, false, cookie)
+          await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
 
           updatePkValues.push(
@@ -1564,7 +1563,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
         } else {
-          await this.prepareNocoData(data, true, cookie)
+          await this.prepareNocoData(data, true, cookie);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

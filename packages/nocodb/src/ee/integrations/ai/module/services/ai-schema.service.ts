@@ -687,7 +687,7 @@ export class AiSchemaService {
             }
           }
           break;
-        case viewTypeToStringMap[ViewTypes.KANBAN]:
+        case viewTypeToStringMap[ViewTypes.KANBAN]: {
           const kanban = await this.kanbansService.kanbanViewCreate(context, {
             tableId: table.id,
             kanban: {
@@ -701,6 +701,7 @@ export class AiSchemaService {
           createdViews.push(kanban);
 
           break;
+        }
         case viewTypeToStringMap[ViewTypes.CALENDAR]: {
           const calendarRange = view.calendar_range
             ? Array.isArray(view.calendar_range)
@@ -728,7 +729,7 @@ export class AiSchemaService {
 
           break;
         }
-        case viewTypeToStringMap[ViewTypes.FORM]:
+        case viewTypeToStringMap[ViewTypes.FORM]: {
           const form = await this.formsService.formViewCreate(context, {
             tableId: table.id,
             body: viewData,
@@ -739,7 +740,8 @@ export class AiSchemaService {
           createdViews.push(form);
 
           break;
-        case viewTypeToStringMap[ViewTypes.GALLERY]:
+        }
+        case viewTypeToStringMap[ViewTypes.GALLERY]: {
           const gallery = await this.galleriesService.galleryViewCreate(
             context,
             {
@@ -753,6 +755,7 @@ export class AiSchemaService {
           createdViews.push(gallery);
 
           break;
+        }
         default:
           break;
       }

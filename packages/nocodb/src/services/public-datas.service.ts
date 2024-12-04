@@ -108,7 +108,7 @@ export class PublicDatasService {
       query: any;
     },
   ) {
-    const { sharedViewUuid, password, query = {} } = param;
+    const { sharedViewUuid, password } = param;
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);

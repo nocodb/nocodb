@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
 import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
@@ -51,6 +51,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
           res.setHeader('x-request-id', id);
           return id;
         },
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
+            : undefined,
       },
     }),
   ],

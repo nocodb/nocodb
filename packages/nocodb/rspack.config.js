@@ -92,7 +92,7 @@ module.exports = {
     }),
     new ForkTsCheckerWebpackPlugin({
       typescript: {
-        configFile: resolve('./src/tsconfig.build.json'),
+        configFile: path.resolve('./src/tsconfig.build.json'),
       },
     })
   ],

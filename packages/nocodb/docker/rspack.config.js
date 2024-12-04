@@ -44,7 +44,7 @@ module.exports = {
         },
     },
     output: {
-        path: require('path').resolve('./docker'),
+        path: path.resolve('./docker'),
         filename: 'main.js',
         library: 'libs',
         libraryTarget: 'umd',

@@ -147,6 +147,7 @@ export class SqlViewsService {
       title: getTableNameAlias(body.view_name, base.prefix, source),
       type: ModelTypes.VIEW,
       order: +(tables?.pop()?.order ?? 0) + 1,
+      user_id: param.user.id,
     });
 
     let colOrder = 1;

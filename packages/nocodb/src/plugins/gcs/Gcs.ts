@@ -35,7 +35,7 @@ export default class Gcs implements IStorageAdapterV2 {
     return patchedKey;
   }
 
-  private aclConfig(): { predefinedAcl: 'publicRead' } | {} {
+  private aclConfig(): { predefinedAcl: 'publicRead' } | Record<string, never> {
     return this.input.uniform_bucket_level_access
       ? {}
       : { predefinedAcl: 'publicRead' };
@@ -180,7 +180,7 @@ export default class Gcs implements IStorageAdapterV2 {
       action: 'read',
       expires: Date.now() + expiresInSeconds * 1000,
       responseDisposition: pathParameters?.ResponseContentDisposition,
-      responseType: pathParameters?.ResponseContentType
+      responseType: pathParameters?.ResponseContentType,
     };
 
     const [url] = await this.storageClient

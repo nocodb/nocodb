@@ -6,7 +6,6 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
 import {
-  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   ButtonActionsType,
@@ -74,7 +73,6 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
 import applyAggregation from '~/db/aggregation';
-import { extractMentions } from '~/utils/richTextHelper';
 import { chunkArray } from '~/utils/tsUtils';
 
 dayjs.extend(utc);
@@ -5336,7 +5334,7 @@ class BaseModelSqlv2 {
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
-          await this.prepareNocoData(data, true, cookie)
+          await this.prepareNocoData(data, true, cookie);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
@@ -5356,10 +5354,10 @@ class BaseModelSqlv2 {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
-          await this.prepareNocoData(data, false, cookie)
+          await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
         } else {
-          await this.prepareNocoData(data, true, cookie)
+          await this.prepareNocoData(data, true, cookie);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }
@@ -6501,9 +6499,9 @@ class BaseModelSqlv2 {
    * */
 
   public async handleRichTextMentions(
-    prevData,
-    newData: Record<string, any> | Array<Record<string, any>>,
-    req,
+    _prevData,
+    _newData: Record<string, any> | Array<Record<string, any>>,
+    _req,
   ) {
     return;
   }

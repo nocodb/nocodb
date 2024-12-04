@@ -28,55 +28,57 @@ export class JobsMap {
     protected readonly useWorkerProcessor: UseWorkerProcessor,
   ) {}
 
-  protected _jobMap: {
+  protected get _jobMap(): {
     [key in JobTypes]?: {
       this: any;
       fn?: string;
     };
-  } = {
-    [JobTypes.DuplicateBase]: {
-      this: this.duplicateProcessor,
-      fn: 'duplicateBase',
-    },
-    [JobTypes.DuplicateModel]: {
-      this: this.duplicateProcessor,
-      fn: 'duplicateModel',
-    },
-    [JobTypes.DuplicateColumn]: {
-      this: this.duplicateProcessor,
-      fn: 'duplicateColumn',
-    },
-    [JobTypes.AtImport]: {
-      this: this.atImportProcessor,
-    },
-    [JobTypes.MetaSync]: {
-      this: this.metaSyncProcessor,
-    },
-    [JobTypes.SourceCreate]: {
-      this: this.sourceCreateProcessor,
-    },
-    [JobTypes.SourceDelete]: {
-      this: this.sourceDeleteProcessor,
-    },
-    [JobTypes.HandleWebhook]: {
-      this: this.webhookHandlerProcessor,
-    },
-    [JobTypes.DataExport]: {
-      this: this.dataExportProcessor,
-    },
-    [JobTypes.ThumbnailGenerator]: {
-      this: this.thumbnailGeneratorProcessor,
-    },
-    [JobTypes.AttachmentCleanUp]: {
-      this: this.attachmentCleanUpProcessor,
-    },
-    [JobTypes.InitMigrationJobs]: {
-      this: this.initMigrationJobs,
-    },
-    [JobTypes.UseWorker]: {
-      this: this.useWorkerProcessor,
-    },
-  };
+  } {
+    return {
+      [JobTypes.DuplicateBase]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateBase',
+      },
+      [JobTypes.DuplicateModel]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateModel',
+      },
+      [JobTypes.DuplicateColumn]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateColumn',
+      },
+      [JobTypes.AtImport]: {
+        this: this.atImportProcessor,
+      },
+      [JobTypes.MetaSync]: {
+        this: this.metaSyncProcessor,
+      },
+      [JobTypes.SourceCreate]: {
+        this: this.sourceCreateProcessor,
+      },
+      [JobTypes.SourceDelete]: {
+        this: this.sourceDeleteProcessor,
+      },
+      [JobTypes.HandleWebhook]: {
+        this: this.webhookHandlerProcessor,
+      },
+      [JobTypes.DataExport]: {
+        this: this.dataExportProcessor,
+      },
+      [JobTypes.ThumbnailGenerator]: {
+        this: this.thumbnailGeneratorProcessor,
+      },
+      [JobTypes.AttachmentCleanUp]: {
+        this: this.attachmentCleanUpProcessor,
+      },
+      [JobTypes.InitMigrationJobs]: {
+        this: this.initMigrationJobs,
+      },
+      [JobTypes.UseWorker]: {
+        this: this.useWorkerProcessor,
+      },
+    };
+  }
 
   public get jobs() {
     return this._jobMap;

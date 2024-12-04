@@ -1162,7 +1162,7 @@ export default class Model implements TableType {
     context: NcContext,
     {
       modelId,
-      userId,
+      userId: _,
     }: {
       modelId: string;
       userId?: string;

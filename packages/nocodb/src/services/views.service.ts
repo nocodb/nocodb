@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles, ViewLockType } from 'nocodb-sdk';
+import { AppEvents, ProjectRoles } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,

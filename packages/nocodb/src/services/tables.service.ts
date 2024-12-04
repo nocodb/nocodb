@@ -10,9 +10,7 @@ import {
   ProjectRoles,
   RelationTypes,
   UITypes,
-  ViewLockType,
 } from 'nocodb-sdk';
-import { LockType } from 'nc-gui/lib/enums';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {

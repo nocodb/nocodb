@@ -11,9 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+// This service is overwritten entirely in the cloud and does not extend there.
+// As a result, it refers to services from OSS to avoid type mismatches.
+import { IntegrationsService } from 'src/services/integrations.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { IntegrationsService } from '~/services/integrations.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';

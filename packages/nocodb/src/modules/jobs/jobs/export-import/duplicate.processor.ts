@@ -35,42 +35,39 @@ export class DuplicateProcessor {
     private readonly columnsService: ColumnsService,
   ) {}
 
-
-  async duplicateBaseJob(
-    {
-      sourceBase,
-      targetBase,
-      dataSource,
-      req,
-      context,
-      options,
-      operation,
-      targetContext: _targetContext
-    }: {
-      sourceBase: Base; // Base to duplicate
-      targetBase: Base; // Base to duplicate to
-      dataSource: Source; // Data source to duplicate from
-      req: NcRequest;
-      context: NcContext // Context of the base to duplicate
-      targetContext?: NcContext // Context of the base to duplicate to
-      options: {
-        excludeData?: boolean;
-        excludeHooks?: boolean;
-        excludeViews?: boolean;
-        excludeComments?: boolean;
-      }
-      operation: string
-    }) {
+  async duplicateBaseJob({
+    sourceBase,
+    targetBase,
+    dataSource,
+    req,
+    context,
+    options,
+    operation,
+    targetContext: _targetContext,
+  }: {
+    sourceBase: Base; // Base to duplicate
+    targetBase: Base; // Base to duplicate to
+    dataSource: Source; // Data source to duplicate from
+    req: NcRequest;
+    context: NcContext; // Context of the base to duplicate
+    targetContext?: NcContext; // Context of the base to duplicate to
+    options: {
+      excludeData?: boolean;
+      excludeHooks?: boolean;
+      excludeViews?: boolean;
+      excludeComments?: boolean;
+    };
+    operation: string;
+  }) {
     const hrTime = initTime();
 
-    const targetContext = _targetContext ??  {
+    const targetContext = _targetContext ?? {
       workspace_id: targetBase.fk_workspace_id,
       base_id: targetBase.id,
-    }
+    };
 
     try {
-
-      if(!sourceBase || !targetBase || !dataSource) {
+      if (!sourceBase || !targetBase || !dataSource) {
         throw new Error(`Base or source not found!`);
       }
 
@@ -82,7 +79,7 @@ export class DuplicateProcessor {
 
       const exportedModels = await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
-        ...options
+        ...options,
       });
 
       elapsedTime(
@@ -133,8 +130,7 @@ export class DuplicateProcessor {
         user: req.user,
         req,
       });
-
-    } catch(err) {
+    } catch (err) {
       if (targetBase?.id) {
         await this.projectsService.baseSoftDelete(targetContext, {
           baseId: targetBase.id,
@@ -177,10 +173,10 @@ export class DuplicateProcessor {
         excludeData,
         excludeHooks,
         excludeViews,
-        excludeComments
+        excludeComments,
       },
-      operation: JobTypes.DuplicateBase
-    })
+      operation: JobTypes.DuplicateBase,
+    });
 
     return { id: dupProject.id };
   }

@@ -1,0 +1,15 @@
+diff --git a/dist/splitpanes.es.js b/dist/splitpanes.es.js
+index 6a8e64363e592840123438b1a5959a580440b325..0b2ddee308cfbc48bef9351286b218d8cc1ace7b 100644
+--- a/dist/splitpanes.es.js
++++ b/dist/splitpanes.es.js
+@@ -160,7 +160,9 @@ const M = {
+     },
+     requestUpdate({ target: e, ...i }) {
+       const s = this.indexedPanes[e._.uid];
+-      Object.entries(i).forEach(([n, t]) => s[n] = t);
++      if (s) {
++        Object.entries(i).forEach(([n, t]) => s[n] = t);
++      }
+     },
+     onPaneAdd(e) {
+       let i = -1;

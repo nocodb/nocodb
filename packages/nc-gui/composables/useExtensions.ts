@@ -1,10 +1,19 @@
 import { ExtensionsEvents } from '#imports'
+import { useStorage } from '@vueuse/core'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
   return { baseExtensions }
 })
+
+interface ExtensionPanelState {
+  width: number
+  isOpen: boolean
+}
+const extensionsPanelState = createGlobalState(() =>
+  useStorage<Record<string, ExtensionPanelState>>('nc-extensions-global-state', {}),
+)
 
 export interface ExtensionManifest {
   id: string
@@ -76,8 +85,6 @@ export const useExtensions = createSharedComposable(() => {
   // Object to store description content for each extension
   const descriptionContent = ref<Record<string, string>>({})
 
-  const extensionPanelSize = ref(40)
-
   const activeBaseExtensions = computed(() => {
     if (!base.value || !base.value.id) {
       return null
@@ -85,9 +92,36 @@ export const useExtensions = createSharedComposable(() => {
     return baseExtensions.value[base.value.id]
   })
 
-  const isPanelExpanded = computed(() => {
-    return activeBaseExtensions.value ? activeBaseExtensions.value.expanded : false
-  })
+  const panelState = extensionsPanelState()
+
+  const extensionPanelSize = ref(40)
+  const isPanelExpanded = ref(false)
+
+  const savePanelState = () => {
+    panelState.value = {
+      ...panelState.value,
+      [base.value.id!]: {
+        width: extensionPanelSize.value,
+        isOpen: isPanelExpanded.value,
+      },
+    }
+  }
+
+  watch(
+    base,
+    () => {
+      extensionPanelSize.value = +panelState.value[base.value.id!]?.width || 40
+      isPanelExpanded.value = panelState.value[base.value.id!]?.isOpen || false
+    },
+    { immediate: true },
+  )
+
+  // Debounce since width is updated continuously when user drags.
+  watchDebounced([extensionPanelSize, isPanelExpanded], savePanelState, { debounce: 500, maxWait: 1000 })
+
+  const toggleExtensionPanel = () => {
+    isPanelExpanded.value = !isPanelExpanded.value
+  }
 
   const extensionList = computed<ExtensionType[]>(() => {
     return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
@@ -96,12 +130,6 @@ export const useExtensions = createSharedComposable(() => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
       })
   })
-
-  const toggleExtensionPanel = () => {
-    if (activeBaseExtensions.value) {
-      activeBaseExtensions.value.expanded = !activeBaseExtensions.value.expanded
-    }
-  }
 
   const addExtension = async (extension: any) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {

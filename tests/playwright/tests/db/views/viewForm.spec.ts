@@ -977,6 +977,7 @@ test.describe('Form view: field validation', () => {
   });
 
   test('Form builder field validation: limit to range', async () => {
+    test.slow();
     await createTable({ tableName: 'FormFieldLimitToRange', type: 'limitToRange' });
     const url = dashboard.rootPage.url();
 

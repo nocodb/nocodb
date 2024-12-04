@@ -217,6 +217,7 @@
     "function": "기능",
     "confirm": "확인",
     "generate": "생성",
+    "generating": "생성 중...",
     "copy": "복사",
     "copied": "복사됨",
     "are": "are",
@@ -1054,7 +1055,7 @@
     "lockView": "뷰 잠금",
     "unlockView": "뷰 잠금 해제",
     "aiSuggested": "AI 제안",
-    "generateFieldDataUsingAi": "AI를 사용하여 필드 데이터 생성",
+    "generateFieldDataUsingAi": "AI를 사용하여 필드 값 생성",
     "preview": "미리보기",
     "autoSuggest": "자동 제안",
     "suggesting": "제안...",
@@ -1378,7 +1379,7 @@
     "autoSuggestSelectOptions": "필드 이름과 기존 필드를 기반으로 옵션을 자동 제안합니다.",
     "aiIntegrationReConfigure": "AI 연동이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 구성하십시오",
     "aiIntegrationAddAndReConfigure": "AI 통합이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 추가하고 재구성하십시오",
-    "generateFieldDataUsingAiButtonOption": "레코드 정보와 NocoAI를 사용하여 이 테이블의 여러 필드에 대한 데이터를 생성합니다"
+    "generateFieldDataUsingAiButtonOption": "레코드 정보와 NocoAI를 사용하여 이 테이블의 여러 필드에 대한 값을 생성합니다"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

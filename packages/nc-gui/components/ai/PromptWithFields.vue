@@ -186,8 +186,8 @@ onMounted(() => {
       size="xs"
       type="text"
       class="nc-prompt-with-field-suggestion-btn !px-1"
-      @click.stop="newFieldSuggestionNode"
       :disabled="readOnly"
+      @click.stop="newFieldSuggestionNode"
     >
       <slot name="triggerIcon">
         <GeneralIcon

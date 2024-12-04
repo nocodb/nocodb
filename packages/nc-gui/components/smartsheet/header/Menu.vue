@@ -57,7 +57,7 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     }
   }
 
-  return isColumnInvalid(column.value, aiIntegrations.value)
+  return isColumnInvalid(column.value, aiIntegrations.value, isPublic.value || !isUIAllowed('dataEdit'))
 })
 
 const setAsDisplayValue = async () => {

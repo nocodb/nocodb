@@ -269,6 +269,7 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
 const isColumnInvalid = (
   col: ColumnType,
   aiIntegrations: Partial<IntegrationType>[] = [],
+  isReadOnly: boolean = false,
 ): { isInvalid: boolean; tooltip: string } => {
   const result = {
     isInvalid: false,
@@ -288,7 +289,9 @@ const isColumnInvalid = (
       } else if (colOptions.type === ButtonActionsType.Ai) {
         result.isInvalid =
           !colOptions.fk_integration_id ||
-          (!!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
         result.tooltip = 'title.aiIntegrationMissing'
       }
       break
@@ -299,7 +302,9 @@ const isColumnInvalid = (
 
         result.isInvalid =
           !colOptions.fk_integration_id ||
-          (!!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
 
         result.tooltip = 'title.aiIntegrationMissing'
       }

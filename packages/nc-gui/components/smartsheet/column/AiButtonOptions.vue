@@ -594,7 +594,6 @@ onBeforeUnmount(() => {
                                   <NcList
                                     v-else
                                     v-model:value="selectedRecordPk"
-                                    @update:value="handleResetOutput"
                                     v-model:open="isOpenSelectRecordDropdown"
                                     :list="sampleRecords"
                                     show-search-always

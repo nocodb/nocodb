@@ -71,3 +71,23 @@ export const ncArrayFrom = <T>(
 export const isUnicodeEmoji = (emoji: string) => {
   return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
 }
+
+/**
+ * Performs a case-insensitive search to check if the `query` exists within the `source` string.
+ *
+ * @param source - The string to search within. If undefined, it's treated as an empty string.
+ * @param query - The string to search for. If undefined, it's treated as an empty string.
+ * @returns `true` if the `query` is found within the `source` (case-insensitively), otherwise `false`.
+ *
+ * @example
+ * ```typescript
+ * ncSearchCompare("Hello World", "world"); // true
+ * ncSearchCompare("OpenAI ChatGPT", "gpt"); // true
+ * ncSearchCompare("TypeScript", "JavaScript"); // false
+ * ncSearchCompare(undefined, "test"); // false
+ * ncSearchCompare("test", undefined); // true
+ * ```
+ */
+export const ncSearchCompare = (source?: string, query?: string): boolean => {
+  return (source || '').toLowerCase().includes((query || '').toLowerCase())
+}

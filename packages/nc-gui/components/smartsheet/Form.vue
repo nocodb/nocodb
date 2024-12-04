@@ -655,9 +655,29 @@ const handleOnUploadImage = (data: AttachmentResType = null) => {
   updateView()
 }
 
+const isFocusedFieldLabel = ref(false)
+
 const onFocusActiveFieldLabel = (e: FocusEvent) => {
+  isFocusedFieldLabel.value = true
+
+  if (activeField.value && !activeField.value.label) {
+    activeField.value.label = activeField.value?.title ?? ''
+  }
+
   ;(e.target as HTMLTextAreaElement).select()
 }
+
+const activeFieldLabel = computed(() => {
+  if (!isFocusedFieldLabel.value && !activeField.value?.label) {
+    return activeField.value?.title
+  }
+
+  return activeField.value?.label ?? ''
+})
+
+onClickOutside(focusLabel, () => {
+  isFocusedFieldLabel.value = false
+})
 
 const updateFieldTitle = (value: string) => {
   if (!activeField.value) return
@@ -1459,7 +1479,7 @@ useEventListener(
 
                     <a-textarea
                       ref="focusLabel"
-                      :value="activeField.label || activeField.title"
+                      :value="activeFieldLabel"
                       :rows="1"
                       auto-size
                       hide-details
@@ -1467,6 +1487,7 @@ useEventListener(
                       data-testid="nc-form-input-label"
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"
+                      @blur="isFocusedFieldLabel = false"
                       @keydown.enter.prevent
                       @input="updateFieldTitle($event.target.value)"
                       @change="updateColMeta(activeField)"

@@ -478,6 +478,7 @@ export default class Integration implements IntegrationType {
       MetaTable.COL_BUTTON,
       {
         fk_integration_id: null,
+        model: null,
       },
       {
         fk_integration_id: this.id,
@@ -490,6 +491,7 @@ export default class Integration implements IntegrationType {
       MetaTable.COL_LONG_TEXT,
       {
         fk_integration_id: null,
+        model: null,
       },
       {
         fk_integration_id: this.id,
@@ -524,6 +526,7 @@ export default class Integration implements IntegrationType {
       MetaTable.COL_BUTTON,
       {
         fk_integration_id: null,
+        model: null,
       },
       {
         fk_integration_id: this.id,
@@ -536,6 +539,7 @@ export default class Integration implements IntegrationType {
       MetaTable.COL_LONG_TEXT,
       {
         fk_integration_id: null,
+        model: null,
       },
       {
         fk_integration_id: this.id,

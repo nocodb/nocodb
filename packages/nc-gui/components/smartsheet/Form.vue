@@ -685,7 +685,7 @@ const updateFieldTitle = (value: string) => {
   if (activeField.value.title === value) {
     activeField.value.label = null
   } else {
-    activeField.value.label = value
+    activeField.value.label = value.trimStart()
   }
 }
 

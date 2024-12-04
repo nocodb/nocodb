@@ -236,7 +236,7 @@ export default class Workspace implements WorkspaceType {
       CacheDelDirection.PARENT_TO_CHILD,
     );
 
-    const bases = await Base.listByWorkspace(id, ncMeta);
+    const bases = await Base.listByWorkspace(id, true, ncMeta);
 
     for (const base of bases) {
       await Base.delete(

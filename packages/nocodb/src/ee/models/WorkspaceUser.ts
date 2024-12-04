@@ -92,6 +92,7 @@ export default class WorkspaceUser {
       // clear base user list caches
       const bases = await Base.listByWorkspace(
         workspaceUser.fk_workspace_id,
+        false,
         ncMetaTrans,
       );
       for (const base of bases) {
@@ -417,7 +418,11 @@ export default class WorkspaceUser {
 
     if (updateObj.roles) {
       // get all bases user is part of and update cache
-      const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
+      const workspaceBases = await Base.listByWorkspace(
+        workspaceId,
+        true,
+        ncMeta,
+      );
 
       for (const base of workspaceBases) {
         await NocoCache.update(`${CacheScope.BASE_USER}:${base.id}:${userId}`, {

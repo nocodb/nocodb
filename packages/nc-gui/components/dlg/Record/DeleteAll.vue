@@ -37,8 +37,8 @@ const close = () => {
       <div class="mb-2 nc-content-gray">Are you sure you want to delete all {{ rows }} records present in this view?</div>
     </div>
 
-    <div class="bg-nc-bg-red-light p-4 border-1 flex items-center gap-4 w-full border-nc-gray-medium rounded-lg">
-      <div class="leading-5 font-semibold text-nc-content-gray">This action cannot be undone.</div>
+    <div class="bg-nc-bg-gray-light p-4 border-1 flex items-center gap-4 w-full border-nc-gray-medium rounded-lg">
+      <div class="leading-5 text-nc-content-gray">This action cannot be undone.</div>
     </div>
 
     <div class="flex flex-row mt-5 justify-end gap-x-2">

@@ -280,12 +280,12 @@ const editor = useEditor({
   },
 })
 
-const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
+const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
 
   const selection = editor.value.view.state.selection
 
-  const contentHtml = contentMd ? marked.parse(contentMd) : '<p></p>'
+  const contentHtml = contentMd ? marked.parse(contentMd.replaceAll('\n', '<br/>')) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
 

@@ -40,8 +40,6 @@ const isLoadingAvailableModels = ref<boolean>(false)
 const onIntegrationChange = async (newFkINtegrationId?: string) => {
   if (!vFkIntegrationId.value && !newFkINtegrationId) return
 
-  console.log('onIntegrationChange')
-
   if (!newFkINtegrationId) {
     newFkINtegrationId = vFkIntegrationId.value
   }
@@ -69,7 +67,6 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 }
 
 onMounted(async () => {
-  console.log('vFkIntegrationId', vFkIntegrationId.value, vModel.value)
   if (isEditColumn.value) {
     return
   }
@@ -88,10 +85,6 @@ onMounted(async () => {
       onIntegrationChange()
     }
   }
-})
-
-watchEffect(() => {
-  console.log('vModel', vFkIntegrationId.value)
 })
 </script>
 

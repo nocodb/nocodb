@@ -64,7 +64,7 @@ export function useGridViewData(
     isFirstRow,
     getExpandedRowIndex,
     loadData,
-
+    selectedAllRecords,
     loadAggCommentsCount,
     navigateToSiblingRow,
   } = useInfiniteData({
@@ -706,6 +706,23 @@ export function useGridViewData(
     }
   }
 
+  async function bulkDeleteAll() {
+    try {
+      isBulkOperationInProgress.value = true
+
+      await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
+        where: where?.value,
+        viewId: viewMeta.value?.id,
+      })
+    } catch (error) {
+    } finally {
+      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+      await syncCount()
+      syncVisibleData?.()
+      isBulkOperationInProgress.value = false
+    }
+  }
+
   return {
     cachedRows,
     loadData,
@@ -720,6 +737,7 @@ export function useGridViewData(
     bulkUpdateRows,
     bulkUpsertRows,
     bulkUpdateView,
+    bulkDeleteAll,
     loadAggCommentsCount,
     syncCount,
     removeRowIfNew,
@@ -737,5 +755,6 @@ export function useGridViewData(
     applySorting,
     isRowSortRequiredRows,
     isBulkOperationInProgress,
+    selectedAllRecords,
   }
 }

@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import {
   type ColumnType,
   CommonAggregations,
+  type FormulaType,
   type TableType,
   UITypes,
   type ViewType,
@@ -123,6 +124,32 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       await updateGridViewColumn(fieldId, { aggregation: agg })
     }
 
+    const aggregateFormulaFields = computed(() => {
+      return fields.value
+        .filter((field) => {
+          if (!field?.id || !field?.title) return false
+
+          if (
+            !isFormula(field) ||
+            !gridViewCols.value[field.id] ||
+            !gridViewCols.value[field.id]?.aggregation ||
+            gridViewCols.value[field.id]?.aggregation === CommonAggregations.None ||
+            !(field.colOptions as FormulaType)?.formula_raw
+          ) {
+            return false
+          }
+
+          return true
+        })
+        .map((field) => {
+          return {
+            id: field.id,
+            aggregation: gridViewCols.value[field.id!]?.aggregation ?? CommonAggregations.None,
+            formula_raw: (field.colOptions as FormulaType)?.formula_raw ?? '',
+          }
+        })
+    })
+
     reloadAggregate?.on(async (_fields) => {
       if (!_fields || !_fields?.fields.length) {
         await loadViewAggregate()
@@ -134,6 +161,12 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           if (!f?.id) return acc
 
           acc[f.id] = field.aggregation ?? gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+
+          for (const formulaField of aggregateFormulaFields.value) {
+            if (!acc[formulaField.id!] && formulaField.formula_raw.includes(field.title)) {
+              acc[formulaField.id!] = formulaField.aggregation
+            }
+          }
 
           return acc
         }, {} as Record<string, string>)

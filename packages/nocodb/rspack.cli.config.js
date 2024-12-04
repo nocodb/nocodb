@@ -1,4 +1,4 @@
-const path = require('path');
+const { resolve,  } = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
 
@@ -7,12 +7,40 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.node$/,
+        loader: 'node-loader',
+        options: {
+          name: '[path][name].[ext]',
+        },
+      },
+      {
         test: /\.tsx?$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true,
+        loader: 'builtin:swc-loader',
+        options: {
+          sourceMap: false,
+          jsc: {
+            parser: {
+              syntax: 'typescript',
+              tsx: true,
+              decorators: true,
+              dynamicImport: true,
+            },
+            transform: {
+              legacyDecorator: true,
+              decoratorMetadata: true,
+            },
+            target: 'es2017',
+            loose: true,
+            externalHelpers: false,
+            keepClassNames: true,
+          },
+          module: {
+            type: 'commonjs',
+            strict: false,
+            strictMode: true,
+            lazy: false,
+            noInterop: false,
           },
         },
       },
@@ -39,13 +67,13 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     tsConfig: {
-      configFile: path.resolve('tsconfig.json'),
+      configFile: resolve('tsconfig.json'),
     },
   },
   mode: 'production',
   output: {
     filename: 'cli.js',
-    path: path.resolve(__dirname, '..', 'nc-secret-mgr', 'src/nocodb'),
+    path: resolve(__dirname, '..', 'nc-secret-mgr', 'src/nocodb'),
     library: 'libs',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this",

@@ -1,4 +1,4 @@
-const path = require('path');
+const { resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -69,13 +69,13 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
-      configFile: path.resolve('tsconfig.json'),
+      configFile: resolve('tsconfig.json'),
     },
   },
   mode: 'production',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: resolve(__dirname, 'dist'),
     library: 'libs',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this",
@@ -92,7 +92,7 @@ module.exports = {
     }),
     new ForkTsCheckerWebpackPlugin({
       typescript: {
-        configFile: path.resolve('./src/tsconfig.build.json'),
+        configFile: resolve('tsconfig.json'),
       },
     })
   ],

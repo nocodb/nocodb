@@ -57,9 +57,6 @@ const baseDevConfig = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
-    tsConfig: {
-      configFile: resolve('tsconfig.json'),
-    },
   },
   optimization: {
     minimize: false,

@@ -19,7 +19,6 @@ const close = () => {
   dialogShow.value = false
   emit('cancel')
 }
-
 </script>
 
 <template>
@@ -35,7 +34,7 @@ const close = () => {
       {{ 'Delete all records' }}
     </div>
     <div data-testid="nc-expand-table-modal" class="flex flex-col">
-      <div class="mb-2 nc-content-gray">Are you sure you want to delete all the records present in this table?</div>
+      <div class="mb-2 nc-content-gray">Are you sure you want to delete all the records present in this view?</div>
     </div>
 
     <div class="bg-nc-bg-red-light p-4 border-1 flex items-center gap-4 w-full border-nc-gray-medium rounded-lg">

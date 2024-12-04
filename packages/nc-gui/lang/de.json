@@ -217,6 +217,7 @@
     "function": "Funktion",
     "confirm": "Bestätigen",
     "generate": "Generieren",
+    "generating": "Generating...",
     "copy": "Kopieren",
     "copied": "Kopiert",
     "are": "sind",
@@ -1054,7 +1055,7 @@
     "lockView": "Ansicht sperren",
     "unlockView": "Ansicht entsperren",
     "aiSuggested": "KI-Empfehlung",
-    "generateFieldDataUsingAi": "Erzeuge Felddaten mithilfe von KI",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Vorschau",
     "autoSuggest": "Automatisch vorschlagen",
     "suggesting": "Schlage vor ...",
@@ -1378,7 +1379,7 @@
     "autoSuggestSelectOptions": "Automatisch Optionen basierend auf Feldname und vorhandenen Feldern vorschlagen",
     "aiIntegrationReConfigure": "Die KI-Integration wurde entfernt. Konfigurieren Sie das Feld im Bearbeitungsmodus neu, um die NocoAI-Funktionen zu nutzen.",
     "aiIntegrationAddAndReConfigure": "Die KI-Integration wurde entfernt. Fügen Sie das Feld neu hinzu und konfigurieren Sie es im Bearbeitungsmodus, um die NocoAI-Funktionen zu nutzen.",
-    "generateFieldDataUsingAiButtonOption": "Daten für mehrere Felder dieser Tabelle mit Datensatzinformationen und NocoAI erzeugen"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

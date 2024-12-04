@@ -390,7 +390,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group = await processGroupData(response, group)
         }
 
-        if (appInfo.value.ee) {
+        if (appInfo.value.ee && group?.children?.length) {
           const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
@@ -408,28 +408,32 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           })
 
-          const aggResponse = !isPublic
-            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                meta.value!.id,
-                {
-                  viewId: view.value!.id,
-                  aggregation,
-                },
-                aggregationParams,
-              )
-            : await fetchBulkAggregatedData(
-                {
-                  aggregation,
-                },
-                aggregationParams,
-              )
+          let aggResponse = {}
 
-          await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-            const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
-            if (child) {
-              Object.assign(child.aggregations, value)
-            }
-          })
+          if (aggregation.length) {
+            aggResponse = !isPublic
+              ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+                  meta.value!.id,
+                  {
+                    viewId: view.value!.id,
+                    aggregation,
+                  },
+                  aggregationParams,
+                )
+              : await fetchBulkAggregatedData(
+                  {
+                    aggregation,
+                  },
+                  aggregationParams,
+                )
+
+            await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
+              const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
+              if (child) {
+                Object.assign(child.aggregations, value)
+              }
+            })
+          }
         }
 
         if (group?.children?.length && group.nestedIn.length === groupBy.value.length - 1) {

@@ -1475,7 +1475,7 @@ class BaseModelSqlv2 {
   ) {
     try {
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return {}
       }
 
       const { where, aggregation } = this._getListArgs(args as any);

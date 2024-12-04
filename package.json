@@ -78,6 +78,9 @@
         "musl",
         "glibc"
       ]
+    },
+    "patchedDependencies": {
+      "splitpanes@3.1.5": "packages/nc-gui/.patches/splitpanes@3.1.5.patch"
     }
   }
 }

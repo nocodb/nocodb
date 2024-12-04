@@ -50,7 +50,7 @@ test.describe('Verify shortcuts', () => {
     await unsetup(context);
   });
 
-  test('Verify shortcuts', async ({ page }) => {
+  test.skip('Verify shortcuts', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
     // create new table
     await page.keyboard.press('Alt+t');

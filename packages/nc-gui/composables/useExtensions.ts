@@ -108,15 +108,15 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    [base, activeBaseExtensions],
+    base,
     () => {
       extensionPanelSize.value = +panelState.value[base.value.id!]?.width || 40
       isPanelExpanded.value = panelState.value[base.value.id!]?.isOpen || false
-      savePanelState()
     },
     { immediate: true },
   )
 
+  // Debounce since width is updated continuously when user drags.
   watchDebounced([extensionPanelSize, isPanelExpanded], savePanelState, { debounce: 500, maxWait: 1000 })
 
   const toggleExtensionPanel = () => {

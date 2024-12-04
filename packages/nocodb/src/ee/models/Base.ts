@@ -20,6 +20,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { NcError } from '~/helpers/catchError';
 
 const logger = new Logger('Base');
 
@@ -273,6 +274,10 @@ export default class Base extends BaseCE {
       MetaTable.PROJECT,
       baseId,
     );
+
+    if (!base) {
+      NcError.baseNotFound(baseId);
+    }
 
     const users = await BaseUser.getUsersList(
       context,

@@ -47,7 +47,7 @@ const isPreviewEnabled = computed(() => {
 
 const isEnabledGenerateText = computed({
   get: () => {
-    return aiIntegrationAvailable.value && vModel.value.meta?.[LongTextAiMetaProp]
+    return vModel.value.meta?.[LongTextAiMetaProp]
   },
   set: (value: boolean) => {
     vModel.value.meta[LongTextAiMetaProp] = value
@@ -174,7 +174,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
           <NcSwitch
             v-model:checked="isEnabledGenerateText"
-            :disabled="!aiIntegrationAvailable || richMode"
+            :disabled="richMode"
             class="nc-ai-field-generate-text nc-ai-input"
             @change="handleDisableSubmitBtn"
           >
@@ -211,12 +211,13 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         </div>
       </a-form-item>
     </div>
-    <template v-if="isEnabledGenerateText">
+    <template v-if="!isEdit ? aiIntegrationAvailable && isEnabledGenerateText : isEnabledGenerateText">
       <a-form-item class="flex">
         <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
           <AiPromptWithFields
             v-model="vModel.prompt_raw"
             :options="availableFields"
+            :read-only="!aiIntegrationAvailable"
             placeholder="Write custom AI Prompt instruction here"
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
             suggestion-icon-class-name="!text-nc-content-purple-medium"
@@ -229,7 +230,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           </div>
         </div>
       </a-form-item>
-      <div class="nc-ai-options-preview overflow-hidden">
+      <div v-if="aiIntegrationAvailable && isEnabledGenerateText" class="nc-ai-options-preview overflow-hidden">
         <div>
           <div
             class="flex items-center gap-2 transition-all duration-300"
@@ -305,7 +306,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
       </div>
     </template>
 
-    <AiIntegrationNotFound v-if="!aiIntegrationAvailable" />
+    <AiIntegrationNotFound v-if="!aiIntegrationAvailable && isEnabledGenerateText" />
   </div>
 </template>
 

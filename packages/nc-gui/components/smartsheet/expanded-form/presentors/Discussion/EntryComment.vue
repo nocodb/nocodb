@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import dayjs from 'dayjs'
+import { type CommentType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -10,8 +10,12 @@ const props = defineProps<{
 
 /* formatting */
 
-function formatDateToRelative(date: string) {
-  return dayjs(date).fromNow()
+const editedAt = (comment: CommentType) => {
+  if (comment.updated_at !== comment.created_at && comment.updated_at) {
+    const str = timeAgo(comment.updated_at).replace(' ', '_')
+    return `[(edited)](a~~~###~~~Edited_${str}) `
+  }
+  return ''
 }
 
 </script>
@@ -23,7 +27,7 @@ function formatDateToRelative(date: string) {
         {{ props.comment.displayName }}
       </span>
       <span class="text-xs text-gray-500 ml-2">
-        {{ formatDateToRelative(props.comment.created_at) }}
+        {{ timeAgo(props.comment.created_at) }}
       </span>
     </div>
     <div class="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex gap-1">
@@ -48,13 +52,11 @@ function formatDateToRelative(date: string) {
         <template #title>Click to resolve</template>
       </NcTooltip>
     </div>
-    <p class="mb-0 mt-2">
-      {{ props.comment.comment }}
-    </p>
-    <div class="mt-2">
-      <GeneralEmojiPicker container-class="border-1 border-gray-300 rounded-full">
-        <GeneralIcon class="w-[16px]" icon="ncSmile" />
-      </GeneralEmojiPicker>
-    </div>
+    <SmartsheetExpandedFormRichComment
+      :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
+      class="!text-small !leading-18px !text-gray-800 -ml-1"
+      read-only
+      sync-value-change
+    />
   </div>
 </template>

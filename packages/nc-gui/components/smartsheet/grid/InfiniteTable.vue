@@ -2139,19 +2139,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   :row="row"
                 >
                   <template #default="{ state }">
-                    <div
+                    <tr
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
-                      class="absolute z-30 left-0"
+                      class="absolute z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row filtered
 
@@ -2163,20 +2160,17 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                         </NcTooltip>
                       </div>
-                    </div>
-                    <div
+                    </tr>
+                    <tr
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
-                      class="absolute transform z-30 left-0"
+                      class="absolute transform z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row moved
 
@@ -2186,7 +2180,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                         </NcTooltip>
                       </div>
-                    </div>
+                    </tr>
                     <tr
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{

@@ -183,9 +183,7 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  // TODO: confirm with Ramesh
-  const hideAiPromptOnEdit = !(t.name === AIPrompt && isEdit.value)
-
+  const hideAiPromptOnEdit = !((t.name === AIPrompt || t.name === AIButton) && isEdit.value)
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
   return (

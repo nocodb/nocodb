@@ -11,6 +11,7 @@ import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
+import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -145,7 +146,7 @@ if (appInfo.value.ee) {
           isSameUser: bUser?.id === user.value?.id,
         }),
       )
-      span.setAttribute('class', `${colorStyles} mention font-semibold  m-0.5 rounded-md px-1`)
+      span.setAttribute('class', `${colorStyles} mention font-semibold m-0.5 rounded-md px-1 inline-block`)
       span.textContent = `@${processedContent}`
       return span.outerHTML
     }
@@ -224,7 +225,7 @@ const tiptapExtensions = [
     ? [
         Mention.configure({
           suggestion: {
-            ...suggestion,
+            ...suggestion(UserMentionList),
             items: ({ query }) =>
               baseUsers.value
                 .filter((user) => user.deleted !== true)
@@ -706,8 +707,12 @@ onClickOutside(editorDom, (e) => {
     height: fit-content;
   }
 
-  .mention span {
-    display: none;
+  .mention {
+    @apply inline-block my-2px;
+
+    span {
+      display: none;
+    }
   }
 
   em {

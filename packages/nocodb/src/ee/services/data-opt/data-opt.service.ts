@@ -13,6 +13,7 @@ import {
   singleQueryRead as mysqlSingleQueryRead,
 } from '~/services/data-opt/mysql-helpers';
 import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
+import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DataOptService {
@@ -30,6 +31,7 @@ export class DataOptService {
       baseModel?: BaseModelSqlv2;
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
@@ -72,6 +74,7 @@ export class DataOptService {
       id: string;
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     try {

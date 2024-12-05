@@ -58,6 +58,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
 import { extractMentions } from '~/utils/richTextHelper';
+import {NcApiVersion} from "nc-gui/lib/enums";
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -183,6 +184,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       bulkAggregate?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
+      apiVersion?: NcApiVersion;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
@@ -192,6 +194,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipJsonConversion: false,
       raw: false,
       first: false,
+      apiVersion: NcApiVersion.V2,
     },
   ) {
     if (options.raw || options.bulkAggregate) {

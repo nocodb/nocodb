@@ -14,6 +14,7 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DatasService extends DatasServiceCE {
@@ -32,6 +33,7 @@ export class DatasService extends DatasServiceCE {
       ignorePagination?: boolean;
       limitOverride?: number;
       getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };
@@ -122,6 +124,7 @@ export class DatasService extends DatasServiceCE {
         baseModel,
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
+        apiVersion: param.apiVersion,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -134,6 +137,7 @@ export class DatasService extends DatasServiceCE {
         baseModel,
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
+        apiVersion: param.apiVersion,
       });
     }
 
@@ -147,6 +151,7 @@ export class DatasService extends DatasServiceCE {
       rowId: string;
       disableOptimization?: boolean;
       getHiddenColumn?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);

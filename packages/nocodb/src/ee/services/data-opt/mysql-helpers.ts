@@ -12,6 +12,7 @@ import {
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from './common-helpers';
+import type { NcApiVersion } from 'nc-gui/lib/enums';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -103,6 +104,7 @@ export async function extractColumns({
   ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
+  apiVersion: NcApiVersion;
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
@@ -147,6 +149,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams,
   validateFormula,
   columns,
+  apiVersion
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -161,6 +164,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
   columns?: Column[];
+  apiVersion?: NcApiVersion
 }) {
   const context = baseModel.context;
 
@@ -301,6 +305,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion
               });
 
               qb.joinRaw(
@@ -364,6 +369,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion
               });
 
               btAggQb
@@ -442,6 +448,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
+                  apiVersion
                 });
 
                 btAggQb
@@ -497,6 +504,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
+                  apiVersion
                 });
 
                 qb.joinRaw(
@@ -564,6 +572,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion
               });
 
               qb.joinRaw(
@@ -1040,6 +1049,7 @@ export async function singleQueryRead(
     getHiddenColumn?: boolean;
     throwErrorIfInvalidParams?: boolean;
     validateFormula?: boolean;
+    apiVersion?: NcApiVersion;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns(context);
@@ -1171,6 +1181,7 @@ export async function singleQueryRead(
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     validateFormula: ctx.validateFormula,
+    apiVersion: ctx.apiVersion,
   });
 
   // const dataAlias = getAlias();
@@ -1232,6 +1243,7 @@ export async function singleQueryList(
     baseModel?: BaseModelSqlv2;
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
+    apiVersion?: NcApiVersion;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
@@ -1423,6 +1435,7 @@ export async function singleQueryList(
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     validateFormula: ctx.validateFormula,
+    apiVersion: ctx.apiVersion,
   });
 
   if (!ctx.ignorePagination) {
@@ -1455,7 +1468,9 @@ export async function singleQueryList(
   let res: any;
   if (skipCache) {
     const startTime = process.hrtime();
-    res = await baseModel.execAndParse(finalQb);
+    res = await baseModel.execAndParse(finalQb, undefined, {
+      apiVersion: ctx.apiVersion,
+    });
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
     const { sql, bindings } = finalQb.toSQL();
@@ -1482,6 +1497,10 @@ export async function singleQueryList(
     // run the query with actual limit and offset
     res = await baseModel.execAndParse(
       knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+      undefined,
+      {
+        apiVersion: ctx.apiVersion,
+      },
     );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   }

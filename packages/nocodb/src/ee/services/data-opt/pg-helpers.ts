@@ -47,6 +47,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
+import { NcApiVersion } from "nc-gui/lib/enums";
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -89,6 +90,7 @@ export async function extractColumns({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
+  apiVersion,
 }: {
   columns: Column[];
   // allowedCols?: Record<string, boolean>;
@@ -102,6 +104,7 @@ export async function extractColumns({
   ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
+  apiVersion: NcApiVersion;
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
@@ -125,6 +128,7 @@ export async function extractColumns({
         throwErrorIfInvalidParams,
         validateFormula,
         columns,
+        apiVersion,
       }),
     );
   }
@@ -146,6 +150,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams,
   validateFormula,
   columns,
+  apiVersion = NcApiVersion.V2,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -160,6 +165,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
   columns?: Column[];
+  apiVersion: NcApiVersion;
 }) {
   const context = baseModel.context;
 
@@ -188,6 +194,8 @@ export async function extractColumn({
 
         const listArgs = getListArgs(params ?? {}, relatedModel, {
           ignoreAssigningWildcardSelect: true,
+          apiVersion,
+          nested: true,
         });
 
         const aliasColObjMap = await relatedModel.getAliasColObjMap(context);
@@ -215,7 +223,6 @@ export async function extractColumn({
         const queryFilterObj = extractFilterFromXwhere(
           listArgs?.where,
           aliasColObjMap,
-
           throwErrorIfInvalidParams,
         );
 
@@ -314,6 +321,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion,
               });
 
               qb.joinRaw(
@@ -383,6 +391,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion: apiVersion,
               });
 
               qb.joinRaw(
@@ -455,6 +464,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
+                  apiVersion,
                 });
 
                 qb.joinRaw(
@@ -506,6 +516,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
+                  apiVersion,
                 });
 
                 qb.joinRaw(
@@ -578,6 +589,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
+                apiVersion,
               });
 
               qb.joinRaw(
@@ -811,6 +823,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
 
         if (!result.isArray) {
@@ -960,6 +973,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
       }
       break;
@@ -990,6 +1004,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
       }
       break;
@@ -1057,6 +1072,21 @@ export async function extractColumn({
       );
       break;
     }
+    case UITypes.MultiSelect: {
+      // if v3 api then return as array by splitting
+      if (apiVersion === NcApiVersion.V3) {
+        const columnName = await getColumnName(context, column, columns);
+
+        qb.select(
+          knex.raw(`string_to_array(??.??, ',') as ??`, [
+            rootAlias,
+            sanitize(columnName),
+            getAs(column),
+          ]),
+        );
+        break;
+      }
+    }
     default:
       {
         if (column.dt === 'bytea') {
@@ -1107,6 +1137,7 @@ export async function singleQueryRead(
     getHiddenColumn?: boolean;
     throwErrorIfInvalidParams?: boolean;
     validateFormula?: boolean;
+    apiVersion?: NcApiVersion
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns(context);
@@ -1230,6 +1261,7 @@ export async function singleQueryRead(
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     validateFormula: ctx.validateFormula,
+    apiVersion: ctx.apiVersion,
   });
 
   // const dataAlias = getAlias();
@@ -1293,6 +1325,7 @@ export async function singleQueryList(
     baseModel?: BaseModelSqlv2;
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
+    apiVersion?: NcApiVersion;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const excludeCount = ctx.params?.excludeCount;
@@ -1376,7 +1409,7 @@ export async function singleQueryList(
               .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
               .toQuery(),
             null,
-            { skipDateConversion: true },
+            { skipDateConversion: true, apiVersion: ctx.apiVersion },
           );
           dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
         })(),
@@ -1538,6 +1571,7 @@ export async function singleQueryList(
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     validateFormula: ctx.validateFormula,
     alias: ROOT_ALIAS,
+    apiVersion: ctx.apiVersion,
   });
 
   if (!ctx.ignorePagination) {

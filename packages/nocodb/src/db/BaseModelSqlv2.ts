@@ -29,8 +29,9 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
+import { NcApiVersion } from 'nc-gui/lib/enums';
+import { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
-import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
 import type CustomKnex from '~/db/CustomKnex';
@@ -79,6 +80,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import applyAggregation from '~/db/aggregation';
 import { chunkArray } from '~/utils/tsUtils';
+import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 
@@ -459,6 +461,7 @@ class BaseModelSqlv2 {
       limitOverride?: number;
       pks?: string;
       customConditions?: Filter[];
+      apiVersion?: NcApiVersion;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -5231,17 +5234,28 @@ class BaseModelSqlv2 {
         } catch {
           continue;
         }
+
         switch (colOptions.type) {
           case RelationTypes.BELONGS_TO:
             {
-              if (typeof nestedData !== 'object') continue;
+              if (Array.isArray(nestedData)) {
+                nestedData = nestedData[0];
+              }
+
               const childCol = await colOptions.getChildColumn(this.context);
               const parentCol = await colOptions.getParentColumn(this.context);
-              insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+              insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
+                nestedData,
+                parentCol.title,
+              );
             }
             break;
           case RelationTypes.ONE_TO_ONE:
             {
+              if (Array.isArray(nestedData)) {
+                nestedData = nestedData[0];
+              }
+
               const isBt = col.meta?.bt;
 
               const childCol = await colOptions.getChildColumn(this.context);
@@ -5253,6 +5267,7 @@ class BaseModelSqlv2 {
                 const colVal = Array.isArray(nestedData)
                   ? nestedData[0]?.[childModel.primaryKey.title]
                   : nestedData[childModel.primaryKey.title];
+
                 // todo: unlink the ref record
                 preInsertOps.push(async () => {
                   return this.dbDriver(this.getTnPath(childModel.table_name))
@@ -5263,12 +5278,15 @@ class BaseModelSqlv2 {
                     .toQuery();
                 });
 
-                if (typeof nestedData !== 'object') continue;
                 const childCol = await colOptions.getChildColumn(this.context);
                 const parentCol = await colOptions.getParentColumn(
                   this.context,
                 );
-                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+
+                insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
+                  nestedData,
+                  parentCol.title,
+                );
               } else {
                 const parentCol = await colOptions.getParentColumn(
                   this.context,
@@ -5286,14 +5304,17 @@ class BaseModelSqlv2 {
                       .where(parentModel.primaryKey.column_name, rowId)
                       .first();
                   }
+
+                  const linkRecId = extractIdPropIfObjectOrReturn(
+                    nestedData,
+                    childModel.primaryKey.title,
+                  );
+
                   return this.dbDriver(this.getTnPath(childModel.table_name))
                     .update({
                       [childCol.column_name]: refId,
                     })
-                    .where(
-                      childModel.primaryKey.column_name,
-                      nestedData[childModel.primaryKey.title],
-                    )
+                    .where(childModel.primaryKey.column_name, linkRecId)
                     .toQuery();
                 });
               }
@@ -5323,7 +5344,12 @@ class BaseModelSqlv2 {
                   })
                   .whereIn(
                     childModel.primaryKey.column_name,
-                    nestedData?.map((r) => r[childModel.primaryKey.title]),
+                    nestedData?.map((r) =>
+                      extractIdPropIfObjectOrReturn(
+                        r,
+                        childModel.primaryKey.title,
+                      ),
+                    ),
                   )
                   .toQuery();
               });
@@ -5345,7 +5371,10 @@ class BaseModelSqlv2 {
               const mmModel = await colOptions.getMMModel(this.context);
 
               const rows = nestedData.map((r) => ({
-                [parentMMCol.column_name]: r[parentModel.primaryKey.title],
+                [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
+                  r,
+                  parentModel.primaryKey.title,
+                ),
                 [childMMCol.column_name]: rowId,
               }));
               return this.dbDriver(this.getTnPath(mmModel.table_name))
@@ -5762,6 +5791,7 @@ class BaseModelSqlv2 {
       isSingleRecordInsertion = false,
       allowSystemColumn = false,
       undo = false,
+      apiVersion = NcApiVersion.V1,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -5772,6 +5802,7 @@ class BaseModelSqlv2 {
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
       undo?: boolean;
+      apiVersion?: NcApiVersion;
     } = {},
   ) {
     let trx;
@@ -5951,11 +5982,13 @@ class BaseModelSqlv2 {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
+      apiVersion,
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
+      apiVersion?: NcApiVersion;
     } = {},
   ) {
     let transaction;
@@ -6064,6 +6097,13 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
+      if (apiVersion === NcApiVersion.V3) {
+        // remove LTAR/Links if part of the update request
+        await this.updateLTARCols({
+          transaction,
+        });
+      }
+
       for (const o of toBeUpdated) {
         await transaction(this.tnPath).update(o.d).where(o.wherePk);
       }
@@ -6103,6 +6143,88 @@ class BaseModelSqlv2 {
     } catch (e) {
       if (transaction) await transaction.rollback();
       throw e;
+    }
+  }
+
+  async updateLTARCols({
+    rowId,
+    newData,
+    cookie,
+  }: {
+    newData: any;
+    rowId: string;
+    cookie;
+  }) {
+    for (const col of this.model.columns) {
+      // skip if not LTAR or Links
+      if (!isLinksOrLTAR(col)) continue;
+
+      // skip if value is not part of the update
+      if (!(col.title in newData)) continue;
+
+      // extract existing link values to current record
+      let existingLinks = [];
+
+      if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
+        existingLinks = await this.mmList({
+          colId: col.id,
+          parentId: rowId,
+        });
+      } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
+        existingLinks = await this.hmList({
+          colId: col.id,
+          id: rowId,
+        });
+      } else {
+        existingLinks = await this.btRead({
+          colId: col.id,
+          id: rowId,
+        });
+      }
+
+      const idsToLink = [
+        ...(Array.isArray(newData[col.title])
+          ? newData[col.title]
+          : [newData[col.title]]
+        ).map((rec) => this.extractPksValues(rec, true)),
+      ];
+
+      // check for any missing links then unlink
+      const idsToUnlink = existingLinks
+        .map((link) => this.extractPksValues(link, true))
+        .filter((existingLinkPk) => {
+          const index = idsToLink.findIndex((linkPk) => {
+            return existingLinkPk === linkPk;
+          });
+
+          // if found remove from both list
+          if (index > -1) {
+            idsToLink.splice(index, 1);
+            return false;
+          }
+
+          return true;
+        });
+
+      // check for missing links in new data and unlink them
+      if (idsToUnlink?.length) {
+        await this.removeLinks({
+          colId: col.id,
+          childIds: idsToUnlink,
+          cookie,
+          rowId
+        });
+      }
+
+      // check for new data and link them
+      if (idsToLink?.length) {
+        await this.addLinks({
+          colId: col.id,
+          childIds: idsToLink,
+          cookie,
+          rowId
+        });
+      }
     }
   }
 
@@ -7024,11 +7146,19 @@ class BaseModelSqlv2 {
           selectOptionsMeta?.options?.map((opt) => opt.title) || [],
       );
 
-    // if multi select, then split the values
-    const columnValueArr =
-      column.uidt === UITypes.MultiSelect
-        ? columnValue.split(',')
-        : [columnValue];
+    let columnValueArr: any[];
+
+    // if multi select, then split the values if it is not an array
+    if (column.uidt === UITypes.MultiSelect) {
+      if (Array.isArray(columnValue)) {
+        columnValueArr = columnValue;
+      } else {
+        columnValueArr = `${columnValue}`.split(',');
+      }
+    } else {
+      columnValueArr = [columnValue];
+    }
+
     for (let j = 0; j < columnValueArr.length; ++j) {
       const val = columnValueArr[j];
       if (!options.includes(val) && !options.includes(`'${val}'`)) {
@@ -8325,6 +8455,7 @@ class BaseModelSqlv2 {
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
+      apiVersion?: NcApiVersion;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
@@ -8334,6 +8465,7 @@ class BaseModelSqlv2 {
       raw: false,
       first: false,
       bulkAggregate: false,
+      apiVersion: NcApiVersion.V2,
     },
   ) {
     if (options.raw) {
@@ -8373,6 +8505,9 @@ class BaseModelSqlv2 {
 
     if (!options.skipJsonConversion) {
       data = await this.convertJsonTypes(data, dependencyColumns);
+    }
+    if (options.apiVersion === NcApiVersion.V3) {
+      data = await this.convertMultiSelectTypes(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -8816,6 +8951,33 @@ class BaseModelSqlv2 {
     return d;
   }
 
+  // this function is used to convert the response in string to array in API response
+  protected async _convertMultiSelectType(
+    multiSelectColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        for (const col of multiSelectColumns) {
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = d[col.id].split(',');
+          }
+
+          if (d[col.id]?.length) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = d[col.id][i].split(',');
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return d;
+  }
+
   public async getNestedColumn(column: Column) {
     if (column.uidt !== UITypes.Lookup) {
       return column;
@@ -8861,6 +9023,36 @@ class BaseModelSqlv2 {
           );
         } else {
           data = await this._convertJsonType(jsonCols, data);
+        }
+      }
+    }
+    return data;
+  }
+
+  public async convertMultiSelectTypes(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    if (data) {
+      const multiSelectColumns = [];
+
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.MultiSelect) {
+          multiSelectColumns.push(col);
+        }
+      }
+
+      if (multiSelectColumns.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) =>
+              this._convertMultiSelectType(multiSelectColumns, d),
+            ),
+          );
+        } else {
+          data = await this._convertMultiSelectType(multiSelectColumns, data);
         }
       }
     }
@@ -10117,6 +10309,7 @@ class BaseModelSqlv2 {
           UITypes.CreatedBy,
           UITypes.LastModifiedBy,
           UITypes.LongText,
+          UITypes.MultiSelect,
           UITypes.Order,
         ].includes(column.uidt) ||
         (column.uidt === UITypes.LongText &&
@@ -10398,6 +10591,13 @@ class BaseModelSqlv2 {
           typeof data[column.column_name] !== 'string'
         ) {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
+        }
+      } else if (UITypes.MultiSelect === column.uidt) {
+        if (
+          data[column.column_name] &&
+          Array.isArray(data[column.column_name])
+        ) {
+          data[column.column_name] = data[column.column_name].join(',');
         }
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {
@@ -10735,7 +10935,11 @@ function shouldSkipField(
 export function getListArgs(
   args: XcFilterWithAlias,
   model: Model,
-  { ignoreAssigningWildcardSelect = false } = {},
+  {
+    ignoreAssigningWildcardSelect = false,
+    apiVersion = NcApiVersion.V2,
+    nested = false,
+  } = {},
 ): XcFilter {
   const obj: XcFilter = {};
   obj.where = args.where || args.filter || args.w || '';
@@ -10743,15 +10947,23 @@ export function getListArgs(
   obj.shuffle = args.shuffle || args.r || '';
   obj.condition = args.condition || args.c || {};
   obj.conditionGraph = args.conditionGraph || {};
-  obj.limit = Math.max(
-    Math.min(
-      Math.max(+(args?.limit || args?.l), 0) ||
-        BaseModelSqlv2.config.limitDefault,
-      BaseModelSqlv2.config.limitMax,
-    ),
-    BaseModelSqlv2.config.limitMin,
-  );
+  obj.page = args.page || args.p;
+  obj.limit =
+    apiVersion === NcApiVersion.V3 && nested
+      ? BaseModelSqlv2.config.ltarV3Limit
+      : Math.max(
+          Math.min(
+            Math.max(+(args?.limit || args?.l), 0) ||
+              BaseModelSqlv2.config.limitDefault,
+            BaseModelSqlv2.config.limitMax,
+          ),
+          BaseModelSqlv2.config.limitMin,
+        );
+
   obj.offset = Math.max(+(args?.offset || args?.o) || 0, 0);
+  if (obj.page) {
+    obj.offset = (+obj.page - 1) * +obj.limit;
+  }
   obj.fields =
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
@@ -10792,3 +11004,8 @@ function getRelatedLinksColumn(
 }
 
 export { BaseModelSqlv2 };
+
+// extractIdPropIfObjectOrReturn
+function extractIdPropIfObjectOrReturn(id: any, prop: string) {
+  return typeof id === 'object' ? id[prop] : id;
+}

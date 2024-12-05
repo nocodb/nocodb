@@ -217,6 +217,7 @@
     "function": "功能",
     "confirm": "确认",
     "generate": "生成",
+    "generating": "Generating...",
     "copy": "复制",
     "copied": "已复制",
     "are": "是",
@@ -1054,7 +1055,7 @@
     "lockView": "锁定视图",
     "unlockView": "解锁视图",
     "aiSuggested": "AI建议",
-    "generateFieldDataUsingAi": "使用AI生成字段数据",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "预览",
     "autoSuggest": "自动建议",
     "suggesting": "建议...",
@@ -1378,7 +1379,7 @@
     "autoSuggestSelectOptions": "根据字段名称和现有字段自动建议选项",
     "aiIntegrationReConfigure": "AI集成已被移除，请从字段编辑模式重新配置以使用NocoAI功能",
     "aiIntegrationAddAndReConfigure": "AI集成已被移除，请从字段编辑模式重新添加和配置以使用NocoAI功能",
-    "generateFieldDataUsingAiButtonOption": "使用记录信息和NocoAI为此表格中的多个字段生成数据"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

@@ -387,6 +387,77 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
+  const auditGroups = computed(() => {
+    
+    const groups = [];
+
+    const currentAudits = [...audits.value].sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
+    });
+
+    let currentGroup = undefined;
+    let lastAudit = undefined;
+
+    while (currentAudits.length) {
+
+      const audit = currentAudits.shift();
+
+      if (!currentGroup) {
+        currentGroup = {
+          created_at: audit.created_at,
+          audits: [audit],
+        }
+      }
+      else if (audit?.op_type !== lastAudit?.op_type || audit?.op_sub_type !== lastAudit?.op_sub_type || audit?.user !== lastAudit?.user) {
+
+        groups.push(currentGroup);
+
+        currentGroup = {
+          created_at: audit.created_at,
+          audits: [audit],
+        };
+
+      }
+      else {
+        currentGroup.audits.push(audit);
+      }
+
+      lastAudit = audit;
+
+    }
+
+    if (currentGroup?.audits?.length) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  })
+
+  const auditCommentGroups = computed(() => {
+
+    const currentAuditGroups = [...auditGroups.value].map(it => ({
+      ...it,
+      user: it.audits[0]?.user,
+      displayName: it.audits[0]?.created_display_name,
+      type: 'audit',
+    }));
+
+    const currentComments = [...comments.value].sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
+    }).map(it => ({
+      ...it,
+      user: it.created_by_email,
+      displayName: it.created_display_name,
+      type: 'comment',
+    }));
+
+    const allGroups = [...currentAuditGroups, ...currentComments].sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
+    });
+
+    return allGroups;
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -410,6 +481,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     saveRowAndStay,
     updateComment,
     clearColumns,
+    auditGroups,
+    auditCommentGroups,
   }
 }, 'expanded-form-store')
 

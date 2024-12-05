@@ -9,11 +9,12 @@ const props = defineProps<{
   size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
   readonly?: boolean
   disableClearing?: boolean
+  containerClass?: string
 }>()
 
 const emit = defineEmits(['emojiSelected'])
 
-const { emoji: initialEmoji, size = 'medium', readonly } = props
+const { emoji: initialEmoji, size = 'medium', readonly, containerClass } = props
 
 const clearable = computed(() => {
   return !props.disableClearing && !readonly
@@ -85,6 +86,7 @@ const showClearButton = computed(() => {
         'h-8 w-8 text-xl': size === 'medium',
         'h-10 w-10 text-2xl': size === 'large',
         'h-14 w-16 text-5xl': size === 'xlarge',
+        [containerClass || '']: !!containerClass,
       }"
       @click="onClick"
     >

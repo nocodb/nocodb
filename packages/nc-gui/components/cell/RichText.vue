@@ -709,6 +709,14 @@ onClickOutside(editorDom, (e) => {
   .mention span {
     display: none;
   }
+
+  em {
+    font-synthesis: initial !important;
+
+    & * {
+      font-synthesis: initial !important;
+    }
+  }
 }
 .nc-form-field-bubble-menu-wrapper {
   @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;

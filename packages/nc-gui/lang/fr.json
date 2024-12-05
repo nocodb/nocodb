@@ -217,6 +217,7 @@
     "function": "Fonction",
     "confirm": "Confirmer",
     "generate": "Générer",
+    "generating": "Generating...",
     "copy": "Copier",
     "copied": "Copié",
     "are": "sont",
@@ -1054,7 +1055,7 @@
     "lockView": "Verrouiller la vue",
     "unlockView": "Déverrouiller la vue",
     "aiSuggested": "Proposé par l'IA",
-    "generateFieldDataUsingAi": "Générer des données à l'aide de l'IA",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Prévisualiser",
     "autoSuggest": "Suggérer automatiquement",
     "suggesting": "Proposition en cours...",
@@ -1378,7 +1379,7 @@
     "autoSuggestSelectOptions": "Proposer des options en fonction du nom du champ et des champs existants",
     "aiIntegrationReConfigure": "L'intégration IA a été supprimée, reconfigurer depuis la fenêtre d'édition du champ pour utiliser les fonctionnalités de NocoAI",
     "aiIntegrationAddAndReConfigure": "L'intégration de l'IA a été supprimée, ajoutez à nouveau et reconfigurez à partir de la fenêtre d'édition de champ pour utiliser les fonctionnalités de NocoAI",
-    "generateFieldDataUsingAiButtonOption": "Générer des données pour plusieurs champs dans ce tableau en utilisant les informations de l'enregistrement et NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

@@ -272,37 +272,43 @@ const updateSize = () => {
   }
 }
 
-watch([isVisible, inputRef], (value) => {
-  const observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const { width, height } = entry.contentRect
+watch(
+  [isVisible, inputRef],
+  (value) => {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
 
-      if (!isVisible.value) {
-        return
+        if (!isVisible.value) {
+          return
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
       }
+    })
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
-    }
-  })
+    if (value) {
+      if (isRichMode.value && isVisible.value) {
+        setTimeout(() => {
+          const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
 
-  if (value) {
-    if (isRichMode.value && isVisible.value) {
-      setTimeout(() => {
-        const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+          if (!el) return
 
-        if (!el) return
+          observer.observe(el)
 
-        observer.observe(el)
-
+          updateSize()
+        }, 50)
+      } else {
         updateSize()
-      }, 50)
+      }
     } else {
-      updateSize()
+      observer.disconnect()
     }
-  } else {
-    observer.disconnect()
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

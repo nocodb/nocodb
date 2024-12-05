@@ -8680,7 +8680,7 @@ class BaseModelSqlv2 {
           const lookupNestedCol = await this.getNestedColumn(col);
 
           if (
-            JSON_COLUMN_TYPES.includes(lookupNestedCol) ||
+            JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
             isAIPromptCol(lookupNestedCol)
           ) {
             jsonCols.push(col);

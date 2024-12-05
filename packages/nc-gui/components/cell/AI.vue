@@ -60,7 +60,7 @@ const generate = async () => {
     ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
       ? column.value.colOptions.output_column_ids.split(',')
       : []
-  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id]).filter((id) => Boolean(id))
+  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id]).filter(Boolean)
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)

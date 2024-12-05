@@ -25,7 +25,9 @@ export const defaultConnectionConfig: any = {
 export const defaultConnectionOptions = {
   pool: {
     min: 0,
-    max: 10,
+    max: Number.isNaN(parseInt(process.env.DB_MAX_POOL_SIZE))
+      ? 10
+      : parseInt(process.env.DB_MAX_POOL_SIZE),
   },
 };
 

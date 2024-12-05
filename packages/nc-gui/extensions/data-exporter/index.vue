@@ -7,7 +7,7 @@ const jobStatusTooltip = {
   [JobStatus.FAILED]: 'Export failed',
 } as Record<string, string>
 
-const { $api, $poller } = useNuxtApp()
+const { $api, $poller, $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
@@ -23,6 +23,7 @@ const activeViewTitleOrId = computed(() => {
 const { eventBus } = useExtensions()
 
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
+const EXTENSION_ID = extension.value.extensionId
 
 const { jobList, loadJobsForBase } = useJobs()
 
@@ -164,6 +165,7 @@ async function exportDataAsync() {
             }
 
             isExporting.value = false
+            $e(`a:extension:${EXTENSION_ID}:export:completed`)
           } else if (data.status === JobStatus.FAILED) {
             message.error('Failed to export data!')
 
@@ -182,12 +184,15 @@ async function exportDataAsync() {
             }
 
             isExporting.value = false
+            $e(`a:extension:${EXTENSION_ID}:export:failed`)
           }
         }
       },
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    $e(`a:extension:${EXTENSION_ID}:export`)
   }
 }
 
@@ -216,6 +221,8 @@ const handleDownload = async (url: string) => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+
+  $e(`a:extension:${EXTENSION_ID}:export:download`)
 }
 
 function titleHelper() {

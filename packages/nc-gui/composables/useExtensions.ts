@@ -75,7 +75,7 @@ export { ExtensionType }
 export const useExtensions = createSharedComposable(() => {
   const { baseExtensions } = extensionsState()
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { base } = storeToRefs(useBase())
 
@@ -159,6 +159,7 @@ export const useExtensions = createSharedComposable(() => {
 
       nextTick(() => {
         eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+        $e('a:extension:add', { extensionId: extensionReq.extension_id })
       })
     }
 
@@ -205,9 +206,13 @@ export const useExtensions = createSharedComposable(() => {
 
     await $api.extensions.delete(extensionId)
 
+    const extensionToDelete = baseExtensions.value[base.value.id].extensions.find((e: any) => e.id === extensionId);
+
     baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.filter(
       (ext: any) => ext.id !== extensionId,
     )
+
+    $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
   }
 
   const duplicateExtension = async (extensionId: string) => {
@@ -229,7 +234,11 @@ export const useExtensions = createSharedComposable(() => {
     })
 
     if (newExtension) {
-      baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+      const duplicatedExtension = new Extension(newExtension);
+      baseExtensions.value[base.value.id].extensions.push(duplicatedExtension)
+      eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExtension.id)
+
+      $e('a:extension:duplicate', { extensionId: extension.extensionId })
     }
 
     return newExtension
@@ -291,25 +300,25 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  class KvStore<T = any> implements IKvStore<T> {
+  class KvStore<T extends Record<string, any> = any> implements IKvStore<T> {
     private _id: string
-    private data: Record<string, T>
+    private data: T
 
-    constructor(id: string, data: Record<string, T>) {
+    constructor(id: string, data: T) {
       this._id = id
       this.data = data || {}
     }
 
-    get(key: string) {
+    get<K extends keyof T = any>(key: K) {
       return this.data[key] || null
     }
 
-    set(key: string, value: any) {
+    set<K extends keyof T = any>(key: K, value: any) {
       this.data[key] = value
       return updateExtension(this._id, { kv_store: this.data })
     }
 
-    async delete(key: string) {
+    async delete<K extends keyof T = any>(key: K) {
       delete this.data[key]
       await updateExtension(this._id, { kv_store: this.data })
     }
@@ -412,6 +421,7 @@ export const useExtensions = createSharedComposable(() => {
 
         nextTick(() => {
           eventBus.emit(ExtensionsEvents.CLEARDATA, this.id)
+          $e('c:extension:clear-data', { extensionId: this._extensionId })
         })
       })
     }
@@ -514,6 +524,8 @@ export const useExtensions = createSharedComposable(() => {
     detailsExtensionId.value = extensionId
     isDetailsVisible.value = true
     detailsFrom.value = from || 'market'
+
+    $e('c:extension:details', { source: from, extensionId })
   }
 
   // Extension market modal

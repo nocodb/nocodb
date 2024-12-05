@@ -23,9 +23,11 @@ const clockInstances = shallowRef<ClockInstance[]>([])
 const clockTimeStrings = ref<string[]>([])
 
 const activeInstanceId = ref<number | undefined>(clockInstances.value.length ? clockInstances.value[0].id : undefined)
-const activeInstance = computed<ClockInstance | undefined>(() =>
-  clockInstances.value.find((ci) => ci.id === activeInstanceId.value),
-)
+const activeInstance = ref<ClockInstance | undefined>(clockInstances.value.length ? clockInstances.value[0] : undefined)
+
+watch(activeInstanceId, () => {
+  activeInstance.value = clockInstances.value.find((ci) => ci.id === activeInstanceId.value)
+})
 
 watch(activeInstance, (activeInstance) => {
   if (!activeInstance) return
@@ -179,7 +181,14 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
         @remove-instance="removeInstance"
       />
     </div>
-    <div v-else class="h-full w-full overflow-x-scroll" :class="{ '!min-w-[410px]': displayClockInstances.length > 1 }">
+    <div
+      v-else
+      class="h-full w-full overflow-x-scroll"
+      :class="{
+        '!min-w-[420px]': selectedClockMode !== 'Digital' && displayClockInstances.length > 1,
+        '!min-w-[480px]': selectedClockMode === 'Digital' && displayClockInstances.length > 1,
+      }"
+    >
       <div class="flex flex-wrap content-start">
         <div
           v-for="(clockInstance, i) in displayClockInstances"

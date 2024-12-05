@@ -13,7 +13,9 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
   extends: ['../'],
-
+  future: {
+    compatibilityVersion: 4,
+  },
   alias: {
     '@': resolve(__dirname),
   },
@@ -228,6 +230,52 @@ export default defineNuxtConfig({
       },
     },
     optimizeDeps: {
+      include: [
+        '@tiptap/core',
+        '@tiptap/extension-link',
+        '@tiptap/extension-mention',
+        '@tiptap/extension-placeholder',
+        '@tiptap/extension-task-list',
+        '@tiptap/extension-underline',
+        '@tiptap/html',
+        '@tiptap/starter-kit',
+        '@tiptap/vue-3',
+        '@vue-flow/additional-components',
+        '@vue-flow/core',
+        '@vuelidate/core',
+        '@vuelidate/validators',
+        'company-email-validator',
+        'd3-scale',
+        'dagre',
+        'deep-object-diff',
+        'emoji-mart-vue-fast/src',
+        'file-saver',
+        'fuse.js',
+        'httpsnippet',
+        'isomorphic-dompurify',
+        'marked',
+        'mime-lite',
+        'monaco-editor',
+        'papaparse',
+        'prosemirror-state',
+        'rehype-sanitize',
+        'rehype-stringify',
+        'remark-parse',
+        'remark-rehype',
+        'sortablejs',
+        'splitpanes',
+        'tippy.js',
+        'turndown',
+        'unified',
+        'v3-infinite-loading',
+        'validator/es/lib/isEmail',
+        'validator/lib/isMobilePhone',
+        'vue-advanced-cropper',
+        'xlsx',
+        'youtube-vue3',
+        'vuedraggable',
+        'jsbarcode',
+      ],
       esbuildOptions: {
         define: {
           global: 'globalThis',
@@ -250,4 +298,6 @@ export default defineNuxtConfig({
   imports: {
     dirs: ['./context', './utils/**', './lib/**', './composables/**', './store/**'],
   },
+
+  compatibilityDate: '2024-12-04',
 })

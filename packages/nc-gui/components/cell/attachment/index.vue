@@ -433,9 +433,9 @@ defineExpose({
               }"
               @click="onFileClick(item)"
             >
-              <component :is="FileIcon(item.icon)" v-if="item.icon" />
+              <component :is="FileIcon(item.icon)" v-if="item.icon" class="text-white max-h-full max-w-full" />
 
-              <GeneralIcon v-else icon="ncFileTypeUnknown" class="text-white" />
+              <GeneralIcon v-else icon="ncFileTypeUnknown" class="text-white max-h-full max-w-full" />
             </div>
           </NcTooltip>
         </template>

@@ -1254,7 +1254,12 @@ watch(activeAiTab, (newValue) => {
           </Transition>
         </template>
 
-        <a-form-item v-if="enableDescription && !aiAutoSuggestMode">
+        <a-form-item
+          v-if="enableDescription && !aiAutoSuggestMode"
+          :class="{
+            '!pb-4': embedMode,
+          }"
+        >
           <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
@@ -1281,8 +1286,13 @@ watch(activeAiTab, (newValue) => {
         </a-form-item>
 
         <template v-if="props.fromTableExplorer">
-          <a-form-item>
-            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+          <a-form-item
+            v-if="!enableDescription"
+            :class="{
+              '!pb-4': embedMode,
+            }"
+          >
+            <NcButton size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -1294,57 +1304,59 @@ watch(activeAiTab, (newValue) => {
           </a-form-item>
         </template>
 
-        <div
-          class="flex items-center justify-between gap-2 empty:hidden"
-          :class="{
-            'sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5': true,
-            'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
-          }"
-        >
-          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
-            <div class="flex !text-gray-700 items-center gap-2">
-              <GeneralIcon icon="plus" class="h-4 w-4" />
+        <template v-else>
+          <div
+            class="flex items-center justify-between gap-2 empty:hidden"
+            :class="{
+              'sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5': true,
+              'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
+            }"
+          >
+            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+              <div class="flex !text-gray-700 items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
 
-              <span class="first-letter:capitalize">
-                {{ $t('labels.addDescription').toLowerCase() }}
-              </span>
-            </div>
-          </NcButton>
-          <div v-else-if="!aiAutoSuggestMode"></div>
+                <span class="first-letter:capitalize">
+                  {{ $t('labels.addDescription').toLowerCase() }}
+                </span>
+              </div>
+            </NcButton>
+            <div v-else-if="!aiAutoSuggestMode"></div>
 
-          <a-form-item v-if="!aiAutoSuggestMode">
-            <div
-              class="flex gap-x-2 justify-end"
-              :class="{
-                'justify-end': !props.embedMode,
-              }"
-            >
-              <!-- Cancel -->
-              <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
-                {{ $t('general.cancel') }}
-              </NcButton>
-
-              <!-- Save -->
-              <NcButton
-                html-type="submit"
-                type="primary"
-                :theme="isAiMode ? 'ai' : 'default'"
-                :loading="saving"
-                :disabled="!formState.uidt || disableSubmitBtn || saving"
-                size="small"
-                :label="submitBtnLabel.label"
-                :loading-label="submitBtnLabel.loadingLabel"
-                data-testid="nc-field-modal-submit-btn"
-                @click.prevent="onSubmit"
+            <a-form-item v-if="!aiAutoSuggestMode">
+              <div
+                class="flex gap-x-2 justify-end"
+                :class="{
+                  'justify-end': !props.embedMode,
+                }"
               >
-                {{ submitBtnLabel.label }}
-                <template #loading>
-                  {{ submitBtnLabel.loadingLabel }}
-                </template>
-              </NcButton>
-            </div>
-          </a-form-item>
-        </div>
+                <!-- Cancel -->
+                <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
+                  {{ $t('general.cancel') }}
+                </NcButton>
+
+                <!-- Save -->
+                <NcButton
+                  html-type="submit"
+                  type="primary"
+                  :theme="isAiMode ? 'ai' : 'default'"
+                  :loading="saving"
+                  :disabled="!formState.uidt || disableSubmitBtn || saving"
+                  size="small"
+                  :label="submitBtnLabel.label"
+                  :loading-label="submitBtnLabel.loadingLabel"
+                  data-testid="nc-field-modal-submit-btn"
+                  @click.prevent="onSubmit"
+                >
+                  {{ submitBtnLabel.label }}
+                  <template #loading>
+                    {{ submitBtnLabel.loadingLabel }}
+                  </template>
+                </NcButton>
+              </div>
+            </a-form-item>
+          </div>
+        </template>
       </template>
     </a-form>
   </div>

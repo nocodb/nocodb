@@ -54,7 +54,7 @@ enum BulkUpdateFieldActionOpTypes {
   SET_VALUE = 'SET_VALUE',
 }
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -82,6 +82,7 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
 }
 
 const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+const EXTENSION_ID = extension.value.extensionId;
 
 const views = ref<ViewType[]>([])
 
@@ -626,6 +627,7 @@ async function bulkUpdateView(data: Record<string, any>) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
+    $e(`a:extension:${EXTENSION_ID}:bulk-update`)
     reloadData()
     isUpdating.value = false
     isOpenConfigModal.value = false
@@ -649,7 +651,7 @@ async function handleBulkUpdate() {
     return acc
   }, {} as Record<string, any>)
 
-  bulkUpdateView(data)
+  await bulkUpdateView(data)
 }
 
 const handleConfirmUpdate = async () => {

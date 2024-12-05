@@ -6,6 +6,8 @@ import dayjs from 'dayjs'
 
 import ImportStatus from './ImportStatus.vue'
 
+const { $e } = useNuxtApp()
+
 const CHUNK_SIZE = 200
 
 const GENERATED_COLUMN_TYPES = [
@@ -90,6 +92,7 @@ const importTypeOptions = [
 
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
+const EXTENSION_ID = extension.value.extensionId
 
 const fileList = ref<UploadFile[]>([])
 
@@ -320,6 +323,8 @@ const handleChange = (info: { file: UploadFile }) => {
         step.value = 1
         importPayload.value.step = 1
 
+        $e(`c:extension:${EXTENSION_ID}:csv-loaded`)
+
         fileInfo.value = {
           ...fileInfo.value,
           processingFile: false,
@@ -446,6 +451,7 @@ const onImport = async () => {
   try {
     for (const chunk of chunks) {
       if (importPayload.value.upsert) {
+        $e(`c:extension:${EXTENSION_ID}:upsert`)
         // upsert data
         const upsertStats = await upsertData({
           tableId: importPayload.value.tableId,
@@ -466,6 +472,7 @@ const onImport = async () => {
         }
       } else {
         // insert data
+        $e(`c:extension:${EXTENSION_ID}:insert`)
         const insertStats = await insertData({
           tableId: importPayload.value.tableId,
           data: chunk,
@@ -503,6 +510,11 @@ const onImport = async () => {
     isImportingRecords.value = false
     importPayload.value.lastUsed = Date.now()
     updateHistory()
+    $e(`a:extension:${EXTENSION_ID}:imported`, {
+      error: !!stats.value.error,
+      inserted: stats.value.inserted,
+      updated: stats.value.updated,
+    })
   }
 
   fullscreen.value = false
@@ -527,6 +539,8 @@ const newImport = () => {
     order: getNextOrder(savedPayloads.value),
   })
   updateHistory()
+
+  $e(`c:extension:${EXTENSION_ID}:new-import-created`)
 
   fileInfo.value = {
     name: '',

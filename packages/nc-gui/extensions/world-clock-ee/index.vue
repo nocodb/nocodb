@@ -10,6 +10,11 @@ import { type ClockInstance, type SavedData, type SelectOption } from './types'
 import { calculateTimeDifference, formatTime, getDateForTimezone } from './utils'
 import { themes } from './theming'
 
+const { fullscreen, extension } = useExtensionHelperOrThrow()
+const { $e } = useNuxtApp()
+
+const EXTENSION_ID = extension.value.extensionId;
+
 const clockModeOptions: SelectOption[] = ['Digital', 'Analog', 'Both'].map((value) => ({ value }))
 const selectedClockMode = ref<'Digital' | 'Analog' | 'Both'>('Both')
 
@@ -33,6 +38,7 @@ watch(activeInstance, (activeInstance) => {
   if (!activeInstance) return
   clockInstances.value = clockInstances.value.map((ci) => (ci.id === activeInstance.id ? activeInstance : ci))
   saveData()
+  $e(`a:extension:${EXTENSION_ID}:update-clock`)
 })
 
 const removeInstance = (id: number) => {
@@ -40,6 +46,7 @@ const removeInstance = (id: number) => {
   clockInstances.value = clockInstances.value.filter((ci) => ci.id !== id)
   activeInstanceId.value = clockInstances.value.length ? clockInstances.value[clockInstances.value.length - 1].id : undefined
   saveData()
+  $e(`a:extension:${EXTENSION_ID}:remove-clock`)
 }
 
 const calculateClockTimeStrings = () => {
@@ -71,6 +78,9 @@ const addClock = (city?: AcceptableCity) => {
   })
   calculateClockTimeStrings()
   triggerRef(clockInstances)
+
+  $e(`a:extension:${EXTENSION_ID}:add-clock`)
+
   return clockId
 }
 
@@ -82,7 +92,6 @@ const autoAddClock = () => {
 
 watch(selectedHFormat, calculateClockTimeStrings)
 
-const { fullscreen, extension } = useExtensionHelperOrThrow()
 const kvStore = extension.value.kvStore
 const savedData = (await kvStore.get('data')) as SavedData | undefined
 if (savedData) {

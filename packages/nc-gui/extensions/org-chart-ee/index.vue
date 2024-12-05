@@ -3,8 +3,12 @@ import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, ViewTypes
 import Graph from './Graph.vue'
 import { type CoordPosition, type Edge, useLayoutHelper } from './useLayoutHelper'
 
+const { $e } = useNuxtApp()
+
 const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activeViewId, $api, extension } =
   useExtensionHelperOrThrow()
+
+const EXTENSION_ID = extension.value.extensionId;
 
 const kvStore = extension.value.kvStore
 const savedData = (await kvStore.get('data')) as SavedData | undefined
@@ -295,6 +299,11 @@ const loadGraph = async () => {
   }
 }
 
+const applyChanges = () => {
+  $e(`a:extension:${EXTENSION_ID}:load-graph`)
+  return loadGraph()
+}
+
 if (savedData) {
   if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
     await clearData()
@@ -490,7 +499,7 @@ if (savedData) {
           class="!rounded-md !h-[2rem]"
           type="primary"
           :disabled="!isDirty || !relationFieldId"
-          @click.prevent="loadGraph"
+          @click.prevent="applyChanges"
         >
           <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
         </a-button>

@@ -14,6 +14,8 @@ interface TabItem {
 
 const props = defineProps<Prop>()
 
+const { $e } = useNuxtApp()
+
 const emit = defineEmits(['update:modelValue'])
 
 const tabs = [

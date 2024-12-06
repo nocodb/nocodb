@@ -1067,6 +1067,7 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "הקצאת תצוגה",
     "webhookDetails": "פרטי Webhook",
     "showSaturdaysAndSundays": "הצג שבתות וימי ראשון",

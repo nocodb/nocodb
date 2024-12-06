@@ -6,7 +6,7 @@ on:
       - "packages/nocodb/**"
       - ".github/workflows/jest-unit-test.yml"
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    types: [opened, reopened, synchronize, ready_for_review]
     branches: [develop]
     paths:
       - "packages/nocodb/**"
@@ -14,6 +14,11 @@ on:
   workflow_call:
   # Triggered manually
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   jest-unit-test:
     runs-on: [self-hosted, runner]

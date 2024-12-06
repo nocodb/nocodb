@@ -353,6 +353,8 @@ export const getUITypesForFormulaDataType = (
 };
 
 export const isSupportedDisplayValueColumn = (column: ColumnType) => {
+  if (!column?.uidt) return false;
+
   switch (column.uidt) {
     case UITypes.SingleLineText:
     case UITypes.Date:

@@ -11708,22 +11708,6 @@
           }
         },
         "tags": ["DB Table Row"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "foo"
-                  }
-                }
-              }
-            }
-          }
-        },
         "description": "Bulk Delete all Table Rows if the condition is true",
         "parameters": [
           {

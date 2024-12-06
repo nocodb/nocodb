@@ -3,11 +3,10 @@ import {
   type ColumnReqType,
   type ColumnType,
   columnTypeName,
-  isVirtualCol,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -586,14 +585,14 @@ const onDeleteColumn = () => {
           </div>
         </NcMenuItem>
         <NcTooltip
-          v-if="column && !column?.pv && !isHiddenCol && (column.uidt === UITypes.Formula || !isVirtualCol(column))"
+          v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
           :disabled="isSupportedDisplayValueColumn(column)"
         >
           <template #title>
             {{ `${columnTypeName(column)} field cannot be a display value field` }}
           </template>
 
-          <NcMenuItem @click="setAsDisplayValue" :disabled="!isSupportedDisplayValueColumn(column)">
+          <NcMenuItem :disabled="!isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
             <div class="nc-column-set-primary nc-header-menu-item item">
               <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
               <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />

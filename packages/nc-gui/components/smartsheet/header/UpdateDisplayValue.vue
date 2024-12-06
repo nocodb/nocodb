@@ -41,7 +41,7 @@ const filteredColumns = computed(() => {
           !isSupportedDisplayValueColumn(column) && columnTypeName(column)
             ? `${columnTypeName(column)} field cannot be a display value field`
             : '',
-        column: column,
+        column,
       }
     })
 })

@@ -930,7 +930,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                   {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
                 </span>
               </template>
-              <template v-for="(field, id) in fields" :key="field.id">
+              <template v-for="field in fields" :key="field.id">
                 <LazySmartsheetPlainCell
                   v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"

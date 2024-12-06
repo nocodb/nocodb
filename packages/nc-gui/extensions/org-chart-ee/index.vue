@@ -8,7 +8,7 @@ const { $e } = useNuxtApp()
 const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activeViewId, $api, extension } =
   useExtensionHelperOrThrow()
 
-const EXTENSION_ID = extension.value.extensionId;
+const EXTENSION_ID = extension.value.extensionId
 
 const kvStore = extension.value.kvStore
 const savedData = (await kvStore.get('data')) as SavedData | undefined

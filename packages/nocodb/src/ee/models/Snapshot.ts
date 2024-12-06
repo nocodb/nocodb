@@ -61,9 +61,9 @@ export default class Snapshot implements SnapshotType {
   ) {
     const cachedList = await NocoCache.getList(CacheScope.SNAPSHOT, [baseId]);
 
-    let { list: snapshotList, isNoneList } = cachedList;
+    let { list: snapshotList } = cachedList;
 
-    if (!isNoneList && !snapshotList.length) {
+    if (!cachedList.isNoneList && !snapshotList.length) {
       snapshotList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,

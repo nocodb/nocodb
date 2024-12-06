@@ -102,6 +102,7 @@ const filteredOptions = computed(() =>
         <div class="flex gap-4 w-full flex-wrap">
           <button
             v-for="(theme, i) in themes"
+            :key="i"
             class="w-7 h-7 rounded flex items-center justify-center border-nc-border-brand flex-none"
             :class="{ 'border-1': themeId === i, 'shadow': themeId === i, 'shadow-brand-200': themeId === i }"
             :style="{ background: theme.icon }"
@@ -112,8 +113,8 @@ const filteredOptions = computed(() =>
       <div class="flex w-full items-start justify-center">
         <Clock
           :class="`${clockMode === 'Digital' ? 'w-full' : 'w-1/2'}`"
-          :show-numbers
-          :format
+          show-numbers
+          format="12H"
           :timezone="cityToTimezone[city]"
           :theme="themeId"
           :mode="clockMode"

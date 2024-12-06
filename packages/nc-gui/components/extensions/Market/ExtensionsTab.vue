@@ -4,11 +4,11 @@ interface Props {
   isOpen: boolean
 }
 
-const { $e } = useNuxtApp()
-
 const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:searchQuery', 'update:isOpen'])
+
+const { $e } = useNuxtApp()
 
 const searchQuery = useVModel(props, 'searchQuery', emits)
 

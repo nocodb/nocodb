@@ -13,7 +13,7 @@ import { themes } from './theming'
 const { fullscreen, extension } = useExtensionHelperOrThrow()
 const { $e } = useNuxtApp()
 
-const EXTENSION_ID = extension.value.extensionId;
+const EXTENSION_ID = extension.value.extensionId
 
 const clockModeOptions: SelectOption[] = ['Digital', 'Analog', 'Both'].map((value) => ({ value }))
 const selectedClockMode = ref<'Digital' | 'Analog' | 'Both'>('Both')
@@ -184,7 +184,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
         v-if="activeInstance"
         v-model="activeInstance"
         class="w-3/4"
-        :show-numbers
+        show-numbers
         :format="selectedHFormat"
         :clock-mode="selectedClockMode"
         @remove-instance="removeInstance"
@@ -201,6 +201,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
       <div class="flex flex-wrap content-start">
         <div
           v-for="(clockInstance, i) in displayClockInstances"
+          :key="clockInstance.id"
           class="p-3 flex flex-col justify-center items-center"
           :class="{
             'w-1/2': displayClockInstances.length > 1,
@@ -221,7 +222,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
             {{ clockInstance.name }}
           </div>
           <Clock
-            :show-numbers
+            show-numbers
             :format="selectedHFormat"
             :timezone="cityToTimezone[clockInstance.city]"
             :theme="clockInstance.theme"

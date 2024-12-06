@@ -32,7 +32,7 @@ export function calculateTimeDifference(targetTimezone: AcceptableTimezone) {
   const timeDifferenceInMillis = targetTime - now
   const timeDifferenceInHours = timeDifferenceInMillis / (1000 * 60 * 60)
 
-  return Math.abs(timeDifferenceInHours) < 0.001 ? 0 : Number(timeDifferenceInHours.toPrecision(3));
+  return Math.abs(timeDifferenceInHours) < 0.001 ? 0 : Number(timeDifferenceInHours.toPrecision(3))
 }
 
 export function formatTime(date: Date, format: '12H' | '24H' = '12H') {

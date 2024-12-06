@@ -1060,7 +1060,7 @@ const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 const scrollLeft = ref()
 
-function scrollToCell(row?: number | null, col?: number | null, scrollBehaviour: ScrollBehavior = 'instant') {
+function scrollToCell(row?: number | null, col?: number | null, _scrollBehaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 

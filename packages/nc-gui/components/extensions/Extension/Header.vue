@@ -19,7 +19,7 @@ const { $e } = useNuxtApp()
 const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails } = useExtensions()
 
 const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn } = useExtensionHelperOrThrow()
-const EXTENSION_ID = extension.value.extensionId;
+const EXTENSION_ID = extension.value.extensionId
 
 const titleInput = ref<HTMLInputElement | null>(null)
 

@@ -10,10 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  IntegrationReqType,
-  IntegrationsType,
-} from 'nocodb-sdk';
+import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { IntegrationsService } from '~/services/integrations.service';

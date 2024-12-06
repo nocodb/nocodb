@@ -255,7 +255,7 @@ export default defineNuxtConfig({
         'xlsx',
         'youtube-vue3',
         'vuedraggable',
-        'jsbarcode'
+        'jsbarcode',
       ],
       esbuildOptions: {
         define: {

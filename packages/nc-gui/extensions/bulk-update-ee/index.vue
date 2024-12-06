@@ -82,7 +82,7 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
 }
 
 const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
-const EXTENSION_ID = extension.value.extensionId;
+const EXTENSION_ID = extension.value.extensionId
 
 const views = ref<ViewType[]>([])
 

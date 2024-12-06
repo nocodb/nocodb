@@ -47,7 +47,7 @@ const isHovering = useElementHover(() => el.value)
 
 const isOverlayHovering = useElementHover(() => element.value)
 
-const attrs = useAttrs()
+const allAttrs = useAttrs()
 
 const isKeyPressed = ref(false)
 
@@ -125,8 +125,8 @@ watchDebounced(
 )
 
 const divStyles = computed(() => ({
-  style: attrs.style as CSSProperties,
-  class: attrs.class as string,
+  style: allAttrs.style as CSSProperties,
+  class: allAttrs.class as string,
 }))
 
 const onClick = () => {

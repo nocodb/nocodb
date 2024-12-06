@@ -1475,7 +1475,7 @@ class BaseModelSqlv2 {
   ) {
     try {
       if (!bulkFilterList?.length) {
-        return {}
+        return {};
       }
 
       const { where, aggregation } = this._getListArgs(args as any);

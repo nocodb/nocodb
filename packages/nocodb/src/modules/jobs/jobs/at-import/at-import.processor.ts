@@ -1853,6 +1853,7 @@ export class AtImportProcessor {
       }
     };
 
+    /* TODO: AT import user handling
     const nocoAddUsers = async (aTblSchema) => {
       const userRoles = {
         owner: 'owner',
@@ -1899,6 +1900,7 @@ export class AtImportProcessor {
         recordPerfStats(_perfStart, 'auth.baseUserAdd');
       }
     };
+    */
 
     const updateNcTblSchema = (tblSchema) => {
       const tblId = tblSchema.id;

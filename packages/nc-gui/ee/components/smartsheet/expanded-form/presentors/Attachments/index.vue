@@ -137,8 +137,8 @@ export default {
           </div>
 
           <NcDropdownSelect
-            class="nc-files-current-field-dropdown"
             v-model="selectedFieldId"
+            class="nc-files-current-field-dropdown"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="
               !isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined

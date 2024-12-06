@@ -229,7 +229,7 @@ export default class Source implements SourceType {
 
   static async list(
     context: NcContext,
-    args: { baseId: string },
+    args: { baseId: string; includeDeleted?: boolean },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
     const cachedList = await NocoCache.getList(CacheScope.SOURCE, [
@@ -241,13 +241,17 @@ export default class Source implements SourceType {
       const qb = ncMeta
         .knex(MetaTable.SOURCES)
         .select(`${MetaTable.SOURCES}.*`)
-        .where(`${MetaTable.SOURCES}.base_id`, context.base_id)
-        .where((whereQb) => {
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id);
+
+      if (!args.includeDeleted) {
+        qb.where((whereQb) => {
           whereQb
             .where(`${MetaTable.SOURCES}.deleted`, false)
             .orWhereNull(`${MetaTable.SOURCES}.deleted`);
-        })
-        .orderBy(`${MetaTable.SOURCES}.order`, 'asc');
+        });
+      }
+
+      qb.orderBy(`${MetaTable.SOURCES}.order`, 'asc');
 
       this.extendQb(qb, context);
 

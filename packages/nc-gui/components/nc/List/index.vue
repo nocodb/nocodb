@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
+import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 
 export type MultiSelectRawValueType = Array<string | number>
 
@@ -8,6 +9,8 @@ export type RawValueType = string | number | MultiSelectRawValueType
 export interface NcListItemType {
   value?: RawValueType
   label?: string
+  disabled?: boolean
+  ncItemTooltip?: string
   [key: string]: any
 }
 
@@ -61,6 +64,8 @@ export interface NcListProps {
   containerClassName?: string
 
   itemClassName?: string
+
+  itemTooltipPlacement?: TooltipPlacement
 }
 
 interface Emits {
@@ -82,6 +87,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   minItemsForSearch: 4,
   containerClassName: '',
   itemClassName: '',
+  itemTooltipPlacement: 'right',
 })
 
 const emits = defineEmits<Emits>()
@@ -190,7 +196,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
-  if (!option?.[optionValueKey]) return
+  if (!option?.[optionValueKey] || option?.disabled) return
 
   if (index !== undefined) {
     activeOptionIndex.value = index
@@ -227,6 +233,9 @@ const handleAutoScrollOption = (useDelay = false) => {
     scrollTo(activeOptionIndex.value)
   }, 150)
 }
+
+// Todo: skip arrowUp/.arrowDown on disabled options
+// const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {}
 
 const onArrowDown = () => {
   keyDown.value = true
@@ -364,22 +373,27 @@ watch(
             :class="containerClassName"
           >
             <div v-bind="wrapperProps">
-              <div
+              <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+                class="flex items-center gap-2 w-full py-2 px-2 rounded-md"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
-                    'bg-gray-100 ': showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
-                    'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
+                    'bg-gray-100 ': !option?.disabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
+                    'bg-gray-100 nc-list-option-active': !option?.disabled && activeOptionIndex === idx,
+                    'opacity-60 cursor-not-allowed': option?.disabled,
+                    'hover:bg-gray-100 cursor-pointer': !option?.disabled,
                   },
                   `${itemClassName}`,
                 ]"
+                :placement="itemTooltipPlacement"
+                :disabled="!option?.ncItemTooltip"
                 @mouseover="handleResetHoverEffect(true, idx)"
                 @click="handleSelectOption(option, idx)"
               >
+                <template #title>{{ option.ncItemTooltip }} </template>
                 <slot name="listItem" :option="option" :is-selected="() => compareVModel(option[optionValueKey])" :index="idx">
                   <slot name="listItemExtraLeft" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
                   </slot>
@@ -403,7 +417,7 @@ watch(
                     />
                   </slot>
                 </slot>
-              </div>
+              </NcTooltip>
             </div>
           </div>
         </div>

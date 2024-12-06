@@ -120,7 +120,7 @@ useActiveKeyupListener(
       close()
     }
   },
-  { immediate: true },
+  { immediate: true, isGridCell: false },
 )
 
 watch(

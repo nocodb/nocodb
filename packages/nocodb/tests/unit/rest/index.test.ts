@@ -8,12 +8,12 @@ import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
-import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
 import formulaTests from './tests/formula.test';
 import typeCastsTest from './tests/typeCasts.test';
 import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
+import dataAPIsV3Test from './tests/dataAPIsV3.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -42,7 +42,6 @@ function restTests() {
   columnTypeSpecificTests();
   attachmentTests();
   filterTest();
-  newDataApisTest();
   groupByTest();
   workspaceTest();
   formulaTests();
@@ -54,6 +53,9 @@ function restTests() {
   bulkAggregationTest();
   columnTest();
   integrationTest();
+
+  dataAPIsV3Test('v2')
+  // dataAPIsV3Test('v3')
 
   // Enable for dashboard feature
   // widgetTest();

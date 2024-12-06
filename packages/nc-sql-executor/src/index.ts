@@ -10,47 +10,87 @@ import fastifyStatic from '@fastify/static';
 import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const DEBUG = process.env.DEBUG === 'true';
 
-const fastify = Fastify({
-  logger: DEBUG,
-});
+const fastify = Fastify({ logger: DEBUG });
 
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, 'public'),
 });
 
-const getKnexClient = (client: string) => {
-  if (client === 'snowflake') {
-    return SnowflakeClient;
-  } else if (client === 'databricks') {
-    return DatabricksClient;
+// PG Type Overrides
+const pgTypes = {
+  FLOAT4: 700,
+  FLOAT8: 701,
+  DATE: 1082,
+  TIMESTAMP: 1114,
+  TIMESTAMPTZ: 1184,
+  NUMERIC: 1700,
+};
+
+types.setTypeParser(pgTypes.DATE, (val) => val);
+types.setTypeParser(pgTypes.TIMESTAMP, (val) =>
+  dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ'),
+);
+types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) =>
+  dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+);
+
+const parseFloatVal = (val: string) => parseFloat(val);
+
+defaults.parseInt8 = true;
+types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
+types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
+
+// Custom MySQL typeCast
+function typeCast(field, next) {
+  const res = next();
+  if (res && res instanceof Buffer) {
+    // Convert buffer to hex string
+    const hex = [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join('');
+    if (field.type === 'BIT') return parseInt(hex, 16);
+    return hex;
   }
-  return client;
+  if (field.type === 'NEWDECIMAL') {
+    return res ? parseFloat(res) : res;
+  }
+  return res;
 }
 
-const connectionPools: { [key: string]: Knex; } = {};
-const connectionStats: {
-  [key: string]: {
+// Dynamic configuration
+const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
+const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT
+  ? parseInt(process.env.DYNAMIC_POOL_PERCENT, 10)
+  : 50;
+
+const connectionPools: Record<string, Knex> = {};
+const connectionStats: Record<
+  string,
+  {
     queries: number;
     createdAt: string;
     lastQueryAt?: string;
     shared?: boolean;
-  };
-} = {};
-const dynamicPoolSize = process.env.DYNAMIC_POOL_SIZE === 'true';
-const dynamicPoolPercent = process.env.DYNAMIC_POOL_PERCENT
-  ? parseInt(process.env.DYNAMIC_POOL_PERCENT)
-  : 50;
+  }
+> = {};
+
+// Cache max connection results per unique config signature to avoid re-querying.
+const maxConnectionsCache = new Map<string, number>();
+
+function getKnexClient(client: string) {
+  if (client === 'snowflake') return SnowflakeClient;
+  if (client === 'databricks') return DatabricksClient;
+  return client;
+}
 
 const BodyJsonSchema = {
   type: 'object',
   required: ['query', 'config'],
   properties: {
-    query: {
-      type: 'array',
-      items: { type: 'string' },
-    },
+    query: { type: 'array', items: { type: 'string' } },
     config: {
       type: 'object',
       properties: {
@@ -64,7 +104,7 @@ const BodyJsonSchema = {
   },
 };
 
-function serializeError(err) {
+function serializeError(err: any) {
   return {
     ...err,
     message: err.message,
@@ -72,93 +112,99 @@ function serializeError(err) {
   };
 }
 
-async function execAndGetRows(
-  kn: Knex,
-  config: any,
-  query: string,
-) {
-  if (config.client === 'pg' || config.client === 'snowflake') {
+async function execAndGetRows(kn: Knex, config: any, query: string) {
+  const client = config.client;
+  const isSelect = /^(\(|)select/i.test(query);
+  const isInsert = /^(\(|)insert/i.test(query);
+
+  if (client === 'pg' || client === 'snowflake') {
     return (await kn.raw(query))?.rows;
-  } else if (/^(\(|)select/i.test(query) && config.client !== 'mssql') {
+  } else if (isSelect && client !== 'mssql') {
+    // Wrap select queries (some dialects require this)
     return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
-  } else if (/^(\(|)insert/i.test(query) && (config.client === 'mysql' || config.client === 'mysql2')) {
-      const res = await kn.raw(query);
-      if (res && res[0] && res[0].insertId) {
-        return res[0].insertId;
-      }
-      return res;
+  } else if (isInsert && (client === 'mysql' || client === 'mysql2')) {
+    const res = await kn.raw(query);
+    if (res && res[0] && res[0].insertId) return res[0].insertId;
+    return res;
   } else {
     return await kn.raw(query);
   }
 }
 
-async function queryHandler(req, res) {
-  const { query: queries, config, raw = false } = req.body as any;
+async function getDynamicPoolSize(
+  config: any,
+  connectionKey: string,
+  sourceId: string | null,
+) {
+  if (!dynamicPoolSize) return undefined;
 
-  config.client = getKnexClient(config.client);
+  // Check cache first
+  if (maxConnectionsCache.has(connectionKey)) {
+    const cachedMax = maxConnectionsCache.get(connectionKey);
+    if (cachedMax) {
+      return Math.floor((cachedMax * dynamicPoolPercent) / 100);
+    }
+  }
 
-  const { sourceId = null } = req.params as any;
+  // Temporary knex to query max connections
+  const tempKnex = knex({
+    ...config,
+    connection: {
+      ...(config.connection || {}),
+      typeCast,
+    },
+    pool: { min: 0, max: 1 },
+  });
 
-  const query = queries.length === 1 ? queries[0] : queries;
+  let maxConnections;
+  try {
+    if (config.client === 'mysql2' || config.client === 'mysql') {
+      const res = await tempKnex.raw("SHOW VARIABLES LIKE 'max_connections'");
+      maxConnections = res?.[0]?.[0]?.Value;
+    } else if (config.client === 'pg') {
+      const res = await tempKnex.raw('SHOW max_connections');
+      maxConnections = res.rows?.[0]?.max_connections;
+    } else {
+      // Default fallback for other DBs
+      maxConnections = 20;
+    }
+  } catch (err) {
+    console.error(sourceId, 'Error fetching max_connections:', err);
+    maxConnections = 20; // a safe default
+  } finally {
+    await tempKnex.destroy().catch((e) => console.error(sourceId, e));
+  }
 
+  const parsedMax = parseInt(maxConnections || '20', 10);
+  maxConnectionsCache.set(connectionKey, parsedMax);
+  return Math.floor((parsedMax * dynamicPoolPercent) / 100);
+}
+
+async function getConnectionPool(config: any, sourceId: string | null) {
   const { pool, ...configWithoutPool } = config;
-
   const connectionKey = hash(configWithoutPool);
 
-  let fromPool = true;
-
   if (!connectionPools[connectionKey]) {
+    let poolSizeConfig = {};
     if (dynamicPoolSize) {
-      // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
-      // pg SHOW max_connections; { max_connections: '100' }
-      const tempKnex = knex({
-        ...config, connection: {
-          ...(config.connection || {}),
-          typeCast,
-        }, pool: { min: 0, max: 1 }
-      });
-      let maxConnections;
-      if (config.client === 'mysql2' || config.client === 'mysql') {
-        maxConnections = (
-          await tempKnex.raw("SHOW VARIABLES LIKE 'max_connections'")
-        )?.[0]?.[0]?.Value;
-      } else if (config.client === 'pg') {
-        maxConnections = (await tempKnex.raw('SHOW max_connections'))
-          .rows?.[0]?.max_connections;
-      }
-
-      // capture the exception and log it
-      tempKnex.destroy().catch((err) =>{
-        console.error(
-          sourceId,
-          err
-        );
-      });
-
-      // use dynamicPoolPercent of maxConnections
-      const poolSize = Math.floor(
-        (parseInt(maxConnections || 20) * dynamicPoolPercent) / 100,
+      const dynamicPoolMax = await getDynamicPoolSize(
+        config,
+        connectionKey,
+        sourceId,
       );
-
-      // console.log('Max connections: ', maxConnections);
-      // console.log('Pool size: ', poolSize);
-
-      connectionPools[connectionKey] = knex({
-        ...config, connection: {
-          ...(config.connection || {}),
-          typeCast,
-        },
-        pool: { min: 0, max: poolSize },
-      });
-    } else {
-      connectionPools[connectionKey] = knex({
-        ...config, connection: {
-          ...(config.connection || {}),
-          typeCast,
-        }
-      });
+      if (dynamicPoolMax) {
+        poolSizeConfig = { min: 0, max: dynamicPoolMax };
+      }
     }
-    fromPool = false;
+
+    connectionPools[connectionKey] = knex({
+      ...config,
+      connection: {
+        ...(config.connection || {}),
+        typeCast,
+      },
+      pool: Object.keys(poolSizeConfig).length > 0 ? poolSizeConfig : undefined,
+    });
 
     if (sourceId) {
       connectionStats[sourceId] = {
@@ -168,51 +214,56 @@ async function queryHandler(req, res) {
     }
   }
 
-  /*
-  const knexPool = connectionPools[connectionKey].client.pool;
+  return connectionPools[connectionKey];
+}
 
-  console.log(`\n
-    Connections in use: ${knexPool.numUsed()}\n
-    Connections free: ${knexPool.numFree()}\n
-    Acquiring: ${knexPool.numPendingAcquires()}\n
-    Creating: ${knexPool.numPendingCreates()}\n
-    ${dayjs().format('YYYY-MM-DD HH:mm:ssZ')} (${fromPool ? 'pool' : 'fresh'})\n
-  `);
-  */
+async function handleQuery(
+  kn: Knex,
+  config: any,
+  query: string | string[],
+  raw: boolean,
+) {
+  if (Array.isArray(query)) {
+    // Execute all queries in a single transaction for consistency
+    const trx = await kn.transaction();
+    const responses = [];
+    try {
+      for (const q of query) {
+        responses.push(
+          raw ? await trx.raw(q) : await execAndGetRows(trx, config, q),
+        );
+      }
+      await trx.commit();
+      return responses;
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  } else {
+    return raw ? kn.raw(query) : execAndGetRows(kn, config, query);
+  }
+}
 
-  let result;
+async function queryHandler(req, res) {
+  const startTime = dayjs();
+  const { query: queries, config, raw = false } = req.body;
+  const { sourceId = null } = req.params || {};
+
+  config.client = getKnexClient(config.client);
+
+  const query = queries.length === 1 ? queries[0] : queries;
+
+  let kn: Knex;
+  try {
+    kn = await getConnectionPool(config, sourceId);
+  } catch (err) {
+    console.error('Error establishing connection pool:', err);
+    return res.status(500).send({ error: serializeError(err) });
+  }
 
   try {
-    if (Array.isArray(query)) {
-      const trx = await connectionPools[connectionKey].transaction();
-      const responses = [];
-      try {
-        for (const q of query) {
-          if (raw) {
-            responses.push(await trx.raw(q));
-          } else {
-            responses.push(
-              await execAndGetRows(trx, config, q),
-            );
-          }
-        }
-        await trx.commit();
-        result = responses;
-      } catch (e) {
-        await trx.rollback();
-        console.error(e);
-        return res.status(500).send({
-          error: serializeError(e),
-        });
-      }
-    } else {
-      if (raw) {
-        result = await connectionPools[connectionKey].raw(query);
-      } else {
-        result = await execAndGetRows(connectionPools[connectionKey], config, query);
-      }
-    }
-
+    const result = await handleQuery(kn, config, query, raw);
+    // Update stats if sourceId is provided
     if (sourceId) {
       if (connectionStats[sourceId]) {
         connectionStats[sourceId].queries++;
@@ -227,36 +278,24 @@ async function queryHandler(req, res) {
         };
       }
     }
-  } catch (e) {
-    console.error('\nQuery failed with error:');
-    console.error(query);
-    console.error(e);
-    console.error('\n');
-    return res.status(500).send({
-      error: serializeError(e),
-    });
-  }
 
-  res.send(result);
+    return res.send(result);
+  } catch (e) {
+    console.error('\nQuery failed with error:', e, '\nQuery:', query, '\n');
+    return res.status(500).send({ error: serializeError(e) });
+  } finally {
+    // Optionally log query execution time if needed
+    if (DEBUG) {
+      const duration = dayjs().diff(startTime, 'millisecond');
+      console.log(`Query executed in ${duration}ms`);
+    }
+  }
 }
 
-fastify.post(
-  '/query',
-  {
-    schema: {
-      body: BodyJsonSchema,
-    },
-  },
-  queryHandler,
-);
-
+fastify.post('/query', { schema: { body: BodyJsonSchema } }, queryHandler);
 fastify.post(
   '/query/:sourceId',
-  {
-    schema: {
-      body: BodyJsonSchema,
-    },
-  },
+  { schema: { body: BodyJsonSchema } },
   queryHandler,
 );
 
@@ -274,78 +313,15 @@ fastify.get('/metrics', async (req, res) => {
 
 fastify.listen(
   { port: +process.env.PORT || 9000, host: process.env.HOST || 'localhost' },
-  function (err) {
+  (err) => {
     if (err) {
       fastify.log.error(err);
       process.exit(1);
     }
     console.log(
-      `Server listening on ${process.env.HOST || 'localhost'}:${+process.env.PORT || 9000
+      `Server listening on ${process.env.HOST || 'localhost'}:${
+        +process.env.PORT || 9000
       }`,
     );
   },
 );
-
-// Custom Knex
-
-dayjs.extend(utc);
-
-dayjs.extend(timezone);
-
-// refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
-const pgTypes = {
-  FLOAT4: 700,
-  FLOAT8: 701,
-  DATE: 1082,
-  TIMESTAMP: 1114,
-  TIMESTAMPTZ: 1184,
-  NUMERIC: 1700,
-};
-
-// override parsing date column to Date()
-types.setTypeParser(pgTypes.DATE, (val) => val);
-// override timestamp
-types.setTypeParser(pgTypes.TIMESTAMP, (val) => {
-  return dayjs.utc(val).format('YYYY-MM-DD HH:mm:ssZ');
-});
-// override timestampz
-types.setTypeParser(pgTypes.TIMESTAMPTZ, (val) => {
-  return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-});
-
-const parseFloatVal = (val: string) => {
-  return parseFloat(val);
-};
-
-// parse integer values
-defaults.parseInt8 = true;
-
-// parse float values
-types.setTypeParser(pgTypes.FLOAT8, parseFloatVal);
-types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
-
-
-// a custom type parser for mysql to convert bit and decimal types
-function typeCast(field, next) {
-  const res = next();
-
-
-  // mysql - convert all other buffer values to hex string
-  // if `bit` datatype then convert it to integer number
-  if (res && res instanceof Buffer) {
-    const hex = [...res]
-      .map((v) => ('00' + v.toString(16)).slice(-2))
-      .join('');
-    if (field.type == 'BIT') {
-      return parseInt(hex, 16);
-    }
-    return hex;
-  }
-
-  // mysql `decimal` datatype returns value as string, convert it to float number
-  if (field.type == 'NEWDECIMAL') {
-    return res && parseFloat(res);
-  }
-
-  return res;
-}

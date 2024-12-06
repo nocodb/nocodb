@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon -e ts,js -w ./src -x \"ts-node src/index --log-error --project tsconfig.json\"",
-    "build": "webpack --config webpack.config.js",
+    "build": "rspack build --config rspack.config.js",
     "start:prod": "node dist/main.js"
   },
   "author": "",

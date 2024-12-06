@@ -15,6 +15,22 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+// Add this helper function at the top of the file after imports
+function addCaseInsensitiveFlag(filters: Filter[]) {
+  return filters.map(filter => {
+    // Only add case insensitive flag for string operations
+    if (['eq', 'like', 'nlike', 'startswith', 'endswith'].includes(filter.comparison_op)) {
+      return {
+        ...filter,
+        is_case_insensitive: true,
+        // Use fk_column_id directly since that's what the Filter type expects
+        fk_column_id: filter.fk_column_id
+      };
+    }
+    return filter;
+  });
+}
+
 @Injectable()
 export class DatasService {
   protected logger = new Logger(DatasService.name);
@@ -40,6 +56,18 @@ export class DatasService {
       );
       model = modelAndView.model;
       view = modelAndView.view;
+    }
+
+    // Normalize fields before calling getDataList
+    if (param.query.fields) {
+      const requestedFields = param.query.fields.split(',').map(f => f.trim());
+      const resolvedColumns = [];
+      for (const f of requestedFields) {
+        // Attempt to resolve the column based on various naming options
+        const column = await this.getColumnByIdOrName(context, f, model);
+        resolvedColumns.push(column.title); // Use the column title since that's what NocoDB expects
+      }
+      param.query.fields = resolvedColumns.join(',');
     }
 
     // check for linkColumnId query param and handle it
@@ -75,8 +103,50 @@ export class DatasService {
 
   async dataFindOne(context: NcContext, param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
+
+    // Normalize fields in dataFindOne as well
+    if (param.query.fields) {
+      const requestedFields = param.query.fields.split(',').map(f => f.trim());
+      const resolvedColumns = [];
+      for (const f of requestedFields) {
+        const column = await this.getColumnByIdOrName(context, f, model);
+        resolvedColumns.push(column.title);
+      }
+      param.query.fields = resolvedColumns.join(',');
+    }
+
+    // Handle case-insensitive flag from query params
+    if (param.query.case_insensitive === 'true') {
+      if (param.query.filterArrJson) {
+        const filters = JSON.parse(param.query.filterArrJson || '[]');
+        param.query.filterArrJson = JSON.stringify(addCaseInsensitiveFlag(filters));
+      }
+
+      // Handle where condition for case-insensitive search
+      if (param.query.where) {
+        try {
+          const whereStr = param.query.where;
+          const matches = whereStr.match(/\((.*?),(.*?),(.*?)\)/);
+          if (matches) {
+            const [_, field, op, value] = matches;
+            const filter = {
+              fk_column_id: field.trim(),
+              comparison_op: op.trim(),
+              value: value.trim(),
+              is_case_insensitive: true,
+            };
+            param.query.filterArrJson = JSON.stringify([filter]);
+            delete param.query.where;
+          }
+        } catch (e) {
+          this.logger.error('Error processing where condition:', e);
+        }
+      }
+    }
+
     return await this.getFindOne(context, { model, view, query: param.query });
   }
+
 
   async dataGroupBy(context: NcContext, param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
@@ -198,20 +268,65 @@ export class DatasService {
       customConditions?: Filter[];
     },
   ) {
-    const {
-      model,
-      view: view,
-      query = {},
-      ignoreViewFilterAndSort = false,
-    } = param;
+    const { model, query = {}, ignoreViewFilterAndSort = false } = param;
+
+    this.logger.debug('Original query:', query);
+
+    // Handle case-insensitive filters from query parameters
+    if (query.filterArrJson) {
+      try {
+        let filters = JSON.parse(query.filterArrJson);
+        if (query.case_insensitive === 'true') {
+          filters = addCaseInsensitiveFlag(filters);
+          query.filterArrJson = JSON.stringify(filters);
+          this.logger.debug('Modified filters with case-insensitive flag:', filters);
+        }
+      } catch (e) {
+        this.logger.error('Error processing filters:', e);
+      }
+    }
+
+    // Process case-insensitive `where` conditions
+    if (query.where && query.case_insensitive === 'true') {
+      try {
+        const whereStr = query.where;
+        const matches = whereStr.match(/\((.*?),(.*?),(.*?)\)/);
+        if (matches) {
+          const [_, field, op, value] = matches;
+
+          const filters = [{
+            fk_column_id: field,
+            comparison_op: op,
+            value: value,
+            is_case_insensitive: true,
+          }];
+
+          // Normalize and resolve the column here
+          const source = await Source.get(context, model.source_id);
+          const resolvedFilters = [];
+          for (const f of filters) {
+            const column = await this.getColumnByIdOrName(context, f.fk_column_id, model);
+            resolvedFilters.push({
+              ...f,
+              fk_column_id: column.id // or column.title/column_name depending on your DB driver’s expectation
+            });
+          }
+
+          query.filterArrJson = JSON.stringify(resolvedFilters);
+          // Remove the 'where' since we have converted it to filterArrJson
+          delete query.where;
+        }
+      } catch (e) {
+        this.logger.error('Error processing where condition:', e);
+      }
+    }
+
 
     const source = await Source.get(context, model.source_id);
-
     const baseModel =
       param.baseModel ||
       (await Model.getBaseModelSQL(context, {
         id: model.id,
-        viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
         source,
       }));
@@ -219,7 +334,7 @@ export class DatasService {
     const { ast, dependencyFields } = await getAst(context, {
       model,
       query,
-      view: view,
+      view: param.view,
       throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
     });
 
@@ -252,19 +367,19 @@ export class DatasService {
         } catch (e) {
           if (e instanceof NcBaseError) throw e;
           this.logger.error(e);
-          NcError.internalServerError(
-            'Please check server log for more details',
-          );
+          NcError.internalServerError('Please check server log for more details');
         }
         return data;
       })(),
     ]);
+
     return new PagedResponseImpl(data, {
       ...query,
       ...(param.limitOverride ? { limitOverride: param.limitOverride } : {}),
       count,
     });
   }
+
 
   async getFindOne(
     context: NcContext,
@@ -1106,20 +1221,32 @@ export class DatasService {
     return { offset, dbRows, elapsed, data };
   }
 
-  async getColumnByIdOrName(
-    context: NcContext,
-    columnNameOrId: string,
-    model: Model,
-  ) {
-    const column = (await model.getColumns(context)).find(
-      (c) =>
-        c.title === columnNameOrId ||
-        c.id === columnNameOrId ||
-        c.column_name === columnNameOrId,
-    );
 
-    if (!column) NcError.fieldNotFound(columnNameOrId);
+  async getColumnByIdOrName(context: NcContext, columnNameOrId: string, model: Model) {
+    const normalizedQueryField = normalizeFieldName(columnNameOrId);
 
-    return column;
+    function normalizeFieldName(fieldName: string): string {
+      return fieldName.replace(/\s+/g, '_').toLowerCase();
+    }
+
+    const columns = await model.getColumns(context);
+    const matchedColumn = columns.find(c => {
+      const normalizedColumnTitle = normalizeFieldName(c.title || '');
+      const normalizedColumnName = c.column_name?.toLowerCase();
+      const normalizedColumnId = c.id?.toLowerCase();
+      return (
+        normalizedColumnTitle === normalizedQueryField ||
+        normalizedColumnName === normalizedQueryField ||
+        normalizedColumnId === normalizedQueryField
+      );
+    });
+
+    if (!matchedColumn) {
+      this.logger.error(`Field '${columnNameOrId}' not found in model '${model.title}'`);
+      throw NcError.fieldNotFound(columnNameOrId);
+    }
+
+    return matchedColumn;
   }
+
 }

@@ -864,7 +864,7 @@ export function useInfiniteData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           [property]: toUpdate.row[property] ?? null,
         },

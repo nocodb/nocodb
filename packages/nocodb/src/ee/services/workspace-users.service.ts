@@ -207,7 +207,11 @@ export class WorkspaceUsersService {
       }
 
       // get all bases user is part of and delete them
-      const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
+      const workspaceBases = await Base.listByWorkspace(
+        workspaceId,
+        true,
+        ncMeta,
+      );
 
       for (const base of workspaceBases) {
         await BaseUser.delete(

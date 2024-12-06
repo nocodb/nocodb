@@ -20,6 +20,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { NcError } from '~/helpers/catchError';
 
 const logger = new Logger('Base');
 
@@ -267,11 +268,22 @@ export default class Base extends BaseCE {
     baseId,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
-    let base = await this.get(context, baseId, ncMeta);
+    const base = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      baseId,
+    );
+
+    if (!base) {
+      NcError.baseNotFound(baseId);
+    }
+
     const users = await BaseUser.getUsersList(
       context,
       {
         base_id: baseId,
+        include_ws_deleted: true,
       },
       ncMeta,
     );
@@ -290,12 +302,14 @@ export default class Base extends BaseCE {
       },
     );
 
-    const sources = await Source.list(context, { baseId }, ncMeta);
+    const sources = await Source.list(
+      context,
+      { baseId, includeDeleted: true },
+      ncMeta,
+    );
     for (const source of sources) {
       await source.delete(context, ncMeta, { force: true });
     }
-
-    base = await this.get(context, baseId, ncMeta);
 
     const res = await ncMeta.metaDelete(
       context.workspace_id,
@@ -499,13 +513,20 @@ export default class Base extends BaseCE {
     }
   };
 
-  static async listByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
+  static async listByWorkspace(
+    fk_workspace_id: string,
+    includeDeleted = false,
+    ncMeta = Noco.ncMeta,
+  ) {
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-      .where(`${MetaTable.PROJECT}.deleted`, false)
       .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true);
+
+    if (!includeDeleted) {
+      baseListQb.where(`${MetaTable.PROJECT}.deleted`, false);
+    }
 
     const bases = await baseListQb;
 

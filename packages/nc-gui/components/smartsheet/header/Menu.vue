@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -578,10 +578,7 @@ const onDeleteColumn = () => {
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
-          @click="setAsDisplayValue"
-        >
+        <NcMenuItem v-if="column && isSupportedDisplayValueColumn(column) && !column?.pv && !isHiddenCol" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item item">
             <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
             <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />

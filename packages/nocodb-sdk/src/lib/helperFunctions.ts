@@ -226,6 +226,24 @@ export const getTestDatabaseName = (db: {
 
 export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
+};
+
+export function ncParseProp(v: any): any {
+  if (!v) return {};
+  try {
+    return typeof v === 'string' ? JSON.parse(v) ?? {} : v;
+  } catch {
+    return {};
+  }
+}
+
+export function ncStringifyProp(v: any): string {
+  if (!v) return '{}';
+  try {
+    return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}';
+  } catch {
+    return '{}';
+  }
 }
 
 export function parseHelper(v: any): any {

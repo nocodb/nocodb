@@ -92,6 +92,14 @@ onMounted(() => {
   })
 })
 
+// Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
+const datesHours = computed(() => {
+  const start = dayjs(selectedDateRange.value.start).startOf('week')
+  return Array.from({ length: maxVisibleDays.value }, (_, i) =>
+    Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
+  )
+})
+
 const calculateHourIndices = (dayIndex: number, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
   // Get the hour component for start and end times
   const startHour = startDate.hour()
@@ -155,13 +163,6 @@ const calculateNewDates = useMemoize(
     return { startDate, endDate }
   },
 )
-// Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
-const datesHours = computed(() => {
-  const start = dayjs(selectedDateRange.value.start).startOf('week')
-  return Array.from({ length: maxVisibleDays.value }, (_, i) =>
-    Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
-  )
-})
 
 const getGridTime = (date: dayjs.Dayjs, round = false) => {
   const minutes = date.hour() * 60 + date.minute()

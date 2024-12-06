@@ -2,7 +2,7 @@
 import FeedRecents from './Recents/index.vue'
 import FeedChangelog from './Changelog/index.vue'
 import FeedYoutube from './Youtube/index.vue'
-import FeedTwitter from './Twitter.vue'
+// import FeedTwitter from './Twitter.vue'
 // import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 

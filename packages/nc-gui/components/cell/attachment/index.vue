@@ -52,7 +52,6 @@ const {
   visibleItems,
   onDrop,
   isLoading,
-  FileIcon,
   selectedFile,
   isReadonly,
   storedFiles,
@@ -317,11 +316,7 @@ defineExpose({
       </div>
     </div>
   </div>
-  <div
-    v-else
-    ref="attachmentCellRef"
-    class="nc-attachment-cell relative group color-transition"
-  >
+  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <template v-if="!isReadonly && !dragging && !!currentCellRef">
@@ -377,7 +372,9 @@ defineExpose({
         }"
         class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 mt-0 items-start overflow-y-auto nc-scrollbar-thin"
         :style="{
-          height: `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1']: rowHeightInPx[`${rowHeight}`] - 17}px, ${isGrid ? 22 : 32}px)`,
+          height: `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] : rowHeightInPx[`${rowHeight}`] - 17}px, ${
+            isGrid ? 22 : 32
+          }px)`,
           paddingTop: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
           paddingBottom: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
         }"
@@ -401,11 +398,7 @@ defineExpose({
               :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
               @click="() => onFileClick(item)"
             />
-            <div
-              v-else
-              class="nc-attachment h-full w-full flex items-center justify-center"
-              @click="onFileClick(item)"
-            >
+            <div v-else class="nc-attachment h-full w-full flex items-center justify-center" @click="onFileClick(item)">
               <CellAttachmentIconView :item="item" class="max-h-full max-w-full" />
             </div>
           </div>

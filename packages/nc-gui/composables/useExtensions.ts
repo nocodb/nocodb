@@ -1,5 +1,5 @@
-import { ExtensionsEvents } from '#imports'
 import { useStorage } from '@vueuse/core'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -46,10 +46,10 @@ export interface ExtensionManifest {
 }
 
 export interface IKvStore<T extends Record<string, any>> {
-  get<K extends keyof T>(key: K): T[K] | null;
-  set<K extends keyof T>(key: K, value: T[K]): Promise<void>;
-  delete<K extends keyof T>(key: K): Promise<void>;
-  serialize(): Record<string, T[keyof T]>;
+  get<K extends keyof T>(key: K): T[K] | null
+  set<K extends keyof T>(key: K, value: T[K]): Promise<void>
+  delete<K extends keyof T>(key: K): Promise<void>
+  serialize(): Record<string, T[keyof T]>
 }
 
 abstract class ExtensionType {
@@ -206,7 +206,7 @@ export const useExtensions = createSharedComposable(() => {
 
     await $api.extensions.delete(extensionId)
 
-    const extensionToDelete = baseExtensions.value[base.value.id].extensions.find((e: any) => e.id === extensionId);
+    const extensionToDelete = baseExtensions.value[base.value.id].extensions.find((e: any) => e.id === extensionId)
 
     baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.filter(
       (ext: any) => ext.id !== extensionId,
@@ -234,7 +234,7 @@ export const useExtensions = createSharedComposable(() => {
     })
 
     if (newExtension) {
-      const duplicatedExtension = new Extension(newExtension);
+      const duplicatedExtension = new Extension(newExtension)
       baseExtensions.value[base.value.id].extensions.push(duplicatedExtension)
       eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExtension.id)
 

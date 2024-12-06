@@ -274,7 +274,7 @@ const recordsAcrossAllRange = computed<{
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
-        const fromDate = record.row[fromCol?.title] ? dayjs(record.row[fromCol?.title!]) : null
+        const fromDate = fromCol?.title && record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
 
         if (fromCol && endCol) {
           const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null

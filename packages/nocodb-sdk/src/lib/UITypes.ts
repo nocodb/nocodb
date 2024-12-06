@@ -97,6 +97,34 @@ export const UITypesName = {
   AIPrompt: 'AI Prompt',
 };
 
+export const columnTypeName = (column: ColumnType) => {
+  if (!column) return '';
+
+  switch (column.uidt) {
+    case UITypes.LongText: {
+      if (ncParseProp(column.meta)?.richMode) {
+        return UITypesName.RichText;
+      }
+      //Todo: prevent AI Prompt field once it get merged in develop
+
+      return UITypesName[column.uidt];
+    }
+    case UITypes.Button: {
+      if (
+        column.uidt === UITypes.Button &&
+        (column?.colOptions as any)?.type === 'ai'
+      ) {
+        return UITypesName.AIButton;
+      }
+
+      return UITypesName[column.uidt];
+    }
+    default: {
+      return column.uidt ? UITypesName[column.uidt] : '';
+    }
+  }
+};
+
 export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',

@@ -1775,9 +1775,8 @@ watch(
   },
 )
 
-
 const toggleRowSelection = (row: number) => {
-  if(vSelectedAllRecords.value) return
+  if (vSelectedAllRecords.value) return
   const data = cachedRows.value.get(row)
 
   if (!data) return
@@ -1795,7 +1794,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
     }
   }
 })
-
 </script>
 
 <template>
@@ -1828,7 +1826,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
-        :disabled="contextMenuTarget === null && (!selectedRows.length && !vSelectedAllRecords)"
+        :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -1875,14 +1873,19 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   }"
                   data-testid="grid-id-column"
                 >
-
-                  <div class="flex items-center pl-2 pr-1 w-full h-full justify-center" v-if="!readOnly">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
+                  <div
+                    v-if="!readOnly"
+                    data-testid="nc-check-all"
+                    class="flex items-center pl-2 pr-1 w-full h-full justify-center"
+                  >
+                    <div class="nc-no-label text-gray-500"  :class="{ hidden: vSelectedAllRecords }">
+                      #
+                    </div>
                     <div
                       :class="{
-                          hidden: !vSelectedAllRecords,
-                          flex: vSelectedAllRecords,
-                        }"
+                        hidden: !vSelectedAllRecords,
+                        flex: vSelectedAllRecords,
+                      }"
                       class="nc-check-all w-full items-center"
                     >
                       <NcCheckbox v-model:checked="vSelectedAllRecords" />
@@ -1893,7 +1896,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   <template v-else>
                     <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
                   </template>
-
                 </th>
                 <th
                   v-if="fields[0] && fields[0].id"
@@ -2225,7 +2227,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="!row.rowMeta.selected && selectedRows.length > 100 || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>

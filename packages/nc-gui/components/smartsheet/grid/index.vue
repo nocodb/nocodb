@@ -61,6 +61,8 @@ const {
   isRowSortRequiredRows,
   applySorting,
   isBulkOperationInProgress,
+  selectedAllRecords,
+  bulkDeleteAll,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -276,6 +278,7 @@ const {
     <InfiniteTable
       v-else-if="!isGroupBy"
       ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
@@ -285,6 +288,7 @@ const {
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"
+      :bulk-delete-all="bulkDeleteAll"
       :clear-cache="clearCache"
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"

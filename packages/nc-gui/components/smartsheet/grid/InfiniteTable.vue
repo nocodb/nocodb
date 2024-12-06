@@ -41,6 +41,7 @@ const props = defineProps<{
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
+  bulkDeleteAll?: () => Promise<void>
   bulkUpsertRows?: (
     insertRows: Row[],
     updateRows: [],
@@ -57,9 +58,12 @@ const props = defineProps<{
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
+  selectedAllRecords?: boolean
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+
+const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const {
   loadData,
@@ -75,6 +79,7 @@ const {
   removeRowIfNew,
   clearInvalidRows,
   applySorting,
+  bulkDeleteAll,
 } = props
 
 // Injections
@@ -660,6 +665,29 @@ const onActiveCellChanged = () => {
   }
 }
 
+const isDeleteAllModalIsOpen = ref(false)
+async function deleteAllRecords() {
+  isDeleteAllModalIsOpen.value = true
+
+  function closeDlg() {
+    isOpen.value = false
+    close(200)
+  }
+
+  const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
+    'modelValue': isDeleteAllModalIsOpen,
+    'rows': totalRows.value,
+    'onUpdate:modelValue': closeDlg,
+    'onDeleteAll': async () => {
+      await bulkDeleteAll?.()
+      closeDlg()
+      vSelectedAllRecords.value = false
+    },
+  })
+
+  await until(isDeleteAllModalIsOpen).toBe(false)
+}
+
 const isOpen = ref(false)
 async function expandRows({
   newRows,
@@ -677,7 +705,7 @@ async function expandRows({
     continue: false,
     expand: true,
   }
-  const { close } = useDialog(resolveComponent('DlgExpandTable'), {
+  const { close } = useDialog(resolveComponent('DlgRecordUpsert'), {
     'modelValue': isOpen,
     'newRows': newRows,
     'newColumns': newColumns,
@@ -1746,6 +1774,26 @@ watch(
     immediate: true,
   },
 )
+
+const toggleRowSelection = (row: number) => {
+  if (vSelectedAllRecords.value) return
+  const data = cachedRows.value.get(row)
+
+  if (!data) return
+  data.rowMeta.selected = !data.rowMeta?.selected
+  cachedRows.value.set(row, data)
+}
+
+watch(vSelectedAllRecords, (selectedAll) => {
+  if (!selectedAll) {
+    for (const [row, data] of cachedRows.value.entries()) {
+      if (data.rowMeta?.selected) {
+        data.rowMeta.selected = false
+        cachedRows.value.set(row, data)
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -1778,7 +1826,7 @@ watch(
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
-        :disabled="contextMenuTarget === null && !selectedRows.length"
+        :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -1825,7 +1873,29 @@ watch(
                   }"
                   data-testid="grid-id-column"
                 >
-                  <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                  <div
+                    v-if="!readOnly"
+                    data-testid="nc-check-all"
+                    class="flex items-center pl-2 pr-1 w-full h-full justify-center"
+                  >
+                    <div class="nc-no-label text-gray-500"  :class="{ hidden: vSelectedAllRecords }">
+                      #
+                    </div>
+                    <div
+                      :class="{
+                        hidden: !vSelectedAllRecords,
+                        flex: vSelectedAllRecords,
+                      }"
+                      class="nc-check-all w-full items-center"
+                    >
+                      <NcCheckbox v-model:checked="vSelectedAllRecords" />
+
+                      <span class="flex-1" />
+                    </div>
+                  </div>
+                  <template v-else>
+                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                  </template>
                 </th>
                 <th
                   v-if="fields[0] && fields[0].id"
@@ -2127,7 +2197,7 @@ watch(
                         'active-row':
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
-                        'selected-row': row.rowMeta.selected,
+                        'selected-row': row.rowMeta.selected || vSelectedAllRecords,
                         'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
                       }"
                     >
@@ -2143,21 +2213,22 @@ watch(
                         <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
                           <div
                             class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected }"
+                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected || vSelectedAllRecords }"
                           >
                             {{ row.rowMeta.rowIndex + 1 }}
                           </div>
                           <div
                             v-if="!readOnly"
                             :class="{
-                              hidden: !row.rowMeta?.selected,
-                              flex: row.rowMeta?.selected,
+                              hidden: !row.rowMeta?.selected && !vSelectedAllRecords,
+                              flex: row.rowMeta?.selected || vSelectedAllRecords,
                             }"
                             class="nc-row-expand-and-checkbox"
                           >
-                            <a-checkbox
-                              v-model:checked="row.rowMeta.selected"
-                              :disabled="!row.rowMeta.selected && selectedRows.length > 100"
+                            <NcCheckbox
+                              :checked="row.rowMeta.selected || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
+                              @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
                           <span class="flex-1" />
@@ -2388,31 +2459,45 @@ watch(
 
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+            <template v-if="!vSelectedAllRecords">
+              <NcMenuItem
+                v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+                @click="emits('bulkUpdateDlg')"
+              >
+                <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
+                  <component :is="iconMap.ncEdit" />
+                  {{ $t('title.updateSelectedRows') }}
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                data-testid="nc-delete-row"
+                @click="deleteSelectedRows"
+              >
+                <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
+                  <component :is="iconMap.delete" />
+                  {{ $t('activity.deleteSelectedRow') }}
+                </div>
+                <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+                  <component :is="iconMap.delete" />
+                  {{ $t('activity.deleteSelectedRow') }}
+                </div>
+              </NcMenuItem>
+            </template>
             <NcMenuItem
-              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-              @click="emits('bulkUpdateDlg')"
+              v-if="vSelectedAllRecords"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              data-testid="nc-delete-all-row"
+              @click="deleteAllRecords"
             >
-              <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.ncEdit" />
-                {{ $t('title.updateSelectedRows') }}
+              <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
+                <component :is="iconMap.delete" />
+                {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
 
-            <NcMenuItem
-              v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-              data-testid="nc-delete-row"
-              @click="deleteSelectedRows"
-            >
-              <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
-                {{ $t('activity.deleteSelectedRow') }}
-              </div>
-              <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
-                {{ $t('activity.deleteSelectedRow') }}
-              </div>
-            </NcMenuItem>
             <NcTooltip
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
               :disabled="!isSelectedOnlyAI.disabled"
@@ -2508,7 +2593,7 @@ watch(
             </template>
 
             <template v-if="hasEditPermission && !isDataReadOnly">
-              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && selectedRows.length)" />
+              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"

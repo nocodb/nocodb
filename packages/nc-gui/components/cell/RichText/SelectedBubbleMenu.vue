@@ -427,7 +427,7 @@ const closeTextArea = () => {
       </NcButton>
     </NcTooltip>
 
-    <div class="!sticky right-0.5 bg-white">
+    <div class="!sticky right-0 pr-0.5 bg-white">
       <NcButton v-if="enableCloseButton" type="text" size="small" @click="closeTextArea">
         <GeneralIcon icon="close" />
       </NcButton>

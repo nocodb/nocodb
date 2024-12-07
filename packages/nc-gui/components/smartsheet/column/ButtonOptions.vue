@@ -171,7 +171,7 @@ const validators = {
     },
   ],
 
-  ...((isEdit.value ? vModel.value.colOptions : vModel.value.type) === ButtonActionsType.Ai
+  ...((isEdit.value ? vModel.value.colOptions?.type : vModel.value.type) === ButtonActionsType.Ai
     ? {
         output_column_ids: [
           {

@@ -108,10 +108,6 @@ onMounted(() => {
   vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
 })
 
-setAdditionalValidations({
-  fk_integration_id: [{ required: true, message: t('general.required') }],
-})
-
 if (isEdit.value) {
   vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
 }
@@ -150,6 +146,24 @@ watch(richMode, () => {
 watch(isPreviewEnabled, handleDisableSubmitBtn, {
   immediate: true,
 })
+
+watch(
+  isEnabledGenerateText,
+  (newValue) => {
+    if (newValue) {
+      setAdditionalValidations({
+        fk_integration_id: [{ required: true, message: t('title.aiIntegrationMissing') }],
+      })
+    } else {
+      setAdditionalValidations({
+        fk_integration_id: [{ required: false }],
+      })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

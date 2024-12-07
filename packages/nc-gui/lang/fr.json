@@ -655,7 +655,7 @@
     "snapshotCreationFailed": "La création de l'instantané a échoué",
     "snapshotCreationFailedDescription": "Impossible de créer votre instantané de base. Réessayez plus tard.",
     "snapshotCooldownDescription": "Les instantanés ne peuvent être pris qu'à trois heures d'intervalle.",
-    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotCooldownWarning": "Délai de récupération restant pour l'instantané",
     "snapshotLimitDescription": "Vous ne pouvez gérer que 2 instantanés de base à la fois. Passez à un plan supérieur pour obtenir des instantanés supplémentaires.",
     "snapshotLimitReached": "Limite de nombre d'instantanés atteinte",
     "confirmRestore": "Confirmer la restauration",
@@ -1067,6 +1067,7 @@
     "viewHide": "Afficher la visibilité "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Affecter la vue",
     "webhookDetails": "Détails du Webhook",
     "showSaturdaysAndSundays": "Afficher les samedis et dimanches",

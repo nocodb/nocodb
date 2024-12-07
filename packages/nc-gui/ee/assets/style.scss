@@ -10,6 +10,14 @@ html {
   font-synthesis: none;
 }
 
+i {
+  font-synthesis: initial !important;
+
+  & * {
+    font-synthesis: initial !important;
+  }
+}
+
 @layer utilities {
   @variants responsive {
     /* Chrome, Safari and Opera */

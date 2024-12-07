@@ -1067,6 +1067,7 @@
     "viewHide": "Sichtbarkeit anzeigen"
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Ansicht zuweisen",
     "webhookDetails": "Webhook-Details",
     "showSaturdaysAndSundays": "Samstage und Sonntage anzeigen",

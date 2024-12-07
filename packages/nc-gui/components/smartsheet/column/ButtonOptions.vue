@@ -26,6 +26,8 @@ const { isUIAllowed } = useRoles()
 
 const { getMeta } = useMetas()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
@@ -58,11 +60,15 @@ const buttonTypes = [
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
   },
-  {
-    label: t('labels.generateFieldDataUsingAi'),
-    value: ButtonActionsType.Ai,
-    tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
-  },
+  ...(isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+    ? [
+        {
+          label: t('labels.generateFieldDataUsingAi'),
+          value: ButtonActionsType.Ai,
+          tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
+        },
+      ]
+    : []),
 ]
 
 const supportedColumns = computed(

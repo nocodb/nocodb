@@ -2887,7 +2887,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
   // todo: replace with css variable
   td.filling::after {
-    @apply !border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
+    @apply border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
   }
 
   //td.active::before {

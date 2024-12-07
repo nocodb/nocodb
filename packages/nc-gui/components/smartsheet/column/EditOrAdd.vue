@@ -282,7 +282,7 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
   } else {
     formState.value.uidt = uidt
   }
-  
+
   onUidtOrIdTypeChange(preload)
 
   nextTick(() => {

@@ -620,8 +620,8 @@ watch(activeAiTab, (newValue) => {
 
 <template>
   <div
-    ref="editOrAddRef"
     v-if="!warningVisible"
+    ref="editOrAddRef"
     class="overflow-auto nc-scrollbar-md"
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
@@ -1306,9 +1306,8 @@ watch(activeAiTab, (newValue) => {
 
         <template v-else>
           <div
-            class="flex items-center justify-between gap-2 empty:hidden"
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5"
             :class="{
-              'sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5': true,
               'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
             }"
           >

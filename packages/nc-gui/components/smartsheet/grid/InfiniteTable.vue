@@ -2139,7 +2139,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   :row="row"
                 >
                   <template #default="{ state }">
-                    <tr
+                    <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
                         top: `${(index + 1) * rowHeight - 6}px`,
@@ -2160,8 +2160,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                         </NcTooltip>
                       </div>
-                    </tr>
-                    <tr
+                    </div>
+                    <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
                         top: `${(index + 1) * rowHeight - 6}px`,
@@ -2180,7 +2180,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                         </NcTooltip>
                       </div>
-                    </tr>
+                    </div>
                     <tr
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{

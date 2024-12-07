@@ -8741,7 +8741,6 @@ export class Api<
       orgs: string,
       baseName: string,
       tableName: string,
-      data: object,
       query?: {
         where?: string;
         viewId?: string;
@@ -8758,8 +8757,6 @@ export class Api<
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

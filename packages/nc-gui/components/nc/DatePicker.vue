@@ -9,6 +9,7 @@ interface Props {
   type: 'date' | 'time' | 'year' | 'month'
   isOpen: boolean
   showCurrentDateOption?: boolean | 'disabled'
+  isMondayFirst?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   type: 'date',
   isOpen: false,
+  isMondayFirst: true,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -131,7 +133,7 @@ onMounted(() => {
     v-model:page-date="localStatePageDate"
     v-model:selected-date="localStateSelectedDate"
     :picker-type="pickerType"
-    :is-monday-first="false"
+    :is-monday-first="props.isMondayFirst"
     is-cell-input-field
     size="medium"
     :show-current-date-option="showCurrentDateOption"

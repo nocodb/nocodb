@@ -138,10 +138,12 @@ const saveCalendarRanges = async () => {
   }
 }
 
+/*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
 }
+*/
 
 const isDisabled = computed(() => {
   return (

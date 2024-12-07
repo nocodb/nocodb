@@ -1067,6 +1067,7 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "वेबहूक विवरण",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",

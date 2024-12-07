@@ -272,33 +272,43 @@ const updateSize = () => {
   }
 }
 
-watch([isVisible, inputRef], (value) => {
-  const observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const { width, height } = entry.contentRect
+watch(
+  [isVisible, inputRef],
+  (value) => {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
 
-      if (!isVisible.value) {
-        return
+        if (!isVisible.value) {
+          return
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
       }
+    })
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
-    }
-  })
+    if (value) {
+      if (isRichMode.value && isVisible.value) {
+        setTimeout(() => {
+          const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
 
-  if (value) {
-    if (isRichMode.value) {
-      setTimeout(() => {
-        observer.observe(document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement)
+          if (!el) return
 
+          observer.observe(el)
+
+          updateSize()
+        }, 50)
+      } else {
         updateSize()
-      }, 50)
+      }
     } else {
-      updateSize()
+      observer.disconnect()
     }
-  } else {
-    observer.disconnect()
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -342,8 +352,16 @@ watch([isVisible, inputRef], (value) => {
           'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
+          maxHeight: isForm
+            ? undefined
+            : isExpandedFormOpen
+            ? `${height}px`
+            : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
+          minHeight: isForm
+            ? undefined
+            : isExpandedFormOpen
+            ? `${height}px`
+            : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -543,7 +561,7 @@ watch([isVisible, inputRef], (value) => {
               {{ column.title }}
             </span>
           </div>
-          <template v-if="!props.isAi">
+          <template v-if="!props.isAi && !isRichMode">
             <div class="flex-1" />
 
             <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">

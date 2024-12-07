@@ -183,20 +183,10 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const hideAiPromptOnEdit = [AIPrompt, AIButton].includes(t.name)
-    ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value
-    : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
-  return (
-    systemFiledNotEdited &&
-    geoDataToggle &&
-    !specificDBType &&
-    showDeprecatedField &&
-    isAllowToAddInFormView &&
-    hideAiPromptOnEdit &&
-    hideBetaAi
-  )
+  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField && isAllowToAddInFormView && showAiFields
 }
 
 const extraIcons = ref<Record<string, string>>({})

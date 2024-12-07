@@ -20,6 +20,14 @@
   font-synthesis: none;
 }
 
+i {
+  font-synthesis: initial !important;
+
+  & * {
+    font-synthesis: initial !important;
+  }
+}
+
 html {
   overflow: hidden;
 }

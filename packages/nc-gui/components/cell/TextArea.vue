@@ -664,6 +664,18 @@ textarea:focus {
   @apply !block cursor-pointer;
 }
 
+.nc-grid-cell {
+  &.align-top {
+    .long-text-wrapper {
+      @apply items-start;
+    }
+  }
+
+  &:not(.align-top) {
+    @apply items-center;
+  }
+}
+
 .nc-data-cell {
   &:has(.nc-cell-ai .nc-expanded-form-open) {
     @apply !border-none -mx-1 -my-1;

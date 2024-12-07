@@ -229,6 +229,8 @@ export enum NcErrorType {
   INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
 }
 
+export const LongTextAiMetaProp = 'ai';
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

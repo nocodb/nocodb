@@ -1,6 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
-import { RelationTypes } from '~/lib/globals';
+import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
+import { parseHelper } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -90,6 +91,7 @@ export const UITypesName = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   AIButton: 'AI Button',
+  AIPrompt: 'AI Prompt',
 };
 
 export const FieldNameFromUITypes: Record<UITypes, string> = {
@@ -184,6 +186,14 @@ export function isVirtualCol(
     UITypes.Button,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+}
+
+export function isAIPromptCol(
+  col:
+    | ColumnReqType
+    | ColumnType
+) {
+  return col.uidt === UITypes.LongText && parseHelper((col as any)?.meta)?.[LongTextAiMetaProp];
 }
 
 export function isCreatedOrLastModifiedTimeCol(

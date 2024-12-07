@@ -658,12 +658,12 @@ watch(
                   >
                     <NcButton
                       type="text"
-                      size="xsmall"
-                      class="nc-extdb-btn-import-url !rounded-md !h-6 !px-2 flex-none"
+                      size="small"
+                      class="nc-extdb-btn-import-url !rounded-md !px-2 flex-none -my-1.5"
                       @click.stop="importURLDlg = true"
                     >
                       <div class="flex items-center gap-2">
-                        <GeneralIcon icon="magic" class="flex-none text-yellow-500" />
+                        <GeneralIcon icon="ncLink" class="flex-none" />
                         {{ $t('activity.useConnectionUrl') }}
                       </div>
                     </NcButton>
@@ -672,7 +672,13 @@ watch(
                         <div class="text-sm text-gray-700">
                           Auto populate connection configuration using database connection URL
                         </div>
+
                         <a-textarea
+                          :ref="
+                            (el) => {
+                              el?.$el?.focus()
+                            }
+                          "
                           v-model:value="importURL"
                           class="!rounded-lg !min-h-[120px] !max-h-[250px] nc-scrollbar-thin"
                         ></a-textarea>

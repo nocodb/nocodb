@@ -1143,7 +1143,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
           <NcMenu @click="contextMenu = false">
             <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
               <div v-e="['a:kanban:expand-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.expand" class="flex" />
+                <component :is="iconMap.maximize" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>

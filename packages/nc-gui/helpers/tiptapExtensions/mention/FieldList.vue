@@ -56,6 +56,12 @@ export default {
         return true
       }
 
+      if (event.key === '}') {
+        setTimeout(() => {
+          this.selectItem(this.selectedIndex)
+        }, 250)
+      }
+
       return false
     },
 
@@ -80,6 +86,7 @@ export default {
 
     selectItem(index, _e) {
       const item = this.items[index]
+
       if (item) {
         this.command({
           id: item.title,
@@ -92,7 +99,7 @@ export default {
 
 <template>
   <div
-    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2 shadow-lg"
+    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg max-h-64 !py-2 px-2 shadow-lg"
     @mousedown.stop
   >
     <template v-if="items.length">
@@ -100,11 +107,16 @@ export default {
         v-for="(item, index) in items"
         :key="index"
         :class="{ 'is-selected': index === selectedIndex }"
-        class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
+        class="py-2 flex hover:bg-gray-100 rounded-md transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
         @click="selectItem(index, $event)"
       >
         <component :is="getUIDTIcon(item.uidt)" v-if="item?.uidt" class="flex-none w-3.5 h-3.5" />
-        {{ item?.title || '' }}
+        <NcTooltip class="truncate" show-on-truncate-only :tooltip-style="{ zIndex: '10000' }">
+          <template #title>
+            {{ item?.title || '' }}
+          </template>
+          {{ item?.title || '' }}
+        </NcTooltip>
       </div>
     </template>
     <div v-else class="px-4">No field available</div>

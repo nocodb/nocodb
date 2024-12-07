@@ -366,6 +366,7 @@ onBeforeUnmount(() => {
                       v-model:randomness="vModel.randomness"
                       :workspace-id="activeWorkspaceId"
                       :show-tooltip="false"
+                      :is-edit-column="isEdit"
                       placement="bottomRight"
                     >
                       <NcButton size="xs" theme="ai" class="!px-1" type="text">
@@ -467,7 +468,11 @@ onBeforeUnmount(() => {
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
                           <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
-                          <span>{{ op.title }}</span>
+                          <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
+                            <template #title>{{ op.title }}</template>
+                            {{ op.title }}
+                          </NcTooltip>
+
                           <div class="flex items-center p-0.5 mt-0.5">
                             <GeneralIcon
                               icon="close"
@@ -679,8 +684,8 @@ onBeforeUnmount(() => {
                 <div
                   class="flex justify-center nc-ai-button-test-generate-wrapper"
                   :class="{
-                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
-                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && inputColumns.length),
+                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && inputColumns.length),
                   }"
                 >
                   <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>
@@ -690,7 +695,7 @@ onBeforeUnmount(() => {
                         <div>Preview checklist</div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               inputColumns.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -703,7 +708,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               outputColumnIds.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -716,7 +721,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               selectedRecordPk
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'

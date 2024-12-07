@@ -90,6 +90,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const { t } = useI18n()
 
+  const { aiIntegrations } = useNocoAi()
+
   const isFromIntegrationPage = ref(false)
 
   const integrationsRefreshKey = ref(0)
@@ -186,12 +188,17 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const deleteIntegration = async (integration: IntegrationType, force = false) => {
     if (!integration?.id) return
 
+    $e('a:integration:delete')
+
     try {
       await api.integration.delete(integration.id, {
         query: force ? { force: 'true' } : {},
       })
 
-      $e('a:integration:delete')
+      if (integration.type === IntegrationsType.Ai) {
+        aiIntegrations.value = aiIntegrations.value.filter((i) => i.id !== integration.id)
+      }
+
       await loadIntegrations()
 
       // await message.success(`Connection ${integration.title} deleted successfully`)
@@ -214,10 +221,21 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const updateIntegration = async (integration: IntegrationType) => {
     if (!integration.id) return
 
+    $e('a:integration:update')
+
     try {
       await api.integration.update(integration.id, integration)
 
-      $e('a:integration:update')
+      if (integration.type === IntegrationsType.Ai) {
+        aiIntegrations.value = aiIntegrations.value.map((i) => {
+          if (i.id === integration.id) {
+            i.title = integration.title
+          }
+
+          return i
+        })
+      }
+
       await loadIntegrations()
 
       pageMode.value = null
@@ -232,10 +250,23 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const setDefaultIntegration = async (integration: IntegrationType) => {
     if (!integration.id) return
 
+    $e('a:integration:set-default')
+
     try {
       await api.integration.setDefault(integration.id)
 
-      $e('a:integration:set-default')
+      if (integration.type === IntegrationsType.Ai) {
+        aiIntegrations.value = aiIntegrations.value.map((i) => {
+          if (i.id === integration.id) {
+            i.is_default = true
+          } else {
+            i.is_default = false
+          }
+
+          return i
+        })
+      }
+
       await loadIntegrations()
 
       pageMode.value = null
@@ -253,17 +284,28 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     loadDatasourceInfo = false,
     baseId: string | undefined = undefined,
   ) => {
+    if (mode === 'create') {
+      $e('a:integration:create')
+    } else {
+      $e('a:integration:duplicate')
+    }
+
     try {
       const response = await api.integration.create(integration)
-      if (mode === 'create') {
-        $e('a:integration:create')
-      } else {
-        $e('a:integration:duplicate')
-      }
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
           integrations.value.push(response)
+        }
+
+        if (response.type === IntegrationsType.Ai) {
+          aiIntegrations.value.push({
+            id: response.id,
+            title: response.title,
+            is_default: response.is_default,
+            type: response.type,
+            sub_type: response.sub_type,
+          })
         }
       }
 
@@ -402,7 +444,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     return list
   }
 
-  onMounted(async () => {
+  const loadDynamicIntegrations = async () => {
     if (integrationsInitialized.value) return
 
     integrationsInitialized.value = true
@@ -451,7 +493,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       integrationsRefreshKey.value++
     }
-  })
+  }
 
   const integrationsIconMap = computed(() => {
     // eslint-disable-next-line no-unused-expressions
@@ -496,6 +538,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     setDefaultIntegration,
     integrationsIconMap,
     listIntegrationByType,
+    loadDynamicIntegrations,
   }
 }, 'integrations-store')
 

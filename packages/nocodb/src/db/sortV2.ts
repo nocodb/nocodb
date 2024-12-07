@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk';
+import { isAIPromptCol, UITypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
@@ -197,6 +197,33 @@ export default async function sortV2(
           nulls,
         );
 
+        break;
+      }
+      case UITypes.LongText: {
+        if (isAIPromptCol(column)) {
+          let col;
+          if (knex.clientType() === 'pg') {
+            col = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType().startsWith('mysql')) {
+            col = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'sqlite3') {
+            col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
+          } else if (knex.clientType() === 'mssql') {
+            col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
+          }
+
+          qb.orderBy(col, sort.direction || 'asc', nulls);
+        } else {
+          qb.orderBy(
+            sanitize(column.column_name),
+            sort.direction || 'asc',
+            nulls,
+          );
+        }
         break;
       }
       default:

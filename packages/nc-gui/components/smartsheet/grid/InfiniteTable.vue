@@ -2870,7 +2870,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
     top: 0;
     left: 0;
     width: 100%;
-    box-shadow: 0 0 0 2px #3366ff !important;
+    box-shadow: 0 0 0 1.5px #3366ff !important;
     border-radius: 2px;
   }
 
@@ -2887,7 +2887,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
   // todo: replace with css variable
   td.filling::after {
-    @apply border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
+    @apply !border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
   }
 
   //td.active::before {
@@ -2923,6 +2923,35 @@ watch(vSelectedAllRecords, (selectedAll) => {
       left: 64px;
       background: white;
       @apply border-r-1 border-r-gray-100;
+    }
+
+    tbody {
+      tr:not(.nc-grid-add-new-cell):not(.placeholder) td:nth-child(3) {
+        &.active-cell {
+          @apply border-l-[1.5px] !border-l-transparent;
+        }
+        &.filling::after {
+          left: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-child(1) td {
+        &.active-cell {
+          @apply border-t-[1.5px] !border-t-transparent;
+        }
+        &.filling::after {
+          top: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-last-child(2) td {
+        &.active-cell {
+          @apply border-b-[1.5px] !border-b-transparent;
+        }
+        &.filling::after {
+          bottom: 0px;
+        }
+      }
     }
   }
 

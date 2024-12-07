@@ -682,11 +682,7 @@ onClickOutside(focusLabel, () => {
 const updateFieldTitle = (value: string) => {
   if (!activeField.value) return
 
-  if (activeField.value.title === value) {
-    activeField.value.label = null
-  } else {
-    activeField.value.label = value.trimStart()
-  }
+  activeField.value.label = value.trimStart()
 }
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {

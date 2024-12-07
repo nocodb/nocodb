@@ -238,6 +238,20 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   return types
 })
 
+const editOrAddRef = ref<HTMLDivElement>()
+
+const isScrollEnabled = ref(false)
+
+const handleScrollDebounce = useDebounceFn(() => {
+  if (props.fromTableExplorer || !editOrAddRef.value || aiAutoSuggestMode.value) return
+
+  if (editOrAddRef.value.clientHeight < editOrAddRef.value.scrollHeight) {
+    isScrollEnabled.value = true
+  } else {
+    isScrollEnabled.value = false
+  }
+}, 500)
+
 const onSelectType = (uidt: UITypes | typeof AIButton, fromSearchList = false) => {
   let preload
 
@@ -254,6 +268,10 @@ const onSelectType = (uidt: UITypes | typeof AIButton, fromSearchList = false) =
     formState.value.uidt = uidt
   }
   onUidtOrIdTypeChange(preload)
+
+  nextTick(() => {
+    handleScrollDebounce()
+  })
 }
 
 const reloadMetaAndData = async () => {
@@ -393,6 +411,9 @@ onMounted(() => {
   nextTick(() => {
     mounted.value = true
     emit('mounted')
+
+    handleScrollDebounce()
+
     if (!isEdit.value) {
       if (!formState.value?.temp_id) {
         emit('add', formState.value)
@@ -489,6 +510,9 @@ const triggerDescriptionEnable = () => {
       descInputEl.value?.focus()
     }, 100)
   }
+  nextTick(() => {
+    handleScrollDebounce()
+  })
 }
 
 const isFullUpdateAllowed = computed(() => {
@@ -597,6 +621,7 @@ watch(activeAiTab, (newValue) => {
 <template>
   <div
     v-if="!warningVisible"
+    ref="editOrAddRef"
     class="overflow-auto nc-scrollbar-md"
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
@@ -604,13 +629,15 @@ watch(activeAiTab, (newValue) => {
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
-      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
+      '!pb-0': !embedMode && !aiAutoSuggestMode && formState.uidt,
     }"
     @keydown="handleEscape"
     @click.stop
+    @scroll="handleScrollDebounce"
   >
     <a-form
       v-model="formState"
@@ -1227,7 +1254,12 @@ watch(activeAiTab, (newValue) => {
           </Transition>
         </template>
 
-        <a-form-item v-if="enableDescription && !aiAutoSuggestMode">
+        <a-form-item
+          v-if="enableDescription && !aiAutoSuggestMode"
+          :class="{
+            '!pb-4': embedMode,
+          }"
+        >
           <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
@@ -1254,8 +1286,13 @@ watch(activeAiTab, (newValue) => {
         </a-form-item>
 
         <template v-if="props.fromTableExplorer">
-          <a-form-item>
-            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+          <a-form-item
+            v-if="!enableDescription"
+            :class="{
+              '!pb-4': embedMode,
+            }"
+          >
+            <NcButton size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -1266,8 +1303,14 @@ watch(activeAiTab, (newValue) => {
             </NcButton>
           </a-form-item>
         </template>
+
         <template v-else>
-          <div class="flex items-center justify-between gap-2 empty:hidden">
+          <div
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5"
+            :class="{
+              'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
+            }"
+          >
             <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />

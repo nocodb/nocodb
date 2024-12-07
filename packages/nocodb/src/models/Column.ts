@@ -1357,9 +1357,13 @@ export default class Column<T = any> implements ColumnType {
       );
     }
 
-    if (oldCol.uidt === UITypes.Attachment && oldCol.uidt !== column.uidt) {
+    if (
+      column.uidt &&
+      oldCol.uidt === UITypes.Attachment &&
+      oldCol.uidt !== column.uidt
+    ) {
       // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
-      await Column.deleteCoverImageColumnId(context, column.id, ncMeta);
+      await Column.deleteCoverImageColumnId(context, colId, ncMeta);
     }
 
     // set meta

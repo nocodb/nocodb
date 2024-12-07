@@ -665,14 +665,12 @@ const onActiveCellChanged = () => {
   }
 }
 
+const isOpen = ref(false)
+
 const isDeleteAllModalIsOpen = ref(false)
+
 async function deleteAllRecords() {
   isDeleteAllModalIsOpen.value = true
-
-  function closeDlg() {
-    isOpen.value = false
-    close(200)
-  }
 
   const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
     'modelValue': isDeleteAllModalIsOpen,
@@ -685,10 +683,14 @@ async function deleteAllRecords() {
     },
   })
 
+  function closeDlg() {
+    isOpen.value = false
+    close(200)
+  }
+
   await until(isDeleteAllModalIsOpen).toBe(false)
 }
 
-const isOpen = ref(false)
 async function expandRows({
   newRows,
   newColumns,
@@ -1878,9 +1880,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     data-testid="nc-check-all"
                     class="flex items-center pl-2 pr-1 w-full h-full justify-center"
                   >
-                    <div class="nc-no-label text-gray-500"  :class="{ hidden: vSelectedAllRecords }">
-                      #
-                    </div>
+                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
                         hidden: !vSelectedAllRecords,
@@ -2145,13 +2145,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
-                      class="absolute z-30 left-0"
+                      class="absolute z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row filtered
 
@@ -2170,13 +2167,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
-                      class="absolute transform z-30 left-0"
+                      class="absolute transform z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row moved
 

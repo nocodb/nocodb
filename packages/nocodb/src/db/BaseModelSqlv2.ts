@@ -9777,7 +9777,7 @@ class BaseModelSqlv2 {
     // oldData uses title as key where as data uses column_name as key
     oldData?,
     extra?: { raw?: boolean },
-  ) {
+  ): Promise<void> {
     for (const column of this.model.columns) {
       if (
         ![
@@ -10102,40 +10102,6 @@ class BaseModelSqlv2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
-      }
-    }
-
-    // AI column isStale handling
-    const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
-
-    for (const aiColumn of aiColumns) {
-      if (
-        !oldData ||
-        !oldData[aiColumn.title] ||
-        oldData[aiColumn.title]?.isStale === true
-      ) {
-        continue;
-      }
-
-      const oldAiData = data[aiColumn.column_name]
-        ? JSON.parse(data[aiColumn.column_name])
-        : oldData[aiColumn.title];
-
-      const referencedColumnIds = aiColumn.colOptions.prompt
-        ?.match(/{(.*?)}/g)
-        ?.map((id) => id.replace(/{|}/g, ''));
-
-      if (!referencedColumnIds) continue;
-
-      const referencedColumns = referencedColumnIds.map(
-        (id) => this.model.columnsById[id],
-      );
-
-      if (referencedColumns.some((c) => c.column_name in data)) {
-        data[aiColumn.column_name] = JSON.stringify({
-          ...oldAiData,
-          isStale: true,
-        });
       }
     }
   }

@@ -3,6 +3,7 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   extractFilterFromXwhere,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -682,7 +683,41 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
     }
 
-    return super.prepareNocoData(data, isInsertData, cookie, oldData, extra);
+    await super.prepareNocoData(data, isInsertData, cookie, oldData, extra);
+
+    // AI column isStale handling
+    const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
+
+    for (const aiColumn of aiColumns) {
+      if (
+        !oldData ||
+        !oldData[aiColumn.title] ||
+        oldData[aiColumn.title]?.isStale === true
+      ) {
+        continue;
+      }
+
+      const oldAiData = data[aiColumn.column_name]
+        ? JSON.parse(data[aiColumn.column_name])
+        : oldData[aiColumn.title];
+
+      const referencedColumnIds = aiColumn.colOptions.prompt
+        ?.match(/{(.*?)}/g)
+        ?.map((id) => id.replace(/{|}/g, ''));
+
+      if (!referencedColumnIds) continue;
+
+      const referencedColumns = referencedColumnIds.map(
+        (id) => this.model.columnsById[id],
+      );
+
+      if (referencedColumns.some((c) => c.column_name in data)) {
+        data[aiColumn.column_name] = JSON.stringify({
+          ...oldAiData,
+          isStale: true,
+        });
+      }
+    }
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {

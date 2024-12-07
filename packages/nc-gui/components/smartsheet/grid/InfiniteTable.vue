@@ -1878,9 +1878,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     data-testid="nc-check-all"
                     class="flex items-center pl-2 pr-1 w-full h-full justify-center"
                   >
-                    <div class="nc-no-label text-gray-500"  :class="{ hidden: vSelectedAllRecords }">
-                      #
-                    </div>
+                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
                         hidden: !vSelectedAllRecords,

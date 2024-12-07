@@ -1067,6 +1067,7 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ವೆಬ್‌ಹುಕ್ ವಿವರಣೆಗಳು",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",

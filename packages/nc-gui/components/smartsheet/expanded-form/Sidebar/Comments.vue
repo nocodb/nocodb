@@ -260,9 +260,12 @@ const getUserRole = (email: string) => {
       </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
         <div
-          v-for="commentItem of comments"
+          v-for="(commentItem, index) of comments"
           :key="commentItem.id"
-          :class="`${commentItem.id}`"
+          :class="{
+            [commentItem.id || '']: true,
+            'mt-auto': index === 0,
+          }"
           class="nc-comment-item"
           @mouseover="handleResetHoverEffect"
         >

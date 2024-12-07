@@ -106,7 +106,6 @@ const generate = async () => {
 }
 
 const isPromptEnabled = computed(() => {
-  console.log('isAiPrompt', isAIPromptCol(column.value))
   if (isEdit.value) {
     return isAIPromptCol(column.value)
   }

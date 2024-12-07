@@ -665,14 +665,12 @@ const onActiveCellChanged = () => {
   }
 }
 
+const isOpen = ref(false)
+
 const isDeleteAllModalIsOpen = ref(false)
+
 async function deleteAllRecords() {
   isDeleteAllModalIsOpen.value = true
-
-  function closeDlg() {
-    isOpen.value = false
-    close(200)
-  }
 
   const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
     'modelValue': isDeleteAllModalIsOpen,
@@ -685,10 +683,14 @@ async function deleteAllRecords() {
     },
   })
 
+  function closeDlg() {
+    isOpen.value = false
+    close(200)
+  }
+
   await until(isDeleteAllModalIsOpen).toBe(false)
 }
 
-const isOpen = ref(false)
 async function expandRows({
   newRows,
   newColumns,
@@ -1878,9 +1880,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     data-testid="nc-check-all"
                     class="flex items-center pl-2 pr-1 w-full h-full justify-center"
                   >
-                    <div class="nc-no-label text-gray-500"  :class="{ hidden: vSelectedAllRecords }">
-                      #
-                    </div>
+                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
                         hidden: !vSelectedAllRecords,

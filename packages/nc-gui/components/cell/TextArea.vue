@@ -342,8 +342,8 @@ watch([isVisible, inputRef], (value) => {
           'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"

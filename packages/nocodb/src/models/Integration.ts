@@ -451,6 +451,10 @@ export default class Integration implements IntegrationType {
       data: this,
     });
 
+    if (!Array.isArray(config?.models)) {
+      config.models = [];
+    }
+
     return config;
   }
 
@@ -466,6 +470,33 @@ export default class Integration implements IntegrationType {
         ncMeta,
       );
     }
+
+    // unbind all buttons and long texts associated with this integration
+    await ncMeta.metaUpdate(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.COL_BUTTON,
+      {
+        fk_integration_id: null,
+        model: null,
+      },
+      {
+        fk_integration_id: this.id,
+      },
+    );
+
+    await ncMeta.metaUpdate(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.COL_LONG_TEXT,
+      {
+        fk_integration_id: null,
+        model: null,
+      },
+      {
+        fk_integration_id: this.id,
+      },
+    );
 
     return await ncMeta.metaDelete(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
@@ -487,6 +518,33 @@ export default class Integration implements IntegrationType {
         ncMeta,
       );
     }
+
+    // unbind all buttons and long texts associated with this integration
+    await ncMeta.metaUpdate(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.COL_BUTTON,
+      {
+        fk_integration_id: null,
+        model: null,
+      },
+      {
+        fk_integration_id: this.id,
+      },
+    );
+
+    await ncMeta.metaUpdate(
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.COL_LONG_TEXT,
+      {
+        fk_integration_id: null,
+        model: null,
+      },
+      {
+        fk_integration_id: this.id,
+      },
+    );
 
     await ncMeta.metaUpdate(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,

@@ -43,9 +43,16 @@ const editColumnDropdown = ref(false)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const columnTypeName = computed(() => {
-  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
-    return UITypesName.RichText
+  if (column.value.uidt === UITypes.LongText) {
+    if (parseProp(column.value?.meta)?.richMode) {
+      return UITypesName.RichText
+    }
+
+    if (parseProp(column.value?.meta)?.[LongTextAiMetaProp]) {
+      return UITypesName.AIPrompt
+    }
   }
+
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
 })
 

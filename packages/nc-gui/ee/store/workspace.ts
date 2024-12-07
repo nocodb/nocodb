@@ -2,6 +2,7 @@ import type {
   Api,
   AuditType,
   BaseType,
+  IntegrationType,
   PaginatedType,
   PlanLimitTypes,
   WorkspaceType,
@@ -63,6 +64,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { $e } = useNuxtApp()
 
   const { appInfo, ncNavigateTo, lastOpenedWorkspaceId, storage } = useGlobal()
+
+  const { aiIntegrations } = useNocoAi()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
 
@@ -330,6 +333,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       })
 
       workspaces.value.set(res.workspace.id!, res.workspace)
+
+      aiIntegrations.value = (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
       return res

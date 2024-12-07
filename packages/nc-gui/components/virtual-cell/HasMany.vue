@@ -146,8 +146,8 @@ watch(
 
       <div v-if="!isUnderLookup && !isSystemColumn(column)" class="flex justify-end gap-1 min-h-4 items-center">
         <GeneralIcon
-          icon="expand"
-          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          icon="maximize"
+          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand h-3 w-3"
           @click.stop="openChildList"
         />
 

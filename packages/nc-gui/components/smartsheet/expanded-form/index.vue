@@ -327,6 +327,10 @@ const copyRecordUrl = async () => {
   )
 
   isRecordLinkCopied.value = true
+
+  await ncDelay(5000)
+
+  isRecordLinkCopied.value = false
 }
 
 const saveChanges = async () => {

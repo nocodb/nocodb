@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  IntegrationsType,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
@@ -19,7 +20,14 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, ModelStat, PresignedUrl, User } from '~/models';
+import {
+  Base,
+  BaseUser,
+  Integration,
+  ModelStat,
+  PresignedUrl,
+  User,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
@@ -436,6 +444,19 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
 
+    const rawIntegrations = await Integration.list({
+      workspaceId: workspace.id,
+      userId: param.user.id,
+      includeDatabaseInfo: true,
+      limit: 100,
+      offset: 0,
+      type: IntegrationsType.Ai,
+    });
+
+    const integrations = (rawIntegrations.list || []).map((i) =>
+      extractProps(i, ['id', 'type', 'sub_type', 'title', 'is_default']),
+    );
+
     if (
       (workspace.meta as Record<string, any>)?.icon &&
       (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
@@ -453,6 +474,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       roles: workspaceRoles?.roles,
       limits,
       stats,
+      integrations: integrations,
     } as Workspace;
   }
 

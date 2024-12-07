@@ -60,7 +60,20 @@ export default class GoogleIntegrationIntegration extends AiIntegration {
       data: object,
     };
   }
-  public availableModels(): string[] {
-    return this.getConfig()?.models || [];
+
+  public getModelAlias(model: string): string {
+    const aliases = {
+      'gemini-1.5-pro': 'Gemini 1.5 Pro',
+      'gemini-1.5-flash': 'Gemini 1.5 Flash',
+    };
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 }

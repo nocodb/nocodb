@@ -108,7 +108,7 @@ if (savedData) {
   activeInstanceId.value = autoAddClock()
 }
 
-const saveData = async () => {
+async function saveData() {
   const dataToSave: SavedData = {
     config: {
       showNumbers: showNumbers.value,

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type {
+  AIRecordType,
   AttachmentType,
   ColumnType,
   LinkToAnotherRecordType,
@@ -288,7 +289,15 @@ export function useMultiSelect(
     }
 
     if (columnObj.uidt === UITypes.LongText) {
-      textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
+      if (parseProp(columnObj.meta)?.[LongTextAiMetaProp] === true) {
+        const aiCell: AIRecordType = (columnObj.title && rowObj.row[columnObj.title]) || null
+
+        if (aiCell) {
+          textToCopy = aiCell.value
+        }
+      } else {
+        textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
+      }
     }
 
     return textToCopy

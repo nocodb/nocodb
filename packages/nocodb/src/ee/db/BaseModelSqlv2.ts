@@ -659,6 +659,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     isInsertData = false,
     cookie?: { user?: any },
     oldData?,
+    extra?: { raw?: boolean },
   ) {
     if (this.isDatabricks) {
       for (const column of this.model.columns) {
@@ -681,7 +682,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
     }
 
-    return super.prepareNocoData(data, isInsertData, cookie, oldData);
+    return super.prepareNocoData(data, isInsertData, cookie, oldData, extra);
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
@@ -1306,7 +1307,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         await Promise.all(
           insertDatas.map(
-            async (d) => await this.prepareNocoData(d, true, cookie),
+            async (d) =>
+              await this.prepareNocoData(d, true, cookie, null, { raw }),
           ),
         );
       }
@@ -1889,7 +1891,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
         } else {
-          await this.prepareNocoData(d, false, cookie);
+          await this.prepareNocoData(d, false, cookie, null, { raw });
 
           const wherePk = await this._wherePk(pkValues, true);
 

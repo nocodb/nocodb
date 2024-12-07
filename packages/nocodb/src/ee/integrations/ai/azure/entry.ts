@@ -62,7 +62,16 @@ export default class AzureIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): string[] {
-    return this.getConfig().models;
+  public getModelAlias(model: string): string {
+    const aliases = {};
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 }

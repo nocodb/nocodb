@@ -10,11 +10,13 @@ import {
   AuditOperationTypes,
   ButtonActionsType,
   extractFilterFromXwhere,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
+  LongTextAiMetaProp,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -5716,7 +5718,10 @@ class BaseModelSqlv2 {
         await this.model.getColumns(this.context);
 
         await Promise.all(
-          insertDatas.map((d) => this.prepareNocoData(d, true, cookie)),
+          insertDatas.map(
+            async (d) =>
+              await this.prepareNocoData(d, true, cookie, null, { raw }),
+          ),
         );
       }
 
@@ -5935,7 +5940,7 @@ class BaseModelSqlv2 {
             }
           }
         } else {
-          await this.prepareNocoData(d, false, cookie);
+          await this.prepareNocoData(d, false, cookie, null, { raw });
 
           const wherePk = await this._wherePk(pkValues, true);
 
@@ -8628,23 +8633,25 @@ class BaseModelSqlv2 {
     jsonColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
-    try {
-      if (d) {
-        for (const col of jsonColumns) {
-          if (d[col.id] && typeof d[col.id] === 'string') {
+    if (d) {
+      for (const col of jsonColumns) {
+        if (d[col.id] && typeof d[col.id] === 'string') {
+          try {
             d[col.id] = JSON.parse(d[col.id]);
-          }
+          } catch {}
+        }
 
-          if (d[col.id]?.length) {
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
+        if (d[col.id]?.length) {
+          for (let i = 0; i < d[col.id].length; i++) {
+            if (typeof d[col.id][i] === 'string') {
+              try {
                 d[col.id][i] = JSON.parse(d[col.id][i]);
-              }
+              } catch {}
             }
           }
         }
       }
-    } catch {}
+    }
     return d;
   }
 
@@ -8671,13 +8678,16 @@ class BaseModelSqlv2 {
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
+          const lookupNestedCol = await this.getNestedColumn(col);
+
           if (
-            JSON_COLUMN_TYPES.includes((await this.getNestedColumn(col))?.uidt)
+            JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
+            isAIPromptCol(lookupNestedCol)
           ) {
             jsonCols.push(col);
           }
         } else {
-          if (JSON_COLUMN_TYPES.includes(col.uidt)) {
+          if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
             jsonCols.push(col);
           }
         }
@@ -9766,6 +9776,7 @@ class BaseModelSqlv2 {
     cookie?: { user?: any; system?: boolean },
     // oldData uses title as key where as data uses column_name as key
     oldData?,
+    extra?: { raw?: boolean },
   ) {
     for (const column of this.model.columns) {
       if (
@@ -9777,7 +9788,10 @@ class BaseModelSqlv2 {
           UITypes.LastModifiedTime,
           UITypes.CreatedBy,
           UITypes.LastModifiedBy,
-        ].includes(column.uidt)
+          UITypes.LongText,
+        ].includes(column.uidt) ||
+        (column.uidt === UITypes.LongText &&
+          column.meta?.[LongTextAiMetaProp] !== true)
       )
         continue;
 
@@ -10046,6 +10060,82 @@ class BaseModelSqlv2 {
         ) {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
+      } else if (isAIPromptCol(column) && !extra?.raw) {
+        if (data[column.column_name]) {
+          let value = data[column.column_name];
+
+          if (typeof value === 'object') {
+            value = value.value;
+          }
+
+          const obj: {
+            value?: string;
+            lastModifiedBy?: string;
+            lastModifiedTime?: string;
+            isStale?: string;
+          } = {};
+
+          if (cookie?.system === true) {
+            Object.assign(obj, {
+              value,
+              lastModifiedBy: null,
+              lastModifiedTime: null,
+              isStale: false,
+            });
+          } else {
+            const oldObj = oldData?.[column.title];
+            const isStale = oldObj ? oldObj.isStale : false;
+
+            const isModified = oldObj?.value !== value;
+
+            Object.assign(obj, {
+              value,
+              lastModifiedBy: isModified
+                ? cookie?.user?.id
+                : oldObj?.lastModifiedBy,
+              lastModifiedTime: isModified
+                ? this.now()
+                : oldObj?.lastModifiedTime,
+              isStale: isModified ? false : isStale,
+            });
+          }
+
+          data[column.column_name] = JSON.stringify(obj);
+        }
+      }
+    }
+
+    // AI column isStale handling
+    const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
+
+    for (const aiColumn of aiColumns) {
+      if (
+        !oldData ||
+        !oldData[aiColumn.title] ||
+        oldData[aiColumn.title]?.isStale === true
+      ) {
+        continue;
+      }
+
+      const oldAiData = data[aiColumn.column_name]
+        ? JSON.parse(data[aiColumn.column_name])
+        : oldData[aiColumn.title];
+
+      const referencedColumnIds = aiColumn.colOptions.prompt
+        ?.match(/{(.*?)}/g)
+        ?.map((id) => id.replace(/{|}/g, ''));
+
+      if (!referencedColumnIds) continue;
+
+      const referencedColumns = referencedColumnIds.map(
+        (id) => this.model.columnsById[id],
+      );
+
+      if (referencedColumns.some((c) => c.column_name in data)) {
+        data[aiColumn.column_name] = JSON.stringify({
+          ...oldAiData,
+          isStale: true,
+        });
       }
     }
   }

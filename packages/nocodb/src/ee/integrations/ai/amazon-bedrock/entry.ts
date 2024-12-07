@@ -64,7 +64,21 @@ export default class AmazonBedrockIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): string[] {
-    return this.getConfig().models;
+  public getModelAlias(model: string): string {
+    const aliases = {
+      'anthropic.claude-3-5-sonnet-20241022-v2:0':
+        'claude-3-5-sonnet-20241022-v2',
+      'anthropic.claude-3-5-sonnet-20240620-v1:0':
+        'claude-3-5-sonnet-20240620-v1',
+    };
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 }

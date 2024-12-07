@@ -71,8 +71,23 @@ export default class OpenAiIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): string[] {
-    return this.getConfig().models;
+  public getModelAlias(model: string) {
+    const aliases = {
+      'gpt-4o': 'GPT-4o',
+      'gpt-4o-mini': 'GPT-4o Mini',
+      'gpt-4-turbo': 'GPT-4 Turbo',
+      'gpt-4': 'GPT-4',
+      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+    };
+
+    return aliases[model] || model;
+  }
+
+  public availableModels(): { value: string; label: string }[] {
+    return this.getConfig().models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
   }
 
   public async fileSearch(args: {

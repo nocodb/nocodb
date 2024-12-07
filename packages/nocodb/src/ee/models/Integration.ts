@@ -237,6 +237,7 @@ export default class Integration extends IntegrationCE {
   ): Promise<PagedResponseImpl<Integration>> {
     let globalDefault: Integration;
 
+    // TODO: remove offset & limit / limit maximum per workspace instead
     const { offset } = args;
     let { limit } = args;
 
@@ -552,6 +553,10 @@ export default class Integration extends IntegrationCE {
     const config = decryptPropIfRequired({
       data: this,
     });
+
+    if (!Array.isArray(config?.models)) {
+      config.models = [];
+    }
 
     return config;
   }

@@ -152,6 +152,10 @@ const { copy } = useCopy()
 const onViewIdCopy = async () => {
   await copy(view.value!.id!)
   isViewIdCopied.value = true
+
+  await ncDelay(5000)
+
+  isViewIdCopied.value = false
 }
 
 const onDelete = async () => {

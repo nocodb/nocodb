@@ -227,3 +227,19 @@ export const getTestDatabaseName = (db: {
 export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
 }
+
+export function parseHelper(v: any): any {
+  try {
+    return typeof v === 'string' ? JSON.parse(v) : v
+  } catch {
+    return v
+  }
+}
+
+export function stringifyHelper(v: any): string {
+  try {
+    return JSON.stringify(v)
+  } catch {
+    return v
+  }
+}

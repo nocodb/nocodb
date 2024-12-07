@@ -5718,8 +5718,9 @@ class BaseModelSqlv2 {
         await this.model.getColumns(this.context);
 
         await Promise.all(
-          insertDatas.map((d) =>
-            this.prepareNocoData(d, true, cookie, null, { raw }),
+          insertDatas.map(
+            async (d) =>
+              await this.prepareNocoData(d, true, cookie, null, { raw }),
           ),
         );
       }

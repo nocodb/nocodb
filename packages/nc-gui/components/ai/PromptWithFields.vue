@@ -156,12 +156,14 @@ onMounted(async () => {
   }
 })
 
+const tooltipInstances: any[] = []
+
 function loadMentionFieldTagTooltip() {
   document.querySelectorAll('.nc-ai-prompt-with-fields .prompt-field-tag').forEach((el) => {
     const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
     if (!tooltip || el.scrollWidth <= el.clientWidth) return
     // Show tooltip only on truncate
-    tippy(el, {
+    const instance = tippy(el, {
       content: `<div class="tooltip text-xs">${tooltip.value}</div>`,
       placement: 'top',
       allowHTML: true,
@@ -170,11 +172,18 @@ function loadMentionFieldTagTooltip() {
       duration: 0,
       maxWidth: '200px',
     })
+
+    tooltipInstances.push(instance)
   })
 }
 
 onMounted(() => {
   debouncedLoadMentionFieldTagTooltip()
+})
+
+onBeforeUnmount(() => {
+  tooltipInstances.forEach((instance) => instance?.destroy())
+  tooltipInstances.length = 0
 })
 </script>
 

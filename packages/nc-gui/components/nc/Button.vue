@@ -134,7 +134,7 @@ useEventListener(NcButton, 'mousedown', () => {
       </div>
       <template v-if="iconPosition === 'right'">
         <slot v-if="loading" name="loadingIcon">
-          <GeneralLoader v-if="loading" class="flex !bg-inherit !text-inherit" :size="loaderSize" />
+          <GeneralLoader class="flex !bg-inherit !text-inherit" :size="loaderSize" />
         </slot>
 
         <slot v-else name="icon" />

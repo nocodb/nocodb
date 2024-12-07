@@ -202,22 +202,18 @@ export default async function sortV2(
       case UITypes.LongText: {
         if (isAIPromptCol(column)) {
           let col;
-          if (isAIPromptCol(column)) {
-            if (knex.clientType() === 'pg') {
-              col = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
-                column.column_name,
-              ]);
-            } else if (knex.clientType().startsWith('mysql')) {
-              col = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
-                column.column_name,
-              ]);
-            } else if (knex.clientType() === 'sqlite3') {
-              col = knex.raw(`json_extract(??, '$.value')`, [
-                column.column_name,
-              ]);
-            } else if (knex.clientType() === 'mssql') {
-              col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
-            }
+          if (knex.clientType() === 'pg') {
+            col = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType().startsWith('mysql')) {
+            col = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'sqlite3') {
+            col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
+          } else if (knex.clientType() === 'mssql') {
+            col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
           }
 
           qb.orderBy(col, sort.direction || 'asc', nulls);

@@ -308,11 +308,8 @@ const isColumnInvalid = (
 
         result.tooltip = 'title.aiIntegrationMissing'
       }
+      break
     }
-  }
-
-  if (col.uidt === UITypes.Formula) {
-    result.isInvalid = !!(col.colOptions as FormulaType).error
   }
 
   return result

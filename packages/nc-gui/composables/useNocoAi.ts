@@ -22,7 +22,7 @@ export const useNocoAi = createSharedComposable(() => {
   const aiIntegrationAvailable = computed(() => !!aiIntegrations.value.length)
 
   const isAiIntegrationAvailableInList = (integrationId?: string) => {
-    if (!aiIntegrationAvailable) return false
+    if (!aiIntegrationAvailable.value) return false
 
     return ncIsArrayIncludes(aiIntegrations.value, integrationId, 'id')
   }

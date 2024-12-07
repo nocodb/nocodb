@@ -438,49 +438,53 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     integrationsInitialized.value = true
 
-    const dynamicIntegrations = (await $api.integrations.list()) as {
-      type: IntegrationsType
-      subType: string
-      meta: {
-        title?: string
-        icon?: string
-        description?: string
-        order?: number
-      }
-    }[]
-
-    dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
-
-    for (const di of dynamicIntegrations) {
-      let icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
-
-      if (di.meta.icon) {
-        if (di.meta.icon in iconMap) {
-          icon = iconMap[di.meta.icon as keyof typeof iconMap]
-        } else {
-          if (isValidURL(di.meta.icon)) {
-            icon = h('img', {
-              src: di.meta.icon,
-              alt: di.meta.title || di.subType,
-            })
-          }
+    try {
+      const dynamicIntegrations = (await $api.integrations.list()) as {
+        type: IntegrationsType
+        subType: string
+        meta: {
+          title?: string
+          icon?: string
+          description?: string
+          order?: number
         }
-      } else {
-        icon = iconMap.puzzle
+      }[]
+
+      dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
+
+      for (const di of dynamicIntegrations) {
+        let icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
+
+        if (di.meta.icon) {
+          if (di.meta.icon in iconMap) {
+            icon = iconMap[di.meta.icon as keyof typeof iconMap]
+          } else {
+            if (isValidURL(di.meta.icon)) {
+              icon = h('img', {
+                src: di.meta.icon,
+                alt: di.meta.title || di.subType,
+              })
+            }
+          }
+        } else {
+          icon = iconMap.puzzle
+        }
+
+        const integration: IntegrationItemType = {
+          title: di.meta.title || di.subType,
+          subType: di.subType,
+          icon,
+          type: di.type,
+          isAvailable: true,
+          dynamic: true,
+        }
+
+        allIntegrations.push(integration)
+
+        integrationsRefreshKey.value++
       }
-
-      const integration: IntegrationItemType = {
-        title: di.meta.title || di.subType,
-        subType: di.subType,
-        icon,
-        type: di.type,
-        isAvailable: true,
-        dynamic: true,
-      }
-
-      allIntegrations.push(integration)
-
-      integrationsRefreshKey.value++
+    } catch (e: any) {
+      console.error('Error loading dynamic integrations', e)
     }
   }
 

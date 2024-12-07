@@ -25,6 +25,8 @@ const { isEdit, setAdditionalValidations, column, formattedData, loadData, disab
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const previewRow = ref<Row>({
   row: {},
   oldRow: {},
@@ -181,144 +183,149 @@ watch(
       </NcTooltip>
     </a-form-item>
 
-    <div class="relative">
-      <a-form-item class="flex items-center">
-        <NcTooltip :disabled="!richMode" class="flex items-center">
-          <template #title> Generate text using AI is not supported when rich text formatting is enabled </template>
+    <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+      <div class="relative">
+        <a-form-item class="flex items-center">
+          <NcTooltip :disabled="!richMode" class="flex items-center">
+            <template #title> Generate text using AI is not supported when rich text formatting is enabled </template>
 
-          <NcSwitch
-            v-model:checked="isEnabledGenerateText"
-            :disabled="richMode"
-            class="nc-ai-field-generate-text nc-ai-input"
-            @change="handleDisableSubmitBtn"
-          >
-            <span
-              class="text-sm font-semibold pl-1"
+            <NcSwitch
+              v-model:checked="isEnabledGenerateText"
+              :disabled="richMode"
+              class="nc-ai-field-generate-text nc-ai-input"
+              @change="handleDisableSubmitBtn"
+            >
+              <span
+                class="text-sm font-semibold pl-1"
+                :class="{
+                  'text-nc-content-purple-dark': isEnabledGenerateText,
+                  'text-nc-content-gray': !isEnabledGenerateText,
+                }"
+              >
+                Generate text using AI
+              </span>
+            </NcSwitch>
+          </NcTooltip>
+          <NcTooltip class="ml-2 mr-[40px] flex cursor-pointer">
+            <template #title> Use AI to generate content based on record data. </template>
+            <GeneralIcon
+              icon="info"
+              class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
+            />
+          </NcTooltip>
+          <div class="flex-1"></div>
+
+          <div class="absolute right-0">
+            <AiSettings
+              v-model:fk-integration-id="vModel.fk_integration_id"
+              v-model:model="vModel.model"
+              v-model:randomness="vModel.randomness"
+              :workspace-id="activeWorkspaceId"
+              :show-tooltip="false"
+              :is-edit-column="isEdit"
+              placement="bottomRight"
+            >
+              <NcButton size="xs" theme="ai" class="!px-1" type="text">
+                <GeneralIcon icon="settings" />
+              </NcButton>
+            </AiSettings>
+          </div>
+        </a-form-item>
+      </div>
+      <template v-if="!isEdit ? aiIntegrationAvailable && isEnabledGenerateText : isEnabledGenerateText">
+        <a-form-item class="flex">
+          <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
+            <AiPromptWithFields
+              v-model="vModel.prompt_raw"
+              :options="availableFields"
+              :read-only="!aiIntegrationAvailable"
+              placeholder="Write custom AI Prompt instruction here"
+              prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
+              suggestion-icon-class-name="!text-nc-content-purple-medium"
+            />
+            <div class="rounded-b-lg flex items-center gap-1.5 p-1">
+              <GeneralIcon icon="info" class="!text-nc-content-purple-medium w-3.5 h-3.5" />
+              <span class="text-xs text-nc-content-gray-subtle2"
+                >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
+              >
+            </div>
+          </div>
+        </a-form-item>
+        <div v-if="aiIntegrationAvailable && isEnabledGenerateText" class="nc-ai-options-preview overflow-hidden">
+          <div>
+            <div
+              class="flex items-center gap-2 transition-all duration-300"
               :class="{
-                'text-nc-content-purple-dark': isEnabledGenerateText,
-                'text-nc-content-gray': !isEnabledGenerateText,
+                'pl-3 py-2 pr-2': !isAlreadyGenerated,
+                'pl-3 py-1 pr-1 border-b-1 border-nc-border-gray-medium': isAlreadyGenerated,
               }"
             >
-              Generate text using AI
-            </span>
-          </NcSwitch>
-        </NcTooltip>
-        <NcTooltip class="ml-2 mr-[40px] flex cursor-pointer">
-          <template #title> Use AI to generate content based on record data. </template>
-          <GeneralIcon icon="info" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5" />
-        </NcTooltip>
-        <div class="flex-1"></div>
-
-        <div class="absolute right-0">
-          <AiSettings
-            v-model:fk-integration-id="vModel.fk_integration_id"
-            v-model:model="vModel.model"
-            v-model:randomness="vModel.randomness"
-            :workspace-id="activeWorkspaceId"
-            :show-tooltip="false"
-            :is-edit-column="isEdit"
-            placement="bottomRight"
-          >
-            <NcButton size="xs" theme="ai" class="!px-1" type="text">
-              <GeneralIcon icon="settings" />
-            </NcButton>
-          </AiSettings>
-        </div>
-      </a-form-item>
-    </div>
-    <template v-if="!isEdit ? aiIntegrationAvailable && isEnabledGenerateText : isEnabledGenerateText">
-      <a-form-item class="flex">
-        <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
-          <AiPromptWithFields
-            v-model="vModel.prompt_raw"
-            :options="availableFields"
-            :read-only="!aiIntegrationAvailable"
-            placeholder="Write custom AI Prompt instruction here"
-            prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
-            suggestion-icon-class-name="!text-nc-content-purple-medium"
-          />
-          <div class="rounded-b-lg flex items-center gap-1.5 p-1">
-            <GeneralIcon icon="info" class="!text-nc-content-purple-medium w-3.5 h-3.5" />
-            <span class="text-xs text-nc-content-gray-subtle2"
-              >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
-            >
-          </div>
-        </div>
-      </a-form-item>
-      <div v-if="aiIntegrationAvailable && isEnabledGenerateText" class="nc-ai-options-preview overflow-hidden">
-        <div>
-          <div
-            class="flex items-center gap-2 transition-all duration-300"
-            :class="{
-              'pl-3 py-2 pr-2': !isAlreadyGenerated,
-              'pl-3 py-1 pr-1 border-b-1 border-nc-border-gray-medium': isAlreadyGenerated,
-            }"
-          >
-            <div class="flex flex-col flex-1 gap-1">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
-                <NcTooltip class="flex cursor-pointer">
-                  <template #title> Preview is generated using the first record in this table</template>
-                  <GeneralIcon
-                    icon="info"
-                    class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
-                  />
-                </NcTooltip>
-              </div>
-              <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
-                Include at least 1 field in prompt.
-              </span>
-            </div>
-
-            <NcTooltip :disabled="isPreviewEnabled">
-              <template #title> Include at least 1 field in prompt to generate </template>
-              <NcButton
-                class="nc-aioptions-preview-generate-btn"
-                :class="{
-                  'nc-is-already-generated': isAlreadyGenerated,
-                  'nc-preview-enabled': isPreviewEnabled,
-                }"
-                size="xs"
-                :type="isAlreadyGenerated ? 'text' : 'secondary'"
-                :theme="isPreviewEnabled ? 'ai' : 'default'"
-                :disabled="!isPreviewEnabled"
-                :loading="generatingPreview"
-                @click.stop="generate"
-              >
-                <div
-                  :class="{
-                    'nc-animate-dots min-w-[91px] text-left': generatingPreview,
-                    'min-w-[102px]': isAlreadyGenerated && generatingPreview,
-                    'min-w-[80px]': !isAlreadyGenerated && generatingPreview,
-                  }"
-                >
-                  {{
-                    isAlreadyGenerated
-                      ? generatingPreview
-                        ? 'Re-generating'
-                        : 'Re-generate'
-                      : generatingPreview
-                      ? 'Generating'
-                      : 'Generate preview'
-                  }}
+              <div class="flex flex-col flex-1 gap-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
+                  <NcTooltip class="flex cursor-pointer">
+                    <template #title> Preview is generated using the first record in this table</template>
+                    <GeneralIcon
+                      icon="info"
+                      class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
+                    />
+                  </NcTooltip>
                 </div>
-              </NcButton>
-            </NcTooltip>
-          </div>
-          <div v-if="previewRow.row?.[previewFieldTitle]?.value">
-            <div class="relative">
-              <LazySmartsheetRow :row="previewRow">
-                <LazySmartsheetCell
-                  :edit-enabled="true"
-                  :model-value="previewRow.row[previewFieldTitle]"
-                  :column="vModel"
-                  class="!border-none h-auto my-auto pl-1"
-                />
-              </LazySmartsheetRow>
+                <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
+                  Include at least 1 field in prompt.
+                </span>
+              </div>
+
+              <NcTooltip :disabled="isPreviewEnabled">
+                <template #title> Include at least 1 field in prompt to generate </template>
+                <NcButton
+                  class="nc-aioptions-preview-generate-btn"
+                  :class="{
+                    'nc-is-already-generated': isAlreadyGenerated,
+                    'nc-preview-enabled': isPreviewEnabled,
+                  }"
+                  size="xs"
+                  :type="isAlreadyGenerated ? 'text' : 'secondary'"
+                  :theme="isPreviewEnabled ? 'ai' : 'default'"
+                  :disabled="!isPreviewEnabled"
+                  :loading="generatingPreview"
+                  @click.stop="generate"
+                >
+                  <div
+                    :class="{
+                      'nc-animate-dots min-w-[91px] text-left': generatingPreview,
+                      'min-w-[102px]': isAlreadyGenerated && generatingPreview,
+                      'min-w-[80px]': !isAlreadyGenerated && generatingPreview,
+                    }"
+                  >
+                    {{
+                      isAlreadyGenerated
+                        ? generatingPreview
+                          ? 'Re-generating'
+                          : 'Re-generate'
+                        : generatingPreview
+                        ? 'Generating'
+                        : 'Generate preview'
+                    }}
+                  </div>
+                </NcButton>
+              </NcTooltip>
+            </div>
+            <div v-if="previewRow.row?.[previewFieldTitle]?.value">
+              <div class="relative">
+                <LazySmartsheetRow :row="previewRow">
+                  <LazySmartsheetCell
+                    :edit-enabled="true"
+                    :model-value="previewRow.row[previewFieldTitle]"
+                    :column="vModel"
+                    class="!border-none h-auto my-auto pl-1"
+                  />
+                </LazySmartsheetRow>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
     </template>
 
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable && isEnabledGenerateText" />

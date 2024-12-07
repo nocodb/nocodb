@@ -184,6 +184,9 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const hideAiPromptOnEdit = !((t.name === AIPrompt || t.name === AIButton) && isEdit.value)
+
+  const hideBetaAi = !(t.name === AIPrompt || t.name === AIButton) || isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
   return (
@@ -192,7 +195,8 @@ const uiFilters = (t: UiTypesType) => {
     !specificDBType &&
     showDeprecatedField &&
     isAllowToAddInFormView &&
-    hideAiPromptOnEdit
+    hideAiPromptOnEdit &&
+    hideBetaAi
   )
 }
 

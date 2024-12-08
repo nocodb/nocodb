@@ -1,6 +1,7 @@
 import {
   isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol, isOrderCol,
+  isCreatedOrLastModifiedTimeCol,
+  isOrderCol,
   isSystemColumn,
   RelationTypes,
   UITypes,
@@ -39,7 +40,7 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
-    extractOrderColumn = false
+    extractOrderColumn = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -217,7 +218,7 @@ const getAst = async (
 
     if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
-    } else if(isOrderCol(col) && col.system) {
+    } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn;
     } else if (getHiddenColumn) {
       isRequested =

@@ -110,7 +110,7 @@ export const JobsModuleMetadata = {
     ThumbnailMigration,
     RecoverLinksMigration,
     CleanupDuplicateColumnMigration,
-    OrderColumnMigration
+    OrderColumnMigration,
   ],
   exports: ['JobsService'],
 };

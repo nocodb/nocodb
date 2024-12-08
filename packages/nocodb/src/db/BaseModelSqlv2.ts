@@ -5,7 +5,6 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
-import type { SortType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -27,9 +26,9 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
+import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
-import CustomKnex, { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -45,6 +44,8 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import {
   Audit,
   BaseUser,
@@ -128,7 +129,8 @@ export async function getColumnName(
 ) {
   if (
     !isCreatedOrLastModifiedTimeCol(column) &&
-    !isCreatedOrLastModifiedByCol(column) && !isOrderCol(column)
+    !isCreatedOrLastModifiedByCol(column) &&
+    !isOrderCol(column)
   )
     return column.column_name;
   columns =
@@ -255,13 +257,13 @@ class BaseModelSqlv2 {
       getHiddenColumn = false,
       throwErrorIfInvalidParams = false,
       extractOnlyPrimaries = false,
-      extractOrderColumn = false
+      extractOrderColumn = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
       extractOnlyPrimaries?: boolean;
-      extractOrderColumn?: boolean
+      extractOrderColumn?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -5349,7 +5351,9 @@ class BaseModelSqlv2 {
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
-          await this.prepareNocoData(data, true, cookie, null, order);
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+          });
           order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
@@ -5373,7 +5377,9 @@ class BaseModelSqlv2 {
           await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
         } else {
-          await this.prepareNocoData(data, true, cookie, null, order);
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+          });
           order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
@@ -5712,7 +5718,9 @@ class BaseModelSqlv2 {
             allowSystemColumn,
           });
 
-          await this.prepareNocoData(insertObj, true, cookie, order + index);
+          await this.prepareNocoData(insertObj, true, cookie, null, {
+            ncOrder: order + index,
+          });
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {

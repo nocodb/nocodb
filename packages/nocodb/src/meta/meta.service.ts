@@ -13,7 +13,6 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
-import Upgrader from '~/Upgrader';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -26,7 +25,7 @@ export class MetaService {
   private _knex: knex.Knex;
   private _config: any;
 
-  protected upgrader_mode = false;
+  protected _upgrader_mode = false;
 
   constructor(config: NcConfig, @Optional() trx = null) {
     this._config = config;
@@ -35,6 +34,10 @@ export class MetaService {
       useNullAsDefault: true,
     });
     this.trx = trx;
+  }
+
+  get upgrader_mode() {
+    return this._upgrader_mode;
   }
 
   get knexInstance(): knex.Knex {
@@ -145,11 +148,6 @@ export class MetaService {
       updated_at: this.now(),
     });
 
-    if (this.upgrader_mode === true) {
-      await this.pushUpgraderQuery(qb.toQuery());
-      return insertObj;
-    }
-
     await qb;
 
     return insertObj;
@@ -214,13 +212,6 @@ export class MetaService {
         ...commonProps,
       };
       insertObj.push(tempObj);
-    }
-
-    if (this.upgrader_mode === true) {
-      await this.pushUpgraderQuery(
-        insertObj.map((o) => this.knexConnection(target).insert(o).toQuery()),
-      );
-      return insertObj;
     }
 
     await this.knexConnection.batchInsert(target, insertObj);
@@ -299,11 +290,6 @@ export class MetaService {
     }
 
     this.contextCondition(query, workspace_id, base_id, target);
-
-    if (this.upgrader_mode === true) {
-      await this.pushUpgraderQuery(query.toQuery());
-      return null;
-    }
 
     return query;
   }
@@ -425,11 +411,6 @@ export class MetaService {
 
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
-
-    if (this.upgrader_mode === true) {
-      await this.pushUpgraderQuery(query.del().toQuery());
-      return;
-    }
 
     return query.del();
   }
@@ -727,11 +708,6 @@ export class MetaService {
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
 
-    if (this.upgrader_mode === true) {
-      await this.pushUpgraderQuery(query.toQuery());
-      return null;
-    }
-
     return await query;
   }
 
@@ -885,17 +861,5 @@ export class MetaService {
       message: 'A condition is required to ' + operation + ' records.',
       sql,
     });
-  }
-
-  enableUpgraderMode() {
-    this.upgrader_mode = true;
-  }
-
-  async pushUpgraderQuery(q: string | string[]) {
-    await Upgrader.addMetaQuery(q);
-  }
-
-  disableUpgraderMode() {
-    this.upgrader_mode = false;
   }
 }

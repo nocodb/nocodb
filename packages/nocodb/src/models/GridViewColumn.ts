@@ -112,9 +112,8 @@ export default class GridViewColumn implements GridColumnType {
         fk_view_id: column.fk_view_id,
       }));
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
-
     if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 
@@ -127,7 +126,10 @@ export default class GridViewColumn implements GridColumnType {
       insertObj,
     );
 
-    await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
+    if (!ncMeta.upgrader_mode) {
+      // TODO: optimize this function & try to avoid if possible
+      await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
+    }
 
     // on new view column, delete any optimised single query cache
     {

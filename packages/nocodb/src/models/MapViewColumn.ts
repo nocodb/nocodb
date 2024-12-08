@@ -62,9 +62,8 @@ export default class MapViewColumn {
       source_id: column.source_id,
     };
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
-
     if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 

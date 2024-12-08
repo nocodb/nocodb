@@ -67,9 +67,8 @@ export default class KanbanViewColumn implements KanbanColumnType {
       },
     );
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
-
     if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 

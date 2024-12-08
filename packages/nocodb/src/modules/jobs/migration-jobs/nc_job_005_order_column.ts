@@ -21,6 +21,13 @@ import Upgrader from '~/Upgrader';
 const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 5;
 
 const propsByClientType = {};
+const entityCache: {
+  source: { [key: string]: Source };
+  dbDriver: { [key: string]: any };
+} = {
+  source: {},
+  dbDriver: {},
+};
 
 const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
   const clientType = source.type;
@@ -121,7 +128,7 @@ export class OrderColumnMigration {
     model: Model,
     newColumn: any,
   ) {
-    const columns = await model.getColumns(context);
+    const columns = model.columns;
     const orderColumn = columns.find((c) => c.uidt === UITypes.Order);
     const deleteUpdateBody = {
       ...model,
@@ -195,7 +202,9 @@ export class OrderColumnMigration {
     try {
       const hrtime = process.hrtime();
 
-      const source = await Source.get(context, source_id);
+      const source =
+        entityCache.source[source_id] ||
+        (entityCache.source[source_id] = await Source.get(context, source_id));
       if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
         return;
       }
@@ -204,7 +213,9 @@ export class OrderColumnMigration {
 
       source.upgraderMode = true;
 
-      const dbDriver = await NcConnectionMgrv2.get(source);
+      const dbDriver =
+        entityCache.dbDriver[source_id] ||
+        (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(source));
 
       this.logExecutionTime(`DB Driver created`, hrtime);
 
@@ -214,6 +225,7 @@ export class OrderColumnMigration {
 
       const baseModel = await Model.getBaseModelSQL(context, {
         model,
+        source,
         dbDriver,
       });
 
@@ -251,6 +263,7 @@ export class OrderColumnMigration {
             ...orderColumn,
             system: true,
             fk_model_id: model.id,
+            source_id,
           },
           ncMeta,
         );
@@ -320,8 +333,6 @@ export class OrderColumnMigration {
     const ncMeta = Noco.ncMeta;
 
     try {
-      ncMeta.enableUpgraderMode();
-
       const numberOfModelsToBeProcessed = +(
         await ncMeta
           .knexConnection(MetaTable.MODELS)
@@ -388,12 +399,6 @@ export class OrderColumnMigration {
       await queue.onIdle();
       // TODO: Drop temp table manually for now
       // await ncMeta.knexConnection.schema.dropTableIfExists(TEMP_TABLE);
-
-      await ncMeta.disableUpgraderMode();
-
-      Upgrader.printAll();
-
-      await Upgrader.runAll();
 
       return true;
     } catch (error) {

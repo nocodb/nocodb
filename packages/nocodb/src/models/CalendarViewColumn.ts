@@ -80,6 +80,11 @@ export default class CalendarViewColumn {
       },
     );
 
+    if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      insertObj.source_id = viewRef.source_id;
+    }
+
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,

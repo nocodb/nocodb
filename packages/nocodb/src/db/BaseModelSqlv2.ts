@@ -6877,7 +6877,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  protected async getHighestOrderInTable() {
+  public async getHighestOrderInTable() {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );

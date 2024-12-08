@@ -27,6 +27,14 @@ export class OrderColumnMigration {
   private readonly log = (...msgs: string[]) =>
     console.log('[nc_job_005_order_column]: ', ...msgs);
 
+  private hrTime = process.hrtime();
+
+  private logExecutionTime = (message: string, hrtime = this.hrTime) => {
+    const [seconds, nanoseconds] = process.hrtime(hrtime);
+    const elapsedSeconds = seconds + nanoseconds / 1e9;
+    this.log(`${message} in ${elapsedSeconds}s`);
+  }
+
   private async createTempTable(ncMeta: MetaService) {
     if (!(await ncMeta.knexConnection.schema.hasTable(TEMP_TABLE))) {
       await ncMeta.knexConnection.schema.createTable(TEMP_TABLE, (table) => {
@@ -34,7 +42,7 @@ export class OrderColumnMigration {
         table.string('fk_model_id').notNullable();
         table.boolean('completed');
         table.text('error').nullable();
-        table.index('fk_model_id');
+        table.index(['fk_model_id', 'completed']);
       });
     }
   }
@@ -188,6 +196,8 @@ export class OrderColumnMigration {
     },
     ncMeta: MetaService,
   ) {
+
+    const processHrTime = process.hrtime();
     const { id: modelId, source_id, base_id } = modelData;
     const context = { workspace_id: modelData?.fk_workspace_id, base_id };
 
@@ -198,6 +208,8 @@ export class OrderColumnMigration {
         return;
       }
 
+      this.logExecutionTime(`Source Fetched`, processHrTime)
+
       const dbDriver = await NcConnectionMgrv2.get(source);
       const baseModel = await Model.getBaseModelSQL(context, {
         id: modelId,
@@ -206,7 +218,7 @@ export class OrderColumnMigration {
       const model = await Model.get(context, modelId);
       await model.getColumns(context);
 
-      this.log(`Processing model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`);
+      this.logExecutionTime(`Processing model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`, processHrTime)
 
       const sqlMgr = ProjectMgrv2.getSqlMgr(
         context,
@@ -224,6 +236,8 @@ export class OrderColumnMigration {
           sqlMgr,
         );
 
+        this.logExecutionTime(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
+
         await Column.insert(
           context,
           {
@@ -233,9 +247,9 @@ export class OrderColumnMigration {
           },
           ncMeta,
         );
-        this.log(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+        this.logExecutionTime(`Order Added to Meta ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
       } else {
-        this.log(`Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+        this.logExecutionTime(`Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
       }
       try {
         await this.populateOrderValues(
@@ -246,17 +260,19 @@ export class OrderColumnMigration {
           orderColumn,
         );
 
-        this.log(`Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+        this.logExecutionTime(`Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
         await this.updateModelStatus(ncMeta, modelId, true);
+        this.logExecutionTime(`Model Stats Updated ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
 
       } catch(err) {
+        this.logExecutionTime(`Error populating order values. Proceeding with Cleanup for model ${modelId}:`, processHrTime)
         await this.cleanupFailedColumn(context, sqlMgr, source, model, orderColumn);
-        this.log(`Error populating order values. Proceeding with Cleanup for model ${modelId}:`, err);
+        this.logExecutionTime(`Cleanup completed for ${modelId}:`, processHrTime)
         throw err;
       }
-
     } catch (error) {
       await this.updateModelStatus(ncMeta, modelId, false, error.message);
+      this.logExecutionTime(`Model Stats Updated ${modelId},  BaseId ${base_id}, WorkspaceId ${context.workspace_id}`, processHrTime)
       throw error;
     }
   }
@@ -303,7 +319,11 @@ export class OrderColumnMigration {
     const ncMeta = Noco.ncMeta;
 
     try {
+      this.hrTime = process.hrtime();
+
       await this.createTempTable(ncMeta);
+
+      this.logExecutionTime('Temp table created');
 
       const numberOfModelsToBeProcessed = (
         await ncMeta
@@ -329,7 +349,7 @@ export class OrderColumnMigration {
           .first()
       )?.count;
 
-      this.log(`Found ${numberOfModelsToBeProcessed} models to process`);
+      this.logExecutionTime('Number of models to be processed fetched');
 
       const skipModels = new Set(['placeholder']);
       let processingModels = [{ id: 'placeholder', processing: true }];
@@ -358,13 +378,13 @@ export class OrderColumnMigration {
             try {
               await this.processModel(model, ncMeta);
             } catch (e) {
-              this.log(`Error processing model ${model.id}:`, e);
+              this.logExecutionTime(`Error processing model ${model.id}:`);
               skipModels.add(model.id);
             } finally {
               const item = processingModels.find((m) => m.id === model.id);
               if (item) item.processing = false;
               processedModelsCount++;
-              this.log(
+              this.logExecutionTime(
                 `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
               );
             }
@@ -376,12 +396,12 @@ export class OrderColumnMigration {
       // TODO: Drop temp table manually for now
       // await ncMeta.knexConnection.schema.dropTableIfExists(TEMP_TABLE);
 
-      this.log(
+      this.logExecutionTime(
         `Migration completed. Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
       );
       return true;
     } catch (error) {
-      this.log('Migration failed:', error);
+      this.logExecutionTime('Migration failed:');
       return false;
     }
   }

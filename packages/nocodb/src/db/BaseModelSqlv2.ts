@@ -74,6 +74,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import applyAggregation from '~/db/aggregation';
 import { chunkArray } from '~/utils/tsUtils';
+import { isOrderCol } from 'nocodb-sdk/build/main/lib/UITypes';
 
 dayjs.extend(utc);
 
@@ -10403,6 +10404,7 @@ function shouldSkipField(
     return !fieldsSet.has(column.title);
   } else {
     if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
+    if (column.system && isOrderCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (

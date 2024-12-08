@@ -253,6 +253,18 @@ export function isCreatedOrLastModifiedByCol(
   );
 }
 
+export function isOrderCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Order].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
 export function isHiddenCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;

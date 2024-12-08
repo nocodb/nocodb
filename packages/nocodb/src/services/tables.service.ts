@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR, isOrderCol,
+  isLinksOrLTAR,
+  isOrderCol,
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
@@ -41,6 +42,8 @@ import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class TablesService {
+  protected logger = new Logger(TablesService.name);
+
   constructor(
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
@@ -762,6 +765,33 @@ export class TablesService {
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
+
+    try {
+      // create nc_order index column
+      const metaOrderColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Order,
+      );
+      const orderColumn = columns.find(
+        (c) => c.cn === metaOrderColumn.column_name,
+      );
+
+      const dbDriver = await NcConnectionMgrv2.get(source);
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        model: result,
+        source,
+        dbDriver,
+      });
+
+      await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+        `${tableCreatePayLoad.table_name}_order_idx`,
+        baseModel.getTnPath(tableCreatePayLoad.table_name),
+        orderColumn.cn,
+      ]);
+    } catch (e) {
+      this.logger.log(`Something went wrong while creating index for nc_order`);
+      this.logger.error(e);
+    }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: result,

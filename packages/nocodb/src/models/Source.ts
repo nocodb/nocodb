@@ -54,6 +54,9 @@ export default class Source implements SourceType {
   integration_title?: string;
   is_encrypted?: boolean;
 
+  // Ephemeral properties
+  upgraderMode?: boolean;
+
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
   }

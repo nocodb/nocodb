@@ -16,9 +16,8 @@ import {
 } from '~/helpers/getUniqueName';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import { Altered } from '~/services/columns.service';
+import Upgrader from '~/Upgrader';
 
-const TEMP_TABLE = 'nc_temp_processed_order_models';
-const BATCH_SIZE = 100;
 const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 5;
 
 @Injectable()
@@ -27,38 +26,8 @@ export class OrderColumnMigration {
   private readonly log = (...msgs: string[]) =>
     console.log('[nc_job_005_order_column]: ', ...msgs);
 
-  private hrTime = process.hrtime();
-
-  private logExecutionTime = (message: string, hrtime = this.hrTime) => {
-    const [seconds, nanoseconds] = process.hrtime(hrtime);
-    const elapsedSeconds = seconds + nanoseconds / 1e9;
-    this.log(`${message} in ${elapsedSeconds}s`);
-  };
-
-  private async createTempTable(ncMeta: MetaService) {
-    if (!(await ncMeta.knexConnection.schema.hasTable(TEMP_TABLE))) {
-      await ncMeta.knexConnection.schema.createTable(TEMP_TABLE, (table) => {
-        table.increments('id').primary();
-        table.string('fk_model_id').notNullable();
-        table.boolean('completed');
-        table.text('error').nullable();
-        table.index(['fk_model_id', 'completed']);
-      });
-    }
-  }
-
-  private async updateModelStatus(
-    ncMeta: MetaService,
-    modelId: string,
-    status: boolean,
-    error?: string,
-  ) {
-    await ncMeta
-      .knexConnection(TEMP_TABLE)
-      .insert({ fk_model_id: modelId, completed: status, error });
-  }
-
   private async populateOrderValues(
+    context: NcContext,
     dbDriver: any,
     baseModel: any,
     model: any,
@@ -69,11 +38,14 @@ export class OrderColumnMigration {
     const pkColumn = model.primaryKeys[0]?.column_name;
 
     if (aiColumn) {
-      await dbDriver.raw(`UPDATE ?? SET ?? = ??`, [
-        baseModel.getTnPath(model.table_name),
-        newColumn.column_name,
-        aiColumn.column_name,
-      ]);
+      const q = dbDriver
+        .raw(`UPDATE ?? SET ?? = ??`, [
+          baseModel.getTnPath(model.table_name),
+          newColumn.column_name,
+          aiColumn.column_name,
+        ])
+        .toQuery();
+      await Upgrader.addDataQuery(context, source.id, q);
       return;
     }
 
@@ -112,7 +84,9 @@ export class OrderColumnMigration {
       ],
     };
 
-    await dbDriver.raw(sql[source.type], params[source.type]);
+    const q = dbDriver.raw(sql[source.type], params[source.type]);
+
+    await Upgrader.addDataQuery(context, source.id, q);
   }
 
   private async cleanupFailedColumn(
@@ -195,20 +169,19 @@ export class OrderColumnMigration {
     },
     ncMeta: MetaService,
   ) {
-    const processHrTime = process.hrtime();
     const { id: modelId, source_id, base_id } = modelData;
     const context = { workspace_id: modelData?.fk_workspace_id, base_id };
 
     try {
       const source = await Source.get(context, source_id);
       if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
-        await this.updateModelStatus(ncMeta, modelId, false, 'Invalid source');
         return;
       }
 
-      this.logExecutionTime(`Source Fetched`, processHrTime);
+      source.upgraderMode = true;
 
       const dbDriver = await NcConnectionMgrv2.get(source);
+
       const baseModel = await Model.getBaseModelSQL(context, {
         id: modelId,
         dbDriver,
@@ -216,9 +189,8 @@ export class OrderColumnMigration {
       const model = await Model.get(context, modelId);
       await model.getColumns(context);
 
-      this.logExecutionTime(
-        `Processing model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
-        processHrTime,
+      this.log(
+        `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
       );
 
       const sqlMgr = ProjectMgrv2.getSqlMgr(
@@ -237,11 +209,6 @@ export class OrderColumnMigration {
           sqlMgr,
         );
 
-        this.logExecutionTime(
-          `Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-          processHrTime,
-        );
-
         await Column.insert(
           context,
           {
@@ -251,38 +218,23 @@ export class OrderColumnMigration {
           },
           ncMeta,
         );
-        this.logExecutionTime(
-          `Order Added to Meta ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-          processHrTime,
-        );
       } else {
-        this.logExecutionTime(
+        this.log(
           `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-          processHrTime,
         );
       }
       try {
         await this.populateOrderValues(
+          context,
           dbDriver,
           baseModel,
           model,
           source,
           orderColumn,
         );
-
-        this.logExecutionTime(
-          `Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-          processHrTime,
-        );
-        await this.updateModelStatus(ncMeta, modelId, true);
-        this.logExecutionTime(
-          `Model Stats Updated ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-          processHrTime,
-        );
       } catch (err) {
-        this.logExecutionTime(
+        this.log(
           `Error populating order values. Proceeding with Cleanup for model ${modelId}:`,
-          processHrTime,
         );
         await this.cleanupFailedColumn(
           context,
@@ -291,27 +243,14 @@ export class OrderColumnMigration {
           model,
           orderColumn,
         );
-        this.logExecutionTime(
-          `Cleanup completed for ${modelId}:`,
-          processHrTime,
-        );
         throw err;
       }
     } catch (error) {
-      await this.updateModelStatus(ncMeta, modelId, false, error.message);
-      this.logExecutionTime(
-        `Model Stats Updated ${modelId},  BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-        processHrTime,
-      );
       throw error;
     }
   }
 
-  private getModelsQuery(
-    ncMeta: MetaService,
-    skipModels: Set<string>,
-    processingModels: any[],
-  ) {
+  private getModelsQuery(ncMeta: MetaService) {
     return ncMeta
       .knexConnection(MetaTable.MODELS)
       .select([
@@ -321,17 +260,6 @@ export class OrderColumnMigration {
         ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`] : []),
       ])
       .where(`${MetaTable.MODELS}.mm`, false)
-      .whereNotIn(`${MetaTable.MODELS}.id`, [...skipModels])
-      .whereNotIn(
-        `${MetaTable.MODELS}.id`,
-        processingModels.map((m) => m.id),
-      )
-      .whereNotExists(function () {
-        this.select('*')
-          .from(TEMP_TABLE)
-          .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`)
-          .where('completed', true);
-      })
       .join(
         MetaTable.SOURCES,
         `${MetaTable.MODELS}.source_id`,
@@ -341,19 +269,14 @@ export class OrderColumnMigration {
       .where((builder) => {
         builder.where(`${MetaTable.SOURCES}.is_meta`, true);
         if (isEE) builder.orWhere({ is_local: true });
-      })
-      .limit(BATCH_SIZE);
+      });
   }
 
   async job() {
     const ncMeta = Noco.ncMeta;
 
     try {
-      this.hrTime = process.hrtime();
-
-      await this.createTempTable(ncMeta);
-
-      this.logExecutionTime('Temp table created');
+      ncMeta.enableUpgraderMode();
 
       const numberOfModelsToBeProcessed = +(
         await ncMeta
@@ -369,20 +292,10 @@ export class OrderColumnMigration {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
             if (isEE) builder.orWhere({ is_local: true });
           })
-          .whereNotExists(function () {
-            this.select('*')
-              .from(TEMP_TABLE)
-              .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`)
-              .where('completed', true);
-          })
           .count('*', { as: 'count' })
           .first()
       )?.count;
 
-      this.logExecutionTime('Number of models to be processed fetched');
-
-      const skipModels = new Set(['placeholder']);
-      let processingModels = [{ id: 'placeholder', processing: true }];
       let processedModelsCount = 0;
 
       const wrapper = async (model: {
@@ -394,19 +307,18 @@ export class OrderColumnMigration {
         try {
           await this.processModel(model, ncMeta);
         } catch (e) {
-          this.logExecutionTime(`Error processing model ${model.id}:`);
-          skipModels.add(model.id);
+          this.log(`Error processing model ${model.id}:`);
         } finally {
-          const item = processingModels.find((m) => m.id === model.id);
-          if (item) item.processing = false;
           processedModelsCount++;
-          this.logExecutionTime(
+          this.log(
             `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
           );
         }
       };
 
       const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
+
+      const models = await this.getModelsQuery(ncMeta);
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -415,23 +327,16 @@ export class OrderColumnMigration {
           continue;
         }
 
-        processingModels = processingModels.filter((m) => m.processing);
-        const models = await this.getModelsQuery(
-          ncMeta,
-          skipModels,
-          processingModels,
-        );
-
         if (!models?.length) break;
 
-        for (const model of models) {
-          processingModels.push({ id: model.id, processing: true });
+        const processModels = models.splice(0, PARALLEL_LIMIT * 10);
+
+        for (const model of processModels) {
           queue
             .add(() => wrapper(model))
             .catch((e) => {
               this.log(`Error processing model ${model.fk_model_id}`);
               this.log(e);
-              skipModels.add(model.fk_model_id);
             });
         }
       }
@@ -440,12 +345,15 @@ export class OrderColumnMigration {
       // TODO: Drop temp table manually for now
       // await ncMeta.knexConnection.schema.dropTableIfExists(TEMP_TABLE);
 
-      this.logExecutionTime(
-        `Migration completed. Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
-      );
+      await ncMeta.disableUpgraderMode();
+
+      Upgrader.printAll();
+
+      await Upgrader.runAll();
+
       return true;
     } catch (error) {
-      this.logExecutionTime('Migration failed:');
+      this.log('Migration failed:');
       return false;
     }
   }

@@ -204,6 +204,8 @@ export class OrderColumnMigration {
         return;
       }
 
+      this.log(`Processing model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`);
+
       const sqlMgr = ProjectMgrv2.getSqlMgr(
         context,
         { id: source.base_id },
@@ -217,7 +219,7 @@ export class OrderColumnMigration {
         ncMeta,
         sqlMgr,
       );
-
+      this.log(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
       try {
         await this.populateOrderValues(
           dbDriver,
@@ -226,6 +228,7 @@ export class OrderColumnMigration {
           source,
           newColumn,
         );
+        this.log(`Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
 
         await Column.insert(
           context,
@@ -261,6 +264,7 @@ export class OrderColumnMigration {
         `${MetaTable.MODELS}.base_id`,
         ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`,] : []),
       ])
+      .where(`${MetaTable.MODELS}.mm`, false)
       .whereNotIn(`${MetaTable.MODELS}.id`, [...skipModels])
       .whereNotIn(
         `${MetaTable.MODELS}.id`,
@@ -300,6 +304,7 @@ export class OrderColumnMigration {
             '=',
             `${MetaTable.SOURCES}.id`,
           )
+          .where(`${MetaTable.MODELS}.mm`, false)
           .where((builder) => {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
             if (isEE) builder.orWhere({ is_local: true });

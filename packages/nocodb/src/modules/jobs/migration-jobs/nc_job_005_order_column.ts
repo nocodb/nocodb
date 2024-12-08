@@ -3,11 +3,12 @@ import debug from 'debug';
 import PQueue from 'p-queue';
 import { UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { NcContext } from '~/interface/config';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { isEE } from '~/utils';
-import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -17,16 +18,26 @@ import {
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import { Altered } from '~/services/columns.service';
 import Upgrader from '~/Upgrader';
+import Noco from '~/Noco';
 
-const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 5;
+const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 10;
+const TEMP_TABLE = 'nc_temp_processed_order_models';
 
 const propsByClientType = {};
 const entityCache: {
   source: { [key: string]: Source };
-  dbDriver: { [key: string]: any };
+  dbDriver: { [key: string]: CustomKnex };
+  upgraderDbDriver: { [key: string]: CustomKnex };
 } = {
   source: {},
   dbDriver: {},
+  upgraderDbDriver: {},
+};
+
+const sql = {
+  mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
+  pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
+  sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
 };
 
 const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
@@ -46,6 +57,10 @@ const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
   return propsByClientType[clientType];
 };
 
+const skipModels = new Set(['placeholder']);
+let processingModels = [{ fk_model_id: 'placeholder', processing: true }];
+let processedModelsCount = 0;
+
 @Injectable()
 export class OrderColumnMigration {
   private readonly debugLog = debug('nc:migration-jobs:order-column');
@@ -58,36 +73,154 @@ export class OrderColumnMigration {
     this.log(`${message} in ${elapsedSeconds}s`);
   }
 
+  async job() {
+    if (!(await Noco.ncMeta.knexConnection.schema.hasTable(TEMP_TABLE))) {
+      await Noco.ncMeta.knexConnection.schema.createTable(
+        TEMP_TABLE,
+        (table) => {
+          table.increments('id').primary();
+          table.string('fk_model_id').notNullable();
+          table.boolean('completed').defaultTo(false);
+          table.text('error').nullable();
+          table.index('fk_model_id');
+        },
+      );
+    }
+
+    const ncMeta = new Upgrader();
+
+    try {
+      ncMeta.enableUpgraderMode();
+
+      const totalHrTime = process.hrtime();
+
+      const numberOfModelsToBeProcessed = +(
+        await ncMeta
+          .knexConnection(MetaTable.MODELS)
+          .join(
+            MetaTable.SOURCES,
+            `${MetaTable.MODELS}.source_id`,
+            '=',
+            `${MetaTable.SOURCES}.id`,
+          )
+          .where(`${MetaTable.MODELS}.mm`, false)
+          .where((builder) => {
+            builder.where(`${MetaTable.SOURCES}.is_meta`, true);
+            if (isEE) builder.orWhere({ is_local: true });
+          })
+          .whereNotIn(
+            `${MetaTable.MODELS}.id`,
+            ncMeta
+              .knexConnection(TEMP_TABLE)
+              .select('fk_model_id')
+              .where('completed', true),
+          )
+          .count('*', { as: 'count' })
+          .first()
+      )?.count;
+
+      const wrapper = async (model: {
+        id: string;
+        source_id: string;
+        fk_workspace_id?: string;
+        base_id: string;
+      }) => {
+        try {
+          await this.processModel(model, ncMeta);
+        } catch (e) {
+          this.log(`Error processing model ${model.id}:`);
+          skipModels.add(model.id);
+          await this.updateModelStatus(Noco.ncMeta, model.id, false, e.message);
+        } finally {
+          const item = processingModels.find((m) => m.fk_model_id === model.id);
+
+          if (item) {
+            item.processing = false;
+          }
+
+          processedModelsCount++;
+          this.log(
+            `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
+          );
+        }
+      };
+
+      const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        if (queue.pending > PARALLEL_LIMIT) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+
+        const models = await this.getModelsQuery(ncMeta);
+
+        if (!models?.length) break;
+
+        processingModels = processingModels.filter((m) => m.processing);
+
+        const processModels = models.splice(0, PARALLEL_LIMIT * 10);
+
+        for (const model of processModels) {
+          processingModels.push({ fk_model_id: model.id, processing: true });
+
+          queue
+            .add(() => wrapper(model))
+            .catch((e) => {
+              this.log(`Error processing model ${model.fk_model_id}`);
+              this.log(e);
+            });
+        }
+      }
+
+      await queue.onIdle();
+      // TODO: Drop temp table manually for now
+      // await ncMeta.knexConnection.schema.dropTableIfExists(TEMP_TABLE);
+
+      await ncMeta.disableUpgraderMode();
+
+      this.logExecutionTime('Migration job completed', totalHrTime);
+
+      return true;
+    } catch (error) {
+      this.log('Migration failed:');
+      this.log(error);
+      return false;
+    }
+  }
+
   private async populateOrderValues(
-    context: NcContext,
-    dbDriver: any,
-    baseModel: any,
-    model: any,
-    source: any,
-    newColumn: any,
+    dbDriver: CustomKnex,
+    baseModel: BaseModelSqlv2,
+    model: Model,
+    source: Source,
+    newColumn: { column_name: string },
   ) {
     const aiColumn = model.columns.find((c) => c.ai);
     const pkColumn = model.primaryKeys[0]?.column_name;
 
     if (aiColumn) {
-      const q = dbDriver
-        .raw(`UPDATE ?? SET ?? = ??`, [
-          baseModel.getTnPath(model.table_name),
-          newColumn.column_name,
-          aiColumn.column_name,
-        ])
-        .toQuery();
-      await Upgrader.addDataQuery(context, source.id, q);
+      const q = dbDriver.raw(`UPDATE ?? SET ?? = ??`, [
+        baseModel.getTnPath(model.table_name),
+        newColumn.column_name,
+        aiColumn.column_name,
+      ]);
+
+      source.upgraderQueries.push(q.toQuery());
+
+      const createIndexQuery = dbDriver.raw(`CREATE INDEX ?? ON ?? (??)`, [
+        `${model.table_name}_order_idx`,
+        baseModel.getTnPath(model.table_name),
+        `${newColumn.column_name}`,
+      ]);
+
+      source.upgraderQueries.push(createIndexQuery.toQuery());
+
       return;
     }
 
     if (!pkColumn) return;
-
-    const sql = {
-      mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
-      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
-      sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
-    };
 
     const params = {
       mysql2: [
@@ -118,52 +251,18 @@ export class OrderColumnMigration {
 
     const q = dbDriver.raw(sql[source.type], params[source.type]);
 
-    await Upgrader.addDataQuery(context, source.id, q);
+    source.upgraderQueries.push(q.toQuery());
+
+    const createIndexQuery = dbDriver.raw(`CREATE INDEX ?? ON ?? (??)`, [
+      `${model.table_name}_order_idx`,
+      baseModel.getTnPath(model.table_name),
+      `${newColumn.column_name}`,
+    ]);
+
+    source.upgraderQueries.push(createIndexQuery.toQuery());
   }
 
-  private async cleanupFailedColumn(
-    context: NcContext,
-    sqlMgr: any,
-    source: Source,
-    model: Model,
-    newColumn: any,
-  ) {
-    const columns = model.columns;
-    const orderColumn = columns.find((c) => c.uidt === UITypes.Order);
-    const deleteUpdateBody = {
-      ...model,
-      tn: model.table_name,
-      originalColumns: columns.map((c) => ({
-        ...c,
-        cn: c.column_name,
-        cno: c.column_name,
-      })),
-      columns: columns.map((c) => {
-        if (c.column_name === newColumn.column_name) {
-          return {
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-            altered: Altered.DELETE_COLUMN,
-          };
-        }
-        (c as any).cn = c.column_name;
-        return c;
-      }),
-    };
-
-    await sqlMgr.sqlOpPlus(source, 'tableUpdate', deleteUpdateBody);
-
-    await Column.delete(context, orderColumn.id);
-  }
-
-  private async addOrderColumn(
-    model: Model,
-    source: any,
-    context: any,
-    ncMeta: MetaService,
-    sqlMgr: any,
-  ) {
+  private async addOrderColumn(model: Model, source: Source, sqlMgr: SqlMgrv2) {
     const newColumn = {
       ...(await memoizedGetColumnPropsFromUIDT(source)),
       column_name: getUniqueColumnName(model.columns, 'nc_order'),
@@ -194,7 +293,7 @@ export class OrderColumnMigration {
       fk_workspace_id?: string;
       base_id: string;
     },
-    ncMeta: MetaService,
+    ncMeta: Upgrader,
   ) {
     const { id: modelId, source_id, base_id } = modelData;
     const context = { workspace_id: modelData?.fk_workspace_id, base_id };
@@ -209,19 +308,15 @@ export class OrderColumnMigration {
         return;
       }
 
-      this.logExecutionTime(`Source fetched ${source_id}`, hrtime);
-
       source.upgraderMode = true;
 
-      const dbDriver =
-        entityCache.dbDriver[source_id] ||
-        (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(source));
-
-      this.logExecutionTime(`DB Driver created`, hrtime);
+      const dbDriver: CustomKnex =
+        entityCache.upgraderDbDriver[source_id] ||
+        (entityCache.upgraderDbDriver[source_id] = await NcConnectionMgrv2.get(
+          source,
+        ));
 
       const model = await Model.get(context, modelId);
-
-      this.logExecutionTime(`Model fetched`, hrtime);
 
       const baseModel = await Model.getBaseModelSQL(context, {
         model,
@@ -229,11 +324,7 @@ export class OrderColumnMigration {
         dbDriver,
       });
 
-      this.logExecutionTime(`Base Model created`, hrtime);
-
       await model.getColumns(context);
-
-      this.logExecutionTime(`Columns fetched`, hrtime);
 
       this.log(
         `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
@@ -247,13 +338,7 @@ export class OrderColumnMigration {
 
       let orderColumn = model.columns.find((c) => c.uidt === UITypes.Order);
       if (!orderColumn) {
-        orderColumn = await this.addOrderColumn(
-          model,
-          source,
-          context,
-          ncMeta,
-          sqlMgr,
-        );
+        orderColumn = await this.addOrderColumn(model, source, sqlMgr);
 
         this.logExecutionTime(`Add order column query generated`, hrtime);
 
@@ -269,14 +354,8 @@ export class OrderColumnMigration {
         );
 
         this.logExecutionTime(`Add order column meta query generated`, hrtime);
-      } else {
-        this.log(
-          `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
-        );
-      }
-      try {
+
         await this.populateOrderValues(
-          context,
           dbDriver,
           baseModel,
           model,
@@ -285,22 +364,32 @@ export class OrderColumnMigration {
         );
 
         this.logExecutionTime(`Populate order values query generated`, hrtime);
-      } catch (err) {
+      } else {
         this.log(
-          `Error populating order values. Proceeding with Cleanup for model ${modelId}:`,
+          `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
         );
-        this.log(err);
-        await this.cleanupFailedColumn(
-          context,
-          sqlMgr,
-          source,
-          model,
-          orderColumn,
-        );
+        await this.updateModelStatus(Noco.ncMeta, modelId, true);
+        return;
+      }
 
-        this.logExecutionTime(`Cleanup failed column query generated`, hrtime);
+      try {
+        const realDbDriver =
+          entityCache.dbDriver[source_id] ||
+          (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(
+            new Source({
+              ...source,
+              upgraderMode: false,
+            } as any),
+          ));
 
-        throw err;
+        const queries = source.upgraderQueries.splice(0);
+
+        await realDbDriver.raw(queries.join(';'));
+        await ncMeta.runUpgraderQueries();
+      } catch (error) {
+        this.log(`Error executing queries for model ${modelId}:`);
+        this.log(error);
+        throw error;
       }
     } catch (error) {
       throw error;
@@ -326,84 +415,31 @@ export class OrderColumnMigration {
       .where((builder) => {
         builder.where(`${MetaTable.SOURCES}.is_meta`, true);
         if (isEE) builder.orWhere({ is_local: true });
-      });
+      })
+      .whereNotIn(
+        `${MetaTable.MODELS}.id`,
+        ncMeta
+          .knexConnection(TEMP_TABLE)
+          .select('fk_model_id')
+          .where('completed', true),
+      )
+      .whereNotIn(
+        `${MetaTable.MODELS}.id`,
+        Array.from(skipModels)
+          .map((m) => m)
+          .concat(processingModels.map((m) => m.fk_model_id)),
+      )
+      .limit(PARALLEL_LIMIT * 10);
   }
 
-  async job() {
-    const ncMeta = Noco.ncMeta;
-
-    try {
-      const numberOfModelsToBeProcessed = +(
-        await ncMeta
-          .knexConnection(MetaTable.MODELS)
-          .join(
-            MetaTable.SOURCES,
-            `${MetaTable.MODELS}.source_id`,
-            '=',
-            `${MetaTable.SOURCES}.id`,
-          )
-          .where(`${MetaTable.MODELS}.mm`, false)
-          .where((builder) => {
-            builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-            if (isEE) builder.orWhere({ is_local: true });
-          })
-          .count('*', { as: 'count' })
-          .first()
-      )?.count;
-
-      let processedModelsCount = 0;
-
-      const wrapper = async (model: {
-        id: string;
-        source_id: string;
-        fk_workspace_id?: string;
-        base_id: string;
-      }) => {
-        try {
-          await this.processModel(model, ncMeta);
-        } catch (e) {
-          this.log(`Error processing model ${model.id}:`);
-        } finally {
-          processedModelsCount++;
-          this.log(
-            `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
-          );
-        }
-      };
-
-      const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
-
-      const models = await this.getModelsQuery(ncMeta);
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        if (queue.pending > PARALLEL_LIMIT) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
-        }
-
-        if (!models?.length) break;
-
-        const processModels = models.splice(0, PARALLEL_LIMIT * 10);
-
-        for (const model of processModels) {
-          queue
-            .add(() => wrapper(model))
-            .catch((e) => {
-              this.log(`Error processing model ${model.fk_model_id}`);
-              this.log(e);
-            });
-        }
-      }
-
-      await queue.onIdle();
-      // TODO: Drop temp table manually for now
-      // await ncMeta.knexConnection.schema.dropTableIfExists(TEMP_TABLE);
-
-      return true;
-    } catch (error) {
-      this.log('Migration failed:');
-      return false;
-    }
+  private async updateModelStatus(
+    ncMeta: MetaService,
+    modelId: string,
+    status: boolean,
+    error?: string,
+  ) {
+    await ncMeta
+      .knexConnection(TEMP_TABLE)
+      .insert({ fk_model_id: modelId, completed: status, error });
   }
 }

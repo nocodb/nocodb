@@ -56,6 +56,7 @@ export default class Source implements SourceType {
 
   // Ephemeral properties
   upgraderMode?: boolean;
+  upgraderQueries?: string[] = [];
 
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);

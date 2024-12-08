@@ -129,6 +129,7 @@ export class OrderColumnMigration {
           await this.processModel(model, ncMeta);
         } catch (e) {
           this.log(`Error processing model ${model.id}:`);
+          console.error(e);
           skipModels.add(model.id);
           await this.updateModelStatus(Noco.ncMeta, model.id, false, e.message);
         } finally {
@@ -169,7 +170,7 @@ export class OrderColumnMigration {
             .add(() => wrapper(model))
             .catch((e) => {
               this.log(`Error processing model ${model.fk_model_id}`);
-              this.log(e);
+              console.error(e);
             });
         }
       }
@@ -185,7 +186,7 @@ export class OrderColumnMigration {
       return true;
     } catch (error) {
       this.log('Migration failed:');
-      this.log(error);
+      console.error(error);
       return false;
     }
   }
@@ -372,25 +373,19 @@ export class OrderColumnMigration {
         return;
       }
 
-      try {
-        const realDbDriver =
-          entityCache.dbDriver[source_id] ||
-          (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(
-            new Source({
-              ...source,
-              upgraderMode: false,
-            } as any),
-          ));
+      const realDbDriver =
+        entityCache.dbDriver[source_id] ||
+        (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(
+          new Source({
+            ...source,
+            upgraderMode: false,
+          } as any),
+        ));
 
-        const queries = source.upgraderQueries.splice(0);
+      const queries = source.upgraderQueries.splice(0);
 
-        await realDbDriver.raw(queries.join(';'));
-        await ncMeta.runUpgraderQueries();
-      } catch (error) {
-        this.log(`Error executing queries for model ${modelId}:`);
-        this.log(error);
-        throw error;
-      }
+      await realDbDriver.raw(queries.join(';'));
+      await ncMeta.runUpgraderQueries();
     } catch (error) {
       throw error;
     }

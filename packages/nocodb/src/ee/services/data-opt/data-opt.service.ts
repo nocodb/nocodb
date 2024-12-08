@@ -29,6 +29,7 @@ export class DataOptService {
       limitOverride?: number;
       baseModel?: BaseModelSqlv2;
       customConditions?: Filter[];
+      getHiddenColumns?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };

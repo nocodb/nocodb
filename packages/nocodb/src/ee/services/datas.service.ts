@@ -31,6 +31,7 @@ export class DatasService extends DatasServiceCE {
       disableOptimization?: boolean;
       ignorePagination?: boolean;
       limitOverride?: number;
+      getHiddenColumns?: boolean;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };
@@ -120,6 +121,7 @@ export class DatasService extends DatasServiceCE {
         limitOverride: param.limitOverride,
         baseModel,
         customConditions,
+        getHiddenColumns: param.getHiddenColumns,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -131,6 +133,7 @@ export class DatasService extends DatasServiceCE {
         limitOverride: param.limitOverride,
         baseModel,
         customConditions,
+        getHiddenColumns: param.getHiddenColumns,
       });
     }
 

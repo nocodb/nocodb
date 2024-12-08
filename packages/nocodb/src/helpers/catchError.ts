@@ -479,6 +479,13 @@ export class MetaError extends NcBaseError {
   }
 }
 
+export class CannotCalculateIntermediateOrderError extends NcBaseError {
+  constructor() {
+    super('Cannot calculate intermediate order');
+    this.name = 'CannotCalculateIntermediateOrder';
+  }
+}
+
 export class ExternalError extends NcBaseError {
   constructor(error: Error) {
     super(error.message);

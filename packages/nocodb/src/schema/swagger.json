@@ -8841,6 +8841,14 @@
             "description": "Comma separated list of pks"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "getHiddenColumns",
+            "description": "Get hidden columns on List Api"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -8979,6 +8987,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       }
@@ -10153,6 +10175,13 @@
             "name": "offset"
           },
           {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "getHiddenColumns"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -10281,6 +10310,22 @@
           }
         },
         "tags": ["DB View Row"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -11445,6 +11490,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       },
@@ -17126,6 +17178,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       },
@@ -17286,6 +17352,83 @@
             "in": "query",
             "name": "offset",
             "description": "Offset in rows"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "baz",
+                      "SingleSelect": null,
+                      "Sheet-1 List": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ],
+                      "LTAR": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/records/{rowId}/move": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Move Table Row",
+        "operationId": "db-data-table-row-move",
+        "description": "Move the table row to new position",
+        "tags": ["DB Data Table Row"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "description": "The row ID before which the row should be moved"
           },
           {
             "$ref": "#/components/parameters/xc-auth"

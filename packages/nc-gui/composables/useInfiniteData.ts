@@ -159,7 +159,7 @@ export function useInfiniteData(args: {
 
       const hasImportantRows = Array.from(cachedRows.value)
         .filter(([index]) => index >= chunkStart && index < chunkEnd)
-        .some(([_, row]) => row.rowMeta.selected || row.rowMeta.new)
+        .some(([_, row]) => row.rowMeta.selected || row.rowMeta.new || row.rowMeta?.isDragging)
 
       if (isVisibleChunk || hasImportantRows) {
         for (let i = chunkStart; i < chunkEnd; i++) {
@@ -252,6 +252,113 @@ export function useInfiniteData(args: {
       console.error(error)
       message.error(await extractSdkResponseErrorMsg(error))
       return []
+    }
+  }
+
+  const updateRecordOrder = async (draggedIndex: number, targetIndex: number | 'end', undo = false, isFailed = false) => {
+    const originalRecord = cachedRows.value.get(draggedIndex)
+    if (!originalRecord) return
+
+    const recordPk = extractPkFromRow(originalRecord.row, meta.value?.columns as ColumnType[])
+    const newCachedRows = new Map(cachedRows.value)
+
+    const beforeDraggedRecord = cachedRows.value.get(draggedIndex + 1)
+    const beforeDraggedPk = beforeDraggedRecord
+      ? extractPkFromRow(beforeDraggedRecord.row, meta.value?.columns as ColumnType[])
+      : null
+
+    let targetRecord: Row | null = null
+    let targetRecordPk: string | null = null
+    let finalTargetIndex = targetIndex
+
+    if (targetIndex === 'end') {
+      finalTargetIndex = cachedRows.value.size
+    } else {
+      targetRecord = cachedRows.value.get(targetIndex) ?? null
+      if (!targetRecord) return
+      targetRecordPk = extractPkFromRow(targetRecord.row, meta.value?.columns as ColumnType[]) || null
+    }
+
+    if (typeof finalTargetIndex === 'number') {
+      if (finalTargetIndex < draggedIndex) {
+        for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
+          const row = newCachedRows.get(i)
+          if (row) {
+            row.rowMeta.rowIndex = i + 1
+            newCachedRows.set(i + 1, row)
+          }
+        }
+      } else {
+        for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
+          const row = newCachedRows.get(i)
+          if (row) {
+            row.rowMeta.rowIndex = i - 1
+            row.rowMeta.isRowOrderUpdated = false
+            newCachedRows.set(i - 1, row)
+          }
+        }
+      }
+
+      originalRecord.rowMeta.rowIndex = finalTargetIndex > draggedIndex ? finalTargetIndex - 1 : finalTargetIndex
+      originalRecord.rowMeta.isDragging = false
+      newCachedRows.set(finalTargetIndex > draggedIndex ? finalTargetIndex - 1 : finalTargetIndex, originalRecord)
+    }
+
+    const targetChunkIndex =
+      typeof finalTargetIndex === 'number' ? getChunkIndex(finalTargetIndex) : getChunkIndex(cachedRows.value.size - 1)
+    const sourceChunkIndex = getChunkIndex(draggedIndex)
+    cachedRows.value = newCachedRows
+
+    for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+      chunkStates.value[i] = undefined
+    }
+
+    if (!isFailed) {
+      $api.dbDataTableRow
+        .move(meta.value!.id!, recordPk, {
+          before: targetIndex === 'end' ? null : targetRecordPk,
+        })
+        .then(() => {
+          callbacks?.syncVisibleData?.()
+        })
+        .catch((e) => {
+          callbacks?.syncVisibleData?.()
+          message.error(`Failed to update record order: ${e}`)
+        })
+    }
+
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+            await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
+              before: beforePk,
+            })
+
+            for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
+              chunkStates.value[i] = undefined
+            }
+
+            await callbacks?.syncVisibleData?.()
+          },
+          args: [beforeDraggedPk, recordPk, targetChunkIndex, sourceChunkIndex],
+        },
+        redo: {
+          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+            await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
+              before: beforePk,
+            })
+
+            for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
+              chunkStates.value[i] = undefined
+            }
+
+            await callbacks?.syncVisibleData?.()
+          },
+          args: [targetIndex === 'end' ? null : targetRecordPk, recordPk, targetChunkIndex, sourceChunkIndex],
+        },
+        scope: defineViewScope({ view: viewMeta.value }),
+      })
     }
   }
 
@@ -704,6 +811,7 @@ export function useInfiniteData(args: {
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
     ignoreShifting = false,
+    beforeRowID?: string,
   ): Promise<Record<string, any> | undefined> {
     if (!currentRow.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -730,6 +838,7 @@ export function useInfiniteData(args: {
         metaValue?.id as string,
         viewMetaValue?.id as string,
         { ...insertObj, ...(ltarState || {}) },
+        { before: beforeRowID, undo },
       )
 
       currentRow.rowMeta.new = false
@@ -791,13 +900,14 @@ export function useInfiniteData(args: {
               tempLocalCache: Map<number, Row>,
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+              rowID: string,
             ) => {
               cachedRows.value = new Map(tempLocalCache)
               totalRows.value = tempTotalRows
               chunkStates.value = tempChunkStates
 
               row.row = { ...pkData, ...row.row }
-              const newData = await insertRow(row, ltarState, undefined, true)
+              const newData = await insertRow(row, ltarState, undefined, true, true, rowID)
 
               const needsResorting = willSortOrderChange({
                 row,
@@ -820,6 +930,7 @@ export function useInfiniteData(args: {
               clone(new Map(cachedRows.value)),
               clone(totalRows.value),
               clone(chunkStates.value),
+              clone(beforeRowID),
             ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
@@ -974,6 +1085,7 @@ export function useInfiniteData(args: {
     property?: string,
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    beforeRowID?: string,
   ): Promise<void> {
     if (!row.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -990,7 +1102,7 @@ export function useInfiniteData(args: {
     let data
 
     if (row.rowMeta.new) {
-      data = await insertRow(row, ltarState, args, false, true)
+      data = await insertRow(row, ltarState, args, false, true, beforeRowID)
     } else if (property) {
       data = await updateRowProperty(row, property, args)
     }
@@ -1169,6 +1281,7 @@ export function useInfiniteData(args: {
     getExpandedRowIndex,
     loadAggCommentsCount,
     navigateToSiblingRow,
+    updateRecordOrder,
     selectedAllRecords,
   }
 }

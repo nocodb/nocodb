@@ -155,11 +155,11 @@ export class OrderColumnMigration {
           continue;
         }
 
+        processingModels = processingModels.filter((m) => m.processing);
+
         const models = await this.getModelsQuery(ncMeta);
 
         if (!models?.length) break;
-
-        processingModels = processingModels.filter((m) => m.processing);
 
         const processModels = models.splice(0, PARALLEL_LIMIT * 10);
 

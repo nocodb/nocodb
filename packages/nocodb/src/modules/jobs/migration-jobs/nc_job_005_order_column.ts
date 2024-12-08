@@ -19,7 +19,7 @@ import { NcContext } from '~/interface/config';
 
 const TEMP_TABLE = 'nc_temp_processed_order_models';
 const BATCH_SIZE = 100;
-const PARALLEL_LIMIT = 2;
+const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 5;
 
 @Injectable()
 export class OrderColumnMigration {
@@ -206,11 +206,6 @@ export class OrderColumnMigration {
       const model = await Model.get(context, modelId);
       await model.getColumns(context);
 
-      if (model.columns.find((c) => c.uidt === UITypes.Order)) {
-        await this.updateModelStatus(ncMeta, modelId, true);
-        return;
-      }
-
       this.log(`Processing model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`);
 
       const sqlMgr = ProjectMgrv2.getSqlMgr(
@@ -219,40 +214,43 @@ export class OrderColumnMigration {
         ncMeta,
       );
 
-      const newColumn = await this.addOrderColumn(
-        model,
-        source,
-        context,
-        ncMeta,
-        sqlMgr,
-      );
+      let orderColumn = model.columns.find((c) => c.uidt === UITypes.Order);
+      if (!orderColumn) {
+        orderColumn = await this.addOrderColumn(
+          model,
+          source,
+          context,
+          ncMeta,
+          sqlMgr,
+        );
 
-      await Column.insert(
-        context,
-        {
-          ...newColumn,
-          system: true,
-          fk_model_id: model.id,
-        },
-        ncMeta,
-      );
-
-      this.log(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+        await Column.insert(
+          context,
+          {
+            ...orderColumn,
+            system: true,
+            fk_model_id: model.id,
+          },
+          ncMeta,
+        );
+        this.log(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+      } else {
+        this.log(`Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
+      }
       try {
         await this.populateOrderValues(
           dbDriver,
           baseModel,
           model,
           source,
-          newColumn,
+          orderColumn,
         );
 
         this.log(`Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
-
         await this.updateModelStatus(ncMeta, modelId, true);
 
       } catch(err) {
-        await this.cleanupFailedColumn(context, sqlMgr, source, model, newColumn);
+        await this.cleanupFailedColumn(context, sqlMgr, source, model, orderColumn);
         this.log(`Error populating order values. Proceeding with Cleanup for model ${modelId}:`, err);
         throw err;
       }

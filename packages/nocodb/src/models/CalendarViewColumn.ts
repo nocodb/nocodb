@@ -43,15 +43,17 @@ export default class CalendarViewColumn {
         MetaTable.CALENDAR_VIEW_COLUMNS,
         calendarViewColumnId,
       );
-      viewColumn.meta =
-        viewColumn.meta && typeof viewColumn.meta === 'string'
-          ? JSON.parse(viewColumn.meta)
-          : viewColumn.meta;
+      if (viewColumn) {
+        viewColumn.meta =
+          viewColumn.meta && typeof viewColumn.meta === 'string'
+            ? JSON.parse(viewColumn.meta)
+            : viewColumn.meta;
 
-      await NocoCache.set(
-        `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
-        viewColumn,
-      );
+        await NocoCache.set(
+          `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
 
     return viewColumn && new CalendarViewColumn(viewColumn);

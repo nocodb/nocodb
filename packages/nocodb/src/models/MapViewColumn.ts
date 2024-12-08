@@ -26,25 +26,27 @@ export default class MapViewColumn {
     mapViewColumnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let view =
+    let viewColumn =
       mapViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.MAP_VIEW_COLUMN}:${mapViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.MAP_VIEW_COLUMNS,
         mapViewColumnId,
       );
-      await NocoCache.set(
-        `${CacheScope.MAP_VIEW_COLUMN}:${mapViewColumnId}`,
-        view,
-      );
+      if (viewColumn) {
+        await NocoCache.set(
+          `${CacheScope.MAP_VIEW_COLUMN}:${mapViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
-    return view && new MapViewColumn(view);
+    return viewColumn && new MapViewColumn(viewColumn);
   }
   static async insert(
     context: NcContext,

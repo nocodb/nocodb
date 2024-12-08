@@ -67,25 +67,27 @@ export default class GridViewColumn implements GridColumnType {
     gridViewColumnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let view =
+    let viewColumn =
       gridViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.GRID_VIEW_COLUMNS,
         gridViewColumnId,
       );
-      await NocoCache.set(
-        `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
-        view,
-      );
+      if (viewColumn) {
+        await NocoCache.set(
+          `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
-    return view && new GridViewColumn(view);
+    return viewColumn && new GridViewColumn(viewColumn);
   }
 
   static async insert(

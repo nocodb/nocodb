@@ -27,25 +27,27 @@ export default class KanbanViewColumn implements KanbanColumnType {
     kanbanViewColumnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let view =
+    let viewColumn =
       kanbanViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.KANBAN_VIEW_COLUMNS,
         kanbanViewColumnId,
       );
-      await NocoCache.set(
-        `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
-        view,
-      );
+      if (viewColumn) {
+        await NocoCache.set(
+          `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
-    return view && new KanbanViewColumn(view);
+    return viewColumn && new KanbanViewColumn(viewColumn);
   }
   static async insert(
     context: NcContext,

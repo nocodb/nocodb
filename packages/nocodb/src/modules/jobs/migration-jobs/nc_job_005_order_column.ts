@@ -15,6 +15,7 @@ import {
 } from '~/helpers/getUniqueName';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import { Altered } from '~/services/columns.service';
+import { NcContext } from '~/interface/config';
 
 const TEMP_TABLE = 'nc_temp_processed_order_models';
 const BATCH_SIZE = 100;
@@ -107,20 +108,24 @@ export class OrderColumnMigration {
   }
 
   private async cleanupFailedColumn(
+    context: NcContext,
     sqlMgr: any,
-    source: any,
-    model: any,
+    source: Source,
+    model: Model,
     newColumn: any,
   ) {
+
+    const columns = await model.getColumns(context)
+    const orderColumn = columns.find((c) => c.uidt === UITypes.Order);
     const deleteUpdateBody = {
       ...model,
       tn: model.table_name,
-      originalColumns: model.columns.map((c) => ({
+      originalColumns: columns.map((c) => ({
         ...c,
         cn: c.column_name,
         cno: c.column_name,
       })),
-      columns: [...model.columns, newColumn].map((c) => {
+      columns: columns.map((c) => {
         if (c.column_name === newColumn.column_name) {
           return {
             ...c,
@@ -135,6 +140,8 @@ export class OrderColumnMigration {
     };
 
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', deleteUpdateBody);
+
+    await Column.delete(context, orderColumn.id)
   }
 
   private async addOrderColumn(
@@ -149,7 +156,7 @@ export class OrderColumnMigration {
         {
           uidt: UITypes.Order,
           column_name: getUniqueColumnName(model.columns, 'nc_order'),
-          title: getUniqueColumnAliasName(model.columns, 'order'),
+          title: getUniqueColumnAliasName(model.columns, 'nc_order'),
         },
         source,
       )),
@@ -219,6 +226,17 @@ export class OrderColumnMigration {
         ncMeta,
         sqlMgr,
       );
+
+      await Column.insert(
+        context,
+        {
+          ...newColumn,
+          system: true,
+          fk_model_id: model.id,
+        },
+        ncMeta,
+      );
+
       this.log(`Order column added to model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
       try {
         await this.populateOrderValues(
@@ -228,23 +246,17 @@ export class OrderColumnMigration {
           source,
           newColumn,
         );
+
         this.log(`Order values populated for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`);
 
-        await Column.insert(
-          context,
-          {
-            ...newColumn,
-            system: true,
-            fk_model_id: model.id,
-          },
-          ncMeta,
-        );
-
         await this.updateModelStatus(ncMeta, modelId, true);
-      } catch (error) {
-        await this.cleanupFailedColumn(sqlMgr, source, model, newColumn);
-        throw error;
+
+      } catch(err) {
+        await this.cleanupFailedColumn(context, sqlMgr, source, model, newColumn);
+        this.log(`Error populating order values. Proceeding with Cleanup for model ${modelId}:`, err);
+        throw err;
       }
+
     } catch (error) {
       await this.updateModelStatus(ncMeta, modelId, false, error.message);
       throw error;

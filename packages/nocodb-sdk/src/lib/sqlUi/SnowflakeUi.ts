@@ -181,7 +181,7 @@ export class SnowflakeUi {
         system: true,
       },
       {
-        column_name: 'order',
+        column_name: 'nc_order',
         title: 'nc_order',
         dt: 'number',
         dtx: 'specificType',

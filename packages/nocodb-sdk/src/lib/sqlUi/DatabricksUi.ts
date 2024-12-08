@@ -162,7 +162,7 @@ export class DatabricksUi {
         system: true,
       },
       {
-        column_name: 'order',
+        column_name: 'nc_order',
         title: 'nc_order',
         dt: 'decimal',
         dtx: 'specificType',

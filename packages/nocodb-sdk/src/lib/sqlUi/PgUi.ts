@@ -245,7 +245,7 @@ export class PgUi {
         system: true,
       },
       {
-        column_name: 'order',
+        column_name: 'nc_order',
         title: 'nc_order',
         dt: 'numeric',
         dtx: 'specificType',

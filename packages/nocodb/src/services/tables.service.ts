@@ -528,8 +528,8 @@ export class TablesService {
             columnTitle = 'nc_updated_by';
             break;
           case UITypes.Order:
-            columnName = 'order';
             columnTitle = 'nc_order';
+            columnName = 'nc_order';
         }
 
         const colName = getUniqueColumnName(

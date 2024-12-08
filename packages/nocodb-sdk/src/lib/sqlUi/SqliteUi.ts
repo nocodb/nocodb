@@ -169,7 +169,7 @@ export class SqliteUi {
         system: true,
       },
       {
-        column_name: 'order',
+        column_name: 'nc_order',
         title: 'nc_order',
         dt: 'real',
         dtx: 'specificType',

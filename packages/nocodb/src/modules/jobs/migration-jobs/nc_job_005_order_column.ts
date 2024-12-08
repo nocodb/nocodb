@@ -3,7 +3,7 @@ import debug from 'debug';
 import PQueue from 'p-queue';
 import { UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { Knex } from 'knex';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
@@ -28,10 +28,12 @@ const entityCache: {
   source: { [key: string]: Source };
   dbDriver: { [key: string]: CustomKnex };
   upgraderDbDriver: { [key: string]: CustomKnex };
+  sqlMgr: { [key: string]: SqlMgrv2 };
 } = {
   source: {},
   dbDriver: {},
   upgraderDbDriver: {},
+  sqlMgr: {},
 };
 
 const sql = {
@@ -69,6 +71,10 @@ export class OrderColumnMigration {
 
   logExecutionTime(message: string, hrTime) {
     const [seconds, nanoseconds] = process.hrtime(hrTime);
+
+    // reset hrTime
+    hrTime = process.hrtime();
+
     const elapsedSeconds = seconds + nanoseconds / 1e9;
     this.log(`${message} in ${elapsedSeconds}s`);
   }
@@ -150,7 +156,7 @@ export class OrderColumnMigration {
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (queue.pending > PARALLEL_LIMIT) {
+        if (queue.pending > PARALLEL_LIMIT * 2) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
@@ -161,7 +167,7 @@ export class OrderColumnMigration {
 
         if (!models?.length) break;
 
-        const processModels = models.splice(0, PARALLEL_LIMIT * 10);
+        const processModels = models.splice(0);
 
         for (const model of processModels) {
           processingModels.push({ fk_model_id: model.id, processing: true });
@@ -193,7 +199,7 @@ export class OrderColumnMigration {
 
   private async populateOrderValues(
     dbDriver: CustomKnex,
-    baseModel: BaseModelSqlv2,
+    tnPath: string | Knex.Raw<any>,
     model: Model,
     source: Source,
     newColumn: { column_name: string },
@@ -203,7 +209,7 @@ export class OrderColumnMigration {
 
     if (aiColumn) {
       const q = dbDriver.raw(`UPDATE ?? SET ?? = ??`, [
-        baseModel.getTnPath(model.table_name),
+        tnPath,
         newColumn.column_name,
         aiColumn.column_name,
       ]);
@@ -212,7 +218,7 @@ export class OrderColumnMigration {
 
       const createIndexQuery = dbDriver.raw(`CREATE INDEX ?? ON ?? (??)`, [
         `${model.table_name}_order_idx`,
-        baseModel.getTnPath(model.table_name),
+        tnPath,
         `${newColumn.column_name}`,
       ]);
 
@@ -224,28 +230,24 @@ export class OrderColumnMigration {
     if (!pkColumn) return;
 
     const params = {
-      mysql2: [
-        baseModel.getTnPath(model.table_name),
-        newColumn.column_name,
-        pkColumn,
-      ],
+      mysql2: [tnPath, newColumn.column_name, pkColumn],
       pg: [
-        baseModel.getTnPath(model.table_name),
+        tnPath,
         newColumn.column_name,
         pkColumn,
         pkColumn,
-        baseModel.getTnPath(model.table_name),
+        tnPath,
         pkColumn,
         pkColumn,
       ],
       sqlite3: [
         pkColumn,
         pkColumn,
-        baseModel.getTnPath(model.table_name),
-        baseModel.getTnPath(model.table_name),
+        tnPath,
+        tnPath,
         newColumn.column_name,
         pkColumn,
-        baseModel.getTnPath(model.table_name),
+        tnPath,
         pkColumn,
       ],
     };
@@ -256,7 +258,7 @@ export class OrderColumnMigration {
 
     const createIndexQuery = dbDriver.raw(`CREATE INDEX ?? ON ?? (??)`, [
       `${model.table_name}_order_idx`,
-      baseModel.getTnPath(model.table_name),
+      tnPath,
       `${newColumn.column_name}`,
     ]);
 
@@ -327,15 +329,19 @@ export class OrderColumnMigration {
 
       await model.getColumns(context);
 
+      const tnPath = baseModel.getTnPath(model.table_name);
+
       this.log(
         `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
       );
 
-      const sqlMgr = ProjectMgrv2.getSqlMgr(
-        context,
-        { id: source.base_id },
-        ncMeta,
-      );
+      const sqlMgr =
+        entityCache.sqlMgr[source.base_id] ||
+        (entityCache.sqlMgr[source.base_id] = ProjectMgrv2.getSqlMgr(
+          context,
+          { id: source.base_id },
+          ncMeta,
+        ));
 
       let orderColumn = model.columns.find((c) => c.uidt === UITypes.Order);
       if (!orderColumn) {
@@ -358,7 +364,7 @@ export class OrderColumnMigration {
 
         await this.populateOrderValues(
           dbDriver,
-          baseModel,
+          tnPath,
           model,
           source,
           orderColumn,

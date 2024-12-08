@@ -25,8 +25,6 @@ export class MetaService {
   private _knex: knex.Knex;
   private _config: any;
 
-  protected _upgrader_mode = false;
-
   constructor(config: NcConfig, @Optional() trx = null) {
     this._config = config;
     this._knex = XKnex({
@@ -34,10 +32,6 @@ export class MetaService {
       useNullAsDefault: true,
     });
     this.trx = trx;
-  }
-
-  get upgrader_mode() {
-    return this._upgrader_mode;
   }
 
   get knexInstance(): knex.Knex {
@@ -142,13 +136,11 @@ export class MetaService {
       if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
-    const qb = this.knexConnection(target).insert({
+    await this.knexConnection(target).insert({
       ...insertObj,
       created_at: this.now(),
       updated_at: this.now(),
     });
-
-    await qb;
 
     return insertObj;
   }

@@ -1,5 +1,6 @@
 import type { BoolType, GridColumnType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type Upgrader from '~/Upgrader';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -128,7 +129,7 @@ export default class GridViewColumn implements GridColumnType {
       insertObj,
     );
 
-    if (!ncMeta.upgrader_mode) {
+    if (!(ncMeta as Upgrader).upgrader_mode) {
       // TODO: optimize this function & try to avoid if possible
       await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
     }

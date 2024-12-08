@@ -39,6 +39,7 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
+    extractOrderColumn = false
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -50,6 +51,7 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
+    extractOrderColumn?: boolean;
   },
 ) => {
   // set default values of dependencyFields and nested
@@ -215,8 +217,8 @@ const getAst = async (
 
     if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
-    } else if(isOrderCol(col) && col.system)  {
-      isRequested = false;
+    } else if(isOrderCol(col) && col.system) {
+      isRequested = extractOrderColumn;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||

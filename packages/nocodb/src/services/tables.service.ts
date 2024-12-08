@@ -4,7 +4,7 @@ import {
   AppEvents,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
+  isLinksOrLTAR, isOrderCol,
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
@@ -709,6 +709,7 @@ export class TablesService {
           return (
             !isCreatedOrLastModifiedTimeCol(c) ||
             !isCreatedOrLastModifiedByCol(c) ||
+            !isOrderCol(c) ||
             (c as any).system
           );
         })

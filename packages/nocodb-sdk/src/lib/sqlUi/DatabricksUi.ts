@@ -161,6 +161,29 @@ export class DatabricksUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: 'order',
+        title: 'nc_order',
+        dt: 'decimal',
+        dtx: 'specificType',
+        ct: 'decimal(38,18)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 38,
+        ns: 18,
+        dtxp: '38,18',
+        dtxs: '',
+        altered: 1,
+        uidt: 'Decimal',
+        uip: '',
+        uicn: '',
+      },
     ];
   }
 
@@ -660,6 +683,9 @@ export class DatabricksUi {
         break;
       case 'JSON':
         colProp.dt = 'string';
+        break;
+      case 'Order':
+        colProp.dt = 'decimal';
         break;
       default:
         colProp.dt = 'string';

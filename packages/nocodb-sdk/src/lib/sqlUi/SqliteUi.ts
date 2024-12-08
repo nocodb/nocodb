@@ -168,6 +168,29 @@ export class SqliteUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: 'order',
+        title: 'nc_order',
+        dt: 'real',
+        dtx: 'specificType',
+        ct: 'real',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: 'Decimal',
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -691,6 +714,9 @@ export class SqliteUi {
       case 'JSON':
         colProp.dt = 'text';
         break;
+      case 'Order':
+        colProp.dt = 'real';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -908,8 +934,6 @@ export class SqliteUi {
         return ['text'];
       case 'JSON':
         return ['text'];
-
-      case 'Button':
       default:
         return dbTypes;
     }

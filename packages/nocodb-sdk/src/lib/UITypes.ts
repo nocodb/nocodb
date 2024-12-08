@@ -45,12 +45,14 @@ enum UITypes {
   User = 'User',
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
+  Order = 'Order',
 }
 
 export const UITypesName = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: 'Link to another record',
   [UITypes.ForeignKey]: 'Foreign key',
+  [UITypes.Order]: 'Order',
   [UITypes.Lookup]: 'Lookup',
   [UITypes.SingleLineText]: 'Single line text',
   [UITypes.LongText]: 'Long text',
@@ -167,6 +169,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Order]: 'Order',
 };
 
 export const numericUITypes = [
@@ -266,6 +269,10 @@ export function isHiddenCol(
     }
     // hide system columns in other tables which are has-many used for mm
     return col.colOptions?.type === RelationTypes.HAS_MANY;
+  }
+
+  if (col.uidt === UITypes.Order) {
+    return true;
   }
 
   return ([UITypes.CreatedBy, UITypes.LastModifiedBy] as string[]).includes(

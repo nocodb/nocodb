@@ -185,6 +185,29 @@ export class MysqlUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: 'order',
+        title: 'nc_order',
+        dt: 'decimal',
+        dtx: 'decimal',
+        ct: 'decimal(40,20)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 40,
+        ns: 20,
+        dtxp: '40,20',
+        dtxs: '',
+        altered: 1,
+        uidt: 'Decimal',
+        uip: '',
+        uicn: '',
+      },
     ];
   }
 
@@ -1131,6 +1154,9 @@ export class MysqlUi {
         break;
       case 'JSON':
         colProp.dt = 'json';
+        break;
+      case 'Order':
+        colProp.dt = 'decimal';
         break;
       default:
         colProp.dt = 'varchar';

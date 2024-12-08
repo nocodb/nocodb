@@ -241,6 +241,9 @@ export const RootScopeTables = {
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
   [RootScopes.WORKSPACE]: [
+    // COL_BUTTON & COL_LONG_TEXT have integration references which we need to clean
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
     MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATIONS_STORE,
   ],

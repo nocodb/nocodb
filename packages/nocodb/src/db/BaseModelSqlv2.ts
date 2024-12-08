@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
+import type { SortType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -25,15 +26,10 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
-import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
-import type { XKnex } from '~/db/CustomKnex';
-import type CustomKnex from '~/db/CustomKnex';
-import type {
-  XcFilter,
-  XcFilterWithAlias,
-} from '~/db/sql-data-mapper/lib/BaseModel';
+import CustomKnex, { XKnex } from '~/db/CustomKnex';
+import type { XcFilter, XcFilterWithAlias } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
@@ -9822,9 +9818,8 @@ class BaseModelSqlv2 {
           } else if (column.uidt === UITypes.CreatedBy) {
             data[column.column_name] = cookie?.user?.id;
           } else if (column.uidt === UITypes.Order) {
-            const order =
+            data[column.column_name] =
               extra?.ncOrder ?? (await this.getHighestOrderInTable());
-            data[column.column_name] = order;
           }
         }
         if (column.uidt === UITypes.LastModifiedTime) {

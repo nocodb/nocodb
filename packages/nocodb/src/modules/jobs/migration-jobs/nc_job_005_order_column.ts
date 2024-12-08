@@ -25,6 +25,40 @@ const TEMP_TABLE = 'nc_temp_processed_order_models';
 
 const propsByClientType = {};
 
+class SimpleLRUCache {
+  private cache: { [key: string]: any } = {};
+  private keys: string[] = [];
+
+  constructor(private readonly limit = 1000) {}
+
+  async get<T = any>(key: string, valueGetter: () => Promise<T>) {
+    if (this.cache[key]) {
+      this.keys = this.keys.filter((k) => k !== key);
+      this.keys.push(key);
+      return this.cache[key];
+    } else {
+      const value = await valueGetter();
+      this.set(key, value);
+      return value;
+    }
+  }
+
+  set(key: string, value: any) {
+    if (this.keys.length >= this.limit) {
+      const keyToRemove = this.keys.shift();
+      delete this.cache[keyToRemove];
+    }
+
+    this.cache[key] = value;
+    this.keys.push(key);
+  }
+
+  clear() {
+    this.cache = {};
+    this.keys = [];
+  }
+}
+
 const sql = {
   mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
   pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
@@ -56,6 +90,7 @@ export class OrderColumnMigration {
 
   private processingModels = [{ fk_model_id: 'placeholder', processing: true }];
   private processedModelsCount = 0;
+  private cache = new SimpleLRUCache(1000);
 
   logExecutionTime(message: string, hrTime) {
     const [seconds, nanoseconds] = process.hrtime(hrTime);
@@ -90,6 +125,9 @@ export class OrderColumnMigration {
     // Reset processed models count
     this.processingModels = [{ fk_model_id: 'placeholder', processing: true }];
     this.processedModelsCount = 0;
+
+    // Clear cache
+    this.cache.clear();
 
     const ncMeta = new Upgrader();
 
@@ -305,7 +343,15 @@ export class OrderColumnMigration {
     try {
       const hrtime = process.hrtime();
 
-      const source = await Source.get(context, source_id);
+      const originalSource = await this.cache.get(source_id, async () =>
+        Source.get(context, source_id),
+      );
+
+      const source = new Source({
+        ...originalSource,
+        upgraderMode: true,
+        upgraderQueries: [],
+      });
 
       if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
         return;

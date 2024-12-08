@@ -6,7 +6,8 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR, isOrderCol,
+  isLinksOrLTAR,
+  isOrderCol,
   isVirtualCol,
   PlanLimitTypes,
   RelationTypes,
@@ -30,7 +31,8 @@ import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
-import knex, { Knex } from 'knex';
+import knex from 'knex';
+import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -50,7 +52,10 @@ import {
   UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
-import { CannotCalculateIntermediateOrderError, NcError } from '~/helpers/catchError';
+import {
+  CannotCalculateIntermediateOrderError,
+  NcError,
+} from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
@@ -693,9 +698,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         return;
       }
 
-      let row = null
+      let row = null;
 
-      if(before) {
+      if (before) {
         row = await this.readByPk(
           before,
           false,
@@ -722,7 +727,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .max(orderColumn.column_name + ' as maxOrder')
         .first();
 
-      let result
+      let result;
 
       if ((this.dbDriver as any).isExternal) {
         result = await runExternal(
@@ -730,7 +735,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           (this.dbDriver as any).extDb,
         );
       } else {
-        result = await resultQuery
+        result = await resultQuery;
       }
 
       const adjacentOrder = result.maxOrder || 0;
@@ -757,22 +762,41 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  async moveRecord({rowId,beforeRowId,cookie }: { rowId: string; beforeRowId: string;cookie? : { user?: any }; }) {
-
+  async moveRecord({
+    rowId,
+    beforeRowId,
+    cookie,
+  }: {
+    rowId: string;
+    beforeRowId: string;
+    cookie?: { user?: any };
+  }) {
     const columns = await this.model.getColumns(this.context);
 
-    const row = await this.readByPk(rowId, false, {}, { ignoreView: true, getHiddenColumn: true });
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     if (!row) {
       NcError.recordNotFound(rowId);
     }
 
-    const newRecordOrder = (await this.getUniqueOrdersBeforeItem(beforeRowId, 1))[0]
+    const newRecordOrder = (
+      await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
+    )[0];
 
-    const query = this.dbDriver(this.tnPath).update({ [columns.find(c => c.uidt === UITypes.Order).column_name]: newRecordOrder })
-      .where(await this._wherePk(rowId, true)).toQuery();
+    const query = this.dbDriver(this.tnPath)
+      .update({
+        [columns.find((c) => c.uidt === UITypes.Order).column_name]:
+          newRecordOrder,
+      })
+      .where(await this._wherePk(rowId, true))
+      .toQuery();
 
-    let response
+    let response;
 
     if ((this.dbDriver as any).isExternal) {
       response = await runExternal(
@@ -783,7 +807,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
-    return response
+    return response;
   }
 
   async prepareNocoData(
@@ -1329,7 +1353,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (
                 col.system &&
                 !allowSystemColumn &&
-                UITypes.ForeignKey === (col.uidt)
+                UITypes.ForeignKey === col.uidt
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
@@ -1768,7 +1792,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
         } else {
-          await this.prepareNocoData(data, true, cookie, null, {ncOrder:  order, undo });
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+            undo,
+          });
           order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);

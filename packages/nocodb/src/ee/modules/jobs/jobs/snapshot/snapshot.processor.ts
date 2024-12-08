@@ -53,8 +53,7 @@ export class SnapshotProcessor {
   async restoreSnapshot(job: Job<RestoreSnapshotJobData>) {
     this.debugLog(`Job started for ${job.id} (${JobTypes.RestoreSnapshot})`);
 
-    const { context, targetBaseId, req, user, targetContext } =
-      job.data;
+    const { context, targetBaseId, req, user, targetContext } = job.data;
 
     const baseId = context.base_id;
 

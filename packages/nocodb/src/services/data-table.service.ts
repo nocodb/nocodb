@@ -112,7 +112,7 @@ export class DataTableService {
       viewId?: string;
       modelId: string;
       body: any;
-      cookie: any
+      cookie: any;
       undo?: boolean;
     },
   ) {
@@ -163,11 +163,10 @@ export class DataTableService {
       cookie: param.cookie,
       rowId: param.rowId,
       beforeRowId: param.beforeRowId,
-    })
+    });
 
-    return true
+    return true;
   }
-
 
   async dataUpdate(
     context: NcContext,

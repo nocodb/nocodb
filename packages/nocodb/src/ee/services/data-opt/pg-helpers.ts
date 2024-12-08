@@ -299,7 +299,7 @@ export async function extractColumn({
                   ]),
                 )
                 .select(knex.raw('??.*', [alias2]))
-                .limit(+listArgs.limit)
+                .limit(+listArgs.limit + 1)
                 .offset(+listArgs.offset);
 
               // apply filters on nested query
@@ -567,7 +567,7 @@ export async function extractColumn({
                   knex.raw('??.??', [rootAlias, parentColumn.column_name]),
                 )
 
-                .limit(+listArgs.limit)
+                .limit(+listArgs.limit + 1)
                 .offset(+listArgs.offset);
 
               // apply filters on nested query

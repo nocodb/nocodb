@@ -2105,11 +2105,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
+      apiVersion
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
+      apiVersion?: NcApiVersion
     } = {},
   ) {
     const queries: string[] = [];
@@ -2271,6 +2273,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } catch (e) {
           await trx.rollback();
           throw e;
+        }
+      }
+
+      // todo: wrap with transaction
+      if (apiVersion === NcApiVersion.V3) {
+        for (const d of datas) {
+          // remove LTAR/Links if part of the update request
+          await this.updateLTARCols({
+            rowId: this.extractPksValues(d, true),
+            cookie,
+            newData: d,
+          });
         }
       }
 

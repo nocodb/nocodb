@@ -57,7 +57,8 @@ function restTests() {
   integrationTest();
 
   dataAPIsV3Test('v2')
-  // dataAPIsV3Test('v3')
+  dataAPIsV3Test('v3')
+
 
   baseTest('v2')
   // baseTest('v3')

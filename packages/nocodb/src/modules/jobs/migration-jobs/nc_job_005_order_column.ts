@@ -179,6 +179,12 @@ export class OrderColumnMigration {
       ])
       .whereNotIn(`${MetaTable.MODELS}.id`, [...skipModels])
       .whereNotIn(`${MetaTable.MODELS}.id`, processingModels.map((m) => m.id))
+      .whereNotExists(function() {
+        this.select('*')
+          .from(TEMP_TABLE)
+          .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`)
+          .where('completed', true);
+      })
       .join(MetaTable.SOURCES, `${MetaTable.MODELS}.source_id`, '=', `${MetaTable.SOURCES}.id`)
       .where((builder) => {
         builder.where(`${MetaTable.SOURCES}.is_meta`, true);

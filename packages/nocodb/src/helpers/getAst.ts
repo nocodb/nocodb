@@ -1,6 +1,6 @@
 import {
   isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
+  isCreatedOrLastModifiedTimeCol, isOrderCol,
   isSystemColumn,
   RelationTypes,
   UITypes,
@@ -214,6 +214,8 @@ const getAst = async (
     let isRequested;
 
     if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      isRequested = false;
+    } else if(isOrderCol(col) && col.system)  {
       isRequested = false;
     } else if (getHiddenColumn) {
       isRequested =

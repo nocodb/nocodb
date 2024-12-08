@@ -27,7 +27,7 @@ export class OrderColumnMigration {
       await ncMeta.knexConnection.schema.createTable(TEMP_TABLE, (table) => {
         table.increments('id').primary();
         table.string('fk_model_id').notNullable();
-        table.boolean('completed').defaultTo(false);
+        table.boolean('completed')
         table.text('error').nullable();
         table.index('fk_model_id');
       });
@@ -183,7 +183,7 @@ export class OrderColumnMigration {
         this.select('*')
           .from(TEMP_TABLE)
           .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`)
-          .where('completed', true);
+          .whereNotNull('completed');
       })
       .join(MetaTable.SOURCES, `${MetaTable.MODELS}.source_id`, '=', `${MetaTable.SOURCES}.id`)
       .where((builder) => {

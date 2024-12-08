@@ -24,17 +24,6 @@ const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 10;
 const TEMP_TABLE = 'nc_temp_processed_order_models';
 
 const propsByClientType = {};
-const entityCache: {
-  source: { [key: string]: Source };
-  dbDriver: { [key: string]: CustomKnex };
-  upgraderDbDriver: { [key: string]: CustomKnex };
-  sqlMgr: { [key: string]: SqlMgrv2 };
-} = {
-  source: {},
-  dbDriver: {},
-  upgraderDbDriver: {},
-  sqlMgr: {},
-};
 
 const sql = {
   mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
@@ -59,15 +48,14 @@ const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
   return propsByClientType[clientType];
 };
 
-const skipModels = new Set(['placeholder']);
-let processingModels = [{ fk_model_id: 'placeholder', processing: true }];
-let processedModelsCount = 0;
-
 @Injectable()
 export class OrderColumnMigration {
   private readonly debugLog = debug('nc:migration-jobs:order-column');
   private readonly log = (...msgs: string[]) =>
     console.log('[nc_job_005_order_column]: ', ...msgs);
+
+  private processingModels = [{ fk_model_id: 'placeholder', processing: true }];
+  private processedModelsCount = 0;
 
   logExecutionTime(message: string, hrTime) {
     const [seconds, nanoseconds] = process.hrtime(hrTime);
@@ -93,6 +81,16 @@ export class OrderColumnMigration {
       );
     }
 
+    // Remove incomplete models from previous run
+    await Noco.ncMeta
+      .knexConnection(TEMP_TABLE)
+      .delete()
+      .where('completed', false);
+
+    // Reset processed models count
+    this.processingModels = [{ fk_model_id: 'placeholder', processing: true }];
+    this.processedModelsCount = 0;
+
     const ncMeta = new Upgrader();
 
     try {
@@ -116,10 +114,7 @@ export class OrderColumnMigration {
           })
           .whereNotIn(
             `${MetaTable.MODELS}.id`,
-            ncMeta
-              .knexConnection(TEMP_TABLE)
-              .select('fk_model_id')
-              .where('completed', true),
+            ncMeta.knexConnection(TEMP_TABLE).select('fk_model_id'),
           )
           .count('*', { as: 'count' })
           .first()
@@ -136,18 +131,19 @@ export class OrderColumnMigration {
         } catch (e) {
           this.log(`Error processing model ${model.id}:`);
           console.error(e);
-          skipModels.add(model.id);
           await this.updateModelStatus(Noco.ncMeta, model.id, false, e.message);
         } finally {
-          const item = processingModels.find((m) => m.fk_model_id === model.id);
+          const item = this.processingModels.find(
+            (m) => m.fk_model_id === model.id,
+          );
 
           if (item) {
             item.processing = false;
           }
 
-          processedModelsCount++;
+          this.processedModelsCount++;
           this.log(
-            `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
+            `Processed ${this.processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
           );
         }
       };
@@ -161,7 +157,9 @@ export class OrderColumnMigration {
           continue;
         }
 
-        processingModels = processingModels.filter((m) => m.processing);
+        this.processingModels = this.processingModels.filter(
+          (m) => m.processing,
+        );
 
         const models = await this.getModelsQuery(ncMeta);
 
@@ -170,7 +168,10 @@ export class OrderColumnMigration {
         const processModels = models.splice(0);
 
         for (const model of processModels) {
-          processingModels.push({ fk_model_id: model.id, processing: true });
+          this.processingModels.push({
+            fk_model_id: model.id,
+            processing: true,
+          });
 
           queue
             .add(() => wrapper(model))
@@ -304,20 +305,15 @@ export class OrderColumnMigration {
     try {
       const hrtime = process.hrtime();
 
-      const source =
-        entityCache.source[source_id] ||
-        (entityCache.source[source_id] = await Source.get(context, source_id));
+      const source = await Source.get(context, source_id);
+
       if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
         return;
       }
 
       source.upgraderMode = true;
 
-      const dbDriver: CustomKnex =
-        entityCache.upgraderDbDriver[source_id] ||
-        (entityCache.upgraderDbDriver[source_id] = await NcConnectionMgrv2.get(
-          source,
-        ));
+      const dbDriver: CustomKnex = await NcConnectionMgrv2.get(source);
 
       const model = await Model.get(context, modelId);
 
@@ -335,13 +331,11 @@ export class OrderColumnMigration {
         `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
       );
 
-      const sqlMgr =
-        entityCache.sqlMgr[source.base_id] ||
-        (entityCache.sqlMgr[source.base_id] = ProjectMgrv2.getSqlMgr(
-          context,
-          { id: source.base_id },
-          ncMeta,
-        ));
+      const sqlMgr = ProjectMgrv2.getSqlMgr(
+        context,
+        { id: source.base_id },
+        ncMeta,
+      );
 
       let orderColumn = model.columns.find((c) => c.uidt === UITypes.Order);
       if (!orderColumn) {
@@ -379,14 +373,15 @@ export class OrderColumnMigration {
         return;
       }
 
-      const realDbDriver =
-        entityCache.dbDriver[source_id] ||
-        (entityCache.dbDriver[source_id] = await NcConnectionMgrv2.get(
-          new Source({
-            ...source,
-            upgraderMode: false,
-          } as any),
-        ));
+      // Add update model status query to upgrader queries
+      await this.updateModelStatus(ncMeta, modelId, true);
+
+      const realDbDriver = await NcConnectionMgrv2.get(
+        new Source({
+          ...source,
+          upgraderMode: false,
+        } as any),
+      );
 
       const queries = source.upgraderQueries.splice(0);
 
@@ -419,17 +414,13 @@ export class OrderColumnMigration {
       })
       .whereNotIn(
         `${MetaTable.MODELS}.id`,
-        ncMeta
-          .knexConnection(TEMP_TABLE)
-          .select('fk_model_id')
-          .where('completed', true),
+        ncMeta.knexConnection(TEMP_TABLE).select('fk_model_id'),
       )
       .whereNotIn(
         `${MetaTable.MODELS}.id`,
-        Array.from(skipModels)
-          .map((m) => m)
-          .concat(processingModels.map((m) => m.fk_model_id)),
+        this.processingModels.map((m) => m.fk_model_id),
       )
+      .orderBy(`${MetaTable.MODELS}.source_id`)
       .limit(PARALLEL_LIMIT * 10);
   }
 

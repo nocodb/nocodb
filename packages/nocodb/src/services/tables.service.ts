@@ -527,7 +527,7 @@ export class TablesService {
             columnName = 'updated_by';
             columnTitle = 'nc_updated_by';
             break;
-          case 'Order':
+          case UITypes.Order:
             columnName = 'order';
             columnTitle = 'nc_order';
         }

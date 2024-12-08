@@ -13,6 +13,7 @@ import {
 } from '~/helpers/migrationJobs';
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
+import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
 
 @Injectable()
 export class InitMigrationJobs {
@@ -37,6 +38,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.CleanupDuplicateColumns,
       service: this.cleanupDuplicateColumnMigration,
     },
+    {
+      version: '5',
+      job: MigrationJobTypes.OrderColumnCreation,
+      service: this.orderColumnMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -48,6 +54,7 @@ export class InitMigrationJobs {
     private readonly thumbnailMigration: ThumbnailMigration,
     private readonly recoverLinksMigration: RecoverLinksMigration,
     private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
+    private readonly orderColumnMigration: OrderColumnMigration,
   ) {}
 
   log = (...msgs: string[]) => {

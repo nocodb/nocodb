@@ -20,11 +20,36 @@ import Upgrader from '~/Upgrader';
 
 const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 5;
 
+const propsByClientType = {};
+
+const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
+  const clientType = source.type;
+
+  if (!propsByClientType[clientType]) {
+    propsByClientType[clientType] = await getColumnPropsFromUIDT(
+      {
+        uidt: UITypes.Order,
+        column_name: 'nc_order',
+        title: 'nc_order',
+      },
+      source,
+    );
+  }
+
+  return propsByClientType[clientType];
+};
+
 @Injectable()
 export class OrderColumnMigration {
   private readonly debugLog = debug('nc:migration-jobs:order-column');
   private readonly log = (...msgs: string[]) =>
     console.log('[nc_job_005_order_column]: ', ...msgs);
+
+  logExecutionTime(message: string, hrTime) {
+    const [seconds, nanoseconds] = process.hrtime(hrTime);
+    const elapsedSeconds = seconds + nanoseconds / 1e9;
+    this.log(`${message} in ${elapsedSeconds}s`);
+  }
 
   private async populateOrderValues(
     context: NcContext,
@@ -133,14 +158,9 @@ export class OrderColumnMigration {
     sqlMgr: any,
   ) {
     const newColumn = {
-      ...(await getColumnPropsFromUIDT(
-        {
-          uidt: UITypes.Order,
-          column_name: getUniqueColumnName(model.columns, 'nc_order'),
-          title: getUniqueColumnAliasName(model.columns, 'nc_order'),
-        },
-        source,
-      )),
+      ...(await memoizedGetColumnPropsFromUIDT(source)),
+      column_name: getUniqueColumnName(model.columns, 'nc_order'),
+      title: getUniqueColumnAliasName(model.columns, 'nc_order'),
       cdf: null,
       system: true,
       altered: Altered.NEW_COLUMN,
@@ -173,21 +193,35 @@ export class OrderColumnMigration {
     const context = { workspace_id: modelData?.fk_workspace_id, base_id };
 
     try {
+      const hrtime = process.hrtime();
+
       const source = await Source.get(context, source_id);
       if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
         return;
       }
 
+      this.logExecutionTime(`Source fetched ${source_id}`, hrtime);
+
       source.upgraderMode = true;
 
       const dbDriver = await NcConnectionMgrv2.get(source);
 
+      this.logExecutionTime(`DB Driver created`, hrtime);
+
+      const model = await Model.get(context, modelId);
+
+      this.logExecutionTime(`Model fetched`, hrtime);
+
       const baseModel = await Model.getBaseModelSQL(context, {
-        id: modelId,
+        model,
         dbDriver,
       });
-      const model = await Model.get(context, modelId);
+
+      this.logExecutionTime(`Base Model created`, hrtime);
+
       await model.getColumns(context);
+
+      this.logExecutionTime(`Columns fetched`, hrtime);
 
       this.log(
         `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
@@ -209,6 +243,8 @@ export class OrderColumnMigration {
           sqlMgr,
         );
 
+        this.logExecutionTime(`Add order column query generated`, hrtime);
+
         await Column.insert(
           context,
           {
@@ -218,6 +254,8 @@ export class OrderColumnMigration {
           },
           ncMeta,
         );
+
+        this.logExecutionTime(`Add order column meta query generated`, hrtime);
       } else {
         this.log(
           `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
@@ -232,10 +270,13 @@ export class OrderColumnMigration {
           source,
           orderColumn,
         );
+
+        this.logExecutionTime(`Populate order values query generated`, hrtime);
       } catch (err) {
         this.log(
           `Error populating order values. Proceeding with Cleanup for model ${modelId}:`,
         );
+        this.log(err);
         await this.cleanupFailedColumn(
           context,
           sqlMgr,
@@ -243,6 +284,9 @@ export class OrderColumnMigration {
           model,
           orderColumn,
         );
+
+        this.logExecutionTime(`Cleanup failed column query generated`, hrtime);
+
         throw err;
       }
     } catch (error) {

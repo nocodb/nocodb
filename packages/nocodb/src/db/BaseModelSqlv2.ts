@@ -172,7 +172,7 @@ export async function getColumnName(
         (col) => col.system && col.uidt === UITypes.Order,
       );
       if (orderSystemCol) return orderSystemCol.column_name;
-      return column.column_name || 'order';
+      return column.column_name || 'nc_order';
     }
     default:
       return column.column_name;

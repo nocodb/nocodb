@@ -771,9 +771,18 @@ export class TablesService {
       const metaOrderColumn = tableCreatePayLoad.columns.find(
         (c) => c.uidt === UITypes.Order,
       );
-      const orderColumn = columns.find(
-        (c) => c.cn === metaOrderColumn.column_name,
-      );
+
+      if (!source.isMeta()) {
+        const orderColumn = columns.find(
+          (c) => c.cn === metaOrderColumn.column_name,
+        );
+
+        if (!orderColumn) {
+          throw new Error(
+            `Column ${metaOrderColumn.column_name} not found in database`,
+          );
+        }
+      }
 
       const dbDriver = await NcConnectionMgrv2.get(source);
 
@@ -786,7 +795,7 @@ export class TablesService {
       await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
         `${tableCreatePayLoad.table_name}_order_idx`,
         baseModel.getTnPath(tableCreatePayLoad.table_name),
-        orderColumn.cn,
+        metaOrderColumn.column_name,
       ]);
     } catch (e) {
       this.logger.log(`Something went wrong while creating index for nc_order`);

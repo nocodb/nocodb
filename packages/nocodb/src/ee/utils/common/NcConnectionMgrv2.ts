@@ -21,6 +21,24 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataConfig?: Knex.Config;
 
   public static async get(source: Source): Promise<XKnex> {
+    if (source.upgraderMode === true) {
+      const connectionConfig = await source.getConnectionConfig();
+
+      return XKnex(
+        {
+          client: connectionConfig.client,
+        },
+        {
+          context: {
+            base_id: source.base_id,
+            workspace_id: source.fk_workspace_id,
+          },
+          source: source,
+          upgrader: true,
+        },
+      );
+    }
+
     if (source.isMeta()) {
       // if data db is set, use it for generating knex connection
       if (!this.dataKnex) {
@@ -69,9 +87,6 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
             return res;
           },
         },
-        ...(connectionConfig.client === 'databricks'
-          ? { pool: { min: 0, max: 10 } }
-          : {}),
       } as any);
       return this.connectionRefs[source.base_id][source.id];
     }

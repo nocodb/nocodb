@@ -87,6 +87,30 @@ export class OracleUi {
       //   dtxp: '',
       //   dtxs: ''
       // }
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'number',
+        dtx: 'specificType',
+        ct: 'number(38,19)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 38,
+        ns: 19,
+        dtxp: '38,19',
+        dtxs: '',
+        altered: 1,
+        uidt: 'Order',
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 

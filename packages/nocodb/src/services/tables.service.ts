@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isOrderCol,
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
@@ -41,6 +42,8 @@ import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class TablesService {
+  protected logger = new Logger(TablesService.name);
+
   constructor(
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
@@ -502,6 +505,7 @@ export class TablesService {
         UITypes.LastModifiedTime,
         UITypes.CreatedBy,
         UITypes.LastModifiedBy,
+        UITypes.Order,
       ]) {
         const col = tableCreatePayLoad.columns.find(
           (c) => c.uidt === uidt,
@@ -526,6 +530,9 @@ export class TablesService {
             columnName = 'updated_by';
             columnTitle = 'nc_updated_by';
             break;
+          case UITypes.Order:
+            columnTitle = 'nc_order';
+            columnName = 'nc_order';
         }
 
         const colName = getUniqueColumnName(
@@ -705,6 +712,7 @@ export class TablesService {
           return (
             !isCreatedOrLastModifiedTimeCol(c) ||
             !isCreatedOrLastModifiedByCol(c) ||
+            !isOrderCol(c) ||
             (c as any).system
           );
         })
@@ -757,6 +765,42 @@ export class TablesService {
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
+
+    try {
+      // create nc_order index column
+      const metaOrderColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Order,
+      );
+
+      if (!source.isMeta()) {
+        const orderColumn = columns.find(
+          (c) => c.cn === metaOrderColumn.column_name,
+        );
+
+        if (!orderColumn) {
+          throw new Error(
+            `Column ${metaOrderColumn.column_name} not found in database`,
+          );
+        }
+      }
+
+      const dbDriver = await NcConnectionMgrv2.get(source);
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        model: result,
+        source,
+        dbDriver,
+      });
+
+      await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+        `${tableCreatePayLoad.table_name}_order_idx`,
+        baseModel.getTnPath(tableCreatePayLoad.table_name),
+        metaOrderColumn.column_name,
+      ]);
+    } catch (e) {
+      this.logger.log(`Something went wrong while creating index for nc_order`);
+      this.logger.error(e);
+    }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: result,

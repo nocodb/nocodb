@@ -58,6 +58,8 @@ import { extractMentions } from '~/utils/richTextHelper';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
+const ORDER_STEP_INCREMENT = 1;
+
 export function replaceDynamicFieldWithValue(
   row: any,
   rowId,
@@ -655,12 +657,41 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
+  public async getHighestOrderInTable() {
+    const orderColumn = this.model.columns.find(
+      (c) => c.uidt === UITypes.Order,
+    );
+
+    if (!orderColumn) {
+      return null;
+    }
+
+    const orderQuery = this.dbDriver(this.tnPath)
+      .max(`${orderColumn.column_name} as max_order`)
+      .first();
+
+    let res;
+
+    if ((this.dbDriver as any).isExternal) {
+      res = await runExternal(
+        this.sanitizeQuery(orderQuery.toQuery()),
+        (this.dbDriver as any).extDb,
+      );
+    } else {
+      res = await orderQuery;
+    }
+
+    const order = res ? res['max_order'] || '0' : '0';
+
+    return order + ORDER_STEP_INCREMENT;
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
     cookie?: { user?: any },
     oldData?,
-    extra?: { raw?: boolean },
+    extra?: { raw?: boolean; ncOrder?: number },
   ) {
     if (this.isDatabricks) {
       for (const column of this.model.columns) {
@@ -1169,7 +1200,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         await this.model.getColumns(this.context);
 
-        for (const d of datas) {
+        const order = await this.getHighestOrderInTable();
+
+        for (const [index, d] of datas.entries()) {
           const insertObj = {};
 
           // populate pk, map alias to column, validate data
@@ -1189,7 +1222,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (
                 col.system &&
                 !allowSystemColumn &&
-                col.uidt !== UITypes.ForeignKey
+                [UITypes.ForeignKey, UITypes.Order].includes(col.uidt)
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
@@ -1317,7 +1350,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.prepareNocoData(insertObj, true, cookie);
+          await this.prepareNocoData(insertObj, true, cookie, null, {
+            ncOrder: order + index,
+          });
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -1340,10 +1375,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       } else {
         await this.model.getColumns(this.context);
 
+        const order = await this.getHighestOrderInTable();
+
         await Promise.all(
           insertDatas.map(
-            async (d) =>
-              await this.prepareNocoData(d, true, cookie, null, { raw }),
+            async (d, i) =>
+              await this.prepareNocoData(d, true, cookie, null, {
+                raw,
+                ncOrder: order + i,
+              }),
           ),
         );
       }
@@ -1545,6 +1585,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       const columns = await this.model.getColumns(this.context);
 
+      let order = await this.getHighestOrderInTable();
+
       // validate and prepare data
       const preparedDatas = raw
         ? datas
@@ -1572,7 +1614,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           dataWithPks.push({ pk: pkValues, data });
         } else {
           // const insertObj = this.handleValidateBulkInsert(data, columns);
-          await this.prepareNocoData(data, true, cookie);
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+          });
+          order++;
           dataWithoutPks.push(data);
         }
       }
@@ -1600,7 +1645,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
         } else {
-          await this.prepareNocoData(data, true, cookie);
+          await this.prepareNocoData(data, true, cookie, null, {
+            ncOrder: order,
+          });
+          order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

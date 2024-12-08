@@ -7,7 +7,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const baseDevConfig = {
   mode: 'development',
   target: 'node',
-  devtool: 'eval-source-map',
+  devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -80,6 +80,10 @@ const baseDevConfig = {
     }),
   ],
   output: {
+    devtoolModuleFilenameTemplate: (info) => {
+      const absolutePath = resolve(info.absoluteResourcePath);
+      return `file://${absolutePath}`;
+    },
     path: join(__dirname, 'dist'),
     filename: 'main.js',
     library: {

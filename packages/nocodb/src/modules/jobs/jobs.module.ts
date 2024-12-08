@@ -30,6 +30,7 @@ import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
 import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
+import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -109,6 +110,7 @@ export const JobsModuleMetadata = {
     ThumbnailMigration,
     RecoverLinksMigration,
     CleanupDuplicateColumnMigration,
+    OrderColumnMigration,
   ],
   exports: ['JobsService'],
 };

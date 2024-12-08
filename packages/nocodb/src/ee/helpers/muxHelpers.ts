@@ -13,6 +13,13 @@ export async function runExternal(
 ) {
   const { dbMux, sourceId, ...rest } = config;
 
+  if (config.upgrader === true) {
+    config.source.upgraderQueries.push(
+      ...(Array.isArray(query) ? query : [query]),
+    );
+    return;
+  }
+
   try {
     const { data } = await axios.post(
       `${dbMux}/query/${sourceId}`,

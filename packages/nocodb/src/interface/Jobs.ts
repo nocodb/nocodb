@@ -14,6 +14,7 @@ export enum MigrationJobTypes {
   Thumbnail = 'thumbnail',
   RecoverLinks = 'recover-links',
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
+  OrderColumnCreation = 'order-column-creation',
 }
 
 export enum JobTypes {

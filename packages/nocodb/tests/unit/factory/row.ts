@@ -271,6 +271,7 @@ const generateDefaultRowAttributes = ({
       column.uidt === UITypes.LinkToAnotherRecord ||
       column.uidt === UITypes.ForeignKey ||
       column.uidt === UITypes.ID ||
+      column.uidt === UITypes.Order ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column)
     ) {

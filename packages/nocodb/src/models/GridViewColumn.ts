@@ -1,5 +1,6 @@
 import type { BoolType, GridColumnType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type Upgrader from '~/Upgrader';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -67,25 +68,27 @@ export default class GridViewColumn implements GridColumnType {
     gridViewColumnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let view =
+    let viewColumn =
       gridViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.GRID_VIEW_COLUMNS,
         gridViewColumnId,
       );
-      await NocoCache.set(
-        `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
-        view,
-      );
+      if (viewColumn) {
+        await NocoCache.set(
+          `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
-    return view && new GridViewColumn(view);
+    return viewColumn && new GridViewColumn(viewColumn);
   }
 
   static async insert(
@@ -112,9 +115,8 @@ export default class GridViewColumn implements GridColumnType {
         fk_view_id: column.fk_view_id,
       }));
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
-
     if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 
@@ -127,7 +129,10 @@ export default class GridViewColumn implements GridColumnType {
       insertObj,
     );
 
-    await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
+    if (!(ncMeta as Upgrader).upgrader_mode) {
+      // TODO: optimize this function & try to avoid if possible
+      await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
+    }
 
     // on new view column, delete any optimised single query cache
     {

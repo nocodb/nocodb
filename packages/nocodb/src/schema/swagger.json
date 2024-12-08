@@ -20184,7 +20184,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "AI"
+              "AI",
+              "Order"
             ],
             "type": "string"
           },
@@ -23844,7 +23845,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "AI"
+              "AI",
+              "Order"
             ],
             "type": "string",
             "description": "UI Data Type"

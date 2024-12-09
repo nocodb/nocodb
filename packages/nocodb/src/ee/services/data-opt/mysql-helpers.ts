@@ -1169,6 +1169,7 @@ export async function singleQueryRead(
     view: ctx.view,
     getHiddenColumn: ctx.getHiddenColumn,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
   });
 
   await extractColumns({
@@ -1423,6 +1424,7 @@ export async function singleQueryList(
     view: ctx.view,
     getHiddenColumn: ctx.getHiddenColumns,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
   });
 
   await extractColumns({

@@ -33,6 +33,7 @@ import { NcApiVersion } from 'nc-gui/lib/enums';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
+import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -2352,7 +2353,8 @@ class BaseModelSqlv2 {
       colId,
       ids: _ids,
       apiVersion,
-    }: { colId: string; ids: any[]; apiVersion?: NcApiVersion },
+      nested = false
+    }: { colId: string; ids: any[]; apiVersion?: NcApiVersion; nested?: boolean },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {

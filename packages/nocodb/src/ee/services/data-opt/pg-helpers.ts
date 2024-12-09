@@ -8,6 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { NcApiVersion } from 'nc-gui/lib/enums';
 import {
   checkForStaticDateValFilters,
   shouldSkipCache,
@@ -47,7 +48,6 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
-import { NcApiVersion } from "nc-gui/lib/enums";
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -1062,16 +1062,6 @@ export async function extractColumn({
       );
       break;
     }
-    case UITypes.SingleSelect: {
-      qb.select(
-        knex.raw(`COALESCE(NULLIF(??.??, ''), NULL) as ??`, [
-          rootAlias,
-          sanitize(column.column_name),
-          getAs(column),
-        ]),
-      );
-      break;
-    }
     case UITypes.MultiSelect: {
       // if v3 api then return as array by splitting
       if (apiVersion === NcApiVersion.V3) {
@@ -1137,7 +1127,7 @@ export async function singleQueryRead(
     getHiddenColumn?: boolean;
     throwErrorIfInvalidParams?: boolean;
     validateFormula?: boolean;
-    apiVersion?: NcApiVersion
+    apiVersion?: NcApiVersion;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns(context);
@@ -1249,6 +1239,7 @@ export async function singleQueryRead(
     view: ctx.view,
     getHiddenColumn: ctx.getHiddenColumn,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
   });
 
   await extractColumns({
@@ -1557,6 +1548,7 @@ export async function singleQueryList(
     model: ctx.model,
     view: ctx.view,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
     getHiddenColumn: ctx.getHiddenColumns,
   });
 

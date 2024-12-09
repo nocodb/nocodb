@@ -65,7 +65,7 @@ export class PagedResponseV3Impl<T> {
     }: {
       baseUrl?: string;
       tableId: string;
-    } = {},
+    },
   ) {
     this.list = pagedResponse.list;
     const pageInfo: PaginatedV3Type = {};

@@ -22,7 +22,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
+import {PagedResponseImpl, PagedResponseV3Impl} from '~/helpers/PagedResponse';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -115,15 +115,21 @@ export class Datav3Controller {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
+    const response = await this.dataTableService.nestedDataList(context, {
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      columnId,
+      apiVersion: NcApiVersion.V3,
+    })
+
+    if(!(response instanceof PagedResponseImpl)) {
+      return response;
+    }
+
     return new PagedResponseV3Impl(
-      await this.dataTableService.nestedDataList(context, {
-        modelId,
-        rowId: rowId,
-        query: req.query,
-        viewId,
-        columnId,
-        apiVersion: NcApiVersion.V3,
-      }),
+      response as PagedResponseImpl<any>,
       {
         baseUrl: req.baseUrl,
         tableId: modelId,

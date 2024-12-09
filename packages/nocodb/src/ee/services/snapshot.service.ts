@@ -29,18 +29,27 @@ export class SnapshotService {
   async deleteSnapshot(context: NcContext, baseId: string, snapshotId: string) {
     const ncMeta = await Noco.ncMeta.startTransaction();
 
-    const snapshot = await Snapshot.get(context, snapshotId, ncMeta);
+    try {
+      const snapshot = await Snapshot.get(context, snapshotId, ncMeta);
 
-    if (!snapshot) {
-      return NcError.notFound('Snapshot not found');
+      if (!snapshot) {
+        return NcError.notFound('Snapshot not found');
+      }
+
+      await Snapshot.delete(context, snapshotId, ncMeta);
+
+      await Base.delete({
+        workspace_id: snapshot.fk_workspace_id,
+        base_id: snapshot.snapshot_base_id,
+      }, snapshot.snapshot_base_id, ncMeta);
+
+      await ncMeta.commit();
+
+      return true;
+
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
     }
-
-    await Snapshot.delete(context, snapshotId, ncMeta);
-
-    await Base.delete(context, snapshot.snapshot_base_id, ncMeta);
-
-    await ncMeta.commit();
-
-    return true;
   }
 }

@@ -25,6 +25,7 @@ jobs:
           path: preview-spec
           pattern: preview-spec-*
           merge-multiple: true
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: 'Accept event from first stage'
         run: cp preview-spec/event.json .

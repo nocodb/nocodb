@@ -19,8 +19,6 @@ const props = withDefaults(
     showFilter: false,
   },
 )
-const easterEggCount = ref(0)
-const easterEggToggle = computed(() => easterEggCount.value > 2)
 
 const { isModal, filterCategory, filterIntegration } = props
 
@@ -29,6 +27,10 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
 const router = useRouter()
 const route = router.currentRoute
@@ -247,7 +249,7 @@ watch(activeViewTab, (value) => {
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
           <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
-          <div class="flex-1 text-base font-weight-700" @dblclick="easterEggCount++">New Connection</div>
+          <div class="flex-1 text-base font-weight-700">New Connection</div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
               <GeneralIcon icon="close" class="text-gray-600" />
@@ -269,7 +271,7 @@ watch(activeViewTab, (value) => {
               }"
             >
               <div class="flex-1">
-                <div class="text-sm font-normal text-gray-600 mb-2" @dblclick="easterEggCount++">
+                <div class="text-sm font-normal text-gray-600 mb-2">
                   <div>
                     Connect integrations with NocoDB.
                     <a href="https://docs.nocodb.com/category/integrations" target="_blank" rel="noopener noreferrer"

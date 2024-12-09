@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import {
   ButtonActionsType,
   UITypes,
+  isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -650,21 +651,12 @@ const isColumnValid = (column: TableExplorerColumn) => {
     }
 
     if (column.type === ButtonActionsType.Ai) {
-      if (isNew) {
-        return !(
-          !column.fk_integration_id ||
-          !column.formula_raw?.trim() ||
-          !column.cdfoutput_column_ids?.length ||
-          !column.output_column_ids?.split(',')?.length
-        )
-      } else {
-        !(
-          !column.colOptions?.fk_integration_id ||
-          !column.colOptions?.formula_raw?.trim() ||
-          !column.colOptions?.output_column_ids?.length ||
-          !column.colOptions?.output_column_ids?.split(',')?.length
-        )
-      }
+      return !(
+        !column.fk_integration_id ||
+        !column.formula_raw?.trim() ||
+        !column.output_column_ids?.length ||
+        !column.output_column_ids?.split(',')?.length
+      )
     }
   }
 
@@ -724,6 +716,11 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.fk_webhook_id = colOptions?.fk_webhook_id
       column.icon = colOptions?.icon
       column.formula_raw = column.colOptions?.formula_raw
+
+      if (column.type === ButtonActionsType.Ai) {
+        column.output_column_ids = colOptions?.output_column_ids
+        column.fk_integration_id = colOptions?.fk_integration_id
+      }
     } else {
       column.type = column?.type || ButtonActionsType.Url
 
@@ -732,8 +729,6 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.label = column.label || 'Generate data'
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
-        column.output_column_ids = colOptions?.output_column_ids
-        column.fk_integration_id = colOptions?.fk_integration_id
       } else {
         column.theme = column.theme || 'solid'
         column.label = column.label || 'Button'
@@ -742,6 +737,16 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       }
 
       column.formula_raw = column.formula_raw || ''
+    }
+  }
+
+  if (column.uidt === UITypes.LongText && isAIPromptCol(column)) {
+    if (column?.id) {
+      const colOptions = column.colOptions as Record<string, any>
+
+      column.prompt_raw = colOptions?.prompt_raw
+    } else {
+      column.prompt_raw = column.prompt_raw || ''
     }
   }
 

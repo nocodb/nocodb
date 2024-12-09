@@ -14,8 +14,6 @@ const searchQuery = ref('')
 
 const { isMetaReadOnly } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const filteredOptions = computed(
   () => options.value?.filter((c) => searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) ?? [],
 )

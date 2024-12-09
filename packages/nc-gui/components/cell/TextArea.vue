@@ -515,14 +515,10 @@ watch(textAreaRef, (el) => {
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
-          'top-0': isGrid && !isExpandedFormOpen && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-0 ': isGrid && !isExpandedFormOpen && !isForm,
+          '!right-2 ': isGrid && !isExpandedFormOpen && !isForm && ((editEnabled && !isVisible) || isForm),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
         }"
-        :style="
-          isGrid && !isExpandedFormOpen && !isForm && (!rowHeight || rowHeight === 1)
-            ? { top: '50%', transform: 'translateY(-50%)' }
-            : undefined
-        "
       >
         <NcTooltip
           v-if="!isVisible && !isForm && !readOnly && props.isAi && !isExpandedFormOpen && !isEditColumn"

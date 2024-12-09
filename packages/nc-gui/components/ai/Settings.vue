@@ -67,18 +67,14 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 }
 
 onMounted(async () => {
-  if (isEditColumn.value) {
-    return
-  }
-
-  if (!vFkIntegrationId.value) {
+  if (!vFkIntegrationId.value && !isEditColumn.value) {
     if (aiIntegrations.value.length > 0 && aiIntegrations.value[0].id) {
       vFkIntegrationId.value = aiIntegrations.value[0].id
       nextTick(() => {
         onIntegrationChange()
       })
     }
-  } else {
+  } else if (vFkIntegrationId.value) {
     lastIntegrationId.value = vFkIntegrationId.value
 
     if (!vModel.value || !availableModels.value.length) {

@@ -51,7 +51,15 @@ const manualHooks = computed(() => {
   return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
 })
 
-const buttonTypes = [
+const isAiButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+})
+
+const buttonTypes = computed(() => [
   {
     label: t('labels.openUrl'),
     value: ButtonActionsType.Url,
@@ -60,7 +68,7 @@ const buttonTypes = [
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
   },
-  ...(isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  ...(isAiButtonEnabled.value
     ? [
         {
           label: t('labels.generateFieldDataUsingAi'),
@@ -69,7 +77,7 @@ const buttonTypes = [
         },
       ]
     : []),
-]
+])
 
 const supportedColumns = computed(
   () =>
@@ -89,7 +97,7 @@ const supportedColumns = computed(
 const validators = {
   formula_raw: [
     {
-      required: vModel.value.type === ButtonActionsType.Url,
+      required: [ButtonActionsType.Url, ButtonActionsType.Ai].includes(vModel.value.type),
       validator: (_: any, formula: any) => {
         return (async () => {
           if (vModel.value.type === ButtonActionsType.Url) {
@@ -110,6 +118,8 @@ const validators = {
 
               throw new Error(e.message)
             }
+          } else if (vModel.value.type === ButtonActionsType.Ai) {
+            if (!formula?.trim()) throw new Error('Prompt required for AI Button')
           }
         })()
       },
@@ -176,24 +186,30 @@ const validators = {
       },
     },
   ],
-
-  ...((isEdit.value ? vModel.value.colOptions?.type : vModel.value.type) === ButtonActionsType.Ai
-    ? {
-        output_column_ids: [
-          {
-            required: true,
-            message: 'At least one output field is required for AI Button',
-          },
-        ],
-        formula_raw: [
-          {
-            required: true,
-            message: 'Prompt required for AI Button',
-          },
-        ],
-        fk_integration_id: [{ required: true, message: t('general.required') }],
-      }
-    : {}),
+  output_column_ids: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error('At least one output field is required for AI Button'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_integration_id: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error(t('title.aiIntegrationMissing')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
 }
 
 if (isEdit.value) {
@@ -212,7 +228,7 @@ if (isEdit.value) {
     vModel.value.fk_integration_id = colOptions?.fk_integration_id
   }
 } else {
-  vModel.value.type = vModel.value?.type || buttonTypes[0].value
+  vModel.value.type = vModel.value?.type || buttonTypes.value[0]?.value
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.theme = 'light'
@@ -350,13 +366,6 @@ const selectIcon = (icon: string) => {
 }
 
 const handleUpdateActionType = (type: ButtonActionsType) => {
-  // We are using `formula_raw` in both type url & ai, so it's imp to reset it
-  if (type !== ButtonActionsType.Ai) {
-    setAdditionalValidations({
-      formula_raw: validators.formula_raw,
-    })
-  }
-
   vModel.value.formula_raw = ''
 }
 

@@ -35,8 +35,6 @@ const meta = inject(MetaInj, ref())
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, isAiMode } =
   useColumnCreateStoreOrThrow()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -99,7 +97,7 @@ const supportedColumns = computed(
 const validators = {
   formula_raw: [
     {
-      required: vModel.value.type === ButtonActionsType.Url,
+      required: [ButtonActionsType.Url, ButtonActionsType.Ai].includes(vModel.value.type),
       validator: (_: any, formula: any) => {
         return (async () => {
           if (vModel.value.type === ButtonActionsType.Url) {
@@ -120,6 +118,8 @@ const validators = {
 
               throw new Error(e.message)
             }
+          } else if (vModel.value.type === ButtonActionsType.Ai) {
+            if (!formula?.trim()) throw new Error('Prompt required for AI Button')
           }
         })()
       },
@@ -186,24 +186,30 @@ const validators = {
       },
     },
   ],
-
-  ...((isEdit.value ? vModel.value.colOptions?.type : vModel.value.type) === ButtonActionsType.Ai
-    ? {
-        output_column_ids: [
-          {
-            required: true,
-            message: 'At least one output field is required for AI Button',
-          },
-        ],
-        formula_raw: [
-          {
-            required: true,
-            message: 'Prompt required for AI Button',
-          },
-        ],
-        fk_integration_id: [{ required: true, message: t('general.required') }],
-      }
-    : {}),
+  output_column_ids: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error('At least one output field is required for AI Button'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_integration_id: [
+    {
+      validator: (_: any, value: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Ai && !value) {
+            reject(new Error(t('title.aiIntegrationMissing')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
 }
 
 if (isEdit.value) {
@@ -360,13 +366,6 @@ const selectIcon = (icon: string) => {
 }
 
 const handleUpdateActionType = (type: ButtonActionsType) => {
-  // We are using `formula_raw` in both type url & ai, so it's imp to reset it
-  if (type !== ButtonActionsType.Ai) {
-    setAdditionalValidations({
-      formula_raw: validators.formula_raw,
-    })
-  }
-
   vModel.value.formula_raw = ''
 }
 

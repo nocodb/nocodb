@@ -308,12 +308,7 @@ export default class WorkspaceUser {
         `${MetaTable.USERS}.display_name`,
         // `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
-        `${MetaTable.WORKSPACE_USER}.invite_token`,
-        `${MetaTable.WORKSPACE_USER}.invite_accepted`,
-        `${MetaTable.WORKSPACE_USER}.created_at`,
-        `${MetaTable.WORKSPACE_USER}.roles as roles`,
-        `${MetaTable.WORKSPACE_USER}.deleted`,
+        `${MetaTable.WORKSPACE_USER}.*`,
       );
 
       queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {

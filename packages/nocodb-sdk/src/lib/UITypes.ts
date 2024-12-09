@@ -1,8 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
-import { parseHelper } from './helperFunctions';
-import { ncParseProp } from './helperFunctions';
+import { parseHelper, ncParseProp } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -220,12 +219,11 @@ export function isVirtualCol(
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
 
-export function isAIPromptCol(
-  col:
-    | ColumnReqType
-    | ColumnType
-) {
-  return col.uidt === UITypes.LongText && parseHelper((col as any)?.meta)?.[LongTextAiMetaProp];
+export function isAIPromptCol(col: ColumnReqType | ColumnType) {
+  return (
+    col.uidt === UITypes.LongText &&
+    parseHelper((col as any)?.meta)?.[LongTextAiMetaProp]
+  );
 }
 
 export function isCreatedOrLastModifiedTimeCol(
@@ -400,10 +398,12 @@ export const isSupportedDisplayValueColumn = (column: ColumnType) => {
       return true;
     }
     case UITypes.LongText: {
-      if (ncParseProp(column.meta)?.richMode) {
+      if (
+        ncParseProp(column.meta)?.richMode ||
+        ncParseProp(column.meta)[LongTextAiMetaProp]
+      ) {
         return false;
       }
-      //Todo: prevent AI Prompt field once it get merged in develop
       return true;
     }
 

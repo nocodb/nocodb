@@ -248,16 +248,16 @@ export function ncStringifyProp(v: any): string {
 
 export function parseHelper(v: any): any {
   try {
-    return typeof v === 'string' ? JSON.parse(v) : v
+    return typeof v === 'string' ? JSON.parse(v) : v;
   } catch {
-    return v
+    return v;
   }
 }
 
 export function stringifyHelper(v: any): string {
   try {
-    return JSON.stringify(v)
+    return typeof v === 'string' ? v : JSON.stringify(v);
   } catch {
-    return v
+    return v;
   }
 }

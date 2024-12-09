@@ -17,13 +17,7 @@ const { isMetaReadOnly } = useRoles()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const filteredOptions = computed(
-  () =>
-    options.value?.filter(
-      (c) =>
-        !((c.name === 'AIButton' || c.name === 'AIPrompt') && !isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) &&
-        (c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()))),
-    ) ?? [],
+  () => options.value?.filter((c) => searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) ?? [],
 )
 
 const inputRef = ref()

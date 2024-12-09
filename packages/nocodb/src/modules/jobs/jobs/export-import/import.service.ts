@@ -230,7 +230,11 @@ export class ImportService {
               sanitizeColumnName(a.column_name, source.type) ===
                 col.column_name,
           );
-          idMap.set(colRef.id, col.id);
+
+          // if column is not found, it means not present in the import data and should be skipped
+          if (colRef) {
+            idMap.set(colRef.id, col.id);
+          }
 
           // setval for auto increment column in pg
           if (source.type === 'pg') {

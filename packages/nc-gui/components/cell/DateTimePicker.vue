@@ -121,20 +121,44 @@ const localState = computed({
   },
   set(val?: dayjs.Dayjs) {
     isClearedInputMode.value = false
-    if (!val) {
-      emit('update:modelValue', null)
 
+    saveChanges(val)
+  },
+})
+
+const savingValue = ref()
+
+function saveChanges(val?: dayjs.Dayjs, saveOnChange = false) {
+  if (!val) {
+    if (savingValue.value === null) {
       return
     }
 
-    if (val.isValid()) {
-      // setting localModelValue to cater NOW function in date picker
-      localModelValue = dayjs(val)
-      // send the payload in UTC format
-      emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
+    savingValue.value = null
+    emit('update:modelValue', null)
+
+    return
+  }
+
+  if (saveOnChange && localState.value?.isSame(val)) {
+    return
+  }
+
+  if (val.isValid()) {
+    // setting localModelValue to cater NOW function in date picker
+    localModelValue = dayjs(val)
+    // send the payload in UTC format
+
+    const formattedValue = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')
+
+    if (savingValue.value === formattedValue) {
+      return
     }
-  },
-})
+
+    savingValue.value = formattedValue
+    emit('update:modelValue', formattedValue)
+  }
+}
 
 watchEffect(() => {
   if (localState.value) {
@@ -165,6 +189,10 @@ onClickOutside(datePickerRef, (e) => {
 const onFocus = (_isDatePicker: boolean) => {
   isDatePicker.value = _isDatePicker
   open.value = true
+}
+
+const onBlur = (e: Event, _isDatePicker: boolean) => {
+  handleUpdateValue(e, _isDatePicker, true)
 }
 
 watch(
@@ -324,7 +352,7 @@ watch(editable, (nextValue) => {
   }
 })
 
-const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
+const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
   let targetValue = (e.target as HTMLInputElement).value
 
   if (_isDatePicker) {
@@ -340,6 +368,10 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
         tempDate.value = dayjs(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
       } else {
         tempDate.value = date
+      }
+
+      if (save) {
+        saveChanges(tempDate.value, true)
       }
     }
   }
@@ -365,6 +397,10 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean) => {
 
     if (parsedDate.isValid()) {
       tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
+
+      if (save) {
+        saveChanges(tempDate.value, true)
+      }
     }
   }
 }
@@ -460,6 +496,7 @@ const currentDate = ($event) => {
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
             :readonly="!!isMobileMode || isColDisabled"
             @focus="onFocus(true)"
+            @blur="onBlur($event, true)"
             @keydown="handleKeydown($event, isOpen, true)"
             @mouseup.stop
             @mousedown.stop
@@ -486,6 +523,7 @@ const currentDate = ($event) => {
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
             :readonly="!!isMobileMode || isColDisabled"
             @focus="onFocus(false)"
+            @blur="onBlur($event, false)"
             @keydown="handleKeydown($event, open)"
             @mouseup.stop
             @mousedown.stop

@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import {
   ButtonActionsType,
   UITypes,
+  isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -417,6 +418,7 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const diffs = Object.fromEntries(
     Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
   ) as Partial<TableExplorerColumn>
+
   if (
     Object.keys(diffs).length === 0 ||
     // skip custom prop since it's only used for custom LTAR links
@@ -642,9 +644,20 @@ const isColumnValid = (column: TableExplorerColumn) => {
     }
   }
 
-  if (column.uidt === UITypes.Button && isNew) {
-    if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
-    if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
+  if (column.uidt === UITypes.Button) {
+    if (isNew) {
+      if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
+      if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
+    }
+
+    if (column.type === ButtonActionsType.Ai) {
+      return !(
+        !column.fk_integration_id ||
+        !column.formula_raw?.trim() ||
+        !column.output_column_ids?.length ||
+        !column.output_column_ids?.split(',')?.length
+      )
+    }
   }
 
   return true
@@ -703,6 +716,11 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.fk_webhook_id = colOptions?.fk_webhook_id
       column.icon = colOptions?.icon
       column.formula_raw = column.colOptions?.formula_raw
+
+      if (column.type === ButtonActionsType.Ai) {
+        column.output_column_ids = colOptions?.output_column_ids
+        column.fk_integration_id = colOptions?.fk_integration_id
+      }
     } else {
       column.type = column?.type || ButtonActionsType.Url
 
@@ -719,6 +737,16 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       }
 
       column.formula_raw = column.formula_raw || ''
+    }
+  }
+
+  if (column.uidt === UITypes.LongText && isAIPromptCol(column)) {
+    if (column?.id) {
+      const colOptions = column.colOptions as Record<string, any>
+
+      column.prompt_raw = colOptions?.prompt_raw
+    } else {
+      column.prompt_raw = column.prompt_raw || ''
     }
   }
 

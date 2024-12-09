@@ -16,7 +16,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
-const { aiIntegrationAvailable } = useNocoAi()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const table = inject(SidebarTableInj)!
@@ -197,7 +196,7 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
           <NcDivider />
           <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
             <div class="item">

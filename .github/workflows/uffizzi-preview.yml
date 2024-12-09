@@ -19,12 +19,14 @@ jobs:
       action: ${{ steps.event.outputs.ACTION }}
     steps:
       - name: 'Download artifacts'
-        # Fetch output (zip archive) from the workflow run that triggered this workflow.
+        # Download artifacts from the workflow run that triggered this workflow.
+        # Token is required to download from a different workflow run.
         uses: actions/download-artifact@v4
         with:
           path: preview-spec
           pattern: preview-spec-*
           merge-multiple: true
+          github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: 'Accept event from first stage'

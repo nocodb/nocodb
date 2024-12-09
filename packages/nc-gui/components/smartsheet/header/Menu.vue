@@ -589,7 +589,7 @@ const onDeleteColumn = () => {
           :disabled="isSupportedDisplayValueColumn(column)"
         >
           <template #title>
-            {{ `${columnTypeName(column)} field cannot be a display value field` }}
+            {{ `${columnTypeName(column)} field cannot be used as display value field` }}
           </template>
 
           <NcMenuItem :disabled="!isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">

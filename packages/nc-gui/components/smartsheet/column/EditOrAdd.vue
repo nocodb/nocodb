@@ -249,7 +249,9 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
         ...type,
         disabled: isColumnTypeDisabled,
         tooltip:
-          isColumnTypeDisabled && UITypesName[type.name] ? `${UITypesName[type.name]} field cannot be a display value field` : '',
+          isColumnTypeDisabled && UITypesName[type.name]
+            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            : '',
       }
     })
   }

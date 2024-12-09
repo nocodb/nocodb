@@ -387,76 +387,134 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const auditGroups = computed(() => {
-    
+  const auditCommentGroups = computed(() => {
+
     const groups = [];
 
     const currentAudits = [...audits.value].sort((a, b) => {
       return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
     });
 
-    let currentGroup = undefined;
-    let lastAudit = undefined;
+    const currentComments = [...comments.value].sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
+    })
 
-    while (currentAudits.length) {
+    let currentAudit = currentAudits.shift()
+    let currentComment = currentComments.shift()
+    let currentAuditGroup = undefined
 
-      const audit = currentAudits.shift();
+    while (currentAudit || currentComment) {
+      if (currentComment && !currentAudit) {
 
-      if (!currentGroup) {
-        currentGroup = {
-          created_at: audit.created_at,
-          audits: [audit],
+        if (currentAuditGroup) {
+          groups.push(currentAuditGroup);
+          currentAuditGroup = undefined;
+        }
+
+        groups.push({
+          ...currentComment,
+          user: currentComment.created_by_email,
+          displayName: currentComment.created_display_name,
+          type: 'comment',
+        });
+
+        currentComment = currentComments.shift()
+
+      }
+      else if (currentAudit && !currentComment) {
+
+        if (!currentAuditGroup) {
+          currentAuditGroup = {
+            user: currentAudit.user,
+            displayName: currentAudit.created_display_name,
+            created_at: currentAudit.created_at,
+            type: 'audit',
+            audits: [currentAudit],
+          };
+        }
+        else {
+          if (currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type || currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type || currentAudit?.user !== currentAuditGroup?.audits[0]?.user) {
+
+            groups.push(currentAuditGroup);
+
+            currentAuditGroup = {
+              user: currentAudit.user,
+              displayName: currentAudit.created_display_name,
+              created_at: currentAudit.created_at,
+              type: 'audit',
+              audits: [currentAudit],
+            };
+
+          }
+          else {
+            currentAuditGroup.audits.push(currentAudit);
+          }
+        }
+
+        currentAudit = currentAudits.shift()
+
+      }
+      else if (currentComment && currentAudit) {
+        if (dayjs(currentComment.created_at).isBefore(dayjs(currentAudit.created_at))) {
+
+          if (currentAuditGroup) {
+            groups.push(currentAuditGroup);
+            currentAuditGroup = undefined;
+          }
+
+          groups.push({
+            ...currentComment,
+            user: currentComment.created_by_email,
+            displayName: currentComment.created_display_name,
+            type: 'comment',
+          });
+
+          currentComment = currentComments.shift();
+
+        }
+        else {
+          
+          if (!currentAuditGroup) {
+            currentAuditGroup = {
+              user: currentAudit.user,
+              displayName: currentAudit.created_display_name,
+              created_at: currentAudit.created_at,
+              type: 'audit',
+              audits: [currentAudit],
+            };
+          }
+          else {
+            if (currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type || currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type || currentAudit?.user !== currentAuditGroup?.audits[0]?.user) {
+
+              groups.push(currentAuditGroup);
+  
+              currentAuditGroup = {
+                user: currentAudit.user,
+                displayName: currentAudit.created_display_name,
+                created_at: currentAudit.created_at,
+                type: 'audit',
+                audits: [currentAudit],
+              };
+  
+            }
+            else {
+              currentAuditGroup.audits.push(currentAudit);
+            }
+          }
+  
+          currentAudit = currentAudits.shift()
+
         }
       }
-      else if (audit?.op_type !== lastAudit?.op_type || audit?.op_sub_type !== lastAudit?.op_sub_type || audit?.user !== lastAudit?.user) {
-
-        groups.push(currentGroup);
-
-        currentGroup = {
-          created_at: audit.created_at,
-          audits: [audit],
-        };
-
-      }
-      else {
-        currentGroup.audits.push(audit);
-      }
-
-      lastAudit = audit;
-
     }
 
-    if (currentGroup?.audits?.length) {
-      groups.push(currentGroup);
+    if (currentAuditGroup?.audits?.length) {
+      groups.push(currentAuditGroup);
     }
 
     return groups;
-  })
 
-  const auditCommentGroups = computed(() => {
-
-    const currentAuditGroups = [...auditGroups.value].map(it => ({
-      ...it,
-      user: it.audits[0]?.user,
-      displayName: it.audits[0]?.created_display_name,
-      type: 'audit',
-    }));
-
-    const currentComments = [...comments.value].sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
-    }).map(it => ({
-      ...it,
-      user: it.created_by_email,
-      displayName: it.created_display_name,
-      type: 'comment',
-    }));
-
-    const allGroups = [...currentAuditGroups, ...currentComments].sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
-    });
-
-    return allGroups;
-  })
+  });
 
   return {
     ...rowStore,
@@ -481,7 +539,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     saveRowAndStay,
     updateComment,
     clearColumns,
-    auditGroups,
     auditCommentGroups,
   }
 }, 'expanded-form-store')

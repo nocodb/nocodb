@@ -16,6 +16,13 @@ const FEATURES = [
     isEngineering: true,
   },
   {
+    id: 'integrations',
+    title: 'Integrations',
+    description: 'Enable dynamic integrations.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',

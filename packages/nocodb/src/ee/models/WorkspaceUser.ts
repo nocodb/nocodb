@@ -161,6 +161,10 @@ export default class WorkspaceUser {
       workspaceUser = null;
     }
 
+    if (!workspaceUser?.fk_user_id && !!workspaceUser?.id) {
+      workspaceUser.fk_user_id = workspaceUser.id;
+    }
+
     return workspaceUser && new WorkspaceUser(workspaceUser);
   }
 

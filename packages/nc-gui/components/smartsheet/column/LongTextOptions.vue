@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isAIPromptCol, UITypes } from 'nocodb-sdk'
+import { columnTypeName, isAIPromptCol, UITypes, UITypesName } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -57,6 +57,12 @@ const isEnabledGenerateText = computed({
     previewRow.value.row = {}
     isAlreadyGenerated.value = false
   },
+})
+
+const isPvColumn = computed(() => {
+  if (!isEdit.value) return false
+
+  return !!column.value?.pv
 })
 
 const loadViewData = async () => {
@@ -180,10 +186,16 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 <template>
   <div class="flex flex-col gap-4">
     <a-form-item>
-      <NcTooltip :disabled="!isEnabledGenerateText">
-        <template #title> Rich text formatting is not supported when generate text using AI is enabled </template>
+      <NcTooltip :disabled="!(isEnabledGenerateText || (isPvColumn && !richMode))">
+        <template #title>
+          {{
+            isPvColumn && !richMode
+              ? `${UITypesName.RichText} field cannot be a display value field`
+              : 'Rich text formatting is not supported when generate text using AI is enabled'
+          }}
+        </template>
         <div class="flex items-center gap-1">
-          <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText">
+          <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText || (isPvColumn && !richMode)">
             <div class="text-sm text-gray-800 select-none font-semibold">
               {{ $t('labels.enableRichText') }}
             </div>
@@ -194,12 +206,18 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
     <div v-if="isPromptEnabled" class="relative">
       <a-form-item class="flex items-center">
-        <NcTooltip :disabled="!richMode" class="flex items-center">
-          <template #title> Generate text using AI is not supported when rich text formatting is enabled </template>
+        <NcTooltip :disabled="!(richMode || (isPvColumn && !isEnabledGenerateText))" class="flex items-center">
+          <template #title>
+            {{
+              isPvColumn && !isEnabledGenerateText
+                ? `${UITypesName.AIPrompt} field cannot be a display value field`
+                : 'Generate text using AI is not supported when rich text formatting is enabled'
+            }}</template
+          >
 
           <NcSwitch
             v-model:checked="isEnabledGenerateText"
-            :disabled="richMode"
+            :disabled="richMode || (isPvColumn && !isEnabledGenerateText)"
             class="nc-ai-field-generate-text nc-ai-input"
             @change="handleDisableSubmitBtn"
           >

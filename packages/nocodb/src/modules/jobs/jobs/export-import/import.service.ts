@@ -1,4 +1,5 @@
 import {
+  isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   RelationTypes,
@@ -178,6 +179,7 @@ export class ImportService {
         (a) =>
           !isVirtualCol(a) &&
           a.uidt !== UITypes.ForeignKey &&
+          !isAIPromptCol(a) &&
           (param.importColumnIds
             ? param.importColumnIds.includes(getEntityIdentifier(a.id))
             : true),
@@ -230,7 +232,11 @@ export class ImportService {
               sanitizeColumnName(a.column_name, source.type) ===
                 col.column_name,
           );
-          idMap.set(colRef.id, col.id);
+
+          // if column is not found, it means not present in the import data and should be skipped
+          if (colRef) {
+            idMap.set(colRef.id, col.id);
+          }
 
           // setval for auto increment column in pg
           if (source.type === 'pg') {
@@ -1108,7 +1114,8 @@ export class ImportService {
               a.uidt === UITypes.LastModifiedTime ||
               a.uidt === UITypes.CreatedBy ||
               a.uidt === UITypes.LastModifiedBy ||
-              a.uidt === UITypes.Barcode) &&
+              a.uidt === UITypes.Barcode ||
+              isAIPromptCol(a)) &&
             (param.importColumnIds
               ? param.importColumnIds.includes(getEntityIdentifier(a.id))
               : true),
@@ -1238,6 +1245,12 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Button) {
+        if (base.fk_workspace_id !== colOptions.fk_workspace_id) {
+          colOptions.fk_workspace_id = null;
+          colOptions.fk_integration_id = null;
+          colOptions.model = null;
+        }
+
         const freshModelData = await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
@@ -1250,6 +1263,40 @@ export class ImportService {
               icon: colOptions?.icon,
               type: colOptions?.type,
               fk_webhook_id: getIdOrExternalId(colOptions?.fk_webhook_id),
+              output_column_ids: (
+                colOptions?.output_column_ids?.split(',') || []
+              )
+                .map((a) => getIdOrExternalId(a))
+                .join(','),
+              fk_integration_id: colOptions?.fk_integration_id,
+              model: colOptions?.model,
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (isAIPromptCol(col)) {
+        if (base.fk_workspace_id !== colOptions.fk_workspace_id) {
+          colOptions.fk_workspace_id = null;
+          colOptions.fk_integration_id = null;
+          colOptions.model = null;
+        }
+
+        const freshModelData = await this.columnsService.columnAdd(context, {
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              fk_integration_id: colOptions.fk_integration_id,
+              model: colOptions.model,
+              prompt_raw: colOptions.prompt_raw,
             },
           }) as any,
           req: param.req,

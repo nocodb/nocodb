@@ -11,6 +11,7 @@ import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
+import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -145,7 +146,7 @@ if (appInfo.value.ee) {
           isSameUser: bUser?.id === user.value?.id,
         }),
       )
-      span.setAttribute('class', `${colorStyles} mention font-semibold  m-0.5 rounded-md px-1`)
+      span.setAttribute('class', `${colorStyles} mention font-semibold m-0.5 rounded-md px-1 inline-block`)
       span.textContent = `@${processedContent}`
       return span.outerHTML
     }
@@ -224,7 +225,7 @@ const tiptapExtensions = [
     ? [
         Mention.configure({
           suggestion: {
-            ...suggestion,
+            ...suggestion(UserMentionList),
             items: ({ query }) =>
               baseUsers.value
                 .filter((user) => user.deleted !== true)
@@ -424,7 +425,7 @@ onClickOutside(editorDom, (e) => {
           'justify-end xs:hidden': !isForm,
         }"
       >
-        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent relative">
           <CellRichTextSelectedBubbleMenu
             v-if="editor"
             :editor="editor"
@@ -706,8 +707,20 @@ onClickOutside(editorDom, (e) => {
     height: fit-content;
   }
 
-  .mention span {
-    display: none;
+  .mention {
+    @apply inline-block my-2px;
+
+    span {
+      display: none;
+    }
+  }
+
+  em {
+    font-synthesis: initial !important;
+
+    & * {
+      font-synthesis: initial !important;
+    }
   }
 }
 .nc-form-field-bubble-menu-wrapper {

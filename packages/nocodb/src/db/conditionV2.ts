@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getEquivalentUIType,
+  isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
   RelationTypes,
@@ -591,6 +592,24 @@ const parseConditionV2 = async (
           knex.clientType() === 'mysql2'
             ? 'YYYY-MM-DD HH:mm:ss'
             : 'YYYY-MM-DD HH:mm:ssZ';
+
+        if (isAIPromptCol(column)) {
+          if (knex.clientType() === 'pg') {
+            field = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType().startsWith('mysql')) {
+            field = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'sqlite3') {
+            field = knex.raw(`json_extract(??, '$.value')`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'mssql') {
+            field = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
+          }
+        }
 
         if (
           (column.uidt === UITypes.Formula &&

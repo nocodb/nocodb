@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ButtonActionsType,
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
@@ -8,6 +7,7 @@ import {
   UITypes,
   type ViewType,
   ViewTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -665,14 +665,12 @@ const onActiveCellChanged = () => {
   }
 }
 
+const isOpen = ref(false)
+
 const isDeleteAllModalIsOpen = ref(false)
+
 async function deleteAllRecords() {
   isDeleteAllModalIsOpen.value = true
-
-  function closeDlg() {
-    isOpen.value = false
-    close(200)
-  }
 
   const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
     'modelValue': isDeleteAllModalIsOpen,
@@ -685,10 +683,14 @@ async function deleteAllRecords() {
     },
   })
 
+  function closeDlg() {
+    isOpen.value = false
+    close(200)
+  }
+
   await until(isDeleteAllModalIsOpen).toBe(false)
 }
 
-const isOpen = ref(false)
 async function expandRows({
   newRows,
   newColumns,
@@ -1022,8 +1024,8 @@ const isSelectedOnlyAI = computed(() => {
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
     return {
-      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
-      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+      enabled: isAIPromptCol(field) || isAiButton(field),
+      disabled: !(field?.colOptions as ButtonType)?.fk_integration_id,
     }
   }
 
@@ -1046,9 +1048,7 @@ const generateAIBulk = async () => {
 
   let outputColumnIds = [field.id]
 
-  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
-
-  if (isAiButton) {
+  if (isAiButton(field)) {
     outputColumnIds =
       ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
         ? field.colOptions.output_column_ids.split(',')
@@ -2143,13 +2143,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
-                      class="absolute z-30 left-0"
+                      class="absolute z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row filtered
 
@@ -2168,13 +2165,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
-                      class="absolute transform z-30 left-0"
+                      class="absolute transform z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row moved
 
@@ -2252,13 +2246,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
                             </span>
                             <div
                               v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
                             >
                               <component
-                                :is="iconMap.expand"
+                                :is="iconMap.maximize"
                                 v-if="expandForm"
                                 v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
                                 @click="expandAndLooseFocus(row, state)"
                               />
                             </div>
@@ -2874,7 +2868,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
     top: 0;
     left: 0;
     width: 100%;
-    box-shadow: 0 0 0 2px #3366ff !important;
+    box-shadow: 0 0 0 1.5px #3366ff !important;
     border-radius: 2px;
   }
 
@@ -2927,6 +2921,35 @@ watch(vSelectedAllRecords, (selectedAll) => {
       left: 64px;
       background: white;
       @apply border-r-1 border-r-gray-100;
+    }
+
+    tbody {
+      tr:not(.nc-grid-add-new-cell):not(.placeholder) td:nth-child(3) {
+        &.active-cell {
+          @apply border-l-[1.5px] !border-l-transparent;
+        }
+        &.filling::after {
+          left: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-child(1) td {
+        &.active-cell {
+          @apply border-t-[1.5px] !border-t-transparent;
+        }
+        &.filling::after {
+          top: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-last-child(2) td {
+        &.active-cell {
+          @apply border-b-[1.5px] !border-b-transparent;
+        }
+        &.filling::after {
+          bottom: 0px;
+        }
+      }
     }
   }
 

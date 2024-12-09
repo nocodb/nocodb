@@ -424,7 +424,7 @@ defineExpose({
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.expand" v-else class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
+          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>
 

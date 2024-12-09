@@ -3,6 +3,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
+import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import FieldList from '~/helpers/tiptapExtensions/mention/FieldList'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
@@ -15,6 +16,7 @@ const props = withDefaults(
     promptFieldTagClassName?: string
     suggestionIconClassName?: string
     placeholder?: string
+    readOnly?: boolean
   }>(),
   {
     options: () => [],
@@ -26,6 +28,7 @@ const props = withDefaults(
      * @example: :placeholder="`Enter prompt here...\n\neg : Categorise this {Notes}`"
      */
     placeholder: 'Write your prompt here...',
+    readOnly: false,
   },
 )
 
@@ -38,7 +41,9 @@ const vModel = computed({
   },
 })
 
-const { autoFocus } = toRefs(props)
+const { autoFocus, readOnly } = toRefs(props)
+
+const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 1000)
 
 const editor = useEditor({
   content: vModel.value,
@@ -55,18 +60,25 @@ const editor = useEditor({
         ...suggestion(FieldList),
         items: ({ query }) => {
           if (query.length === 0) return props.options ?? []
-          return props.options?.filter((o) => o.title?.toLowerCase()?.includes(query.toLowerCase())) ?? []
+          return (
+            props.options?.filter(
+              (o) =>
+                o.title?.toLowerCase()?.includes(query.toLowerCase()) || `${o.title?.toLowerCase()}}` === query.toLowerCase(),
+            ) ?? []
+          )
         },
         char: '{',
         allowSpaces: true,
       },
       renderHTML: ({ node }) => {
+        const matchedOption = props.options?.find((option) => option.title === node.attrs.id)
+        const isAttachment = matchedOption?.uidt === UITypes.Attachment
         return [
           'span',
           {
-            class: `prompt-field-tag ${
-              props.options?.find((option) => option.title === node.attrs.id)?.uidt === UITypes.Attachment ? '!bg-green-200' : ''
-            } ${props.promptFieldTagClassName}`,
+            'class': `prompt-field-tag ${isAttachment ? '!bg-green-200' : ''} ${props.promptFieldTagClassName}`,
+            'style': 'max-width: 100px; white-space: nowrap; overflow: hidden; display: inline-block; text-overflow: ellipsis;', // Enforces truncation
+            'data-tooltip': node.attrs.id, // Tooltip content
           },
           `${node.attrs.id}`,
         ]
@@ -93,8 +105,10 @@ const editor = useEditor({
     text = text.trim()
 
     vModel.value = text
+
+    debouncedLoadMentionFieldTagTooltip()
   },
-  editable: true,
+  editable: !readOnly.value,
   autofocus: autoFocus.value,
   editorProps: { scrollThreshold: 100 },
 })
@@ -141,15 +155,60 @@ onMounted(async () => {
     }, 100)
   }
 })
+
+const tooltipInstances: any[] = []
+
+function loadMentionFieldTagTooltip() {
+  document.querySelectorAll('.nc-ai-prompt-with-fields .prompt-field-tag').forEach((el) => {
+    const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
+    if (!tooltip || el.scrollWidth <= el.clientWidth) return
+    // Show tooltip only on truncate
+    const instance = tippy(el, {
+      content: `<div class="tooltip text-xs">${tooltip.value}</div>`,
+      placement: 'top',
+      allowHTML: true,
+      arrow: true,
+      animation: 'fade',
+      duration: 0,
+      maxWidth: '200px',
+    })
+
+    tooltipInstances.push(instance)
+  })
+}
+
+onMounted(() => {
+  debouncedLoadMentionFieldTagTooltip()
+})
+
+onBeforeUnmount(() => {
+  tooltipInstances.forEach((instance) => instance?.destroy())
+  tooltipInstances.length = 0
+})
 </script>
 
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
     <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
 
-    <NcButton size="xs" type="text" class="nc-prompt-with-field-suggestion-btn !px-1" @click.stop="newFieldSuggestionNode">
+    <NcButton
+      size="xs"
+      type="text"
+      class="nc-prompt-with-field-suggestion-btn !px-1"
+      :disabled="readOnly"
+      @click.stop="newFieldSuggestionNode"
+    >
       <slot name="triggerIcon">
-        <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand" :class="`${suggestionIconClassName}`" />
+        <GeneralIcon
+          icon="ncPlusSquareSolid"
+          class="text-nc-content-brand"
+          :class="[
+            `${suggestionIconClassName}`,
+            {
+              'opacity-75': readOnly,
+            },
+          ]"
+        />
       </slot>
     </NcButton>
   </div>
@@ -160,11 +219,11 @@ onMounted(async () => {
   @apply relative;
 
   .nc-prompt-with-field-suggestion-btn {
-    @apply absolute top-[1px] right-[1px];
+    @apply absolute top-[2px] right-[1px];
   }
 
   .prompt-field-tag {
-    @apply bg-gray-100 rounded-md px-1;
+    @apply bg-gray-100 rounded-md px-1 align-middle;
   }
 
   .ProseMirror {
@@ -172,6 +231,10 @@ onMounted(async () => {
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;
+
+    & > p {
+      @apply mr-3;
+    }
   }
 
   .ProseMirror-focused {

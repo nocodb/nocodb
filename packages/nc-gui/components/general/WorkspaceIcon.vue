@@ -4,16 +4,22 @@ import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
 import { WorkspaceIconType, isColorDark, stringToColor } from '#imports'
 
-const props = defineProps<{
-  workspace: WorkspaceType | undefined
-  workspaceIcon?: {
-    icon: string | Record<string, any>
-    iconType: WorkspaceIconType | string
-  }
-  hideLabel?: boolean
-  size?: 'small' | 'medium' | 'large' | 'xlarge'
-  isRounded?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    workspace: WorkspaceType | undefined
+    workspaceIcon?: {
+      icon: string | Record<string, any>
+      iconType: WorkspaceIconType | string
+    }
+    hideLabel?: boolean
+    size?: 'small' | 'medium' | 'large' | 'xlarge'
+    isRounded?: boolean
+    iconBgColor?: string
+  }>(),
+  {
+    iconBgColor: '#F4F4F5',
+  },
+)
 
 const { workspace } = toRefs(props)
 
@@ -50,10 +56,10 @@ const workspaceColor = computed(() => {
         return ''
       }
       case WorkspaceIconType.EMOJI: {
-        return '#F4F4F5'
+        return props.iconBgColor
       }
       case WorkspaceIconType.ICON: {
-        return '#F4F4F5'
+        return props.iconBgColor
       }
 
       default: {

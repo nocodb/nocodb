@@ -638,7 +638,7 @@ const enableAI = async () => {
 <template>
   <div
     v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-    class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+    class="w-84 fixed bg-white z-11 pl-3 pt-3 border-1 shadow-md rounded-xl"
     :style="{
       left: suggestionPreviewPostion.left,
       top: suggestionPreviewPostion.top,

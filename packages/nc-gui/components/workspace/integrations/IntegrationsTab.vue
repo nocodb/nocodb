@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
+import { IntegrationCategoryType } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import { IntegrationCategoryType, type IntegrationItemType, SyncDataType } from '#imports'
+import { type IntegrationItemType, SyncDataType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -27,6 +28,10 @@ const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -39,6 +44,7 @@ const {
   integrationsRefreshKey,
   integrationsCategoryFilter,
   activeViewTab,
+  loadDynamicIntegrations,
 } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
@@ -144,6 +150,7 @@ const integrationsMapByCategory = computed(() => {
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
           isAvailable: curr.isAvailable,
           teleEventName: curr.teleEventName,
+          value: curr.value,
         }
 
         return acc
@@ -212,6 +219,8 @@ const toggleShowOrHideAllCategory = () => {
 }
 
 onMounted(() => {
+  loadDynamicIntegrations()
+
   if (!integrationsCategoryFilter.value.length) {
     integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
   }
@@ -275,6 +284,7 @@ watch(activeViewTab, (value) => {
                 </div>
                 <div class="flex items-center gap-2 !max-w-[400px]">
                   <a-input
+                    v-if="easterEggToggle"
                     v-model:value="searchQuery"
                     type="text"
                     class="flex-1 nc-input-border-on-value nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
@@ -285,7 +295,7 @@ watch(activeViewTab, (value) => {
                       <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
                     </template>
                   </a-input>
-                  <NcDropdown v-if="showFilter" v-model:visible="isOpenFilter">
+                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter">
                     <NcButton size="small" type="secondary">
                       <div class="flex items-center gap-2">
                         <GeneralIcon icon="filter" />
@@ -328,7 +338,13 @@ watch(activeViewTab, (value) => {
                   </NcDropdown>
                 </div>
               </div>
-              <NcButton type="ghost" size="small" class="!text-primary" @click="requestIntegration.isOpen = true">
+              <NcButton
+                v-if="easterEggToggle"
+                type="ghost"
+                size="small"
+                class="!text-primary"
+                @click="requestIntegration.isOpen = true"
+              >
                 Request Integration
               </NcButton>
             </div>
@@ -352,7 +368,11 @@ watch(activeViewTab, (value) => {
                 }"
               >
                 <template v-for="(category, key) in integrationsMapByCategory">
-                  <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
+                  <div
+                    v-if="(easterEggToggle || category.value === IntegrationCategoryType.DATABASE) && category.list.length"
+                    :key="key"
+                    class="integration-type-wrapper"
+                  >
                     <div class="category-type-title flex gap-2">
                       {{ $t(category.title) }}
                       <NcBadge
@@ -363,46 +383,47 @@ watch(activeViewTab, (value) => {
                       >
                     </div>
                     <div v-if="category.list.length" class="integration-type-list">
-                      <NcTooltip
-                        v-for="integration of category.list"
-                        :key="integration.subType"
-                        :disabled="integration?.isAvailable"
-                        placement="bottom"
-                      >
-                        <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
-
-                        <div
-                          :tabindex="0"
-                          class="source-card focus-visible:outline-none outline-none h-full"
-                          :class="{
-                            'is-available': integration?.isAvailable,
-                          }"
-                          @click="handleAddIntegration(key, integration)"
+                      <template v-for="integration of category.list" :key="integration.subType">
+                        <NcTooltip
+                          v-if="easterEggToggle || integration.isAvailable"
+                          :disabled="integration?.isAvailable"
+                          placement="bottom"
                         >
-                          <div class="integration-icon-wrapper">
-                            <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
+                          <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
+
+                          <div
+                            :tabindex="0"
+                            class="source-card focus-visible:outline-none outline-none h-full"
+                            :class="{
+                              'is-available': integration?.isAvailable,
+                            }"
+                            @click="handleAddIntegration(key, integration)"
+                          >
+                            <div class="integration-icon-wrapper">
+                              <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
+                            </div>
+                            <div class="flex-1">
+                              <div class="name">{{ $t(integration.title) }}</div>
+                              <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                            </div>
+                            <div v-if="integration?.isAvailable" class="action-btn">+</div>
+                            <div v-else class="">
+                              <NcButton
+                                type="secondary"
+                                size="xs"
+                                class="integration-upvote-btn !rounded-lg !px-1 !py-0"
+                                :class="{
+                                  selected: upvotesData.has(integration.subType),
+                                }"
+                              >
+                                <div class="flex items-center gap-2">
+                                  <GeneralIcon icon="ncArrowUp" />
+                                </div>
+                              </NcButton>
+                            </div>
                           </div>
-                          <div class="flex-1">
-                            <div class="name">{{ $t(integration.title) }}</div>
-                            <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
-                          </div>
-                          <div v-if="integration?.isAvailable" class="action-btn">+</div>
-                          <div v-else class="">
-                            <NcButton
-                              type="secondary"
-                              size="xs"
-                              class="integration-upvote-btn !rounded-lg !px-1 !py-0"
-                              :class="{
-                                selected: upvotesData.has(integration.subType),
-                              }"
-                            >
-                              <div class="flex items-center gap-2">
-                                <GeneralIcon icon="ncArrowUp" />
-                              </div>
-                            </NcButton>
-                          </div>
-                        </div>
-                      </NcTooltip>
+                        </NcTooltip>
+                      </template>
                     </div>
                   </div>
                 </template>
@@ -569,7 +590,6 @@ watch(activeViewTab, (value) => {
             @apply text-gray-800;
           }
         }
-
         &:not(.is-available) {
           &:not(:hover) {
             .integration-icon-wrapper {

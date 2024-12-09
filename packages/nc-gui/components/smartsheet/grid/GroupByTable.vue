@@ -276,6 +276,7 @@ async function deleteSelectedRowsWrapper() {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-restricted-v-bind -->
   <Table
     v-if="vGroup.rows"
     v-model:selected-all-records="selectedAllRecords"

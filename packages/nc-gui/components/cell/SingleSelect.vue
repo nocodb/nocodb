@@ -482,8 +482,12 @@ const onFocus = () => {
   text-overflow: clip;
 }
 
-:deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+:deep(.ant-select-selection-search) {
+  @apply flex items-center;
+
+  .ant-select-selection-search-input {
+    @apply !text-xs;
+  }
 }
 
 :deep(.ant-select-clear > span) {

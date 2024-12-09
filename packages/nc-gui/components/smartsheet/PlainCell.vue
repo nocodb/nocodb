@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import {
+  type AIRecordType,
   type BoolType,
   type ButtonType,
   type ColumnType,
   type LookupType,
   type RollupType,
   dateFormats,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   timeFormats,
@@ -202,6 +204,11 @@ const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
   if (isRichMode) {
     return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
   }
+
+  if (isAIPromptCol(col)) {
+    return (modelValue as AIRecordType)?.value || ''
+  }
+
   return modelValue || ''
 }
 

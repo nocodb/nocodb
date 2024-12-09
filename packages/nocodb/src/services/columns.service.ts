@@ -3,10 +3,12 @@ import {
   AppEvents,
   ButtonActionsType,
   FormulaDataTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  LongTextAiMetaProp,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
@@ -66,6 +68,10 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {
+  convertAIRecordTypeToValue,
+  convertValueToAIRecordType,
+} from '~/utils/dataConversion';
 
 // todo: move
 export enum Altered {
@@ -551,10 +557,6 @@ export class ColumnsService {
               NcError.badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
-            if (!colBody.fk_integration_id) {
-              NcError.badRequest('AI Integration not found');
-            }
-
             /*
               Substitute column alias with id in prompt
             */
@@ -1573,6 +1575,75 @@ export class ColumnsService {
         );
       }
 
+      if (
+        isAIPromptCol(column) &&
+        (colBody.uidt !== UITypes.LongText ||
+          (colBody.uidt === UITypes.LongText &&
+            colBody.meta?.[LongTextAiMetaProp] !== true))
+      ) {
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL(context, {
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        await convertAIRecordTypeToValue({
+          source,
+          table,
+          column,
+          baseModel,
+          sqlClient,
+        });
+      } else if (isAIPromptCol(colBody)) {
+        let prompt = '';
+
+        /*
+          Substitute column alias with id in prompt
+        */
+        if (colBody.prompt_raw) {
+          await table.getColumns(context);
+
+          prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+            const column = table.columns.find((c) => c.title === p1);
+
+            if (!column) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            return `{${column.id}}`;
+          });
+        }
+
+        colBody.prompt = prompt;
+
+        // If column wasn't AI before, convert the data to AIRecordType format
+        if (
+          column.uidt !== UITypes.LongText ||
+          column.meta?.[LongTextAiMetaProp] !== true
+        ) {
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL(context, {
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          );
+
+          await convertValueToAIRecordType({
+            source,
+            table,
+            column,
+            baseModel,
+            sqlClient,
+            user: param.user,
+          });
+        }
+      }
+
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       await this.updateMetaAndDatabase(context, {
@@ -1914,10 +1985,6 @@ export class ColumnsService {
             colBody.fk_webhook_id = null;
           }
         } else if (colBody.type === ButtonActionsType.Ai) {
-          if (!colBody.fk_integration_id) {
-            NcError.badRequest('AI Integration not found');
-          }
-
           /*
             Substitute column alias with id in prompt
           */
@@ -2210,6 +2277,29 @@ export class ColumnsService {
 
               colBody.cdf = ids.join(',');
             }
+          }
+
+          if (isAIPromptCol(colBody)) {
+            let prompt = '';
+
+            /*
+              Substitute column alias with id in prompt
+            */
+            if (colBody.prompt_raw) {
+              await table.getColumns(context);
+
+              prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+                const column = table.columns.find((c) => c.title === p1);
+
+                if (!column) {
+                  NcError.badRequest(`Field '${p1}' not found`);
+                }
+
+                return `{${column.id}}`;
+              });
+            }
+
+            colBody.prompt = prompt;
           }
 
           const tableUpdateBody = {

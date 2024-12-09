@@ -1067,6 +1067,7 @@
     "viewHide": "查看可见性 "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "指定视图",
     "webhookDetails": "Webhook 详情",
     "showSaturdaysAndSundays": "显示周六和周日",

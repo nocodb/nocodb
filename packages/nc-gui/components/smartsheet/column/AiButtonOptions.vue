@@ -32,9 +32,12 @@ const {
   formattedData,
   disableSubmitBtn,
   tableExplorerColumns,
+  fromTableExplorer,
 } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, aiLoading, aiError, generateRows } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isOpenConfigModal = ref<boolean>(false)
 
@@ -243,6 +246,14 @@ watch(isOpenSelectRecordDropdown, (newValue) => {
   }
 })
 
+const isAiButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+})
+
 const previewPanelDom = ref<HTMLElement>()
 
 const isPreviewPanelOnScrollTop = ref(false)
@@ -294,7 +305,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="relative flex flex-col gap-4">
+  <div v-if="isAiButtonEnabled" class="relative flex flex-col gap-4">
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable" />
     <template v-else-if="!!aiError"> </template>
     <template v-else>
@@ -332,6 +343,7 @@ onBeforeUnmount(() => {
           </NcButton>
 
           <NcButton
+            v-if="!fromTableExplorer"
             size="small"
             type="primary"
             :disabled="disableSubmitBtn || saving"
@@ -366,6 +378,7 @@ onBeforeUnmount(() => {
                       v-model:randomness="vModel.randomness"
                       :workspace-id="activeWorkspaceId"
                       :show-tooltip="false"
+                      :is-edit-column="isEdit"
                       placement="bottomRight"
                     >
                       <NcButton size="xs" theme="ai" class="!px-1" type="text">
@@ -467,7 +480,11 @@ onBeforeUnmount(() => {
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
                           <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
-                          <span>{{ op.title }}</span>
+                          <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
+                            <template #title>{{ op.title }}</template>
+                            {{ op.title }}
+                          </NcTooltip>
+
                           <div class="flex items-center p-0.5 mt-0.5">
                             <GeneralIcon
                               icon="close"
@@ -599,7 +616,7 @@ onBeforeUnmount(() => {
                                     show-search-always
                                     search-input-placeholder="Search records"
                                     :item-height="60"
-                                    class="!w-auto min-w-[500px] max-w-[576px]"
+                                    class="!w-auto min-w-[550px] max-w-[550px]"
                                     container-class-name="!px-0 !pb-0"
                                     item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
                                     @update:value="handleResetOutput"
@@ -679,18 +696,19 @@ onBeforeUnmount(() => {
                 <div
                   class="flex justify-center nc-ai-button-test-generate-wrapper"
                   :class="{
-                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
-                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && inputColumns.length),
+                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && inputColumns.length),
                   }"
                 >
                   <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>
                   <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && inputColumns.length)">
                     <template #title>
-                      <div class="flex flex-col gap-2">
-                        <div>Preview checklist</div>
+                      <div class="flex flex-col gap-2 py-1 px-0.5">
+                        <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">Preview checklist</div>
+
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               inputColumns.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -703,7 +721,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               outputColumnIds.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -716,7 +734,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 mt-0.5 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               selectedRecordPk
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -854,6 +872,7 @@ onBeforeUnmount(() => {
       </div>
     </NcModal>
   </div>
+  <div v-else></div>
 </template>
 
 <style lang="scss">

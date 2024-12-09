@@ -210,7 +210,7 @@ const componentProps = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
+  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center;
   &:not([class*='text']) {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }

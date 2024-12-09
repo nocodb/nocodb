@@ -7,9 +7,11 @@ const props = withDefaults(
     workspaceId: string
     scope?: string
     showTooltip?: boolean
+    isEditColumn?: boolean
   }>(),
   {
     showTooltip: true,
+    isEditColumn: false,
   },
 )
 
@@ -18,6 +20,8 @@ const emits = defineEmits(['update:fkIntegrationId', 'update:model', 'update:ran
 const vFkIntegrationId = useVModel(props, 'fkIntegrationId', emits)
 
 const vModel = useVModel(props, 'model', emits)
+
+const { isEditColumn } = toRefs(props)
 
 // const vRandomness = useVModel(props, 'randomness', emits)
 
@@ -29,7 +33,7 @@ const lastIntegrationId = ref<string | null>(null)
 
 const isDropdownOpen = ref(false)
 
-const availableModels = ref<string[]>([])
+const availableModels = ref<{ value: string; label: string }[]>([])
 
 const isLoadingAvailableModels = ref<boolean>(false)
 
@@ -50,10 +54,10 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 
   try {
     const response = await $api.integrations.endpoint(newFkINtegrationId, 'availableModels', {})
-    availableModels.value = response as string[]
+    availableModels.value = (response || []) as { value: string; label: string }[]
 
     if (!vModel.value && availableModels.value.length > 0) {
-      vModel.value = availableModels.value[0]
+      vModel.value = availableModels.value[0].value
     }
   } catch (error) {
     console.error(error)
@@ -63,15 +67,19 @@ const onIntegrationChange = async (newFkINtegrationId?: string) => {
 }
 
 onMounted(async () => {
-  if (!vFkIntegrationId.value) {
+  if (!vFkIntegrationId.value && !isEditColumn.value) {
     if (aiIntegrations.value.length > 0 && aiIntegrations.value[0].id) {
       vFkIntegrationId.value = aiIntegrations.value[0].id
       nextTick(() => {
         onIntegrationChange()
       })
     }
-  } else {
+  } else if (vFkIntegrationId.value) {
     lastIntegrationId.value = vFkIntegrationId.value
+
+    if (!vModel.value || !availableModels.value.length) {
+      onIntegrationChange()
+    }
   }
 })
 </script>
@@ -111,6 +119,7 @@ onMounted(async () => {
                 v-model:value="vFkIntegrationId"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
+                placeholder="- select integration -"
                 @change="onIntegrationChange"
               >
                 <a-select-option v-for="integration in aiIntegrations" :key="integration.id" :value="integration.id">
@@ -150,20 +159,21 @@ onMounted(async () => {
                 v-model:value="vModel"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
+                placeholder="- select model -"
                 :disabled="!vFkIntegrationId || availableModels.length === 0"
                 :loading="isLoadingAvailableModels"
               >
-                <a-select-option v-for="md in availableModels" :key="md" :value="md">
+                <a-select-option v-for="md in availableModels" :key="md.label" :value="md.value">
                   <div class="w-full flex gap-2 items-center">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>
-                        {{ md }}
+                        {{ md.label }}
                       </template>
-                      {{ md }}
+                      {{ md.label }}
                     </NcTooltip>
                     <component
                       :is="iconMap.check"
-                      v-if="vModel === md"
+                      v-if="vModel === md.value"
                       id="nc-selected-item-icon"
                       class="text-nc-content-purple-medium w-4 h-4"
                     />
@@ -198,4 +208,10 @@ onMounted(async () => {
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.nc-select.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
+}
+</style>

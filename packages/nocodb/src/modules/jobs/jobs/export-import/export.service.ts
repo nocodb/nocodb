@@ -632,6 +632,8 @@ export class ExportService {
                   } catch (e) {
                     row[colId] = v;
                   }
+                } else {
+                  row[colId] = v;
                 }
                 break;
               case UITypes.User:

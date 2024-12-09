@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { AIRecordType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -69,9 +68,6 @@ const mousePosition = ref<
 >()
 
 const isDragging = ref(false)
-
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4
@@ -326,6 +322,14 @@ watch(
     immediate: true,
   },
 )
+
+const textAreaRef = ref<HTMLTextAreaElement>()
+
+watch(textAreaRef, (el) => {
+  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    el.focus()
+  }
+})
 </script>
 
 <template>
@@ -394,7 +398,7 @@ watch(
         }"
       >
         <textarea
-          :ref="focus"
+          ref="textAreaRef"
           v-model="vModel"
           :rows="isForm ? 5 : 4"
           class="h-full w-full !outline-none nc-scrollbar-thin"

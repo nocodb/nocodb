@@ -626,7 +626,7 @@
     "selectFieldsFromRightPannelToAddHere": "Sélectionnez les champs du panneau de droite à ajouter ici",
     "noOptionsFound": "Aucune option trouvée",
     "surveyFormSubmitConfirmMsg": "Êtes-vous sûr de vouloir envoyer ce formulaire ?",
-    "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
+    "noResultsMatchedYourSearch": "Votre recherche n'a renvoyé aucun résultat",
     "looksLikeThisStackIsEmpty": "Il semble que ce groupe n'a pas d'enregistrements",
     "fromScratch": "A partir de zéro",
     "fromFileAndExternalSources": "Depuis des fichiers et des sources externes",
@@ -1067,7 +1067,7 @@
     "viewHide": "Afficher la visibilité "
   },
   "activity": {
-    "deleteAllRecords": "Delete all records",
+    "deleteAllRecords": "Supprimer toutes les entrées",
     "assignView": "Affecter la vue",
     "webhookDetails": "Détails du Webhook",
     "showSaturdaysAndSundays": "Afficher les samedis et dimanches",

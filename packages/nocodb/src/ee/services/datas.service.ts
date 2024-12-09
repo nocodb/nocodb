@@ -3,6 +3,7 @@ import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
+import type { NcApiVersion } from 'nc-gui/lib/enums';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -14,7 +15,6 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
-import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DatasService extends DatasServiceCE {

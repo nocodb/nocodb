@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { NcApiVersion } from 'nc-gui/lib/enums';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
@@ -13,7 +14,6 @@ import {
   singleQueryRead as mysqlSingleQueryRead,
 } from '~/services/data-opt/mysql-helpers';
 import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
-import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DataOptService {

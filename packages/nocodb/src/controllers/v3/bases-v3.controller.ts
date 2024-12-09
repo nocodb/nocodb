@@ -1,0 +1,118 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import isDocker from 'is-docker';
+import { ProjectReqType } from 'nocodb-sdk';
+import type { BaseType } from 'nocodb-sdk';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import Noco from '~/Noco';
+import { packageVersion } from '~/utils/packageVersion';
+import { BasesService } from '~/services/bases.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Filter } from '~/models';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
+import {BasesV3Service} from "~/services/v3/bases-v3.service";
+
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@Controller()
+export class BasesController {
+  constructor(protected readonly baseV3Service: BasesV3Service) {}
+
+  @Acl('baseList', {
+    scope: 'org',
+  })
+  @Get(['/api/v3/meta/bases'])
+  async list(
+    @TenantContext() context: NcContext,
+    @Query() queryParams: Record<string, any>,
+    @Req() req: NcRequest,
+  ) {
+    const bases = await this.baseV3Service.baseList(context, {
+      user: req.user,
+      query: queryParams,
+    });
+    return  { bases }
+  }
+
+  @Acl('baseGet')
+  @Get(['/api/v3/meta/bases/:baseId'])
+  async baseGet(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+  ) {
+    const base = await this.baseV3Service.getProjectWithInfo(context, {
+      baseId: baseId,
+      includeConfig: false,
+    });
+
+    this.baseV3Service.sanitizeProject(base);
+
+    return base;
+  }
+
+  @Acl('baseUpdate')
+  @Patch(['/api/v1/db/meta/projects/:baseId', '/api/v3/meta/bases/:baseId'])
+  async baseUpdate(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Body() body: Record<string, any>,
+    @Req() req: NcRequest,
+  ) {
+    const base = await this.baseV3Service.baseUpdate(context, {
+      baseId,
+      base: body,
+      user: req.user,
+      req,
+    });
+
+    return base;
+  }
+
+  @Acl('baseDelete')
+  @Delete(['/api/v3/meta/bases/:baseId'])
+  async baseDelete(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Req() req: NcRequest,
+  ) {
+    const deleted = await this.baseV3Service.baseSoftDelete(context, {
+      baseId,
+      user: req.user,
+      req,
+    });
+
+    return deleted;
+  }
+
+  @Acl('baseCreate', {
+    scope: 'org',
+  })
+  @Post(['/api/v3/meta/bases'])
+  @HttpCode(200)
+  async baseCreate(
+    @TenantContext() context: NcContext,
+    @Body() baseBody: ProjectReqType,
+    @Req() req: NcRequest,
+  ) {
+    const base = await this.baseV3Service.baseCreate({
+      base: baseBody,
+      req,
+      user: req['user'],
+    });
+
+    return base;
+  }
+}

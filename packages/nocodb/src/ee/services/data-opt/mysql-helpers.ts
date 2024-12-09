@@ -149,7 +149,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams,
   validateFormula,
   columns,
-  apiVersion
+  apiVersion,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -164,7 +164,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
   columns?: Column[];
-  apiVersion?: NcApiVersion
+  apiVersion?: NcApiVersion;
 }) {
   const context = baseModel.context;
 
@@ -305,7 +305,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
-                apiVersion
+                apiVersion,
               });
 
               qb.joinRaw(
@@ -369,7 +369,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
-                apiVersion
+                apiVersion,
               });
 
               btAggQb
@@ -448,7 +448,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
-                  apiVersion
+                  apiVersion,
                 });
 
                 btAggQb
@@ -504,7 +504,7 @@ export async function extractColumn({
                   ast,
                   throwErrorIfInvalidParams,
                   validateFormula,
-                  apiVersion
+                  apiVersion,
                 });
 
                 qb.joinRaw(
@@ -572,7 +572,7 @@ export async function extractColumn({
                 ast,
                 throwErrorIfInvalidParams,
                 validateFormula,
-                apiVersion
+                apiVersion,
               });
 
               qb.joinRaw(

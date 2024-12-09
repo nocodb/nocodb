@@ -837,440 +837,69 @@
         "x-stoplight": {
           "id": "psbv6c6y9qvbu"
         }
+      },
+      "ProjectUserV3Req": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the user.",
+            "example": "user_1"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@nocodb.com",
+            "description": "The email address of the user."
+          },
+          "base_role": {
+            "type": "string",
+            "example": "base-level-owner",
+            "description": "The base role assigned to the user, if any. Can be null."
+          },
+          "workspace_role": {
+            "type": "string",
+            "example": "workspace-level-owner",
+            "nullable": true,
+            "description": "The role assigned to the user at the workspace level."
+          }
+        },
+        "required": [
+          "email",
+          "base_role"
+        ]
+      },
+      "ProjectUserDeleteV3Req": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "usg4t1a5sdb3eesf",
+            "description": "The unique identifier for the user."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@nocodb.com",
+            "description": "The email address of the user."
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "email"
+            ]
+          }
+        ],
+        "description": "At least one of the properties (`id` or `email`) must be provided."
       }
     },
     "responses": {
-      "ProjectList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ProjectList"
-            },
-            "examples": {
-              "example-1": {
-                "value": {
-                  "list": [
-                    {
-                      "sources": [
-                        {
-                          "alias": "string",
-                          "config": null,
-                          "created_at": "2023-03-01 14:27:36",
-                          "enabled": true,
-                          "id": "string",
-                          "inflection_column": "camelize",
-                          "inflection_table": "camelize",
-                          "is_meta": true,
-                          "order": 1,
-                          "base_id": "string",
-                          "type": "mysql2",
-                          "updated_at": "2023-03-01 14:27:36"
-                        }
-                      ],
-                      "color": "#24716E",
-                      "created_at": "2023-03-01 14:27:36",
-                      "deleted": true,
-                      "description": "This is my base description",
-                      "id": "p_124hhlkbeasewh",
-                      "is_meta": true,
-                      "meta": {},
-                      "order": 0,
-                      "prefix": "nc_vm5q__",
-                      "status": "string",
-                      "title": "my-base",
-                      "updated_at": "2023-03-01 14:27:36"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "BaseList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/BaseList"
-            },
-            "examples": {
-              "example-1": {
-                "value": {
-                  "list": [
-                    {
-                      "id": "ds_krsappzu9f8vmo",
-                      "base_id": "p_01clqvzik3izk6",
-                      "alias": null,
-                      "config": "<ENCRYPTED>",
-                      "meta": null,
-                      "is_meta": 1,
-                      "type": "mysql2",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "created_at": "2023-03-01 16:31:49",
-                      "updated_at": "2023-03-02 11:28:17",
-                      "enabled": 1,
-                      "order": 1
-                    },
-                    {
-                      "id": "ds_btbdt19zde0gj9",
-                      "base_id": "p_01clqvzik3izk6",
-                      "alias": "sakila",
-                      "config": "<ENCRYPTED>",
-                      "meta": null,
-                      "is_meta": null,
-                      "type": "mysql2",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "created_at": "2023-03-02 11:28:17",
-                      "updated_at": "2023-03-02 11:28:17",
-                      "enabled": 1,
-                      "order": 2
-                    }
-                  ],
-                  "pageInfo": {
-                    "totalRows": 2,
-                    "page": 1,
-                    "pageSize": 2,
-                    "isFirstPage": true,
-                    "isLastPage": true
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "TableList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/TableList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "id": "md_5hua2iqloqirhd",
-                      "source_id": "ds_jxuewivwbxeum2",
-                      "base_id": "p_tbhl1hnycvhe5l",
-                      "table_name": "nc_b84e___Sheet-1",
-                      "title": "Sheet-1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": true,
-                      "mm": false,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-11T09:11:45.907Z",
-                      "updated_at": "2023-03-11T09:11:45.907Z"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "ColumnList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ColumnList"
-            }
-          }
-        }
-      },
-      "FilterList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FilterList"
-            }
-          }
-        }
-      },
-      "SortList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/SortList"
-            },
-            "examples": {}
-          }
-        }
-      },
-      "ViewList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ViewList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "alias": "string",
-                      "column": [
-                        {
-                          "alias": "string",
-                          "auto_increment": true,
-                          "auto_update_timestamp": true,
-                          "source_id": "string",
-                          "character_maximum_length": "string",
-                          "character_set_name": "string",
-                          "colOptions": {
-                            "deleted": "string",
-                            "dr": "string",
-                            "fk_child_column_id": "string",
-                            "fk_column_id": "string",
-                            "fk_index_name": "string",
-                            "fk_mm_child_column_id": "string",
-                            "fk_mm_model_id": "string",
-                            "fk_mm_parent_column_id": "string",
-                            "fk_parent_column_id": "string",
-                            "id": "string",
-                            "order": "string",
-                            "type": "string",
-                            "ur": "string",
-                            "virtual": true
-                          },
-                          "column_comment": "string",
-                          "column_default": "string",
-                          "column_ordinal_position": "string",
-                          "column_type": "string",
-                          "data_type": "string",
-                          "data_type_x": "string",
-                          "data_type_x_precision": "string",
-                          "data_type_x_scale": "string",
-                          "deleted": true,
-                          "fk_model_id": "string",
-                          "id": "string",
-                          "numeric_precision": "string",
-                          "numeric_scale": "string",
-                          "order": 0,
-                          "primary_key": true,
-                          "primary_value": true,
-                          "rqd": "string",
-                          "title": "string",
-                          "ui_data_type": "string",
-                          "un": "string",
-                          "unique": true,
-                          "visible": true
-                        }
-                      ],
-                      "columnByIds": {},
-                      "deleted": true,
-                      "enabled": true,
-                      "fk_base_id": "string",
-                      "fk_project_id": "string",
-                      "id": "string",
-                      "order": 0,
-                      "parent_id": "string",
-                      "pinned": true,
-                      "show_as": "string",
-                      "tags": "string",
-                      "title": "string",
-                      "type": "string"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "SharedViewList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/SharedViewList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "source_id": "ds_g4ccx6e77h1dmi",
-                      "created_at": "2023-03-02 17:46:31",
-                      "fk_model_id": "md_mhs9z4r2ak98x0",
-                      "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
-                      "lock_type": "collaborative",
-                      "meta": {},
-                      "order": 1,
-                      "password": null,
-                      "base_id": "p_xm3thidrblw4n7",
-                      "show": 1,
-                      "show_system_fields": null,
-                      "title": "Sheet-1",
-                      "type": 3,
-                      "updated_at": "2023-03-02 17:46:31",
-                      "uuid": null,
-                      "view": {
-                        "source_id": "ds_g4ccx6e77h1dmi",
-                        "created_at": "2023-03-02 17:46:31",
-                        "fk_view_id": "vw_lg052cnc1c26kf",
-                        "meta": null,
-                        "base_id": "p_xm3thidrblw4n7",
-                        "row_height": null,
-                        "updated_at": "2023-03-02 17:46:31",
-                        "uuid": null
-                      }
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "HookList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/HookList"
-            }
-          }
-        }
-      },
-      "UserList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UserList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "email": "user@example.com",
-                      "email_verified": true,
-                      "firstname": "Alice",
-                      "id": "us_8kugj628ebjngs",
-                      "lastname": "Smith",
-                      "roles": "org-level-viewer"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "APITokenList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ApiTokenList"
-            },
-            "examples": {}
-          }
-        },
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "x-stoplight": {
-              "id": "uukp6v55zfp7i"
-            },
-            "items": {
-              "$ref": "#/components/schemas/ApiToken",
-              "x-stoplight": {
-                "id": "9zqpoqfkdxy0y"
-              }
-            }
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated",
-            "x-stoplight": {
-              "id": "6unr17jyisial"
-            }
-          }
-        }
-      },
-      "BadRequest": {
-        "description": "BadReqeust",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "msg": {
-                  "type": "string",
-                  "x-stoplight": {
-                    "id": "p9mk4oi0hbihm"
-                  },
-                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
-                }
-              },
-              "required": [
-                "msg"
-              ]
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
-                }
-              }
-            }
-          }
-        },
-        "headers": {}
-      }
     },
     "securitySchemes": {
       "xc-auth": {

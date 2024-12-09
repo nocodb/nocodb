@@ -1062,24 +1062,23 @@ export async function extractColumn({
       );
       break;
     }
-    case UITypes.MultiSelect: {
-      // if v3 api then return as array by splitting
-      if (apiVersion === NcApiVersion.V3) {
-        const columnName = await getColumnName(context, column, columns);
-
-        qb.select(
-          knex.raw(`string_to_array(??.??, ',') as ??`, [
-            rootAlias,
-            sanitize(columnName),
-            getAs(column),
-          ]),
-        );
-        break;
-      }
-    }
     default:
       {
-        if (column.dt === 'bytea') {
+        // if v3 api then return as array by splitting
+        if (
+          column.uidt === UITypes.MultiSelect &&
+          apiVersion === NcApiVersion.V3
+        ) {
+          const columnName = await getColumnName(context, column, columns);
+
+          qb.select(
+            knex.raw(`string_to_array(??.??, ',') as ??`, [
+              rootAlias,
+              sanitize(columnName),
+              getAs(column),
+            ]),
+          );
+        } else if (column.dt === 'bytea') {
           qb.select(
             knex.raw(
               `encode(??.??, '${

@@ -4,7 +4,7 @@ import {
   extractRolesObj,
   OrgUserRoles,
   PluginCategory,
-  ProjectRoles,
+  ProjectRoles, ProjectUserUpdateReqType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
@@ -222,15 +222,13 @@ export class BaseUsersService {
     context: NcContext,
     param: {
       userId: string;
-      // todo: update swagger
-      baseUser: ProjectUserReqType & { base_id: string };
-      // todo: refactor
-      req: any;
+      baseUser: ProjectUserUpdateReqType;
+      req: NcRequest;
       baseId: string;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger.json#/components/schemas/ProjectUserReq',
+      'swagger.json#/components/schemas/ProjectUserUpdateReq',
       param.baseUser,
     );
 

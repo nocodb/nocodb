@@ -33,6 +33,7 @@ import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
+import { NcApiVersion } from 'nc-gui/lib/enums';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
@@ -58,7 +59,6 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
 import { extractMentions } from '~/utils/richTextHelper';
-import {NcApiVersion} from "nc-gui/lib/enums";
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -2105,13 +2105,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
-      apiVersion
+      apiVersion,
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
-      apiVersion?: NcApiVersion
+      apiVersion?: NcApiVersion;
     } = {},
   ) {
     const queries: string[] = [];

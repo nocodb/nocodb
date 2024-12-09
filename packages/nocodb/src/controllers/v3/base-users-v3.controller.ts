@@ -11,25 +11,35 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectRoles, ProjectUserReqType } from 'nocodb-sdk';
+import type {
+  ProjectUserDeleteV3ReqType,
+  ProjectUserV3ReqType,
+} from 'nocodb-sdk';
+import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseUsersV3Controller {
-  constructor(protected readonly baseUsersService: BaseUsersService) {}
+  private builder: () => ApiV3DataTransformationBuilder;
+
+  constructor(protected readonly baseUsersV3Service: BaseUsersV3Service) {}
 
   @Get(['/api/v3/meta/bases/:baseId/users'])
   @Acl('baseUserList')
   async userList(
-    @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
-    @Req() req: NcRequest,
+    @TenantContext()
+    context: NcContext,
+    @Param('baseId')
+    baseId: string,
+    @Req()
+    req: NcRequest,
   ) {
     const baseRoles = Object.keys((req.user as any)?.base_roles ?? {});
     const mode =
@@ -38,48 +48,43 @@ export class BaseUsersV3Controller {
         ? 'full'
         : 'viewer';
 
-    return {
-      users: await this.baseUsersService.userList(context, {
-        baseId,
-        mode,
-      }),
-    };
+    return await this.baseUsersV3Service.userList(context, {
+      baseId,
+      mode,
+    });
   }
 
-  @Post(['/api/v2/meta/bases/:baseId/users'])
+  @Post(['/api/v3/meta/bases/:baseId/users'])
   @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() body: ProjectUserReqType,
+    @Body() baseUsers: ProjectUserV3ReqType[],
   ): Promise<any> {
-    // todo: move this to a service
-    if (!body.email) {
-      NcError.badRequest('Email is required');
-    }
-    return await this.baseUsersService.userInvite(context, {
+    return await this.baseUsersV3Service.userInvite(context, {
       baseId,
-      baseUser: body,
+      baseUsers,
       req,
     });
   }
 
-  @Patch(['/api/v2/meta/bases/:baseId/users/:userId'])
+  @Patch(['/api/v3/meta/bases/:baseId/users/:userId'])
   @Acl('baseUserUpdate')
   async baseUserUpdate(
-    @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
-    @Param('userId') userId: string,
-    @Req() req: NcRequest,
-    @Body()
-    body: ProjectUserReqType & {
-      base_id: string;
-    },
+    @TenantContext()
+    context: NcContext,
+    @Param('baseId')
+    baseId: string,
+    @Param('userId')
+    userId: string,
+    @Req()
+    req: NcRequest,
+    @Body() baseUsers: ProjectUserV3ReqType[],
   ): Promise<any> {
-    await this.baseUsersService.baseUserUpdate(context, {
-      baseUser: body,
+    await this.baseUsersV3Service.baseUserUpdate(context, {
+      baseUsers,
       baseId,
       userId,
       req,
@@ -89,57 +94,22 @@ export class BaseUsersV3Controller {
     };
   }
 
-  @Delete(['/api/v2/meta/bases/:baseId/users/:userId'])
+  @Delete(['/api/v3/meta/bases/:baseId/users/:userId'])
   @Acl('baseUserDelete')
   async baseUserDelete(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('userId') userId: string,
     @Req() req: NcRequest,
+    @Body() baseUsers: ProjectUserDeleteV3ReqType[],
   ): Promise<any> {
-    await this.baseUsersService.baseUserDelete(context, {
+    await this.baseUsersV3Service.baseUserDelete(context, {
       baseId,
-      userId,
       req,
+      baseUsers,
     });
     return {
       msg: 'The user has been deleted successfully',
     };
-  }
-
-  @Post(['/api/v2/meta/bases/:baseId/users/:userId/resend-invite'])
-  @HttpCode(200)
-  @Acl('baseUserInviteResend')
-  async baseUserInviteResend(
-    @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
-    @Param('userId') userId: string,
-    @Req() req: NcRequest,
-    @Body() body: ProjectUserReqType,
-  ): Promise<any> {
-    await this.baseUsersService.baseUserInviteResend(context, {
-      baseId: baseId,
-      userId: userId,
-      baseUser: body,
-      req,
-    });
-    return {
-      msg: 'The invitation has been sent to the user',
-    };
-  }
-
-  @Patch(['/api/v2/meta/bases/:baseId/user'])
-  @Acl('baseUserMetaUpdate')
-  async baseUserMetaUpdate(
-    @TenantContext() context: NcContext,
-    @Param('baseId') baseId: string,
-    @Req() req: NcRequest,
-    @Body() body: ProjectUserReqType,
-  ): Promise<any> {
-    return await this.baseUsersService.baseUserMetaUpdate(context, {
-      baseId,
-      body,
-      user: req.user,
-    });
   }
 }

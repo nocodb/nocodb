@@ -126,11 +126,12 @@ const showTooltipAlways = computed(() => {
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const columnTypeName = computed(() => {
-  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
-    return UITypesName.RichText
-  }
   if (column.value.uidt === UITypes.LinkToAnotherRecord && column.value.colOptions?.type === RelationTypes.ONE_TO_ONE) {
     return UITypesName[UITypes.Links]
+  }
+
+  if (isAiButton(column.value)) {
+    return UITypesName.AIButton
   }
 
   return column.value.uidt ? UITypesName[column.value.uidt] : ''

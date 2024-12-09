@@ -145,8 +145,8 @@ watch(
 
       <div v-if="!isUnderLookup || isForm" class="flex justify-end gap-1 min-h-4 items-center">
         <GeneralIcon
-          icon="expand"
-          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          icon="maximize"
+          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand h-3 w-3"
           @click.stop="openChildList"
         />
 

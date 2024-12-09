@@ -44,6 +44,7 @@ const {
   integrationsRefreshKey,
   integrationsCategoryFilter,
   activeViewTab,
+  loadDynamicIntegrations,
 } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
@@ -218,6 +219,8 @@ const toggleShowOrHideAllCategory = () => {
 }
 
 onMounted(() => {
+  loadDynamicIntegrations()
+
   if (!integrationsCategoryFilter.value.length) {
     integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
   }

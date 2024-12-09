@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
 
-import MaximizeIcon from '~icons/nc-icons/maximize'
-
 const props = withDefaults(
   defineProps<{
     row: any
@@ -161,7 +159,7 @@ const displayValue = computed(() => {
               class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
               @click.stop="$emit('expand', row)"
             >
-              <MaximizeIcon class="flex-none w-4 h-4 scale-125" />
+              <GeneralIcon icon="maximize" class="flex-none w-4 h-4 scale-125" />
             </button>
           </NcTooltip>
         </div>

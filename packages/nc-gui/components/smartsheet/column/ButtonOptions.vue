@@ -177,7 +177,7 @@ const validators = {
     },
   ],
 
-  ...((isEdit.value ? vModel.value.colOptions : vModel.value.type) === ButtonActionsType.Ai
+  ...((isEdit.value ? vModel.value.colOptions?.type : vModel.value.type) === ButtonActionsType.Ai
     ? {
         output_column_ids: [
           {
@@ -215,7 +215,7 @@ if (isEdit.value) {
   vModel.value.type = vModel.value?.type || buttonTypes[0].value
 
   if (vModel.value.type === ButtonActionsType.Ai) {
-    vModel.value.theme = 'text'
+    vModel.value.theme = 'light'
     vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'

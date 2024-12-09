@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ButtonType } from 'ant-design-vue/lib/button'
 import { useSlots } from 'vue'
+import type { GeneralLoaderProps } from '../general/Loader.vue'
 
 /**
  * @description
@@ -19,6 +20,7 @@ interface Props {
   showAsDisabled?: boolean
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
+  loaderSize?: GeneralLoaderProps['size']
   centered?: boolean
   fullWidth?: boolean
   iconOnly?: boolean
@@ -32,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   showAsDisabled: false,
   size: 'medium',
+  loaderSize: 'medium',
   type: 'primary',
   fullWidth: false,
   centered: true,
@@ -47,7 +50,7 @@ const slots = useSlots()
 
 const NcButton = ref<HTMLElement | null>(null)
 
-const { size, type, theme, bordered } = toRefs(props)
+const { size, loaderSize, type, theme, bordered } = toRefs(props)
 
 const loading = useVModel(props, 'loading', emits)
 
@@ -112,7 +115,7 @@ useEventListener(NcButton, 'mousedown', () => {
     >
       <template v-if="iconPosition === 'left'">
         <slot v-if="loading" name="loadingIcon">
-          <GeneralLoader class="flex !bg-inherit !text-inherit" size="medium" />
+          <GeneralLoader class="flex !bg-inherit !text-inherit" :size="loaderSize" />
         </slot>
 
         <slot v-else name="icon" />
@@ -131,7 +134,7 @@ useEventListener(NcButton, 'mousedown', () => {
       </div>
       <template v-if="iconPosition === 'right'">
         <slot v-if="loading" name="loadingIcon">
-          <GeneralLoader v-if="loading" class="flex !bg-inherit !text-inherit" size="medium" />
+          <GeneralLoader class="flex !bg-inherit !text-inherit" :size="loaderSize" />
         </slot>
 
         <slot v-else name="icon" />

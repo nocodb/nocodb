@@ -1,8 +1,8 @@
-<!-- File not in use for now -->
-
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
-  value: any
+  modelValue: any
 }>()
 
 const emit = defineEmits(['update:modelValue', 'navigateToIntegrations'])
@@ -81,7 +81,40 @@ const generate = async () => {
 
   previewFieldTitle.value = vModel.value?.title || 'temp_title'
 
-const vModel = useVModel(props, 'value', emit)
+  const res = await generateRows(
+    meta.value.id!,
+    {
+      title: previewFieldTitle.value,
+      prompt_raw: vModel.value.prompt_raw,
+      fk_integration_id: vModel.value.fk_integration_id,
+      uidt: UITypes.LongText,
+    },
+    [pk],
+  )
+
+  if (res?.length && res[0]?.[previewFieldTitle.value]) {
+    previewRow.value.row = {
+      ...res[0],
+      [previewFieldTitle.value]: {
+        value: res[0]?.[previewFieldTitle.value],
+      },
+    }
+    isAlreadyGenerated.value = true
+  }
+
+  generatingPreview.value = false
+}
+
+onMounted(() => {
+  // set default value
+  vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
+})
+
+if (isEdit.value) {
+  vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
+}
+
+provide(EditColumnInj, ref(true))
 
 const richMode = computed({
   get: () => !!vModel.value.meta?.richMode,
@@ -92,13 +125,51 @@ const richMode = computed({
   },
 })
 
+const handleDisableSubmitBtn = () => {
+  if (!isEnabledGenerateText.value) {
+    if (disableSubmitBtn.value) {
+      disableSubmitBtn.value = false
+    }
+
+    return
+  }
+
+  if (isPreviewEnabled.value) {
+    disableSubmitBtn.value = false
+  } else {
+    disableSubmitBtn.value = true
+  }
+}
+
 watch(richMode, () => {
   vModel.value.cdf = null
 })
+
+watch(isPreviewEnabled, handleDisableSubmitBtn, {
+  immediate: true,
+})
+
+watch(
+  isEnabledGenerateText,
+  (newValue) => {
+    if (newValue) {
+      setAdditionalValidations({
+        fk_integration_id: [{ required: true, message: t('title.aiIntegrationMissing') }],
+      })
+    } else {
+      setAdditionalValidations({
+        fk_integration_id: [{ required: false }],
+      })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-4">
     <a-form-item>
       <NcTooltip :disabled="!isEnabledGenerateText">
         <template #title> Rich text formatting is not supported when generate text using AI is enabled </template>
@@ -260,3 +331,31 @@ watch(richMode, () => {
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable && isEnabledGenerateText" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-form-item-control-input-content) {
+  @apply flex items-center;
+}
+
+.nc-prompt-input-wrapper {
+  @apply border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.nc-ai-options-preview {
+  @apply rounded-lg border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+
+  :deep(.nc-text-area-expand-btn) {
+    @apply right-1;
+  }
+}
+
+.nc-aioptions-preview-generate-btn {
+  &:not(.nc-is-already-generated) {
+    &.nc-preview-enabled {
+      @apply !border-transparent;
+    }
+  }
+}
+</style>

@@ -1,7 +1,12 @@
 import { Readable } from 'stream';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import {
+  isAIPromptCol,
+  isLinksOrLTAR,
+  isVirtualCol,
+  RelationTypes,
+} from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -435,7 +440,7 @@ export class DuplicateProcessor {
     });
 
     // update cdf
-    if (!isVirtualCol(destColumn)) {
+    if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
       await this.columnsService.columnUpdate(context, {
         columnId: findWithIdentifier(idMap, sourceColumn.id),
         column: {

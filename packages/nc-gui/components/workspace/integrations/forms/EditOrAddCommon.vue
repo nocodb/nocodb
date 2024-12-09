@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IntegrationCategoryType, type SyncDataType } from '#imports'
+import type { IntegrationCategoryType, SyncDataType } from '#imports'
 import { clientTypes as _clientTypes } from '#imports'
 
 const props = defineProps<{
@@ -22,8 +22,6 @@ const {
   updateIntegration,
 } = useIntegrationStore()
 
-const { loadAiIntegrations } = useNocoAi()
-
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
 const initState = ref({
@@ -43,10 +41,6 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     try {
       if (pageMode.value === IntegrationsPageMode.ADD) {
         await saveIntegration(formState.value)
-
-        if (props.integrationType === IntegrationCategoryType.AI) {
-          loadAiIntegrations()
-        }
       } else {
         await updateIntegration({
           id: activeIntegration.value?.id,

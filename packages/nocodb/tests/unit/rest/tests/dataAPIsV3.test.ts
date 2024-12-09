@@ -85,6 +85,7 @@ import 'mocha';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isOrderCol,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
@@ -139,7 +140,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
   ) => {
     const responseColumnsListStr = Object.keys(row).sort().join(',');
     const expectedColumnsListStr = columns
-      .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c)))
+      .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c) && isOrderCol(c)))
       .map((c) => c.title)
       .sort()
       .join(',');

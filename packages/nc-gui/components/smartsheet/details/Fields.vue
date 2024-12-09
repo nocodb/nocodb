@@ -417,6 +417,7 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const diffs = Object.fromEntries(
     Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
   ) as Partial<TableExplorerColumn>
+
   if (
     Object.keys(diffs).length === 0 ||
     // skip custom prop since it's only used for custom LTAR links
@@ -642,9 +643,29 @@ const isColumnValid = (column: TableExplorerColumn) => {
     }
   }
 
-  if (column.uidt === UITypes.Button && isNew) {
-    if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
-    if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
+  if (column.uidt === UITypes.Button) {
+    if (isNew) {
+      if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
+      if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
+    }
+
+    if (column.type === ButtonActionsType.Ai) {
+      if (isNew) {
+        return !(
+          !column.fk_integration_id ||
+          !column.formula_raw?.trim() ||
+          !column.cdfoutput_column_ids?.length ||
+          !column.output_column_ids?.split(',')?.length
+        )
+      } else {
+        !(
+          !column.colOptions?.fk_integration_id ||
+          !column.colOptions?.formula_raw?.trim() ||
+          !column.colOptions?.output_column_ids?.length ||
+          !column.colOptions?.output_column_ids?.split(',')?.length
+        )
+      }
+    }
   }
 
   return true
@@ -711,6 +732,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.label = column.label || 'Generate data'
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
+        column.output_column_ids = colOptions?.output_column_ids
+        column.fk_integration_id = colOptions?.fk_integration_id
       } else {
         column.theme = column.theme || 'solid'
         column.label = column.label || 'Button'

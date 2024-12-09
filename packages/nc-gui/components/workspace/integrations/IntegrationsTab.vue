@@ -587,7 +587,7 @@ watch(activeViewTab, (value) => {
             @apply text-gray-800;
           }
         }
-        z &:not(.is-available) {
+        &:not(.is-available) {
           &:not(:hover) {
             .integration-icon-wrapper {
               // @apply bg-gray-50;

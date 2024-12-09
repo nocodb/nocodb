@@ -35,6 +35,8 @@ const meta = inject(MetaInj, ref())
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, isAiMode } =
   useColumnCreateStoreOrThrow()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -51,7 +53,15 @@ const manualHooks = computed(() => {
   return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
 })
 
-const buttonTypes = [
+const isAiButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+})
+
+const buttonTypes = computed(() => [
   {
     label: t('labels.openUrl'),
     value: ButtonActionsType.Url,
@@ -60,7 +70,7 @@ const buttonTypes = [
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
   },
-  ...(isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  ...(isAiButtonEnabled.value
     ? [
         {
           label: t('labels.generateFieldDataUsingAi'),
@@ -69,7 +79,7 @@ const buttonTypes = [
         },
       ]
     : []),
-]
+])
 
 const supportedColumns = computed(
   () =>
@@ -212,7 +222,7 @@ if (isEdit.value) {
     vModel.value.fk_integration_id = colOptions?.fk_integration_id
   }
 } else {
-  vModel.value.type = vModel.value?.type || buttonTypes[0].value
+  vModel.value.type = vModel.value?.type || buttonTypes.value[0]?.value
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.theme = 'light'

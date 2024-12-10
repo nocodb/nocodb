@@ -378,6 +378,7 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
     case UITypes.Currency:
     case UITypes.Percent:
     case UITypes.Duration:
+    case UITypes.Decimal:
     case UITypes.Formula: {
       return true;
     }

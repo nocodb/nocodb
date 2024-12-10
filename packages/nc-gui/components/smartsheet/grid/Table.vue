@@ -1214,6 +1214,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1376,7 +1378,7 @@ const topOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   nextTick(() => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
@@ -1834,7 +1836,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
@@ -2739,10 +2741,18 @@ onKeyStroke('ArrowDown', onDown)
 
     &.align-top {
       @apply py-2;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply py-0 pr-0;
+      }
     }
 
     &.align-middle {
       @apply py-0;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply pr-0;
+      }
     }
 
     & > div {
@@ -2768,7 +2778,7 @@ onKeyStroke('ArrowDown', onDown)
       .nc-cell-field,
       input,
       textarea {
-        @apply !text-small !p-0 m-0;
+        @apply !text-small !pl-0 !py-0 m-0;
       }
 
       &:not(.nc-display-value-cell) {
@@ -2787,7 +2797,7 @@ onKeyStroke('ArrowDown', onDown)
       a.nc-cell-field-link,
       input,
       textarea {
-        @apply !p-0 m-0;
+        @apply !pl-0 !py-0 m-0;
       }
 
       a.nc-cell-field-link {
@@ -2801,7 +2811,7 @@ onKeyStroke('ArrowDown', onDown)
         @apply leading-[18px];
 
         textarea {
-          @apply pr-2;
+          @apply pr-8 !py-2;
         }
       }
 

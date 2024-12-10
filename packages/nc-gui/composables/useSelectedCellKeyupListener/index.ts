@@ -12,10 +12,19 @@ function useSelectedCellKeyupListener(
     /**
      * If `useSelectedCellKeyupListener` used for grid cell and active element is not in grid then prevent
      */
-    if (isGridCell && (isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen())) {
-      return
+    if (isGridCell) {
+      if (isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen()) {
+        return
+      }
+
+      if (
+        isActiveInputElementExist() &&
+        !(document.activeElement as HTMLElement).closest('table, .nc-group-table, .nc-grid-wrapper')
+      ) {
+        return
+      }
     }
-    // TODO: Check if their is any active element which is outside grid then return
+
     handler(e)
   }
 

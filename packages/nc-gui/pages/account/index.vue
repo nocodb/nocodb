@@ -129,20 +129,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                key="audit"
-                class="item"
-                :class="{
-                  active: $route.params.page === 'audit',
-                }"
-                @click="navigateTo('/account/audit')"
-              >
-                <div class="flex items-center space-x-2">
-                  <component :is="iconMap.audit" class="opacity-80" />
-
-                  <div class="select-none">{{ $t('title.auditLogs') }}</div>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
                 v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
                 key="apps"
                 class="item w-full"

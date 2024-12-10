@@ -381,7 +381,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 />
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
+            <a-tab-pane v-if="isEeUI && sources && activeSource === sources[0]" key="audit">
               <template #tab>
                 <div class="tab" data-testid="nc-audit-tab">
                   <div>{{ $t('title.auditLogs') }}</div>

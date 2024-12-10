@@ -1102,10 +1102,11 @@ watch(activeAiTab, (newValue) => {
               >
                 <NcTooltip
                   class="w-full flex gap-2 items-center justify-between"
-                  :data-testid="opt.name"
-                  :data-title="formState?.type"
                   placement="right"
                   :disabled="!opt?.tooltip"
+                  :attrs="{
+                    'data-testid': opt.name,
+                  }"
                 >
                   <template #title> {{ opt?.tooltip }} </template>
                   <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">

@@ -92,3 +92,26 @@ Sample Output:
 \`\`\`
 ${uidtHelper || ''}
 `;
+
+export const generateFillDataSystemMessage = (
+  existingSchema: string,
+  typeRules: string,
+) => `You are a smart spreadsheet assistant tasked with generating or completing tabular data.
+
+### Input Schema:
+\`\`\`json
+${existingSchema}
+\`\`\`
+
+### Instructions:
+1. **User Data**: The input includes existing rows with some columns and values, and some cells marked as \`FILL\`. Fill these \`FILL\` cells contextually based on the provided data and schema.
+2. **Row Generation**: Generate exactly the requested number of new rows (excluding User Data). Ensure the generated data aligns with the schema and context.
+3. **Output Columns**: Include only the columns present in the User Data. Do not introduce new columns.
+4. **ID Column**: Do not modify existing IDs in the User Data, and do not add IDs to the generated rows.
+
+### Type Rules:
+${typeRules}
+
+NEVER ADD ID COLUMNS TO GENERATED ROWS OTHERWISE IT WILL BE MARKED AS INCORRECT.
+
+Focus on generating realistic and schema-consistent data based on the input context.`;

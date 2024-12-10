@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ButtonActionsType,
   IntegrationsType,
+  isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
   UITypes,
@@ -24,11 +25,13 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   extractRowsSystemMessage,
+  generateFillDataSystemMessage,
   generateFromButtonSystemMessage,
   generateRowsSystemMessage,
 } from '~/integrations/ai/module/prompts/index';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { serialize } from '~/integrations/ai/module/helpers/serialize';
+import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 
 const FILE_SEARCH_SUPPORTED_MIMETYPES = [
   'text/x-c',
@@ -265,7 +268,10 @@ const preparePromptAttachments = async (
 
 @Injectable()
 export class AiDataService {
-  constructor(protected readonly tablesService: TablesService) {}
+  constructor(
+    protected readonly tablesService: TablesService,
+    protected readonly aiSchemaService: AiSchemaService,
+  ) {}
 
   async generateRows(
     context: NcContext,
@@ -784,6 +790,140 @@ export class AiDataService {
       console.error(e);
       throw e;
     }
+  }
+
+  async generateFillData(
+    context: NcContext,
+    params: {
+      modelId: string;
+      rows: { [key: string]: any }[];
+      generateIds: string[];
+      numRows: number;
+      req: NcRequest;
+    },
+  ) {
+    const { modelId, rows = [], generateIds, req } = params;
+
+    if (!rows.length) {
+      return [];
+    }
+
+    if (generateIds.length > 25 || rows.length > 25) {
+      NcError.badRequest('Only 25 rows can be processed at a time!');
+    }
+
+    const model = await Model.get(context, modelId);
+
+    if (!model) {
+      NcError.tableNotFound(modelId);
+    }
+
+    await model.getColumns(context);
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      model,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationsType.Ai,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const selectedColumns = model.columns.filter((col) => {
+      return rows[0]?.[col.title] !== undefined;
+    });
+
+    const allowedColumns = selectedColumns.filter(
+      (col) =>
+        col.uidt === UITypes.ID ||
+        (![UITypes.Attachment].includes(col.uidt) &&
+          !isSystemColumn(col) &&
+          !isVirtualCol(col)),
+    );
+
+    const uidtHelp = uidtHelper(allowedColumns);
+
+    const filteredRows = rows.map((row) => {
+      return Object.fromEntries(
+        Object.entries(row).filter(([key]) =>
+          allowedColumns.map((c) => c.title).includes(key),
+        ),
+      );
+    });
+
+    const { data, usage } = await wrapper.generateObject<{
+      rows: { [key: string]: string }[];
+    }>({
+      schema: z.object({
+        rows: z.array(
+          z.object({
+            ...Object.fromEntries(uidtHelp.schema),
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: generateFillDataSystemMessage(
+            JSON.stringify(
+              await this.aiSchemaService.serializeSchema(context, {
+                baseId: model.base_id,
+                req,
+              }),
+            ),
+            uidtHelp.userMessageAddition,
+          ),
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `User Data:
+\`\`\`json
+${JSON.stringify(filteredRows, null, 2)}
+\`\`\`
+Please generate ${
+                generateIds.length
+              } rows based on them and return as JSON array.`,
+            },
+          ],
+        },
+      ],
+    });
+
+    await integration.storeInsert(context, req?.user?.id, usage);
+
+    const { rows: returnRows } = data;
+
+    if (returnRows.length > generateIds.length + rows.length) {
+      NcError.unprocessableEntity(
+        `Expected ${generateIds.length} rows, but received ${returnRows.length}`,
+      );
+    }
+
+    let rowIndex = 0;
+
+    const rowsWithId = returnRows.map((row) => {
+      if (row[baseModel.model.primaryKeys[0].title]) {
+        return row;
+      }
+
+      return {
+        ...row,
+        [model.primaryKeys[0].title]: params.generateIds[rowIndex++],
+      };
+    });
+
+    return rowsWithId;
   }
 
   async extractRowsFromInput(

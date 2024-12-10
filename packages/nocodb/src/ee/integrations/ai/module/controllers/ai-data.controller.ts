@@ -60,6 +60,31 @@ export class AiDataController {
     });
   }
 
+  @Post(['/api/v2/ai/tables/:modelId/rows/fill'])
+  @Acl('aiData', {
+    scope: 'base',
+  })
+  @HttpCode(200)
+  async generateFillData(
+    @TenantContext() context: NcContext,
+    @Req() req: Request,
+    @Param('modelId') modelId: string,
+    @Body()
+    body: {
+      rows: { [key: string]: any }[];
+      generateIds: string[];
+      numRows: number;
+    },
+  ) {
+    return await this.aiDataService.generateFillData(context, {
+      modelId,
+      rows: body.rows,
+      generateIds: body.generateIds,
+      numRows: body.numRows,
+      req,
+    });
+  }
+
   @Post(['/api/v2/ai/tables/:modelId/extract'])
   @Acl('aiData', {
     scope: 'base',

@@ -64,14 +64,6 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
-
-watch(
-  () => options.value,
-  () => {
-    searchQuery.value = ''
-    activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
-  },
-)
 </script>
 
 <template>

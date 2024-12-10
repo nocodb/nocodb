@@ -7,8 +7,6 @@ export const useNocoAi = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspaceId } = storeToRefs(workspaceStore)
-
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
@@ -63,7 +61,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
-      const baseId = customBaseId || activeProjectId.value
+      const baseId = customBaseId || workspaceStore.activeProjectId.value
 
       if (!aiIntegrationAvailable.value || !baseId) {
         return
@@ -97,14 +95,14 @@ export const useNocoAi = createSharedComposable(() => {
 
   const callAiSchemaCreateApi = async (operation: string, input: any, skipMsgToast = false) => {
     try {
-      if (!aiIntegrationAvailable.value || !activeWorkspaceId.value) {
+      if (!aiIntegrationAvailable.value || !workspaceStore.activeWorkspaceId) {
         return
       }
 
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.ai.schemaCreate(activeWorkspaceId.value, { operation, input })
+      const res = await $api.ai.schemaCreate(workspaceStore.activeWorkspaceId, { operation, input })
 
       return res
     } catch (e) {

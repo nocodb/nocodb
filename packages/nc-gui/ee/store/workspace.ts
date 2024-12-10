@@ -65,7 +65,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { appInfo, ncNavigateTo, lastOpenedWorkspaceId, storage } = useGlobal()
 
-  const { aiIntegrations } = useNocoAi()
+  const nocoAi = useNocoAi()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
 
@@ -334,7 +334,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       workspaces.value.set(res.workspace.id!, res.workspace)
 
-      aiIntegrations.value = (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
+      nocoAi.aiIntegrations.value =
+        (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
       return res

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -279,6 +280,7 @@ export class MetaDiffsService {
             UITypes.Barcode,
             UITypes.Button,
           ].includes(column.uidt)
+          || isAIPromptCol(col)
         ) {
           if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);

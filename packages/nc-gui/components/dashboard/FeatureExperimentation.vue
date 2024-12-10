@@ -79,7 +79,7 @@ onUnmounted(() => {
       >
         <template v-for="feature in features" :key="feature.id">
           <div
-            v-if="!feature?.isEngineering || isEngineeringModeOn"
+            v-if="(!feature.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn)"
             class="border-b-1 px-3 flex gap-2 flex-col py-2 border-gray-200 last:border-b-0"
           >
             <div class="flex items-center justify-between">

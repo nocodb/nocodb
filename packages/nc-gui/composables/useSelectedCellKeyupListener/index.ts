@@ -4,10 +4,17 @@ import type { ComputedRef, Ref } from 'vue'
 function useSelectedCellKeyupListener(
   selected: Ref<boolean | undefined> | ComputedRef<boolean | undefined>,
   handler: (e: KeyboardEvent) => void,
-  { immediate = false }: { immediate?: boolean } = {},
+  { immediate = false, isGridCell = true }: { immediate?: boolean; isGridCell?: boolean } = {},
 ) {
   const finalHandler = (e: KeyboardEvent) => {
-    if (cmdKActive() || isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen()) return
+    if (cmdKActive()) return
+
+    /**
+     * If `useSelectedCellKeyupListener` used for grid cell and active element is not in grid then prevent
+     */
+    if (isGridCell && (isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen())) {
+      return
+    }
     // TODO: Check if their is any active element which is outside grid then return
     handler(e)
   }

@@ -515,8 +515,8 @@ watch(textAreaRef, (el) => {
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
-          'top-0 ': isGrid && !isExpandedFormOpen && !isForm,
-          '!right-2 ': isGrid && !isExpandedFormOpen && !isForm && ((editEnabled && !isVisible) || isForm),
+          'top-0 right-1': isGrid && !isExpandedFormOpen && !isForm,
+          '!right-2 top-2': isGrid && !isExpandedFormOpen && !isForm && ((editEnabled && !isVisible) || isForm),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
         }"
       >

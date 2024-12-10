@@ -2742,16 +2742,16 @@ onKeyStroke('ArrowDown', onDown)
     &.align-top {
       @apply py-2;
 
-      &:has(.nc-cell textarea) {
-        @apply pr-0;
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply py-0 pr-0;
       }
     }
 
     &.align-middle {
       @apply py-0;
 
-      &:has(.nc-cell textarea) {
-        @apply py-2 pr-0;
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply pr-0;
       }
     }
 
@@ -2774,10 +2774,6 @@ onKeyStroke('ArrowDown', onDown)
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
       @apply !text-small;
-
-      textarea {
-        @apply !pr-8;
-      }
 
       .nc-cell-field,
       input,
@@ -2815,7 +2811,7 @@ onKeyStroke('ArrowDown', onDown)
         @apply leading-[18px];
 
         textarea {
-          @apply pr-2;
+          @apply pr-8 !py-2;
         }
       }
 

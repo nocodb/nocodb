@@ -16,8 +16,6 @@ const defaultAuditLogsQuery = {
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
 
-  const { isUIAllowed } = useRoles()
-
   const collaborators = ref<any[] | null>()
 
   const allCollaborators = ref<any[] | null>()

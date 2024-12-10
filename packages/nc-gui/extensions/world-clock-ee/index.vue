@@ -184,7 +184,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
         v-if="activeInstance"
         v-model="activeInstance"
         class="w-3/4"
-        show-numbers
+        :show-numbers="showNumbers"
         :format="selectedHFormat"
         :clock-mode="selectedClockMode"
         @remove-instance="removeInstance"
@@ -222,7 +222,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
             {{ clockInstance.name }}
           </div>
           <Clock
-            show-numbers
+            :show-numbers="showNumbers"
             :format="selectedHFormat"
             :timezone="cityToTimezone[clockInstance.city]"
             :theme="clockInstance.theme"

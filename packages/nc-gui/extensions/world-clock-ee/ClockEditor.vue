@@ -113,7 +113,7 @@ const filteredOptions = computed(() =>
       <div class="flex w-full items-start justify-center">
         <Clock
           :class="`${clockMode === 'Digital' ? 'w-full' : 'w-1/2'}`"
-          show-numbers
+          :show-numbers="showNumbers"
           format="12H"
           :timezone="cityToTimezone[city]"
           :theme="themeId"

@@ -1402,6 +1402,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
       allowSystemColumn = false,
+      apiVersion
       undo = false,
     }: {
       chunkSize?: number;
@@ -1412,6 +1413,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
+      apiVersion?: NcApiVersion;
       undo?: boolean;
     } = {},
   ) {
@@ -1447,6 +1449,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is auto generated and cannot be updated`,
+                );
+              }
+
+              if (
+                isVirtualCol(col) &&
+                !isLinksOrLTAR(col)
+              ) {
+                NcError.badRequest(
+                  `Column "${col.title}" is virtual and cannot be updated`,
                 );
               }
 

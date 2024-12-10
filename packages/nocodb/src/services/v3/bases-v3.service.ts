@@ -17,15 +17,12 @@ import type {
 import type { Request } from 'express';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { populateMeta, validatePayload } from '~/helpers';
+import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
-import syncMigration from '~/helpers/syncMigration';
-import { Base, BaseUser, Integration } from '~/models';
-import Noco from '~/Noco';
-import { getToolDir } from '~/utils/nc-config';
+import { Base, BaseUser } from '~/models';
 import { MetaService } from '~/meta/meta.service';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 

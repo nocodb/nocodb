@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -10,14 +9,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectRoles, ProjectUserReqType } from 'nocodb-sdk';
-import type {
-  ProjectUserDeleteV3ReqType,
-  ProjectUserV3ReqType,
-} from 'nocodb-sdk';
+import type { ProjectUserV3ReqType } from 'nocodb-sdk';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -41,8 +35,6 @@ export class BaseUsersV3Controller {
     @Req()
     req: NcRequest,
   ) {
-    const baseRoles = Object.keys((req.user as any)?.base_roles ?? {});
-
     return await this.baseUsersV3Service.userList(context, {
       baseId,
     });

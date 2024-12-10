@@ -11,16 +11,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
-import type { BaseType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import Noco from '~/Noco';
-import { packageVersion } from '~/utils/packageVersion';
-import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { Filter } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
@@ -64,7 +57,7 @@ export class BasesController {
   }
 
   @Acl('baseUpdate')
-  @Patch(['/api/v1/db/meta/projects/:baseId', '/api/v3/meta/bases/:baseId'])
+  @Patch(['/api/v3/meta/bases/:baseId'])
   async baseUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

@@ -107,14 +107,14 @@ export const rowHeightInPx: Record<string, number> = {
   6: 120,
 }
 
-export const rowHeightTruncateLines = (rowHeight?: number) => {
+export const rowHeightTruncateLines = (rowHeight?: number, isSelectOption = false) => {
   switch (rowHeight) {
     case 2:
-      return 3
+      return 2
     case 4:
-      return 4
+      return isSelectOption ? 3 : 4
     case 6:
-      return 6
+      return isSelectOption ? 4 : 6
     default:
       return 1
   }

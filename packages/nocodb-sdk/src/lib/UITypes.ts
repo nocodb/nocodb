@@ -2,6 +2,7 @@ import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseHelper } from './helperFunctions';
+import { ncParseProp } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -329,5 +330,36 @@ export const getUITypesForFormulaDataType = (
       return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
     default:
       return [];
+  }
+};
+
+export const isSupportedDisplayValueColumn = (column: ColumnType) => {
+  switch (column.uidt) {
+    case UITypes.SingleLineText:
+    case UITypes.Date:
+    case UITypes.DateTime:
+    case UITypes.Time:
+    case UITypes.Year:
+    case UITypes.PhoneNumber:
+    case UITypes.Email:
+    case UITypes.URL:
+    case UITypes.Number:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Formula: {
+      return true;
+    }
+    case UITypes.LongText: {
+      if (ncParseProp(column.meta)?.richMode) {
+        return false;
+      }
+      //Todo: prevent AI Prompt field once it get merged in develop
+      return true;
+    }
+
+    default: {
+      return false;
+    }
   }
 };

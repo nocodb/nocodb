@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import type { AIRecordType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -69,9 +68,6 @@ const mousePosition = ref<
 >()
 
 const isDragging = ref(false)
-
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4
@@ -326,6 +322,14 @@ watch(
     immediate: true,
   },
 )
+
+const textAreaRef = ref<HTMLTextAreaElement>()
+
+watch(textAreaRef, (el) => {
+  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    el.focus()
+  }
+})
 </script>
 
 <template>
@@ -394,7 +398,7 @@ watch(
         }"
       >
         <textarea
-          :ref="focus"
+          ref="textAreaRef"
           v-model="vModel"
           :rows="isForm ? 5 : 4"
           class="h-full w-full !outline-none nc-scrollbar-thin"
@@ -511,14 +515,10 @@ watch(
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
-          'top-0': isGrid && !isExpandedFormOpen && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-0 right-1': isGrid && !isExpandedFormOpen && !isForm,
+          '!right-2 top-2': isGrid && !isExpandedFormOpen && !isForm && ((editEnabled && !isVisible) || isForm),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
         }"
-        :style="
-          isGrid && !isExpandedFormOpen && !isForm && (!rowHeight || rowHeight === 1)
-            ? { top: '50%', transform: 'translateY(-50%)' }
-            : undefined
-        "
       >
         <NcTooltip
           v-if="!isVisible && !isForm && !readOnly && props.isAi && !isExpandedFormOpen && !isEditColumn"

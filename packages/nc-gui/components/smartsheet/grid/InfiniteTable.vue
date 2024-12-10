@@ -195,6 +195,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1434,7 +1436,7 @@ const leftOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
   const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
   if (rowIndex !== null && colIndex !== null) {
@@ -1896,7 +1898,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   </template>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
@@ -2724,10 +2726,18 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
     &.align-top {
       @apply py-2;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply py-0 pr-0;
+      }
     }
 
     &.align-middle {
       @apply py-0;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply pr-0;
+      }
     }
 
     & > div {
@@ -2753,7 +2763,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
       .nc-cell-field,
       input,
       textarea {
-        @apply !text-small !p-0 m-0;
+        @apply !text-small !pl-0 !py-0 m-0;
       }
 
       &:not(.nc-display-value-cell) {
@@ -2772,7 +2782,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
       a.nc-cell-field-link,
       input,
       textarea {
-        @apply !p-0 m-0;
+        @apply !pl-0 !py-0 m-0;
       }
 
       a.nc-cell-field-link {
@@ -2786,7 +2796,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
         @apply leading-[18px];
 
         textarea {
-          @apply pr-2;
+          @apply pr-8 !py-2;
         }
       }
 

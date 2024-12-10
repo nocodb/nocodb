@@ -75,11 +75,12 @@ export const isUnicodeEmoji = (emoji: string) => {
 /**
  * Performs a case-insensitive search to check if the `query` exists within the `source`.
  *
- * - If `source` is an array, the function checks if any element (converted to a string) contains the `query`.
- * - If `source` is a string or number, it checks if the `query` exists within `source` (case-insensitively).
- * - If `source` or `query` is `undefined`, they are treated as empty strings.
+ * - Handles strings, numbers, and arrays (including nested arrays) of strings/numbers.
+ * - Treats `undefined` as an empty string.
  *
- * @param source - The value to search within. Can be a string, number, or an array of strings/numbers.
+ * @param source - The value to search within. Can be:
+ *   - A string or number.
+ *   - A single-level or nested array of strings/numbers.
  * @param query - The value to search for. Treated as an empty string if `undefined`.
  * @returns `true` if the `query` is found within the `source` (case-insensitively), otherwise `false`.
  *
@@ -87,27 +88,24 @@ export const isUnicodeEmoji = (emoji: string) => {
  * ```typescript
  * // Single string or number search
  * searchCompare("Hello World", "world"); // true
- * searchCompare("OpenAI ChatGPT", "gpt"); // true
- * searchCompare("TypeScript", "JavaScript"); // false
+ * searchCompare(12345, "234"); // true
  *
  * // Array search
  * searchCompare(["apple", "banana", "cherry"], "Banana"); // true
  * searchCompare([123, 456, 789], "456"); // true
- * searchCompare([null, undefined, "test"], "TEST"); // true
+ *
+ * // Nested array search
+ * searchCompare(["apple", ["banana", ["cherry"]]], "cherry"); // true
+ * searchCompare([123, [456, [789]]], "456"); // true
  *
  * // Handling undefined
  * searchCompare(undefined, "test"); // false
  * searchCompare("test", undefined); // true
  * ```
  */
-export const searchCompare = (source?: string | number | (string | number | undefined)[], query?: string): boolean => {
+export const searchCompare = (source?: NestedArray<string | number | undefined>, query?: string): boolean => {
   if (ncIsArray(source)) {
-    return source.some((item) => {
-      return (item || '')
-        .toString()
-        .toLowerCase()
-        .includes((query || '').toLowerCase())
-    })
+    return source.some((item) => searchCompare(item, query))
   }
 
   return (source || '')

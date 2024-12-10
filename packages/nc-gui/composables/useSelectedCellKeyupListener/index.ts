@@ -7,7 +7,8 @@ function useSelectedCellKeyupListener(
   { immediate = false }: { immediate?: boolean } = {},
 ) {
   const finalHandler = (e: KeyboardEvent) => {
-    if (cmdKActive()) return
+    if (cmdKActive() || isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen()) return
+    // TODO: Check if their is any active element which is outside grid then return
     handler(e)
   }
 

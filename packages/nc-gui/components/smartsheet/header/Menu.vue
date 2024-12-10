@@ -1,6 +1,12 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  columnTypeName,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -578,19 +584,25 @@ const onDeleteColumn = () => {
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
-          @click="setAsDisplayValue"
+        <NcTooltip
+          v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
+          :disabled="isSupportedDisplayValueColumn(column)"
         >
-          <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
-            <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+          <template #title>
+            {{ `${columnTypeName(column)} field cannot be used as display value field` }}
+          </template>
 
-            <!--       todo : tooltip -->
-            <!-- Set as Display value -->
-            {{ $t('activity.setDisplay') }}
-          </div>
-        </NcMenuItem>
+          <NcMenuItem :disabled="!isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
+            <div class="nc-column-set-primary nc-header-menu-item item">
+              <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+              <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+
+              <!--       todo : tooltip -->
+              <!-- Set as Display value -->
+              {{ $t('activity.setDisplay') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
 
         <template v-if="!isExpandedForm">
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />

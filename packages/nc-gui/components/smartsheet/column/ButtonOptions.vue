@@ -365,7 +365,7 @@ const selectIcon = (icon: string) => {
   isButtonIconDropdownOpen.value = false
 }
 
-const handleUpdateActionType = (type: ButtonActionsType) => {
+const handleUpdateActionType = () => {
   vModel.value.formula_raw = ''
 }
 

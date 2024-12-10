@@ -94,7 +94,7 @@ export const UITypesName = {
   AIPrompt: 'AI Prompt',
 };
 
-export const columnTypeName = (column: ColumnType) => {
+export const columnTypeName = (column?: ColumnType) => {
   if (!column) return '';
 
   switch (column.uidt) {
@@ -102,7 +102,10 @@ export const columnTypeName = (column: ColumnType) => {
       if (ncParseProp(column.meta)?.richMode) {
         return UITypesName.RichText;
       }
-      //Todo: prevent AI Prompt field once it get merged in develop
+
+      if (ncParseProp(column.meta)[LongTextAiMetaProp]) {
+        return UITypesName.AIPrompt;
+      }
 
       return UITypesName[column.uidt];
     }

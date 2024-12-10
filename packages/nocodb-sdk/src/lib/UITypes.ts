@@ -1,7 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
-import { parseHelper } from './helperFunctions';
+import { parseHelper, ncParseProp } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -92,6 +92,37 @@ export const UITypesName = {
   [UITypes.LastModifiedBy]: 'Last modified by',
   AIButton: 'AI Button',
   AIPrompt: 'AI Prompt',
+};
+
+export const columnTypeName = (column?: ColumnType) => {
+  if (!column) return '';
+
+  switch (column.uidt) {
+    case UITypes.LongText: {
+      if (ncParseProp(column.meta)?.richMode) {
+        return UITypesName.RichText;
+      }
+
+      if (ncParseProp(column.meta)[LongTextAiMetaProp]) {
+        return UITypesName.AIPrompt;
+      }
+
+      return UITypesName[column.uidt];
+    }
+    case UITypes.Button: {
+      if (
+        column.uidt === UITypes.Button &&
+        (column?.colOptions as any)?.type === 'ai'
+      ) {
+        return UITypesName.AIButton;
+      }
+
+      return UITypesName[column.uidt];
+    }
+    default: {
+      return column.uidt ? UITypesName[column.uidt] : '';
+    }
+  }
 };
 
 export const FieldNameFromUITypes: Record<UITypes, string> = {
@@ -188,12 +219,11 @@ export function isVirtualCol(
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
 
-export function isAIPromptCol(
-  col:
-    | ColumnReqType
-    | ColumnType
-) {
-  return col.uidt === UITypes.LongText && parseHelper((col as any)?.meta)?.[LongTextAiMetaProp];
+export function isAIPromptCol(col: ColumnReqType | ColumnType) {
+  return (
+    col.uidt === UITypes.LongText &&
+    parseHelper((col as any)?.meta)?.[LongTextAiMetaProp]
+  );
 }
 
 export function isCreatedOrLastModifiedTimeCol(
@@ -329,5 +359,41 @@ export const getUITypesForFormulaDataType = (
       return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
     default:
       return [];
+  }
+};
+
+export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
+  if (!column?.uidt) return false;
+
+  switch (column.uidt) {
+    case UITypes.SingleLineText:
+    case UITypes.Date:
+    case UITypes.DateTime:
+    case UITypes.Time:
+    case UITypes.Year:
+    case UITypes.PhoneNumber:
+    case UITypes.Email:
+    case UITypes.URL:
+    case UITypes.Number:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Decimal:
+    case UITypes.Formula: {
+      return true;
+    }
+    case UITypes.LongText: {
+      if (
+        ncParseProp(column.meta)?.richMode ||
+        ncParseProp(column.meta)[LongTextAiMetaProp]
+      ) {
+        return false;
+      }
+      return true;
+    }
+
+    default: {
+      return false;
+    }
   }
 };

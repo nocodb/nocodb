@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, isAIPromptCol } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -10,7 +10,7 @@ import {
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
+import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -195,7 +195,7 @@ const predictedFieldType = ref<UITypes | null>(null)
 
 // const lastPredictedAt = ref<number>(0)
 
-const uiTypesOptions = computed<typeof uiTypes>(() => {
+const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: string })[]>(() => {
   const types = [
     ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
@@ -236,7 +236,25 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
     }
   }
 
-  return types
+  if (!isEdit.value) {
+    return types
+  } else {
+    return types.map((type) => {
+      if (!isEdit.value) return type
+
+      const isColumnTypeDisabled =
+        !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
+
+      return {
+        ...type,
+        disabled: isColumnTypeDisabled,
+        tooltip:
+          isColumnTypeDisabled && UITypesName[type.name]
+            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            : '',
+      }
+    })
+  }
 })
 
 const editOrAddRef = ref<HTMLDivElement>()
@@ -504,10 +522,7 @@ const submitBtnLabel = computed(() => {
 })
 
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return (
-    option.value.toLowerCase().includes(input.toLowerCase()) ||
-    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
-  )
+  return searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
 }
 
 const triggerDescriptionEnable = () => {
@@ -1077,7 +1092,7 @@ watch(activeAiTab, (newValue) => {
                 v-for="opt of uiTypesOptions"
                 :key="opt.name"
                 :value="opt.name"
-                :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
+                :disabled="(isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)) || opt.disabled"
                 v-bind="validateInfos.uidt"
                 :class="{
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
@@ -1085,7 +1100,15 @@ watch(activeAiTab, (newValue) => {
                 }"
                 @mouseover="handleResetHoverEffect"
               >
-                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name" :data-title="formState?.type">
+                <NcTooltip
+                  class="w-full flex gap-2 items-center justify-between"
+                  placement="right"
+                  :disabled="!opt?.tooltip"
+                  :attrs="{
+                    'data-testid': opt.name,
+                  }"
+                >
+                  <template #title> {{ opt?.tooltip }} </template>
                   <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">
                     <component
                       :is="
@@ -1095,8 +1118,7 @@ watch(activeAiTab, (newValue) => {
                           ? iconMap.cellAi
                           : opt.icon
                       "
-                      class="nc-field-type-icon w-4 h-4"
-                      :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
+                      class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div class="flex-1">
                       {{ UITypesName[opt.name] }}
@@ -1118,7 +1140,7 @@ watch(activeAiTab, (newValue) => {
                       'text-nc-content-purple-medium': isAiMode,
                     }"
                   />
-                </div>
+                </NcTooltip>
               </a-select-option>
             </a-select>
           </NcTooltip>
@@ -1410,11 +1432,6 @@ watch(activeAiTab, (newValue) => {
   }
 }
 
-:deep(.ant-select-disabled.nc-column-type-input) {
-  .nc-field-type-icon {
-    @apply text-current;
-  }
-}
 :deep(.ant-select.nc-column-type-input) {
   .nc-new-field-badge {
     @apply hidden;

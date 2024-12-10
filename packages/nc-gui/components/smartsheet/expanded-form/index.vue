@@ -693,21 +693,21 @@ export default {
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate w-[128px]">
+              <span class="truncate w-[120px] md:w-[300px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
         </div>
-        <div class="ml-auto md:mx-auto">
+        <div class="ml-auto">
           <NcSelectTab
             v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             v-model="activeViewMode"

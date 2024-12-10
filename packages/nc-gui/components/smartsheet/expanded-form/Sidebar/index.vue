@@ -32,18 +32,18 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
-      <a-tab-pane key="audits" class="w-full" :disabled="appInfo.ee">
+      <a-tab-pane key="audits" class="w-full">
         <template #tab>
-          <NcTooltip v-if="appInfo.ee" class="tab flex-1">
+          <!-- <NcTooltip v-if="appInfo.ee" class="tab flex-1">
             <template #title>{{ $t('title.comingSoon') }}</template>
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
               <GeneralIcon icon="audit" class="w-4 h-4" />
               <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
             </div>
-          </NcTooltip>
+          </NcTooltip> -->
 
-          <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
+          <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
             <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
           </div>

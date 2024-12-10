@@ -306,6 +306,8 @@ interface ProductFeedItem {
 
 type SordDirectionType = 'asc' | 'desc' | undefined
 
+type NestedArray<T> = T | NestedArray<T>[]
+
 export type {
   User,
   ProjectMetaInfo,
@@ -341,4 +343,5 @@ export type {
   SordDirectionType,
   ProductFeedItem,
   Attachment,
+  NestedArray,
 }

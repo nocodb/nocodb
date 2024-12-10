@@ -195,6 +195,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1434,7 +1436,7 @@ const leftOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
   const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
   if (rowIndex !== null && colIndex !== null) {
@@ -1896,7 +1898,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   </template>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
                   :data-col="fields[0].id"

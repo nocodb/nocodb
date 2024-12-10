@@ -72,7 +72,7 @@ watch(rateDomRef, () => {
       'padding': isExpandedFormOpen ? '0px 8px' : '0px 2px',
       'display': '-webkit-box',
       'max-width': '100%',
-      '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
+      '-webkit-line-clamp': rowHeight === 6 ? 5 : rowHeightTruncateLines(rowHeight, true),
       '-webkit-box-orient': 'vertical',
       'overflow': 'hidden',
     }"

@@ -1214,6 +1214,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1376,7 +1378,7 @@ const topOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   nextTick(() => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
@@ -1834,7 +1836,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"

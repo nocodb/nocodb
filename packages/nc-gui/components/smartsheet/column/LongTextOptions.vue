@@ -190,7 +190,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         <template #title>
           {{
             isPvColumn && !richMode
-              ? `${UITypesName.RichText} field cannot be a display value field`
+              ? `${UITypesName.RichText} field cannot be used as display value field`
               : 'Rich text formatting is not supported when generate text using AI is enabled'
           }}
         </template>
@@ -210,7 +210,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           <template #title>
             {{
               isPvColumn && !isEnabledGenerateText
-                ? `${UITypesName.AIPrompt} field cannot be a display value field`
+                ? `${UITypesName.AIPrompt} field cannot be used as display value field`
                 : 'Generate text using AI is not supported when rich text formatting is enabled'
             }}</template
           >

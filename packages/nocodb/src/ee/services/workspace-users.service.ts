@@ -67,16 +67,20 @@ export class WorkspaceUsersService {
     return user;
   }
 
-  async update(param: {
-    workspaceId: string;
-    userId: string;
-    roles: WorkspaceUserRoles;
-    siteUrl: string;
-    req: NcRequest;
-  }) {
+  async update(
+    param: {
+      workspaceId: string;
+      userId: string;
+      roles: WorkspaceUserRoles;
+      siteUrl: string;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
       param.userId,
+      ncMeta,
     );
 
     if (!workspaceUser)
@@ -108,11 +112,11 @@ export class WorkspaceUsersService {
       );
     }
 
-    const user = await User.get(param.userId);
+    const user = await User.get(param.userId, ncMeta);
 
     if (!user) NcError.userNotFound(param.userId);
 
-    const workspace = await Workspace.get(param.workspaceId);
+    const workspace = await Workspace.get(param.workspaceId, undefined, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
@@ -131,32 +135,43 @@ export class WorkspaceUsersService {
 
     // if old role is owner and there is only one owner then restrict to update
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-      const wsOwners = await WorkspaceUser.userList({
-        fk_workspace_id: workspace.id,
-        roles: WorkspaceUserRoles.OWNER,
-      });
+      const wsOwners = await WorkspaceUser.userList(
+        {
+          fk_workspace_id: workspace.id,
+          roles: WorkspaceUserRoles.OWNER,
+        },
+        ncMeta,
+      );
 
       if (wsOwners.length === 1) {
         NcError.badRequest('At least one owner should be there');
       }
     }
 
-    await WorkspaceUser.update(param.workspaceId, param.userId, {
-      roles: param.roles,
-    });
+    await WorkspaceUser.update(
+      param.workspaceId,
+      param.userId,
+      {
+        roles: param.roles,
+      },
+      ncMeta,
+    );
 
-    this.sendRoleUpdateEmail({
-      workspace,
-      user,
-      roles: param.roles,
-      siteUrl: getWorkspaceSiteUrl({
-        siteUrl: param.siteUrl,
-        workspaceId: workspace.id,
-        mainSubDomain: this.config.get('mainSubDomain', {
-          infer: true,
+    this.sendRoleUpdateEmail(
+      {
+        workspace,
+        user,
+        roles: param.roles,
+        siteUrl: getWorkspaceSiteUrl({
+          siteUrl: param.siteUrl,
+          workspaceId: workspace.id,
+          mainSubDomain: this.config.get('mainSubDomain', {
+            infer: true,
+          }),
         }),
-      }),
-    }).then(() => {
+      },
+      ncMeta,
+    ).then(() => {
       /* ignore */
     });
 
@@ -504,21 +519,24 @@ export class WorkspaceUsersService {
     }
   }
 
-  private async sendRoleUpdateEmail({
-    user,
-    workspace,
-    roles,
-    siteUrl,
-  }: {
-    workspace: Workspace;
-    roles: any;
-    user: any;
-    siteUrl: string;
-  }) {
+  private async sendRoleUpdateEmail(
+    {
+      user,
+      workspace,
+      roles,
+      siteUrl,
+    }: {
+      workspace: Workspace;
+      roles: any;
+      user: any;
+      siteUrl: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
       const template = (await import('~/helpers/email-templates/roleUpdate'))
         .default;
-      await NcPluginMgrv2.emailAdapter()
+      await NcPluginMgrv2.emailAdapter(undefined, ncMeta)
         .then((adapter) => {
           if (!adapter)
             return Promise.reject(

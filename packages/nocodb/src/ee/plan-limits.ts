@@ -1,6 +1,7 @@
 import { PlanLimitTypes, WorkspacePlan } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Workspace from '~/models/Workspace';
+import Noco from '~/Noco';
 
 const PlanLimits = {
   generic: {
@@ -54,7 +55,11 @@ function getLimitsForPlan(plan: WorkspacePlan) {
   };
 }
 
-async function getLimit(type: PlanLimitTypes, workspaceId?: string, ncMeta = Noco.ncMeta) {
+async function getLimit(
+  type: PlanLimitTypes,
+  workspaceId?: string,
+  ncMeta = Noco.ncMeta,
+) {
   if (!workspaceId) {
     if (!PlanLimits.generic[type]) {
       NcError.forbidden('You are not allowed to perform this action');
@@ -63,7 +68,7 @@ async function getLimit(type: PlanLimitTypes, workspaceId?: string, ncMeta = Noc
     return PlanLimits.generic[type] || Infinity;
   }
 
-  const workspace = await Workspace.get(workspaceId, ncMeta);
+  const workspace = await Workspace.get(workspaceId, undefined, ncMeta);
 
   if (!workspace) {
     NcError.forbidden('You are not allowed to perform this action');

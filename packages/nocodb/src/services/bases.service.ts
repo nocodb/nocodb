@@ -27,6 +27,7 @@ import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
+import { stringifyMetaProp } from '~/utils/modelUtils';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -89,6 +90,11 @@ export class BasesService {
     );
 
     const base = await Base.getWithInfo(context, param.baseId);
+
+    // stringify meta prop then only we can make the sanitize function work
+    if ('meta' in param.base) {
+      param.base.meta = stringifyMetaProp(param.base);
+    }
 
     const data: Partial<Base> = extractPropsAndSanitize(param?.base as Base, [
       'title',

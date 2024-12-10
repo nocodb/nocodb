@@ -192,6 +192,12 @@ export default class Base extends BaseCE {
       'is_snapshot',
       'fk_custom_url_id',
     ]);
+
+    // stringify meta
+    if (updateObj.meta) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -222,11 +228,6 @@ export default class Base extends BaseCE {
 
       // set cache
       await NocoCache.set(key, o);
-    }
-
-    // stringify meta
-    if (updateObj.meta) {
-      updateObj.meta = stringifyMetaProp(updateObj);
     }
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {

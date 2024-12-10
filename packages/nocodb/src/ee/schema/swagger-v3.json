@@ -897,6 +897,34 @@
           }
         ],
         "description": "At least one of the properties (`id` or `email`) must be provided."
+      },
+      "BaseV3Req": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "My Base",
+            "description": "The name of the base."
+          },
+          "description": {
+            "type": "string",
+            "example": "This is my base.",
+            "description": "The description of the base."
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "icon_color": {
+                "type": "string",
+                "example": "#36BFFF",
+                "description": "The color of the icon associated with the base."
+              }
+            }
+          }
+        },
+        "required": [
+          "title"
+        ]
       }
     },
     "responses": {

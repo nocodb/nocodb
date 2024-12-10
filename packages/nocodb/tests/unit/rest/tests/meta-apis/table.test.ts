@@ -18,7 +18,9 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     isV1 ? 'projects' : 'bases'
   }`;
 
-  const isEE = !!process.env.EE;
+  const META_API_TABLE_ROUTE = `/api/${API_VERSION}${
+    isV1 ? '/db' : ''
+  }/meta/tables`;
 
   function tableTests() {
     let context: Awaited<ReturnType<typeof init>>;
@@ -43,7 +45,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(response.body.list.length).to.eq(1);
 
       const responseTable = response.body.list[0];
-      matchTable(responseTable, table);
+      matchTable(responseTable, table, false);
     });
 
     it(`Create table with no table title ${API_VERSION}`, async function () {
@@ -129,9 +131,9 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       );
     });
 
-    it('Create table', async function () {
+    it(`Create table ${API_VERSION}`, async function () {
       const response = await request(context.app)
-        .post(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .post(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({
           table_name: 'table2',
@@ -141,77 +143,64 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .expect(200);
 
       const tables = await getAllTables({ base });
-      if (tables.length !== 2) {
-        return new Error('Tables is not be created');
-      }
+      expect(tables.length).to.eq(2);
 
-      if (response.body.columns.length !== defaultColumns(context)) {
-        return new Error('Columns not saved properly');
-      }
+      expect(response.body.columns.length).to.eq(
+        defaultColumns(context).length + 3, // nc_order, createdby, updatedby
+      );
 
-      if (
-        !(
-          response.body.table_name.startsWith(base.prefix) &&
-          response.body.table_name.endsWith('table2')
-        )
-      ) {
-        return new Error('table name not configured properly');
-      }
+      expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
+      expect(response.body.table_name.endsWith('table2')).to.eq(true);
     });
 
-    it('Update table', async function () {
+    it(`Update table ${API_VERSION}`, async function () {
       const ctx = {
         workspace_id: base.fk_workspace_id,
         base_id: base.id,
       };
 
-      const response = await request(context.app)
-        .patch(`/api/v1/db/meta/tables/${table.id}`)
+      await request(context.app)
+        .patch(`${META_API_TABLE_ROUTE}/${table.id}`)
         .set('xc-auth', context.token)
         .send({
           base_id: base.id,
           table_name: 'new_title',
         })
         .expect(200);
-      const updatedTable = await Model.get(ctx, table.id);
 
-      if (!updatedTable.table_name.endsWith('new_title')) {
-        return new Error('Table was not updated');
-      }
+      const updatedTable = await Model.get(ctx, table.id);
+      expect(updatedTable.table_name.endsWith('new_title')).to.eq(true);
     });
 
-    it('Delete table', async function () {
-      const response = await request(context.app)
-        .delete(`/api/v1/db/meta/tables/${table.id}`)
+    it(`Delete table ${API_VERSION}`, async function () {
+      await request(context.app)
+        .delete(`${META_API_TABLE_ROUTE}/${table.id}`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
 
       const tables = await getAllTables({ base });
-
-      if (tables.length !== 0) {
-        return new Error('Table is not deleted');
-      }
+      expect(tables.length).to.eq(0);
     });
 
     // todo: Check the condtion where the table being deleted is being refered by multiple tables
     // todo: Check the if views are also deleted
 
-    it('Get table', async function () {
+    it(`Get table ${API_VERSION}`, async function () {
       const response = await request(context.app)
-        .get(`/api/v1/db/meta/tables/${table.id}`)
+        .get(`${META_API_TABLE_ROUTE}/${table.id}`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
 
-      if (response.body.id !== table.id) new Error('Wrong table');
+      matchTable(response.body, table, true);
     });
 
     // todo: flaky test, order condition is sometimes not met
-    it('Reorder table', async function () {
+    it(`Reorder table ${API_VERSION}`, async function () {
       const newOrder = table.order === 0 ? 1 : 0;
-      const response = await request(context.app)
-        .post(`/api/v1/db/meta/tables/${table.id}/reorder`)
+      await request(context.app)
+        .post(`${META_API_TABLE_ROUTE}/${table.id}/reorder`)
         .set('xc-auth', context.token)
         .send({
           order: newOrder,
@@ -230,9 +219,9 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       // });
     });
 
-    it('Add and delete view should update hasNonDefaultViews', async () => {
+    it(`Add and delete view should update hasNonDefault Views ${API_VERSION}`, async () => {
       let response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
@@ -246,17 +235,17 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       });
 
       response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
 
       expect(response.body.list[0].meta.hasNonDefaultViews).to.be.true;
 
-      await deleteView(context, { viewId: view.id });
+      await deleteView(context, { viewId: view.id! });
 
       response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
@@ -264,9 +253,9 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
     });
 
-    it('Project with empty meta should update hasNonDefaultViews', async () => {
+    it(`Project with empty meta should update hasNonDefault Views ${API_VERSION}`, async () => {
       let response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
@@ -287,17 +276,17 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       });
 
       response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
 
       expect(response.body.list[0].meta.hasNonDefaultViews).to.be.true;
 
-      await deleteView(context, { viewId: view.id });
+      await deleteView(context, { viewId: view.id! });
 
       response = await request(context.app)
-        .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+        .get(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
@@ -306,7 +295,10 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     });
   }
 
-  function matchTable(responseTable: any, table: Model) {
+  /**
+   * @param deep -> Used to check when single table is being compared (not the list api)
+   */
+  function matchTable(responseTable: any, table: Model, deep: boolean) {
     expect(responseTable).to.haveOwnProperty('id');
     expect(responseTable.id).to.eq(table.id);
 
@@ -319,10 +311,16 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     expect(responseTable).to.haveOwnProperty('description');
     expect(responseTable.description).to.eq(table.description);
 
-    if (isV1 || isV2) {
-      expect(responseTable).to.haveOwnProperty('base_id');
-      expect(responseTable.base_id).to.eq(table.base_id);
+    expect(responseTable).to.haveOwnProperty('base_id');
+    expect(responseTable.base_id).to.eq(table.base_id);
 
+    if (deep) {
+      if (isV3) {
+        expect(responseTable).to.haveOwnProperty('display_field_id');
+      }
+    }
+
+    if (isV1 || isV2) {
       expect(responseTable).to.haveOwnProperty('table_name');
       expect(responseTable.table_name).to.eq(table.table_name);
 

@@ -261,36 +261,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const loadAudits = async (
     _workspaceId?: string,
-    page: number = auditPaginationData.value.page!,
-    limit: number = auditPaginationData.value.pageSize!,
-  ) => {
-    try {
-      if (limit * (page - 1) > auditPaginationData.value.totalRows!) {
-        auditPaginationData.value.page = 1
-        page = 1
-      }
-
-      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
-        ? await $api.utils.projectAuditList({
-            offset: limit * (page - 1),
-            limit,
-            ...auditLogsQuery.value,
-          })
-        : await $api.base.auditList(auditLogsQuery.value.baseId, {
-            offset: limit * (page - 1),
-            limit,
-            ...auditLogsQuery.value,
-          })
-
-      audits.value = list
-      auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-    } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
-      audits.value = []
-      auditPaginationData.value.totalRows = 0
-      auditPaginationData.value.page = 1
-    }
-  }
+    _page: number = auditPaginationData.value.page!,
+    _limit: number = auditPaginationData.value.pageSize!,
+  ) => {}
 
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading

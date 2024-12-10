@@ -2739,10 +2739,18 @@ onKeyStroke('ArrowDown', onDown)
 
     &.align-top {
       @apply py-2;
+
+      &:has(.nc-cell textarea) {
+        @apply pr-0;
+      }
     }
 
     &.align-middle {
       @apply py-0;
+
+      &:has(.nc-cell textarea) {
+        @apply py-2 pr-0;
+      }
     }
 
     & > div {
@@ -2765,10 +2773,14 @@ onKeyStroke('ArrowDown', onDown)
     :deep(.nc-virtual-cell) {
       @apply !text-small;
 
+      textarea {
+        @apply !pr-8;
+      }
+
       .nc-cell-field,
       input,
       textarea {
-        @apply !text-small !p-0 m-0;
+        @apply !text-small !pl-0 !py-0 m-0;
       }
 
       &:not(.nc-display-value-cell) {
@@ -2787,7 +2799,7 @@ onKeyStroke('ArrowDown', onDown)
       a.nc-cell-field-link,
       input,
       textarea {
-        @apply !p-0 m-0;
+        @apply !pl-0 !py-0 m-0;
       }
 
       a.nc-cell-field-link {

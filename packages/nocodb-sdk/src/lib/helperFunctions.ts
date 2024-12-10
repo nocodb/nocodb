@@ -256,7 +256,7 @@ export function parseHelper(v: any): any {
 
 export function stringifyHelper(v: any): string {
   try {
-    return JSON.stringify(v);
+    return typeof v === 'string' ? v : JSON.stringify(v);
   } catch {
     return v;
   }

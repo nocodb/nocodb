@@ -3,7 +3,7 @@ import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
-import type { NcApiVersion } from 'nc-gui/lib/enums';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';

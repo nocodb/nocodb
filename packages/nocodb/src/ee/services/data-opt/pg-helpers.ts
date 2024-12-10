@@ -8,7 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { NcApiVersion } from 'nc-gui/lib/enums';
+import { NcApiVersion } from 'nocodb-sdk';
 import {
   checkForStaticDateValFilters,
   shouldSkipCache,

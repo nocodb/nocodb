@@ -12,7 +12,7 @@ import {
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from './common-helpers';
-import type { NcApiVersion } from 'nc-gui/lib/enums';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {

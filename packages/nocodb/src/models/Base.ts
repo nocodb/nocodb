@@ -29,9 +29,9 @@ export default class Base implements BaseType {
   public description: string;
   public meta: MetaType;
   public color: string;
-  public deleted: BoolType;
+  public deleted: BoolType | number;
   public order: number;
-  public is_meta = false;
+  public is_meta: boolean | number = false;
   public sources?: Source[];
   public linked_db_projects?: Base[];
 

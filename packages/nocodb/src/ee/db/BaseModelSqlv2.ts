@@ -33,7 +33,7 @@ import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
-import { NcApiVersion } from 'nc-gui/lib/enums';
+import { NcApiVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';

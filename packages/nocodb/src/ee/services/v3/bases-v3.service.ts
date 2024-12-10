@@ -7,17 +7,14 @@ import { MetaService } from '~/meta/meta.service';
 import { TablesService } from '~/services/tables.service';
 
 import { NcError } from '~/helpers/catchError';
-import {BasesService} from "~/services/bases.service";
+import { BasesService } from '~/services/bases.service';
 
 @Injectable()
 export class BasesV3Service extends BasesV3ServiceCE {
   constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected metaService: MetaService,
-    protected tablesService: TablesService,
     protected basesService: BasesService,
   ) {
-    super(appHooksService, metaService, tablesService, basesService);
+    super( basesService);
   }
 
   protected async getBaseList(
@@ -35,6 +32,4 @@ export class BasesV3Service extends BasesV3ServiceCE {
 
     return bases;
   }
-
-
 }

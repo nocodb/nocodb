@@ -11,6 +11,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import {NcApiVersion} from "nocodb-sdk";
 
 @Injectable()
 export class TablesService extends TableServiceCE {
@@ -30,6 +31,7 @@ export class TablesService extends TableServiceCE {
       table: TableReqType;
       user: User | UserType;
       req?: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const base = await Base.getWithInfo(context, param.baseId);

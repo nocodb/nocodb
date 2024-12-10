@@ -925,6 +925,29 @@
         "required": [
           "title"
         ]
+      },
+      "TableV3Req": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "My Table",
+            "description": "The name of the table."
+          },
+          "description": {
+            "type": "string",
+            "example": "This is my table.",
+            "description": "The description of the table."
+          },
+          "source_id": {
+            "type": "string",
+            "example": "ds_1",
+            "description": "The ID of the source associated with the table."
+          }
+        },
+        "required": [
+          "title"
+        ]
       }
     },
     "responses": {

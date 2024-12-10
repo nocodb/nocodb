@@ -1,7 +1,7 @@
 import {
   isAIPromptCol,
   isLinksOrLTAR,
-  isVirtualCol,
+  isVirtualCol, NcApiVersion,
   RelationTypes,
   UITypes,
   ViewTypes,
@@ -753,6 +753,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    apiVersion: NcApiVersion.V2
                   },
                 );
 

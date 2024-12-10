@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcApiVersion } from 'nc-gui/lib/enums';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';

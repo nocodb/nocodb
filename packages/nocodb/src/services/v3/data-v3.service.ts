@@ -1,4 +1,4 @@
-import {NcApiVersion} from 'nc-gui/lib/enums';
+import {NcApiVersion} from 'nocodb-sdk';
 import {Injectable} from '@nestjs/common';
 import type {NcContext, NcRequest} from '~/interface/config';
 import {PagedResponseV3Impl} from '~/helpers/PagedResponse';

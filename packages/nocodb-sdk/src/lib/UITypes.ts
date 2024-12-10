@@ -362,7 +362,7 @@ export const getUITypesForFormulaDataType = (
   }
 };
 
-export const isSupportedDisplayValueColumn = (column: ColumnType) => {
+export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
   if (!column?.uidt) return false;
 
   switch (column.uidt) {

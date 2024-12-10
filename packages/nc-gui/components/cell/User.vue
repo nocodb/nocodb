@@ -247,9 +247,15 @@ useSelectedCellKeyupListener(activeCell, (e) => {
 })
 
 // close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
-})
+useSelectedCellKeyupListener(
+  isOpen,
+  (e) => {
+    if (e.key === 'Escape') isOpen.value = false
+  },
+  {
+    isGridCell: false,
+  },
+)
 
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value

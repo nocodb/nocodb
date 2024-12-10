@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { columnTypeName, isAIPromptCol, UITypes, UITypesName } from 'nocodb-sdk'
+import { UITypes, UITypesName, isAIPromptCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any

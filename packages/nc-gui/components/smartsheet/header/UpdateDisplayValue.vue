@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, isSupportedDisplayValueColumn, isSystemColumn, isVirtualCol, UITypes, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -37,9 +37,10 @@ const filteredColumns = computed(() => {
         title: f.title,
         id: f.fk_column_id,
         disabled: !isSupportedDisplayValueColumn(column),
-        ncItemTooltip: !isSupportedDisplayValueColumn(column)
-          ? `${column?.uidt ? UITypesName[column.uidt as UITypes] : 'This'} field cannot be a display value field`
-          : '',
+        ncItemTooltip:
+          !isSupportedDisplayValueColumn(column) && columnTypeName(column)
+            ? `${columnTypeName(column)} field cannot be a display value field`
+            : '',
         column: column,
       }
     })

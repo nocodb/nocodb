@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  columnTypeName,
+  isVirtualCol,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
@@ -578,16 +585,25 @@ const onDeleteColumn = () => {
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="column && isSupportedDisplayValueColumn(column) && !column?.pv && !isHiddenCol" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
-            <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+        <NcTooltip
+          v-if="column && !column?.pv && !isHiddenCol && (column.uidt === UITypes.Formula || !isVirtualCol(column))"
+          :disabled="isSupportedDisplayValueColumn(column)"
+        >
+          <template #title>
+            {{ `${columnTypeName(column)} field cannot be a display value field` }}
+          </template>
 
-            <!--       todo : tooltip -->
-            <!-- Set as Display value -->
-            {{ $t('activity.setDisplay') }}
-          </div>
-        </NcMenuItem>
+          <NcMenuItem @click="setAsDisplayValue" :disabled="!isSupportedDisplayValueColumn(column)">
+            <div class="nc-column-set-primary nc-header-menu-item item">
+              <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+              <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+
+              <!--       todo : tooltip -->
+              <!-- Set as Display value -->
+              {{ $t('activity.setDisplay') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
 
         <template v-if="!isExpandedForm">
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />

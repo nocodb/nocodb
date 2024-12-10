@@ -31,7 +31,7 @@ onMounted(() => {
 <template>
   <div class="flex p-5 nc-base-settings justify-center overflow-auto gap-8">
     <!-- Left Pane -->
-    <div class="flex flex-col">
+    <div v-if="isEeUI" class="flex flex-col">
       <div class="h-full w-60">
         <div
           v-if="isEeUI && hasPermissionForSnapshots"

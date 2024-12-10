@@ -196,7 +196,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
-  if (!option?.[optionValueKey] || option?.disabled) return
+  if (!ncIsObject(option) || !(optionValueKey in option) || option.disabled) return
 
   if (index !== undefined) {
     activeOptionIndex.value = index

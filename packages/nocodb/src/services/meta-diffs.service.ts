@@ -280,7 +280,7 @@ export class MetaDiffsService {
             UITypes.Barcode,
             UITypes.Button,
           ].includes(column.uidt)
-          || isAIPromptCol(col)
+          || isAIPromptCol(column)
         ) {
           if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);

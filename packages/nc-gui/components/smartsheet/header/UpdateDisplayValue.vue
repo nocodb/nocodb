@@ -36,9 +36,9 @@ const filteredColumns = computed(() => {
       return {
         title: f.title,
         id: f.fk_column_id,
-        disabled: !isSupportedDisplayValueColumn(column),
+        disabled: !isSupportedDisplayValueColumn(column) && !column.pv,
         ncItemTooltip:
-          !isSupportedDisplayValueColumn(column) && columnTypeName(column)
+          !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
             ? `${columnTypeName(column)} field cannot be a display value field`
             : '',
         column,

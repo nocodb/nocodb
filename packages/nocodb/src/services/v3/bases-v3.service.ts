@@ -1,15 +1,15 @@
-import {Injectable} from '@nestjs/common';
-import {extractRolesObj, OrgUserRoles, BaseType} from 'nocodb-sdk';
+import { Injectable } from '@nestjs/common';
+import { BaseType, extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
-import type {NcContext, NcRequest} from '~/interface/config';
-import {Base, BaseUser, Source} from '~/models';
-import {builderGenerator} from '~/utils/api-v3-data-transformation.builder';
-import {BasesService} from '~/services/bases.service';
-import {RootScopes} from "~/utils/globals";
+import type { NcContext, NcRequest } from '~/interface/config';
+import { Base, BaseUser, Source } from '~/models';
+import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+import { BasesService } from '~/services/bases.service';
+import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class BasesV3Service {
@@ -71,6 +71,7 @@ export class BasesV3Service {
     param: {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
+      workspaceId: string;
     },
   ) {
     const bases = await this.getBaseList(context, param);
@@ -88,7 +89,14 @@ export class BasesV3Service {
 
   async getProject(context: NcContext, param: { baseId: string }) {
     const base = await Base.get(context, param.baseId);
-    return base;
+
+    const sources = this.sourceBuilder().build(
+      (await new Base(base as Partial<Base>).getSources()).filter(
+        (s) => !new Source(s).isMeta(),
+      ),
+    );
+    base.sources = sources.length ? sources : undefined;
+    return this.builder().build(bases);
   }
 
   async getProjectWithInfo(
@@ -118,14 +126,28 @@ export class BasesV3Service {
     },
   ) {
     await this.basesService.baseUpdate(context, param);
-    return this.getProjectWithInfo(context, {baseId: param.baseId});
+    return this.getProjectWithInfo(context, { baseId: param.baseId });
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
-    const res = await this.basesService.baseCreate(param);
+  async baseCreate(param: {
+    base: ProjectReqType;
+    user: any;
+    req: any;
+    workspaceId: string;
+  }) {
+    const base = {
+      ...param.base,
+      fk_workspace_id: param.workspaceId,
+      type: 'database',
+    };
+
+    const res = await this.basesService.baseCreate({
+      ...param,
+      base,
+    });
     return this.getProjectWithInfo(
-      {workspace_id: res.fk_workspace_id, base_id: RootScopes.WORKSPACE},
-      {baseId: res.id},
+      { workspace_id: res.fk_workspace_id, base_id: RootScopes.WORKSPACE },
+      { baseId: res.id },
     );
   }
 

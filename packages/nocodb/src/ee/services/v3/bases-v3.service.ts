@@ -11,10 +11,8 @@ import { BasesService } from '~/services/bases.service';
 
 @Injectable()
 export class BasesV3Service extends BasesV3ServiceCE {
-  constructor(
-    protected basesService: BasesService,
-  ) {
-    super( basesService);
+  constructor(protected basesService: BasesService) {
+    super(basesService);
   }
 
   protected async getBaseList(
@@ -22,13 +20,13 @@ export class BasesV3Service extends BasesV3ServiceCE {
     param: {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
+      workspaceId: string;
     },
   ) {
-    if (!param.query.workspace_id) {
-      NcError.badRequest('Missing workspace_id query param');
-    }
-
-    const bases = await BaseUser.getProjectsList(param.user.id, param.query);
+    const bases = await BaseUser.getProjectsList(param.user.id, {
+      workspace_id: param.workspaceId,
+      ...(param.query || {}),
+    });
 
     return bases;
   }

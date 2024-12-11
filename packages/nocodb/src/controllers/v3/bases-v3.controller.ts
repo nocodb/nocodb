@@ -27,21 +27,23 @@ export class BasesV3Controller {
   @Acl('baseList', {
     scope: 'org',
   })
-  @Get(['/api/v3/meta/bases'])
+  @Get('/api/v3/meta/workspaces/:workspaceId/bases')
   async list(
     @TenantContext() context: NcContext,
     @Query() queryParams: Record<string, any>,
     @Req() req: NcRequest,
+    @Param('workspaceId') workspaceId: string,
   ) {
     const bases = await this.baseV3Service.baseList(context, {
       user: req.user,
       query: queryParams,
+      workspaceId,
     });
     return { list: bases };
   }
 
   @Acl('baseGet')
-  @Get(['/api/v3/meta/bases/:baseId'])
+  @Get('/api/v3/meta/bases/:baseId')
   async baseGet(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -55,7 +57,7 @@ export class BasesV3Controller {
   }
 
   @Acl('baseUpdate')
-  @Patch(['/api/v3/meta/bases/:baseId'])
+  @Patch('/api/v3/meta/bases/:baseId')
   async baseUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -73,7 +75,7 @@ export class BasesV3Controller {
   }
 
   @Acl('baseDelete')
-  @Delete(['/api/v3/meta/bases/:baseId'])
+  @Delete('/api/v3/meta/bases/:baseId')
   async baseDelete(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -91,17 +93,19 @@ export class BasesV3Controller {
   @Acl('baseCreate', {
     scope: 'org',
   })
-  @Post(['/api/v3/meta/bases'])
+  @Post('/api/v3/meta/workspaces/:workspaceId/bases')
   @HttpCode(200)
   async baseCreate(
     @TenantContext() context: NcContext,
     @Body() baseBody: ProjectReqType,
     @Req() req: NcRequest,
+    @Param('workspaceId') workspaceId: string,
   ) {
     const base = await this.baseV3Service.baseCreate({
       base: baseBody,
       req,
       user: req['user'],
+      workspaceId,
     });
 
     return base;

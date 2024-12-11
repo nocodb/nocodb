@@ -372,7 +372,7 @@ defineExpose({
         }"
         class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 mt-0 items-start overflow-y-auto nc-scrollbar-thin"
         :style="{
-          height: `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] : rowHeightInPx[`${rowHeight}`] - 17}px, ${
+          height: `max(${!rowHeight || rowHeight === 1 ? (Number(rowHeightInPx['1']) - 1) : rowHeightInPx[`${rowHeight}`] - 17}px, ${
             isGrid ? 22 : 32
           }px)`,
           paddingTop: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,

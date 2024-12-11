@@ -258,12 +258,6 @@ export default function (API_VERSION: 'v3' | 'v2') {
           createUserArgs.base_role = ProjectRoles.COMMENTER;
         }
 
-        if (isEE) {
-          if (isV3) {
-            createUserArgs.workspace_role = `workspace-level-${ProjectRoles.COMMENTER}`;
-          }
-        }
-
         createUserArgsList.push(createUserArgs);
       });
 
@@ -286,7 +280,6 @@ export default function (API_VERSION: 'v3' | 'v2') {
         expect(addedUser.roles).to.eq(ProjectRoles.COMMENTER);
 
         if (isEE) {
-          // No access is given by default in v2;
           expect(addedUser.workspace_roles).to.eq(
             `workspace-level-${ProjectRoles.NO_ACCESS}`,
           );
@@ -303,7 +296,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
 
           if (isEE) {
             expect(addedUser.workspace_role).to.eq(
-              `workspace-level-${ProjectRoles.COMMENTER}`,
+              `workspace-level-${ProjectRoles.NO_ACCESS}`,
             );
           }
         }
@@ -313,7 +306,6 @@ export default function (API_VERSION: 'v3' | 'v2') {
         {
           id: users[0].id,
           email: 'test-crud-new@nocodb.com',
-          workspace_role: `workspace-level-${ProjectRoles.CREATOR}`,
           [isV3 ? 'base_role' : 'roles']: ProjectRoles.EDITOR,
         },
       ];
@@ -348,7 +340,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
 
       if (isEE && isV3) {
         expect(updatedUser.workspace_roles).to.eq(
-          `workspace-level-${ProjectRoles.CREATOR}`,
+          `workspace-level-${ProjectRoles.NO_ACCESS}`,
         );
       }
 

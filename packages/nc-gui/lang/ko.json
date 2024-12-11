@@ -1067,7 +1067,7 @@
     "viewHide": "뷰 보임 여부 "
   },
   "activity": {
-    "deleteAllRecords": "Delete all records",
+    "deleteAllRecords": "모든 레코드 삭제",
     "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
     "showSaturdaysAndSundays": "토요일 & 일요일 보기",

@@ -585,7 +585,7 @@ onMounted(() => {
                     <template #header>
                       <div
                         class="w-full flex items-center px-4 py-2"
-                        @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title].length)"
+                        @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title]?.length)"
                       >
                         <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
                           <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
@@ -606,7 +606,7 @@ onMounted(() => {
                           icon-only
                           class="!px-0 !h-6 !w-6 !min-w-6"
                           :class="{
-                            hidden: !viewsGrouped[table.title].length,
+                            hidden: !viewsGrouped[table.title]?.length,
                           }"
                         >
                           <template #icon>

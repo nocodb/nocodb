@@ -196,6 +196,7 @@ const {
   activeAiTab,
   isPredictFromPromptLoading,
   isFormulaPredictionMode,
+  fieldPredictionMode,
   onInit,
   toggleAiMode,
   disableAiMode,
@@ -1175,13 +1176,25 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
   onFieldAdd(
     updateDefaultColumnValues({
       title: field.title,
-      uidt: isFormulaPredictionMode.value ? UITypes.Formula : field.type,
+      uidt:
+        fieldPredictionMode.value === 'formula'
+          ? UITypes.Formula
+          : fieldPredictionMode.value === 'button'
+          ? UITypes.Button
+          : field.type,
       column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
       ...(field.formula ? { formula_raw: field.formula } : {}),
       ...(field.colOptions ? { colOptions: field.colOptions } : {}),
       meta: {
         ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
       },
+      ...(fieldPredictionMode.value === 'button'
+        ? {
+            type: ButtonActionsType.Ai,
+            output_column_ids: field.output_column_ids,
+            formula_raw: field.formula_raw,
+          }
+        : {}),
       is_ai_field: true,
       ai_temp_id: field.ai_temp_id,
     }),
@@ -1300,10 +1313,18 @@ watch(activeAiTab, (newValue) => {
                         <NcMenuItem
                           v-show="!isForm"
                           class="!children:w-full !text-nc-content-purple-dark"
-                          @click="toggleAiMode(true)"
+                          @click="toggleAiMode('formula')"
                         >
                           <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
                           {{ $t('labels.autoSuggestFormulas') }}
+                        </NcMenuItem>
+                        <NcMenuItem
+                          v-show="!isForm"
+                          class="!children:w-full !text-nc-content-purple-dark"
+                          @click="toggleAiMode('button')"
+                        >
+                          <component :is="getUIDTIcon(UITypes.Button)" class="flex-none w-3.5 h-3.5" />
+                          Auto suggest actions
                         </NcMenuItem>
                       </NcMenu>
                     </template>

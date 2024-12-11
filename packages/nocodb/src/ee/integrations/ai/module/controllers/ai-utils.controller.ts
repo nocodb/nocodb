@@ -55,6 +55,11 @@ export class AiUtilsController {
         input: body.input,
         req,
       });
+    } else if (operation === 'predictNextButtons') {
+      return await this.aiUtilsService.predictNextButtons(context, {
+        input: body.input,
+        req,
+      });
     } else if (operation === 'predictNextTables') {
       return await this.aiUtilsService.predictNextTables(context, {
         input: body.input,

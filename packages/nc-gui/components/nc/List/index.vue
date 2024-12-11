@@ -9,7 +9,7 @@ export type RawValueType = string | number | MultiSelectRawValueType
 export interface NcListItemType {
   value?: RawValueType
   label?: string
-  disabled?: boolean
+  ncItemDisabled?: boolean
   ncItemTooltip?: string
   [key: string]: any
 }
@@ -146,7 +146,7 @@ const {
   wrapperProps,
   scrollTo,
 } = useVirtualList(list, {
-  itemHeight: props.itemHeight,
+  itemHeight: props.itemHeight + 2,
 })
 
 /**
@@ -196,7 +196,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
-  if (!ncIsObject(option) || !(optionValueKey in option) || option.disabled) return
+  if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
 
   if (index !== undefined) {
     activeOptionIndex.value = index
@@ -376,15 +376,16 @@ watch(
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 w-full py-2 px-2 rounded-md"
+                class="flex items-center gap-2 w-full py-2 px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
-                    'bg-gray-100 ': !option?.disabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
-                    'bg-gray-100 nc-list-option-active': !option?.disabled && activeOptionIndex === idx,
-                    'opacity-60 cursor-not-allowed': option?.disabled,
-                    'hover:bg-gray-100 cursor-pointer': !option?.disabled,
+                    'bg-gray-100 ':
+                      !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
+                    'bg-gray-100 nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
+                    'opacity-60 cursor-not-allowed': option?.ncItemDisabled,
+                    'hover:bg-gray-100 cursor-pointer': !option?.ncItemDisabled,
                   },
                   `${itemClassName}`,
                 ]"

@@ -16,16 +16,14 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import {ColumnsV3Service} from "~/services/v3/columns-v3.service";
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ColumnsV3Controller {
   constructor(private readonly columnsV3Service: ColumnsV3Service) {}
 
-  @Post([
-    '/api/v3/meta/tables/:tableId/columns/',
-  ])
+  @Post(['/api/v3/meta/tables/:tableId/columns/'])
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
@@ -42,9 +40,7 @@ export class ColumnsV3Controller {
     });
   }
 
-  @Patch([
-    '/api/v3/meta/columns/:columnId',
-  ])
+  @Patch(['/api/v3/meta/columns/:columnId'])
   @Acl('columnUpdate')
   async columnUpdate(
     @TenantContext() context: NcContext,
@@ -60,9 +56,7 @@ export class ColumnsV3Controller {
     });
   }
 
-  @Delete([
-    '/api/v3/meta/columns/:columnId',
-  ])
+  @Delete(['/api/v3/meta/columns/:columnId'])
   @Acl('columnDelete')
   async columnDelete(
     @TenantContext() context: NcContext,

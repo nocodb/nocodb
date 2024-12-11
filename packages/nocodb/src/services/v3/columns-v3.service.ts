@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  ColumnReqType,
-  UserType,
-} from 'nocodb-sdk';
+import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
+import type { ColumnReqType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
-import {
-  Column,
-} from '~/models';
-import Noco from '~/Noco';
-import { columnBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { ColumnsService } from '~/services/columns.service';
+import { Column } from '~/models';
+import Noco from '~/Noco';
+import {
+  columnBuilder,
+  columnV3ToV2Builder,
+} from '~/utils/api-v3-data-transformation.builder';
 
 @Injectable()
 export class ColumnsV3Service {
@@ -27,9 +26,23 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-    // do the necessary validations and transformations
+    await Column.get(context, {
+      colId: colBody.id,
+    })
 
-    const res = await this.columnsService.columnUpdate(context, param);
+    const column = columnV3ToV2Builder().build(param.column);
+
+    // if LTAR column then define tablr id as parent id in request
+    if (isLinksOrLTAR(column) && !column.parentId) {
+      column.parentId = param.tableId;
+    }
+
+    const res = await this.columnsService.columnUpdate(context, {
+      ...param,
+      column,
+      apiVersion: NcApiVersion.V3,
+    });
+
 
     // do tranformation
     return columnBuilder().build(res);
@@ -51,10 +64,21 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-    const res = await this.columnsService.columnAdd(context, param);
+    const column = columnV3ToV2Builder().build(param.column);
+
+    // if LTAR column then define tablr id as parent id in request
+    if (isLinksOrLTAR(column) && !column.parentId) {
+      column.parentId = param.tableId;
+    }
+
+    const res = await this.columnsService.columnAdd(context, {
+      ...param,
+      column,
+      apiVersion: NcApiVersion.V3,
+    });
 
     // do tranformation
-    return columnBuilder().build(res)
+    return columnBuilder().build(res);
   }
 
   async columnDelete(

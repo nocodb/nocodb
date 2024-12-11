@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ButtonActionsType,
   IntegrationCategoryType,
+  isSystemColumn,
   isVirtualCol,
   type PredictNextFieldsType,
   type PredictNextFormulasType,
@@ -12,10 +14,12 @@ import type AiIntegration from '~/integrations/ai/ai.interface';
 import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import {
+  buttonsSystemMessage,
   formulasSystemMessage,
   predictFieldTypePrompt,
   predictFieldTypeSystemMessage,
   predictFormulaPrompt,
+  predictNextButtonsPrompt,
   predictNextFieldsPrompt,
   predictNextFieldsSystemMessage,
   predictNextFormulasPrompt,
@@ -327,6 +331,118 @@ export class AiUtilsService {
       data.formulas = resFields.filter(
         (f) => !existingFields.includes(f.title),
       );
+    }
+
+    return data;
+  }
+
+  async predictNextButtons(
+    context: NcContext,
+    params: {
+      input: {
+        tableId: string;
+        history?: string[];
+        description?: string;
+      };
+      req?: any;
+    },
+  ) {
+    const { tableId } = params.input;
+
+    const model = await Model.get(context, tableId);
+
+    if (!model) {
+      throw new Error('Model not found');
+    }
+
+    const columns = await model.getColumns(context);
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const { data, usage } = await wrapper.generateObject<{
+      buttons: {
+        title: string;
+        dynamic_input: string;
+        output_columns: string;
+      }[];
+    }>({
+      schema: z.object({
+        buttons: z.array(
+          z.object({
+            title: z.string(),
+            dynamic_input: z.string(),
+            output_columns: z.string(),
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: buttonsSystemMessage(
+            columns
+              .filter((c) => !isVirtualCol(c) && !isSystemColumn(c))
+              .map((c) => {
+                return {
+                  title: c.title,
+                  uidt: c.uidt,
+                };
+              }),
+          ),
+        },
+        {
+          role: 'user',
+          content: predictNextButtonsPrompt(
+            model.title,
+            columns
+              .filter((c) => !isVirtualCol(c) && !isSystemColumn(c))
+              .map((c) => c.title),
+            params.input.history,
+            params.input.description,
+          ),
+        },
+      ],
+    });
+
+    await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    for (const button of data.buttons) {
+      // replace column names with column ids
+      const outputColumns = button.output_columns
+        .split(',')
+        .map((col) => {
+          const column = columns.find((c) => c.title === col.trim());
+          return column ? column.id : null;
+        })
+        .filter((col) => col !== null)
+        .join(',');
+
+      Object.assign(button, {
+        uidt: 'Button',
+        type: ButtonActionsType.Ai,
+        formula_raw: button.dynamic_input,
+        output_column_ids: outputColumns,
+      });
+    }
+
+    // Filter out duplicate fields
+    {
+      const resFields = data.buttons || [];
+
+      const existingFields = [
+        ...columns.map((t) => t.title),
+        ...(params.input.history || []),
+      ];
+
+      data.buttons = resFields.filter((f) => !existingFields.includes(f.title));
     }
 
     return data;

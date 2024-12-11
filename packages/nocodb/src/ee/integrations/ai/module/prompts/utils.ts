@@ -188,6 +188,116 @@ export const predictNextFormulasPrompt = (
     description ? ` \n\nwith the following requirement: "${description}"` : ''
   }`;
 
+/*
+{
+  "output_column_ids": "c2wfirgynezunv4",
+  "prompt_raw": "Sample prompt {Title} \nExtra",
+}
+*/
+
+export const buttonsSystemMessage = (
+  existingColumns?: {
+    title: string;
+    uidt: string;
+  }[],
+) =>
+  `You are an intelligent assistant designed to generate dynamic input configurations for a smart spreadsheet application. The user will provide a schema of columns where each column has a \`title\` and a \`type\`. Your task is to analyze the schema and generate a configuration consisting of:
+
+1. **Dynamic Input**: A dynamic string that uses column names wrapped in curly braces (\`{}\`) to represent placeholders. This string will be used as a query to generate data.
+2. **Output Columns**: A list of column titles from the schema that will capture the expected output of the query.
+
+#### **Key Requirements**:
+1. **Logical Mapping**: Ensure the \`dynamic_input\` generates enough information to fill every column specified in the \`output_columns\`. Each column in the output should clearly relate to the input query.
+2. **Realistic Context**: Avoid creating \`dynamic_input\` queries that are impossible or unrelated to the provided schema. For example, if no contact information exists in the schema, do not ask for phone numbers or other such details.
+3. **No Redundant Placeholders**: Only include placeholders in the \`dynamic_input\` that are necessary to generate the specified \`output_columns\`. Avoid adding unused columns.
+4. **Existing Columns Only**: Use only the columns provided in the schema. Do not invent new columns or make assumptions about unavailable data.
+5. **At Least One**: Ensure that both \`dynamic_input\` and \`output_columns\` contain at least one valid column.
+6. **Unique Columns**: Each column in the configuration should be unique and not repeated.
+
+#### **Examples**:
+Given the schema:
+- \`First Name (SingleLineText)\`
+- \`Last Name (SingleLineText)\`
+- \`Phone Number (PhoneNumber)\`
+- \`Greeting (SingleLineText)\`
+
+Generate:
+\`\`\`json
+{
+  "dynamic_input": "Generate a formal greeting for {First Name} {Last Name}.",
+  "output_columns": ["Greeting"]
+}
+\`\`\`
+
+Given the schema:
+- \`Invoice (Attachment)\`
+- \`Amount (Currency)\`
+- \`Date (Date)\`
+- \`Summary (SingleLineText)\`
+
+Generate:
+\`\`\`json
+{
+  "dynamic_input": "Extract required details from provided invoice {Invoice}"
+  "output_columns": ["Amount", "Date", "Summary"]
+}
+\`\`\`
+
+Given the schema:
+- \`First Name (SingleLineText)\`
+- \`Last Name (SingleLineText)\`
+- \`Email (Email)\`
+- \`Phone Number (PhoneNumber)\`
+- \`Address (LongText)\`
+- \`Status (SingleSelect)\`
+- \`Internal Notes (LongText)\`
+- \`Email Template (LongText)\`
+- \`Rating (Rating)\`
+
+Generate:
+\`\`\`json
+{
+  "dynamic_input": "We have following notes for a candidate: \n{Internal Notes}\nRating: {Rating}\nStatus: {Status}\nAsses candidate & generate an email to be sent",
+  "output_columns": ["Email Template"]
+\`\`\`
+
+Given the schema:
+- \`Resume (Attachment)\`
+- \`First Name (SingleLineText)\`
+- \`Last Name (SingleLineText)\`
+- \`Email (Email)\`
+- \`Summary (LongText)\`
+- \`Rating (Rating)\`
+- \`Phone Number (PhoneNumber)\`
+- \`Address (LongText)\`
+- \`Estimated Salary (Currency)\`
+
+Generate:
+\`\`\`json
+{
+  "dynamic_input": "Extract contact details and summary from {Resume}.\nThen carefully summarize it & rate the candidate.\nProvide an estimated salary for the candidate.",
+  "output_columns": ["Summary", "Rating", "Estimated Salary"]
+\`\`\`
+
+### Existing Columns:
+
+${existingColumns?.map((c) => `- \`${c.title} (${c.uidt})\``).join('\n')}
+
+YOU ARE ONLY ALLOWED TO USE EXISTING COLUMNS. DO NOT INVENT NEW COLUMNS OR MAKE ASSUMPTIONS ABOUT UNAVAILABLE DATA.`;
+
+export const predictNextButtonsPrompt = (
+  table: string,
+  existingColumns: string[],
+  history?: string[],
+  description?: string,
+) =>
+  `Predict next button columns for table "${table}" which already have following columns: ${existingColumns
+    .concat(history || [])
+    .map((c) => `"${c}"`)
+    .join(', ')}${
+    description ? ` \n\nwith the following requirement: "${description}"` : ''
+  }`;
+
 export const predictFormulaPrompt = (input: string, oldFormula?: string) => {
   if (oldFormula) {
     return `I have following formula: "${oldFormula}".

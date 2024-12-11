@@ -235,14 +235,14 @@ if (isEdit.value) {
     vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'
-    vModel.value.output_column_ids = ''
+    vModel.value.output_column_ids = vModel.value?.output_column_ids || ''
   } else {
     vModel.value.theme = 'solid'
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
   }
 
-  vModel.value.formula_raw = ''
+  vModel.value.formula_raw = vModel.value?.formula_raw || ''
 }
 
 setAdditionalValidations({

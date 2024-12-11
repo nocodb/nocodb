@@ -269,8 +269,10 @@ onMounted(() => {
   }
 })
 
-const { message: templatedMessage } = useTemplatedMessage(computed(() => sharedFormView?.value?.success_msg), computed(() => formState.value));
-
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => sharedFormView?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>

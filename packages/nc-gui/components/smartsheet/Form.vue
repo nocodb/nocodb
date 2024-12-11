@@ -851,8 +851,10 @@ useEventListener(
   true,
 )
 
-const { message: templatedMessage } = useTemplatedMessage(computed(() => formViewData?.value?.success_msg), computed(() => formState.value));
-
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => formViewData?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>

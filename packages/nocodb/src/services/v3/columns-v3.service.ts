@@ -26,26 +26,39 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-    await Column.get(context, {
-      colId: colBody.id,
-    })
+    let column = await Column.get(context, { colId: param.columnId });
 
-    const column = columnV3ToV2Builder().build(param.column);
+    let type = param.column?.uidt ?? column.uidt;
 
-    // if LTAR column then define tablr id as parent id in request
-    if (isLinksOrLTAR(column) && !column.parentId) {
-      column.parentId = param.tableId;
+    const processedColumnReq = columnV3ToV2Builder().build({...param.column, type});
+
+    if (!processedColumnReq.column_name) {
+      processedColumnReq.column_name = column.column_name;
+    }
+    if (!processedColumnReq.title) {
+      processedColumnReq.title = column.title;
     }
 
-    const res = await this.columnsService.columnUpdate(context, {
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+      if(column.meta){
+        column.meta.choices = undefined;
+      }
+      column.dtxp = column.colOptions?.options?.map((o: any) => `'${o.value}'`).join('');
+    }
+
+    // in payload id is required in existing implementation
+    column.id = param.columnId;
+
+    await this.columnsService.columnUpdate(context, {
       ...param,
-      column,
+      column: processedColumnReq,
       apiVersion: NcApiVersion.V3,
     });
 
+    column = await Column.get(context, { colId: param.columnId });
 
     // do tranformation
-    return columnBuilder().build(res);
+    return columnBuilder().build(column);
   }
 
   async columnGet(context: NcContext, param: { columnId: string }) {
@@ -71,6 +84,13 @@ export class ColumnsV3Service {
       column.parentId = param.tableId;
     }
 
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+      if(column.meta){
+        column.meta.choices = undefined;
+      }
+column.dtxp = column.colOptions?.options?.map((o: any) => `${o.value}`).join('');
+    }
+
     const res = await this.columnsService.columnAdd(context, {
       ...param,
       column,
@@ -92,6 +112,8 @@ export class ColumnsV3Service {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    return this.columnsService.columnDelete(context, param, ncMeta);
+    const res = this.columnsService.columnDelete(context, param, ncMeta);
+
+    return {}
   }
 }

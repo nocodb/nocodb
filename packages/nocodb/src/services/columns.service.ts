@@ -1851,7 +1851,7 @@ export class ColumnsService {
         {
           await validateRollupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1892,7 +1892,7 @@ export class ColumnsService {
       case UITypes.QrCode:
         validateParams(['fk_qr_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1900,7 +1900,7 @@ export class ColumnsService {
       case UITypes.Barcode:
         validateParams(['fk_barcode_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1954,7 +1954,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2040,7 +2040,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2132,7 +2132,7 @@ export class ColumnsService {
           } else {
             columnName = existingColumn.column_name;
           }
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
             column_name: null,
@@ -2380,7 +2380,7 @@ export class ColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -2402,8 +2402,8 @@ export class ColumnsService {
     });
 
     if (param.apiVersion === NcApiVersion.V3) {
-      return await Column.get(context, {
-        colId: colBody.id,
+      return savedColumn && await Column.get(context, {
+        colId: savedColumn.id,
       }) as T extends NcApiVersion.V3 ? Column<any> : never;
     }
 
@@ -3323,7 +3323,7 @@ export class ColumnsService {
         }
       }
 
-      await createHmAndBtColumn(
+     savedColumn =  await createHmAndBtColumn(
         context,
         child,
         parent,
@@ -3422,7 +3422,7 @@ export class ColumnsService {
           });
         }
       }
-      await createOOColumn(
+      savedColumn = await createOOColumn(
         context,
         child,
         parent,
@@ -3573,7 +3573,7 @@ export class ColumnsService {
         param.colExtra,
       );
 
-      await Column.insert(context, {
+      savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await child.getColumns(context),
           pluralize(parent.title),

@@ -1,6 +1,6 @@
 const path = require('path');
 const { resolve } = require('path');
-const { rspack, } = require('@rspack/core');
+const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 // @ts-check
@@ -58,7 +58,10 @@ module.exports = {
         minimizerOptions: {
           compress: {
             keep_classnames: true,
-          }
+          },
+          mangle: {
+            keep_classnames: true,
+          },
         },
       }),
     ],

@@ -57,6 +57,9 @@ module.exports = {
           compress: {
             keep_classnames: true,
           },
+          mangle: {
+            keep_classnames: true,
+          },
         },
       }),
     ],

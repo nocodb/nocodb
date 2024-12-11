@@ -53,12 +53,16 @@ module.exports = {
     minimize: true,
     minimizer: [
       new rspack.SwcJsMinimizerRspackPlugin({
-      minimizerOptions: {
-        compress: {
-          keep_classnames: true,
+        minimizerOptions: {
+          compress: {
+            keep_classnames: true,
+          },
+          mangle: {
+            keep_classnames: true,
+          },
         },
-      },
-    }),],
+      }),
+    ],
     nodeEnv: false,
   },
   externals: [

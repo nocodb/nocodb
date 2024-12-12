@@ -36,7 +36,7 @@ const filteredColumns = computed(() => {
       return {
         title: f.title,
         id: f.fk_column_id,
-        disabled: !isSupportedDisplayValueColumn(column) && !column.pv,
+        ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
         ncItemTooltip:
           !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
             ? `${columnTypeName(column)} field cannot be used as display value field`
@@ -94,7 +94,6 @@ onMounted(() => {
           v-model:value="selectedFieldId"
           v-model:open="value"
           :list="filteredColumns"
-          search-input-placeholder="Search"
           option-label-key="title"
           option-value-key="id"
           :close-on-select="false"

@@ -94,6 +94,7 @@ export class ImportService {
       externalModels?: Model[];
       existingModel?: Model;
       importColumnIds?: string[];
+      duplicating?: boolean;
     },
   ) {
     const hrTime = initTime();
@@ -212,6 +213,7 @@ export class ImportService {
                 }) as any,
                 req: param.req,
                 user: param.user,
+                duplicating: param.duplicating,
               },
             );
 
@@ -371,6 +373,7 @@ export class ImportService {
                     }),
                     req: param.req,
                     user: param.user,
+                    duplicating: param.duplicating,
                   },
                 );
 
@@ -478,6 +481,7 @@ export class ImportService {
                   }),
                   req: param.req,
                   user: param.user,
+                  duplicating: param.duplicating,
                 },
               );
 
@@ -623,6 +627,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    duplicating: param.duplicating,
                   },
                 );
 
@@ -753,6 +758,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    duplicating: param.duplicating,
                   },
                 );
 
@@ -930,6 +936,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    duplicating: param.duplicating,
                   },
                 );
 
@@ -1191,6 +1198,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1217,6 +1225,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1236,6 +1245,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1274,6 +1284,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1301,6 +1312,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1327,6 +1339,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1348,6 +1361,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -1370,6 +1384,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          duplicating: param.duplicating,
         });
 
         for (const nColumn of freshModelData.columns) {

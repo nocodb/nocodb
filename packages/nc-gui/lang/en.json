@@ -1834,6 +1834,7 @@
       "youHaveBeenSignedOut": "You have been signed out",
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "deleteFailed": "Delete failed",
       "unlinkFailed": "Unlink failed",
       "rowUpdateFailed": "Record update failed",

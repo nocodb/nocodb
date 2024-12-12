@@ -250,6 +250,7 @@ export class DuplicateProcessor {
       user,
       req,
       externalModels: relatedModels,
+      duplicating: true,
     });
 
     elapsedTime(hrTime, 'import model schema', 'duplicateModel');
@@ -384,6 +385,7 @@ export class DuplicateProcessor {
       externalModels: relatedModels,
       existingModel: sourceModel,
       importColumnIds: [columnId],
+      duplicating: true,
     });
 
     elapsedTime(hrTime, 'import model schema', 'duplicateColumn');

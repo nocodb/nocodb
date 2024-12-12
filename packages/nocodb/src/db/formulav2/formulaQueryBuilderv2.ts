@@ -71,6 +71,7 @@ async function _formulaQueryBuilder(params: {
   parsedTree?: any;
   column?: Column;
   baseUsers?: (Partial<User> & BaseUser)[];
+  ignoreInvalidColumns?: boolean;
 }) {
   const {
     baseModelSqlv2,
@@ -115,6 +116,7 @@ async function _formulaQueryBuilder(params: {
         await model.getColumns(context);
         return model;
       },
+      ignoreInvalidColumns: params.ignoreInvalidColumns,
     });
 
     // populate and save parsedTree to column if not exist
@@ -1371,6 +1373,7 @@ export default async function formulaQueryBuilderv2(
           ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
+      ignoreInvalidColumns: !validateFormula,
     });
 
     if (!validateFormula) return qb;

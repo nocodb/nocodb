@@ -1702,6 +1702,7 @@ export class ColumnsService {
       column: ColumnReqType;
       user: UserType;
       reuse?: ReusableParams;
+      duplicating?: boolean;
     },
   ) {
     // if column_name is defined and title is not defined, set title to column_name
@@ -1897,6 +1898,7 @@ export class ColumnsService {
             await model.getColumns(context);
             return model;
           },
+          ignoreInvalidColumns: param.duplicating
         });
 
         try {
@@ -1916,7 +1918,7 @@ export class ColumnsService {
             null,
             {},
             null,
-            true,
+            !param.duplicating,
           );
         } catch (e) {
           console.error(e);
@@ -1948,6 +1950,7 @@ export class ColumnsService {
               await model.getColumns(context);
               return model;
             },
+            ignoreInvalidColumns: param.duplicating
           });
 
           try {
@@ -1967,7 +1970,7 @@ export class ColumnsService {
               null,
               {},
               null,
-              true,
+              !param.duplicating,
               colBody.parsed_tree,
             );
           } catch (e) {

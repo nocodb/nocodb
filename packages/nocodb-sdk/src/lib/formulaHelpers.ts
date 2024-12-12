@@ -87,7 +87,11 @@ export async function substituteColumnAliasWithIdInFormula(
           c.column_name === colNameOrId ||
           c.title === colNameOrId
       );
-      pt.name = '{' + column.id + '}';
+      if (column) {
+        pt.name = '{' + column.id + '}';
+      } else {
+        pt.name = '{' + colNameOrId + '}';
+      }
     } else if (pt.type === 'BinaryExpression') {
       await substituteId(pt.left);
       await substituteId(pt.right);
@@ -1639,6 +1643,7 @@ export async function validateFormulaAndExtractTreeWithType({
   columns,
   clientOrSqlUi,
   getMeta,
+  ignoreInvalidColumns = false,
 }: {
   formula: string;
   columns: ColumnType[];
@@ -1658,6 +1663,7 @@ export async function validateFormulaAndExtractTreeWithType({
     | typeof PgUi;
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
+  ignoreInvalidColumns?: boolean,
 }) {
   const sqlUI =
     typeof clientOrSqlUi === 'string'
@@ -1842,6 +1848,10 @@ export async function validateFormulaAndExtractTreeWithType({
         colAliasToColMap[parsedTree.name]) as Record<string, any>;
 
       if (!col) {
+        if (ignoreInvalidColumns) {
+          res.name = parsedTree.name;
+          return res;
+        }
         throw new FormulaError(
           FormulaErrorType.INVALID_COLUMN,
           {
@@ -1871,6 +1881,7 @@ export async function validateFormulaAndExtractTreeWithType({
               columns,
               clientOrSqlUi,
               getMeta,
+              ignoreInvalidColumns
             }
           ));
 

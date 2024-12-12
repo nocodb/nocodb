@@ -489,7 +489,7 @@ const addColumnDropdown = ref(false)
       >
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex items-center gap-2 px-2 mb-4 w-80"
+          class="flex items-center gap-2 px-2 mb-2 w-80 border-b-1 border-gray-100 pb-2"
         >
           <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
@@ -595,11 +595,18 @@ const addColumnDropdown = ref(false)
             :placeholder="$t('placeholder.searchFields')"
             class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none"
           >
-            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-          ></a-input>
+            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
+            <template #suffix>
+              <NcSwitch
+                v-model:checked="showAllColumns"
+                size="xsmall"
+                class="!mr-1"
+              />
+            </template>
+          </a-input>
         </div>
 
-        <div class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100">
+        <div class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -670,42 +677,51 @@ const addColumnDropdown = ref(false)
                     <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                       <NcButton
                         :class="{
-                          '!bg-gray-800 !text-white': field.bold,
+                          '!text-primary': field.bold,
                         }"
-                        class="!rounded-r-none !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        :shadow="false"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        size="xsmall"
+                        type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
-                        <component :is="iconMap.bold" class="!w-3 !h-3" />
+                        <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
+                        <div
+                          v-if="field.bold"
+                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
+                        />
                       </NcButton>
                       <NcButton
                         :class="{
-                          '!bg-gray-800 !text-white': field.italic,
+                          '!text-primary': field.italic,
                         }"
-                        class="!rounded-x-none !border-x-0 !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        :shadow="false"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        size="xsmall"
+                        type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
-                        <component :is="iconMap.italic" class="!w-3 !h-3" />
+                        <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
+                        <div
+                          v-if="field.italic"
+                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
+                        />
                       </NcButton>
                       <NcButton
                         :class="{
-                          '!bg-gray-800 !text-white': field.underline,
+                          '!text-primary': field.underline,
                         }"
-                        class="!rounded-l-none !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        :shadow="false"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        size="xsmall"
+                        type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
-                        <component :is="iconMap.underline" class="!w-3 !h-3" />
+                        <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
+                        <div
+                          v-if="field.underline"
+                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
+                        />
                       </NcButton>
                     </div>
                     <NcSwitch

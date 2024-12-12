@@ -1408,7 +1408,9 @@ export default async function formulaQueryBuilderv2(
     }
   } catch (e) {
     if (!validateFormula) throw e;
-
+    if (e.message.split(' - ').length > 1 && e.message.split(' - ')[1].match(/column \".*\" does not exist/)) {
+      return undefined;
+    }
     console.error(e);
     if (column) {
       if (column?.uidt === UITypes.Button) {

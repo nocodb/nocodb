@@ -2159,7 +2159,9 @@ class BaseModelSqlv2 {
                 getAs(column),
               ]);
             } catch (e) {
-              logger.log(e);
+              if (!(e.message as string).match(/Column \'.*\' was deleted/)) {
+                logger.log(e);
+              }
               // return dummy select
               selectQb = this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]);
             }
@@ -3689,7 +3691,11 @@ class BaseModelSqlv2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    // Column might have been deleted, we should not log that error.
+    if (formula.error) {
+      if (formula.error.match(/Column \'.*\' was deleted/)) return;
+      throw new Error(`Formula error: ${formula.error}`);
+    }
     const qb = await formulaQueryBuilderv2(
       this,
       formula.formula,
@@ -4253,6 +4259,7 @@ class BaseModelSqlv2 {
                   validateFormula,
                   aliasToColumnBuilder,
                 );
+                if (!selectQb) continue;
                 qb.select({
                   [column.column_name]: selectQb.builder,
                 });
@@ -4296,6 +4303,7 @@ class BaseModelSqlv2 {
                   validateFormula,
                   aliasToColumnBuilder,
                 );
+                if (!selectQb) continue;
                 qb.select({
                   [getAs(column)]: selectQb.builder,
                 });
@@ -4322,6 +4330,7 @@ class BaseModelSqlv2 {
                 validateFormula,
                 aliasToColumnBuilder,
               );
+              if (!selectQb) continue;
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
                   selectQb.builder,

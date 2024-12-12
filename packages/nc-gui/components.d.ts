@@ -76,7 +76,6 @@ declare module 'vue' {
     CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
-    IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']
     IcRoundKeyboardArrowDown: typeof import('~icons/ic/round-keyboard-arrow-down')['default']
     IcRoundSearch: typeof import('~icons/ic/round-search')['default']

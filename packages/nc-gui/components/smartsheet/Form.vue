@@ -1890,8 +1890,14 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                         <!-- Show this message -->
                         <div v-if="!isOpenRedirectUrl" class="pb-10">
-                          <div class="text-gray-800 mb-2">
+                          <div class="text-gray-800 mb-2 flex items-center">
                             {{ $t('msg.info.formDisplayMessage') }}
+                            <NcTooltip>
+                              <template #title>
+                                Use column name/title for templated field instead of field label. For example: "Hello {Title}!"
+                              </template>
+                              <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                            </NcTooltip>
                           </div>
                           <a-form-item class="!my-0">
                             <LazyCellRichText

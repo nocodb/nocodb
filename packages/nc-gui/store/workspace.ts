@@ -16,8 +16,6 @@ const defaultAuditLogsQuery = {
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
 
-  const { isUIAllowed } = useRoles()
-
   const collaborators = ref<any[] | null>()
 
   const allCollaborators = ref<any[] | null>()
@@ -259,11 +257,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const auditPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
 
-  const loadAudits = async (
-    _workspaceId?: string,
-    _page: number = auditPaginationData.value.page!,
-    _limit: number = auditPaginationData.value.pageSize!,
-  ) => {}
+  const loadAudits = async (..._args: any) => {}
 
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading

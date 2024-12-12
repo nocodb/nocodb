@@ -38,8 +38,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
-const isViewIdCopied = ref(false)
-
 const currentSourceId = computed(() => table.value?.source_id)
 
 const onRenameMenuClick = () => {
@@ -147,17 +145,6 @@ async function onDuplicate() {
   emits('closeModal')
 }
 
-const { copy } = useCopy()
-
-const onViewIdCopy = async () => {
-  await copy(view.value!.id!)
-  isViewIdCopied.value = true
-
-  await ncDelay(5000)
-
-  isViewIdCopied.value = false
-}
-
 const onDelete = async () => {
   emits('delete')
 }
@@ -205,25 +192,16 @@ const isDefaultView = computed(() => view.value?.is_default)
     data-id="toolbar-actions"
     variant="small"
   >
-    <NcTooltip>
-      <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
-      <div
-        class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-        @click="onViewIdCopy"
-      >
-        <div class="flex text-xs font-bold text-gray-500 ml-1">
-          {{
-            $t('labels.viewIdColon', {
-              viewId: view?.id,
-            })
-          }}
-        </div>
-        <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-          <GeneralIcon v-if="isViewIdCopied" class="max-h-4 min-w-4" icon="check" />
-          <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-        </NcButton>
-      </div>
-    </NcTooltip>
+    <NcMenuItemCopyId
+      v-if="view"
+      :id="view.id"
+      :tooltip="$t('labels.clickToCopyViewID')"
+      :label="
+        $t('labels.viewIdColon', {
+          viewId: view?.id,
+        })
+      "
+    />
 
     <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />

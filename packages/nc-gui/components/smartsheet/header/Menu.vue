@@ -426,20 +426,6 @@ const openDropdown = () => {
   isOpen.value = !isOpen.value
 }
 
-const isFieldIdCopied = ref(false)
-
-const { copy } = useClipboard()
-
-const onClickCopyFieldUrl = async (field: ColumnType) => {
-  await copy(field.id!)
-
-  isFieldIdCopied.value = true
-
-  await ncDelay(5000)
-
-  isFieldIdCopied.value = false
-}
-
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 }
@@ -494,8 +480,7 @@ const onDeleteColumn = () => {
               id: column.id,
             })
           "
-        >
-        </NcMenuItemCopyId>
+        />
 
         <a-divider class="!my-0.5" />
         <GeneralSourceRestrictionTooltip

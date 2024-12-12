@@ -40,7 +40,7 @@ export class AggregaionBarPage extends BasePage {
       });
     } else {
       await clickAggregation(aggregation);
-      // await this.rootPage.waitForTimeout(500);
+      await this.rootPage.waitForTimeout(500);
     }
   }
 

@@ -314,7 +314,7 @@ async function deleteSelectedRowsWrapper() {
     />
   </Suspense>
   <SmartsheetExpandedForm
-    v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId === vGroup.key"
+    v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId == vGroup.key"
     v-model="expandedFormOnRowIdDlg"
     :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
     :meta="meta"

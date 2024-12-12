@@ -611,6 +611,8 @@ const verificationDataAfterFilter = {
 test.describe('Field Aggregation', () => {
   let dashboard: DashboardPage, aggregationBar: AggregaionBarPage;
   let context: any;
+  let sharedLink: string;
+  let testContext: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -618,7 +620,7 @@ test.describe('Field Aggregation', () => {
 
     const { api, table, base } = await columnAggregationSuite(`xcdb${context.workerId}`, context);
 
-    page.testContext = { api, table, base };
+    testContext = { api, table, base };
 
     aggregationBar = dashboard.grid.aggregationBar;
 
@@ -670,7 +672,7 @@ test.describe('Field Aggregation', () => {
       }
     }
 
-    const { api, table, base } = page.testContext;
+    const { api, table, base } = testContext;
 
     await api.dbTableRow.bulkCreate('noco', base.id, table.id, [
       {
@@ -703,6 +705,32 @@ test.describe('Field Aggregation', () => {
         });
 
         await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+  });
+
+  test('Aggregation Shared GridView Test', async ({ page }) => {
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    sharedLink = await dashboard.grid.topbar.getSharedViewUrl();
+    await page.goto(sharedLink);
+
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
+    const sharedPage = new DashboardPage(page, context.base);
+
+    for (const x of Object.entries(verificationData)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await sharedPage.grid.aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+        });
+
+        await sharedPage.grid.aggregationBar.verifyAggregation({
           column_name: colName,
           aggregation: y[1],
         });

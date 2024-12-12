@@ -4,15 +4,12 @@ import { ViewTypes } from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
-const { appInfo } = useGlobal()
 
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
 
 const { metas } = useMetas()
-
-const workspaceStore = useWorkspace()
 
 const isLocked = inject(IsLockedInj, ref(false))
 

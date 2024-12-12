@@ -2272,7 +2272,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
-                          'active-cell !after:h-[calc(100%-2px)]':
+                          'active-cell !after:h-[calc(100%-1px)]':
                             (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':

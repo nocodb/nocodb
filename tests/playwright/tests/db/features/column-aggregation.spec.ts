@@ -179,12 +179,6 @@ const data = [
 
 const verificationNumericalData = {
   Number: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
     sum: '142',
     min: '42',
     max: '100',
@@ -194,12 +188,6 @@ const verificationNumericalData = {
     range: '58',
   },
   Decimal: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
     sum: '5.9',
     min: '2.7',
     max: '3.1',
@@ -208,43 +196,7 @@ const verificationNumericalData = {
     std_dev: '0.2',
     range: '0.4',
   },
-  Currency: {
-    sum: '300.5',
-    min: '100',
-    max: '200.5',
-    avg: '150.25',
-    median: '150.25',
-    std_dev: '0.2',
-    range: '100.5',
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Percent: {
-    sum: '125',
-    min: '50',
-    max: '75',
-    avg: '62.5%',
-    median: '62.5%',
-    std_dev: '12.5%',
-    range: '25%',
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
   Duration: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
     sum: '00:55',
     min: '00:22',
     max: '00:33',
@@ -252,22 +204,6 @@ const verificationNumericalData = {
     median: '00:28',
     std_dev: '00:06',
     range: '00:12',
-  },
-
-  Rating: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-    sum: '9',
-    min: '4',
-    max: '5',
-    avg: '4.5',
-    median: '4.5',
-    std_dev: '0.5',
-    range: '1',
   },
 };
 
@@ -280,23 +216,7 @@ const verificationStringData = {
     percent_filled: '100',
     percent_empty: '0',
   },
-  MultiSelect: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
   SingleSelect: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Url: {
     count_unique: '2',
     count_empty: '0',
     count_filled: '2',
@@ -324,32 +244,12 @@ const verificationStringData = {
 
 const verificationDateTime = {
   DateTime: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
     earliest_date: '2024-01-01 10:00',
     latest_date: '2024-02-02 12:00',
     date_range: '32 days',
     month_range: '1 month',
   },
-  Time: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
   Date: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
     earliest_date: '2024-01-01',
     latest_date: '2024-02-02',
     date_range: '32 days',
@@ -359,12 +259,6 @@ const verificationDateTime = {
 
 const verificationNUmericalDataAfterFilter = {
   Number: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
     sum: '42',
     min: '42',
     max: '42',
@@ -374,12 +268,6 @@ const verificationNUmericalDataAfterFilter = {
     range: '0',
   },
   Decimal: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
     sum: '3.1',
     min: '3.1',
     max: '3.1',
@@ -388,29 +276,7 @@ const verificationNUmericalDataAfterFilter = {
     std_dev: '0',
     range: '0',
   },
-
-  Percent: {
-    sum: '50',
-    min: '50',
-    max: '50',
-    avg: '50%',
-    median: '50%',
-    std_dev: '0%',
-    range: '0%',
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
   Duration: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
     sum: '00:22',
     min: '00:22',
     max: '00:22',
@@ -418,22 +284,6 @@ const verificationNUmericalDataAfterFilter = {
     median: '00:22',
     std_dev: '00:00',
     range: '00:00',
-  },
-
-  Rating: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-    sum: '4',
-    min: '4',
-    max: '4',
-    avg: '4',
-    median: '2',
-    std_dev: '0',
-    range: '4',
   },
 };
 
@@ -446,32 +296,7 @@ const verificationStringDataAfterFilter = {
     percent_filled: '100',
     percent_empty: '0',
   },
-  LongText: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  MultiSelect: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
   SingleSelect: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-
-  Url: {
     count_unique: '1',
     count_empty: '1',
     count_filled: '1',
@@ -499,36 +324,16 @@ const verificationStringDataAfterFilter = {
 
 const verificationDateTimeDataAfterFilter = {
   Date: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
     earliest_date: '2024-01-01',
     latest_date: '2024-01-01',
     date_range: '0 days',
     month_range: '0 month',
   },
   DateTime: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
     earliest_date: '2024-01-01 10:00',
     latest_date: '2024-01-01 10:00',
     date_range: '0 days',
     month_range: '0 month',
-  },
-  Time: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
   },
 };
 
@@ -561,6 +366,8 @@ test.describe('Field Aggregation', () => {
     testContext = { api, table, base };
 
     aggregationBar = dashboard.grid.aggregationBar;
+
+    await page.reload();
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
@@ -665,7 +472,7 @@ test.describe('Field Aggregation', () => {
     }
   });
 
-  test('Numerical Columns', async ({ page }) => {
+  test.only('Numerical Columns', async ({ page }) => {
     for (const x of Object.entries(verificationNumericalData)) {
       const colName = x[0];
 

@@ -4,6 +4,7 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
+import type { FilterType, SortType } from 'nocodb-sdk';
 
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -25,36 +26,41 @@ const columnsWithOptions = [
   UITypes.LongText,
 ];
 
-export class ApiV3DataTransformationBuilder {
+export class ApiV3DataTransformationBuilder<
+  Input = Record<string, unknown>,
+  Output = Input,
+> {
   private transformations: Array<(data: any) => any> = [];
 
-  remapColumns(mappings: Record<string, string>): this {
-    this.transformations.push((data) => {
-      return Object.entries(data).reduce((result, [key, value]) => {
+  remapColumns<S = Input, T = Output>(mappings: Record<string, string>): this {
+    this.transformations.push((data: S) => {
+      return Object.entries(data).reduce<T>((result, [key, value]) => {
         const newKey = mappings[key] || key;
         result[newKey] = value;
         return result;
-      }, {});
+      }, {} as T);
     });
     return this;
   }
 
-  filterColumns(args: { allowed: string[] } | { excluded: string[] }): this {
-    this.transformations.push((data) => {
+  filterColumns<S = Input, T = Output>(
+    args: { allowed: string[] } | { excluded: string[] },
+  ): this {
+    this.transformations.push((data: S) => {
       return Object.keys(data)
         .filter((key) => {
           if ('allowed' in args) return args.allowed.includes(key);
           if ('excluded' in args) return !args.excluded.includes(key);
         })
-        .reduce((result, key) => {
+        .reduce<T>((result, key) => {
           result[key] = data[key];
           return result;
-        }, {});
+        }, {} as T);
     });
     return this;
   }
 
-  metaTransform({
+  metaTransform<S = Input, T = Output>({
     snakeCase = true,
     camelCase = false,
     mappings = {},
@@ -70,7 +76,7 @@ export class ApiV3DataTransformationBuilder {
     skipTransformFor?: string[];
     skipfn?: (data: any) => boolean;
   } & ({ allowed: string[] } | { excluded: string[] } | {}) = {}): this {
-    this.transformations.push((data) => {
+    this.transformations.push((data: S) => {
       const result = { ...data };
 
       // iterate and update properties of metaProps only
@@ -96,7 +102,7 @@ export class ApiV3DataTransformationBuilder {
 
               return true;
             })
-            .reduce((result, [key, value]) => {
+            .reduce<T>((result, [key, value]) => {
               let newKey = mappings[key] || key;
 
               if (
@@ -115,7 +121,7 @@ export class ApiV3DataTransformationBuilder {
 
               result[newKey] = value;
               return result;
-            }, {});
+            }, {} as T);
         }
       }
       return result;
@@ -123,37 +129,85 @@ export class ApiV3DataTransformationBuilder {
     return this;
   }
 
-  customTransform(transformFn: (data: any) => any): this {
+  customTransform<S = Input, T = Output>(transformFn: (data: S) => T): this {
     this.transformations.push(transformFn);
     return this;
   }
 
-  build(data: any | any[]) {
+  build(data: Input | Input[]): Output | Output[] {
     if (Array.isArray(data)) {
       return data.map((item) =>
         this.transformations.reduce(
           (result, transform) => transform(result),
           item,
         ),
-      );
+      ) as Output[];
     }
     return this.transformations.reduce(
       (result, transform) => transform(result),
       data,
-    );
+    ) as Output;
+  }
+
+  excludeNulls<S = Input, T = Output>() {
+    this.transformations.push((data: S) => {
+      return Object.entries(data).reduce<T>((result, [key, value]) => {
+        if (value !== null) {
+          result[key] = value;
+        }
+        return result;
+      }, {} as T);
+    });
+    return this;
+  }
+
+  transformToBoolean<S = Input, T = Output>(booleanProps: string[]) {
+    this.transformations.push((data: S) => {
+      return Object.entries(data).reduce<T>((result, [key, value]) => {
+        if (booleanProps.includes(key)) {
+          result[key] = !!value;
+        } else {
+          result[key] = value;
+        }
+        return result;
+      }, {} as T);
+    });
+    return this;
+  }
+
+  nestedExtract<S = Input, T = Output>(
+    nestedExtract: Record<string, string[]>,
+  ) {
+    this.transformations.push((data: S) => {
+      const result = { ...data };
+      Object.entries(nestedExtract).forEach(([key, path]) => {
+        const value = path.reduce((acc, key) => acc?.[key], result);
+        result[key] = value;
+      });
+      return result;
+    });
   }
 }
 
 // builder which does the reverse of the above
 
-export const builderGenerator = ({
+export const builderGenerator = <
+  Input = Record<string, unknown>,
+  Output = Input,
+>({
   mappings,
   transformFn,
   meta,
+  excludeNullProps,
+  booleanProps,
+  nestedExtract,
   ...rest
 }: {
   mappings?: Record<string, string>;
   transformFn?: (data: any) => any;
+  nestedExtract?: Record<string, string[]>;
+  excludeNullProps?: boolean;
+  booleanProps?: string[];
   meta?: {
     snakeCase?: boolean;
     camelCase?: boolean;
@@ -166,9 +220,21 @@ export const builderGenerator = ({
   | { allowed: string[] }
   | { excluded: string[] }
   | {}
-)): (() => ApiV3DataTransformationBuilder) => {
+)): (() => ApiV3DataTransformationBuilder<Input, Output>) => {
   return () => {
-    const builder = new ApiV3DataTransformationBuilder();
+    const builder = new ApiV3DataTransformationBuilder<Input, Output>();
+    if (nestedExtract) {
+      builder.nestedExtract(nestedExtract);
+    }
+
+    if (excludeNullProps) {
+      builder.excludeNulls();
+    }
+
+    if (booleanProps) {
+      builder.transformToBoolean(booleanProps);
+    }
+
     if ('allowed' in rest || 'excluded' in rest) {
       builder.filterColumns(rest);
     }
@@ -362,7 +428,13 @@ export const columnV3ToV2Builder = builderGenerator({
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
-    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx', 'duration_format'],
+    skipTransformFor: [
+      'currency_locale',
+      'currency_code',
+      'icon',
+      'iconIdx',
+      'duration_format',
+    ],
   },
   transformFn: (data) => {
     let meta: Record<string, any> = data.meta || {};
@@ -442,4 +514,46 @@ export const columnV3ToV2Builder = builderGenerator({
       ...additionalPayloadData,
     };
   },
+});
+
+export const sortBuilder = builderGenerator<SortType[], Partial<SortType>>({
+  allowed: ['id', 'fk_column_id', 'direction'],
+  mappings: {
+    fk_column_id: 'field_id',
+  },
+});
+
+export const filterBuilder = builderGenerator<
+  FilterType[],
+  Partial<FilterType>[]
+>({
+  allowed: [
+    'id',
+    'fk_column_id',
+    'direction',
+    'logical_op',
+    'fk_parent_id',
+    'comparison_op',
+    'comparison_sub_op',
+    'value',
+    'is_group',
+  ],
+  mappings: {
+    fk_column_id: 'field_id',
+    fk_parent_id: 'parent_id',
+  },
+  excludeNullProps: true,
+  booleanProps: ['is_group'],
+});
+
+export const viewColumnBuilder = builderGenerator<
+  ViewColumn[],
+  Partial<ViewColumn>[]
+>({
+  allowed: ['fk_column_id', 'width', 'show', 'formatting'],
+  mappings: {
+    fk_column_id: 'field_id',
+  },
+  excludeNullProps: true,
+  booleanProps: ['show'],
 });

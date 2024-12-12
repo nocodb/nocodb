@@ -138,6 +138,10 @@ import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
 import {ColumnsV3Controller} from "~/controllers/v3/columns-v3.controller";
 import {ColumnsV3Service} from "~/services/v3/columns-v3.service";
+import {SortsV3Service} from "~/services/v3/sorts-v3.service";
+import {SortsV3Controller} from "~/controllers/v3/sorts-v3.controller";
+import {ViewsV3Controller} from "~/controllers/v3/views-v3.controller";
+import {ViewsV3Service} from "~/services/v3/views-v3.service";
 
 export const nocoModuleMetadata = {
   imports: [
@@ -204,6 +208,8 @@ export const nocoModuleMetadata = {
           BasesV3Controller,
           TablesV3Controller,
           ColumnsV3Controller,
+          SortsV3Controller,
+          ViewsV3Controller,
 
           /* Datas */
           DataTableController,
@@ -279,6 +285,8 @@ export const nocoModuleMetadata = {
     BasesV3Service,
     TablesV3Service,
     ColumnsV3Service,
+    SortsV3Service,
+    ViewsV3Service,
 
     /* Datas */
     DataTableService,

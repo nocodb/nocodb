@@ -76,7 +76,7 @@ const localState = computed({
 
 const savingValue = ref()
 
-function saveChanges(val?: dayjs.Dayjs, saveOnChange = true) {
+function saveChanges(val?: dayjs.Dayjs) {
   if (!val) {
     if (savingValue.value === val) {
       return
@@ -109,6 +109,23 @@ watchEffect(() => {
     tempDate.value = localState.value
   }
 })
+
+const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
+  const targetValue = valueToSave || (e.target as HTMLInputElement).value
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+  const value = dayjs(targetValue, dateFormat.value)
+
+  if (value.isValid()) {
+    tempDate.value = value
+
+    if (save) {
+      saveChanges(value)
+    }
+  }
+}
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
@@ -286,23 +303,6 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     open.value = true
   }
 })
-
-const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
-  const targetValue = valueToSave || (e.target as HTMLInputElement).value
-  if (!targetValue) {
-    tempDate.value = undefined
-    return
-  }
-  const value = dayjs(targetValue, dateFormat.value)
-
-  if (value.isValid()) {
-    tempDate.value = value
-
-    if (save) {
-      saveChanges(value, false)
-    }
-  }
-}
 
 function handleSelectDate(value?: dayjs.Dayjs) {
   tempDate.value = value

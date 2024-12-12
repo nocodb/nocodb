@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -10,7 +10,7 @@ import {
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
+import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -183,9 +183,10 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
-  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField && isAllowToAddInFormView
+  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField && isAllowToAddInFormView && showAiFields
 }
 
 const extraIcons = ref<Record<string, string>>({})
@@ -194,7 +195,7 @@ const predictedFieldType = ref<UITypes | null>(null)
 
 // const lastPredictedAt = ref<number>(0)
 
-const uiTypesOptions = computed<typeof uiTypes>(() => {
+const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: string })[]>(() => {
   const types = [
     ...uiTypes.filter(uiFilters),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
@@ -235,10 +236,42 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
     }
   }
 
-  return types
+  if (!isEdit.value) {
+    return types
+  } else {
+    return types.map((type) => {
+      if (!isEdit.value) return type
+
+      const isColumnTypeDisabled =
+        !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
+
+      return {
+        ...type,
+        disabled: isColumnTypeDisabled,
+        tooltip:
+          isColumnTypeDisabled && UITypesName[type.name]
+            ? `${UITypesName[type.name]} field cannot be used as display value field`
+            : '',
+      }
+    })
+  }
 })
 
-const onSelectType = (uidt: UITypes | typeof AIButton, fromSearchList = false) => {
+const editOrAddRef = ref<HTMLDivElement>()
+
+const isScrollEnabled = ref(false)
+
+const handleScrollDebounce = useDebounceFn(() => {
+  if (props.fromTableExplorer || !editOrAddRef.value || aiAutoSuggestMode.value) return
+
+  if (editOrAddRef.value.clientHeight < editOrAddRef.value.scrollHeight) {
+    isScrollEnabled.value = true
+  } else {
+    isScrollEnabled.value = false
+  }
+}, 500)
+
+const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
@@ -250,10 +283,22 @@ const onSelectType = (uidt: UITypes | typeof AIButton, fromSearchList = false) =
     preload = {
       type: ButtonActionsType.Ai,
     }
+  } else if (uidt === AIPrompt) {
+    formState.value.uidt = UITypes.LongText
+    preload = {
+      meta: {
+        [LongTextAiMetaProp]: true,
+      },
+    }
   } else {
     formState.value.uidt = uidt
   }
+
   onUidtOrIdTypeChange(preload)
+
+  nextTick(() => {
+    handleScrollDebounce()
+  })
 }
 
 const reloadMetaAndData = async () => {
@@ -393,6 +438,9 @@ onMounted(() => {
   nextTick(() => {
     mounted.value = true
     emit('mounted')
+
+    handleScrollDebounce()
+
     if (!isEdit.value) {
       if (!formState.value?.temp_id) {
         emit('add', formState.value)
@@ -474,10 +522,7 @@ const submitBtnLabel = computed(() => {
 })
 
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return (
-    option.value.toLowerCase().includes(input.toLowerCase()) ||
-    (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
-  )
+  return searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
 }
 
 const triggerDescriptionEnable = () => {
@@ -489,6 +534,9 @@ const triggerDescriptionEnable = () => {
       descInputEl.value?.focus()
     }, 100)
   }
+  nextTick(() => {
+    handleScrollDebounce()
+  })
 }
 
 const isFullUpdateAllowed = computed(() => {
@@ -582,6 +630,10 @@ const isAiButtonSelectOption = (uidt: string) => {
   return uidt === UITypes.Button && formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai
 }
 
+const isAiPromptSelectOption = (uidt: string) => {
+  return uidt === UITypes.LongText && isAIPromptCol(formState.value)
+}
+
 const aiPromptInputRef = ref<HTMLElement>()
 
 watch(activeAiTab, (newValue) => {
@@ -597,6 +649,7 @@ watch(activeAiTab, (newValue) => {
 <template>
   <div
     v-if="!warningVisible"
+    ref="editOrAddRef"
     class="overflow-auto nc-scrollbar-md"
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
@@ -604,13 +657,15 @@ watch(activeAiTab, (newValue) => {
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
-      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
+      '!pb-0': !embedMode && !aiAutoSuggestMode && formState.uidt,
     }"
     @keydown="handleEscape"
     @click.stop
+    @scroll="handleScrollDebounce"
   >
     <a-form
       v-model="formState"
@@ -927,7 +982,7 @@ watch(activeAiTab, (newValue) => {
                 type="primary"
                 theme="ai"
                 :loading="saving"
-                :disabled="disableSubmitBtn || !activeTabSelectedFields.length || saving"
+                :disabled="disableSubmitBtn || saving"
                 size="small"
                 :label="submitBtnLabel.label"
                 :loading-label="submitBtnLabel.loadingLabel"
@@ -1037,20 +1092,33 @@ watch(activeAiTab, (newValue) => {
                 v-for="opt of uiTypesOptions"
                 :key="opt.name"
                 :value="opt.name"
-                :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
+                :disabled="(isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)) || opt.disabled"
                 v-bind="validateInfos.uidt"
                 :class="{
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
-                  '!text-nc-content-purple-dark': [AIButton].includes(opt.name),
+                  '!text-nc-content-purple-dark': [AIPrompt, AIButton].includes(opt.name),
                 }"
                 @mouseover="handleResetHoverEffect"
               >
-                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name" :data-title="formState?.type">
+                <NcTooltip
+                  class="w-full flex gap-2 items-center justify-between"
+                  placement="right"
+                  :disabled="!opt?.tooltip"
+                  :attrs="{
+                    'data-testid': opt.name,
+                  }"
+                >
+                  <template #title> {{ opt?.tooltip }} </template>
                   <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">
                     <component
-                      :is="isAiButtonSelectOption(opt.name) && !isColumnTypeOpen ? iconMap.cellAiButton : opt.icon"
-                      class="nc-field-type-icon w-4 h-4"
-                      :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
+                      :is="
+                        isAiButtonSelectOption(opt.name) && !isColumnTypeOpen
+                          ? iconMap.cellAiButton
+                          : isAiPromptSelectOption(opt.name) && !isColumnTypeOpen
+                          ? iconMap.cellAi
+                          : opt.icon
+                      "
+                      class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div class="flex-1">
                       {{ UITypesName[opt.name] }}
@@ -1072,7 +1140,7 @@ watch(activeAiTab, (newValue) => {
                       'text-nc-content-purple-medium': isAiMode,
                     }"
                   />
-                </div>
+                </NcTooltip>
               </a-select-option>
             </a-select>
           </NcTooltip>
@@ -1109,7 +1177,11 @@ watch(activeAiTab, (newValue) => {
         <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <SmartsheetColumnLongTextOptions v-if="formState.uidt === UITypes.LongText" v-model:value="formState" />
+        <SmartsheetColumnLongTextOptions
+          v-if="formState.uidt === UITypes.LongText"
+          v-model="formState"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+        />
         <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
@@ -1227,7 +1299,12 @@ watch(activeAiTab, (newValue) => {
           </Transition>
         </template>
 
-        <a-form-item v-if="enableDescription && !aiAutoSuggestMode">
+        <a-form-item
+          v-if="enableDescription && !aiAutoSuggestMode"
+          :class="{
+            '!pb-4': embedMode,
+          }"
+        >
           <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
@@ -1254,8 +1331,13 @@ watch(activeAiTab, (newValue) => {
         </a-form-item>
 
         <template v-if="props.fromTableExplorer">
-          <a-form-item>
-            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+          <a-form-item
+            v-if="!enableDescription"
+            :class="{
+              '!pb-4': embedMode,
+            }"
+          >
+            <NcButton size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -1266,8 +1348,14 @@ watch(activeAiTab, (newValue) => {
             </NcButton>
           </a-form-item>
         </template>
+
         <template v-else>
-          <div class="flex items-center justify-between gap-2 empty:hidden">
+          <div
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5"
+            :class="{
+              'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
+            }"
+          >
             <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
@@ -1344,11 +1432,6 @@ watch(activeAiTab, (newValue) => {
   }
 }
 
-:deep(.ant-select-disabled.nc-column-type-input) {
-  .nc-field-type-icon {
-    @apply text-current;
-  }
-}
 :deep(.ant-select.nc-column-type-input) {
   .nc-new-field-badge {
     @apply hidden;

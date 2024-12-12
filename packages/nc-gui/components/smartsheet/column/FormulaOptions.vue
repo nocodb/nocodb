@@ -118,6 +118,10 @@ const debouncedValidate = useDebounceFn(async () => {
         dataType: FormulaDataTypes.UNKNOWN,
       }
     }
+  } finally {
+    if (vModel.value?.colOptions?.parsed_tree?.dataType !== parsedTree.value?.dataType) {
+      vModel.value.meta.display_type = null
+    }
   }
 }, 300)
 
@@ -175,15 +179,6 @@ watch(
     immediate: true,
   },
 )
-
-watch(parsedTree, (value, oldValue) => {
-  if (oldValue === undefined && value) {
-    return
-  }
-  if (value?.dataType !== oldValue?.dataType) {
-    vModel.value.meta.display_type = null
-  }
-})
 </script>
 
 <template>
@@ -209,9 +204,14 @@ watch(parsedTree, (value, oldValue) => {
             <div>{{ $t('labels.formatting') }}</div>
           </div>
         </template>
-        <div class="flex flex-col px-0.5 gap-4">
+        <div class="flex flex-col px-0.5 gap-4 pb-0.5">
           <a-form-item class="mt-4" :label="$t('general.format')">
-            <a-select v-model:value="vModel.meta.display_type" class="w-full" :placeholder="$t('labels.selectAFormatType')">
+            <NcSelect
+              v-model:value="vModel.meta.display_type"
+              class="w-full nc-select-shadow"
+              :placeholder="$t('labels.selectAFormatType')"
+              allow-clear
+            >
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
                 <div class="flex w-full items-center gap-2 justify-between">
                   <div class="w-full">
@@ -226,7 +226,7 @@ watch(parsedTree, (value, oldValue) => {
                   />
                 </div>
               </a-select-option>
-            </a-select>
+            </NcSelect>
           </a-form-item>
 
           <template

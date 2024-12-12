@@ -8,9 +8,21 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:searchQuery', 'update:isOpen'])
 
+const { $e } = useNuxtApp()
+
 const searchQuery = useVModel(props, 'searchQuery', emits)
 
 const isOpen = useVModel(props, 'isOpen', emits)
+
+watchDebounced(
+  searchQuery,
+  () => {
+    if (searchQuery.value) {
+      $e('c:extensions:marketplace:search')
+    }
+  },
+  { debounce: 3000 },
+)
 
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
 
@@ -23,7 +35,7 @@ const filteredAvailableExtensions = computed(() =>
 )
 
 const onExtensionClick = (extensionId: string) => {
-  showExtensionDetails(extensionId)
+  showExtensionDetails(extensionId, 'market')
   isOpen.value = false
 }
 

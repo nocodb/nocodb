@@ -59,6 +59,7 @@ const filteredExtensionList = computed(() =>
 )
 
 const toggleMarket = () => {
+  $e('c:extensions:marketplace:open')
   isMarketVisible.value = !isMarketVisible.value
 }
 

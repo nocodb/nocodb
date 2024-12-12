@@ -14,16 +14,6 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
-const isFieldAiIntegrationAvailable = computed(() => {
-  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
-
-  const fkIntegrationId = column.value?.colOptions?.fk_integration_id
-
-  if (!fkIntegrationId) return false
-
-  return ncIsArrayIncludes(aiIntegrations.value, fkIntegrationId, 'id')
-})
-
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -45,6 +35,14 @@ const isLoading = ref(false)
 const pk = computed(() => {
   if (!meta.value?.columns) return
   return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const isFieldAiIntegrationAvailable = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
+
+  const fkIntegrationId = column.value?.colOptions?.fk_integration_id
+
+  return !!fkIntegrationId
 })
 
 const generate = async () => {
@@ -130,6 +128,8 @@ const componentProps = computed(() => {
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
+        isPublic.value ||
+        !isUIAllowed('dataEdit') ||
         !isFieldAiIntegrationAvailable.value ||
         isLoading.value ||
         (pk.value &&
@@ -148,7 +148,7 @@ const componentProps = computed(() => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')" class="flex">
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
@@ -210,7 +210,7 @@ const componentProps = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
+  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center;
   &:not([class*='text']) {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }

@@ -21,7 +21,7 @@ const { loadViews, navigateToView } = viewsStore
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { aiIntegrationAvailable } = useNocoAi()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isOpen = ref<boolean>(false)
 
@@ -229,12 +229,24 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <a-menu-item v-if="!activeSource?.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
-                  <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-form">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
-                    Form
-                  </div>
-                </a-menu-item>
+                <NcTooltip
+                  :title="$t('tooltip.sourceDataIsReadonly')"
+                  :disabled="!activeSource?.is_data_readonly"
+                  placement="right"
+                >
+                  <a-menu-item @click="onOpenModal({ type: ViewTypes.FORM })" :disabled="!!activeSource?.is_data_readonly">
+                    <div
+                      class="nc-viewlist-submenu-popup-item"
+                      data-testid="topbar-view-create-form"
+                      :class="{
+                        'opacity-50': !!activeSource?.is_data_readonly,
+                      }"
+                    >
+                      <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
+                      Form
+                    </div>
+                  </a-menu-item>
+                </NcTooltip>
                 <a-menu-item @click="onOpenModal({ type: ViewTypes.GALLERY })">
                   <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-gallery">
                     <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
@@ -254,17 +266,15 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <NcDivider />
-                <a-menu-item
-                  v-if="aiIntegrationAvailable"
-                  data-testid="sidebar-view-create-ai"
-                  @click="onOpenModal({ type: 'AI' })"
-                >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                    <div>{{ $t('labels.aiSuggested') }}</div>
-                  </div>
-                </a-menu-item>
+                <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+                  <NcDivider />
+                  <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+                    <div class="nc-viewlist-submenu-popup-item">
+                      <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                      <div>{{ $t('labels.aiSuggested') }}</div>
+                    </div>
+                  </a-menu-item>
+                </template>
               </a-sub-menu>
             </a-menu>
           </div>

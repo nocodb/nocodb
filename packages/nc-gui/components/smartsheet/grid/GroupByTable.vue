@@ -276,6 +276,7 @@ async function deleteSelectedRowsWrapper() {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-restricted-v-bind -->
   <Table
     v-if="vGroup.rows"
     v-model:selected-all-records="selectedAllRecords"
@@ -313,7 +314,7 @@ async function deleteSelectedRowsWrapper() {
     />
   </Suspense>
   <SmartsheetExpandedForm
-    v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId === vGroup.key"
+    v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId == vGroup.key"
     v-model="expandedFormOnRowIdDlg"
     :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
     :meta="meta"

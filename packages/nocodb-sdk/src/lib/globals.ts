@@ -44,6 +44,14 @@ export enum RelationTypes {
   ONE_TO_ONE = 'oo',
 }
 
+export const ExpandedFormMode = {
+  FIELD: 'field',
+  ATTACHMENT: 'attachment',
+} as const;
+
+export type ExpandedFormModeType =
+  (typeof ExpandedFormMode)[keyof typeof ExpandedFormMode];
+
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
@@ -220,6 +228,8 @@ export enum NcErrorType {
   PERMISSION_DENIED = 'PERMISSION_DENIED',
   INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
 }
+
+export const LongTextAiMetaProp = 'ai';
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 

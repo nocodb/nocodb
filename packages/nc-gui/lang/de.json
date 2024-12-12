@@ -93,6 +93,9 @@
     "none": "Keine"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Projekt-Snapshots",
     "featurePreview": "Vorschau neuer Funktionen",
     "scripts": "Skripte",
     "configure": "Konfigurieren",
@@ -214,6 +217,7 @@
     "function": "Funktion",
     "confirm": "Bestätigen",
     "generate": "Generieren",
+    "generating": "Generiere ...",
     "copy": "Kopieren",
     "copied": "Kopiert",
     "are": "sind",
@@ -648,6 +652,18 @@
     "lockedByUser": "Gesperrt durch {user}"
   },
   "labels": {
+    "snapshotCreationFailed": "Erstellen des Snapshots fehlgeschlagen",
+    "snapshotCreationFailedDescription": "Projekt-Snapshot konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
+    "snapshotCooldownDescription": "Snapshots müssen mindestens drei Stunden auseinanderliegen.",
+    "snapshotCooldownWarning": "Die Zeit bis zum Erstellen eines neuen Screenshots ist noch nicht abgelaufen.",
+    "snapshotLimitDescription": "Sie können nur zwei Projekt-Snapshots gleichzeitig verwalten. ",
+    "snapshotLimitReached": "Snapshot-Limit erreicht",
+    "confirmRestore": "Wiederherstellung bestätigen",
+    "visibilityAndDataHandling": "Sichtbarkeit & Datenverarbeitung",
+    "visibilityConfigLabel": "Projektspezifische Konfigurationen für Darstellung und Standardverhalten",
+    "snapShotSubText": "Ein Snapshot ist eine umfassende Sicherungskopie, die den Zustand Ihres Projekts zum Zeitpunkt der Erstellung festhält. Wenn Sie einen Snapshot wiederherstellen, wird eine neue Instanz des Projekts im jeweiligen Arbeitsbereich erstellt.",
+    "newSnapshot": "Neuer Snapshot",
+    "searchASnapshot": "Snapshot suchen",
     "continue": "Weiter",
     "toggleExperimentalFeature": "Schalten Sie experimentelle Funktionen zum Ausprobieren einfach ein und aus.",
     "modifiedOn": "Geändert am",
@@ -788,7 +804,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Rich-Text-Format aktivieren",
-    "idColon": "Id: {fieldId}",
+    "idColon": "ID:",
     "copiedRecordURL": "Kopierte Datensatz-URL",
     "copyRecordURL": "Datensatz-URL kopieren",
     "duplicateRecord": "Zeile duplizieren",
@@ -874,7 +890,7 @@
     "lengthValue": "Länge / Wert",
     "dbType": "Datenbanktyp",
     "servername": "Servername / Hostadresse",
-    "sqliteFile": "SQLite-Dateipfad",
+    "sqliteFile": "SQLite-Datei",
     "hostAddress": "Host-Adresse",
     "port": "Port-Nummer",
     "username": "Benutzername",
@@ -938,7 +954,7 @@
       "joinCommunity": "NocoDB Community beitreten",
       "joinReddit": "/r/NocoDB beitreten",
       "followNocodb": "Folgen Sie NocoDB",
-      "communityTranslated": "(Community/AI übersetzt)"
+      "communityTranslated": "(Community Translated)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentenverweis",
@@ -1039,7 +1055,7 @@
     "lockView": "Ansicht sperren",
     "unlockView": "Ansicht entsperren",
     "aiSuggested": "KI-Empfehlung",
-    "generateFieldDataUsingAi": "Erzeuge Felddaten mithilfe von KI",
+    "generateFieldDataUsingAi": "Generiere Wert mit KI",
     "preview": "Vorschau",
     "autoSuggest": "Automatisch vorschlagen",
     "suggesting": "Schlage vor ...",
@@ -1051,6 +1067,7 @@
     "viewHide": "Sichtbarkeit anzeigen"
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Ansicht zuweisen",
     "webhookDetails": "Webhook-Details",
     "showSaturdaysAndSundays": "Samstage und Sonntage anzeigen",
@@ -1070,7 +1087,7 @@
     "toggleSidebar": "Seitenleiste umschalten",
     "addEndDate": "Enddatum hinzufügen",
     "endDate": "Enddatum",
-    "withEndDate": "mit Enddatum",
+    "withEndDate": "with end date",
     "calendar": "Kalender",
     "viewSettings": "Einstellungen anzeigen",
     "googleOAuth": "Google OAuth",
@@ -1363,7 +1380,7 @@
     "autoSuggestSelectOptions": "Automatisch Optionen basierend auf Feldname und vorhandenen Feldern vorschlagen",
     "aiIntegrationReConfigure": "Die KI-Integration wurde entfernt. Konfigurieren Sie das Feld im Bearbeitungsmodus neu, um die NocoAI-Funktionen zu nutzen.",
     "aiIntegrationAddAndReConfigure": "Die KI-Integration wurde entfernt. Fügen Sie das Feld neu hinzu und konfigurieren Sie es im Bearbeitungsmodus, um die NocoAI-Funktionen zu nutzen.",
-    "generateFieldDataUsingAiButtonOption": "Daten für mehrere Felder dieser Tabelle mit Datensatzinformationen und NocoAI erzeugen"
+    "generateFieldDataUsingAiButtonOption": "Generiere Werte für mehrere Felder in dieser Tabelle mittels bestehenden Datensätzen und NocoAI"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",
@@ -1489,7 +1506,7 @@
       "cantBeNull": "Auswahloptionen dürfen nicht leer sein",
       "multiSelectCantHaveCommas": "Auswahloptionen dürfen keine Kommas (\",\") enthalten",
       "cantHaveDuplicates": "Auswahloptionen dürfen keine Duplikate enthalten",
-      "createNewOptionNamed": "Neue Option erstellen namens "
+      "createNewOptionNamed": "Neue Option erstellen namens"
     },
     "plsEnterANumber": "Bitte geben Sie eine Zahl ein",
     "plsInputEmail": "Bitte E-Mail-Adresse eingeben",
@@ -1573,7 +1590,7 @@
       "noSaml": "Es sind keine SAML-Authentifizierungen konfiguriert.",
       "noOIDC": "Es sind keine konfigurierten OpenID-Authentifizierungen vorhanden.",
       "disabledAsViewLocked": "Deaktiviert, da die Ansicht gesperrt ist",
-      "basesMigrated": "Datenbanken wurden migriert. Bitte versuchen Sie es erneut.",
+      "basesMigrated": "Datenbanken werden migriert. Bitte versuchen Sie es erneut.",
       "pasteNotSupported": "Einfügen in aktive Zelle nicht möglich",
       "roles": {
         "orgCreator": "Ersteller können neue Projekte erstellen und auf alle Projekte zugreifen, zu denen sie eingeladen wurden.",
@@ -1623,7 +1640,7 @@
       "apiOptions": "Zugriff auf das Projekt via",
       "submitAnotherForm": "Weiteres Formular übermitteln'-Button anzeigen",
       "showBlankForm": "Ein leeres Formular nach 5 Sekunden anzeigen",
-      "emailForm": "Antworten per E-Mail senden an",
+      "emailForm": "E-Mail an mich unter",
       "showSysFields": "Systemfelder anzeigen",
       "filterAutoApply": "Automatisch anwenden",
       "formDisplayMessage": "Nachricht anzeigen",
@@ -1631,7 +1648,7 @@
       "showAllViews": "Alle geteilten Ansichten dieser Tabelle anzeigen",
       "collabView": "Mitarbeitern mit Bearbeitungsberechtigung oder höher können die Ansichtenkonfiguration ändern",
       "lockedView": "Niemand kann die Ansichtenkonfiguration bearbeiten, bis sie freigeschaltet ist.",
-      "personalView": "Nur Sie selbst können die Konfiguration der Ansicht ändern. ",
+      "personalView": "Nur Sie können die Ansichtenkonfiguration bearbeiten. Weitere Mitarbeiter-Ansichten sind standardmäßig ausgeblendet.",
       "canEditLockedViewConfiguration": "Entsperren Sie diese Ansicht, um die Konfiguration zu ändern. ",
       "cannotEditViewConfiguration": "Sie können diese Ansicht nicht konfigurieren.",
       "onlyYouCanConfigureThisView": "Nur {user} kann diese Ansicht bearbeiten.",
@@ -1711,7 +1728,7 @@
       "noColumnsToUpdate": "Keine Spalten zu aktualisieren",
       "tableDeleted": "Tabelle erfolgreich gelöscht",
       "layoutDeleted": "Layout erfolgreich gelöscht",
-      "generatePublicShareableReadonlyBase": "Öffentlich lesbare Basis generieren",
+      "generatePublicShareableReadonlyBase": "Öffentlich teilbares Projekt generieren",
       "deleteViewConfirmation": "Sind Sie sicher, dass Sie diese Ansicht löschen möchten?",
       "deleteLayoutConfirmation": "Sind Sie sicher, dass Sie dieses Layout löschen möchten?",
       "deleteTableConfirmation": "Möchten Sie die Tabelle löschen",

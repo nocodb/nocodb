@@ -29,8 +29,6 @@ const { isMobileMode, user } = useGlobal()
 
 const { api } = useApi()
 
-const { auditLogsQuery, auditPaginationData } = storeToRefs(useWorkspace())
-
 const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
 const { bases, basesUser } = storeToRefs(basesStore)
@@ -94,8 +92,6 @@ const baseRole = computed(() => base.value.project_role || base.value.workspace_
 const { activeProjectId } = storeToRefs(useBases())
 
 const { baseUrl } = useBase()
-
-const toggleDialog = inject(ToggleDialogInj, () => {})
 
 const { $e } = useNuxtApp()
 
@@ -482,36 +478,6 @@ const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
 
-async function openAudit(source: SourceType) {
-  $e('c:project:audit')
-
-  auditPaginationData.value.page = 1
-
-  auditLogsQuery.value = {
-    ...auditLogsQuery.value,
-    orderBy: {
-      created_at: 'desc',
-      user: undefined,
-    },
-  }
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
-    'modelValue': isOpen,
-    'sourceId': source!.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.value!.id,
-    'bordered': true,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 const labelEl = ref()
 watch(
   () => labelEl.value && activeProjectId.value === base.value?.id,
@@ -524,6 +490,10 @@ watch(
     immediate: true,
   },
 )
+
+const openBaseSettings = async (baseId: string) => {
+  await navigateTo(`/nc/${baseId}?page=base-settings`)
+}
 
 const showNodeTooltip = ref(true)
 </script>
@@ -703,17 +673,6 @@ const showNodeTooltip = ref(true)
                         </div>
                       </NcMenuItem>
 
-                      <!-- Audit -->
-                      <NcMenuItem
-                        v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
-                        key="audit"
-                        data-testid="nc-sidebar-base-audit"
-                        @click="openAudit(base?.sources?.[0])"
-                      >
-                        <GeneralIcon icon="audit" class="group-hover:text-black" />
-                        {{ $t('title.audit') }}
-                      </NcMenuItem>
-
                       <!-- Swagger: Rest APIs -->
                       <NcMenuItem
                         v-if="isUIAllowed('apiDocs')"
@@ -745,7 +704,7 @@ const showNodeTooltip = ref(true)
                       key="teamAndSettings"
                       data-testid="nc-sidebar-base-settings"
                       class="nc-sidebar-base-base-settings"
-                      @click="toggleDialog(true, 'teamAndAuth', undefined, base.id)"
+                      @click="openBaseSettings(base.id)"
                     >
                       <div v-e="['c:base:settings']" class="flex gap-2 items-center">
                         <GeneralIcon icon="settings" class="group-hover:text-black" />

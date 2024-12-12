@@ -1,6 +1,12 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  columnTypeName,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -45,7 +51,20 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
+const { aiIntegrations } = useNocoAi()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
+
+const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
+  if (!column?.value) {
+    return {
+      isInvalid: false,
+      tooltip: '',
+    }
+  }
+
+  return isColumnInvalid(column.value, aiIntegrations.value, isPublic.value || !isUIAllowed('dataEdit'))
+})
 
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
@@ -415,6 +434,14 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
   await copy(field.id!)
 
   isFieldIdCopied.value = true
+
+  await ncDelay(5000)
+
+  isFieldIdCopied.value = false
+}
+
+const onDeleteColumn = () => {
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 }
 </script>
 
@@ -427,7 +454,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="openDropdown"
   >
-    <div class="flex gap-0.5 items-center" @dblclick.stop>
+    <div class="flex gap-1 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
       <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
         <template #title>
@@ -437,14 +464,10 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
       </NcTooltip>
 
       <NcTooltip class="flex items-center">
-        <GeneralIcon
-          v-if="isColumnInvalid(column) && !isExpandedForm"
-          class="text-orange-500 w-3.5 h-3.5 ml-2"
-          icon="alertTriangle"
-        />
+        <GeneralIcon v-if="columnInvalid.isInvalid && !isExpandedForm" class="text-red-300 w-3.5 h-3.5" icon="alertTriangle" />
 
         <template #title>
-          {{ $t('msg.invalidColumnConfiguration') }}
+          {{ $t(columnInvalid.tooltip) }}
         </template>
       </NcTooltip>
       <GeneralIcon
@@ -561,19 +584,25 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv && !isHiddenCol"
-          @click="setAsDisplayValue"
+        <NcTooltip
+          v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
+          :disabled="isSupportedDisplayValueColumn(column)"
         >
-          <div class="nc-column-set-primary nc-header-menu-item item">
-            <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
-            <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+          <template #title>
+            {{ `${columnTypeName(column)} field cannot be used as display value field` }}
+          </template>
 
-            <!--       todo : tooltip -->
-            <!-- Set as Display value -->
-            {{ $t('activity.setDisplay') }}
-          </div>
-        </NcMenuItem>
+          <NcMenuItem :disabled="!isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
+            <div class="nc-column-set-primary nc-header-menu-item item">
+              <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
+              <GeneralIcon v-else icon="star" class="text-gray-500 !w-4.25 !h-4.25" />
+
+              <!--       todo : tooltip -->
+              <!-- Set as Display value -->
+              {{ $t('activity.setDisplay') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
 
         <template v-if="!isExpandedForm">
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
@@ -697,7 +726,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
       </NcMenu>
     </template>
   </a-dropdown>
-  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
   <DlgColumnDuplicate
     v-if="column"
     ref="duplicateDialogRef"

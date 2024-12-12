@@ -3,10 +3,12 @@ import {
   AppEvents,
   ButtonActionsType,
   FormulaDataTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  LongTextAiMetaProp,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
@@ -66,6 +68,10 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {
+  convertAIRecordTypeToValue,
+  convertValueToAIRecordType,
+} from '~/utils/dataConversion';
 
 // todo: move
 export enum Altered {
@@ -551,10 +557,6 @@ export class ColumnsService {
               NcError.badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
-            if (!colBody.fk_integration_id) {
-              NcError.badRequest('AI Integration not found');
-            }
-
             /*
               Substitute column alias with id in prompt
             */
@@ -1483,10 +1485,26 @@ export class ColumnsService {
             UITypes.MultiSelect,
           ].includes(column.uidt)
         ) {
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+
+          let trimColumn = `??`;
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            trimColumn = `TRIM(BOTH ' ' FROM ??)`;
+          } else if (driverType === 'pg') {
+            trimColumn = `BTRIM(??)`;
+          } else if (driverType === 'mssql') {
+            trimColumn = `LTRIM(RTRIM(??))`;
+          } else if (driverType === 'sqlite3') {
+            trimColumn = `TRIM(??)`;
+          }
+
           setStatement = baseUsers
             .map((user) =>
               sqlClient.knex
-                .raw('WHEN ?? = ? THEN ?', [
+                .raw(`WHEN ${trimColumn} = ? THEN ?`, [
                   column.column_name,
                   user.email,
                   user.id,
@@ -1557,6 +1575,75 @@ export class ColumnsService {
         );
       }
 
+      if (
+        isAIPromptCol(column) &&
+        (colBody.uidt !== UITypes.LongText ||
+          (colBody.uidt === UITypes.LongText &&
+            colBody.meta?.[LongTextAiMetaProp] !== true))
+      ) {
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL(context, {
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        await convertAIRecordTypeToValue({
+          source,
+          table,
+          column,
+          baseModel,
+          sqlClient,
+        });
+      } else if (isAIPromptCol(colBody)) {
+        let prompt = '';
+
+        /*
+          Substitute column alias with id in prompt
+        */
+        if (colBody.prompt_raw) {
+          await table.getColumns(context);
+
+          prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+            const column = table.columns.find((c) => c.title === p1);
+
+            if (!column) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            return `{${column.id}}`;
+          });
+        }
+
+        colBody.prompt = prompt;
+
+        // If column wasn't AI before, convert the data to AIRecordType format
+        if (
+          column.uidt !== UITypes.LongText ||
+          column.meta?.[LongTextAiMetaProp] !== true
+        ) {
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL(context, {
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          );
+
+          await convertValueToAIRecordType({
+            source,
+            table,
+            column,
+            baseModel,
+            sqlClient,
+            user: param.user,
+          });
+        }
+      }
+
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       await this.updateMetaAndDatabase(context, {
@@ -1571,6 +1658,17 @@ export class ColumnsService {
           });
         },
       });
+    }
+
+    if (
+      column.uidt === UITypes.Attachment &&
+      colBody.uidt !== UITypes.Attachment
+    ) {
+      await View.updateIfColumnUsedAsExpandedMode(
+        context,
+        column.id,
+        column.fk_model_id,
+      );
     }
 
     // Get all the columns in the table and return
@@ -1887,10 +1985,6 @@ export class ColumnsService {
             colBody.fk_webhook_id = null;
           }
         } else if (colBody.type === ButtonActionsType.Ai) {
-          if (!colBody.fk_integration_id) {
-            NcError.badRequest('AI Integration not found');
-          }
-
           /*
             Substitute column alias with id in prompt
           */
@@ -2183,6 +2277,29 @@ export class ColumnsService {
 
               colBody.cdf = ids.join(',');
             }
+          }
+
+          if (isAIPromptCol(colBody)) {
+            let prompt = '';
+
+            /*
+              Substitute column alias with id in prompt
+            */
+            if (colBody.prompt_raw) {
+              await table.getColumns(context);
+
+              prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+                const column = table.columns.find((c) => c.title === p1);
+
+                if (!column) {
+                  NcError.badRequest(`Field '${p1}' not found`);
+                }
+
+                return `{${column.id}}`;
+              });
+            }
+
+            colBody.prompt = prompt;
           }
 
           const tableUpdateBody = {
@@ -2693,6 +2810,13 @@ export class ColumnsService {
         ncMeta,
       );
     }
+
+    await View.updateIfColumnUsedAsExpandedMode(
+      context,
+      column.id,
+      column.fk_model_id,
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
       table,

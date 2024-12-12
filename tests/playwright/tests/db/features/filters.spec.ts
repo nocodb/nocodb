@@ -120,6 +120,7 @@ test.describe('Filter Tests: Numerical', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'numberBased' });
 
     let eqStringDerived = eqString;
     let isLikeStringDerived = isLikeString;
@@ -309,6 +310,7 @@ test.describe('Filter Tests: Text based', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'textBased' });
 
     const filterList = [
       {
@@ -429,6 +431,7 @@ test.describe('Filter Tests: Select based', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'selectBased' });
 
     const filterList = [
       {
@@ -561,6 +564,7 @@ test.describe('Filter Tests: Date based', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
 
     // records array with time set to 00:00:00; store time in unix epoch
     const recordsTimeSetToZero = records.list.map(r => {
@@ -865,6 +869,7 @@ test.describe('Filter Tests: AddOn', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
 
     const filterList = [
       {
@@ -970,6 +975,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     // add filter for CityList column
     const filterList = [
@@ -1008,6 +1014,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
 
     // add filter for CityList column
     const filterList = [
@@ -1047,6 +1054,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
 
     // add filter for CityList column
     const filterList = [
@@ -1149,6 +1157,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Enable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     // Verify filter options
     await verifyFilterOperatorList({
@@ -1180,6 +1189,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
     // wait for toast message
     await dashboard.verifyToast({ message: 'Null / Empty filters exist. Please remove them first.' });
 
@@ -1189,6 +1199,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
   });
 });
 

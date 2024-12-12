@@ -93,6 +93,9 @@
     "none": "কোনটিই নয়"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "Feature Preview",
     "scripts": "স্ক্রিপ্টসমূহ",
     "configure": "কনফিগার করুন",
@@ -214,6 +217,7 @@
     "function": "নির্দিষ্ট কর্ম",
     "confirm": "Confirm",
     "generate": "Generate",
+    "generating": "Generating...",
     "copy": "Copy",
     "copied": "অনুলিপি করা হয়েছে",
     "are": "আছে",
@@ -648,6 +652,18 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "পরিবর্তন করা হয়েছে",
@@ -788,7 +804,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "রিচ টেক্সট সক্রিয় করুন",
-    "idColon": "Id: {fieldId}",
+    "idColon": "Id:",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
@@ -874,7 +890,7 @@
     "lengthValue": "দৈর্ঘ্য/ মান",
     "dbType": "ডাটাবেস প্রকার",
     "servername": "সার্ভারনেম / হোস্ট ঠিকানা",
-    "sqliteFile": "SQLite ফাইল পথ",
+    "sqliteFile": "স্ক্লাইট ফাইল",
     "hostAddress": "হোস্ট ঠিকানা",
     "port": "পোর্ট নাম্বার",
     "username": "ব্যবহারকারীর নাম",
@@ -938,7 +954,7 @@
       "joinCommunity": "NocoDB কমিউনিটিতে যোগ দিন",
       "joinReddit": "/r/NocoDB-এ যোগ দিন",
       "followNocodb": "NocoDB অনুসরণ করুন",
-      "communityTranslated": "(কমিউনিটি/AI অনুবাদিত)"
+      "communityTranslated": "(Community Translated)"
     },
     "twitter": "টুইটার",
     "docReference": "Document Reference",
@@ -1039,7 +1055,7 @@
     "lockView": "Lock view",
     "unlockView": "Unlock view",
     "aiSuggested": "AI suggested",
-    "generateFieldDataUsingAi": "Generate field data using AI",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
     "suggesting": "Suggesting...",
@@ -1051,6 +1067,7 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ওয়েবহুকের বিবরণ",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
@@ -1070,7 +1087,7 @@
     "toggleSidebar": "সাইডবার টগল করুন",
     "addEndDate": "শেষ তারিখ যোগ করুন",
     "endDate": "End Date",
-    "withEndDate": "শেষ তারিখ সহ",
+    "withEndDate": "with end date",
     "calendar": "ক্যালেন্ডার",
     "viewSettings": "দেখুন সেটিংস",
     "googleOAuth": "Google OAuth",
@@ -1363,7 +1380,7 @@
     "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields",
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
-    "generateFieldDataUsingAiButtonOption": "Generate data for multiple fields in this table using record information and NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",
@@ -1623,7 +1640,7 @@
       "apiOptions": "মাধ্যমে অ্যাক্সেস প্রকল্প",
       "submitAnotherForm": "অন্য ফর্ম জমা দিন' বোতামটি দেখান",
       "showBlankForm": "5 সেকেন্ড পরে একটি ফাঁকা ফর্ম দেখান",
-      "emailForm": "ইমেইল উত্তর করুন",
+      "emailForm": "আমাকে ইমেল করুন",
       "showSysFields": "সিস্টেম ক্ষেত্রগুলি দেখান",
       "filterAutoApply": "অটো প্রয়োগ",
       "formDisplayMessage": "প্রদর্শন বার্তা",
@@ -1631,7 +1648,7 @@
       "showAllViews": "এই টেবিলের সমস্ত ভাগ করা দর্শন দেখান",
       "collabView": "সম্পাদনা অনুমতি বা উচ্চতর সহ সহযোগীরা ভিউ কনফিগারেশন পরিবর্তন করতে পারে।",
       "lockedView": "এটি আনলক না হওয়া পর্যন্ত কেউ ভিউ কনফিগারেশন সম্পাদনা করতে পারে না।",
-      "personalView": "Only you can edit the view configuration.",
+      "personalView": "কেবলমাত্র আপনি ভিউ কনফিগারেশন সম্পাদনা করতে পারেন। অন্যান্য সহযোগীদের ব্যক্তিগত মতামত ডিফল্টরূপে লুকানো থাকে।",
       "canEditLockedViewConfiguration": "Unlock this view to edit the view configuration.",
       "cannotEditViewConfiguration": "You connot configure this view",
       "onlyYouCanConfigureThisView": "Only {user} can edit the view configuration.",

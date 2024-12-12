@@ -1,4 +1,11 @@
-import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType } from 'nocodb-sdk';
+import type {
+  AttachmentResType,
+  PublicAttachmentScope,
+  SnapshotType,
+  SupportedExportCharset,
+  UserType,
+} from 'nocodb-sdk';
+
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
@@ -28,6 +35,8 @@ export enum JobTypes {
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',
   UseWorker = 'use-worker',
+  CreateSnapshot = 'create-snapshot',
+  RestoreSnapshot = 'restore-snapshot',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -115,6 +124,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeData?: boolean;
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeComments?: boolean;
   };
 }
 
@@ -127,6 +137,7 @@ export interface DuplicateModelJobData extends JobData {
     excludeData?: boolean;
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeComments?: boolean;
   };
 }
 
@@ -163,4 +174,22 @@ export interface DataExportJobData extends JobData {
 export interface ThumbnailGeneratorJobData extends JobData {
   attachments: AttachmentResType[];
   scope?: PublicAttachmentScope;
+}
+
+export interface CreateSnapshotJobData extends JobData {
+  sourceId: string;
+  snapshotBaseId: string;
+  req: NcRequest;
+  snapshot: SnapshotType;
+}
+
+export interface RestoreSnapshotJobData extends JobData {
+  sourceId: string;
+  targetBaseId: string;
+  targetContext: {
+    workspace_id: string;
+    base_id: string;
+  };
+  snapshot: SnapshotType;
+  req: NcRequest;
 }

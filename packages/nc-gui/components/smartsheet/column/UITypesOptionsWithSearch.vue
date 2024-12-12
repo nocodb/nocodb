@@ -14,16 +14,8 @@ const searchQuery = ref('')
 
 const { isMetaReadOnly } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const filteredOptions = computed(
-  () =>
-    options.value?.filter(
-      (c) =>
-        !(c.name === 'AIButton' && !isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) &&
-        (c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()))),
-    ) ?? [],
+  () => options.value?.filter((c) => searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) ?? [],
 )
 
 const inputRef = ref()
@@ -126,7 +118,7 @@ watch(
               'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
               'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
-              '!text-nc-content-purple-dark': option.name === 'AIButton',
+              '!text-nc-content-purple-dark': option.name === 'AIButton' || option.name === 'AIPrompt',
             },
           ]"
           :data-testid="option.name"

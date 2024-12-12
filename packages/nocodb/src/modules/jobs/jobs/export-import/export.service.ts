@@ -1,5 +1,11 @@
 import { Readable } from 'stream';
-import { isLinksOrLTAR, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  LongTextAiMetaProp,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
@@ -7,7 +13,7 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { Base, Filter, Hook, Model, Source, View } from '~/models';
+import { Base, Comment, Filter, Hook, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   getViewAndModelByAliasOrId,
@@ -36,6 +42,7 @@ export class ExportService {
       excludeViews?: boolean;
       excludeHooks?: boolean;
       excludeData?: boolean;
+      excludeComments?: boolean;
     },
   ) {
     const { modelIds } = param;
@@ -43,6 +50,8 @@ export class ExportService {
     const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
+    const excludeComments =
+      param?.excludeComments || param?.excludeData || false;
 
     const serializedModels = [];
 
@@ -134,7 +143,20 @@ export class ExportService {
               case 'fk_rollup_column_id':
               case 'fk_qr_value_column_id':
               case 'fk_barcode_value_column_id':
+              case 'fk_model_id':
                 column.colOptions[k] = idMap.get(v as string);
+                break;
+              // Preserve the values on export
+              // We will keep these only within same workspace as integration is only available within same workspace
+              case 'fk_workspace_id':
+              case 'fk_integrations_id':
+              case 'model':
+                column.colOptions[k] = v;
+                break;
+              case 'output_column_ids':
+                column.colOptions[k] = ((v as string)?.split(',') || [])
+                  .map((id) => idMap.get(id))
+                  .join(',');
                 break;
               case 'fk_target_view_id':
                 if (v) {
@@ -155,6 +177,8 @@ export class ExportService {
                 }
                 break;
               case 'formula':
+                if (column.uidt === UITypes.Button) break;
+
                 // rewrite formula_raw with aliases
                 column.colOptions['formula_raw'] = column.colOptions[
                   k
@@ -377,6 +401,45 @@ export class ExportService {
         }
       }
 
+      const serializedComments = [];
+
+      if (!excludeComments) {
+        const READ_BATCH_SIZE = 100;
+        const comments: Comment[] = [];
+        let offset = 0;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const batchComments = await Comment.listByModel(context, model.id, {
+            limit: READ_BATCH_SIZE + 1,
+            offset,
+          });
+
+          comments.push(...batchComments.slice(0, READ_BATCH_SIZE));
+
+          if (batchComments.length <= READ_BATCH_SIZE) break;
+          offset += READ_BATCH_SIZE;
+        }
+
+        for (const comment of comments) {
+          idMap.set(comment.id, `${idMap.get(model.id)}::${comment.id}`);
+
+          serializedComments.push({
+            id: idMap.get(comment.id),
+            fk_model_id: idMap.get(comment.fk_model_id),
+            row_id: comment.row_id,
+            comment: comment.comment,
+            parent_comment_id: comment.parent_comment_id
+              ? idMap.get(comment.parent_comment_id)
+              : null,
+            created_by: comment.created_by,
+            resolved_by: comment.resolved_by,
+            created_by_email: comment.created_by_email,
+            resolved_by_email: comment.resolved_by_email,
+          });
+        }
+      }
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -443,6 +506,7 @@ export class ExportService {
           view: view.view,
         })),
         hooks: serializedHooks,
+        comments: serializedComments,
       });
     }
 
@@ -558,6 +622,17 @@ export class ExportService {
                 try {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {
+                  row[colId] = v;
+                }
+                break;
+              case UITypes.LongText:
+                if (col.meta?.[LongTextAiMetaProp] && v) {
+                  try {
+                    row[colId] = JSON.stringify(v);
+                  } catch (e) {
+                    row[colId] = v;
+                  }
+                } else {
                   row[colId] = v;
                 }
                 break;

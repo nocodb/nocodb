@@ -93,6 +93,9 @@
     "none": "ไม่มี"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "Feature Preview",
     "scripts": "สคริปต์",
     "configure": "กำหนดค่า",
@@ -214,6 +217,7 @@
     "function": "การทำงาน",
     "confirm": "ยืนยัน",
     "generate": "Generate",
+    "generating": "Generating...",
     "copy": "คัดลอก",
     "copied": "คัดลอกแล้ว",
     "are": "เป็น",
@@ -648,6 +652,18 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "แก้ไขเมื่อ",
@@ -788,7 +804,7 @@
     "icon": "ไอคอน",
     "max": "สูงสุด",
     "enableRichText": "เปิดใช้งาน Rich Text",
-    "idColon": "Id: {fieldId}",
+    "idColon": "Id:",
     "copiedRecordURL": "URL ของบันทึกที่คัดลอก",
     "copyRecordURL": "คัดลอก URL ของบันทึก",
     "duplicateRecord": "คัดลอกแถว",
@@ -874,7 +890,7 @@
     "lengthValue": "ความยาว / ค่า",
     "dbType": "ประเภทฐานข้อมูล",
     "servername": "servername / hostAddr",
-    "sqliteFile": "เส้นทางไฟล์ SQLite",
+    "sqliteFile": "ไฟล์ sqlite",
     "hostAddress": "ที่อยู่โฮสต์",
     "port": "หมายเลขพอร์ต",
     "username": "ชื่อผู้ใช้",
@@ -938,7 +954,7 @@
       "joinCommunity": "เข้าร่วมคอมมูนิตี้ของ NocoDB",
       "joinReddit": "เข้าร่วม /r/NocoDB",
       "followNocodb": "ติดตาม NocoDB",
-      "communityTranslated": "(แปลโดยชุมชน/AI)"
+      "communityTranslated": "(Community Translated)"
     },
     "twitter": "Twitter",
     "docReference": "เอกสารอ้างอิง",
@@ -1039,7 +1055,7 @@
     "lockView": "Lock view",
     "unlockView": "Unlock view",
     "aiSuggested": "AI suggested",
-    "generateFieldDataUsingAi": "Generate field data using AI",
+    "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
     "suggesting": "Suggesting...",
@@ -1051,6 +1067,7 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "รายละเอียด Webhook",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
@@ -1070,7 +1087,7 @@
     "toggleSidebar": "สลับแถบด้านข้าง",
     "addEndDate": "เพิ่มวันที่สิ้นสุด",
     "endDate": "End Date",
-    "withEndDate": "กับวันที่สิ้นสุด",
+    "withEndDate": "with end date",
     "calendar": "ปฏิทิน",
     "viewSettings": "ดูการตั้งค่า",
     "googleOAuth": "Google OAuth",
@@ -1363,7 +1380,7 @@
     "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields",
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
-    "generateFieldDataUsingAiButtonOption": "Generate data for multiple fields in this table using record information and NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",
@@ -1623,7 +1640,7 @@
       "apiOptions": "เข้าถึงโครงการผ่านทาง",
       "submitAnotherForm": "แสดงปุ่ม 'ส่งฟอร์มอื่น'",
       "showBlankForm": "แสดงแบบฟอร์มเปล่าหลังจาก 5 วินาที",
-      "emailForm": "ส่งอีเมลไปที่",
+      "emailForm": "ส่งอีเมลถึงฉันที่",
       "showSysFields": "แสดงฟิลด์ระบบ",
       "filterAutoApply": "ใช้อัตโนมัติ",
       "formDisplayMessage": "แสดงข้อความ",
@@ -1631,7 +1648,7 @@
       "showAllViews": "แสดงมุมมองที่แชร์ทั้งหมดของตารางนี้",
       "collabView": "ผู้ทำงานร่วมกันที่มีสิทธิ์แก้ไขหรือสูงกว่าสามารถเปลี่ยนการกำหนดค่ามุมมอง",
       "lockedView": "ไม่มีใครสามารถแก้ไขการกำหนดค่าการดูจนกว่าจะถูกปลดล็อค",
-      "personalView": "Only you can edit the view configuration.",
+      "personalView": "มีเพียงคุณเท่านั้นที่สามารถแก้ไขการกำหนดค่ามุมมอง มุมมองส่วนตัวของผู้ทำงานร่วมกันอื่น ๆ ถูกซ่อนอยู่ตามค่าเริ่มต้น",
       "canEditLockedViewConfiguration": "Unlock this view to edit the view configuration.",
       "cannotEditViewConfiguration": "You connot configure this view",
       "onlyYouCanConfigureThisView": "Only {user} can edit the view configuration.",

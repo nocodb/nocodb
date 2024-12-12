@@ -373,7 +373,7 @@ reloadViewDataHook?.on(async () => {
         <NcMenu @click="contextMenu = false">
           <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
             <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
-              <component :is="iconMap.expand" class="flex" />
+              <component :is="iconMap.maximize" class="flex" />
               {{ $t('activity.expandRecord') }}
             </div>
           </NcMenuItem>
@@ -390,11 +390,7 @@ reloadViewDataHook?.on(async () => {
           </NcMenuItem>
         </NcMenu>
       </template>
-      <div
-        :class="{
-          'h-full': totalRows < 30,
-        }"
-      >
+      <div class="flex-1">
         <div :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
           <div class="nc-gallery-container grid gap-3 p-3">

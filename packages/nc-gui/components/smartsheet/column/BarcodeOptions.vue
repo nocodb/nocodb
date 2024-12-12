@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
+import { supportedBarcodeFormats } from '~/helpers/columnDefaultMeta'
 
 const props = defineProps<{
   modelValue: any

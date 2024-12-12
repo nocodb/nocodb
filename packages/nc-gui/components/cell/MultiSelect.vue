@@ -235,9 +235,15 @@ useSelectedCellKeyupListener(activeCell, (e) => {
 })
 
 // close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
-})
+useSelectedCellKeyupListener(
+  isOpen,
+  (e) => {
+    if (e.key === 'Escape') isOpen.value = false
+  },
+  {
+    isGridCell: false,
+  },
+)
 
 const activeOptCreateInProgress = ref(0)
 
@@ -279,7 +285,6 @@ async function addIfMissingAndSave() {
         (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
         updatedColMeta,
       )
-
 
       column.value.colOptions = data.columns.find((c) => c.id === column.value.id).colOptions
 
@@ -423,7 +428,7 @@ const onFocus = () => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
+          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
         }"

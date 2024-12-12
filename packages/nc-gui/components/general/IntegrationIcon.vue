@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     type: string
-    size: 'sx' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'
+    size?: 'sx' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'
   }>(),
   {
     size: 'sm',

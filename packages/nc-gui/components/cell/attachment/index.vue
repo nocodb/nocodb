@@ -52,11 +52,11 @@ const {
   visibleItems,
   onDrop,
   isLoading,
-  FileIcon,
   selectedFile,
   isReadonly,
   storedFiles,
   removeFile,
+  updateAttachmentTitle,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -150,7 +150,7 @@ const openAttachmentModal = () => {
 }
 
 const open = (e: Event) => {
-  e.stopPropagation()
+  e?.stopPropagation()
 
   openAttachmentModal()
 }
@@ -220,6 +220,14 @@ const attachmentSize = computed(() => {
       return 'tiny'
   }
 })
+
+defineExpose({
+  openFilePicker: open,
+  downloadAttachment,
+  renameAttachment: renameFile,
+  removeAttachment: onRemoveFileClick,
+  updateAttachmentTitle,
+})
 </script>
 
 <template>
@@ -252,9 +260,7 @@ const attachmentSize = computed(() => {
             @click="onFileClick(item)"
           />
 
-          <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click="selectedFile = item" />
-
-          <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click="selectedFile = item" />
+          <CellAttachmentIconView v-else :item="item" :height="45" :width="45" @click="selectedFile = item" />
         </div>
 
         <div class="relative px-1 flex" :title="item.title">
@@ -310,17 +316,7 @@ const attachmentSize = computed(() => {
       </div>
     </div>
   </div>
-  <div
-    v-else
-    ref="attachmentCellRef"
-    :style="{
-      height: `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 10 : rowHeightInPx[`${rowHeight}`] - 18}px, ${
-        isGrid ? '22px' : '32px'
-      })`,
-    }"
-    class="nc-attachment-cell relative group flex color-transition gap-2 flex items-center w-full xs:(min-h-12 max-h-32)"
-    :class="{ 'justify-center': !active, 'justify-between': active }"
-  >
+  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <template v-if="!isReadonly && !dragging && !!currentCellRef">
@@ -339,14 +335,14 @@ const attachmentSize = computed(() => {
     <div
       v-if="!isReadonly && active && !visibleItems.length"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
-      class="group cursor-pointer py-1 flex gap-1 items-center rounded border-none"
+      class="group cursor-pointer flex gap-1 items-center rounded border-none"
       tabindex="0"
       @keydown.enter="keydownEnter"
       @keydown.space="keydownSpace"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-      <NcTooltip placement="bottom" class="xs:w-full">
+      <NcTooltip placement="bottom" class="w-full text-center">
         <template #title>
           <span data-rec="true">{{ $t('activity.attachmentDrop') }} </span>
         </template>
@@ -355,11 +351,11 @@ const attachmentSize = computed(() => {
           type="secondary"
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
-          class="!px-2 !h-5.5 !min-w-[fit-content]"
+          class="!px-2 !h-7 !min-w-[fit-content]"
           @click.stop="open"
         >
-          <div class="flex items-center !text-xs gap-1 justify-center">
-            <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
+          <div class="flex items-center gap-1 justify-center">
+            <GeneralIcon icon="upload" class="text-gray-500 text-tiny" />
             <span class="text-[10px]">
               {{ $t('activity.addFiles') }}
             </span>
@@ -373,56 +369,40 @@ const attachmentSize = computed(() => {
         ref="sortableRef"
         :class="{
           'justify-center': !isGallery && !isKanban,
-          'py-1': rowHeight === 1,
-          'py-1.5 !gap-4 ': rowHeight !== 1,
         }"
-        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-3 nc-scrollbar-thin mt-0 items-start px-[1px]"
+        class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 mt-0 items-start overflow-y-auto nc-scrollbar-thin"
         :style="{
-          maxHeight: `max(100%, ${isGrid ? '22px' : '32px'})`,
+          height: `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] : rowHeightInPx[`${rowHeight}`] - 17}px, ${
+            isGrid ? 22 : 32
+          }px)`,
+          paddingTop: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
+          paddingBottom: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
         }"
       >
-        <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
-          <NcTooltip placement="bottom" class="nc-attachment-item">
-            <template #title>
-              <div class="text-center w-full">{{ item.title }}</div>
-            </template>
-            <div v-if="isImage(item.title, item.mimetype ?? item.type)">
-              <div
-                class="nc-attachment flex items-center flex-col flex-wrap justify-center flex-auto"
-                @click="() => onFileClick(item)"
-              >
-                <LazyCellAttachmentPreviewImage
-                  :alt="item.title || `#${i}`"
-                  class="rounded"
-                  :class="{
-                    'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
-                    'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
-                    'h-8': rowHeight === 2,
-                    'h-16.8': rowHeight === 4,
-                    'h-20.8': rowHeight === 6,
-                  }"
-                  :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
-                />
-              </div>
+        <NcTooltip v-for="(item, i) of visibleItems" :key="item.url || item.title" placement="bottom" class="nc-attachment-item">
+          <template #title>
+            <div class="text-center w-full">{{ item.title }}</div>
+          </template>
+          <div
+            class="aspect-square"
+            :class="{
+              'h-[24px]': !rowHeight || rowHeight === 1,
+              'h-[32px]': rowHeight === 2,
+              'h-[64px]': rowHeight === 4 || rowHeight === 6,
+            }"
+          >
+            <LazyCellAttachmentPreviewImage
+              v-if="isImage(item.title, item.mimetype ?? item.type)"
+              :alt="item.title || `#${i}`"
+              class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
+              :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
+              @click="() => onFileClick(item)"
+            />
+            <div v-else class="nc-attachment h-full w-full flex items-center justify-center" @click="onFileClick(item)">
+              <CellAttachmentIconView :item="item" class="max-h-full max-w-full" />
             </div>
-            <div
-              v-else
-              class="nc-attachment flex items-center justify-center px-4"
-              :class="{
-                'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
-                'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
-                'h-8': rowHeight === 2,
-                'h-16.8': rowHeight === 4,
-                'h-20.8 !w-30': rowHeight === 6,
-              }"
-              @click="onFileClick(item)"
-            >
-              <component :is="FileIcon(item.icon)" v-if="item.icon" />
-
-              <IcOutlineInsertDriveFile v-else />
-            </div>
-          </NcTooltip>
-        </template>
+          </div>
+        </NcTooltip>
       </div>
 
       <NcTooltip
@@ -444,7 +424,7 @@ const attachmentSize = computed(() => {
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.expand" v-else class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
+          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>
 

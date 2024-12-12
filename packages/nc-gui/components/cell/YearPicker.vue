@@ -60,18 +60,38 @@ const localState = computed({
   set(val?: dayjs.Dayjs) {
     isClearedInputMode.value = false
 
-    if (!val) {
-      emit('update:modelValue', null)
-      return
-    }
-
-    if (val?.isValid()) {
-      emit('update:modelValue', val.format('YYYY'))
-    }
+    saveChanges(val)
 
     open.value = false
   },
 })
+
+const savingValue = ref()
+
+function saveChanges(val?: dayjs.Dayjs) {
+  if (!val) {
+    if (savingValue.value === val) {
+      return
+    }
+
+    savingValue.value = null
+
+    emit('update:modelValue', null)
+    return
+  }
+
+  if (val?.isValid()) {
+    const formattedValue = val.format('YYYY')
+
+    if (savingValue.value === formattedValue) {
+      return
+    }
+
+    savingValue.value = formattedValue
+
+    emit('update:modelValue', val.format('YYYY'))
+  }
+}
 
 watchEffect(() => {
   if (localState.value) {
@@ -88,6 +108,12 @@ onClickOutside(datePickerRef, (e) => {
 })
 
 const onBlur = (e) => {
+  const value = (e?.target as HTMLInputElement)?.value
+
+  if (value && dayjs(value, 'YYYY').isValid()) {
+    handleUpdateValue(e, true, dayjs(dayjs(value).format('YYYY')))
+  }
+
   if (
     (e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`) ||
     (e?.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)
@@ -227,8 +253,8 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   }
 })
 
-const handleUpdateValue = (e: Event) => {
-  const targetValue = (e.target as HTMLInputElement).value
+const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
+  const targetValue = valueToSave || (e.target as HTMLInputElement).value
   if (!targetValue) {
     tempDate.value = undefined
     return
@@ -237,6 +263,10 @@ const handleUpdateValue = (e: Event) => {
 
   if (value.isValid()) {
     tempDate.value = value
+
+    if (save) {
+      saveChanges(value)
+    }
   }
 }
 

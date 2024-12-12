@@ -247,9 +247,15 @@ useSelectedCellKeyupListener(activeCell, (e) => {
 })
 
 // close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
-})
+useSelectedCellKeyupListener(
+  isOpen,
+  (e) => {
+    if (e.key === 'Escape') isOpen.value = false
+  },
+  {
+    isGridCell: false,
+  },
+)
 
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
@@ -353,7 +359,7 @@ const isCollaborator = (userIdOrEmail) => {
                 <div>
                   <GeneralUserIcon
                     size="auto"
-                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                    :name="op.display_name"
                     :email="op.email"
                     class="!text-[0.65rem]"
                     :disabled="!isCollaborator(op.id)"
@@ -397,7 +403,7 @@ const isCollaborator = (userIdOrEmail) => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
+          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
         }"
@@ -498,12 +504,7 @@ const isCollaborator = (userIdOrEmail) => {
                 :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
-                    :email="op.email"
-                    class="!text-[0.65rem]"
-                  />
+                  <GeneralUserIcon size="auto" :name="op.display_name" :email="op.email" class="!text-[0.65rem]" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>

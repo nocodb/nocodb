@@ -97,12 +97,19 @@ export default class Noco {
     return (this.ee = false);
   }
 
+  declare module: any;
+
   static async init(param: any, httpServer: http.Server, server: Express) {
     const nestApp = await NestFactory.create(AppModule, {
       bufferLogs: true,
     });
     this.initCustomLogger(nestApp);
     nestApp.flushLogs();
+
+    if ((module as any).hot) {
+      (module as any).hot.accept();
+      (module as any).hot.dispose(() => nestApp.close());
+    }
 
     try {
       this.sharp = (await import('sharp')).default;

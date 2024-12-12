@@ -33,16 +33,12 @@ export class SettingsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('.nc-modal-settings');
+    return this.rootPage.locator('.nc-base-settings');
   }
 
   async selectTab({ tab, subTab }: { tab: SettingTab; subTab?: SettingsSubTab }) {
     await this.get().locator(`li[data-menu-id="${tab}"]`).click();
     if (subTab) await this.get().locator(`li[data-menu-id="${subTab}"]`).click();
-  }
-
-  async selectSubTab({ subTab }: { subTab: SettingsSubTab }) {
-    await this.get().locator(`li[data-menu-id="${subTab}"]`).click();
   }
 
   async close() {
@@ -51,8 +47,6 @@ export class SettingsPage extends BasePage {
   }
 
   async toggleNullEmptyFilters() {
-    await this.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
     await this.miscellaneous.clickShowNullEmptyFilters();
-    await this.close();
   }
 }

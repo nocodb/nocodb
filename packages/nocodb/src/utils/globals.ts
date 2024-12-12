@@ -12,7 +12,7 @@ export enum MetaTable {
   COL_FORMULA = 'nc_col_formula_v2',
   COL_QRCODE = 'nc_col_qrcode_v2',
   COL_BARCODE = 'nc_col_barcode_v2',
-  COL_AI = 'nc_col_ai_v2',
+  COL_LONG_TEXT = 'nc_col_long_text_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
   // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
@@ -57,6 +57,7 @@ export enum MetaTable {
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
+  SNAPSHOT = 'nc_snapshots',
 }
 
 export enum MetaTableOldV2 {
@@ -144,7 +145,7 @@ export enum CacheScope {
   COL_FORMULA = 'colFormula',
   COL_QRCODE = 'colQRCode',
   COL_BARCODE = 'colBarcode',
-  COL_AI = 'colAi',
+  COL_LONG_TEXT = 'colLongText',
   FILTER_EXP = 'filterExp',
   SORT = 'sort',
   SHARED_VIEW = 'sharedView',
@@ -190,6 +191,7 @@ export enum CacheScope {
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
+  SNAPSHOT = 'snapshot',
 }
 
 export enum CacheGetType {
@@ -239,7 +241,15 @@ export const RootScopeTables = {
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
   [RootScopes.WORKSPACE]: [
+    // COL_BUTTON & COL_LONG_TEXT have integration references which we need to clean
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
     MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATIONS_STORE,
   ],
 };
+
+export const CACHE_PREFIX =
+  process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
+    ? process.env.NC_CACHE_PREFIX
+    : 'nc';

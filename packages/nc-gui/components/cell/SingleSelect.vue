@@ -47,8 +47,6 @@ const { $api } = useNuxtApp()
 
 const searchVal = ref()
 
-const { getMeta } = useMetas()
-
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
@@ -484,8 +482,12 @@ const onFocus = () => {
   text-overflow: clip;
 }
 
-:deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+:deep(.ant-select-selection-search) {
+  @apply flex items-center;
+
+  .ant-select-selection-search-input {
+    @apply !text-xs;
+  }
 }
 
 :deep(.ant-select-clear > span) {

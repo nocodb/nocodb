@@ -609,7 +609,7 @@ EOF
 	if [ "$CONFIG_POSTGRES_SQLITE" = "P" ]; then
 		cat >>"$compose_file" <<EOF
   db:
-    image: postgres:16.1
+    image: postgres:16.6
     env_file: docker.env
     volumes:
       - ./postgres:/var/lib/postgresql/data

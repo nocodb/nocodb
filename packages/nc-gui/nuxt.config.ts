@@ -11,8 +11,10 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4,
+  },
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
-
   ssr: false,
   router: {
     options: {
@@ -209,6 +211,56 @@ export default defineNuxtConfig({
       },
     },
     optimizeDeps: {
+      include: [
+        '@tiptap/core',
+        '@tiptap/extension-link',
+        '@tiptap/extension-mention',
+        '@tiptap/extension-placeholder',
+        '@tiptap/extension-task-list',
+        '@tiptap/extension-underline',
+        '@tiptap/html',
+        '@tiptap/starter-kit',
+        '@tiptap/vue-3',
+        '@vue-flow/additional-components',
+        '@vue-flow/core',
+        '@vuelidate/core',
+        '@vuelidate/validators',
+        'company-email-validator',
+        'crossoriginworker',
+        'dayjs/plugin/utc',
+        'd3-scale',
+        'dagre',
+        'deep-object-diff',
+        'emoji-mart-vue-fast/src',
+        'file-saver',
+        'fuse.js',
+        'httpsnippet',
+        'isomorphic-dompurify',
+        'marked',
+        'mime-lite',
+        'monaco-editor',
+        'monaco-editor/esm/vs/basic-languages/javascript/javascript',
+        'papaparse',
+        'prosemirror-state',
+        'rehype-sanitize',
+        'rehype-stringify',
+        'remark-parse',
+        'remark-rehype',
+        'sortablejs',
+        'splitpanes',
+        'tippy.js',
+        'turndown',
+        'unified',
+        'v3-infinite-loading',
+        'validator/es/lib/isEmail',
+        'validator/lib/isMobilePhone',
+        'vue-advanced-cropper',
+        'vue-barcode-reader',
+        'xlsx',
+        'youtube-vue3',
+        'vuedraggable',
+        'jsbarcode',
+      ],
       esbuildOptions: {
         define: {
           global: 'globalThis',

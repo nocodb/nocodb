@@ -3,9 +3,9 @@ import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
-  ButtonActionsType,
   UITypes,
   ViewTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -852,8 +852,8 @@ const isSelectedOnlyAI = computed(() => {
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
     return {
-      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
-      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+      enabled: isAIPromptCol(field) || isAiButton(field),
+      disabled: !(field?.colOptions as ButtonType)?.fk_integration_id,
     }
   }
 
@@ -876,9 +876,7 @@ const generateAIBulk = async () => {
 
   let outputColumnIds = [field.id]
 
-  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
-
-  if (isAiButton) {
+  if (isAiButton(field)) {
     outputColumnIds =
       ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
         ? field.colOptions.output_column_ids.split(',')
@@ -1060,7 +1058,7 @@ const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 const scrollLeft = ref()
 
-function scrollToCell(row?: number | null, col?: number | null, scrollBehaviour: ScrollBehavior = 'instant') {
+function scrollToCell(row?: number | null, col?: number | null, _scrollBehaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
@@ -1216,6 +1214,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1378,7 +1378,7 @@ const topOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   nextTick(() => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
@@ -1836,7 +1836,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
@@ -2139,13 +2139,13 @@ onKeyStroke('ArrowDown', onDown)
                             </span>
                             <div
                               v-else-if="!row.rowMeta.saving"
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
                             >
                               <component
-                                :is="iconMap.expand"
+                                :is="iconMap.maximize"
                                 v-if="expandForm"
                                 v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                class="select-none nc-row-expand opacity-90 w-4 h-4"
                                 @click="expandAndLooseFocus(row, state)"
                               />
                             </div>
@@ -2741,10 +2741,18 @@ onKeyStroke('ArrowDown', onDown)
 
     &.align-top {
       @apply py-2;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply py-0 pr-0;
+      }
     }
 
     &.align-middle {
       @apply py-0;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply pr-0;
+      }
     }
 
     & > div {
@@ -2770,7 +2778,7 @@ onKeyStroke('ArrowDown', onDown)
       .nc-cell-field,
       input,
       textarea {
-        @apply !text-small !p-0 m-0;
+        @apply !text-small !pl-0 !py-0 m-0;
       }
 
       &:not(.nc-display-value-cell) {
@@ -2789,7 +2797,7 @@ onKeyStroke('ArrowDown', onDown)
       a.nc-cell-field-link,
       input,
       textarea {
-        @apply !p-0 m-0;
+        @apply !pl-0 !py-0 m-0;
       }
 
       a.nc-cell-field-link {
@@ -2803,7 +2811,7 @@ onKeyStroke('ArrowDown', onDown)
         @apply leading-[18px];
 
         textarea {
-          @apply pr-2;
+          @apply pr-8 !py-2;
         }
       }
 

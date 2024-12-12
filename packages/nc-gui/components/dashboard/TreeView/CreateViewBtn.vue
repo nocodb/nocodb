@@ -16,7 +16,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
-const { aiIntegrationAvailable } = useNocoAi()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const table = inject(SidebarTableInj)!
@@ -153,17 +152,31 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem v-if="!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
-          <div class="item" data-testid="sidebar-view-create-form">
-            <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
-              <div>Form</div>
-            </div>
+        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly" >
+          <NcMenuItem :disabled="!!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
+            <div class="item" data-testid="sidebar-view-create-form">
+              <div class="item-inner">
+                <GeneralViewIcon
+                  :meta="{ type: ViewTypes.FORM }"
+                  :class="{
+                    'opacity-50': !!source.is_data_readonly,
+                  }"
+                />
+                <div>Form</div>
+              </div>
 
-            <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
-          </div>
-        </NcMenuItem>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
+              <GeneralIcon
+                v-else
+                class="plus"
+                icon="plus"
+                :class="{
+                  '!text-current': !!source.is_data_readonly,
+                }"
+              />
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
           <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
@@ -197,7 +210,7 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
           <NcDivider />
           <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
             <div class="item">

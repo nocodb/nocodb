@@ -40,7 +40,9 @@ export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
 export const isAiButton = (column: ColumnType) =>
   column.uidt === UITypes.Button && (column?.colOptions as any)?.type === ButtonActionsType.Ai
-export const isAI = (_column: ColumnType) => false
+export const isAI = (column: ColumnType) =>
+  column.uidt === UITypes.LongText && parseProp(column?.meta)?.[LongTextAiMetaProp] === true
+
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,
@@ -105,14 +107,14 @@ export const rowHeightInPx: Record<string, number> = {
   6: 120,
 }
 
-export const rowHeightTruncateLines = (rowHeight?: number) => {
+export const rowHeightTruncateLines = (rowHeight?: number, isSelectOption = false) => {
   switch (rowHeight) {
     case 2:
-      return 3
+      return 2
     case 4:
-      return 4
+      return isSelectOption ? 3 : 4
     case 6:
-      return 6
+      return isSelectOption ? 4 : 6
     default:
       return 1
   }

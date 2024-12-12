@@ -71,3 +71,45 @@ export const ncArrayFrom = <T>(
 export const isUnicodeEmoji = (emoji: string) => {
   return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
 }
+
+/**
+ * Performs a case-insensitive search to check if the `query` exists within the `source`.
+ *
+ * - Handles strings, numbers, and arrays (including nested arrays) of strings/numbers.
+ * - Treats `undefined` as an empty string.
+ *
+ * @param source - The value to search within. Can be:
+ *   - A string or number.
+ *   - A single-level or nested array of strings/numbers.
+ * @param query - The value to search for. Treated as an empty string if `undefined`.
+ * @returns `true` if the `query` is found within the `source` (case-insensitively), otherwise `false`.
+ *
+ * @example
+ * ```typescript
+ * // Single string or number search
+ * searchCompare("Hello World", "world"); // true
+ * searchCompare(12345, "234"); // true
+ *
+ * // Array search
+ * searchCompare(["apple", "banana", "cherry"], "Banana"); // true
+ * searchCompare([123, 456, 789], "456"); // true
+ *
+ * // Nested array search
+ * searchCompare(["apple", ["banana", ["cherry"]]], "cherry"); // true
+ * searchCompare([123, [456, [789]]], "456"); // true
+ *
+ * // Handling undefined
+ * searchCompare(undefined, "test"); // false
+ * searchCompare("test", undefined); // true
+ * ```
+ */
+export const searchCompare = (source?: NestedArray<string | number | undefined>, query?: string): boolean => {
+  if (ncIsArray(source)) {
+    return source.some((item) => searchCompare(item, query))
+  }
+
+  return (source || '')
+    .toString()
+    .toLowerCase()
+    .includes((query || '').toLowerCase())
+}

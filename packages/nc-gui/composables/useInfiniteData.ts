@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import type { Api, ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '../lib/types'
 import { validateRowFilters } from '../utils/dataUtils'
@@ -54,6 +54,8 @@ export function useInfiniteData(args: {
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
   const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
+
+  const selectedAllRecords = ref(false)
 
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
@@ -862,7 +864,7 @@ export function useInfiniteData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           [property]: toUpdate.row[property] ?? null,
         },
@@ -914,6 +916,7 @@ export function useInfiniteData(args: {
           col.title &&
           col.title in updatedRowData &&
           (columnsToUpdate.has(col.uidt as UITypes) ||
+            isAIPromptCol(col) ||
             col.au ||
             (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
         ) {
@@ -1142,5 +1145,6 @@ export function useInfiniteData(args: {
     getExpandedRowIndex,
     loadAggCommentsCount,
     navigateToSiblingRow,
+    selectedAllRecords,
   }
 }

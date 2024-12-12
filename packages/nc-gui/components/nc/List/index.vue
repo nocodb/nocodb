@@ -1,24 +1,27 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
+import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 
 export type MultiSelectRawValueType = Array<string | number>
 
 export type RawValueType = string | number | MultiSelectRawValueType
 
-interface ListItem {
+export interface NcListItemType {
   value?: RawValueType
   label?: string
+  ncItemDisabled?: boolean
+  ncItemTooltip?: string
   [key: string]: any
 }
 
 /**
  * Props interface for the List component
  */
-interface Props {
+export interface NcListProps {
   /** The currently selected value */
   value: RawValueType
   /** The list of items to display */
-  list: ListItem[]
+  list: NcListItemType[]
   /**
    * The key to use for accessing the value from a list item
    * @default 'value'
@@ -38,6 +41,8 @@ interface Props {
   closeOnSelect?: boolean
   /** Placeholder text for the search input */
   searchInputPlaceholder?: string
+  /** Show search input box always */
+  showSearchAlways?: boolean
   /** Whether to show the currently selected option */
   showSelectedOption?: boolean
   /**
@@ -46,7 +51,7 @@ interface Props {
    */
   itemHeight?: number
   /** Custom filter function for list items */
-  filterOption?: (input: string, option: ListItem, index: Number) => boolean
+  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
   /**
    * Indicates whether the component allows multiple selections.
    */
@@ -55,24 +60,34 @@ interface Props {
    * The minimum number of items required in the list to enable search functionality.
    */
   minItemsForSearch?: number
+
+  containerClassName?: string
+
+  itemClassName?: string
+
+  itemTooltipPlacement?: TooltipPlacement
 }
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
-  (e: 'change', option: ListItem): void
+  (e: 'change', option: NcListItemType): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcListProps>(), {
   open: false,
   closeOnSelect: true,
-  searchInputPlaceholder: '',
+  searchInputPlaceholder: 'Search',
+  showSearchAlways: false,
   showSelectedOption: true,
   optionValueKey: 'value',
   optionLabelKey: 'label',
   itemHeight: 38,
   isMultiSelect: false,
   minItemsForSearch: 4,
+  containerClassName: '',
+  itemClassName: '',
+  itemTooltipPlacement: 'right',
 })
 
 const emits = defineEmits<Emits>()
@@ -85,7 +100,9 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { optionValueKey, optionLabelKey } = props
 
-const { closeOnSelect, showSelectedOption } = toRefs(props)
+const { closeOnSelect, showSelectedOption, containerClassName, itemClassName } = toRefs(props)
+
+const slots = useSlots()
 
 const listRef = ref<HTMLDivElement>()
 
@@ -97,7 +114,9 @@ const activeOptionIndex = ref(-1)
 
 const showHoverEffectOnSelectedOption = ref(true)
 
-const isSearchEnabled = computed(() => props.list.length > props.minItemsForSearch)
+const isSearchEnabled = computed(
+  () => props.showSearchAlways || slots.headerExtraLeft || slots.headerExtraRight || props.list.length > props.minItemsForSearch,
+)
 
 const keyDown = ref(false)
 
@@ -107,7 +126,7 @@ const keyDown = ref(false)
  *
  * @returns Filtered list of options
  *
- * @typeparam ListItem - The type of items in the list
+ * @typeparam NcListItemType - The type of items in the list
  */
 const list = computed(() => {
   const query = searchQuery.value.toLowerCase()
@@ -127,7 +146,7 @@ const {
   wrapperProps,
   scrollTo,
 } = useVirtualList(list, {
-  itemHeight: props.itemHeight,
+  itemHeight: props.itemHeight + 2,
 })
 
 /**
@@ -176,8 +195,8 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: ListItem, index?: number) => {
-  if (!option?.[optionValueKey]) return
+const handleSelectOption = (option: NcListItemType, index?: number) => {
+  if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
 
   if (index !== undefined) {
     activeOptionIndex.value = index
@@ -214,6 +233,9 @@ const handleAutoScrollOption = (useDelay = false) => {
     scrollTo(activeOptionIndex.value)
   }, 150)
 }
+
+// Todo: skip arrowUp/.arrowDown on disabled options
+// const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {}
 
 const onArrowDown = () => {
   keyDown.value = true
@@ -322,12 +344,13 @@ watch(
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
     <template v-if="isSearchEnabled">
-      <div class="w-full px-2" @click.stop>
+      <div class="w-full px-2 flex items-center gap-2" @click.stop>
+        <slot name="headerExtraLeft"> </slot>
         <a-input
           ref="inputRef"
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
-          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5"
+          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
           allow-clear
           :bordered="false"
           @keydown.enter.stop="handleKeydownEnter"
@@ -335,6 +358,7 @@ watch(
         >
           <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
         ></a-input>
+        <slot name="headerExtraRight"> </slot>
       </div>
       <NcDivider />
     </template>
@@ -345,42 +369,56 @@ watch(
         <div class="h-auto !max-h-[247px]">
           <div
             v-bind="containerProps"
-            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2"
-            :style="{
-              maxHeight: '247px !important',
-            }"
+            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2 !max-h-[247px]"
+            :class="containerClassName"
           >
             <div v-bind="wrapperProps">
-              <div
+              <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+                class="flex items-center gap-2 w-full py-2 px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
-                    'bg-gray-100 ': showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
-                    'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
+                    'bg-gray-100 ':
+                      !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
+                    'bg-gray-100 nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
+                    'opacity-60 cursor-not-allowed': option?.ncItemDisabled,
+                    'hover:bg-gray-100 cursor-pointer': !option?.ncItemDisabled,
                   },
+                  `${itemClassName}`,
                 ]"
+                :placement="itemTooltipPlacement"
+                :disabled="!option?.ncItemTooltip"
                 @mouseover="handleResetHoverEffect(true, idx)"
                 @click="handleSelectOption(option, idx)"
               >
+                <template #title>{{ option.ncItemTooltip }} </template>
                 <slot name="listItem" :option="option" :is-selected="() => compareVModel(option[optionValueKey])" :index="idx">
+                  <slot name="listItemExtraLeft" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                  </slot>
+
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>
                       {{ option[optionLabelKey] }}
                     </template>
                     {{ option[optionLabelKey] }}
                   </NcTooltip>
-                  <GeneralIcon
-                    v-if="showSelectedOption && compareVModel(option[optionValueKey])"
-                    id="nc-selected-item-icon"
-                    icon="check"
-                    class="flex-none text-primary w-4 h-4"
-                  />
+
+                  <slot name="listItemExtraRight" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                  </slot>
+
+                  <slot name="listItemSelectedIcon" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                    <GeneralIcon
+                      v-if="showSelectedOption && compareVModel(option[optionValueKey])"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </slot>
                 </slot>
-              </div>
+              </NcTooltip>
             </div>
           </div>
         </div>

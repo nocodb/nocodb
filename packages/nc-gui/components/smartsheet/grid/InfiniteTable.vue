@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import {
+  type ButtonType,
   type ColumnReqType,
   type ColumnType,
   type TableType,
   UITypes,
   type ViewType,
   ViewTypes,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -39,6 +41,7 @@ const props = defineProps<{
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
+  bulkDeleteAll?: () => Promise<void>
   bulkUpsertRows?: (
     insertRows: Row[],
     updateRows: [],
@@ -55,9 +58,12 @@ const props = defineProps<{
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
+  selectedAllRecords?: boolean
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+
+const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const {
   loadData,
@@ -73,6 +79,7 @@ const {
   removeRowIfNew,
   clearInvalidRows,
   applySorting,
+  bulkDeleteAll,
 } = props
 
 // Injections
@@ -135,6 +142,8 @@ const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLta
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
+
 // Element refs
 const smartTable = ref(null)
 
@@ -186,6 +195,8 @@ const onXcResizing = (cn: string | undefined, event: any) => {
 
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
+
+  refreshFillHandle()
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -657,6 +668,31 @@ const onActiveCellChanged = () => {
 }
 
 const isOpen = ref(false)
+
+const isDeleteAllModalIsOpen = ref(false)
+
+async function deleteAllRecords() {
+  isDeleteAllModalIsOpen.value = true
+
+  const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
+    'modelValue': isDeleteAllModalIsOpen,
+    'rows': totalRows.value,
+    'onUpdate:modelValue': closeDlg,
+    'onDeleteAll': async () => {
+      await bulkDeleteAll?.()
+      closeDlg()
+      vSelectedAllRecords.value = false
+    },
+  })
+
+  function closeDlg() {
+    isOpen.value = false
+    close(200)
+  }
+
+  await until(isDeleteAllModalIsOpen).toBe(false)
+}
+
 async function expandRows({
   newRows,
   newColumns,
@@ -673,7 +709,7 @@ async function expandRows({
     continue: false,
     expand: true,
   }
-  const { close } = useDialog(resolveComponent('DlgExpandTable'), {
+  const { close } = useDialog(resolveComponent('DlgRecordUpsert'), {
     'modelValue': isOpen,
     'newRows': newRows,
     'newColumns': newColumns,
@@ -983,6 +1019,69 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.row = null
     activeCell.col = null
   })
+}
+
+const isSelectedOnlyAI = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: isAIPromptCol(field) || isAiButton(field),
+      disabled: !(field?.colOptions as ButtonType)?.fk_integration_id,
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const generateAIBulk = async () => {
+  if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  if (!field.id) return
+
+  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  let outputColumnIds = [field.id]
+
+  if (isAiButton(field)) {
+    outputColumnIds =
+      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+        ? field.colOptions.output_column_ids.split(',')
+        : []
+  }
+
+  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+
+  generatingRows.value.push(...pks)
+  generatingColumnRows.value.push(field.id)
+
+  generatingColumns.value.push(...outputColumnIds)
+
+  const res = await generateRows(meta.value.id, field.id, pks)
+
+  if (res) {
+    // find rows using pk and update with generated rows
+    for (const row of res) {
+      const oldRow = Array.from(cachedRows.value.values()).find(
+        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+      )
+
+      if (oldRow) {
+        oldRow.row = { ...oldRow.row, ...row }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
 onClickOutside(tableBodyEl, (e) => {
@@ -1337,7 +1436,7 @@ const leftOffset = computed(() => {
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
-const refreshFillHandle = () => {
+function refreshFillHandle() {
   const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
   const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
   if (rowIndex !== null && colIndex !== null) {
@@ -1677,6 +1776,26 @@ watch(
     immediate: true,
   },
 )
+
+const toggleRowSelection = (row: number) => {
+  if (vSelectedAllRecords.value) return
+  const data = cachedRows.value.get(row)
+
+  if (!data) return
+  data.rowMeta.selected = !data.rowMeta?.selected
+  cachedRows.value.set(row, data)
+}
+
+watch(vSelectedAllRecords, (selectedAll) => {
+  if (!selectedAll) {
+    for (const [row, data] of cachedRows.value.entries()) {
+      if (data.rowMeta?.selected) {
+        data.rowMeta.selected = false
+        cachedRows.value.set(row, data)
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -1709,7 +1828,7 @@ watch(
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
-        :disabled="contextMenuTarget === null && !selectedRows.length"
+        :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -1756,10 +1875,30 @@ watch(
                   }"
                   data-testid="grid-id-column"
                 >
-                  <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                  <div
+                    v-if="!readOnly"
+                    data-testid="nc-check-all"
+                    class="flex items-center pl-2 pr-1 w-full h-full justify-center"
+                  >
+                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
+                    <div
+                      :class="{
+                        hidden: !vSelectedAllRecords,
+                        flex: vSelectedAllRecords,
+                      }"
+                      class="nc-check-all w-full items-center"
+                    >
+                      <NcCheckbox v-model:checked="vSelectedAllRecords" />
+
+                      <span class="flex-1" />
+                    </div>
+                  </div>
+                  <template v-else>
+                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                  </template>
                 </th>
                 <th
-                  v-if="fields[0] && fields[0].id"
+                  v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
@@ -2006,13 +2145,10 @@ watch(
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
-                      class="absolute z-30 left-0"
+                      class="absolute z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row filtered
 
@@ -2031,13 +2167,10 @@ watch(
                         top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
-                      class="absolute transform z-30 left-0"
+                      class="absolute transform z-30 left-0 w-full flex"
                     >
                       <div
-                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
-                        :style="{
-                          transform: `translateX(${scrollLeft - leftOffset}px)`,
-                        }"
+                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
                       >
                         Row moved
 
@@ -2058,7 +2191,7 @@ watch(
                         'active-row':
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
-                        'selected-row': row.rowMeta.selected,
+                        'selected-row': row.rowMeta.selected || vSelectedAllRecords,
                         'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
                       }"
                     >
@@ -2074,21 +2207,22 @@ watch(
                         <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
                           <div
                             class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected }"
+                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected || vSelectedAllRecords }"
                           >
                             {{ row.rowMeta.rowIndex + 1 }}
                           </div>
                           <div
                             v-if="!readOnly"
                             :class="{
-                              hidden: !row.rowMeta?.selected,
-                              flex: row.rowMeta?.selected,
+                              hidden: !row.rowMeta?.selected && !vSelectedAllRecords,
+                              flex: row.rowMeta?.selected || vSelectedAllRecords,
                             }"
                             class="nc-row-expand-and-checkbox"
                           >
-                            <a-checkbox
-                              v-model:checked="row.rowMeta.selected"
-                              :disabled="!row.rowMeta.selected && selectedRows.length > 100"
+                            <NcCheckbox
+                              :checked="row.rowMeta.selected || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
+                              @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
                           <span class="flex-1" />
@@ -2114,13 +2248,13 @@ watch(
                             </span>
                             <div
                               v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
+                              class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
                             >
                               <component
-                                :is="iconMap.expand"
+                                :is="iconMap.maximize"
                                 v-if="expandForm"
                                 v-e="['c:row-expand:open']"
-                                class="select-none transform hover:(text-black scale-120) nc-row-expand"
+                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
                                 @click="expandAndLooseFocus(row, state)"
                               />
                             </div>
@@ -2319,31 +2453,68 @@ watch(
 
         <template #overlay>
           <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+            <template v-if="!vSelectedAllRecords">
+              <NcMenuItem
+                v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+                @click="emits('bulkUpdateDlg')"
+              >
+                <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
+                  <component :is="iconMap.ncEdit" />
+                  {{ $t('title.updateSelectedRows') }}
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                data-testid="nc-delete-row"
+                @click="deleteSelectedRows"
+              >
+                <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
+                  <component :is="iconMap.delete" />
+                  {{ $t('activity.deleteSelectedRow') }}
+                </div>
+                <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+                  <component :is="iconMap.delete" />
+                  {{ $t('activity.deleteSelectedRow') }}
+                </div>
+              </NcMenuItem>
+            </template>
             <NcMenuItem
-              v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-              @click="emits('bulkUpdateDlg')"
+              v-if="vSelectedAllRecords"
+              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              data-testid="nc-delete-all-row"
+              @click="deleteAllRecords"
             >
-              <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.ncEdit" />
-                {{ $t('title.updateSelectedRows') }}
+              <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
+                <component :is="iconMap.delete" />
+                {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
 
-            <NcMenuItem
-              v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-              data-testid="nc-delete-row"
-              @click="deleteSelectedRows"
+            <NcTooltip
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
+              :disabled="!isSelectedOnlyAI.disabled"
             >
-              <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
-                {{ $t('activity.deleteSelectedRow') }}
-              </div>
-              <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
-                {{ $t('activity.deleteSelectedRow') }}
-              </div>
-            </NcMenuItem>
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcMenuItem
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-bulk"
+                :disabled="isSelectedOnlyAI.disabled"
+                @click="generateAIBulk"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                  <!-- Generate All -->
+                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
             <NcMenuItem
               v-if="contextMenuTarget"
               class="nc-base-menu-item"
@@ -2416,7 +2587,7 @@ watch(
             </template>
 
             <template v-if="hasEditPermission && !isDataReadOnly">
-              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && selectedRows.length)" />
+              <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
@@ -2521,7 +2692,7 @@ watch(
     @apply text-black !bg-gray-50;
   }
 
-  td,
+  td:not(.nc-grid-add-new-cell-item),
   th {
     @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
     min-height: 32px !important;
@@ -2546,19 +2717,27 @@ watch(
     @apply !border-b-1;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) {
+  td:not(:first-child):not(.nc-grid-add-new-cell-item) {
     @apply px-3;
 
     &.align-top {
       @apply py-2;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply py-0 pr-0;
+      }
     }
 
     &.align-middle {
       @apply py-0;
+
+      &:has(.nc-cell.nc-cell-longtext textarea) {
+        @apply pr-0;
+      }
     }
 
     & > div {
@@ -2584,7 +2763,7 @@ watch(
       .nc-cell-field,
       input,
       textarea {
-        @apply !text-small !p-0 m-0;
+        @apply !text-small !pl-0 !py-0 m-0;
       }
 
       &:not(.nc-display-value-cell) {
@@ -2603,7 +2782,7 @@ watch(
       a.nc-cell-field-link,
       input,
       textarea {
-        @apply !p-0 m-0;
+        @apply !pl-0 !py-0 m-0;
       }
 
       a.nc-cell-field-link {
@@ -2617,7 +2796,7 @@ watch(
         @apply leading-[18px];
 
         textarea {
-          @apply pr-2;
+          @apply pr-8 !py-2;
         }
       }
 
@@ -2668,7 +2847,7 @@ watch(
     border-spacing: 0;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     text-overflow: ellipsis;
   }
 
@@ -2699,7 +2878,7 @@ watch(
     top: 0;
     left: 0;
     width: 100%;
-    box-shadow: 0 0 0 2px #3366ff !important;
+    box-shadow: 0 0 0 1.5px #3366ff !important;
     border-radius: 2px;
   }
 
@@ -2731,7 +2910,7 @@ watch(
     z-index: 5;
   }
 
-  tbody td:not(.placeholder-column):nth-child(1) {
+  tbody td:not(.placeholder-column):not(.nc-grid-add-new-cell-item):nth-child(1) {
     position: sticky !important;
     left: 0;
     z-index: 4;
@@ -2753,6 +2932,35 @@ watch(
       background: white;
       @apply border-r-1 border-r-gray-100;
     }
+
+    tbody {
+      tr:not(.nc-grid-add-new-cell):not(.placeholder) td:nth-child(3) {
+        &.active-cell {
+          @apply border-l-[1.5px] !border-l-transparent;
+        }
+        &.filling::after {
+          left: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-child(1) td {
+        &.active-cell {
+          @apply border-t-[1.5px] !border-t-transparent;
+        }
+        &.filling::after {
+          top: 0px;
+        }
+      }
+
+      tr:not(.nc-grid-add-new-cell):not(.placeholder):nth-last-child(2) td {
+        &.active-cell {
+          @apply border-b-[1.5px] !border-b-transparent;
+        }
+        &.filling::after {
+          bottom: 0px;
+        }
+      }
+    }
   }
 
   .nc-grid-skeleton-loader {
@@ -2760,7 +2968,7 @@ watch(
       @apply border-r-1 !border-r-gray-50;
     }
 
-    tbody td:not(.placeholder-column):nth-child(2) {
+    tbody td:not(.placeholder-column):not(.nc-grid-add-new-cell-item):nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
   }
@@ -2820,7 +3028,7 @@ watch(
 
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active) {
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
     }
   }
@@ -2829,7 +3037,7 @@ watch(
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
-      td:nth-child(2):not(.active) {
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
         @apply border-b-gray-200;
       }
     }

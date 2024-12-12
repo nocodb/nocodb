@@ -4,7 +4,7 @@ import { ViewTypes } from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
-const { getBaseUrl, appInfo } = useGlobal()
+const { appInfo } = useGlobal()
 
 const { dashboardUrl } = useDashboard()
 
@@ -203,15 +203,7 @@ function sharedViewUrl() {
       viewType = 'view'
   }
 
-  // get base url for workspace
-  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
-
-  let dashboardUrl1 = dashboardUrl.value
-  if (baseUrl) {
-    dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
-  }
-
-  return `${encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
+  return `${encodeURI(`${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
     viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
   }`
 }

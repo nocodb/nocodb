@@ -1,20 +1,29 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  popupOffset?: number[]
-}>()
-
-const slots = useSlots()
+const props = withDefaults(
+  defineProps<{
+    popupOffset?: number[]
+    variant?: 'default' | 'small'
+  }>(),
+  {
+    variant: 'default',
+  },
+)
 </script>
 
 <template>
-  <a-sub-menu :popup-offset="props.popupOffset" class="nc-sub-menu" popup-class-name="nc-submenu-popup">
+  <a-sub-menu
+    :popup-offset="props.popupOffset"
+    class="nc-sub-menu"
+    :class="`nc-variant-${variant}`"
+    popup-class-name="nc-submenu-popup"
+  >
     <template #title>
       <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group">
         <div class="flex flex-row items-center gap-x-2">
           <slot name="title" />
         </div>
 
-        <slot v-if="slots.expandIcon" name="expandIcon" />
+        <slot v-if="$slots.expandIcon" name="expandIcon" />
         <GeneralIcon v-else icon="arrowRight" class="nc-submenu-arrow text-base" />
       </div>
     </template>

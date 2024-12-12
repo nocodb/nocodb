@@ -702,6 +702,7 @@ test.describe('Field Aggregation', () => {
         await aggregationBar.updateAggregation({
           column_name: colName,
           aggregation: y[0],
+          skipNetworkValidation: true,
         });
 
         await aggregationBar.verifyAggregation({

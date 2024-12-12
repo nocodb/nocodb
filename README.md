@@ -82,7 +82,7 @@ Behind the scenes it auto-generates docker-compose for you.
 bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 ```
 
-Auto-upstall does the following : 🕊
+Auto-upstall does the following: 🕊
 - 🐳 Automatically installs all pre-requisites like docker, docker-compose
 - 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
 - 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.

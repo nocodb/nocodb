@@ -1380,7 +1380,8 @@
     "autoSuggestSelectOptions": "根据字段名称和现有字段自动建议选项",
     "aiIntegrationReConfigure": "AI集成已被移除，请从字段编辑模式重新配置以使用NocoAI功能",
     "aiIntegrationAddAndReConfigure": "AI集成已被移除，请从字段编辑模式重新添加和配置以使用NocoAI功能",
-    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
+    "sourceDataIsReadonly": "Source data is readonly"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

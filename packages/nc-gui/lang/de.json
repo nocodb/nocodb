@@ -1380,7 +1380,8 @@
     "autoSuggestSelectOptions": "Automatisch Optionen basierend auf Feldname und vorhandenen Feldern vorschlagen",
     "aiIntegrationReConfigure": "Die KI-Integration wurde entfernt. Konfigurieren Sie das Feld im Bearbeitungsmodus neu, um die NocoAI-Funktionen zu nutzen.",
     "aiIntegrationAddAndReConfigure": "Die KI-Integration wurde entfernt. Fügen Sie das Feld neu hinzu und konfigurieren Sie es im Bearbeitungsmodus, um die NocoAI-Funktionen zu nutzen.",
-    "generateFieldDataUsingAiButtonOption": "Generiere Werte für mehrere Felder in dieser Tabelle mittels bestehenden Datensätzen und NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generiere Werte für mehrere Felder in dieser Tabelle mittels bestehenden Datensätzen und NocoAI",
+    "sourceDataIsReadonly": "Source data is readonly"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

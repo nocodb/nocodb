@@ -4,6 +4,9 @@ import setup, { NcContext, unsetup } from '../../../setup';
 import { AggregaionBarPage } from '../../../pages/Dashboard/Grid/AggregationBar';
 import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { isEE } from '../../../setup/db';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
+import { getDefaultPwd } from '../../utils/general';
 
 const columns = [
   {
@@ -608,11 +611,25 @@ const verificationDataAfterFilter = {
   },
 };
 
+const users: string[] = isEE()
+  ? ['useree@nocodb.com', 'useree-0@nocodb.com', 'useree-1@nocodb.com', 'useree-2@nocodb.com', 'useree-3@nocodb.com']
+  : ['user@nocodb.com', 'user-0@nocodb.com', 'user-1@nocodb.com', 'user-2@nocodb.com', 'user-3@nocodb.com'];
+
+const roleDb = [
+  { email: 'useree@nocodb.com', role: 'editor' },
+  { email: 'useree-0@nocodb.com', role: 'editor' },
+  { email: 'useree-1@nocodb.com', role: 'editor' },
+  { email: 'useree-2@nocodb.com', role: 'editor' },
+  { email: 'useree-3@nocodb.com', role: 'editor' },
+];
+
 test.describe('Field Aggregation', () => {
   let dashboard: DashboardPage, aggregationBar: AggregaionBarPage;
   let context: any;
   let sharedLink: string;
   let testContext: any;
+  let workspacePage: WorkspacePage;
+  let collaborationPage: CollaborationPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -621,6 +638,28 @@ test.describe('Field Aggregation', () => {
     const { api, table, base } = await columnAggregationSuite(`xcdb${context.workerId}`, context);
 
     testContext = { api, table, base };
+
+    if (isEE()) {
+      workspacePage = new WorkspacePage(page);
+      collaborationPage = workspacePage.collaboration;
+
+      for (let i = 0; i < roleDb.length; i++) {
+        try {
+          await api.auth.signup({
+            email: roleDb[i].email,
+            password: getDefaultPwd(),
+          });
+        } catch (e) {
+          // ignore error even if user already exists
+        }
+      }
+
+      await dashboard.leftSidebar.clickTeamAndSettings();
+
+      for (const user of roleDb) {
+        await collaborationPage.addUsers(user.email, user.role);
+      }
+    }
 
     aggregationBar = dashboard.grid.aggregationBar;
 
@@ -644,7 +683,7 @@ test.describe('Field Aggregation', () => {
     await dashboard.grid.cell.userOption.select({
       index: 0,
       columnHeader: 'User',
-      option: 'user-0@nocodb.com',
+      option: users[0],
       multiSelect: false,
     });
   });

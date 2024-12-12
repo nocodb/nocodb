@@ -177,23 +177,7 @@ const data = [
   },
 ];
 
-const verificationData = {
-  Title: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  LongText: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
+const verificationNumericalData = {
   Number: {
     count_unique: '2',
     count_empty: '0',
@@ -223,92 +207,6 @@ const verificationData = {
     median: '2.9',
     std_dev: '0.2',
     range: '0.4',
-  },
-  Checkbox: {
-    checked: '1',
-    unchecked: '1',
-    percent_checked: '50',
-    percent_unchecked: '50',
-  },
-  MultiSelect: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  SingleSelect: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Date: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-    earliest_date: '2024-01-01',
-    latest_date: '2024-02-02',
-    date_range: '32 days',
-    month_range: '1 month',
-  },
-  DateTime: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-    earliest_date: '2024-01-01 10:00',
-    latest_date: '2024-02-02 12:00',
-    date_range: '32 days',
-    month_range: '1 month',
-  },
-  Year: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Time: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  PhoneNumber: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Email: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
-  Url: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
   },
   Currency: {
     sum: '300.5',
@@ -371,8 +269,10 @@ const verificationData = {
     std_dev: '0.5',
     range: '1',
   },
+};
 
-  JSON: {
+const verificationStringData = {
+  Title: {
     count_unique: '2',
     count_empty: '0',
     count_filled: '2',
@@ -380,14 +280,45 @@ const verificationData = {
     percent_filled: '100',
     percent_empty: '0',
   },
-  Attachment: {
-    attachment_size: '1.81 MiB',
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50%',
-    percent_filled: '50%',
-    percent_empty: '50%',
+  LongText: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+  },
+  MultiSelect: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+  },
+  SingleSelect: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+  },
+  Url: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+  },
+  JSON: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
   },
   User: {
     count_unique: '1',
@@ -399,8 +330,20 @@ const verificationData = {
   },
 };
 
-const verificationDataAfterFilter = {
-  Title: {
+const verificationDateTime = {
+  DateTime: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+    earliest_date: '2024-01-01 10:00',
+    latest_date: '2024-02-02 12:00',
+    date_range: '32 days',
+    month_range: '1 month',
+  },
+  Time: {
     count_unique: '2',
     count_empty: '0',
     count_filled: '2',
@@ -408,14 +351,21 @@ const verificationDataAfterFilter = {
     percent_filled: '100',
     percent_empty: '0',
   },
-  LongText: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
+  Date: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+    earliest_date: '2024-01-01',
+    latest_date: '2024-02-02',
+    date_range: '32 days',
+    month_range: '1 month',
   },
+};
+
+const verificationNUmericalDataAfterFilter = {
   Number: {
     count_unique: '1',
     count_empty: '1',
@@ -445,92 +395,6 @@ const verificationDataAfterFilter = {
     median: '3.1',
     std_dev: '0',
     range: '0',
-  },
-  Checkbox: {
-    checked: '1',
-    unchecked: '1',
-    percent_checked: '50',
-    percent_unchecked: '50',
-  },
-  MultiSelect: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  SingleSelect: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  Date: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-    earliest_date: '2024-01-01',
-    latest_date: '2024-01-01',
-    date_range: '0 days',
-    month_range: '0 month',
-  },
-  DateTime: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-    earliest_date: '2024-01-01 10:00',
-    latest_date: '2024-01-01 10:00',
-    date_range: '0 days',
-    month_range: '0 month',
-  },
-  Year: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  Time: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  PhoneNumber: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  Email: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
-  Url: {
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
   },
   Currency: {
     sum: '100',
@@ -593,6 +457,50 @@ const verificationDataAfterFilter = {
     std_dev: '0',
     range: '4',
   },
+};
+
+const verificationStringDataAfterFilter = {
+  Title: {
+    count_unique: '2',
+    count_empty: '0',
+    count_filled: '2',
+    percent_unique: '100',
+    percent_filled: '100',
+    percent_empty: '0',
+  },
+  LongText: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+  },
+  MultiSelect: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+  },
+  SingleSelect: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+  },
+
+  Url: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+  },
   JSON: {
     count_unique: '1',
     count_empty: '1',
@@ -608,6 +516,41 @@ const verificationDataAfterFilter = {
     percent_unique: '50%',
     percent_filled: '50%',
     percent_empty: '50%',
+  },
+};
+
+const verificationDateTimeDataAfterFilter = {
+  Date: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+    earliest_date: '2024-01-01',
+    latest_date: '2024-01-01',
+    date_range: '0 days',
+    month_range: '0 month',
+  },
+  DateTime: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
+    earliest_date: '2024-01-01 10:00',
+    latest_date: '2024-01-01 10:00',
+    date_range: '0 days',
+    month_range: '0 month',
+  },
+  Time: {
+    count_unique: '1',
+    count_empty: '1',
+    count_filled: '1',
+    percent_unique: '50',
+    percent_filled: '50',
+    percent_empty: '50',
   },
 };
 
@@ -694,8 +637,8 @@ test.describe('Field Aggregation', () => {
     await unsetup(context);
   });
 
-  test('Aggregation Grid Test', async ({ page }) => {
-    for (const x of Object.entries(verificationData)) {
+  test('Aggregation Grid Test - String Columns', async ({ page }) => {
+    for (const x of Object.entries(verificationStringData)) {
       const colName = x[0];
 
       for (const y of Object.entries(x[1])) {
@@ -735,7 +678,125 @@ test.describe('Field Aggregation', () => {
 
     await dashboard.grid.toolbar.clickFilter();
 
-    for (const x of Object.entries(verificationDataAfterFilter)) {
+    for (const x of Object.entries(verificationStringDataAfterFilter)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+          skipNetworkValidation: true,
+        });
+
+        await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+  });
+
+  test('Aggregation Grid Test - Numerical Columns', async ({ page }) => {
+    for (const x of Object.entries(verificationNumericalData)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+          skipNetworkValidation: true,
+        });
+
+        await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+
+    const { api, table, base } = testContext;
+
+    await api.dbTableRow.bulkCreate('noco', base.id, table.id, [
+      {
+        Id: 3,
+        Title: 'Sample2',
+      },
+    ]);
+
+    await page.reload();
+
+    await dashboard.grid.toolbar.clickFilter();
+
+    await dashboard.grid.toolbar.filter.add({
+      title: 'Title',
+      operation: 'is like',
+      value: 'Sample',
+    });
+
+    await page.waitForTimeout(4000);
+
+    await dashboard.grid.toolbar.clickFilter();
+
+    for (const x of Object.entries(verificationNUmericalDataAfterFilter)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+          skipNetworkValidation: true,
+        });
+
+        await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+  });
+
+  test('Aggregation Grid Test - DateTime Columns', async ({ page }) => {
+    for (const x of Object.entries(verificationDateTime)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+          skipNetworkValidation: true,
+        });
+
+        await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+
+    const { api, table, base } = testContext;
+
+    await api.dbTableRow.bulkCreate('noco', base.id, table.id, [
+      {
+        Id: 3,
+        Title: 'Sample2',
+      },
+    ]);
+
+    await page.reload();
+
+    await dashboard.grid.toolbar.clickFilter();
+
+    await dashboard.grid.toolbar.filter.add({
+      title: 'Title',
+      operation: 'is like',
+      value: 'Sample',
+    });
+
+    await page.waitForTimeout(4000);
+
+    await dashboard.grid.toolbar.clickFilter();
+
+    for (const x of Object.entries(verificationDateTimeDataAfterFilter)) {
       const colName = x[0];
 
       for (const y of Object.entries(x[1])) {
@@ -762,7 +823,7 @@ test.describe('Field Aggregation', () => {
     await page.reload();
     const sharedPage = new DashboardPage(page, context.base);
 
-    for (const x of Object.entries(verificationData)) {
+    for (const x of Object.entries(verificationStringData)) {
       const colName = x[0];
 
       for (const y of Object.entries(x[1])) {

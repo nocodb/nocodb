@@ -1380,7 +1380,8 @@
     "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields",
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
-    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI"
+    "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
+    "sourceDataIsReadonly": "Source data is readonly"
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",

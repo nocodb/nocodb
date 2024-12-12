@@ -43,15 +43,17 @@ export default class CalendarViewColumn {
         MetaTable.CALENDAR_VIEW_COLUMNS,
         calendarViewColumnId,
       );
-      viewColumn.meta =
-        viewColumn.meta && typeof viewColumn.meta === 'string'
-          ? JSON.parse(viewColumn.meta)
-          : viewColumn.meta;
+      if (viewColumn) {
+        viewColumn.meta =
+          viewColumn.meta && typeof viewColumn.meta === 'string'
+            ? JSON.parse(viewColumn.meta)
+            : viewColumn.meta;
 
-      await NocoCache.set(
-        `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
-        viewColumn,
-      );
+        await NocoCache.set(
+          `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
 
     return viewColumn && new CalendarViewColumn(viewColumn);
@@ -79,6 +81,11 @@ export default class CalendarViewColumn {
         fk_view_id: insertObj.fk_view_id,
       },
     );
+
+    if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      insertObj.source_id = viewRef.source_id;
+    }
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

@@ -18517,6 +18517,65 @@
         ]
       }
     },
+    "/api/v2/ai/tables/{modelId}/rows/fill": {
+      "post": {
+        "summary": "Fill AI Data",
+        "operationId": "ai-data-fill",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Ai"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rows": {
+                    "type": "array"
+                  },
+                  "numRows": {
+                    "type": "number"
+                  },
+                  "generateIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["rowIds", "numRows", "generateIds"]
+              }
+            }
+          }
+        },
+        "description": "Fill AI data for specified rows",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Model ID"
+          }
+        ]
+      }
+    },
     "/api/v2/ai/tables/{modelId}/extract": {
       "post": {
         "summary": "Extract Data using AI",
@@ -20184,7 +20243,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "AI"
+              "AI",
+              "Order"
             ],
             "type": "string"
           },
@@ -23844,7 +23904,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "AI"
+              "AI",
+              "Order"
             ],
             "type": "string",
             "description": "UI Data Type"

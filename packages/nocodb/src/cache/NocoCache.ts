@@ -24,6 +24,15 @@ export default class NocoCache {
     this.prefix = `${CACHE_PREFIX}:${orgs}`;
   }
 
+  public static disableCache() {
+    this.cacheDisabled = true;
+  }
+
+  public static enableCache() {
+    // return to default value
+    this.cacheDisabled = (process.env.NC_DISABLE_CACHE || false) === 'true';
+  }
+
   public static async set(key, value): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.set(`${this.prefix}:${key}`, value);

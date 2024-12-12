@@ -27,25 +27,27 @@ export default class GalleryViewColumn {
     galleryViewColumnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let view =
+    let viewColumn =
       galleryViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.GALLERY_VIEW_COLUMNS,
         galleryViewColumnId,
       );
-      await NocoCache.set(
-        `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
-        view,
-      );
+      if (viewColumn) {
+        await NocoCache.set(
+          `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
+          viewColumn,
+        );
+      }
     }
-    return view && new GalleryViewColumn(view);
+    return viewColumn && new GalleryViewColumn(viewColumn);
   }
   static async insert(
     context: NcContext,
@@ -67,9 +69,8 @@ export default class GalleryViewColumn {
       },
     );
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
-
     if (!insertObj.source_id) {
+      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 

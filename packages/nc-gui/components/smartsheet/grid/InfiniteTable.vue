@@ -144,6 +144,8 @@ const { loadViewAggregate } = useViewAggregateOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 // Element refs
 const smartTable = ref(null)
 
@@ -745,6 +747,7 @@ const {
   makeActive,
   selectedRange,
   isFillMode,
+  metaKey,
 } = useMultiSelect(
   meta,
   fields,
@@ -1036,6 +1039,8 @@ const isSelectedOnlyAI = computed(() => {
     disabled: false,
   }
 })
+
+const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
@@ -2267,7 +2272,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
-                          'active-cell !after:h-[calc(100%-2px)]':
+                          'active-cell !after:h-[calc(100%-1px)]':
                             (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':
@@ -2437,11 +2442,11 @@ watch(vSelectedAllRecords, (selectedAll) => {
               v-show="showFillHandle"
               ref="fillHandle"
               class="nc-fill-handle"
-              :class="
-                (!selectedRange.isEmpty() && selectedRange.end.col !== 0) || (selectedRange.isEmpty() && activeCell.col !== 0)
-                  ? 'z-3'
-                  : 'z-4'
-              "
+              :class="{
+                'z-3': !selectedRange.isEmpty() && selectedRange.end.col !== 0,
+                'z-4': selectedRange.isEmpty() && activeCell.col !== 0,
+                'transition-all !bg-purple-400 !w-[10px] !h-[10px] !mt-[-5px] !ml-[-5px]': isAIFillMode,
+              }"
               :style="{
                 top: `${fillHandleTop}px`,
                 left: `${fillHandleLeft}px`,

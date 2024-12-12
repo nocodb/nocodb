@@ -21,6 +21,7 @@ export {
   isHiddenCol,
   getEquivalentUIType,
   isSelectTypeCol,
+  isOrderCol,
   getUITypesForFormulaDataType,
   readonlyMetaAllowedTypes,
   partialUpdateAllowedTypes,

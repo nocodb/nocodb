@@ -478,6 +478,7 @@ const onDeleteColumn = () => {
     </div>
     <template #overlay>
       <NcMenu
+        variant="small"
         class="flex flex-col gap-1 border-gray-200 nc-column-options"
         :class="{
           'min-w-[256px]': isExpandedForm,
@@ -492,12 +493,12 @@ const onDeleteColumn = () => {
           <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
           <div
-            class="nc-copy-field flex flex-row justify-between items-center w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md hover:bg-gray-100 cursor-pointer group"
+            class="nc-copy-field flex flex-row justify-between items-center w-[calc(100%_-_8px)] px-2 py-1 mx-1 rounded-md hover:bg-gray-100 cursor-pointer group"
             data-testid="nc-field-item-action-copy-id"
             @click.stop="onClickCopyFieldUrl(column)"
           >
             <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">
-              <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
+              <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold whitespace-nowrap">
                 {{
                   $t('labels.idColon', {
                     id: column.id,
@@ -512,7 +513,7 @@ const onDeleteColumn = () => {
           </div>
         </NcTooltip>
 
-        <a-divider class="!my-0" />
+        <a-divider class="!my-0.5" />
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem
             v-if="isUIAllowed('fieldAlter')"
@@ -528,8 +529,12 @@ const onDeleteColumn = () => {
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
         <template v-if="!isExpandedForm">
-          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed && isMetaReadOnly">
-            <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+          <GeneralSourceRestrictionTooltip
+            v-if="!column?.pk"
+            message="Field cannot be duplicated."
+            :enabled="!isDuplicateAllowed && isMetaReadOnly"
+          >
+            <NcMenuItem :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
               <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
                 <component :is="iconMap.duplicate" class="text-gray-500" />
                 <!-- Duplicate -->
@@ -537,12 +542,12 @@ const onDeleteColumn = () => {
               </div>
             </NcMenuItem>
           </GeneralSourceRestrictionTooltip>
-          <GeneralSourceRestrictionTooltip message="Field cannot be duplicated." :enabled="!isDuplicateAllowed">
-            <NcMenuItem
-              v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
-              :disabled="!isDuplicateAllowed"
-              @click="openDuplicateDlg"
-            >
+          <GeneralSourceRestrictionTooltip
+            v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+            message="Field cannot be duplicated."
+            :enabled="!isDuplicateAllowed"
+          >
+            <NcMenuItem :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
               <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
                 <component :is="iconMap.duplicate" class="text-gray-500" />
                 <!-- Duplicate -->
@@ -563,8 +568,8 @@ const onDeleteColumn = () => {
           </div>
         </NcMenuItem>
         <NcMenuItem v-if="isUIAllowed('fieldAlter')" title="Add field description" @click="onEditPress($event, true)">
-          <div class="nc-column-edit-description nc-header-menu-item">
-            <GeneralIcon icon="ncAlignLeft" class="text-gray-500 !w-4.25 !h-4.25" />
+          <div class="nc-column-edit-description nc-header-menu-item !text-gray-700">
+            <GeneralIcon icon="ncAlignLeft" class="text-gray-600 !w-4.25 !h-4.25" />
             {{ $t('labels.editDescription') }}
           </div>
         </NcMenuItem>
@@ -575,11 +580,11 @@ const onDeleteColumn = () => {
             {{ t('general.addLookupField') }}
           </div>
         </NcMenuItem>
-        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
+        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0.5" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
-            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-500 !w-4 !h-4" />
+            <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4" />
             <!-- Hide Field -->
             {{ isHiddenCol ? $t('general.showField') : $t('general.hideField') }}
           </div>
@@ -605,7 +610,7 @@ const onDeleteColumn = () => {
         </NcTooltip>
 
         <template v-if="!isExpandedForm">
-          <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
+          <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0.5" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
             <NcTooltip :disabled="isSortSupported">
@@ -636,7 +641,7 @@ const onDeleteColumn = () => {
             </NcTooltip>
           </template>
 
-          <a-divider class="!my-0" />
+          <a-divider class="!my-0.5" />
 
           <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
             <template #title>
@@ -688,7 +693,7 @@ const onDeleteColumn = () => {
             </NcMenuItem>
           </NcTooltip>
 
-          <a-divider class="!my-0" />
+          <a-divider class="!my-0.5" />
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
               <component :is="iconMap.colInsertAfter" class="text-gray-500 !w-4.5 !h-4.5" />
@@ -704,7 +709,7 @@ const onDeleteColumn = () => {
             </div>
           </NcMenuItem>
         </template>
-        <a-divider v-if="!column?.pv" class="!my-0" />
+        <a-divider v-if="!column?.pv" class="!my-0.5" />
         <GeneralSourceRestrictionTooltip message="Field cannot be deleted." :enabled="!isColumnUpdateAllowed">
           <NcMenuItem
             v-if="!column?.pv && isUIAllowed('fieldDelete')"

@@ -13,7 +13,13 @@ const { copy } = useCopy()
 
 const isCopied = ref<boolean>(false)
 
+let copiedTimeoutId: any
+
 const onClickCopy = async () => {
+  if (copiedTimeoutId) {
+    clearTimeout(copiedTimeoutId)
+  }
+
   if (!id.value) return
 
   try {
@@ -21,9 +27,10 @@ const onClickCopy = async () => {
 
     isCopied.value = true
 
-    await ncDelay(3000)
-
-    isCopied.value = false
+    copiedTimeoutId = setTimeout(() => {
+      isCopied.value = false
+      clearTimeout(copiedTimeoutId)
+    }, 3000)
   } catch (e: any) {
     message.error(e.message)
   }

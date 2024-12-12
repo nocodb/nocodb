@@ -85,6 +85,7 @@ import 'mocha';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isOrderCol,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
@@ -144,7 +145,7 @@ let cityColumns;
 const verifyColumnsInRsp = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const expectedColumnsListStr = columns
-    .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c)))
+    .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c) || isOrderCol(c)))
     .map((c) => c.title)
     .sort()
     .join(',');

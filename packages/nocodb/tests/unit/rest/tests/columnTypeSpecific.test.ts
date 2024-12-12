@@ -62,6 +62,11 @@ function columnTypeSpecificTests() {
       uidt: UITypes.LastModifiedBy,
       system: true,
     },
+    {
+      title: 'nc_order',
+      uidt: UITypes.Order,
+      system: true,
+    },
   ];
 
   describe('Qr Code Column', () => {
@@ -500,7 +505,7 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[6] });
+        await deleteColumn(context, { table, column: columns.columns[7] });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedBy',

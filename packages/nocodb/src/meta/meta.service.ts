@@ -13,6 +13,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -140,6 +141,7 @@ export class MetaService {
       created_at: this.now(),
       updated_at: this.now(),
     });
+
     return insertObj;
   }
 

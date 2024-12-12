@@ -629,9 +629,12 @@ export default class View implements ViewType {
       const modifiedInsertObj = {
         ...insertObj,
         fk_view_id: view.id,
+        source_id: view.source_id,
       };
 
-      if (param.column_show?.view_id === view.id) {
+      if (colIdMap.get(param.fk_column_id)?.uidt === UITypes.Order) {
+        modifiedInsertObj.show = false;
+      } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
       } else if (view.uuid) {
         // if view is shared, then keep the show state as it is

@@ -14,6 +14,7 @@ export enum MigrationJobTypes {
   Thumbnail = 'thumbnail',
   RecoverLinks = 'recover-links',
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
+  OrderColumnCreation = 'order-column-creation',
 }
 
 export enum JobTypes {
@@ -68,7 +69,9 @@ export enum JobEvents {
 
 export const JobVersions: {
   [key in JobTypes]?: number;
-} = {};
+} = {
+  [JobTypes.InitMigrationJobs]: 2,
+};
 
 export const JOB_REQUEUED = 'job.requeued';
 

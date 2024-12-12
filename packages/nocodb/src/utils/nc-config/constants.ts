@@ -25,7 +25,7 @@ export const defaultConnectionConfig: any = {
 export const defaultConnectionOptions = {
   pool: {
     min: 0,
-    max: 10,
+    max: +process.env.NC_DB_POOL_MAX || 10,
   },
 };
 

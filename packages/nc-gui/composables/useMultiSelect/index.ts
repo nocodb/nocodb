@@ -102,9 +102,17 @@ export function useMultiSelect(
 
   const { api } = useApi()
 
+  const { $api } = useNuxtApp()
+
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const { isDataReadOnly } = useRoles()
+
+  const { meta: metaKey } = useMagicKeys()
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
 
@@ -477,10 +485,11 @@ export function useMultiSelect(
       if (rw.rowMeta.new) return
 
       const endRow = Math.min(selectedRange._start.row + 100, row)
+      const endCol = aiMode.value ? Math.min(selectedRange._start.col + 100, col) : selectedRange._end.col
 
       fillRange.endRange({
         row: endRow,
-        col: selectedRange._end.col,
+        col: endCol,
       })
 
       scrollToCell?.(endRow, col)
@@ -548,7 +557,10 @@ export function useMultiSelect(
 
   const handleMouseUp = (_event: MouseEvent) => {
     if (isFillMode.value) {
+      const localAiMode = Boolean(aiMode.value)
+
       isFillMode.value = false
+      aiMode.value = false
 
       if (fillRange._start === null || fillRange._end === null) return
 
@@ -574,17 +586,15 @@ export function useMultiSelect(
         let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 
         const rowsToPaste: Row[] = []
+        const rowsToFill: Row[] = []
         const propsToPaste: string[] = []
+        const propsToFill: string[] = []
 
         for (
           let row = fillRange._start.row;
           fillDirection === 1 ? row <= fillRange._end.row : row >= fillRange._end.row;
           row += fillDirection
         ) {
-          if (selectRangeMap.value[`${row}-${selectedRange.start.col}`]) {
-            continue
-          }
-
           const rowObj = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
 
           if (!rowObj) {
@@ -592,6 +602,10 @@ export function useMultiSelect(
           }
 
           let pasteIndex = 0
+
+          if (!selectRangeMap.value[`${row}-${selectedRange.start.col}`]) {
+            rowsToPaste.push(rowObj)
+          }
 
           for (let col = fillRange.start.col; col <= fillRange.end.col; col++) {
             const colObj = unref(fields)[col]
@@ -601,22 +615,43 @@ export function useMultiSelect(
               continue
             }
 
-            propsToPaste.push(colObj.title!)
+            // if the column is added only for the fill operation, don't paste the value
+            if (selectedRange._start && selectedRange._end && selectedRange._start.col <= col && col <= selectedRange._end.col) {
+              if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
+                if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
+              }
 
-            const pasteValue = convertCellData(
-              {
-                value: rawMatrix[fillIndex][pasteIndex],
-                to: colObj.uidt as UITypes,
-                column: colObj,
-                appInfo: unref(appInfo),
-              },
-              isMysql(meta.value?.source_id),
-              true,
-            )
+              if (!propsToPaste.includes(colObj.title!) && !propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
 
-            if (pasteValue !== undefined) {
-              rowObj.row[colObj.title!] = pasteValue
-              rowsToPaste.push(rowObj)
+              const pasteValue = convertCellData(
+                {
+                  value: rawMatrix[fillIndex][pasteIndex],
+                  to: colObj.uidt as UITypes,
+                  column: colObj,
+                  appInfo: unref(appInfo),
+                },
+                isMysql(meta.value?.source_id),
+                true,
+              )
+
+              if (pasteValue !== undefined) {
+                if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
+              }
+            } else {
+              if (localAiMode) {
+                propsToFill.push(colObj.title!)
+
+                // add rows to fill if they are not already in the list
+                if (
+                  !rowsToFill.find(
+                    (r) =>
+                      extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) ===
+                      extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+                  )
+                ) {
+                  rowsToFill.push(rowObj)
+                }
+              }
             }
 
             pasteIndex++
@@ -627,6 +662,63 @@ export function useMultiSelect(
           } else {
             fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
           }
+        }
+
+        if (localAiMode) {
+          const sampleRows = cprows.map((row) => {
+            const sampleRow: Record<string, any> = {
+              Id: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+            }
+
+            for (const prop of propsToPaste) {
+              sampleRow[prop] = row.row[prop]
+            }
+
+            for (const prop of propsToFill) {
+              sampleRow[prop] = 'FILL'
+            }
+
+            return sampleRow
+          })
+
+          // string[] of Ids of rows to paste
+          const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+
+          $api.ai
+            .dataFill(meta.value?.id, {
+              rows: sampleRows,
+              generateIds,
+              numRows: generateIds.length,
+            })
+            .then((r: Record<string, any>[]) => {
+              if (fillRange._start === null || fillRange._end === null) return
+              // update cells with the generated data
+
+              for (const row of rowsToPaste.concat(rowsToFill)) {
+                const generatedRow = r.find(
+                  (genRow) =>
+                    extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
+                    extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
+                )
+
+                if (!generatedRow) {
+                  continue
+                }
+
+                for (const prop of propsToPaste.concat(propsToFill)) {
+                  row.row[prop] = generatedRow[prop]
+                }
+              }
+
+              bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
+                if (fillRange._start === null || fillRange._end === null) return
+                selectedRange.startRange(tempActiveCell)
+                selectedRange.endRange(fillRange._end)
+                makeActive(tempActiveCell.row, tempActiveCell.col)
+                fillRange.clear()
+              })
+            })
+          return
         }
 
         bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
@@ -1577,6 +1669,9 @@ export function useMultiSelect(
     }
 
     isFillMode.value = true
+    if (metaKey?.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) {
+      aiMode.value = true
+    }
 
     if (selectedRange._start && selectedRange._end) {
       fillRange.startRange({ row: selectedRange._start?.row, col: selectedRange._start.col })
@@ -1647,5 +1742,6 @@ export function useMultiSelect(
     isFillMode,
     selectRangeMap,
     fillRangeMap,
+    metaKey,
   }
 }

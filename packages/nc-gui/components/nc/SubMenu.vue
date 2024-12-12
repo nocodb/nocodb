@@ -15,7 +15,7 @@ const props = withDefaults(
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
     :class="`nc-variant-${variant}`"
-    popup-class-name="nc-submenu-popup"
+    :popup-class-name="`nc-variant-${variant} nc-submenu-popup`"
   >
     <template #title>
       <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group">
@@ -46,6 +46,26 @@ const props = withDefaults(
 
     .nc-submenu-arrow {
       @apply text-gray-600 group-hover:text-gray-800;
+    }
+  }
+
+  & > .ant-dropdown-menu-submenu-title {
+    @apply pl-2 py-0 w-full;
+  }
+
+  &.nc-variant-small {
+    @apply text-small leading-5 font-weight-550 mx-1;
+
+    & .nc-submenu-title {
+      @apply py-0.5 min-h-7 text-small leading-5 font-weight-550;
+    }
+
+    &:not(.ant-dropdown-menu-submenu-disabled) {
+      @apply hover:text-black text-gray-700;
+
+      & .nc-submenu-title {
+        @apply hover:text-black text-gray-700;
+      }
     }
   }
 }

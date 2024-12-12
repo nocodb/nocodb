@@ -92,7 +92,11 @@ export class OrderColumnMigration {
   private processedModelsCount = 0;
   private cache = new SimpleLRUCache(1000);
 
-  logExecutionTime(message: string, hrTime) {
+  private logTimes = process.env.NC_ORDER_MIGRATION_LOG_TIMES === 'true';
+
+  logExecutionTime(message: string, hrTime, force = false) {
+    if (!force && !this.logTimes) return;
+
     const [seconds, nanoseconds] = process.hrtime(hrTime);
 
     // reset hrTime
@@ -226,7 +230,7 @@ export class OrderColumnMigration {
 
       await ncMeta.disableUpgraderMode();
 
-      this.logExecutionTime('Migration job completed', totalHrTime);
+      this.logExecutionTime('Migration job completed', totalHrTime, true);
 
       return true;
     } catch (error) {
@@ -372,10 +376,6 @@ export class OrderColumnMigration {
       await model.getColumns(context);
 
       const tnPath = baseModel.getTnPath(model.table_name);
-
-      this.log(
-        `Generating queries for model ${modelId} - Table: ${model.table_name} - BaseId ${base_id} - WorkspaceId ${context.workspace_id}`,
-      );
 
       const sqlMgr = ProjectMgrv2.getSqlMgr(
         context,

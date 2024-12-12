@@ -64,14 +64,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async fileRead(key: string): Promise<any> {
-    const command = new GetObjectCommand({
-      Key: this.patchKey(key),
-      Bucket: this.input.bucket,
-    });
-
-    const { Body } = await this.s3Client.send(command);
-
-    const fileStream = Body as Readable;
+    const fileStream = await this.fileReadByStream(key);
 
     return new Promise((resolve, reject) => {
       const chunks: any[] = [];
@@ -189,9 +182,17 @@ export default class GenericS3 implements IStorageAdapterV2 {
     }
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  async fileReadByStream(key: string): Promise<Readable> {
+    const command = new GetObjectCommand({
+      Key: this.patchKey(key),
+      Bucket: this.input.bucket,
+    });
+
+    const { Body } = await this.s3Client.send(command);
+
+    const fileStream = Body as Readable;
+
+    return fileStream;
   }
 
   public async getDirectoryList(prefix: string): Promise<string[]> {

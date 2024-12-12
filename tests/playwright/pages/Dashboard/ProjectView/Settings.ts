@@ -1,6 +1,7 @@
 import BasePage from '../../Base';
 import { ProjectViewPage } from './index';
 import { expect } from '@playwright/test';
+import { DashboardPage } from '../index';
 
 export class BaseSettingsPage extends BasePage {
   readonly dashboard: DashboardPage;

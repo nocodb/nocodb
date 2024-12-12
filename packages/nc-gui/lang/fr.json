@@ -1381,7 +1381,7 @@
     "aiIntegrationReConfigure": "L'intégration IA a été supprimée, reconfigurer depuis la fenêtre d'édition du champ pour utiliser les fonctionnalités de NocoAI",
     "aiIntegrationAddAndReConfigure": "L'intégration de l'IA a été supprimée, ajoutez à nouveau et reconfigurez à partir de la fenêtre d'édition de champ pour utiliser les fonctionnalités de NocoAI",
     "generateFieldDataUsingAiButtonOption": "Générer des données pour plusieurs champs dans ce tableau en utilisant les informations de l'enregistrement et NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Les données source sont en lecture seule"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

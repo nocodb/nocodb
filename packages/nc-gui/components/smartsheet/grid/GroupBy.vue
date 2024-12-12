@@ -533,7 +533,7 @@ const bgColor = computed(() => {
                       </NcButton>
 
                       <template #overlay>
-                        <NcMenu>
+                        <NcMenu variant="small">
                           <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
                             Collapse group

@@ -553,9 +553,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
-                          <NcMenu>
+                          <NcMenu variant="small">
                             <NcMenuItem @click="handleClickRow(source, 'edit')">
-                              <GeneralIcon class="text-gray-800" icon="edit" />
+                              <GeneralIcon icon="edit" />
                               <span>{{ $t('general.edit') }}</span>
                             </NcMenuItem>
 

@@ -325,7 +325,7 @@ const getHookTypeText = (hook: HookType) => {
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />
                   </NcButton>
                   <template #overlay>
-                    <NcMenu class="w-48">
+                    <NcMenu class="w-48" variant="small">
                       <NcMenuItem key="edit" data-testid="nc-webhook-item-action-edit" @click="editHook(hook)">
                         <GeneralIcon icon="edit" class="text-gray-800" />
                         <span>{{ $t('general.edit') }}</span>
@@ -335,7 +335,7 @@ const getHookTypeText = (hook: HookType) => {
                         <span>{{ $t('general.duplicate') }}</span>
                       </NcMenuItem>
 
-                      <a-menu-divider class="my-1.5" />
+                      <NcDivider />
 
                       <NcMenuItem
                         key="delete"

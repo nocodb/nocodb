@@ -23,7 +23,7 @@ const selectable = computed(() => props.selectable ?? false)
   @apply bg-white !rounded-md !py-1.5;
 
   &:not(.nc-variant-default) {
-    @apply flex flex-col gap-0.5 !py-1;
+    @apply flex flex-col gap-0.5 !py-1 min-w-[144px];
 
     .ant-dropdown-menu-item {
       @apply !py-1 !text-small !leading-5 font-weight-550 mx-1;

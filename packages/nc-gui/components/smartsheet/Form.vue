@@ -1192,6 +1192,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             :autofocus="activeRow === NcForm.subheading"
                             :data-testid="NcForm.subheading"
                             :data-title="NcForm.subheading"
+                            hide-mention
                             @update:value="updateView"
                             @focus="activeRow = NcForm.subheading"
                             @blur="activeRow = ''"
@@ -1500,6 +1501,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       class="form-meta-input nc-form-input-help-text"
                       is-form-field
                       :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
+                      hide-mention
                       data-testid="nc-form-input-help-text"
                       @update:value="updateActiveFieldDescription"
                     />
@@ -1898,6 +1900,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="nc-form-after-submit-msg editable"
                               is-form-field
                               :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
+                              hide-mention
                               data-testid="nc-form-after-submit-msg"
                               @update:value="updateView" />
                             <LazyCellRichText

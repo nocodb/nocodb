@@ -483,7 +483,7 @@ get_user_inputs() {
 		CONFIG_SSL_ENABLED="N"
 	fi
 
-  set_default_options
+	set_default_options
 
 	if confirm "Show Advanced Options?"; then
 		get_advanced_options

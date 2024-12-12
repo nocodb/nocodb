@@ -375,6 +375,7 @@ export default class Column<T = any> implements ColumnType {
         await FormulaColumn.insert(
           context,
           {
+            error: column.error,
             fk_column_id: colId,
             formula: column.formula,
             formula_raw: column.formula_raw,

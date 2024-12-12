@@ -1236,6 +1236,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          supressFormulaError: true,
         });
 
         for (const nColumn of freshModelData.columns) {

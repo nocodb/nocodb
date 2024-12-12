@@ -29,9 +29,6 @@ export class AggregaionBarPage extends BasePage {
 
     const clickAggregation = async (agg: string) => {
       const clickElem = overlay.getByTestId(`nc-aggregation-${agg}`);
-
-      await clickElem.scrollIntoViewIfNeeded();
-
       return clickElem.click();
     };
 
@@ -43,7 +40,7 @@ export class AggregaionBarPage extends BasePage {
       });
     } else {
       await clickAggregation(aggregation);
-      await this.rootPage.waitForTimeout(500);
+      // await this.rootPage.waitForTimeout(500);
     }
   }
 

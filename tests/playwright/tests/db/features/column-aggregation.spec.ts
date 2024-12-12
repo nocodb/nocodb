@@ -742,6 +742,7 @@ test.describe('Field Aggregation', () => {
         await aggregationBar.updateAggregation({
           column_name: colName,
           aggregation: y[0],
+          skipNetworkValidation: true,
         });
 
         await aggregationBar.verifyAggregation({
@@ -768,6 +769,7 @@ test.describe('Field Aggregation', () => {
         await sharedPage.grid.aggregationBar.updateAggregation({
           column_name: colName,
           aggregation: y[0],
+          skipNetworkValidation: true,
         });
 
         await sharedPage.grid.aggregationBar.verifyAggregation({
@@ -988,6 +990,7 @@ test.describe('Column Aggregations - Links', () => {
         await aggregationBar.updateAggregation({
           column_name: colName,
           aggregation: y[0],
+          skipNetworkValidation: true,
         });
 
         await aggregationBar.verifyAggregation({

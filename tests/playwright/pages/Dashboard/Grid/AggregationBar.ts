@@ -27,13 +27,17 @@ export class AggregaionBarPage extends BasePage {
 
     const overlay = this.rootPage.locator(`.nc-aggregation-${column_name}-overlay`);
 
-    const clickAggregation = (agg: string) => {
-      return overlay.getByTestId(`nc-aggregation-${agg}`).click();
+    const clickAggregation = async (agg: string) => {
+      const clickElem = overlay.getByTestId(`nc-aggregation-${agg}`);
+
+      await clickElem.scrollIntoViewIfNeeded();
+
+      return clickElem.click();
     };
 
     if (!skipNetworkValidation) {
       await this.waitForResponse({
-        uiAction: () => clickAggregation(aggregation),
+        uiAction: async () => await clickAggregation(aggregation),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: '/api/v2/tables/',
       });

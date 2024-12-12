@@ -372,25 +372,17 @@ const source = computed(() => {
 
             <template #overlay>
               <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`" variant="small">
-                <NcTooltip>
-                  <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
-                  <div
-                    class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-                    @click.stop="onTableIdCopy"
-                  >
-                    <div class="flex text-xs font-bold text-gray-500 ml-1">
-                      {{
-                        $t('labels.tableIdColon', {
-                          tableId: table?.id,
-                        })
-                      }}
-                    </div>
-                    <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-                      <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
-                      <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-                    </NcButton>
-                  </div>
-                </NcTooltip>
+                <NcMenuItemCopyId
+                  v-if="table"
+                  :id="table.id"
+                  :tooltip="$t('labels.clickToCopyTableID')"
+                  :label="
+                    $t('labels.tableIdColon', {
+                      tableId: table.id,
+                    })
+                  "
+                >
+                </NcMenuItemCopyId>
 
                 <NcMenuItem
                   v-if="
@@ -459,7 +451,7 @@ const source = computed(() => {
                   </NcMenuItem>
                   <NcDivider />
 
-                  <NcMenuItem class="!text-gray-700" @click="onDuplicate">
+                  <NcMenuItem @click="onDuplicate">
                     <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
                     <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
                     {{
@@ -477,7 +469,7 @@ const source = computed(() => {
                     @click="deleteTable"
                   >
                     <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" class="opacity-80"/>
+                      <GeneralIcon icon="delete" class="opacity-80" />
                       {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>

@@ -2272,7 +2272,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
-                          'active-cell !after:h-[calc(100%-2px)]':
+                          'active-cell !after:h-[calc(100%-1px)]':
                             (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':
@@ -2885,6 +2885,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
     width: 100%;
     box-shadow: 0 0 0 1.5px #3366ff !important;
     border-radius: 2px;
+  }
+
+  td:nth-child(2).active-cell.filling::after {
+    @apply !h-[calc(100%+2px)];
   }
 
   td.filling::after {

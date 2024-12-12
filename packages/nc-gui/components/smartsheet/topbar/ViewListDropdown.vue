@@ -229,12 +229,24 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <a-menu-item v-if="!activeSource?.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
-                  <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-form">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
-                    Form
-                  </div>
-                </a-menu-item>
+                <NcTooltip
+                  :title="$t('tooltip.sourceDataIsReadonly')"
+                  :disabled="!activeSource?.is_data_readonly"
+                  placement="right"
+                >
+                  <a-menu-item @click="onOpenModal({ type: ViewTypes.FORM })" :disabled="!!activeSource?.is_data_readonly">
+                    <div
+                      class="nc-viewlist-submenu-popup-item"
+                      data-testid="topbar-view-create-form"
+                      :class="{
+                        'opacity-50': !!activeSource?.is_data_readonly,
+                      }"
+                    >
+                      <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
+                      Form
+                    </div>
+                  </a-menu-item>
+                </NcTooltip>
                 <a-menu-item @click="onOpenModal({ type: ViewTypes.GALLERY })">
                   <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-gallery">
                     <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />

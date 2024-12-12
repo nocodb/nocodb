@@ -637,7 +637,7 @@ test.describe('Field Aggregation', () => {
     await unsetup(context);
   });
 
-  test('Aggregation Grid Test - String Columns', async ({ page }) => {
+  test('String Columns', async ({ page }) => {
     for (const x of Object.entries(verificationStringData)) {
       const colName = x[0];
 
@@ -696,7 +696,7 @@ test.describe('Field Aggregation', () => {
     }
   });
 
-  test('Aggregation Grid Test - Numerical Columns', async ({ page }) => {
+  test('Numerical Columns', async ({ page }) => {
     for (const x of Object.entries(verificationNumericalData)) {
       const colName = x[0];
 
@@ -755,7 +755,7 @@ test.describe('Field Aggregation', () => {
     }
   });
 
-  test('Aggregation Grid Test - DateTime Columns', async ({ page }) => {
+  test('DateTime Columns', async ({ page }) => {
     for (const x of Object.entries(verificationDateTime)) {
       const colName = x[0];
 
@@ -814,7 +814,7 @@ test.describe('Field Aggregation', () => {
     }
   });
 
-  test('Aggregation Shared GridView Test', async ({ page }) => {
+  test('Shared GridView', async ({ page }) => {
     // fix me! kludge@hub; page wasn't getting loaded from previous step
     sharedLink = await dashboard.grid.topbar.getSharedViewUrl();
     await page.goto(sharedLink);
@@ -823,7 +823,7 @@ test.describe('Field Aggregation', () => {
     await page.reload();
     const sharedPage = new DashboardPage(page, context.base);
 
-    for (const x of Object.entries(verificationStringData)) {
+    for (const x of Object.entries(verificationNumericalData)) {
       const colName = x[0];
 
       for (const y of Object.entries(x[1])) {

@@ -23,6 +23,8 @@ export class AggregaionBarPage extends BasePage {
     aggregation: string;
     skipNetworkValidation?: boolean;
   }) {
+    await this.parent.renderColumn(column_name);
+
     await this.rootPage.getByTestId(`nc-aggregation-column-${column_name}`).click();
 
     const overlay = this.rootPage.locator(`.nc-aggregation-${column_name}-overlay`);

@@ -686,6 +686,8 @@ test.describe('Field Aggregation', () => {
       option: users[0],
       multiSelect: false,
     });
+
+    await page.reload();
   });
 
   test.afterEach(async () => {
@@ -693,8 +695,6 @@ test.describe('Field Aggregation', () => {
   });
 
   test('Aggregation Grid Test', async ({ page }) => {
-    // Write your test here
-
     for (const x of Object.entries(verificationData)) {
       const colName = x[0];
 

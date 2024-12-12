@@ -229,7 +229,7 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <a-menu-item v-if="!activeSource?.is_schema_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
+                <a-menu-item v-if="!activeSource?.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
                   <div class="nc-viewlist-submenu-popup-item" data-testid="topbar-view-create-form">
                     <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
                     Form

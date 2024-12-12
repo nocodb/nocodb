@@ -609,7 +609,7 @@ test.describe('Field Aggregation', () => {
       multiSelect: false,
     });
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (const x of Object.entries(verificationStringData)) {
       const colName = x[0];
@@ -635,8 +635,6 @@ test.describe('Field Aggregation', () => {
       },
     ]);
 
-    await page.reload();
-
     await dashboard.grid.toolbar.clickFilter();
 
     await dashboard.grid.toolbar.filter.add({
@@ -645,9 +643,9 @@ test.describe('Field Aggregation', () => {
       value: 'Sample',
     });
 
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(2000);
 
-    await dashboard.grid.toolbar.clickFilter();
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (const x of Object.entries(verificationStringDataAfterFilter)) {
       const colName = x[0];
@@ -702,9 +700,9 @@ test.describe('Field Aggregation', () => {
       value: 'Sample',
     });
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (const x of Object.entries(verificationNUmericalDataAfterFilter)) {
       const colName = x[0];
@@ -751,8 +749,6 @@ test.describe('Field Aggregation', () => {
       },
     ]);
 
-    await page.reload();
-
     await dashboard.grid.toolbar.clickFilter();
 
     await dashboard.grid.toolbar.filter.add({
@@ -761,9 +757,9 @@ test.describe('Field Aggregation', () => {
       value: 'Sample',
     });
 
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(2000);
 
-    await dashboard.grid.toolbar.clickFilter();
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (const x of Object.entries(verificationDateTimeDataAfterFilter)) {
       const colName = x[0];

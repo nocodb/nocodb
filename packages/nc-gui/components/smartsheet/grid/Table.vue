@@ -2333,7 +2333,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
 
         <template #overlay>
-          <NcMenu class="!rounded !py-0" @click="contextMenu = false" variant="small">
+          <NcMenu class="!rounded !py-0" variant="small" @click="contextMenu = false">
             <NcMenuItem
               v-if="
                 isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly

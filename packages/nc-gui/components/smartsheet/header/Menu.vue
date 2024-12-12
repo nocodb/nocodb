@@ -1,11 +1,5 @@
 <script lang="ts" setup>
-import {
-  type ColumnReqType,
-  type ColumnType,
-  columnTypeName,
-  partialUpdateAllowedTypes,
-  readonlyMetaAllowedTypes,
-} from 'nocodb-sdk'
+import { type ColumnReqType, columnTypeName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
@@ -472,8 +466,8 @@ const onDeleteColumn = () => {
       >
         <NcMenuItemCopyId
           v-if="column"
-          data-testid="nc-field-item-action-copy-id"
           :id="column.id!"
+          data-testid="nc-field-item-action-copy-id"
           :tooltip="$t('msg.clickToCopyFieldId')"
           :label="
             $t('labels.idColon', {

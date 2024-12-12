@@ -106,8 +106,6 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const fieldsListWrapperDomRef = ref<HTMLElement>()
 
-const { copy } = useClipboard()
-
 const { fields: viewFields, toggleFieldVisibility, loadViewColumns, isViewColumnsLoading } = useViewColumnsOrThrow()
 
 const loading = ref(false)
@@ -115,8 +113,6 @@ const loading = ref(false)
 const columnsHash = ref<string>()
 
 const newFields = ref<TableExplorerColumn[]>([])
-
-const isFieldIdCopied = ref(false)
 
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
@@ -1062,16 +1058,6 @@ onKeyDown('ArrowRight', () => {
   }
 })
 
-const onClickCopyFieldUrl = async (field: ColumnType) => {
-  await copy(field.id!)
-
-  isFieldIdCopied.value = true
-
-  await ncDelay(5000)
-
-  isFieldIdCopied.value = false
-}
-
 const keys = useMagicKeys()
 
 whenever(keys.meta_s, () => {
@@ -1107,12 +1093,6 @@ onMounted(async () => {
 
   metaToLocal()
 })
-
-const onFieldOptionUpdate = () => {
-  setTimeout(() => {
-    isFieldIdCopied.value = false
-  }, 200)
-}
 
 watch(
   () => activeField.value?.temp_id,
@@ -1805,8 +1785,8 @@ watch(activeAiTab, (newValue) => {
                           <NcMenu variant="small">
                             <template v-if="fieldStatus(field) !== 'add'">
                               <NcMenuItemCopyId
-                                data-testid="nc-field-item-action-copy-id"
                                 :id="field.id!"
+                                data-testid="nc-field-item-action-copy-id"
                                 :tooltip="$t('msg.clickToCopyFieldId')"
                                 :label="
                                   $t('labels.idColon', {
@@ -1976,8 +1956,8 @@ watch(activeAiTab, (newValue) => {
                         <template #overlay>
                           <NcMenu variant="small">
                             <NcMenuItemCopyId
-                              data-testid="nc-field-item-id"
                               :id="displayColumn.id!"
+                              data-testid="nc-field-item-id"
                               :tooltip="$t('msg.clickToCopyFieldId')"
                               :label="
                                 $t('labels.idColon', {

@@ -40,8 +40,6 @@ useTableNew({
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { copy } = useCopy()
-
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
@@ -100,9 +98,6 @@ const canUserEditEmote = computed(() => {
 const isExpanded = ref(false)
 const isLoading = ref(false)
 
-// Tracks if the table ID has been successfully copied to the clipboard
-const isTableIdCopied = ref(false)
-
 const onExpand = async () => {
   if (isExpanded.value) {
     isExpanded.value = false
@@ -138,25 +133,6 @@ const onOpenTable = async () => {
   } finally {
     isLoading.value = false
     isExpanded.value = true
-  }
-}
-let tableIdCopiedTimeout: NodeJS.Timeout
-
-const onTableIdCopy = async () => {
-  if (tableIdCopiedTimeout) {
-    clearTimeout(tableIdCopiedTimeout)
-  }
-
-  try {
-    await copy(table.value!.id!)
-    isTableIdCopied.value = true
-
-    tableIdCopiedTimeout = setTimeout(() => {
-      isTableIdCopied.value = false
-      clearTimeout(tableIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
   }
 }
 

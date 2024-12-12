@@ -715,8 +715,8 @@ const showNodeTooltip = ref(true)
                       overflow: 'overlay',
                     }"
                     :data-testid="`nc-sidebar-base-${base.title}-options`"
-                    @click="isOptionsOpen = false"
                     variant="small"
+                    @click="isOptionsOpen = false"
                   >
                     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
                       <GeneralIcon icon="rename" />
@@ -997,8 +997,8 @@ const showNodeTooltip = ref(true)
                                     maxHeight: '70vh',
                                     overflow: 'overlay',
                                   }"
-                                  @click="isBasesOptionsOpen[source!.id!] = false"
                                   variant="small"
+                                  @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
                                   <NcMenuItem
                                     v-if="isUIAllowed('baseRename')"

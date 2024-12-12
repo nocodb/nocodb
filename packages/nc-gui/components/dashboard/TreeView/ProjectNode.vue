@@ -451,29 +451,6 @@ const projectDelete = () => {
   $e('c:project:delete')
 }
 
-// Tracks if the table ID has been successfully copied to the clipboard
-const isTableIdCopied = ref(false)
-
-let tableIdCopiedTimeout: NodeJS.Timeout
-
-const onTableIdCopy = async () => {
-  if (tableIdCopiedTimeout) {
-    clearTimeout(tableIdCopiedTimeout)
-  }
-
-  try {
-    await copy(contextMenuTarget.value.id)
-    isTableIdCopied.value = true
-
-    tableIdCopiedTimeout = setTimeout(() => {
-      isTableIdCopied.value = false
-      clearTimeout(tableIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
@@ -623,8 +600,8 @@ const showNodeTooltip = ref(true)
                       overflow: 'overlay',
                     }"
                     :data-testid="`nc-sidebar-base-${base.title}-options`"
-                    @click="isOptionsOpen = false"
                     variant="small"
+                    @click="isOptionsOpen = false"
                   >
                     <template v-if="!isSharedBase">
                       <NcMenuItem
@@ -916,8 +893,8 @@ const showNodeTooltip = ref(true)
                                     maxHeight: '70vh',
                                     overflow: 'overlay',
                                   }"
-                                  @click="isBasesOptionsOpen[source!.id!] = false"
                                   variant="small"
+                                  @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
                                   <NcMenuItem
                                     v-if="isUIAllowed('baseRename')"

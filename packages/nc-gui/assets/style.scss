@@ -951,7 +951,6 @@ svg.nc-virtual-cell-icon {
   }
 }
 .nc-toolbar-dropdown-search-field-input {
-  @apply !rounded-lg;
 
   .nc-search-icon {
     @apply text-gray-400;
@@ -959,7 +958,7 @@ svg.nc-virtual-cell-icon {
 
   &:hover .nc-search-icon,
   &.ant-input-affix-wrapper-focused .nc-search-icon {
-    @apply text-gray-800;
+    @apply text-primary;
   }
 }
 

@@ -82,7 +82,9 @@ const exportFile = async (exportType: ExportTypes) => {
 </script>
 
 <template>
-  <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.downloadData') }}</div>
+  <NcMenuItemLabel>
+    {{ $t('labels.downloadData') }}
+  </NcMenuItemLabel>
 
   <a-menu-item class="!mx-1 !py-2 !rounded-md">
     <div

@@ -14,7 +14,15 @@ export class AggregaionBarPage extends BasePage {
     return this.rootPage.getByTestId('.nc-aggregation-bar');
   }
 
-  async updateAggregation({ column_name, aggregation }: { column_name: string; aggregation: string }) {
+  async updateAggregation({
+    column_name,
+    aggregation,
+    skipNetworkValidation,
+  }: {
+    column_name: string;
+    aggregation: string;
+    skipNetworkValidation?: boolean;
+  }) {
     await this.rootPage.getByTestId(`nc-aggregation-column-${column_name}`).click();
 
     const overlay = this.rootPage.locator(`.nc-aggregation-${column_name}-overlay`);
@@ -23,11 +31,16 @@ export class AggregaionBarPage extends BasePage {
       return overlay.getByTestId(`nc-aggregation-${agg}`).click();
     };
 
-    await this.waitForResponse({
-      uiAction: () => clickAggregation(aggregation),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: '/api/v2/tables/',
-    });
+    if (!skipNetworkValidation) {
+      await this.waitForResponse({
+        uiAction: () => clickAggregation(aggregation),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: '/api/v2/tables/',
+      });
+    } else {
+      await clickAggregation(aggregation);
+      await this.rootPage.waitForTimeout(500);
+    }
   }
 
   async verifyAggregation({ column_name, aggregation }) {

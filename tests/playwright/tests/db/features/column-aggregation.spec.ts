@@ -775,3 +775,210 @@ test.describe('Field Aggregation', () => {
     return { base, table, api };
   }
 });
+
+test.describe('Column Aggregations - Links', () => {
+  let dashboard: DashboardPage, aggregationBar: AggregaionBarPage;
+  let context: any;
+  let sharedLink: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.base);
+    aggregationBar = dashboard.grid.aggregationBar;
+
+    await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
+
+    // subsequent table creation fails; hence delay
+    await dashboard.rootPage.waitForTimeout(1000);
+    await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title });
+
+    await dashboard.treeView.openTable({ title: 'Sheet1' });
+
+    await dashboard.grid.addNewRow({ index: 0, value: '1a' });
+    await dashboard.grid.addNewRow({ index: 1, value: '1b' });
+    await dashboard.grid.addNewRow({ index: 2, value: '1c' });
+
+    await dashboard.grid.column.create({
+      title: 'Link1-2hm',
+      type: 'Links',
+      childTable: 'Sheet2',
+      relationType: 'Has Many',
+    });
+
+    await dashboard.grid.column.create({
+      title: 'Link1-2mm',
+      type: 'Links',
+      childTable: 'Sheet2',
+      relationType: 'Many to Many',
+    });
+
+    await dashboard.treeView.openTable({ title: 'Sheet2' });
+
+    await dashboard.grid.column.create({
+      title: 'Link2-1hm',
+      type: 'Links',
+      childTable: 'Sheet1',
+      relationType: 'Has Many',
+    });
+
+    await page.reload();
+  });
+
+  const verifySheet2 = {
+    Title: {
+      count_unique: '3',
+      count_empty: '0',
+      count_filled: '3',
+      percent_unique: '100%',
+      percent_filled: '100%',
+      percent_empty: '0%',
+    },
+    Sheet1: {
+      count_unique: '3',
+      count_empty: '0',
+      count_filled: '3',
+      percent_unique: '100%',
+      percent_filled: '100%',
+      percent_empty: '0%',
+    },
+    Sheet1s: {
+      count_unique: '1',
+      count_empty: '0',
+      count_filled: '3',
+      percent_unique: '33.3%',
+      percent_filled: '100%',
+      percent_empty: '0%',
+      sum: '3',
+      min: '1',
+      max: '1',
+      avg: '1',
+      median: '1',
+      std_dev: '0',
+      range: '0',
+    },
+    'Link2-1hm': {
+      count_unique: '1',
+      count_empty: '0',
+      count_filled: '3',
+      percent_unique: '33.3%',
+      percent_filled: '100%',
+      percent_empty: '0%',
+      sum: '3',
+      min: '1',
+      max: '1',
+      avg: '1',
+      median: '1',
+      std_dev: '0',
+      range: '0',
+    },
+  };
+
+  test('Grid Links ', async ({ page }) => {
+    await dashboard.treeView.openTable({ title: 'Sheet2' });
+
+    await dashboard.grid.footbar.clickAddRecordFromForm();
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Title',
+      value: '2a',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Sheet1',
+      value: '1a',
+      type: 'belongsTo',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Sheet1s',
+      value: '1a',
+      type: 'manyToMany',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Link2-1hm',
+      value: '1a',
+      type: 'hasMany',
+    });
+    await dashboard.expandedForm.save();
+
+    await dashboard.grid.addNewRow({ index: 1, value: '2b' });
+    await dashboard.grid.cell.inCellAdd({ index: 1, columnHeader: 'Sheet1' });
+    await dashboard.linkRecord.select('1b', false);
+    await dashboard.grid.cell.inCellAdd({
+      index: 1,
+      columnHeader: 'Sheet1s',
+    });
+    await dashboard.linkRecord.select('1b');
+    await dashboard.grid.cell.inCellAdd({
+      index: 1,
+      columnHeader: 'Link2-1hm',
+    });
+    await dashboard.linkRecord.select('1b');
+
+    // Expand record insert
+    await dashboard.grid.addNewRow({ index: 2, value: '2c-temp' });
+    await dashboard.grid.openExpandedRow({ index: 2 });
+
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Sheet1',
+      value: '1c',
+      type: 'belongsTo',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Sheet1s',
+      value: '1c',
+      type: 'manyToMany',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Link2-1hm',
+      value: '1c',
+      type: 'hasMany',
+    });
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Title',
+      value: '2c',
+      type: 'text',
+    });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
+    await dashboard.expandedForm.save();
+
+    for (const x of Object.entries(verifySheet2)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+        });
+
+        await aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+
+    sharedLink = await dashboard.grid.topbar.getSharedViewUrl();
+    await page.goto(sharedLink);
+
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
+    const sharedPage = new DashboardPage(page, context.base);
+
+    for (const x of Object.entries(verifySheet2)) {
+      const colName = x[0];
+
+      for (const y of Object.entries(x[1])) {
+        await sharedPage.grid.aggregationBar.updateAggregation({
+          column_name: colName,
+          aggregation: y[0],
+          skipNetworkValidation: true,
+        });
+
+        await sharedPage.grid.aggregationBar.verifyAggregation({
+          column_name: colName,
+          aggregation: y[1],
+        });
+      }
+    }
+  });
+});

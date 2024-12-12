@@ -102,6 +102,10 @@ const props = withDefaults(
       &:not(.ant-dropdown-menu-item-disabled) {
         @apply hover:text-black text-gray-700;
       }
+
+      .nc-icon {
+        @apply opacity-80;
+      }
     }
 
     &.nc-variant-small {

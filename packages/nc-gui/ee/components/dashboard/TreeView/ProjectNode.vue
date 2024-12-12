@@ -561,31 +561,6 @@ const duplicateProject = (base: BaseType) => {
   isDuplicateDlgOpen.value = true
 }
 
-const { copy } = useCopy()
-
-// Tracks if the table ID has been successfully copied to the clipboard
-const isTableIdCopied = ref(false)
-
-let tableIdCopiedTimeout: NodeJS.Timeout
-
-const onTableIdCopy = async () => {
-  if (tableIdCopiedTimeout) {
-    clearTimeout(tableIdCopiedTimeout)
-  }
-
-  try {
-    await copy(contextMenuTarget.value.id)
-    isTableIdCopied.value = true
-
-    tableIdCopiedTimeout = setTimeout(() => {
-      isTableIdCopied.value = false
-      clearTimeout(tableIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
@@ -611,7 +586,7 @@ const showNodeTooltip = ref(true)
 </script>
 
 <template>
-  <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
+  <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       ref="labelEl"
       class="ml-1 mr-0.5 nc-base-sub-menu rounded-md"
@@ -741,14 +716,15 @@ const showNodeTooltip = ref(true)
                     }"
                     :data-testid="`nc-sidebar-base-${base.title}-options`"
                     @click="isOptionsOpen = false"
+                    variant="small"
                   >
                     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
-                      <GeneralIcon icon="rename" class="group-hover:text-black" />
+                      <GeneralIcon icon="rename" />
                       {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
                     </NcMenuItem>
                     <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
-                      <GeneralIcon v-if="base.starred" icon="unStar" class="group-hover:text-black" />
-                      <GeneralIcon v-else icon="star" class="group-hover:text-black" />
+                      <GeneralIcon v-if="base.starred" icon="unStar" />
+                      <GeneralIcon v-else icon="star" />
                       <div class="ml-0.25">
                         {{ base.starred ? 'Remove from starred' : 'Add to starred' }}
                       </div>
@@ -762,7 +738,7 @@ const showNodeTooltip = ref(true)
                       data-testid="nc-sidebar-base-duplicate"
                       @click="duplicateProject(base)"
                     >
-                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      <GeneralIcon icon="duplicate" />
                       {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
                     </NcMenuItem>
 
@@ -786,7 +762,7 @@ const showNodeTooltip = ref(true)
                       data-testid="nc-sidebar-base-audit"
                       @click="openAudit(base?.sources?.[0])"
                     >
-                      <GeneralIcon icon="audit" class="group-hover:text-black" />
+                      <GeneralIcon icon="audit" />
                       {{ $t('title.audit') }} {{ $t('general.logs').toLowerCase() }}
                     </NcMenuItem>
 
@@ -795,11 +771,10 @@ const showNodeTooltip = ref(true)
                       v-if="isUIAllowed('apiDocs')"
                       key="api"
                       v-e="['e:api-docs']"
-                      class="group"
                       data-testid="nc-sidebar-base-rest-apis"
                       @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
+                      <GeneralIcon icon="snippet" class="opacity-80 !max-w-3.9" />
                       {{ $t('labels.restApis') }}
                     </NcMenuItem>
 
@@ -819,7 +794,7 @@ const showNodeTooltip = ref(true)
                       class="nc-sidebar-base-base-settings"
                       @click="openBaseSettings(base.id)"
                     >
-                      <GeneralIcon icon="settings" class="group-hover:text-black" />
+                      <GeneralIcon icon="settings" />
                       {{ $t('activity.settings') }}
                     </NcMenuItem>
                     <NcMenuItem
@@ -1023,13 +998,14 @@ const showNodeTooltip = ref(true)
                                     overflow: 'overlay',
                                   }"
                                   @click="isBasesOptionsOpen[source!.id!] = false"
+                                  variant="small"
                                 >
                                   <NcMenuItem
                                     v-if="isUIAllowed('baseRename')"
                                     data-testid="nc-sidebar-source-rename"
                                     @click="enableEditModeForSource(source.id!)"
                                   >
-                                    <GeneralIcon icon="rename" class="group-hover:text-black" />
+                                    <GeneralIcon icon="rename" />
                                     {{ $t('general.rename') }}
                                   </NcMenuItem>
 
@@ -1081,10 +1057,10 @@ const showNodeTooltip = ref(true)
     </div>
     <template v-if="!isSharedBase" #overlay>
       <NcMenu
-        class="!py-0 rounded text-sm"
         :class="{
           '!min-w-62.5': contextMenuTarget.type === 'table',
         }"
+        variant="small"
       >
         <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'">
           <!--
@@ -1116,25 +1092,16 @@ const showNodeTooltip = ref(true)
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcTooltip>
-            <template #title> {{ $t('labels.clickToCopyTableID') }}</template>
-            <div
-              class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-              @click.stop="onTableIdCopy"
-            >
-              <div class="flex text-xs font-bold text-gray-500 ml-1">
-                {{
-                  $t('labels.tableIdColon', {
-                    tableId: contextMenuTarget.value?.id,
-                  })
-                }}
-              </div>
-              <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-                <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
-                <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-              </NcButton>
-            </div>
-          </NcTooltip>
+          <NcMenuItemCopyId
+            v-if="contextMenuTarget.value"
+            :id="contextMenuTarget.value.id"
+            :tooltip="$t('labels.clickToCopyTableID')"
+            :label="
+              $t('labels.tableIdColon', {
+                tableId: contextMenuTarget.value?.id,
+              })
+            "
+          />
           <template
             v-if="
               isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
@@ -1147,7 +1114,7 @@ const showNodeTooltip = ref(true)
               @click="openRenameTableDialog(contextMenuTarget.value, true)"
             >
               <div class="nc-base-option-item">
-                <GeneralIcon icon="rename" class="text-gray-700" />
+                <GeneralIcon icon="rename" />
                 {{ $t('general.rename') }} {{ $t('objects.table') }}
               </div>
             </NcMenuItem>
@@ -1160,7 +1127,7 @@ const showNodeTooltip = ref(true)
               @click="duplicateTable(contextMenuTarget.value)"
             >
               <div class="nc-base-option-item">
-                <GeneralIcon icon="duplicate" class="text-gray-700" />
+                <GeneralIcon icon="duplicate" />
                 {{ $t('general.duplicate') }} {{ $t('objects.table') }}
               </div>
             </NcMenuItem>
@@ -1178,7 +1145,7 @@ const showNodeTooltip = ref(true)
         </template>
       </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
   <DlgTableDelete
     v-if="contextMenuTarget.value?.id && base?.id"
     v-model:visible="isTableDeleteDialogVisible"

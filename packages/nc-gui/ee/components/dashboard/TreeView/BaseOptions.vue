@@ -142,6 +142,7 @@ function openQuickImportDialog(type: string) {
     "
     class="py-0"
     data-testid="nc-sidebar-base-import"
+    variant="small"
   >
     <template #title>
       <GeneralIcon icon="download" />
@@ -155,7 +156,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:airtable']"
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
-      <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+      <GeneralIcon icon="airtable" class="max-w-3.75" />
       <div class="ml-0.5">Airtable base</div>
     </NcMenuItem>
 
@@ -165,7 +166,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
     >
-      <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
+      <GeneralIcon icon="csv" class="w-4" />
       CSV file
     </NcMenuItem>
 
@@ -175,7 +176,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
     >
-      <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
+      <GeneralIcon icon="code" class="w-4" />
       JSON file
     </NcMenuItem>
 
@@ -185,7 +186,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"
     >
-      <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
+      <GeneralIcon icon="excel" class="max-w-4" />
       Microsoft Excel
     </NcMenuItem>
   </NcSubMenu>

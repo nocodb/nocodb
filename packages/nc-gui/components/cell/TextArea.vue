@@ -548,13 +548,7 @@ watch(textAreaRef, (el) => {
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
           <template #title>{{ $t('title.expand') }}</template>
-          <NcButton
-            type="secondary"
-            size="xsmall"
-            data-testid="attachment-cell-file-picker-button"
-            class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
-            @click.stop="onExpand"
-          >
+          <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="onExpand">
             <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
           </NcButton>
         </NcTooltip>

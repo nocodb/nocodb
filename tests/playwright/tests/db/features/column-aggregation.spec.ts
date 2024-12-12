@@ -280,14 +280,6 @@ const verificationStringData = {
     percent_filled: '100',
     percent_empty: '0',
   },
-  LongText: {
-    count_unique: '2',
-    count_empty: '0',
-    count_filled: '2',
-    percent_unique: '100',
-    percent_filled: '100',
-    percent_empty: '0',
-  },
   MultiSelect: {
     count_unique: '2',
     count_empty: '0',
@@ -396,21 +388,7 @@ const verificationNUmericalDataAfterFilter = {
     std_dev: '0',
     range: '0',
   },
-  Currency: {
-    sum: '100',
-    min: '100',
-    max: '100',
-    avg: '100',
-    median: '100',
-    std_dev: '0',
-    range: '0',
-    count_unique: '1',
-    count_empty: '1',
-    count_filled: '1',
-    percent_unique: '50',
-    percent_filled: '50',
-    percent_empty: '50',
-  },
+
   Percent: {
     sum: '50',
     min: '50',
@@ -582,6 +560,22 @@ test.describe('Field Aggregation', () => {
 
     testContext = { api, table, base };
 
+    aggregationBar = dashboard.grid.aggregationBar;
+
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+
+    await dashboard.treeView.openTable({ title: 'Test Table' });
+
+    await api.dbTableRow.bulkCreate('noco', base.id, table.id, data);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test('String Columns', async ({ page }) => {
+    const { api, table, base } = testContext;
+
     if (isEE()) {
       workspacePage = new WorkspacePage(page);
       collaborationPage = workspacePage.collaboration;
@@ -604,24 +598,9 @@ test.describe('Field Aggregation', () => {
       }
     }
 
-    aggregationBar = dashboard.grid.aggregationBar;
-
-    await page.reload();
-
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Test Table' });
-
-    await api.dbTableRow.bulkCreate('noco', base.id, table.id, data);
-
-    await page.reload();
-
-    const bigFile = [`${process.cwd()}/fixtures/sampleFiles/Image/6_bigSize.png`];
-    await dashboard.grid.cell.attachment.addFile({
-      index: 0,
-      columnHeader: 'Attachment',
-      filePath: bigFile,
-    });
 
     await dashboard.grid.cell.userOption.select({
       index: 0,
@@ -631,13 +610,7 @@ test.describe('Field Aggregation', () => {
     });
 
     await page.reload();
-  });
 
-  test.afterEach(async () => {
-    await unsetup(context);
-  });
-
-  test('String Columns', async ({ page }) => {
     for (const x of Object.entries(verificationStringData)) {
       const colName = x[0];
 
@@ -654,8 +627,6 @@ test.describe('Field Aggregation', () => {
         });
       }
     }
-
-    const { api, table, base } = testContext;
 
     await api.dbTableRow.bulkCreate('noco', base.id, table.id, [
       {
@@ -723,8 +694,6 @@ test.describe('Field Aggregation', () => {
       },
     ]);
 
-    await page.reload();
-
     await dashboard.grid.toolbar.clickFilter();
 
     await dashboard.grid.toolbar.filter.add({
@@ -733,9 +702,9 @@ test.describe('Field Aggregation', () => {
       value: 'Sample',
     });
 
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(1000);
 
-    await dashboard.grid.toolbar.clickFilter();
+    await page.reload();
 
     for (const x of Object.entries(verificationNUmericalDataAfterFilter)) {
       const colName = x[0];

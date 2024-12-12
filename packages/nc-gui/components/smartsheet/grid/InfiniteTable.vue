@@ -2887,10 +2887,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
     border-radius: 2px;
   }
 
-  td:nth-child(2).active-cell.filling::after {
-    @apply !h-[calc(100%+2px)];
-  }
-
   td.filling::after {
     content: '';
     position: absolute;

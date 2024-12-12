@@ -472,7 +472,7 @@ test.describe('Field Aggregation', () => {
     }
   });
 
-  test.only('Numerical Columns', async ({ page }) => {
+  test('Numerical Columns', async ({ page }) => {
     for (const x of Object.entries(verificationNumericalData)) {
       const colName = x[0];
 

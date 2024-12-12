@@ -139,7 +139,7 @@ async function onOpenModal({
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48">
+      <NcMenu class="max-w-48" variant="medium">
         <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">

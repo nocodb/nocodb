@@ -85,7 +85,7 @@ const accountUrl = computed(() => {
           <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
         </div>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo">
+          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
               <div v-e="['c:user:logout']" class="flex gap-2 items-center">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />

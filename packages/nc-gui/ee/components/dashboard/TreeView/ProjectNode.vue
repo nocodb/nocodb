@@ -751,7 +751,7 @@ const showNodeTooltip = ref(true)
                       data-testid="nc-sidebar-base-relations"
                       @click="openErdView(base?.sources?.[0])"
                     >
-                      <GeneralIcon icon="erd" />
+                      <GeneralIcon icon="ncErd" />
                       Relations
                     </NcMenuItem>
 
@@ -774,7 +774,7 @@ const showNodeTooltip = ref(true)
                       data-testid="nc-sidebar-base-rest-apis"
                       @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <GeneralIcon icon="snippet" class="opacity-80 !max-w-3.9" />
+                      <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
                       {{ $t('labels.restApis') }}
                     </NcMenuItem>
 
@@ -1013,7 +1013,7 @@ const showNodeTooltip = ref(true)
 
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(source)">
-                                    <GeneralIcon icon="erd" />
+                                    <GeneralIcon icon="ncErd" />
                                     Relations
                                   </NcMenuItem>
 
@@ -1069,7 +1069,7 @@ const showNodeTooltip = ref(true)
           </NcMenuItem>
           <NcMenuItem @click="openProjectErdView(contextMenuTarget.value)">
             <div class="nc-base-option-item">
-              <GeneralIcon icon="erd" />
+              <GeneralIcon icon="ncErd" />
               {{ $t('title.erdView') }}
             </div>
           </NcMenuItem>
@@ -1084,7 +1084,7 @@ const showNodeTooltip = ref(true)
 
           <NcMenuItem @click="openErdView(contextMenuTarget.value)">
             <div class="nc-base-option-item">
-              <GeneralIcon icon="erd" />
+              <GeneralIcon icon="ncErd" />
               {{ $t('title.erdView') }}
             </div>
           </NcMenuItem>

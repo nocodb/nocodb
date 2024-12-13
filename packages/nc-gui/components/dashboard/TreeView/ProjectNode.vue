@@ -649,7 +649,7 @@ const showNodeTooltip = ref(true)
                         @click="openErdView(base?.sources?.[0])"
                       >
                         <div v-e="['c:base:erd']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="erd" />
+                          <GeneralIcon icon="ncErd" />
                           {{ $t('title.relations') }}
                         </div>
                       </NcMenuItem>
@@ -667,7 +667,7 @@ const showNodeTooltip = ref(true)
                         "
                       >
                         <div v-e="['c:base:api-docs']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="snippet" class="!max-w-3.9" />
+                          <GeneralIcon icon="ncCode" class="!max-w-3.9" />
                           {{ $t('activity.account.swagger') }}
                         </div>
                       </NcMenuItem>
@@ -910,7 +910,7 @@ const showNodeTooltip = ref(true)
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(source)">
                                     <div v-e="['c:source:erd']" class="flex gap-2 items-center">
-                                      <GeneralIcon icon="erd" />
+                                      <GeneralIcon icon="ncErd" />
                                       {{ $t('title.relations') }}
                                     </div>
                                   </NcMenuItem>

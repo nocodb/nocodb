@@ -595,6 +595,8 @@ import NcHeading2 from '~icons/nc-icons-v2/heading-2'
 import NcHeading3 from '~icons/nc-icons-v2/heading-3'
 import NcQuote from '~icons/nc-icons-v2/quote'
 
+import NcErd from '~icons/nc-icons/erd'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -1398,6 +1400,7 @@ export const iconMap = {
   ncFileTypeZip: NcFileTypeZip,
   ncFileTypeUnknown: NcFileTypeUnknown,
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
+  ncErd: h(NcErd, { stroke: 'transparent' }),
   ncHeading1: NcHeading1,
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,

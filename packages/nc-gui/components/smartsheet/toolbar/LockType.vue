@@ -22,7 +22,7 @@ const selectedView = inject(ActiveViewInj)
     }"
     @click="emit('select', type)"
   >
-    <div class="w-full":class="{ 'show-tick': !hideTick }">
+    <div class="w-full" :class="{ 'show-tick': !hideTick }">
       <div class="w-full flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">
           <component

@@ -208,7 +208,7 @@ onMounted(async () => {
                     </div>
                   </NcMenuItem>
                   <template v-if="googleProvider.id">
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                     <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
                       <div class="text-red-500">
                         <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
@@ -278,7 +278,7 @@ onMounted(async () => {
                           <span class="text-gray-400 ml-2"> {{ $t('general.duplicate') }} </span>
                         </div>
                       </NcMenuItem>
-                      <a-menu-divider class="my-1.5" />
+                      <NcDivider />
                       <NcMenuItem data-test-id="nc-saml-delete" @click="deleteProvider(sam.id)">
                         <div class="text-red-500">
                           <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />

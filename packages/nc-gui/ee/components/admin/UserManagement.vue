@@ -179,7 +179,7 @@ watch(selected, () => {
               </div>
             </NcButton>
             <template #overlay>
-              <NcMenu>
+              <NcMenu variant="small">
                 <NcMenuItem @click="inviteUsersToWorkspace">
                   <GeneralIcon class="text-gray-800" icon="email" />
                   <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
@@ -303,7 +303,7 @@ watch(selected, () => {
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu>
+                <NcMenu variant="small">
                   <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="inviteUserToWorkspace(member.email)">
                     <GeneralIcon class="text-gray-800" icon="send" />
                     <span>{{ $t('activity.inviteToWorkspace') }}</span>

@@ -287,7 +287,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                       <span>{{ $t('labels.signOutUser') }}</span>
                     </NcMenuItem>
 
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                   </template>
                   <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                     <template #title>

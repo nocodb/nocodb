@@ -241,7 +241,7 @@ onMounted(() => {
                   <component :is="iconMap.threeDotVertical" />
                 </NcButton>
                 <template #overlay>
-                  <NcMenu>
+                  <NcMenu variant="small">
                     <NcMenuItem data-testid="nc-admin-org-workspace-rename-ws" @click="renameWorkspace(ws.id, ws.title)">
                       <GeneralIcon class="text-gray-800" icon="rename" />
                       <span>{{ $t('general.rename') }}</span>

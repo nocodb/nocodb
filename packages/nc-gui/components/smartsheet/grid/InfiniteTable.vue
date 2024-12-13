@@ -1517,7 +1517,7 @@ watch(activeCell, (activeCell) => {
 const reloadViewDataHookHandler = async () => {
   // If the scroll Position is not at the top, scroll to the top
   // This always loads the first page of data when the view data is reloaded
-  gridWrapper.value?.scrollTo(0, 0)
+  // gridWrapper.value?.scrollTo(0, 0)
   await saveOrUpdateRecords({
     keepNewRecords: true,
   })

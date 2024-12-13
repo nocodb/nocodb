@@ -21,11 +21,11 @@ function extractNumberQuery(source: string) {
                 REPLACE(
                   REGEXP_REPLACE(
                     REGEXP_REPLACE(${source}, '[^0-9.-]', '', 'g'),
-                    '(^-)', '~'
+                    '^-', '~'
                   ),
                   '-', ''
                 ),
-                '(\\d)\\.', '\\1-'
+                '(\\d)\\.(\\d)', '\\1-\\2'
               ), 
               '.', ''
             ), 

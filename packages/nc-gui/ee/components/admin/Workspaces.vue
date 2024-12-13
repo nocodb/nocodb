@@ -105,16 +105,16 @@ const columns = [
   {
     key: 'baseCount',
     title: t('labels.numberOfBases'),
-    minWidth: 180,
-    width: 180,
+    minWidth: 150,
+    width: 150,
     dataIndex: 'baseCount',
     showOrderBy: true,
   },
   {
     key: 'action',
     title: t('labels.actions'),
-    width: 220,
-    minWidth: 220,
+    width: 200,
+    minWidth: 200,
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]

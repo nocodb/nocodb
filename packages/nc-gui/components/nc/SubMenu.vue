@@ -83,7 +83,7 @@ const props = withDefaults(
 }
 
 .nc-submenu-popup {
-  @apply !rounded-lg border-1 border-gray-50;
+  @apply !rounded-lg border-1 border-gray-50 min-w-[144px];
 
   .ant-dropdown-menu.ant-dropdown-menu-sub {
     @apply !rounded-lg !shadow-lg shadow-gray-200;

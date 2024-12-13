@@ -91,7 +91,7 @@ const exportFile = async (exportType: ExportTypes) => {
       <GeneralLoader v-if="isExportingType === ExportTypes.CSV" size="regular" />
       <component :is="iconMap.csv" v-else class="w-4" />
       <!-- Download as CSV -->
-      {{ $t('activity.downloadCSV') }}
+      CSV
     </div>
   </NcMenuItem>
 
@@ -101,7 +101,7 @@ const exportFile = async (exportType: ExportTypes) => {
       <component :is="iconMap.excel" v-else class="w-4" />
 
       <!-- Download as XLSX -->
-      {{ $t('activity.downloadExcel') }}
+      Excel
     </div>
   </NcMenuItem>
 </template>

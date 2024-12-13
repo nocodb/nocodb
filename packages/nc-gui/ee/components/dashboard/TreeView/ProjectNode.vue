@@ -900,7 +900,7 @@ const showNodeTooltip = ref(true)
                         <GeneralIcon
                           icon="chevronDown"
                           class="flex-none cursor-pointer transform transition-transform duration-500 rotate-270"
-                          :class="{ '!rotate-180': isActive }"
+                          :class="{ '!rotate-360': isActive }"
                         />
                       </NcButton>
                     </template>

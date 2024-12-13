@@ -430,6 +430,10 @@ useMenuCloseOnEsc(open)
 
 const addColumnDropdown = ref(false)
 
+function getColumnOfField(field: Field) {
+  return meta.value?.columns?.find(it => it.id === field.fk_column_id)
+}
+
 </script>
 
 <template>
@@ -660,7 +664,7 @@ const addColumnDropdown = ref(false)
                     }"
                     @click="
                       () => {
-                        if (isLocked) return
+                        if (isLocked || getColumnOfField(field)?.uidt === 'Links') return
 
                         field.show = !field.show
                         toggleFieldVisibility(field.show, field)
@@ -668,12 +672,23 @@ const addColumnDropdown = ref(false)
                     "
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
-                    <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
-                      <template #title>
-                        {{ field.title }}
-                      </template>
-                      <template #default>{{ field.title }}</template>
-                    </NcTooltip>
+                    <SmartsheetToolbarAddLookupsDropdown v-if="metas" :column="getColumnOfField(field)!">
+                      <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
+                        <template #title>
+                          {{ field.title }}
+                        </template>
+                        <template #default>
+                          <div class="inline-flex items-center">
+                            {{ field.title }}
+                            <GeneralIcon
+                              v-if="getColumnOfField(field)?.uidt === 'Links'"
+                              icon="chevronRight"
+                              class="ml-2"
+                            />
+                          </div>
+                        </template>
+                      </NcTooltip>
+                    </SmartsheetToolbarAddLookupsDropdown>
                     <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                       <NcButton
                         :class="{
@@ -729,6 +744,12 @@ const addColumnDropdown = ref(false)
                       :disabled="field.isViewEssentialField || isLocked"
                       size="xsmall"
                       @change="$e('a:fields:show-hide')"
+                      @click="() => {
+                        if (getColumnOfField(field)?.uidt === 'Links') {
+                          field.show = !field.show
+                          toggleFieldVisibility(field.show, field)
+                        }
+                      }"
                     />
                   </div>
 

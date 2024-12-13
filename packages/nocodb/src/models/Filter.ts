@@ -347,7 +347,7 @@ export default class Filter implements FilterType {
     const filter = await this.get(context, id, ncMeta);
 
     const deleteRecursively = async (filter: Filter) => {
-      if (!filter) return;
+      if (!filter || filter.id === filter.fk_parent_id) return;
       for (const f of (await filter?.getChildren(context, ncMeta)) || [])
         await deleteRecursively(f);
       await ncMeta.metaDelete(
@@ -690,6 +690,30 @@ export default class Filter implements FilterType {
     return filterObjs?.map((f) => this.castType(f)) || [];
   }
 
+  static async allHookFilterList(
+    context: NcContext,
+    { hookId }: { hookId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [hookId]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_hook_id: viewId },
+        },
+      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
+  }
+
   static async rootFilterList(
     context: NcContext,
     { viewId }: { viewId: string },
@@ -959,5 +983,34 @@ export default class Filter implements FilterType {
     _ncMeta = Noco.ncMeta,
   ) {
     return [];
+  }
+
+  static async allLinkFilterList(
+    context: NcContext,
+    { linkColumnId }: { linkColumnId: string },
+  ) {
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+      linkColumnId,
+    ]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_link_col_id: linkColumnId },
+        },
+      );
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [linkColumnId],
+        filterObjs,
+      );
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
   }
 }

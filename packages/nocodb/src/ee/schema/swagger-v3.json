@@ -948,6 +948,15 @@
         "required": [
           "title"
         ]
+      },
+      "FilterV3Req": {
+        "type": "object"
+      },
+      "SortV3Req": {
+        "type": "object"
+      },
+      "ViewV3Req": {
+        "type": "object"
       }
     },
     "responses": {

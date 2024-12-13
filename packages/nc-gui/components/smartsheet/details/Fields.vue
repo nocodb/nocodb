@@ -1782,7 +1782,7 @@ watch(activeAiTab, (newValue) => {
                         </NcButton>
 
                         <template #overlay>
-                          <NcMenu variant="small">
+                          <NcMenu variant="small" class="!mt-1">
                             <template v-if="fieldStatus(field) !== 'add'">
                               <NcMenuItemCopyId
                                 :id="field.id!"

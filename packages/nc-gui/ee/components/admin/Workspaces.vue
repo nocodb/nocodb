@@ -256,7 +256,7 @@ onMounted(() => {
                       </NcMenuItem>
                     </NuxtLink>
                     <!--
-                        <a-menu-divider class="my-1.5" />
+                        <NcDivider />
 
                         <NcMenuItem class="!hover:bg-red-50" data-testid="nc-admin-org-user-delete">
                           <div class="text-red-500">

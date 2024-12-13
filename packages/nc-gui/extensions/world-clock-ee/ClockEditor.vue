@@ -114,7 +114,7 @@ const filteredOptions = computed(() =>
         <Clock
           :class="`${clockMode === 'Digital' ? 'w-full' : 'w-1/2'}`"
           :show-numbers="showNumbers"
-          format="12H"
+          :format="format"
           :timezone="cityToTimezone[city]"
           :theme="themeId"
           :mode="clockMode"

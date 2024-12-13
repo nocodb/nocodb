@@ -76,7 +76,7 @@ const navigateToIntegrations = () => {
             'font-semibold': isWorkspaceSettingsPageOpened,
           }"
         >
-          <GeneralIcon icon="settings" class="!h-4" />
+          <GeneralIcon icon="ncSettings" class="!h-4 w-4" />
           <div>{{ $t('title.teamAndSettings') }}</div>
         </div>
       </NcButton>

@@ -746,9 +746,15 @@ export default {
               size="xsmall"
               @click="copyRecordUrl()"
             >
-              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex items-center">
-                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+              <div
+                v-e="['c:row-expand:copy-url']"
+                data-testid="nc-expanded-form-copy-url"
+                class="flex items-center relative h-4 w-4"
+              >
+                <Transition name="icon-fade" :duration="200">
+                  <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                  <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                </Transition>
               </div>
             </NcButton>
           </NcTooltip>

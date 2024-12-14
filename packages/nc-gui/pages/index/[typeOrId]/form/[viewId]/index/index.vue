@@ -94,6 +94,11 @@ const validateField = async (title: string) => {
     return false
   }
 }
+
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => sharedFormView?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>
@@ -132,8 +137,8 @@ const validateField = async (title: string) => {
               <a-alert class="nc-shared-form-success-msg !mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
-                    v-if="sharedFormView?.success_msg?.trim()"
-                    :value="sharedFormView?.success_msg"
+                    v-if="templatedMessage"
+                    :value="templatedMessage"
                     class="!h-auto -ml-1"
                     is-form-field
                     read-only

@@ -1652,7 +1652,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                           </NcTooltip>
                                         </div>
                                         <div
-                                          v-if="field.label?.trim()"
+                                          v-if="field.label?.trim() && field.title !== field.label?.trim()"
                                           class="truncate inline-flex text-xs font-normal text-gray-700"
                                         >
                                           <span>&nbsp;(</span>

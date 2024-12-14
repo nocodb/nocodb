@@ -47,7 +47,6 @@ const createdByAudit = (
   }
 }
 
-
 watch(
   () => audits.value.length,
   (auditCount) => {
@@ -116,7 +115,6 @@ const comment = ref('')
 //     console.error(e)
 //   }
 // }
-
 </script>
 
 <template>
@@ -143,16 +141,11 @@ const comment = ref('')
               <div class="flex items-start gap-3 flex-1 w-full">
                 <!-- :email="audit?.created_by_email"
                 :name="audit?.created_display_name" -->
-                <GeneralUserIcon
-                  email="yooneskh@gmail.com"
-                  name="Yoones"
-                  class="mt-0.5"
-                  size="medium"
-                />
+                <GeneralUserIcon email="yooneskh@gmail.com" name="Yoones" class="mt-0.5" size="medium" />
                 <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
                   <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
                     <!-- {{ createdByAudit(audit) }} -->
-                      You
+                    You
                   </div>
                   <div class="text-xs text-gray-500">
                     {{ timeAgo('2024-12-10T10:00:00Z') }}
@@ -183,7 +176,9 @@ const comment = ref('')
                 </div>
                 <div class="mt-2">
                   This is a multi line text
-                  <div class="inline-block text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through">
+                  <div
+                    class="inline-block text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through"
+                  >
                     Initial text
                   </div>
                   <div class="inline-block text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
@@ -229,9 +224,7 @@ const comment = ref('')
                   <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through">
                     +9999999
                   </div>
-                  <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
-                    9888888
-                  </div>
+                  <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">9888888</div>
                 </div>
               </div>
               <div class="p-2">

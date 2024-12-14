@@ -850,6 +850,9 @@ useEventListener(
   },
   true,
 )
+
+const { message: templatedMessage } = useTemplatedMessage(computed(() => formViewData?.value?.success_msg), computed(() => formState.value));
+
 </script>
 
 <template>
@@ -902,8 +905,8 @@ useEventListener(
                   <a-alert class="nc-form-success-msg !my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                     <template #message>
                       <LazyCellRichText
-                        v-if="formViewData?.success_msg?.trim()"
-                        :value="formViewData?.success_msg"
+                        v-if="templatedMessage"
+                        :value="templatedMessage"
                         class="!h-auto -ml-1"
                         is-form-field
                         read-only

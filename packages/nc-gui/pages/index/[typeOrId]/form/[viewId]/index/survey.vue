@@ -266,6 +266,11 @@ onMounted(() => {
     })
   }
 })
+
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => sharedFormView?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>
@@ -293,8 +298,8 @@ onMounted(() => {
               >
                 <template #message>
                   <LazyCellRichText
-                    v-if="sharedFormView?.success_msg?.trim()"
-                    :value="sharedFormView?.success_msg"
+                    v-if="templatedMessage"
+                    :value="templatedMessage"
                     class="!h-auto -ml-1"
                     is-form-field
                     read-only
@@ -304,7 +309,7 @@ onMounted(() => {
                     {{ $t('msg.info.thankYou') }}
                   </span>
                 </template>
-                <template v-if="!sharedFormView?.success_msg?.trim()" #description>
+                <template v-if="!templatedMessage" #description>
                   {{ $t('msg.info.submittedFormData') }}
                 </template>
 

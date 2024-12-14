@@ -18,6 +18,7 @@ interface Props {
   isFormField?: boolean
   hiddenOptions?: RichTextBubbleMenuOptions[]
   enableCloseButton?: boolean
+  hideMention?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   isFormField: false,
   hiddenOptions: () => [],
   enableCloseButton: false,
+  hideMention: false,
 })
 
 const emits = defineEmits(['close'])
@@ -373,7 +375,7 @@ const closeTextArea = () => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip v-if="appInfo.ee">
+    <NcTooltip v-if="appInfo.ee && !props.hideMention">
       <template #title>
         <div class="flex flex-col items-center">
           <div>

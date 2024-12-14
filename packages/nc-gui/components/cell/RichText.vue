@@ -25,10 +25,12 @@ const props = withDefaults(
     placeholder?: string
     renderAsText?: boolean
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
+    hideMention?: boolean
   }>(),
   {
     isFormField: false,
     hiddenBubbleMenuOptions: () => [],
+    hideMention: false,
   },
 )
 
@@ -114,7 +116,7 @@ turndownService.addRule('strikethrough', {
 
 turndownService.keep(['u', 'del'])
 
-if (appInfo.value.ee) {
+if (appInfo.value.ee && !props.hideMention) {
   const renderer = new marked.Renderer()
 
   renderer.paragraph = (text: string) => {
@@ -221,7 +223,7 @@ const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
-  ...(appInfo.value.ee
+  ...(appInfo.value.ee && !props.hideMention
     ? [
         Mention.configure({
           suggestion: {
@@ -430,13 +432,18 @@ onClickOutside(editorDom, (e) => {
             v-if="editor"
             :editor="editor"
             embed-mode
+            :hide-mention="hideMention"
             :is-form-field="isFormField"
             :enable-close-button="fullMode"
             @close="emits('close')"
           />
         </div>
       </div>
-      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
+      <CellRichTextSelectedBubbleMenuPopup
+        v-if="editor && !isFormField && !isForm"
+        :editor="editor"
+        :hide-mention="hideMention"
+      />
 
       <template v-if="shouldShowLinkOption">
         <CellRichTextLinkOptions
@@ -476,6 +483,7 @@ onClickOutside(editorDom, (e) => {
             embed-mode
             is-form-field
             :hidden-options="hiddenBubbleMenuOptions"
+            :hide-mention="hideMention"
           />
         </div>
       </div>

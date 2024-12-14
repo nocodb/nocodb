@@ -580,7 +580,8 @@ import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 
 /* file types */
 
-import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-csv'
+import NcFileTypeCsv from '~icons/nc-icons-v2/file-type-csv'
+import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-excel'
 import NcFileTypePdf from '~icons/nc-icons-v2/file-type-pdf'
 import NcFileTypeWord from '~icons/nc-icons-v2/file-type-word'
 import NcFileTypePresentation from '~icons/nc-icons-v2/file-type-presentation'
@@ -1391,14 +1392,15 @@ export const iconMap = {
   ncPlusAi: h(NcPlusAi, { stroke: 'transparent' }),
   ncPlusMultiple: NcPlusMultiple,
   ncPlusSquareSolid: h(NcPlusSquareSolid, { stroke: 'transparent' }),
-  ncFileTypeExcel: NcFileTypeExcel,
-  ncFileTypePdf: NcFileTypePdf,
-  ncFileTypeWord: NcFileTypeWord,
-  ncFileTypePresentation: NcFileTypePresentation,
-  ncFileTypeVideo: NcFileTypeVideo,
-  ncFileTypeAudio: NcFileTypeAudio,
-  ncFileTypeZip: NcFileTypeZip,
-  ncFileTypeUnknown: NcFileTypeUnknown,
+  ncFileTypeCsv: h(NcFileTypeCsv, { stroke: 'transparent' }),
+  ncFileTypeExcel: h(NcFileTypeExcel, { stroke: 'transparent' }),
+  ncFileTypePdf: h(NcFileTypePdf, { stroke: 'transparent' }),
+  ncFileTypeWord: h(NcFileTypeWord, { stroke: 'transparent' }),
+  ncFileTypePresentation: h(NcFileTypePresentation, { stroke: 'transparent' }),
+  ncFileTypeVideo: h(NcFileTypeVideo, { stroke: 'transparent' }),
+  ncFileTypeAudio: h(NcFileTypeAudio, { stroke: 'transparent' }),
+  ncFileTypeZip: h(NcFileTypeZip, { stroke: 'transparent' }),
+  ncFileTypeUnknown: h(NcFileTypeUnknown, { stroke: 'transparent' }),
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
   ncHeading1: NcHeading1,
@@ -3780,32 +3782,40 @@ export const searchableMap = {
   },
 
   // Colored icons
+  ncFileTypeCsv: {
+    icon: h(NcFileTypeCsv, { stroke: 'transparent' }),
+    keywords: ['CSV', 'document', 'file', 'adobe', 'writer'],
+  },
+  ncFileTypeExcel: {
+    icon: h(NcFileTypeExcel, { stroke: 'transparent' }),
+    keywords: ['excel', 'document', 'file', 'adobe', 'writer'],
+  },
   ncFileTypePdf: {
-    icon: NcFileTypePdf,
+    icon: h(NcFileTypePdf, { stroke: 'transparent' }),
     keywords: ['pdf', 'document', 'file', 'adobe', 'reader'],
   },
   ncFileTypeWord: {
-    icon: NcFileTypeWord,
+    icon: h(NcFileTypeWord, { stroke: 'transparent' }),
     keywords: ['word', 'document', 'file', 'microsoft', 'writer'],
   },
   ncFileTypePresentation: {
-    icon: NcFileTypePresentation,
+    icon: h(NcFileTypePresentation, { stroke: 'transparent' }),
     keywords: ['powerpoint', 'presentation', 'file', 'microsoft', 'office'],
   },
   ncFileTypeVideo: {
-    icon: NcFileTypeVideo,
+    icon: h(NcFileTypeVideo, { stroke: 'transparent' }),
     keywords: ['video', 'movie', 'file', 'media', 'player'],
   },
   ncFileTypeAudio: {
-    icon: NcFileTypeAudio,
+    icon: h(NcFileTypeAudio, { stroke: 'transparent' }),
     keywords: ['audio', 'music', 'file', 'media', 'player'],
   },
   ncFileTypeZip: {
-    icon: NcFileTypeZip,
+    icon: h(NcFileTypeZip, { stroke: 'transparent' }),
     keywords: ['zip', 'archive', 'file', 'compression', 'zipper'],
   },
   ncFileTypeUnknown: {
-    icon: NcFileTypeUnknown,
+    icon: h(NcFileTypeUnknown, { stroke: 'transparent' }),
     keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
   },
   ncFileSearch: {

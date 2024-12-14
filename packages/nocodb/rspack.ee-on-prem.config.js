@@ -2,7 +2,7 @@ const { resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 const nodeExternals = require('webpack-node-externals');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { TsCheckerRspackPlugin } = require('ts-checker-rspack-plugin');
 
 module.exports = {
   entry: './src/run/cloud.ts',
@@ -102,11 +102,11 @@ module.exports = {
       },
       [],
     ),
-    new ForkTsCheckerWebpackPlugin({
+    new TsCheckerRspackPlugin({
       typescript: {
         configFile: resolve('./src/ee-on-prem/tsconfig.json'),
       },
-    }),
+    })
   ],
   target: 'node',
 };

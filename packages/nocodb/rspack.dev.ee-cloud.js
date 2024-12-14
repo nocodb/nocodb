@@ -1,6 +1,6 @@
 const { resolve, join } = require('path');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const baseConfig = require('./rspack.dev.config');
+const { TsCheckerRspackPlugin } = require('ts-checker-rspack-plugin');
 
 module.exports = {
   ...baseConfig,
@@ -18,10 +18,10 @@ module.exports = {
   },
   plugins: [
     ...baseConfig.plugins.slice(0, -1),
-    new ForkTsCheckerWebpackPlugin({
+    new TsCheckerRspackPlugin({
       typescript: {
         configFile: join('tsconfig.ee-cloud.json'),
       },
-    }),
+    })
   ],
 };

@@ -581,6 +581,7 @@ import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 /* file types */
 
 import NcFileTypeCsv from '~icons/nc-icons-v2/file-type-csv'
+import NcFileTypeCsvSmall from '~icons/nc-icons-v2/file-type-csv-small'
 import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-excel'
 import NcFileTypePdf from '~icons/nc-icons-v2/file-type-pdf'
 import NcFileTypeWord from '~icons/nc-icons-v2/file-type-word'
@@ -590,6 +591,7 @@ import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
 import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 import NcFileSearch from '~icons/nc-icons-v2/file-search'
+import NcFileTypeJson from '~icons/nc-icons-v2/file-type-json'
 
 import NcHeading1 from '~icons/nc-icons-v2/heading-1'
 import NcHeading2 from '~icons/nc-icons-v2/heading-2'
@@ -1393,6 +1395,7 @@ export const iconMap = {
   ncPlusMultiple: NcPlusMultiple,
   ncPlusSquareSolid: h(NcPlusSquareSolid, { stroke: 'transparent' }),
   ncFileTypeCsv: h(NcFileTypeCsv, { stroke: 'transparent' }),
+  ncFileTypeCsvSmall: h(NcFileTypeCsvSmall, { stroke: 'transparent' }),
   ncFileTypeExcel: h(NcFileTypeExcel, { stroke: 'transparent' }),
   ncFileTypePdf: h(NcFileTypePdf, { stroke: 'transparent' }),
   ncFileTypeWord: h(NcFileTypeWord, { stroke: 'transparent' }),
@@ -1402,6 +1405,7 @@ export const iconMap = {
   ncFileTypeZip: h(NcFileTypeZip, { stroke: 'transparent' }),
   ncFileTypeUnknown: h(NcFileTypeUnknown, { stroke: 'transparent' }),
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
+  ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
   ncHeading1: NcHeading1,
   ncHeading2: NcHeading2,
@@ -3817,6 +3821,10 @@ export const searchableMap = {
   ncFileTypeUnknown: {
     icon: h(NcFileTypeUnknown, { stroke: 'transparent' }),
     keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
+  },
+  ncFileTypeJson: {
+    icon: h(NcFileTypeJson, { stroke: 'transparent' }),
+    keywords: ['json', 'file', 'type', 'writer'],
   },
   ncFileSearch: {
     icon: NcFileSearch,

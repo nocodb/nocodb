@@ -166,7 +166,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
     >
-      <GeneralIcon icon="csv" class="w-4" />
+      <GeneralIcon icon="ncFileTypeCsvSmall" class="w-4 h-4" />
       CSV file
     </NcMenuItem>
 
@@ -176,7 +176,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
     >
-      <GeneralIcon icon="code" class="w-4" />
+      <GeneralIcon icon="ncFileTypeJson" class="h-4" />
       JSON file
     </NcMenuItem>
 
@@ -186,7 +186,7 @@ function openQuickImportDialog(type: string) {
       v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"
     >
-      <GeneralIcon icon="excel" class="max-w-4" />
+      <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
       Microsoft Excel
     </NcMenuItem>
   </NcSubMenu>

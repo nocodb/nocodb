@@ -51,8 +51,14 @@ const onDescriptionUpdateClick = () => {
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
 const importAlias = {
-  csv: 'CSV',
-  excel: 'Excel',
+  csv: {
+    title: 'CSV',
+    icon: iconMap.ncFileTypeCsvSmall,
+  },
+  excel: {
+    title: 'Excel',
+    icon: iconMap.ncFileTypeExcel,
+  },
 }
 
 const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
@@ -283,8 +289,8 @@ const isDefaultView = computed(() => view.value?.is_default)
                 :class="{ disabled: lockType === LockType.Locked }"
                 class="nc-base-menu-item"
               >
-                <component :is="iconMap.cloudUpload" class="opacity-80" />
-                {{ importAlias[type] }}
+                <component v-if="importAlias[type]?.icon" :is="importAlias[type].icon" class="opacity-80" />
+                {{ importAlias[type]?.title }}
               </div>
             </NcMenuItem>
           </template>

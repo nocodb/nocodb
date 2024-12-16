@@ -89,7 +89,7 @@ const isCurrentDate = computed(() => {
           'bg-white': isAiModeFieldModal,
         }"
       >
-        <div class="relative flex-grow">
+        <div class="relative flex-grow max-w-full">
           <div
             v-if="isCurrentDate"
             class="absolute pointer-events-none h-full w-full bg-white z-2 top-0 left-0 rounded-full items-center flex bg-white"

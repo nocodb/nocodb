@@ -1,120 +1,154 @@
-import { type Ref, ref } from 'vue'
-import type { GridItem } from '~/lib/types'
-
-interface DragConfig {
-  containerRef: Ref<HTMLElement | undefined>
-  reorderItems: (fromIndex: number, toIndex: number | null) => Promise<void>
-  onInitiateDrag?: (item: GridItem, evt: MouseEvent) => void
-  itemHeight: Ref<number>
-  visibleRange: { first: number; last: number }
-  itemCount: Ref<number>
-  itemCache: Ref<Map<number, GridItem>>
-}
+import { ref } from 'vue'
+import type { ComputedRef, type Ref } from 'vue'
+import type { Row } from '~/lib/types'
 
 export const useRowDragging = ({
-  containerRef,
-  reorderItems,
-  onInitiateDrag,
-  itemHeight,
-  visibleRange,
-  itemCount,
-  itemCache,
-}: DragConfig) => {
-  const isActive = ref(false)
-  const activeItem = ref<null | GridItem>(null)
-  const initialY = ref(0)
-  const basePosition = ref(0)
-  const dropTarget = ref<null | GridItem>(null)
-  const pointerStart = ref(0)
-  const currentY = ref(0)
-  const dropZoneY = ref(0)
-  const lastPointer = ref<null | MouseEvent>(null)
-  const isScrolling = ref(false)
+  updateRecordOrder,
+  gridWrapper,
+  virtualMargin,
+  rowSlice,
+  rowHeight,
+  totalRows,
+  cachedRows,
+}: {
+  gridWrapper: Ref<HTMLElement | undefined>
+  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  onDragStart?: (row: Row, e: MouseEvent) => void
+  rowHeight: ComputedRef<number>
+  rowSlice: { start: number; end: number }
+  totalRows: Ref<number>
+  cachedRows: Ref<Map<number, Row>>
+  virtualMargin: number
+}) => {
+  const isDragging = ref(false)
 
-  const handlePointerMove = (evt: MouseEvent, initScroll = false) => {
-    if (evt !== null) {
-      evt.preventDefault()
-      lastPointer.value = evt
+  const row = ref<null | Row>(null)
+
+  const startRowTop = ref(0)
+
+  const targetRow = ref<null | Row>(null)
+
+  const mouseStart = ref(0)
+
+  const draggingTop = ref(0)
+
+  const targetTop = ref(0)
+
+  const lastMoveEvent = ref<null | MouseEvent>(null)
+
+  const autoScrolling = ref(false)
+
+  const scrollTimeout = ref<null | ReturnType<typeof setTimeout>>(null)
+
+  const moveHandler = (event: MouseEvent, startAutoScroll = false) => {
+    if (event !== null) {
+      event.preventDefault()
+      lastMoveEvent.value = event
     } else {
-      evt = lastPointer.value
+      event = lastMoveEvent.value
     }
 
-    const bounds = containerRef.value.getBoundingClientRect()
-    const containerHeight = bounds.height
+    if (!gridWrapper.value) return
 
-    currentY.value = Math.max(
+    const gridWrapperRect = gridWrapper.value.getBoundingClientRect()
+
+    const gridWrapperHeight = gridWrapperRect.bottom - gridWrapperRect.top
+
+    draggingTop.value = Math.max(
       0,
-      Math.min(basePosition.value + evt.clientY - pointerStart.value, containerHeight - itemHeight.value),
+      Math.min(startRowTop.value + event.clientY - mouseStart.value, gridWrapperHeight - rowHeight.value),
     )
 
-    const relativeY = evt.clientY - bounds.top + containerRef.value.scrollTop
-    const targetIndex = Math.max(0, Math.min(Math.round(relativeY / itemHeight.value), itemCount.value))
-    dropZoneY.value = targetIndex * itemHeight.value - containerRef.value.scrollTop
+    const mouseTop = event.clientY - gridWrapperRect.top + gridWrapper.value.scrollTop
 
-    if (!isScrolling.value || !initScroll) {
-      const scrollZone = Math.ceil(containerHeight / 10)
-      const mouseY = evt.clientY - bounds.top
-      const distanceFromBottom = containerHeight - mouseY
+    const rowIndex = Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
 
-      let velocity = 0
+    const visibleStart = Math.max(0, rowSlice.start - virtualMargin)
+    const adjustedRowIndex = Math.max(visibleStart, Math.min(rowIndex, rowSlice.end + virtualMargin))
 
-      if (mouseY < scrollZone) {
-        velocity = -(6 - Math.ceil((Math.max(0, mouseY) / scrollZone) * 6))
-      } else if (distanceFromBottom < scrollZone) {
-        velocity = 6 - Math.ceil((Math.max(0, distanceFromBottom) / scrollZone) * 6)
+    targetTop.value = adjustedRowIndex * rowHeight.value
+
+    const beforeRowIndex = rowIndex - rowSlice.start - 1
+
+    if (!autoScrolling.value || !startAutoScroll) {
+      const side = Math.ceil((gridWrapperHeight / 100) * 10)
+
+      const autoScrollMouseTop = event.clientY - gridWrapperRect.top
+
+      const autoScrollMouseBottom = gridWrapperHeight - autoScrollMouseTop
+
+      let speed = 0
+
+      if (autoScrollMouseTop < side) {
+        speed = -(6 - Math.ceil((Math.max(0, autoScrollMouseTop) / side) * 6))
+      } else if (autoScrollMouseBottom < side) {
+        speed = 6 - Math.ceil((Math.max(0, autoScrollMouseBottom) / side) * 6)
       }
 
-      if (velocity !== 0) {
-        isScrolling.value = true
-        containerRef.value.scrollTop += velocity
-        containerRef.value.scrollTimeout = setTimeout(() => handlePointerMove(null, false), 1)
+      if (speed !== 0) {
+        autoScrolling.value = true
+
+        gridWrapper.value.scrollTop += speed
+
+        scrollTimeout.value = setTimeout(() => {
+          moveHandler(null, false)
+        }, 1)
       } else {
-        isScrolling.value = false
+        autoScrolling.value = false
       }
     }
 
-    const targetItemIndex = targetIndex - visibleRange.first - 1
-    dropTarget.value = itemCache.value.get(visibleRange.first + targetItemIndex)
+    targetRow.value = cachedRows.value.get(rowSlice.start + beforeRowIndex)
   }
 
-  const reset = () => {
-    isActive.value = false
-    window.removeEventListener('mousemove', handlePointerMove)
-    window.removeEventListener('mouseup', handleDrop)
+  const mouseUp = async (event: MouseEvent) => {
+    event.preventDefault()
+    cancel()
+
+    await updateRecordOrder(row.value.rowMeta.rowIndex!, targetRow.value ? targetRow.value.rowMeta.rowIndex : null)
+
+    row.value = null
+    targetRow.value = null
   }
 
-  const handleDrop = async (evt: MouseEvent) => {
-    evt.preventDefault()
-    reset()
-    await reorderItems(activeItem.value.itemMeta.index, dropTarget.value.itemMeta.index)
-    activeItem.value = null
-    dropTarget.value = null
+  function cancel(): void {
+    isDragging.value = false
+    autoScrolling.value = false
+    window.removeEventListener('mousemove', moveHandler)
+    window.removeEventListener('mouseup', mouseUp)
   }
 
-  const calculateY = (index: number) => {
-    return index * itemHeight.value
+  const getRowTop = (rowIndex: number) => {
+    return rowIndex * rowHeight.value
   }
 
-  const initDrag = (item: GridItem, evt: MouseEvent) => {
-    activeItem.value = item
-    basePosition.value = calculateY(item.itemMeta.index) - containerRef.value.scrollTop
-    pointerStart.value = evt.clientY
-    currentY.value = 0
-    dropZoneY.value = 0
-    dropTarget.value = null
+  const startDragging = (_row: Row, event: MouseEvent) => {
+    row.value = _row
 
-    handlePointerMove(evt)
-    isActive.value = true
+    startRowTop.value = getRowTop(_row.rowMeta.rowIndex) - (gridWrapper.value?.scrollTop || 0)
 
-    window.addEventListener('mousemove', handlePointerMove)
-    window.addEventListener('mouseup', handleDrop)
+    mouseStart.value = event.clientY
+
+    draggingTop.value = 0
+
+    targetTop.value = 0
+
+    targetRow.value = null
+
+    moveHandler(event)
+
+    isDragging.value = true
+
+    window.addEventListener('mousemove', moveHandler)
+
+    window.addEventListener('mouseup', mouseUp)
   }
 
   return {
-    initDrag,
-    activeItem,
-    reset,
-    isActive,
-    dropZoneY,
+    startDragging,
+    draggingRecord: row,
+    cancel,
+    isDragging,
+    targetTop,
   }
 }

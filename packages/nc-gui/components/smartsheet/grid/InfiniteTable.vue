@@ -38,7 +38,7 @@ const props = defineProps<{
   deleteSelectedRows?: () => Promise<void>
   clearInvalidRows?: () => void
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
-  updateRecordOrder?: (originalIndex: number, targetIndex: number) => Promise<void>
+  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
@@ -323,11 +323,11 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
 
 const { allFilters, sorts } = useSmartsheetStoreOrThrow()
 
-const isOrderColumnExists = computed(() => meta.value?.columns.some((col) => isOrderCol(col)))
+const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
-const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts?.value.length)
+const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
 
-const isRowReorderDisabled = computed(() => allFilters.value?.length || sorts?.value.length)
+const isRowReorderDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
 
 const addColumnDropdown = ref(false)
 
@@ -1343,10 +1343,6 @@ const onVisibilityChange = () => {
 const COL_VIRTUAL_MARGIN = 5
 const ROW_VIRTUAL_MARGIN = 10
 
-const activeVerticalMargin = computed(() => {
-  return chunkStates.value.includes('loading') ? 5 : ROW_VIRTUAL_MARGIN
-})
-
 const colSlice = ref({
   start: 0,
   end: 0,
@@ -1373,7 +1369,7 @@ const calculateSlices = () => {
   if (
     lastScrollLeft.value &&
     lastScrollLeft.value === scrollLeft.value &&
-    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (activeVerticalMargin.value - 2) &&
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
     lastTotalRows.value === totalRows.value
   ) {
     return
@@ -1427,13 +1423,13 @@ const calculateSlices = () => {
   const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
-  const newStart = Math.max(0, startIndex - activeVerticalMargin.value)
-  const newEnd = Math.min(totalRows.value, Math.max(endIndex + activeVerticalMargin.value, newStart + 50))
+  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  const newEnd = Math.min(totalRows.value, Math.max(endIndex + ROW_VIRTUAL_MARGIN, newStart + 50))
 
   if (
     rowSlice.start < 10 ||
-    Math.abs(newStart - rowSlice.start) >= activeVerticalMargin.value / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= activeVerticalMargin.value / 2 ||
+    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
+    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
     lastTotalRows.value !== totalRows.value
   ) {
     rowSlice.start = newStart
@@ -1822,15 +1818,11 @@ const onRecordDragStart = (row: Row) => {
   cachedRows.value.set(row.rowMeta.rowIndex, row)
 }
 
-const {
-  initDrag: startDragging,
-  isActive: isDragging,
-  activeItem: draggingRecord,
-  dropZoneY: targetTop,
-} = useRowDragging({
-  updateRecordOrder: updateRecordOrder!,
+const { startDragging, isDragging, draggingRecord, targetTop } = useRowDragging({
+  updateRecordOrder,
   onDragStart: onRecordDragStart,
   gridWrapper,
+  virtualMargin: ROW_VIRTUAL_MARGIN,
   rowHeight,
   totalRows,
   rowSlice,
@@ -2174,7 +2166,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
           <div
             v-show="isDragging"
             class="dragging-record"
-            :style="{ left: `${leftOffset}px`, width: `${width}px`, top: `${rowSlice.start * rowHeight + targetTop}px` }"
+            :style="{ left: `${leftOffset}px`, width: `${width}px`, top: `${targetTop}px` }"
           ></div>
 
           <div

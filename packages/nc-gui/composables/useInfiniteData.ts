@@ -1,9 +1,9 @@
 import type { ComputedRef, Ref } from 'vue'
 import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import type { Api, ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
-import type { Row } from '../lib/types'
-import { validateRowFilters } from '../utils/dataUtils'
-import { NavigateDir } from '../lib/enums'
+import type { Row } from '~/lib/types'
+import { validateRowFilters } from '~/utils/dataUtils'
+import { NavigateDir } from '~/lib/enums'
 
 const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
   // If pageInfo exists, use it for calculation
@@ -255,7 +255,7 @@ export function useInfiniteData(args: {
     }
   }
 
-  const updateRecordOrder = async (draggedIndex: number, targetIndex: number | 'end', undo = false, isFailed = false) => {
+  const updateRecordOrder = async (draggedIndex: number, targetIndex: number | null, undo = false, isFailed = false) => {
     const originalRecord = cachedRows.value.get(draggedIndex)
     if (!originalRecord) return
 
@@ -271,7 +271,7 @@ export function useInfiniteData(args: {
     let targetRecordPk: string | null = null
     let finalTargetIndex = targetIndex
 
-    if (targetIndex === 'end') {
+    if (targetIndex === null) {
       finalTargetIndex = cachedRows.value.size
     } else {
       targetRecord = cachedRows.value.get(targetIndex) ?? null
@@ -280,34 +280,42 @@ export function useInfiniteData(args: {
     }
 
     if (typeof finalTargetIndex === 'number') {
+      newCachedRows.delete(draggedIndex)
+
       if (finalTargetIndex < draggedIndex) {
         for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
           const row = newCachedRows.get(i)
           if (row) {
-            row.rowMeta.rowIndex = i + 1
-            newCachedRows.set(i + 1, row)
+            const newIndex = i + 1
+            row.rowMeta.rowIndex = newIndex
+            newCachedRows.delete(i)
+            newCachedRows.set(newIndex, row)
           }
         }
+        originalRecord.rowMeta.rowIndex = finalTargetIndex
+        newCachedRows.set(finalTargetIndex, originalRecord)
       } else {
         for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
           const row = newCachedRows.get(i)
           if (row) {
             row.rowMeta.rowIndex = i - 1
-            row.rowMeta.isRowOrderUpdated = false
             newCachedRows.set(i - 1, row)
           }
         }
+        originalRecord.rowMeta.rowIndex = finalTargetIndex - 1
+        newCachedRows.set(finalTargetIndex - 1, originalRecord)
       }
-
-      originalRecord.rowMeta.rowIndex = finalTargetIndex > draggedIndex ? finalTargetIndex - 1 : finalTargetIndex
-      originalRecord.rowMeta.isDragging = false
-      newCachedRows.set(finalTargetIndex > draggedIndex ? finalTargetIndex - 1 : finalTargetIndex, originalRecord)
     }
+
+    cachedRows.value = newCachedRows
 
     const targetChunkIndex =
       typeof finalTargetIndex === 'number' ? getChunkIndex(finalTargetIndex) : getChunkIndex(cachedRows.value.size - 1)
     const sourceChunkIndex = getChunkIndex(draggedIndex)
-    cachedRows.value = newCachedRows
+
+    for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+      chunkStates.value[i] = undefined
+    }
 
     for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
       chunkStates.value[i] = undefined
@@ -316,7 +324,7 @@ export function useInfiniteData(args: {
     if (!isFailed) {
       $api.dbDataTableRow
         .move(meta.value!.id!, recordPk, {
-          before: targetIndex === 'end' ? null : targetRecordPk,
+          before: targetIndex === null ? null : targetRecordPk,
         })
         .then(() => {
           callbacks?.syncVisibleData?.()
@@ -355,7 +363,7 @@ export function useInfiniteData(args: {
 
             await callbacks?.syncVisibleData?.()
           },
-          args: [targetIndex === 'end' ? null : targetRecordPk, recordPk, targetChunkIndex, sourceChunkIndex],
+          args: [targetIndex === null ? null : targetRecordPk, recordPk, targetChunkIndex, sourceChunkIndex],
         },
         scope: defineViewScope({ view: viewMeta.value }),
       })
@@ -438,6 +446,7 @@ export function useInfiniteData(args: {
     for (const [oldIndex, row] of sortedEntries) {
       if (!invalidIndexes.includes(oldIndex)) {
         const newIndex = oldIndex - invalidIndexes.filter((i) => i < oldIndex).length
+        row.rowMeta.rowIndex = newIndex
         newCachedRows.set(newIndex, row)
       }
     }

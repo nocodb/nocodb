@@ -8,7 +8,7 @@ interface ExpectedBarcodeData {
   barcodeSvg: string;
 }
 
-test.describe.only('Virtual Columns', () => {
+test.describe('Virtual Columns', () => {
   let dashboard: DashboardPage;
   let grid: GridPage;
   let context: any;

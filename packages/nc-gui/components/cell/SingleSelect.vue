@@ -387,7 +387,7 @@ const onFocus = () => {
         v-else
         ref="aselect"
         v-model:value="vModel"
-        class="w-full overflow-hidden"
+        class="!w-[360px] overflow-hidden"
         :class="{ 'caret-transparent': !hasEditRoles }"
         :allow-clear="!column.rqd && editAllowed"
         :bordered="false"

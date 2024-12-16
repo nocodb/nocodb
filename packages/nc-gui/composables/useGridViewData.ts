@@ -258,6 +258,15 @@ export function useGridViewData(
         newCachedRows.set(rowIndex!, newRow)
       }
 
+      const indices = new Set<number>()
+      for (const [_, row] of newCachedRows) {
+        if (indices.has(row.rowMeta.rowIndex)) {
+          console.error(`Op: bulkInsertRows ${undo}:  Duplicate index detected:`, row.rowMeta.rowIndex)
+          break
+        }
+        indices.add(row.rowMeta.rowIndex)
+      }
+
       cachedRows.value = newCachedRows
 
       totalRows.value += validRowsToInsert.length
@@ -573,6 +582,15 @@ export function useGridViewData(
 
     if (lastIndex !== -1) {
       chunkStates.value[getChunkIndex(lastIndex)] = undefined
+    }
+
+    const indices = new Set<number>()
+    for (const [_, row] of newCachedRows) {
+      if (indices.has(row.rowMeta.rowIndex)) {
+        console.error(`Op: updateCacheAfterDelete:  Duplicate index detected:`, row.rowMeta.rowIndex)
+        break
+      }
+      indices.add(row.rowMeta.rowIndex)
     }
 
     cachedRows.value = newCachedRows

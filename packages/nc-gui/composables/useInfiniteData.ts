@@ -260,7 +260,7 @@ export function useInfiniteData(args: {
     if (!originalRecord) return
 
     const recordPk = extractPkFromRow(originalRecord.row, meta.value?.columns as ColumnType[])
-    const newCachedRows = new Map(cachedRows.value)
+    const newCachedRows = new Map(cachedRows.value.entries())
 
     const beforeDraggedRecord = cachedRows.value.get(draggedIndex + 1)
     const beforeDraggedPk = beforeDraggedRecord
@@ -274,40 +274,46 @@ export function useInfiniteData(args: {
     if (targetIndex === null) {
       finalTargetIndex = cachedRows.value.size
     } else {
+      finalTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex
       targetRecord = cachedRows.value.get(targetIndex) ?? null
       if (!targetRecord) return
       targetRecordPk = extractPkFromRow(targetRecord.row, meta.value?.columns as ColumnType[]) || null
     }
 
     if (typeof finalTargetIndex === 'number') {
-      newCachedRows.delete(draggedIndex)
-
       if (finalTargetIndex < draggedIndex) {
         for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
           const row = newCachedRows.get(i)
           if (row) {
             const newIndex = i + 1
             row.rowMeta.rowIndex = newIndex
-            newCachedRows.delete(i)
             newCachedRows.set(newIndex, row)
           }
         }
-        originalRecord.rowMeta.rowIndex = finalTargetIndex
-        newCachedRows.set(finalTargetIndex, originalRecord)
       } else {
         for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
           const row = newCachedRows.get(i)
           if (row) {
-            row.rowMeta.rowIndex = i - 1
-            newCachedRows.set(i - 1, row)
+            const newIndex = i - 1
+            row.rowMeta.rowIndex = newIndex
+            newCachedRows.set(newIndex, row)
           }
         }
-        originalRecord.rowMeta.rowIndex = finalTargetIndex - 1
-        newCachedRows.set(finalTargetIndex - 1, originalRecord)
       }
     }
 
-    cachedRows.value = newCachedRows
+    originalRecord.rowMeta.rowIndex = finalTargetIndex
+    newCachedRows.set(finalTargetIndex, originalRecord)
+
+    const indices = new Set<number>()
+
+    for (const [_, row] of newCachedRows) {
+      if (indices.has(row.rowMeta.rowIndex)) {
+        console.error('Duplicate index detected:', row.rowMeta.rowIndex)
+        break
+      }
+      indices.add(row.rowMeta.rowIndex)
+    }
 
     const targetChunkIndex =
       typeof finalTargetIndex === 'number' ? getChunkIndex(finalTargetIndex) : getChunkIndex(cachedRows.value.size - 1)
@@ -368,6 +374,8 @@ export function useInfiniteData(args: {
         scope: defineViewScope({ view: viewMeta.value }),
       })
     }
+
+    cachedRows.value = newCachedRows
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
@@ -452,6 +460,15 @@ export function useInfiniteData(args: {
     }
 
     chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
+
+    const indices = new Set<number>()
+    for (const [_, row] of newCachedRows) {
+      if (indices.has(row.rowMeta.rowIndex)) {
+        console.error('Op: clearInvalidRows:  Duplicate index detected:', row.rowMeta.rowIndex)
+        break
+      }
+      indices.add(row.rowMeta.rowIndex)
+    }
 
     cachedRows.value = newCachedRows
 
@@ -639,6 +656,15 @@ export function useInfiniteData(args: {
             }
           }
         }
+      }
+
+      const indices = new Set<number>()
+      for (const [_, row] of newCachedRows) {
+        if (indices.has(row.rowMeta.rowIndex)) {
+          console.error('Op: applySorting:  Duplicate index detected:', row.rowMeta.rowIndex)
+          break
+        }
+        indices.add(row.rowMeta.rowIndex)
       }
 
       cachedRows.value = newCachedRows

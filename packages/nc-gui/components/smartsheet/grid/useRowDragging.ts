@@ -51,7 +51,6 @@ export const useRowDragging = ({
     if (!gridWrapper.value) return
 
     const gridWrapperRect = gridWrapper.value.getBoundingClientRect()
-
     const gridWrapperHeight = gridWrapperRect.bottom - gridWrapperRect.top
 
     draggingTop.value = Math.max(
@@ -60,7 +59,6 @@ export const useRowDragging = ({
     )
 
     const mouseTop = event.clientY - gridWrapperRect.top + gridWrapper.value.scrollTop
-
     const rowIndex = Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
 
     const visibleStart = Math.max(0, rowSlice.start - virtualMargin)
@@ -72,29 +70,45 @@ export const useRowDragging = ({
 
     if (!autoScrolling.value || !startAutoScroll) {
       const side = Math.ceil((gridWrapperHeight / 100) * 10)
-
       const autoScrollMouseTop = event.clientY - gridWrapperRect.top
-
       const autoScrollMouseBottom = gridWrapperHeight - autoScrollMouseTop
 
       let speed = 0
 
-      if (autoScrollMouseTop < side) {
+      // Check if we can scroll further in the respective direction
+      const canScrollUp = gridWrapper.value.scrollTop > 0
+      const canScrollDown = gridWrapper.value.scrollTop < gridWrapper.value.scrollHeight - gridWrapperHeight
+
+      if (autoScrollMouseTop < side && canScrollUp) {
         speed = -(6 - Math.ceil((Math.max(0, autoScrollMouseTop) / side) * 6))
-      } else if (autoScrollMouseBottom < side) {
+      } else if (autoScrollMouseBottom < side && canScrollDown) {
         speed = 6 - Math.ceil((Math.max(0, autoScrollMouseBottom) / side) * 6)
       }
 
       if (speed !== 0) {
-        autoScrolling.value = true
+        const newScrollTop = gridWrapper.value.scrollTop + speed
 
-        gridWrapper.value.scrollTop += speed
+        // Check if the new scroll position would be within bounds
+        if (newScrollTop >= 0 && newScrollTop <= gridWrapper.value.scrollHeight - gridWrapperHeight) {
+          autoScrolling.value = true
+          gridWrapper.value.scrollTop = newScrollTop
 
-        scrollTimeout.value = setTimeout(() => {
-          moveHandler(null, false)
-        }, 1)
+          // Clear any existing timeout before setting a new one
+          if (scrollTimeout.value) {
+            clearTimeout(scrollTimeout.value)
+          }
+
+          scrollTimeout.value = setTimeout(() => {
+            moveHandler(null, false)
+          }, 16)
+        } else {
+          autoScrolling.value = false
+        }
       } else {
         autoScrolling.value = false
+        if (scrollTimeout.value) {
+          clearTimeout(scrollTimeout.value)
+        }
       }
     }
 

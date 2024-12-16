@@ -58,7 +58,7 @@ const tempSelectedOptState = ref<string>()
 const isFocusing = ref(false)
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value,
+  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
 )
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {

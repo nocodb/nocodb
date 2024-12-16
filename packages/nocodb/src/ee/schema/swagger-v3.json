@@ -949,15 +949,589 @@
           "title"
         ]
       },
-      "FilterV3Req": {
-        "type": "object"
+      "Filter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the filter."
+          },
+          "fk_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the associated view."
+          },
+          "fk_hook_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the associated hook."
+          },
+          "fk_link_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the linked column."
+          },
+          "fk_value_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the value column."
+          },
+          "fk_parent_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent column."
+          },
+          "fk_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the column."
+          },
+          "comparison_op": {
+            "type": "string",
+            "description": "The primary comparison operator (e.g., '=', '!=', '<', '>')."
+          },
+          "comparison_sub_op": {
+            "type": "string",
+            "description": "The secondary comparison operator (e.g., 'LIKE', 'IN')."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to compare against."
+          },
+          "fk_parent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent object."
+          },
+          "is_group": {
+            "type": "boolean",
+            "description": "Indicates if the filter is part of a group."
+          },
+          "logical_op": {
+            "type": "string",
+            "description": "Logical operator (e.g., 'AND', 'OR') used in group filters."
+          },
+          "base_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier for the base context of the filter."
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier for the source context of the filter."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Order of the filter in the sequence."
+          }
+        },
+        "required": [
+          "id",
+          "fk_view_id",
+          "comparison_op",
+          "value",
+          "logical_op"
+        ]
       },
-      "SortV3Req": {
-        "type": "object"
+
+      "FilterCreateRequest": {
+        "type": "object",
+        "properties": {
+          "fk_hook_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the associated hook."
+          },
+          "fk_link_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the linked column."
+          },
+          "fk_value_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the value column."
+          },
+          "fk_parent_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent column."
+          },
+          "fk_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the column."
+          },
+          "comparison_op": {
+            "type": "string",
+            "description": "The primary comparison operator (e.g., '=', '!=', '<', '>')."
+          },
+          "comparison_sub_op": {
+            "type": "string",
+            "description": "The secondary comparison operator (e.g., 'LIKE', 'IN')."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to compare against."
+          },
+          "fk_parent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent object."
+          },
+          "is_group": {
+            "type": "boolean",
+            "description": "Indicates if the filter is part of a group."
+          },
+          "logical_op": {
+            "type": "string",
+            "description": "Logical operator (e.g., 'AND', 'OR') used in group filters."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Order of the filter in the sequence."
+          }
+        },
+        "required": [
+          "fk_hook_id",
+          "fk_link_col_id",
+          "fk_value_col_id",
+          "fk_column_id",
+          "comparison_op",
+          "value",
+          "logical_op"
+        ]
       },
-      "ViewV3Req": {
-        "type": "object"
-      }
+      "FilterUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "fk_hook_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the associated hook."
+          },
+          "fk_link_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the linked column."
+          },
+          "fk_value_col_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the value column."
+          },
+          "fk_parent_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent column."
+          },
+          "fk_column_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the column."
+          },
+          "comparison_op": {
+            "type": "string",
+            "description": "The primary comparison operator (e.g., '=', '!=', '<', '>')."
+          },
+          "comparison_sub_op": {
+            "type": "string",
+            "description": "The secondary comparison operator (e.g., 'LIKE', 'IN')."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to compare against."
+          },
+          "fk_parent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foreign key to the parent object."
+          },
+          "is_group": {
+            "type": "boolean",
+            "description": "Indicates if the filter is part of a group."
+          },
+          "logical_op": {
+            "type": "string",
+            "description": "Logical operator (e.g., 'AND', 'OR') used in group filters."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Order of the filter in the sequence."
+          }
+        }
+      },
+
+      "Sort": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the sort."
+          },
+          "field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier for the field being sorted."
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          }
+        },
+        "required": ["id", "field_id", "direction"]
+      },
+      "SortCreateRequest": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier for the field being sorted."
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          }
+        },
+        "required": ["field_id", "direction"]
+      },
+      "SortUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier for the field being sorted."
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          }
+        }
+      },
+
+
+
+      "View": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the view."
+          },
+          "view_name": {
+            "type": "string",
+            "description": "Name of the view."
+          },
+          "view_type": {
+            "type": "string",
+            "enum": ["GRID", "GALLERY", "KANBAN", "CALENDAR", "FORM"],
+            "description": "Type of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": ["COLLABARATIVE", "LOCKED", "PERSONAL"],
+            "description": "Lock type of the view."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Indicates if this is the default view."
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "locked_view_description": {
+                "type": "string",
+                "description": "Description for locked views."
+              },
+              "locked_by_user_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID of the person who locked the view."
+              }
+            }
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User ID of the creator."
+          },
+          "owned_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User ID of the owner."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of creation."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of last update."
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            },
+            "description": "Filters applied to the view."
+          },
+          "sorts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sort"
+            },
+            "description": "Sort options for the view."
+          }
+        },
+        "discriminator": {
+          "propertyName": "view_type"
+        },
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID for GRID view."
+                    },
+                    "is_hidden": {
+                      "type": "boolean",
+                      "description": "Indicates if the field is hidden in GRID view."
+                    }
+                  }
+                }
+              },
+              "group": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID for grouping in GRID view."
+                    },
+                    "sort": {
+                      "type": "string",
+                      "enum": ["asc", "desc"],
+                      "description": "Sorting order for the group."
+                    }
+                  }
+                }
+              }
+            },
+            "required": ["view_type", "fields"],
+            "description": "GRID View"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID displayed in GALLERY view."
+                    },
+                    "cover_image": {
+                      "type": "boolean",
+                      "description": "Indicates if the field is the cover image."
+                    }
+                  }
+                }
+              },
+              "cover_image_field_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Field ID for the cover image."
+              }
+            },
+            "required": ["view_type", "fields"],
+            "description": "GALLERY View"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID used in KANBAN view."
+                    },
+                    "is_stack_by": {
+                      "type": "boolean",
+                      "description": "Indicates if the field is used for stacking in KANBAN."
+                    }
+                  }
+                }
+              },
+              "cover_image_field_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Field ID for the cover image."
+              },
+              "kanban_stack_by_field_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Field ID used for stacking in KANBAN view."
+              }
+            },
+            "required": ["view_type", "fields"],
+            "description": "KANBAN View"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID displayed in CALENDAR view."
+                    },
+                    "is_date_field": {
+                      "type": "boolean",
+                      "description": "Indicates if the field is used for date ranges."
+                    }
+                  }
+                }
+              },
+              "calendar_range": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "start_field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID for the start date."
+                    },
+                    "end_field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID for the end date."
+                    }
+                  }
+                }
+              }
+            },
+            "required": ["view_type", "fields"],
+            "description": "CALENDAR View"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Field ID used in FORM view."
+                    },
+                    "is_required": {
+                      "type": "boolean",
+                      "description": "Indicates if the field is required in the form."
+                    }
+                  }
+                }
+              },
+              "form_heading": {
+                "type": "string",
+                "description": "Heading for the form."
+              },
+              "form_sub_heading": {
+                "type": "string",
+                "description": "Subheading for the form."
+              },
+              "form_success_message": {
+                "type": "string",
+                "description": "Success message shown after form submission."
+              },
+              "form_redirect_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL to redirect to after form submission."
+              },
+              "form_redirect_after_secs": {
+                "type": "integer",
+                "description": "Seconds to wait before redirecting."
+              },
+              "form_send_response_email": {
+                "type": "boolean",
+                "description": "Whether to send a response email."
+              },
+              "form_show_another": {
+                "type": "boolean",
+                "description": "Whether to show another form after submission."
+              },
+              "form_show_blank": {
+                "type": "boolean",
+                "description": "Whether to show a blank form after submission."
+              },
+              "form_hide_banner": {
+                "type": "boolean",
+                "description": "Whether to hide the banner on the form."
+              },
+              "form_hide_branding": {
+                "type": "boolean",
+                "description": "Whether to hide branding on the form."
+              },
+              "form_banner_image_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the banner image for the form."
+              },
+              "form_logo_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the logo for the form."
+              },
+              "form_background_color": {
+                "type": "string",
+                "format": "color",
+                "description": "Background color for the form."
+              }
+            },
+            "required": ["view_type", "fields"],
+            "description": "FORM View"
+          }
+        ]
+      },
+
     },
     "responses": {
     },

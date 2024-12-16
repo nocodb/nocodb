@@ -1518,6 +1518,7 @@ const reloadViewDataHookHandler = async () => {
   // If the scroll Position is not at the top, scroll to the top
   // This always loads the first page of data when the view data is reloaded
   gridWrapper.value?.scrollTo(0, 0)
+
   await saveOrUpdateRecords({
     keepNewRecords: true,
   })
@@ -1528,7 +1529,7 @@ const reloadViewDataHookHandler = async () => {
 
   calculateSlices()
 
-  await updateVisibleRows()
+  await Promise.all([loadViewAggregate(), updateVisibleRows()])
 
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index

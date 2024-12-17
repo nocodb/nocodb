@@ -4483,6 +4483,10 @@ class BaseModelSqlv2 {
           );
           break;
         }
+        case UITypes.SingleSelect: {
+          res[sanitize(getAs(column) || column.column_name)] = this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [sanitize(column.column_name)])
+          break;
+        }
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
@@ -8130,7 +8134,7 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
-      .groupBy(column.column_name);
+      .groupBy(this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [column.column_name]));
 
     // todo: refactor and move to a common method (applyFilterAndSort)
     const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -8185,8 +8189,11 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      // replace id with 'key' as we select as id
-      columns: [new Column({ ...column, title: 'key', id: 'key' })],
+      columns: [new Column({
+        ...column,
+        title: 'key',
+        id: 'key',
+      })],
     });
 
     return await this.execAndParse(qb);

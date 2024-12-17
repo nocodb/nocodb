@@ -764,7 +764,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   async moveRecord({
     rowId,
     beforeRowId,
-    _cookie,
   }: {
     rowId: string;
     beforeRowId: string;

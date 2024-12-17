@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Liste konnte nicht geladen werden",
       "failedToLoadChildrenList": "Liste der Kinder konnte nicht geladen werden",
       "deleteFailed": "Löschen fehlgeschlagen",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Entfernen der Verknüpfung fehlgeschlagen",
       "rowUpdateFailed": "Aktualisieren des Datensatzes fehlgeschlagen",
       "deleteRowFailed": "Fehler beim Löschen der Zeile",

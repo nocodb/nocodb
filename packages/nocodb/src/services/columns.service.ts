@@ -1702,7 +1702,7 @@ export class ColumnsService {
       column: ColumnReqType;
       user: UserType;
       reuse?: ReusableParams;
-      supressFormulaError?: boolean
+      suppressFormulaError?: boolean
     },
   ) {
     // if column_name is defined and title is not defined, set title to column_name
@@ -1921,7 +1921,7 @@ export class ColumnsService {
           );
         } catch (e) {
           colBody.error = e.message
-          if (!param.supressFormulaError) {
+          if (!param.suppressFormulaError) {
             throw e;
           }
         }

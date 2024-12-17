@@ -1835,6 +1835,7 @@
       "failedToLoadList": "सूची लोड करने में विफल",
       "failedToLoadChildrenList": "चिल्ड्रेन सूची लोड करने में विफल",
       "deleteFailed": "हटाना विफल",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "अनलिंक विफल",
       "rowUpdateFailed": "रिकॉर्ड अद्यतन विफल रहा",
       "deleteRowFailed": "रिकॉर्ड हटाने में विफल",

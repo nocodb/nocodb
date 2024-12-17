@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Fallo al cargar la lista",
       "failedToLoadChildrenList": "Fallo al cargar la lista de niños",
       "deleteFailed": "Eliminación fallida",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Error de desvinculación",
       "rowUpdateFailed": "Falló la actualización de filas",
       "deleteRowFailed": "Fallo al borrar fila",

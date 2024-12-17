@@ -1835,6 +1835,7 @@
       "failedToLoadList": "ಪಟ್ಟಿ ಲೋಡ್ ಮಾಡುವುದು ವಿಫಲವಾಗಿದೆ",
       "failedToLoadChildrenList": "ಮಕ್ಕಳ ಪಟ್ಟಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
       "deleteFailed": "ಅಳಿಸಲು ವಿಫಲವಾಯಿತು",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "ಅನ್‌ಲಿಂಕ್ ವಿಫಲವಾಯಿತು",
       "rowUpdateFailed": "ರೆಕಾರ್ಡ್ ಪರಿಷ್ಕರಣೆ ವಿಫಲವಾಗಿದೆ",
       "deleteRowFailed": "ರೆಕಾರ್ಡ್ ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ",

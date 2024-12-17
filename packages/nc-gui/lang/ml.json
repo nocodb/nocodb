@@ -1835,6 +1835,7 @@
       "failedToLoadList": "പട്ടിക ലോഡ് ചെയ്യാൻ പരാജയപ്പെട്ടു",
       "failedToLoadChildrenList": "കുട്ടികളുടെ പട്ടിക ലോഡ് ചെയ്യുന്നതു പരാജയപ്പെട്ടു",
       "deleteFailed": "മായ്ക്കൽ പരാജയപ്പെട്ടു",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "അൺലിങ്ക് പരാജയപ്പെട്ടു",
       "rowUpdateFailed": "റെക്കോർഡ് അപ്ഡേറ്റ് പരാജയപ്പെട്ടു",
       "deleteRowFailed": "റെക്കോർഡ് മായ്ക്കാൻ പരാജയപ്പെട്ടു",

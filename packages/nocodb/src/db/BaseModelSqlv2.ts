@@ -4811,7 +4811,7 @@ class BaseModelSqlv2 {
   async moveRecord({
     rowId,
     beforeRowId,
-    cookie,
+    _cookie,
   }: {
     rowId: string;
     beforeRowId: string;
@@ -6912,7 +6912,10 @@ class BaseModelSqlv2 {
           );
         }
 
-        if (column.system && ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt) ) {
+        if (
+          column.system &&
+          ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
+        ) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
           );

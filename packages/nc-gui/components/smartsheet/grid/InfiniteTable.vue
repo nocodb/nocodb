@@ -2298,35 +2298,35 @@ watch(vSelectedAllRecords, (selectedAll) => {
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
-                            <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`">
-                              <a-spin
-                                v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
-                                class="!flex items-center"
-                                :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
-                              />
+                          <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`">
+                            <a-spin
+                              v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
+                              class="!flex items-center"
+                              :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
+                            />
 
-                              <span
-                                v-if="row.rowMeta?.commentCount && expandForm"
-                                v-e="['c:expanded-form:open']"
-                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                            <span
+                              v-if="row.rowMeta?.commentCount && expandForm"
+                              v-e="['c:expanded-form:open']"
+                              :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                              class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                              @click="expandAndLooseFocus(row, state)"
+                            >
+                              {{ row.rowMeta.commentCount }}
+                            </span>
+                            <div
+                              v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
+                              class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                            >
+                              <component
+                                :is="iconMap.maximize"
+                                v-if="expandForm"
+                                v-e="['c:row-expand:open']"
+                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
                                 @click="expandAndLooseFocus(row, state)"
-                              >
-                                {{ row.rowMeta.commentCount }}
-                              </span>
-                              <div
-                                v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
-                              >
-                                <component
-                                  :is="iconMap.maximize"
-                                  v-if="expandForm"
-                                  v-e="['c:row-expand:open']"
-                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
-                                  @click="expandAndLooseFocus(row, state)"
-                                />
-                              </div>
+                              />
                             </div>
+                          </div>
                         </div>
                       </td>
                       <SmartsheetTableDataCell

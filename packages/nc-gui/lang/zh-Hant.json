@@ -1835,6 +1835,7 @@
       "failedToLoadList": "加載清單失敗",
       "failedToLoadChildrenList": "加載子清單失敗",
       "deleteFailed": "刪除失敗",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "解除連結失敗",
       "rowUpdateFailed": "資料更新失敗",
       "deleteRowFailed": "刪除資料失敗",

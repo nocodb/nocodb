@@ -160,7 +160,7 @@ useSelectedCellKeyupListener(activeCell, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }

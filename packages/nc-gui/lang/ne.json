@@ -1835,6 +1835,7 @@
       "failedToLoadList": "सूची लोड गर्न असफल भयो",
       "failedToLoadChildrenList": "बालबालिका सूची लोड गर्न असफल भयो",
       "deleteFailed": "हटाउन असफल भयो",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "अनलिंक गर्न असफल भयो",
       "rowUpdateFailed": "रेकर्ड अपडेट असफल भएको छ",
       "deleteRowFailed": "रेकर्ड मेटाउन असफल भयो",

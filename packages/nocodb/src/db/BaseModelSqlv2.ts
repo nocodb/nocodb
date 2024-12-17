@@ -8065,7 +8065,9 @@ class BaseModelSqlv2 {
             [...groupingValues].map((r) => {
               const query = qb.clone();
               if (r === null) {
-                query.whereNull(column.column_name);
+                query.where((qb) => {
+                  qb.whereNull(column.column_name).orWhere(column.column_name, '=', '');
+                })
               } else {
                 query.where(column.column_name, r);
               }
@@ -8087,11 +8089,15 @@ class BaseModelSqlv2 {
 
       const groupedResult = result.reduce<Map<string | number | null, any[]>>(
         (aggObj, row) => {
-          if (!aggObj.has(row[column.title])) {
-            aggObj.set(row[column.title], []);
+          const rawVal = row[column.title];
+          // Treat empty strings as null
+          const val = typeof rawVal === 'string' && rawVal.trim() === '' ? null : rawVal;
+
+          if (!aggObj.has(val)) {
+            aggObj.set(val, []);
           }
 
-          aggObj.get(row[column.title]).push(row);
+          aggObj.get(val).push(row);
 
           return aggObj;
         },

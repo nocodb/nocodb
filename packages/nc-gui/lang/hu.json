@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Nem sikerült betölteni a listát",
       "failedToLoadChildrenList": "Nem sikerült betölteni a gyermek listát",
       "deleteFailed": "A törlés nem sikerült",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "A kapcsolat megszüntetése nem sikerült",
       "rowUpdateFailed": "Rekord frissítése nem sikerült",
       "deleteRowFailed": "Rekord törlése nem sikerült",

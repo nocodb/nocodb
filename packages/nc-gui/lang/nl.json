@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Lijst niet geladen",
       "failedToLoadChildrenList": "Laadt geen lijst met kinderen",
       "deleteFailed": "Verwijderen mislukt",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Ontkoppeling mislukt",
       "rowUpdateFailed": "Rij update mislukt",
       "deleteRowFailed": "Rij niet verwijderd",

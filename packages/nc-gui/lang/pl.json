@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Nie udało się załadować listy",
       "failedToLoadChildrenList": "Nie udało się załadować listy podrzędnej",
       "deleteFailed": "Usunięcie nie powiodło się",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Nie udało się odłączyć",
       "rowUpdateFailed": "Aktualizacja wiersza nie powiodła się",
       "deleteRowFailed": "Nie udało się usunąć wiersza",

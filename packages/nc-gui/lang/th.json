@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
       "deleteFailed": "Delete failed",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Unlink failed",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",

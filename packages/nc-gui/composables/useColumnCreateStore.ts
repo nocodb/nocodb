@@ -354,7 +354,18 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           if (!columnToValidate.includes(formState.value.uidt)) {
             formState.value.validate = ''
           }
-          await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+
+          try {
+            await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+          } catch(e: any) {
+            if (!validateInfos.formaula_raw) validateInfos.formula_raw = {};
+            validateInfos.formula_raw!.validateStatus = 'error';
+            if (!validateInfos.formula_raw?.help) {
+              validateInfos.formula_raw!.help = []
+            }
+            validateInfos.formula_raw?.help.push(await extractSdkResponseErrorMsg(e))
+            return
+          }
 
           await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
 

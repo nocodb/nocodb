@@ -358,7 +358,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           try {
             await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           } catch(e: any) {
-            if (!validateInfos.formaula_raw) validateInfos.formula_raw = {};
+            if (!validateInfos.formula_raw) validateInfos.formula_raw = {};
             validateInfos.formula_raw!.validateStatus = 'error';
             if (!validateInfos.formula_raw?.help) {
               validateInfos.formula_raw!.help = []

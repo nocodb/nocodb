@@ -385,6 +385,7 @@ watch(
     if (newValue) return
 
     searchVal.value = ''
+    isOpen.value = false
   },
 )
 </script>

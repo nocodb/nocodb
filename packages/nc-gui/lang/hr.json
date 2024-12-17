@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Ne mogu učitati popis",
       "failedToLoadChildrenList": "Učitavanje pod popisa nije uspjelo",
       "deleteFailed": "Brisanje nije uspjelo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Prekid veze nije uspio",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",

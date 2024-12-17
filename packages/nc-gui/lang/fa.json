@@ -1835,6 +1835,7 @@
       "failedToLoadList": "لیست بارگذاری نشد",
       "failedToLoadChildrenList": "لیست زیرین بارگذاری نشد",
       "deleteFailed": "حذف نشد",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "لغوپیوند نشد",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",

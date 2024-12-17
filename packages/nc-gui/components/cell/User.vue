@@ -660,8 +660,9 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+  @apply !text-small;
 }
+
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
 }

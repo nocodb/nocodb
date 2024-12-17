@@ -496,7 +496,7 @@ watch(
   @apply flex items-center;
 
   .ant-select-selection-search-input {
-    @apply !text-xs;
+    @apply !text-small;
   }
 }
 

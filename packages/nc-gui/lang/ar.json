@@ -1835,6 +1835,7 @@
       "failedToLoadList": "فشل تحميل القائمة",
       "failedToLoadChildrenList": "فشل تحميل القائمة الفرعية",
       "deleteFailed": "فشل الحذف",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "فشل إلغاء الارتباط",
       "rowUpdateFailed": "فشل تحديث الصف",
       "deleteRowFailed": "فشل في حذف الصف",

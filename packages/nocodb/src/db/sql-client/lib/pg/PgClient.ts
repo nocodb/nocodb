@@ -465,6 +465,8 @@ class PGClient extends KnexClient {
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
+        connectionParamsWithoutDb.connection.password =
+          this.connectionConfig.connection.password;
         tempSqlClient = knex({
           ...connectionParamsWithoutDb,
           pool: { min: 0, max: 1 },

@@ -223,6 +223,7 @@ export default class TestDbMngr {
 
   static getDbConfigWithNoDb() {
     const dbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
+    dbConfig.connection.password = TestDbMngr.dbConfig.connection.password;
     delete dbConfig.connection.database;
     return dbConfig;
   }
@@ -240,6 +241,8 @@ export default class TestDbMngr {
   static getSakilaDbConfig() {
     const sakilaDbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
     sakilaDbConfig.connection.database = TestDbMngr.sakilaDbName;
+    sakilaDbConfig.connection.password =
+      TestDbMngr.dbConfig.connection.password;
     sakilaDbConfig.connection.multipleStatements = true;
     if (TestDbMngr.isSqlite()) {
       sakilaDbConfig.connection.filename = `${__dirname}/test_sakila.db`;

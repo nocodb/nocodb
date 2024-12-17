@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Non è riuscito a caricare l'elenco",
       "failedToLoadChildrenList": "Non è riuscito a caricare l'elenco dei bambini",
       "deleteFailed": "Cancellazione fallita",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Scollegamento fallito",
       "rowUpdateFailed": "Aggiornamento della riga non riuscito",
       "deleteRowFailed": "Cancellazione fallita della riga",

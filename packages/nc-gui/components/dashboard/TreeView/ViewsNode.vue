@@ -352,7 +352,7 @@ watch(isDropdownOpen, async () => {
           v-if="isEditing"
           ref="input"
           v-model:value="_title"
-          class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
+          class="!bg-transparent !px-1.5 !flex-1 mr-4 !rounded-md !h-6"
           :class="{
             'font-medium !text-brand-600': activeView?.id === vModel.id,
           }"

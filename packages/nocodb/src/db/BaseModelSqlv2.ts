@@ -4483,6 +4483,10 @@ class BaseModelSqlv2 {
           );
           break;
         }
+        case UITypes.SingleSelect: {
+          res[sanitize(getAs(column) || column.column_name)] = this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [sanitize(column.column_name)])
+          break;
+        }
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
@@ -8065,7 +8069,13 @@ class BaseModelSqlv2 {
             [...groupingValues].map((r) => {
               const query = qb.clone();
               if (r === null) {
-                query.whereNull(column.column_name);
+                query.where((qb) => {
+                  qb.whereNull(column.column_name);
+                  if (column.uidt === UITypes.SingleSelect) {
+                    qb.orWhere(column.column_name, '=', '')
+                  }
+
+                })
               } else {
                 query.where(column.column_name, r);
               }
@@ -8087,11 +8097,15 @@ class BaseModelSqlv2 {
 
       const groupedResult = result.reduce<Map<string | number | null, any[]>>(
         (aggObj, row) => {
-          if (!aggObj.has(row[column.title])) {
-            aggObj.set(row[column.title], []);
+          const rawVal = row[column.title];
+          // Treat empty strings as null
+          const val = typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
+
+          if (!aggObj.has(val)) {
+            aggObj.set(val, []);
           }
 
-          aggObj.get(row[column.title]).push(row);
+          aggObj.get(val).push(row);
 
           return aggObj;
         },
@@ -8124,7 +8138,12 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
-      .groupBy(column.column_name);
+
+    if (column.uidt === UITypes.SingleSelect) {
+      qb.groupBy(this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [column.column_name]));
+    } else {
+      qb.groupBy(column.column_name);
+    }
 
     // todo: refactor and move to a common method (applyFilterAndSort)
     const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -8179,8 +8198,11 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      // replace id with 'key' as we select as id
-      columns: [new Column({ ...column, title: 'key', id: 'key' })],
+      columns: [new Column({
+        ...column,
+        title: 'key',
+        id: 'key',
+      })],
     });
 
     return await this.execAndParse(qb);

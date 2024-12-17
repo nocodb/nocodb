@@ -13,6 +13,13 @@ import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
 
+// Set options for how Markdown is parsed
+marked.setOptions({
+  breaks: true, // Converts single line breaks to <br> tags
+  gfm: true, // Enable GitHub Flavored Markdown (GFM)
+  sanitize: false, // Allow HTML tags within Markdown
+})
+
 const props = withDefaults(
   defineProps<{
     value?: string | null
@@ -283,12 +290,31 @@ const editor = useEditor({
   },
 })
 
+function parseText(input: string): string {
+  // Regex to check if a line starts with any non-alphabetic character
+  const nonAlphabetPattern = /^[^a-zA-Z]/
+
+  // Replace occurrences of two consecutive newlines "\n\n" with "\n" based on conditions
+  return input.replace(/\n\n+/g, (match, offset, string) => {
+    const nextLine = string.slice(offset + match.length).split('\n')[0] // Next line after \n\n
+    const prevLine = string.slice(0, offset).split('\n').pop() // Previous line before \n\n
+
+    // If next line or previous line starts with any non-alphabetic character, keep \n\n
+    if ((nextLine && nonAlphabetPattern.test(nextLine)) || (prevLine && nonAlphabetPattern.test(prevLine))) {
+      return '\n\n' // Keep the newline intact
+    }
+
+    // Otherwise, replace \n\n with \n
+    return '\n'
+  })
+}
+
 const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
 
   const selection = editor.value.view.state.selection
-
-  const contentHtml = contentMd ? marked.parse(contentMd.replaceAll('\n', '<br/>')) : '<p></p>'
+  // Replace double newlines with a single newline only if not surrounded by non-alphabetic characters
+  const contentHtml = contentMd ? marked.parse(parseText(contentMd)) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
 

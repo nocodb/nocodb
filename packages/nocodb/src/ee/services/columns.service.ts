@@ -43,6 +43,7 @@ export class ColumnsService extends ColumnsServiceCE {
       column: ColumnReqType;
       user: UserType;
       reuse?: any;
+      suppressFormulaError?: boolean;
     },
   ) {
     // if column_name is defined and title is not defined, set title to column_name

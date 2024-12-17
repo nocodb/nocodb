@@ -1702,6 +1702,7 @@ export class ColumnsService {
       column: ColumnReqType;
       user: UserType;
       reuse?: ReusableParams;
+      suppressFormulaError?: boolean
     },
   ) {
     // if column_name is defined and title is not defined, set title to column_name
@@ -1878,28 +1879,28 @@ export class ColumnsService {
         });
         break;
       case UITypes.Formula:
-        colBody.formula = await substituteColumnAliasWithIdInFormula(
-          colBody.formula_raw || colBody.formula,
-          table.columns,
-        );
-        colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
-          // formula may include double curly brackets in previous version
-          // convert to single curly bracket here for compatibility
-          formula: colBody.formula,
-          column: {
-            ...colBody,
-            colOptions: colBody,
-          },
-          columns: table.columns,
-          clientOrSqlUi: source.type as any,
-          getMeta: async (modelId) => {
-            const model = await Model.get(context, modelId);
-            await model.getColumns(context);
-            return model;
-          },
-        });
-
         try {
+          colBody.formula = await substituteColumnAliasWithIdInFormula(
+            colBody.formula_raw || colBody.formula,
+            table.columns,
+          );
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+            // formula may include double curly brackets in previous version
+            // convert to single curly bracket here for compatibility
+            formula: colBody.formula,
+            column: {
+              ...colBody,
+              colOptions: colBody,
+            },
+            columns: table.columns,
+            clientOrSqlUi: source.type as any,
+            getMeta: async (modelId) => {
+              const model = await Model.get(context, modelId);
+              await model.getColumns(context);
+              return model;
+            },
+          });
+
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
             Model.getBaseModelSQL(context, {
               id: table.id,
@@ -1919,8 +1920,10 @@ export class ColumnsService {
             true,
           );
         } catch (e) {
-          console.error(e);
-          throw e;
+          colBody.error = e.message
+          if (!param.suppressFormulaError) {
+            throw e;
+          }
         }
 
         await Column.insert(context, {

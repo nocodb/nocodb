@@ -6912,7 +6912,7 @@ class BaseModelSqlv2 {
           );
         }
 
-        if (column.system && column.uidt !== UITypes.ForeignKey) {
+        if (column.system && ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt) ) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
           );

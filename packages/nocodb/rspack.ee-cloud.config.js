@@ -2,7 +2,7 @@ const path = require('path');
 const { resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { TsCheckerRspackPlugin } = require('ts-checker-rspack-plugin');
 // @ts-check
 
 /** @type {import('@rspack/cli').Configuration} */
@@ -97,11 +97,11 @@ module.exports = {
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
-    /*new ForkTsCheckerWebpackPlugin({
+    /*new TsCheckerRspackPlugin({
       typescript: {
         configFile: resolve('./src/ee-cloud/tsconfig.json'),
       },
-    }),*/
+    })*/
   ],
   target: 'node',
 };

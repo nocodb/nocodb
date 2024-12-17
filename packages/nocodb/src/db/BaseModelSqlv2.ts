@@ -8070,7 +8070,11 @@ class BaseModelSqlv2 {
               const query = qb.clone();
               if (r === null) {
                 query.where((qb) => {
-                  qb.whereNull(column.column_name).orWhere(column.column_name, '=', '');
+                  qb.whereNull(column.column_name);
+                  if (column.uidt === UITypes.SingleSelect) {
+                    qb.orWhere(column.column_name, '=', '')
+                  }
+
                 })
               } else {
                 query.where(column.column_name, r);
@@ -8134,7 +8138,12 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
-      .groupBy(this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [column.column_name]));
+
+    if (column.uidt === UITypes.SingleSelect) {
+      qb.groupBy(this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [column.column_name]));
+    } else {
+      qb.groupBy(column.column_name);
+    }
 
     // todo: refactor and move to a common method (applyFilterAndSort)
     const aliasColObjMap = await this.model.getAliasColObjMap(

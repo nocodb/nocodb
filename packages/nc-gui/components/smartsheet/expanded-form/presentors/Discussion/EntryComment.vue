@@ -104,6 +104,12 @@ async function onEditComment() {
   })
   loadComments()
 }
+
+function onCommentBlur() {
+  isEditing.value = false
+  editCommentValue.value = undefined
+}
+
 </script>
 
 <template>
@@ -167,10 +173,7 @@ async function onEditComment() {
       sync-value-change
       @save="onEditComment"
       @keydown.esc="onCancel"
-      @blur="
-        editCommentValue = undefined
-        isEditing = false
-      "
+      @blur="onCommentBlur"
       @keydown.enter.exact.prevent="onEditComment"
     />
     <SmartsheetExpandedFormRichComment

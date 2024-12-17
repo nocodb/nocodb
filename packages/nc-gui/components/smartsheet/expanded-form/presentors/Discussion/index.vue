@@ -25,6 +25,12 @@ onMounted(async () => {
 /* new comment */
 
 const newCommentText = ref('')
+
+function handleCreatingNewComment() {
+  saveComment(newCommentText.value)
+  newCommentText.value = ''
+}
+
 </script>
 
 <script lang="ts">
@@ -61,14 +67,8 @@ export default {
             class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"
             data-testid="expanded-form-comment-input"
             @keydown.stop
-            @save="
-              saveComment(newCommentText)
-              newCommentText = ''
-            "
-            @keydown.enter.exact.prevent="
-              saveComment(newCommentText)
-              newCommentText = ''
-            "
+            @save="handleCreatingNewComment"
+            @keydown.enter.exact.prevent="handleCreatingNewComment"
           />
         </div>
       </div>

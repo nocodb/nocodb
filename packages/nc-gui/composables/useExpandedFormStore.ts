@@ -102,7 +102,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   })
 
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
-    if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
+    // TODO: add back after review
+    // if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -388,119 +389,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const auditCommentGroups = computed(() => {
-    const groups = []
+    const adts = [...audits.value].map(it => ({
+      user: it.user,
+      displayName: it.created_display_name,
+      created_at: it.created_at,
+      type: 'audit',
+      audit: it,
+    }))
 
-    const currentAudits = [...audits.value].sort((a, b) => {
+    const cmnts = [...comments.value].map(it => ({
+      ...it,
+      user: it.created_by_email,
+      displayName: it.created_display_name,
+      type: 'comment',
+    }))
+
+    const groups = [...adts, ...cmnts]
+
+    return groups.sort((a, b) => {
       return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
     })
 
-    const currentComments = [...comments.value].sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
-    })
-
-    let currentAudit = currentAudits.shift()
-    let currentComment = currentComments.shift()
-    let currentAuditGroup
-
-    while (currentAudit || currentComment) {
-      if (currentComment && !currentAudit) {
-        if (currentAuditGroup) {
-          groups.push(currentAuditGroup)
-          currentAuditGroup = undefined
-        }
-
-        groups.push({
-          ...currentComment,
-          user: currentComment.created_by_email,
-          displayName: currentComment.created_display_name,
-          type: 'comment',
-        })
-
-        currentComment = currentComments.shift()
-      } else if (currentAudit && !currentComment) {
-        if (!currentAuditGroup) {
-          currentAuditGroup = {
-            user: currentAudit.user,
-            displayName: currentAudit.created_display_name,
-            created_at: currentAudit.created_at,
-            type: 'audit',
-            audits: [currentAudit],
-          }
-        } else {
-          if (
-            currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type ||
-            currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type ||
-            currentAudit?.user !== currentAuditGroup?.audits[0]?.user
-          ) {
-            groups.push(currentAuditGroup)
-
-            currentAuditGroup = {
-              user: currentAudit.user,
-              displayName: currentAudit.created_display_name,
-              created_at: currentAudit.created_at,
-              type: 'audit',
-              audits: [currentAudit],
-            }
-          } else {
-            currentAuditGroup.audits.push(currentAudit)
-          }
-        }
-
-        currentAudit = currentAudits.shift()
-      } else if (currentComment && currentAudit) {
-        if (dayjs(currentComment.created_at).isBefore(dayjs(currentAudit.created_at))) {
-          if (currentAuditGroup) {
-            groups.push(currentAuditGroup)
-            currentAuditGroup = undefined
-          }
-
-          groups.push({
-            ...currentComment,
-            user: currentComment.created_by_email,
-            displayName: currentComment.created_display_name,
-            type: 'comment',
-          })
-
-          currentComment = currentComments.shift()
-        } else {
-          if (!currentAuditGroup) {
-            currentAuditGroup = {
-              user: currentAudit.user,
-              displayName: currentAudit.created_display_name,
-              created_at: currentAudit.created_at,
-              type: 'audit',
-              audits: [currentAudit],
-            }
-          } else {
-            if (
-              currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type ||
-              currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type ||
-              currentAudit?.user !== currentAuditGroup?.audits[0]?.user
-            ) {
-              groups.push(currentAuditGroup)
-
-              currentAuditGroup = {
-                user: currentAudit.user,
-                displayName: currentAudit.created_display_name,
-                created_at: currentAudit.created_at,
-                type: 'audit',
-                audits: [currentAudit],
-              }
-            } else {
-              currentAuditGroup.audits.push(currentAudit)
-            }
-          }
-
-          currentAudit = currentAudits.shift()
-        }
-      }
-    }
-
-    if (currentAuditGroup?.audits?.length) {
-      groups.push(currentAuditGroup)
-    }
-
-    return groups
   })
 
   return {

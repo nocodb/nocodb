@@ -139,7 +139,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       for (const data of groupData ?? []) {
-        const key = data.key
+        const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
         formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
@@ -167,7 +167,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
-        where = `(${groupingField.value},is,null)`
+        where = `(${groupingField.value},is,blank)`
       }
 
       if (xWhere.value) {

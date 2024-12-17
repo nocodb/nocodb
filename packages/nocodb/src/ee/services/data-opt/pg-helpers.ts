@@ -1046,6 +1046,10 @@ export async function extractColumn({
       );
       break;
     }
+    case UITypes.SingleSelect: {
+      qb.select(knex.raw(`COALESCE(NULLIF(??.??, ''), NULL) as ??`, [rootAlias, sanitize(column.column_name), getAs(column)]));
+      break;
+    }
     default:
       {
         if (column.dt === 'bytea') {

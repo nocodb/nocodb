@@ -378,6 +378,15 @@ const onFocus = () => {
 
   isOpen.value = true
 }
+
+watch(
+  () => active.value,
+  (newValue) => {
+    if (newValue) return
+
+    searchVal.value = ''
+  },
+)
 </script>
 
 <template>

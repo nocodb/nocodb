@@ -8099,7 +8099,7 @@ class BaseModelSqlv2 {
         (aggObj, row) => {
           const rawVal = row[column.title];
           // Treat empty strings as null
-          const val = typeof rawVal === 'string' && rawVal.trim() === '' ? null : rawVal;
+          const val = typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
 
           if (!aggObj.has(val)) {
             aggObj.set(val, []);

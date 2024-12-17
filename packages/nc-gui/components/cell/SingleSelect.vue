@@ -403,7 +403,7 @@ watch(
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :show-search="!isMobileMode && isOpen && active"
-        :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined)"
+        :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
         :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
         :dropdown-match-select-width="true"
         @select="onSelect"

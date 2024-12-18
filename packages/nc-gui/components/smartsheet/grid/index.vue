@@ -210,23 +210,6 @@ const baseColor = computed(() => {
   }
 })
 
-const updateRowCommentCount = (count: number) => {
-  if (!routeQuery.value.rowId) return
-
-  const currentRowIndex = Array.from(cachedRows.value.values()).find(
-    (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
-  )?.rowMeta.rowIndex
-
-  if (currentRowIndex === undefined) return
-
-  const currentRow = cachedRows.value.get(currentRowIndex)
-  if (!currentRow) return
-
-  currentRow.rowMeta.commentCount = count
-
-  syncVisibleData?.()
-}
-
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -239,6 +222,7 @@ const {
   paginationData: pPaginationData,
   loadData: pLoadData,
   changePage: pChangePage,
+  aggCommentCount: pAggCommentCount,
   addEmptyRow: pAddEmptyRow,
   deleteRow: pDeleteRow,
   updateOrSaveRow: pUpdateOrSaveRow,
@@ -246,7 +230,61 @@ const {
   deleteRangeOfRows: pDeleteRangeOfRows,
   bulkUpdateRows: pBulkUpdateRows,
   removeRowIfNew: pRemoveRowIfNew,
+  isFirstRow: pisFirstRow,
+  islastRow: pisLastRow,
+  getExpandedRowIndex: pGetExpandedRowIndex,
+  changePage: pChangeView,
 } = useViewData(meta, view, xWhere)
+
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  if (isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING)) {
+    const currentRowIndex = Array.from(cachedRows.value.values()).find(
+      (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+    )?.rowMeta.rowIndex
+
+    if (currentRowIndex === undefined) return
+
+    const currentRow = cachedRows.value.get(currentRowIndex)
+    if (!currentRow) return
+
+    currentRow.rowMeta.commentCount = count
+
+    syncVisibleData?.()
+  } else {
+    const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+    const currentRowIndex = pData.value.findIndex(
+      (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
+    )
+
+    if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+
+    if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
+    pAggCommentCount.value[aggCommentCountIndex].count = count
+    pData.value[currentRowIndex].rowMeta.commentCount = count
+  }
+}
+const pGoToNextRow = () => {
+  const currentIndex = pGetExpandedRowIndex()
+  /* when last index of current page is reached we should move to next page */
+  if (!pPaginationData.value.isLastPage && currentIndex === pPaginationData.value.pageSize) {
+    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
+    pChangeView(nextPage)
+  }
+  navigateToSiblingRow(NavigateDir.NEXT)
+}
+const pGoToPreviousRow = () => {
+  const currentIndex = pGetExpandedRowIndex()
+  /* when first index of current page is reached and then clicked back
+    previos page should be loaded
+  */
+  if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
+    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
+    pChangeView(nextPage)
+  }
+  navigateToSiblingRow(NavigateDir.PREV)
+}
 </script>
 
 <template>
@@ -340,11 +378,11 @@ const {
       :row-id="routeQuery.rowId"
       :view="view"
       show-next-prev-icons
-      :first-row="isFirstRow"
-      :last-row="isLastRow"
+      :first-row="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? isFirstRow : pisFirstRow"
+      :last-row="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? isLastRow : pisLastRow"
       :expand-form="expandForm"
-      @next="goToNextRow()"
-      @prev="goToPreviousRow()"
+      @next="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? goToNextRow() : pGoToNextRow()"
+      @prev="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? goToPreviousRow() : pGoToPreviousRow()"
       @update-row-comment-count="updateRowCommentCount"
     />
     <Suspense>

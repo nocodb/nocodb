@@ -210,6 +210,8 @@ const baseColor = computed(() => {
   }
 })
 
+const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -239,7 +241,7 @@ const {
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
-  if (isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING)) {
+  if (isInfiniteScrollingEnabled.value) {
     const currentRowIndex = Array.from(cachedRows.value.values()).find(
       (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
     )?.rowMeta.rowIndex
@@ -294,7 +296,7 @@ const pGoToPreviousRow = () => {
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy && !isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING)"
+      v-if="!isGroupBy && !isInfiniteScrollingEnabled"
       ref="tableRef"
       v-model:selected-all-records="pSelectedAllRecords"
       :data="pData"
@@ -378,11 +380,11 @@ const pGoToPreviousRow = () => {
       :row-id="routeQuery.rowId"
       :view="view"
       show-next-prev-icons
-      :first-row="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? isFirstRow : pisFirstRow"
-      :last-row="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? isLastRow : pisLastRow"
+      :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
+      :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
       :expand-form="expandForm"
-      @next="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? goToNextRow() : pGoToNextRow()"
-      @prev="isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING) ? goToPreviousRow() : pGoToPreviousRow()"
+      @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
+      @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
       @update-row-comment-count="updateRowCommentCount"
     />
     <Suspense>

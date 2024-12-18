@@ -164,7 +164,7 @@ const closeTextArea = () => {
         :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleBold().run()"
       >
-        <MdiFormatBold />
+        <GeneralIcon icon="bold" />
       </NcButton>
     </NcTooltip>
 
@@ -185,7 +185,7 @@ const closeTextArea = () => {
         :tabindex="tabIndex"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
-        <MdiFormatItalic />
+        <GeneralIcon icon="italic" />
       </NcButton>
     </NcTooltip>
     <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
@@ -206,7 +206,7 @@ const closeTextArea = () => {
         :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
-        <MdiFormatUnderline />
+        <GeneralIcon icon="underline" />
       </NcButton>
     </NcTooltip>
     <NcTooltip v-if="embedMode && !isEditColumn" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
@@ -226,7 +226,7 @@ const closeTextArea = () => {
         :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
-        <MdiFormatStrikeThrough />
+        <GeneralIcon icon="strike" />
       </NcButton>
     </NcTooltip>
 
@@ -239,7 +239,7 @@ const closeTextArea = () => {
         :class="{ 'is-active': editor.isActive('codeBlock') }"
         @click="editor!.chain().focus().toggleCodeBlock().run()"
       >
-        <MsCode />
+        <GeneralIcon icon="code" />
       </NcButton>
     </NcTooltip>
     <NcTooltip
@@ -256,7 +256,7 @@ const closeTextArea = () => {
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleCode().run()"
       >
-        <MsFormatQuote />
+        <GeneralIcon icon="ncQuote" />
       </NcButton>
     </NcTooltip>
     <div class="divider"></div>
@@ -277,7 +277,7 @@ const closeTextArea = () => {
           :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
           @click="editor!.chain().focus().toggleHeading({ level: 1 }).run()"
         >
-          <MsFormatH1 />
+          <GeneralIcon icon="ncHeading1" />
         </NcButton>
       </NcTooltip>
       <NcTooltip>
@@ -295,7 +295,7 @@ const closeTextArea = () => {
           :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
           @click="editor!.chain().focus().toggleHeading({ level: 2 }).run()"
         >
-          <MsFormatH2 />
+          <GeneralIcon icon="ncHeading2" />
         </NcButton>
       </NcTooltip>
       <NcTooltip>
@@ -313,7 +313,7 @@ const closeTextArea = () => {
           :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
           @click="editor!.chain().focus().toggleHeading({ level: 3 }).run()"
         >
-          <MsFormatH3 />
+          <GeneralIcon icon="ncHeading3" />
         </NcButton>
       </NcTooltip>
 
@@ -345,7 +345,7 @@ const closeTextArea = () => {
         :class="{ 'is-active': editor.isActive('bulletList') }"
         @click="editor!.chain().focus().toggleBulletList().run()"
       >
-        <MdiFormatBulletList />
+        <GeneralIcon icon="ncList" />
       </NcButton>
     </NcTooltip>
 
@@ -358,7 +358,7 @@ const closeTextArea = () => {
         :class="{ 'is-active': editor.isActive('orderedList') }"
         @click="editor!.chain().focus().toggleOrderedList().run()"
       >
-        <MdiFormatListNumber />
+        <GeneralIcon icon="ncNumberList" />
       </NcButton>
     </NcTooltip>
 
@@ -371,7 +371,7 @@ const closeTextArea = () => {
         :class="{ 'is-active': editor.isActive('taskList') }"
         @click="editor!.chain().focus().toggleTaskList().run()"
       >
-        <MdiFormatListCheckbox />
+        <GeneralIcon icon="ncCheckList" />
       </NcButton>
     </NcTooltip>
 
@@ -423,14 +423,14 @@ const closeTextArea = () => {
       >
         <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>
         <div v-else class="flex flex-row items-center px-0.5">
-          <MdiLink />
+          <GeneralIcon icon="link2"></GeneralIcon>
           <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
         </div>
       </NcButton>
     </NcTooltip>
 
-    <div class="!sticky right-0 pr-0.5 bg-white">
-      <NcButton v-if="enableCloseButton" type="text" size="small" @click="closeTextArea">
+    <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-white">
+      <NcButton type="text" size="small" @click="closeTextArea">
         <GeneralIcon icon="close" />
       </NcButton>
     </div>

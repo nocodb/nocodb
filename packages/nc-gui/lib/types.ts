@@ -253,6 +253,7 @@ interface ImageCropperConfig {
      * @default true
      */
     fillDefault?: boolean
+    circlePreview?: boolean
   }
   minHeight?: number
   minWidth?: number

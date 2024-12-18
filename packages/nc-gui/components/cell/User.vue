@@ -52,9 +52,13 @@ const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -275,7 +279,8 @@ const onTagClick = (e: Event, onClose: Function) => {
 const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
-  if (cellClickHook) return
+  if (cellClickHook || isFocusing.value) return
+
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
@@ -317,6 +322,31 @@ const filterOption = (input: string, option: any) => {
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {
   return !idUserMap.value?.[userIdOrEmail]?.deleted
+}
+
+const onKeyDown = (e: KeyboardEvent) => {
+  // Tab
+  if (e.key === 'Tab') {
+    isOpen.value = false
+    return
+  } else if (e.key === 'Escape' && isForm.value) {
+    isOpen.value = false
+    return
+  }
+
+  e.stopPropagation()
+}
+
+const onFocus = () => {
+  isFocusing.value = true
+
+  setTimeout(() => {
+    isFocusing.value = false
+  }, 250)
+
+  if (isSurveyForm.value && vModel.value) return
+
+  isOpen.value = true
 }
 </script>
 
@@ -474,7 +504,9 @@ const isCollaborator = (userIdOrEmail) => {
         :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         :filter-option="filterOption"
         @search="search"
-        @keydown.stop
+        @focus="onFocus"
+        @blur="isOpen = false"
+        @keydown="onKeyDown"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />

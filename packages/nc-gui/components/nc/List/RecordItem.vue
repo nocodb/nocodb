@@ -260,7 +260,8 @@ const columnsToRender = computed(() => {
       .ant-select-selector {
         @apply !border-none flex-nowrap pr-4.5;
       }
-      .ant-select-arrow {
+      .ant-select-arrow,
+      .ant-select-clear {
         @apply right-[3px];
       }
     }

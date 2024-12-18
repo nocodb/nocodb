@@ -655,7 +655,7 @@ watch(
 }
 
 :deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+  @apply !text-small;
 }
 </style>
 

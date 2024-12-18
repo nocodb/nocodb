@@ -773,7 +773,7 @@ const {
     if (isExpandedCellInputExist()) return
 
     // skip keyboard event handling if there is a drawer / modal
-    if (isDrawerOrModalExist()) {
+    if (isDrawerOrModalExist() || isLinkDropdownExist()) {
       return true
     }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey

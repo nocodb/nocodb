@@ -1,13 +1,22 @@
 <script lang="ts" setup>
+import { PublicAttachmentScope } from 'nocodb-sdk'
+
 const { user } = useGlobal()
 
 const { t } = useI18n()
 
 const isErrored = ref(false)
 const isTitleUpdating = ref(false)
-const form = ref({
+const form = ref<{
+  title: string
+  email: string
+  icon: string | Record<string, any>
+  iconType: IconType | string
+}>({
   title: '',
   email: '',
+  icon: '',
+  iconType: '',
 })
 
 const { updateUserProfile } = useUsers()
@@ -58,6 +67,28 @@ watch(
 const onValidate = async (_: any, valid: boolean) => {
   isErrored.value = !valid
 }
+
+const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
+  cropperConfig: {
+    stencilProps: {
+      aspectRatio: 1,
+      fillDefault: true,
+      circlePreview: true,
+    },
+    minHeight: 150,
+    minWidth: 150,
+  },
+  imageConfig: {
+    src: '',
+    type: 'image',
+    name: 'icon',
+  },
+  uploadConfig: {
+    path: [NOCO, 'profile', 'icon'].join('/'),
+    scope: PublicAttachmentScope.PROFILEPICS,
+    maxFileSize: 2 * 1024 * 1024,
+  },
+})
 </script>
 
 <template>
@@ -78,8 +109,26 @@ const onValidate = async (_: any, valid: boolean) => {
           <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>
           <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
           <div class="flex flex-row mt-4">
-            <div class="flex h-20 mt-1.5">
-              <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
+            <div class="flex mt-1.5">
+              <GeneralIconSelector
+                v-model:icon="form.icon"
+                v-model:icon-type="form.iconType"
+                v-model:image-cropper-data="imageCropperData"
+                @submit="onSubmit"
+              >
+                <template #default="{ isOpen }">
+                  <div
+                    class="rounded-lg border-1 flex-none w-26.5 h-26.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+                    :class="{
+                      'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                      'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                      'border-primary shadow-selected': isOpen,
+                    }"
+                  >
+                    <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
+                  </div>
+                </template>
+              </GeneralIconSelector>
             </div>
             <div class="flex w-10"></div>
             <a-form

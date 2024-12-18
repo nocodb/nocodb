@@ -198,7 +198,6 @@ watch(
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
               v-model:image-cropper-data="imageCropperData"
-              :current-workspace="currentWorkspace"
               @submit="saveChanges"
             >
               <template #default="{ isOpen }">

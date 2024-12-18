@@ -773,7 +773,7 @@ const {
     if (isExpandedCellInputExist()) return
 
     // skip keyboard event handling if there is a drawer / modal
-    if (isDrawerOrModalExist()) {
+    if (isDrawerOrModalExist() || isLinkDropdownExist()) {
       return true
     }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -2836,7 +2836,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
         .ant-select-selector {
           @apply !border-none flex-nowrap pr-4.5;
         }
-        .ant-select-arrow {
+        .ant-select-arrow,
+        .ant-select-clear {
           @apply right-[3px];
         }
       }

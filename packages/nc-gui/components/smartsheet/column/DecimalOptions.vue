@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
+import { makePrecisionFormatsDiplay, precisionFormats } from '../../../helpers/columnDefaultMeta'
 
 const props = defineProps<{
   value: any
@@ -7,22 +8,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8]
-
 const { t } = useI18n()
 
-const precisionFormatsDisplay = {
-  1: t('placeholder.decimal1'),
-  2: t('placeholder.decimal2'),
-  3: t('placeholder.decimal3'),
-  4: t('placeholder.decimal4'),
-  5: t('placeholder.decimal5'),
-  6: t('placeholder.decimal6'),
-  7: t('placeholder.decimal7'),
-  8: t('placeholder.decimal8'),
-}
-
 const vModel = useVModel(props, 'value', emit)
+
+const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 // set default value
 vModel.value.meta = {

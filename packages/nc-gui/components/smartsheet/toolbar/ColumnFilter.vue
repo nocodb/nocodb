@@ -1186,7 +1186,9 @@ const changeToDynamic = async (filter, i) => {
 }
 
 .nc-filter-input-wrapper :deep(input) {
-  @apply !px-2;
+  &:not(.ant-select-selection-search-input) {
+    @apply !px-2;
+  }
 }
 
 .nc-btn-focus:focus {

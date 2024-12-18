@@ -3,6 +3,7 @@ import process from 'process';
 import { knex } from 'knex';
 import SqlMgrv2 from '../../src/db/sql-mgr/v2/SqlMgrv2';
 import { jdbcToXcUrl, xcUrlToDbConfig } from '../../src/utils/nc-config';
+import deepClone from '../../src/helpers/deepClone';
 import type { Knex } from 'knex';
 import type { DbConfig } from '../../src/interface/config';
 
@@ -222,7 +223,7 @@ export default class TestDbMngr {
   }
 
   static getDbConfigWithNoDb() {
-    const dbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
+    const dbConfig = deepClone(TestDbMngr.dbConfig);
     dbConfig.connection.password = TestDbMngr.dbConfig.connection.password;
     delete dbConfig.connection.database;
     return dbConfig;

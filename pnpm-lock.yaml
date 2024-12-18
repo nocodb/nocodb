@@ -879,6 +879,9 @@ importers:
       request-ip:
         specifier: ^3.3.0
         version: 3.3.0
+      rfdc:
+        specifier: ^1.3.1
+        version: 1.4.1
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -1029,7 +1032,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.6.8
-        version: 1.6.8(debug@4.3.4)
+        version: 1.6.8(debug@4.3.7)
       dayjs:
         specifier: ^1.11.11
         version: 1.11.11
@@ -22692,7 +22695,7 @@ snapshots:
       vue-demi: 0.14.7(vue@3.5.13(typescript@5.6.2))
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.6.8(debug@4.3.4)
+      axios: 1.6.8(debug@4.3.7)
       change-case: 5.4.4
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -28649,7 +28652,7 @@ snapshots:
       colorette: 2.0.20
       log-update: 4.0.0
       p-map: 4.0.0
-      rfdc: 1.3.1
+      rfdc: 1.4.1
       rxjs: 7.8.1
       through: 2.3.8
       wrap-ansi: 7.0.0
@@ -29463,7 +29466,7 @@ snapshots:
       '@tediousjs/connection-string': 0.5.0
       commander: 11.1.0
       debug: 4.3.4(supports-color@8.1.1)
-      rfdc: 1.3.1
+      rfdc: 1.4.1
       tarn: 3.0.2
       tedious: 16.6.1
     transitivePeerDependencies:
@@ -30075,7 +30078,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.6.8(debug@4.3.4)
+      axios: 1.6.8(debug@4.3.7)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1

@@ -111,7 +111,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
             </template>
           </div>
         </template>
-        <template v-if="meta[columnKey]?.field_type === 'Currency'">
+        <template v-else-if="meta[columnKey]?.field_type === 'Currency'">
           <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
             {{ formatCurrency(oldData[columnKey], meta[columnKey]) }}
           </div>
@@ -119,7 +119,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
             {{ formatCurrency(newData[columnKey], meta[columnKey]) }}
           </div>
         </template>
-        <template v-if="meta[columnKey]?.field_type === 'Checkbox'">
+        <template v-else-if="meta[columnKey]?.field_type === 'Checkbox'">
           <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
             <a-checkbox :checked="oldData[columnKey]" />
           </div>
@@ -127,7 +127,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
             <a-checkbox :checked="newData[columnKey]" />
           </div>
         </template>
-        <template v-if="meta[columnKey]?.field_type === 'Rating'">
+        <template v-else-if="meta[columnKey]?.field_type === 'Rating'">
           <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
             <a-rate :value="oldData[columnKey]" />
           </div>

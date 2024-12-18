@@ -112,7 +112,6 @@ export class ApiV3DataTransformationBuilder<
                 result[newKey] = value;
                 return result;
               }
-
               if (camelCase) {
                 newKey = convertToCamelCase(newKey);
               } else if (snakeCase) {

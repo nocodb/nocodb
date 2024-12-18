@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { type AuditType, ProjectRoles } from 'nocodb-sdk'
+import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
-const basesStore = useBases()
-
-const { basesUser } = storeToRefs(basesStore)
-
-const meta = inject(MetaInj, ref())
-
-const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
 
 const { audits, isAuditLoading } = useExpandedFormStoreOrThrow()
 
@@ -55,14 +46,6 @@ watch(
     })
   },
 )
-
-function fieldsChanged(audit: any) {
-  try {
-    return Object.keys(JSON.parse(audit.details).data).length
-  } catch {
-    return '-'
-  }
-}
 
 </script>
 

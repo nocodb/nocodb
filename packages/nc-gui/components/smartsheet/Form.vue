@@ -1976,8 +1976,11 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 
   :deep(input) {
-    @apply !px-1;
+    &:not(.ant-select-selection-search-input) {
+      @apply !px-1;
+    }
   }
+
   &.nc-cell-longtext {
     @apply p-0 h-auto;
   }

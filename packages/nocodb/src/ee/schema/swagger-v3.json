@@ -226,7 +226,7 @@
             "description": "Server error."
           }
         }
-      }
+      },
       "post": {
         "summary": "Invite users to a base",
         "description": "Invite new users to a specific base using their email address.",

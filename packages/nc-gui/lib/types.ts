@@ -7,6 +7,7 @@ import type {
   FilterType,
   MetaType,
   PaginatedType,
+  PublicAttachmentScope,
   Roles,
   RolesObj,
   TableType,
@@ -258,6 +259,22 @@ interface ImageCropperConfig {
   imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
 }
 
+interface ImageCropperProps {
+  imageConfig: {
+    src: string
+    type: string
+    name: string
+  }
+  cropperConfig: ImageCropperConfig
+  uploadConfig?: {
+    path?: string
+    scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
+  }
+  showCropper: boolean
+}
+
 interface AuditLogsQuery {
   type?: AuditOperationTypes
   baseId?: string
@@ -338,6 +355,7 @@ export type {
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
+  ImageCropperProps,
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,

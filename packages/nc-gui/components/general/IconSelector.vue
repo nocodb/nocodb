@@ -4,24 +4,23 @@ import { Upload } from 'ant-design-vue'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { PublicAttachmentScope } from 'nocodb-sdk'
-import { WorkspaceIconType } from '#imports'
+import { IconType } from '#imports'
 
 interface Props {
   icon: string | Record<string, any>
-  iconType: WorkspaceIconType | string
-  currentWorkspace: any
+  iconType: IconType | string
+  imageCropperData: Omit<ImageCropperProps, 'showCropper'>
 }
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:icon', 'update:iconType', 'submit'])
-
-const { currentWorkspace } = toRefs(props)
+const emits = defineEmits(['update:icon', 'update:iconType', 'update:imageCropperData', 'submit'])
 
 const vIcon = useVModel(props, 'icon', emits)
 
 const vIconType = useVModel(props, 'iconType', emits)
+
+const imageCropperData = useVModel(props, 'imageCropperData', emits)
 
 const { t } = useI18n()
 
@@ -35,11 +34,11 @@ const inputRef = ref<HTMLInputElement>()
 
 const searchQuery = ref<string>('')
 
-const activeTabLocal = ref<WorkspaceIconType>(WorkspaceIconType.ICON)
+const activeTabLocal = ref<IconType>(IconType.ICON)
 
 const activeTab = computed({
   get: () => activeTabLocal.value,
-  set: (value: WorkspaceIconType) => {
+  set: (value: IconType) => {
     searchQuery.value = ''
 
     activeTabLocal.value = value
@@ -56,7 +55,7 @@ const icons = computed(() => {
 
 const selectIcon = (icon: string) => {
   vIcon.value = icon
-  vIconType.value = WorkspaceIconType.ICON
+  vIconType.value = IconType.ICON
 
   emits('submit')
 
@@ -86,7 +85,7 @@ const emojiIndex = new EmojiIndex(data, {
 
 function selectEmoji(_emoji: any) {
   vIcon.value = _emoji.native
-  vIconType.value = WorkspaceIconType.EMOJI
+  vIconType.value = IconType.EMOJI
 
   emits('submit')
 
@@ -95,30 +94,9 @@ function selectEmoji(_emoji: any) {
 
 const fileList = ref<UploadFile[]>([])
 
-const imageCropperData = ref({
-  cropperConfig: {
-    stencilProps: {
-      aspectRatio: 1,
-      fillDefault: true,
-    },
-    minHeight: 150,
-    minWidth: 150,
-  },
-  imageConfig: {
-    src: '',
-    type: 'image',
-    name: 'icon',
-  },
-  uploadConfig: {
-    path: [NOCO, 'workspace', currentWorkspace.value?.id, 'icon'].join('/'),
-    scope: PublicAttachmentScope.WORKSPACEPICS,
-    maxFileSize: 2 * 1024 * 1024,
-  },
-})
-
 const handleOnUploadImage = async (data: any) => {
   vIcon.value = data
-  vIconType.value = WorkspaceIconType.IMAGE
+  vIconType.value = IconType.IMAGE
 
   emits('submit')
 
@@ -130,7 +108,7 @@ const showImageCropperLocal = ref(false)
 const showImageCropper = ref(false)
 
 const getWorkspaceLogoSrc = computed(() => {
-  if (vIcon.value && vIconType.value === WorkspaceIconType.IMAGE) {
+  if (vIcon.value && vIconType.value === IconType.IMAGE) {
     return getPossibleAttachmentSrc(vIcon.value)
   }
 
@@ -207,7 +185,7 @@ const onVisibilityChange = (value: boolean) => {
 }
 
 function focusInput() {
-  if (activeTab.value === WorkspaceIconType.EMOJI) {
+  if (activeTab.value === IconType.EMOJI) {
     setTimeout(() => {
       const emojiInput = document.querySelector('.emoji-mart-search input') as HTMLInputElement
 
@@ -216,7 +194,7 @@ function focusInput() {
       emojiInput.focus()
       emojiInput.select()
     })
-  } else if (activeTab.value === WorkspaceIconType.ICON) {
+  } else if (activeTab.value === IconType.ICON) {
     setTimeout(() => {
       inputRef.value?.focus()
       inputRef.value?.select()
@@ -245,28 +223,11 @@ watch(isOpen, (newValue) => {
 
 <template>
   <div>
-    <NcDropdown v-model:visible="isOpen" overlay-class-name="w-[432px]" @visible-change="onVisibilityChange">
-      <div
-        class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
-        :class="{
-          'border-transparent': !isOpen && vIconType === WorkspaceIconType.IMAGE,
-          'border-nc-gray-medium': !isOpen && vIconType !== WorkspaceIconType.IMAGE,
-          'border-primary shadow-selected': isOpen,
-        }"
-      >
-        <GeneralWorkspaceIcon
-          :workspace="currentWorkspace"
-          :workspace-icon="{
-            icon: vIcon,
-            iconType: vIconType,
-          }"
-          size="xlarge"
-          class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
-        />
-      </div>
+    <NcDropdown v-bind="$attrs" v-model:visible="isOpen" overlay-class-name="w-[432px]" @visible-change="onVisibilityChange">
+      <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
       <template #overlay>
         <div class="pt-2 h-[320px]">
-          <NcTabs v-model:activeKey="activeTab" class="nc-workspace-icon-dropdown-tabs h-full">
+          <NcTabs v-model:activeKey="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
             <template #leftExtra>
               <div class="w-0"></div>
             </template>
@@ -275,7 +236,7 @@ watch(isOpen, (newValue) => {
                 <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
               </div>
             </template>
-            <a-tab-pane :key="WorkspaceIconType.ICON" class="w-full" :disabled="isLoading">
+            <a-tab-pane :key="IconType.ICON" class="w-full" :disabled="isLoading">
               <template #tab>
                 <div class="tab-title">
                   <GeneralIcon icon="ncPlaceholderIcon" class="flex-none" />
@@ -309,7 +270,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </div>
             </a-tab-pane>
-            <a-tab-pane :key="WorkspaceIconType.IMAGE" class="w-full" :disabled="isLoading">
+            <a-tab-pane :key="IconType.IMAGE" class="w-full" :disabled="isLoading">
               <template #tab>
                 <div
                   class="tab-title"
@@ -355,7 +316,7 @@ watch(isOpen, (newValue) => {
                     :disabled="isUploadingImage"
                     :multiple="false"
                     :show-upload-list="false"
-                    class="nc-workspace-image-uploader"
+                    class="nc-icon-selector-image-uploader"
                     :custom-request="customReqCbk"
                     :before-upload="beforeUpload"
                     @change="handleChange"
@@ -376,7 +337,7 @@ watch(isOpen, (newValue) => {
                 </div>
               </div>
             </a-tab-pane>
-            <a-tab-pane :key="WorkspaceIconType.EMOJI" class="w-full" :disabled="isLoading">
+            <a-tab-pane :key="IconType.EMOJI" class="w-full" :disabled="isLoading">
               <template #tab>
                 <div class="tab-title">
                   <GeneralIcon icon="ncSmile" class="flex-none" />
@@ -394,7 +355,7 @@ watch(isOpen, (newValue) => {
                   :i18n="{
                     search: 'Search emoji',
                   }"
-                  class="nc-workspace-emoji-picker"
+                  class="nc-icon-selector-emoji-picker"
                   @select="selectEmoji"
                   @click.stop="() => {}"
                 ></Picker>
@@ -416,7 +377,7 @@ watch(isOpen, (newValue) => {
 </template>
 
 <style lang="scss" scoped>
-.nc-workspace-icon-dropdown-tabs {
+.nc-icon-selector-dropdown-tabs {
   :deep(.ant-tabs-nav) {
     @apply px-3;
 
@@ -468,7 +429,7 @@ watch(isOpen, (newValue) => {
 </style>
 
 <style>
-.nc-workspace-image-uploader {
+.nc-icon-selector-image-uploader {
   &.ant-upload.ant-upload-drag {
     @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
   }
@@ -477,7 +438,7 @@ watch(isOpen, (newValue) => {
   }
 }
 
-.nc-workspace-emoji-picker.emoji-mart {
+.nc-icon-selector-emoji-picker.emoji-mart {
   @apply !w-108 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {

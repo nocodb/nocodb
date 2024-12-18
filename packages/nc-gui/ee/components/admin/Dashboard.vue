@@ -47,7 +47,7 @@ onMounted(async () => {
               :workspace="{
                 id: org.id,
                 title: org?.title,
-                ...(org.image ? { meta: { icon: parseProp(org.image), iconType: WorkspaceIconType.IMAGE } } : {}),
+                ...(org.image ? { meta: { icon: parseProp(org.image), iconType: IconType.IMAGE } } : {}),
               }"
               :class="{
                 'w-24 h-24': !org.image,

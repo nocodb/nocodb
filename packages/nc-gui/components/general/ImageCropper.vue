@@ -2,25 +2,11 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
-import type { ImageCropperConfig } from '#imports'
+import type { AttachmentReqType } from 'nocodb-sdk'
+import type { ImageCropperProps } from '#imports'
 
-interface Props {
-  imageConfig: {
-    src: string
-    type: string
-    name: string
-  }
-  cropperConfig: ImageCropperConfig
-  uploadConfig?: {
-    path?: string
-    scope?: PublicAttachmentScope
-    // filesize in bytes
-    maxFileSize?: number
-  }
-  showCropper: boolean
-}
-const { imageConfig, uploadConfig, ...props } = defineProps<Props>()
+const { imageConfig, uploadConfig, ...props } = defineProps<ImageCropperProps>()
+
 const emit = defineEmits(['update:showCropper', 'submit'])
 
 const showCropper = useVModel(props, 'showCropper', emit)

@@ -276,23 +276,11 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj, null)
-
 const toggleMenu = () => {
-  if (cellClickHook || isFocusing.value) return
+  if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
 }
-
-const cellClickHookHandler = () => {
-  isOpen.value = editAllowed.value && !isOpen.value
-}
-onMounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
-onUnmounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
 
 const handleClose = (e: MouseEvent) => {
   // close dropdown if clicked outside of dropdown

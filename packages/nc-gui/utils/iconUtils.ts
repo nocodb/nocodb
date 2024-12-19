@@ -3784,51 +3784,9 @@ export const searchableMap = {
     icon: NcQuote,
     keywords: ['quotes'],
   },
-
-  // Colored icons
-  ncFileTypeCsv: {
-    icon: h(NcFileTypeCsv, { stroke: 'transparent' }),
-    keywords: ['CSV', 'document', 'file', 'adobe', 'writer'],
-  },
-  ncFileTypeExcel: {
-    icon: h(NcFileTypeExcel, { stroke: 'transparent' }),
-    keywords: ['excel', 'document', 'file', 'adobe', 'writer'],
-  },
-  ncFileTypePdf: {
-    icon: h(NcFileTypePdf, { stroke: 'transparent' }),
-    keywords: ['pdf', 'document', 'file', 'adobe', 'reader'],
-  },
-  ncFileTypeWord: {
-    icon: h(NcFileTypeWord, { stroke: 'transparent' }),
-    keywords: ['word', 'document', 'file', 'microsoft', 'writer'],
-  },
-  ncFileTypePresentation: {
-    icon: h(NcFileTypePresentation, { stroke: 'transparent' }),
-    keywords: ['powerpoint', 'presentation', 'file', 'microsoft', 'office'],
-  },
-  ncFileTypeVideo: {
-    icon: h(NcFileTypeVideo, { stroke: 'transparent' }),
-    keywords: ['video', 'movie', 'file', 'media', 'player'],
-  },
-  ncFileTypeAudio: {
-    icon: h(NcFileTypeAudio, { stroke: 'transparent' }),
-    keywords: ['audio', 'music', 'file', 'media', 'player'],
-  },
-  ncFileTypeZip: {
-    icon: h(NcFileTypeZip, { stroke: 'transparent' }),
-    keywords: ['zip', 'archive', 'file', 'compression', 'zipper'],
-  },
-  ncFileTypeUnknown: {
-    icon: h(NcFileTypeUnknown, { stroke: 'transparent' }),
-    keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
-  },
-  ncFileTypeJson: {
-    icon: h(NcFileTypeJson, { stroke: 'transparent' }),
-    keywords: ['json', 'file', 'type', 'writer'],
-  },
   ncFileSearch: {
-    icon: NcFileSearch,
-    keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
+    icon: h(NcFileSearch, { stroke: 'transparent' }),
+    keywords: ['search', 'file', 'document'],
   },
 }
 

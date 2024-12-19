@@ -2164,7 +2164,7 @@ class MysqlClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + upQuery }],

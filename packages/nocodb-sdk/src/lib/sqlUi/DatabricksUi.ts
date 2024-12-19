@@ -180,7 +180,7 @@ export class DatabricksUi {
         dtxp: '38,18',
         dtxs: '',
         altered: 1,
-        uidt: 'Decimal',
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
       },

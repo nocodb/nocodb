@@ -434,8 +434,16 @@ export class OrderColumnMigration {
       if (isEE) {
         await realDbDriver.raw(queries.join(';'));
       } else {
-        for (const query of queries) {
-          await realDbDriver.raw(query);
+        const trans = await realDbDriver.transaction();
+
+        try {
+          for (const query of queries) {
+            await trans.raw(query);
+          }
+          await trans.commit();
+        } catch (e) {
+          await trans.rollback();
+          throw e;
         }
       }
 

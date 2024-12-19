@@ -383,11 +383,17 @@ export default class Upgrader extends MetaService {
 
     if (!queries.length) return [];
 
-    for (const query of queries) {
-      await this.knexConnection.raw(query);
-    }
+    const trans = await this.knexConnection.transaction();
 
-    return queries;
+    try {
+      for (const query of queries) {
+        await trans.raw(query);
+      }
+      await trans.commit();
+    } catch (e) {
+      await trans.rollback();
+      throw e;
+    }
   }
 
   logHelper? = async (_workspace_id, _base_id, _target, _q) => {};

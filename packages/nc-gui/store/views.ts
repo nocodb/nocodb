@@ -138,7 +138,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!force && viewsByTable.value.get(tableId)) {
         viewsByTable.value.set(
           tableId,
-          viewsByTable.value.get(tableId).sort((a, b) => a.order! - b.order!),
+          (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
         )
 
         return

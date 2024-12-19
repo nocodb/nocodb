@@ -307,7 +307,9 @@ const reloadMetaAndData = async () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
   if (!isKanban.value) {
-    reloadDataTrigger?.trigger()
+    reloadDataTrigger?.trigger({
+      fieldAdd: true
+    })
   }
 }
 

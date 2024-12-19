@@ -234,7 +234,7 @@ async function onOpenModal({
                   :disabled="!activeSource?.is_data_readonly"
                   placement="right"
                 >
-                  <a-menu-item @click="onOpenModal({ type: ViewTypes.FORM })" :disabled="!!activeSource?.is_data_readonly">
+                  <a-menu-item :disabled="!!activeSource?.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
                     <div
                       class="nc-viewlist-submenu-popup-item"
                       data-testid="topbar-view-create-form"

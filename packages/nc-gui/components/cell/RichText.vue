@@ -13,13 +13,6 @@ import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
 
-// Set options for how Markdown is parsed
-marked.setOptions({
-  breaks: true, // Converts single line breaks to <br> tags
-  gfm: true, // Enable GitHub Flavored Markdown (GFM)
-  sanitize: false, // Allow HTML tags within Markdown
-})
-
 const props = withDefaults(
   defineProps<{
     value?: string | null
@@ -42,6 +35,13 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
+
+// Set options for how Markdown is parsed
+marked.setOptions({
+  breaks: true, // Converts single line breaks to <br> tags
+  gfm: true, // Enable GitHub Flavored Markdown (GFM)
+  sanitize: false, // Allow HTML tags within Markdown
+})
 
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 

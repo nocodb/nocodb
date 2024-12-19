@@ -34,4 +34,14 @@ onMounted(() => {
   <div id="searchbar" :ref="modalEl" class="hidden"></div>
 </template>
 
-<style></style>
+<style lang="scss">
+.DocSearch.DocSearch-Container {
+  .DocSearch-Modal {
+    border-radius: 16px;
+
+    .DocSearch-Footer {
+      border-radius: 0 0 16px 16px;
+    }
+  }
+}
+</style>

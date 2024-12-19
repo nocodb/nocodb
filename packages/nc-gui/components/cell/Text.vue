@@ -27,6 +27,11 @@ const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+
+const textareaValue = computed({
+  get: () => vModel.value ?? '',
+  set: (val) => vModel.value = val
+})
 </script>
 
 <template>
@@ -49,7 +54,7 @@ const focus: VNodeRef = (el) =>
     <a-textarea
       v-else
       :ref="focus"
-      v-model:value="vModel!"
+      v-model:value="textareaValue"
       :auto-size="{ minRows: 1, maxRows: 6 }"
       class="!border-0 !border-none !outline-0 !ring-0 focus:!border-0 focus:!outline-0 focus:!ring-0 !p-2 nc-scrollbar-thin"
       style="color: inherit; resize: auto !important"

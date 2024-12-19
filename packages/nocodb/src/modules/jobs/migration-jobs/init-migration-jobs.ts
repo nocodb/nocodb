@@ -134,16 +134,16 @@ export class InitMigrationJobs {
         // set stall interval
         const stallInterval = setMigrationJobsStallInterval();
 
+        let migrated = false;
+
         try {
           // run migration (pass service as this context)
-          const migrated = await migration.service.job();
+          migrated = await migration.service.job();
           // prepare state
           if (migrated) {
             migrationJobsState.version = migration.version;
             migrationJobsState.locked = false;
             migrationJobsState.stall_check = Date.now();
-
-            await this.jobsService.add(JobTypes.InitMigrationJobs, {});
           } else {
             migrationJobsState.locked = false;
             migrationJobsState.stall_check = Date.now();
@@ -157,6 +157,11 @@ export class InitMigrationJobs {
 
           // update state
           await updateMigrationJobsState(migrationJobsState);
+
+          if (migrated) {
+            // run next job
+            this.jobsService.add(JobTypes.InitMigrationJobs, {});
+          }
         }
       } catch (e) {
         this.log('Error running migration: ', e);

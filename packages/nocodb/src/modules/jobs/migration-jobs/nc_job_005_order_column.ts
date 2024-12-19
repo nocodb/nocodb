@@ -413,7 +413,11 @@ export class OrderColumnMigration {
         this.logExecutionTime(`Populate order values query generated`, hrtime);
       } else {
         this.log(
-          `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
+          `Order column already exists for model ${modelId}, Table: ${
+            model.table_name
+          }, BaseId ${base_id}${
+            context.workspace_id ? `, WorkspaceId ${context.workspace_id}` : ''
+          }`,
         );
         await this.updateModelStatus(Noco.ncMeta, modelId, true);
         return;

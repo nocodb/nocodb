@@ -36,6 +36,7 @@ const textareaValue = computed({
 
 <template>
   <template v-if="!readOnly && editEnabled">
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       v-if="!isExpandedFormOpen"
       :ref="focus"

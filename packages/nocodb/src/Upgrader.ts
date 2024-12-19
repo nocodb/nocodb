@@ -362,8 +362,9 @@ export default class Upgrader extends MetaService {
     this._upgrader_mode = true;
   }
 
-  disableUpgraderMode?() {
+  async disableUpgraderMode?() {
     NocoCache.enableCache();
+    await NocoCache.destroy()
     this._upgrader_mode = false;
   }
 

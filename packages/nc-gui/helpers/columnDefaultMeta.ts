@@ -1,6 +1,6 @@
 import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
 
-export const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8] as const
+export const precisionFormats = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const
 
 export const supportedBarcodeFormats = [
   { value: 'CODE128', label: 'CODE128' },
@@ -18,6 +18,7 @@ export const supportedBarcodeFormats = [
 
 export const makePrecisionFormatsDiplay = (t: (input: string) => string) =>
   ({
+    0: t('placeholder.decimal0'),
     1: t('placeholder.decimal1'),
     2: t('placeholder.decimal2'),
     3: t('placeholder.decimal3'),
@@ -57,7 +58,7 @@ const dateTimeDefaultMeta = {
 }
 
 const decimalDefaultMeta = {
-  precision: precisionFormats[0],
+  precision: precisionFormats[1],
   isLocaleString: false,
 }
 

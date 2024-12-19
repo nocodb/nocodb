@@ -1423,6 +1423,7 @@
     "filterQuery": "Filter query",
     "selectField": "Select field",
     "precision": "Precision",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",

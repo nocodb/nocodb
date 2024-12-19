@@ -3794,3 +3794,5 @@ export const searchIcons = (searchTerm: string) => {
       keywords: iconData.keywords,
     }))
 }
+
+export type IconMapKey = keyof typeof iconMap

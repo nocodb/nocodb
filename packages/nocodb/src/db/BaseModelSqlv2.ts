@@ -4484,7 +4484,10 @@ class BaseModelSqlv2 {
           break;
         }
         case UITypes.SingleSelect: {
-          res[sanitize(getAs(column) || column.column_name)] = this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [sanitize(column.column_name)])
+          res[sanitize(getAs(column) || column.column_name)] =
+            this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
+              sanitize(column.column_name),
+            ]);
           break;
         }
         default:
@@ -8072,10 +8075,9 @@ class BaseModelSqlv2 {
                 query.where((qb) => {
                   qb.whereNull(column.column_name);
                   if (column.uidt === UITypes.SingleSelect) {
-                    qb.orWhere(column.column_name, '=', '')
+                    qb.orWhere(column.column_name, '=', '');
                   }
-
-                })
+                });
               } else {
                 query.where(column.column_name, r);
               }
@@ -8099,7 +8101,8 @@ class BaseModelSqlv2 {
         (aggObj, row) => {
           const rawVal = row[column.title];
           // Treat empty strings as null
-          const val = typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
+          const val =
+            typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
 
           if (!aggObj.has(val)) {
             aggObj.set(val, []);
@@ -8136,11 +8139,14 @@ class BaseModelSqlv2 {
     if (isVirtualCol(column))
       NcError.notImplemented('Grouping for virtual columns');
 
-    const qb = this.dbDriver(this.tnPath)
-      .count('*', { as: 'count' })
+    const qb = this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
     if (column.uidt === UITypes.SingleSelect) {
-      qb.groupBy(this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [column.column_name]));
+      qb.groupBy(
+        this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
+          column.column_name,
+        ]),
+      );
     } else {
       qb.groupBy(column.column_name);
     }
@@ -8198,11 +8204,13 @@ class BaseModelSqlv2 {
 
     await this.selectObject({
       qb,
-      columns: [new Column({
-        ...column,
-        title: 'key',
-        id: 'key',
-      })],
+      columns: [
+        new Column({
+          ...column,
+          title: 'key',
+          id: 'key',
+        }),
+      ],
     });
 
     return await this.execAndParse(qb);

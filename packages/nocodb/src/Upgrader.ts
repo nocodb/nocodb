@@ -364,7 +364,7 @@ export default class Upgrader extends MetaService {
 
   async disableUpgraderMode?() {
     NocoCache.enableCache();
-    await NocoCache.destroy()
+    await NocoCache.destroy();
     this._upgrader_mode = false;
   }
 
@@ -390,6 +390,5 @@ export default class Upgrader extends MetaService {
     return queries;
   }
 
-  logHelper? = async (workspace_id, base_id, target, q) => {}
-
+  logHelper? = async (_workspace_id, _base_id, _target, _q) => {};
 }

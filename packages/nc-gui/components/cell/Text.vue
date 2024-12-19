@@ -52,7 +52,7 @@ const focus: VNodeRef = (el) =>
       v-model:value="vModel!"
       :auto-size="{ minRows: 1, maxRows: 6 }"
       class="!border-0 !border-none !outline-0 !ring-0 focus:!border-0 focus:!outline-0 focus:!ring-0 !p-2 nc-scrollbar-thin"
-      style="color: inherit; resize: auto !important;"
+      style="color: inherit; resize: auto !important"
       @keydown.enter.prevent
     />
   </template>

@@ -204,7 +204,7 @@ export class MysqlUi {
         dtxp: '40,20',
         dtxs: '',
         altered: 1,
-        uidt: 'Decimal',
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
       },

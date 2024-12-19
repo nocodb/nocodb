@@ -30,7 +30,7 @@ const focus: VNodeRef = (el) =>
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
-  set: (val) => vModel.value = val
+  set: (val) => (vModel.value = val),
 })
 </script>
 

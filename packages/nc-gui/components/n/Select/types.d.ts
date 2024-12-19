@@ -17,7 +17,7 @@ export interface NSelectProps {
   allowClear?: boolean
   loading?: boolean
   disabled?: boolean
-  suffixIcon?: ValidIcon
+  suffixIcon?: IconMapKey
 
   filterOption?: (input: string, option: any) => boolean
 

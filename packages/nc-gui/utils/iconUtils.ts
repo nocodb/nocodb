@@ -3789,4 +3789,4 @@ export const searchIcons = (searchTerm: string) => {
     }))
 }
 
-export type ValidIcon = keyof typeof iconMap
+export type IconMapKey = keyof typeof iconMap

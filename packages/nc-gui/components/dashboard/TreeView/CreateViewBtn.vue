@@ -152,7 +152,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly" >
+        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly">
           <NcMenuItem :disabled="!!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
             <div class="item" data-testid="sidebar-view-create-form">
               <div class="item-inner">

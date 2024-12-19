@@ -345,11 +345,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
-              @focus="isSearchInputFocused = true"
-              @blur="isSearchInputFocused = false"
               placeholder="Search records to link..."
               class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
+              @focus="isSearchInputFocused = true"
+              @blur="isSearchInputFocused = false"
               @change="onFilterChange"
               @keydown.capture.stop="handleKeyDown"
             >

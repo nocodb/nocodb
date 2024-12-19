@@ -426,6 +426,10 @@ onMounted(() => {
   }
 }
 
+:deep(.nc-cell-singlelinetext) {
+  @apply h-auto;
+}
+
 .form-meta-input::placeholder {
   @apply text-[#3d3d3d] italic;
 }

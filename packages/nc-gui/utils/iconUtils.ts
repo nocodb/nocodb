@@ -584,6 +584,7 @@ import NcFileTypeVideo from '~icons/nc-icons-v2/file-type-video'
 import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
 import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
+import NcFileSearch from '~icons/nc-icons-v2/file-search'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1383,6 +1384,7 @@ export const iconMap = {
   ncFileTypeAudio: NcFileTypeAudio,
   ncFileTypeZip: NcFileTypeZip,
   ncFileTypeUnknown: NcFileTypeUnknown,
+  ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3760,6 +3762,10 @@ export const searchableMap = {
   },
   ncFileTypeUnknown: {
     icon: NcFileTypeUnknown,
+    keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
+  },
+  ncFileSearch: {
+    icon: NcFileSearch,
     keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
   },
 }

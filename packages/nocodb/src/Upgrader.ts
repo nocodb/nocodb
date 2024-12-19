@@ -383,7 +383,9 @@ export default class Upgrader extends MetaService {
 
     if (!queries.length) return [];
 
-    await this.knexConnection.raw(queries.join(';'));
+    for (const query of queries) {
+      await this.knexConnection.raw(query);
+    }
 
     return queries;
   }

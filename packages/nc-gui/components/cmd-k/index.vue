@@ -398,7 +398,7 @@ defineExpose({
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
-      <div class="cmdk-header">
+      <div class="cmdk-header border-b-1 border-gray-200">
         <div class="cmdk-input-wrapper">
           <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
           <div
@@ -474,7 +474,7 @@ defineExpose({
             </div>
           </div>
           <template v-else>
-            <div class="cmdk-action-list border-t-1 border-gray-200">
+            <div class="cmdk-action-list">
               <div v-bind="containerProps" :style="`height: ${WRAPPER_HEIGHT}px`">
                 <div v-bind="wrapperProps">
                   <div v-for="item in list" :key="item.index" :style="`height: ${ACTION_HEIGHT}px`">
@@ -743,7 +743,7 @@ defineExpose({
     border-top: 1px solid rgb(230, 230, 230);
     background: rgba(242, 242, 242, 0.4);
     font-size: 0.8em;
-    padding: 0.3em 0.6em;
+    padding: 0 0.6em;
     color: var(--cmdk-secondary-text-color);
     .cmdk-footer-left {
       display: flex;

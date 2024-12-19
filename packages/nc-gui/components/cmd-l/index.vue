@@ -182,7 +182,7 @@ onMounted(() => {
 <template>
   <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
-      <div class="cmdk-input-wrapper">
+      <div class="cmdk-input-wrapper border-b-1 border-gray-200">
         <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
         <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
       </div>

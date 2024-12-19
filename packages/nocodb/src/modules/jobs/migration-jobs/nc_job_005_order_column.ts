@@ -431,7 +431,14 @@ export class OrderColumnMigration {
 
       const queries = source.upgraderQueries.splice(0);
 
-      await realDbDriver.raw(queries.join(';'));
+      if (isEE) {
+        await realDbDriver.raw(queries.join(';'));
+      } else {
+        for (const query of queries) {
+          await realDbDriver.raw(query);
+        }
+      }
+
       await ncMeta.runUpgraderQueries();
     } catch (error) {
       throw error;

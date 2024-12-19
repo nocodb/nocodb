@@ -43,12 +43,12 @@ export class InitMigrationJobs {
     {
       version: '5',
       job: MigrationJobTypes.NoOpMigration,
-      service: this.noOpMigration,
+      service: isEE ? this.orderColumnMigration : this.noOpMigration,
     },
     {
       version: '6',
       job: MigrationJobTypes.OrderColumnCreation,
-      service: isEE ? this.noOpMigration: this.orderColumnMigration,
+      service: isEE ? this.noOpMigration : this.orderColumnMigration,
     },
   ];
 

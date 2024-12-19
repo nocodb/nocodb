@@ -1701,7 +1701,7 @@ class SqliteClient extends KnexClient {
         await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
       }
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       const afterUpdate = await this.afterTableUpdate(args);
 

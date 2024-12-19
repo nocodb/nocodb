@@ -2034,7 +2034,7 @@ class MssqlClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       const afterUpdate = await this.afterTableUpdate(args);
 

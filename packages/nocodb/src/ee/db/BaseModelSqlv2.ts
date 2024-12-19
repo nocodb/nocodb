@@ -657,7 +657,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async getHighestOrderInTable() {
+  public async getHighestOrderInTable(): Promise<number> {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );
@@ -681,7 +681,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       res = await orderQuery;
     }
 
-    const order = res ? res['max_order'] || '0' : '0';
+    const order = res ? +res['max_order'] || 0 : 0;
 
     return order + ORDER_STEP_INCREMENT;
   }

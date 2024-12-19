@@ -14,6 +14,8 @@ import {
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
+import { isEE } from '~/utils';
 
 @Injectable()
 export class InitMigrationJobs {
@@ -40,8 +42,13 @@ export class InitMigrationJobs {
     },
     {
       version: '5',
+      job: MigrationJobTypes.NoOpMigration,
+      service: isEE ? this.orderColumnMigration : this.noOpMigration,
+    },
+    {
+      version: '6',
       job: MigrationJobTypes.OrderColumnCreation,
-      service: this.orderColumnMigration,
+      service: isEE ? this.noOpMigration : this.orderColumnMigration,
     },
   ];
 
@@ -55,6 +62,7 @@ export class InitMigrationJobs {
     private readonly recoverLinksMigration: RecoverLinksMigration,
     private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
     private readonly orderColumnMigration: OrderColumnMigration,
+    private readonly noOpMigration: NoOpMigration,
   ) {}
 
   log = (...msgs: string[]) => {
@@ -126,16 +134,16 @@ export class InitMigrationJobs {
         // set stall interval
         const stallInterval = setMigrationJobsStallInterval();
 
+        let migrated = false;
+
         try {
           // run migration (pass service as this context)
-          const migrated = await migration.service.job();
+          migrated = await migration.service.job();
           // prepare state
           if (migrated) {
             migrationJobsState.version = migration.version;
             migrationJobsState.locked = false;
             migrationJobsState.stall_check = Date.now();
-
-            await this.jobsService.add(JobTypes.InitMigrationJobs, {});
           } else {
             migrationJobsState.locked = false;
             migrationJobsState.stall_check = Date.now();
@@ -149,6 +157,11 @@ export class InitMigrationJobs {
 
           // update state
           await updateMigrationJobsState(migrationJobsState);
+
+          if (migrated) {
+            // run next job
+            this.jobsService.add(JobTypes.InitMigrationJobs, {});
+          }
         }
       } catch (e) {
         this.log('Error running migration: ', e);

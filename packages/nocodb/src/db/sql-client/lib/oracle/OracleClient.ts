@@ -1681,7 +1681,7 @@ class OracleClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],

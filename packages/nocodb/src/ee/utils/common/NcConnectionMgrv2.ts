@@ -21,6 +21,16 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataConfig?: Knex.Config;
 
   public static async get(source: Source): Promise<XKnex> {
+    /*
+      This is a partial implementation for upgrader mode (Only for EE rn).
+      If upgrader mode is enabled all queries will be stored instead of running them.
+      TODO:
+      - Move knex raw override to CustomKnex level
+      - Implement it for OSS
+
+      This is not used yet as we manually push queries on `nc_job_005_order_column` migration job.
+      For future migrations we are planning to use this.
+    */
     if (source.upgraderMode === true) {
       const connectionConfig = await source.getConnectionConfig();
 

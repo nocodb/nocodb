@@ -38,15 +38,18 @@ export class SnapshotService {
 
       await Snapshot.delete(context, snapshotId, ncMeta);
 
-      await Base.delete({
-        workspace_id: snapshot.fk_workspace_id,
-        base_id: snapshot.snapshot_base_id,
-      }, snapshot.snapshot_base_id, ncMeta);
+      await Base.delete(
+        {
+          workspace_id: snapshot.fk_workspace_id,
+          base_id: snapshot.snapshot_base_id,
+        },
+        snapshot.snapshot_base_id,
+        ncMeta,
+      );
 
       await ncMeta.commit();
 
       return true;
-
     } catch (e) {
       await ncMeta.rollback();
       throw e;

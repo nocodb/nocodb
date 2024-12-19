@@ -1,29 +1,11 @@
-import NocoCache from './cache/NocoCache';
+import { default as CEUpgrader } from 'src/Upgrader';
 import type { Condition } from '~/db/CustomKnex';
-import Noco from '~/Noco';
-import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 
 const BATCH_SIZE = 500;
 
-export default class Upgrader extends MetaService {
-  protected _upgrader_mode: boolean;
-  protected _upgrader_queries: string[] = [];
-
-  constructor() {
-    const ncMeta = Noco.ncMeta;
-    super(ncMeta.config, ncMeta.knex);
-  }
-
-  get upgrader_mode(): boolean {
-    return this._upgrader_mode;
-  }
-
-  get upgrader_queries(): string[] {
-    return this._upgrader_queries;
-  }
-
+export default class Upgrader extends CEUpgrader {
   public async metaInsert2(
     workspace_id: string,
     base_id: string,
@@ -55,7 +37,16 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      insertObj.fk_workspace_id = workspace_id;
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -118,12 +109,21 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
         });
       }
+
+      commonProps.fk_workspace_id = workspace_id;
       commonProps.base_id = base_id;
     }
 
@@ -182,6 +182,13 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -250,7 +257,14 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -315,6 +329,13 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -357,24 +378,32 @@ export default class Upgrader extends MetaService {
     return await query;
   }
 
-  enableUpgraderMode?() {
-    NocoCache.disableCache();
-    this._upgrader_mode = true;
-  }
+  logHelper? = async (workspace_id, base_id, target, q) => {
+    const qStr = q.toQuery();
 
-  async disableUpgraderMode?() {
-    NocoCache.enableCache();
-    await NocoCache.destroy();
-    this._upgrader_mode = false;
-  }
-
-  async pushUpgraderQuery(query: string | string[]) {
-    if (Array.isArray(query)) {
-      this._upgrader_queries.push(...query);
-    } else {
-      this._upgrader_queries.push(query);
+    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+      return;
     }
-  }
+
+    if (target === MetaTable.PROJECT) {
+      if (!qStr.includes('fk_workspace_id') || !qStr.includes('id')) {
+        if (!(workspace_id in RootScopeTables)) {
+          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
+          console.log(new Error().stack);
+        }
+      }
+    } else {
+      if (
+        !qStr.includes('fk_workspace_id') ||
+        (base_id !== RootScopes.WORKSPACE && !qStr.includes('base_id'))
+      ) {
+        if (!(workspace_id in RootScopeTables)) {
+          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
+          console.log(new Error().stack);
+        }
+      }
+    }
+  };
 
   async runUpgraderQueries() {
     if (!this._upgrader_mode) throw new Error('Upgrader mode is not enabled');
@@ -383,18 +412,6 @@ export default class Upgrader extends MetaService {
 
     if (!queries.length) return [];
 
-    const trans = await this.knexConnection.transaction();
-
-    try {
-      for (const query of queries) {
-        await trans.raw(query);
-      }
-      await trans.commit();
-    } catch (e) {
-      await trans.rollback();
-      throw e;
-    }
+    await this.knexConnection.raw(queries.join(';'));
   }
-
-  logHelper? = async (_workspace_id, _base_id, _target, _q) => {};
 }

@@ -980,7 +980,13 @@ export async function extractColumn({
     }
 
     case UITypes.SingleSelect: {
-      qb.select(knex.raw(`COALESCE(NULLIF(??.??, ''), NULL) as ??`, [rootAlias, sanitize(column.column_name), getAs(column)]));
+      qb.select(
+        knex.raw(`COALESCE(NULLIF(??.??, ''), NULL) as ??`, [
+          rootAlias,
+          sanitize(column.column_name),
+          getAs(column),
+        ]),
+      );
       break;
     }
     default:

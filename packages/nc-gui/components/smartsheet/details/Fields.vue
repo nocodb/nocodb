@@ -182,9 +182,10 @@ const fields = computed<TableExplorerColumn[]>({
   },
 })
 
-const previousToggleAction = ref<boolean>(!!fields.value?.some((vf) => !vf.pv && vf.visible))
+const previousToggleAction = ref<boolean>(!fields.value?.some((vf) => vf.visible))
 const showOrHideAllFields = () => {
   previousToggleAction.value = !previousToggleAction.value
+  visibilityOps.value = [];
   fields.value.forEach((f) => toggleVisibility(previousToggleAction.value, viewFieldsMap.value[f.id]))
 }
 
@@ -1427,7 +1428,7 @@ watch(activeAiTab, (newValue) => {
             height: `calc(100vh - (var(--topbar-height) * 3.6) - 24px)`,
           }"
         >
-          <div class="flex-1 h-full flex flex-col w-3/5 max-w-3/5">
+          <div class="flex-1 h-full flex flex-col max-w-3/5">
             <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium overflow-x-scroll">
               <!-- Ai field wizard  -->
               <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
@@ -1692,7 +1693,7 @@ watch(activeAiTab, (newValue) => {
                     <template #title> Editing system columns is not supported </template>
                     <div
                       v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                      class="flex px-2 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
+                      class="flex px-2 border-b-1 border-gray-200 pl-5 group"
                       :class="{
                         'selected': compareCols(field, activeField),
                         'cursor-not-allowed': !isColumnUpdateAllowed(field),

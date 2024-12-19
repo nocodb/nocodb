@@ -14,6 +14,8 @@ import {
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
+import { isEE } from '~/utils';
 
 @Injectable()
 export class InitMigrationJobs {
@@ -40,8 +42,13 @@ export class InitMigrationJobs {
     },
     {
       version: '5',
+      job: MigrationJobTypes.NoOpMigration,
+      service: this.noOpMigration,
+    },
+    {
+      version: '6',
       job: MigrationJobTypes.OrderColumnCreation,
-      service: this.orderColumnMigration,
+      service: isEE ? this.noOpMigration: this.orderColumnMigration,
     },
   ];
 
@@ -55,6 +62,7 @@ export class InitMigrationJobs {
     private readonly recoverLinksMigration: RecoverLinksMigration,
     private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
     private readonly orderColumnMigration: OrderColumnMigration,
+    private readonly noOpMigration: NoOpMigration,
   ) {}
 
   log = (...msgs: string[]) => {

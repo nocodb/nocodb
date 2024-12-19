@@ -6903,7 +6903,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async getHighestOrderInTable() {
+  public async getHighestOrderInTable(): Promise<number> {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );
@@ -6916,7 +6916,7 @@ class BaseModelSqlv2 {
       .max(`${orderColumn.column_name} as max_order`)
       .first();
 
-    const order = orderQuery ? orderQuery['max_order'] || '0' : '0';
+    const order = orderQuery ? +orderQuery['max_order'] || 0 : 0;
 
     return order + ORDER_STEP_INCREMENT;
   }

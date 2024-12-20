@@ -110,8 +110,6 @@ watch(
       return
     }
 
-    console.log('user profile', isErrored.value, user)
-
     if (!isErrored.value) {
       form.value.title = user.value.display_name ?? ''
     }

@@ -306,6 +306,8 @@ import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
 import NcCornerRightUpIcon from '~icons/nc-icons-v2/corner-right-up.svg'
 import NcChevronsRightIcon from '~icons/nc-icons-v2/chevrons-right.svg'
 import NcListIcon from '~icons/nc-icons-v2/list.svg'
+import NcNumberListIcon from '~icons/nc-icons-v2/number-list.svg'
+import NcCheckListIcon from '~icons/nc-icons-v2/check-list.svg'
 import NcChevronsDownIcon from '~icons/nc-icons-v2/chevrons-down.svg'
 import NcCornerUpRightIcon from '~icons/nc-icons-v2/corner-up-right.svg'
 import NcTargetIcon from '~icons/nc-icons-v2/target.svg'
@@ -585,6 +587,11 @@ import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
 import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 import NcFileSearch from '~icons/nc-icons-v2/file-search'
+
+import NcHeading1 from '~icons/nc-icons-v2/heading-1'
+import NcHeading2 from '~icons/nc-icons-v2/heading-2'
+import NcHeading3 from '~icons/nc-icons-v2/heading-3'
+import NcQuote from '~icons/nc-icons-v2/quote'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1125,6 +1132,8 @@ export const iconMap = {
   ncCornerRightUp: NcCornerRightUpIcon,
   ncChevronsRight: NcChevronsRightIcon,
   ncList: NcListIcon,
+  ncNumberList: NcNumberListIcon,
+  ncCheckList: NcCheckListIcon,
   ncChevronsDown: NcChevronsDownIcon,
   ncCornerUpRight: NcCornerUpRightIcon,
   ncTarget: NcTargetIcon,
@@ -1385,6 +1394,10 @@ export const iconMap = {
   ncFileTypeZip: NcFileTypeZip,
   ncFileTypeUnknown: NcFileTypeUnknown,
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
+  ncHeading1: NcHeading1,
+  ncHeading2: NcHeading2,
+  ncHeading3: NcHeading3,
+  ncQuote: NcQuote,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -2914,7 +2927,9 @@ export const searchableMap = {
   ncArrowDown2: { icon: NcArrowDownIcon, keywords: ['down', 'arrow', 'direction', 'navigation', 'dropdown'] },
   ncCornerRightUp: { icon: NcCornerRightUpIcon, keywords: ['Arrow', 'Direction', 'Navigation', 'Pointer', 'Upward'] },
   ncChevronsRight: { icon: NcChevronsRightIcon, keywords: ['next', 'forward', 'arrow', 'direction', 'navigation'] },
-  ncList: { icon: NcListIcon, keywords: ['menu', 'catalog', 'index', 'directory', 'checklist'] },
+  ncList: { icon: NcListIcon, keywords: ['menu', 'catalog', 'index', 'directory', 'checklist', 'bulletlist'] },
+  ncNumberList: { icon: NcNumberListIcon, keywords: ['menu', 'catalog', 'index', 'directory', 'numberlist'] },
+  ncCheckList: { icon: NcCheckListIcon, keywords: ['menu', 'catalog', 'index', 'directory', 'checklist'] },
   ncChevronsDown: { icon: NcChevronsDownIcon, keywords: ['down', 'arrow', 'chevron', 'direction', 'expand'] },
   ncCornerUpRight: { icon: NcCornerUpRightIcon, keywords: ['Arrow', 'Direction', 'Navigation', 'Pointer', 'Upward'] },
   ncTarget: { icon: NcTargetIcon, keywords: ['Aim', 'Bullseye', 'Goal', 'Focus', 'Precision'] },
@@ -3736,6 +3751,24 @@ export const searchableMap = {
     icon: h(NcAutoAwesome, { stroke: 'transparent' }),
     keywords: ['Magic', 'ai', 'autoAwesome', 'awesome'],
   },
+  ncHeading1: {
+    icon: NcHeading1,
+    keywords: ['heading', 'h1'],
+  },
+  ncHeading2: {
+    icon: NcHeading2,
+    keywords: ['heading', 'h2'],
+  },
+  ncHeading3: {
+    icon: NcHeading3,
+    keywords: ['heading', 'h3'],
+  },
+  ncQuote: {
+    icon: NcQuote,
+    keywords: ['quotes'],
+  },
+
+  // Colored icons
   ncFileTypePdf: {
     icon: NcFileTypePdf,
     keywords: ['pdf', 'document', 'file', 'adobe', 'reader'],

@@ -154,6 +154,7 @@
     "details": "פרטים",
     "skip": "דלג",
     "code": "קוד",
+    "codeBlock": "Code Block",
     "duplicate": "שכפל",
     "duplicating": "משכפל",
     "duplicateEntity": "כפול {entity}",

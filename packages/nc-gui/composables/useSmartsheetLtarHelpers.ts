@@ -169,7 +169,9 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       Object.assign(unref(row), {
         row: record,
         oldRow: { ...record },
-        rowMeta: {},
+        rowMeta: {
+          ...row.rowMeta,
+        },
       })
     }
 

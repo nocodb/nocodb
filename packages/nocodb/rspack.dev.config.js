@@ -57,6 +57,9 @@ const baseDevConfig = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
+    tsConfig: {
+      configFile: resolve('tsconfig.json'),
+    },
   },
   optimization: {
     minimize: false,
@@ -75,7 +78,7 @@ const baseDevConfig = {
     }),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: resolve('tsconfig.ee.json'),
+        configFile: resolve('tsconfig.json'),
       },
     }),
   ],

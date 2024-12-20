@@ -154,6 +154,7 @@
     "details": "Detalii",
     "skip": "Săriți",
     "code": "Cod",
+    "codeBlock": "Code Block",
     "duplicate": "Duplicat",
     "duplicating": "Duplicare",
     "duplicateEntity": "Duplică {entity}",

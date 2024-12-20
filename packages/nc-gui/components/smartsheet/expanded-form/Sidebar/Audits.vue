@@ -86,6 +86,7 @@ watch(
               <GeneralUserIcon
                 :email="audit?.created_by_email"
                 :name="audit?.created_display_name"
+                :meta="audit?.created_by_meta"
                 class="mt-0.5"
                 size="medium"
               />
@@ -102,6 +103,7 @@ watch(
                           class="border-1 border-gray-200 rounded-full"
                           :name="audit?.created_display_name"
                           :email="audit?.created_by_email"
+                          :meta="audit?.created_by_meta"
                         />
                         <div class="flex flex-col">
                           <div class="font-semibold text-gray-800">

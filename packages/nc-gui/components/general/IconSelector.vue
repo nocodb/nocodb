@@ -4,7 +4,7 @@ import { Upload } from 'ant-design-vue'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
-import { IconType } from '#imports'
+import { IconType } from 'nocodb-sdk'
 
 interface Props {
   icon: string | Record<string, any>

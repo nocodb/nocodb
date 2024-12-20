@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { IconType } from 'nocodb-sdk'
+
 const orgStore = useOrg()
 
 const { org } = storeToRefs(orgStore)

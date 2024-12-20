@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { IconType } from '#imports'
-import { PublicAttachmentScope } from 'nocodb-sdk'
+import { PublicAttachmentScope, IconType } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string

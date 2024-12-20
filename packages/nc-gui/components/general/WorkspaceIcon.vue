@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { WorkspaceType } from 'nocodb-sdk'
+import { IconType, type WorkspaceType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { IconType, isColorDark, stringToColor } from '#imports'
+import { isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{

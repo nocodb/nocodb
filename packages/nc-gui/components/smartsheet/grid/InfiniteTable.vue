@@ -2622,7 +2622,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
       </NcDropdown>
     </div>
 
-    <div class="absolute bottom-12 left-2">
+    <div class="absolute bottom-12 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
@@ -2632,7 +2632,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             size="small"
             type="secondary"
             :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
+            @click="onNewRecordToFormClick()"
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
@@ -2646,7 +2646,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             size="small"
             type="secondary"
             :shadow="false"
-            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />

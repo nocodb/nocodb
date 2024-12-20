@@ -2609,7 +2609,7 @@ onKeyStroke('ArrowDown', onDown)
         :scroll-left="scrollLeft"
       />
     </div>
-    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
+    <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
@@ -2620,7 +2620,7 @@ onKeyStroke('ArrowDown', onDown)
             size="small"
             type="secondary"
             :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
+            @click="onNewRecordToFormClick()"
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
@@ -2635,7 +2635,7 @@ onKeyStroke('ArrowDown', onDown)
             size="small"
             type="secondary"
             :shadow="false"
-            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />

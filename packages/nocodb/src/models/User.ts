@@ -1,4 +1,4 @@
-import { extractRolesObj, MetaType, type UserType } from 'nocodb-sdk';
+import { extractRolesObj, IconType, MetaType, type UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -11,7 +11,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import { Base, BaseUser, UserRefreshToken } from '~/models';
+import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
@@ -385,5 +385,28 @@ export default class User implements UserType {
     // clear all user related cache
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+  }
+
+  public static async signUserImage(
+    users: Partial<UserType> | Partial<UserType>[],
+  ) {
+    if (!users) return;
+
+    const promises = [];
+    
+    try {
+      for (const user of Array.isArray(users) ? users : [users]) {
+        const meta = parseMetaProp(user);
+        if (meta && meta.icon && meta.iconType === IconType.IMAGE) {
+          promises.push(
+            PresignedUrl.signAttachment({
+              attachment: meta.icon,
+            }),
+          );
+        }
+      }
+
+      await Promise.all(promises);
+    } catch {}
   }
 }

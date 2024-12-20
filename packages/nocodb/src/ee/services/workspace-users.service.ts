@@ -43,6 +43,8 @@ export class WorkspaceUsersService {
       include_deleted: param.includeDeleted,
     });
 
+    await User.signUserImage(users);
+
     // todo: pagination
     return new PagedResponseImpl<WorkspaceType>(users, {
       count: users.length,
@@ -60,6 +62,8 @@ export class WorkspaceUsersService {
     const user = await WorkspaceUser.get(workspaceId, userId);
 
     if (!user) NcError.userNotFound(userId);
+
+    await User.signUserImage(user);
 
     return user;
   }
@@ -156,6 +160,8 @@ export class WorkspaceUsersService {
     }).then(() => {
       /* ignore */
     });
+
+    await User.signUserImage(workspaceUser);
 
     return workspaceUser;
   }

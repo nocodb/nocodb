@@ -14,7 +14,7 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
-import { BaseUser } from '~/models';
+import { BaseUser, User } from '~/models';
 
 type OrganizationType = Omit<OrgType, 'image'> & {
   image?: AttachmentResType | string;
@@ -91,6 +91,8 @@ export default class Org implements OrganizationType {
             include_ws_deleted: false,
           },
         );
+
+        await User.signUserImage(base.members);
       }),
     );
 

@@ -140,7 +140,7 @@ export default class WorkspaceUser {
         const user = await User.get(userId, ncMeta);
 
         if (user) {
-          const { id, email, display_name, roles: main_roles } = user;
+          const { id, email, display_name, roles: main_roles, meta } = user;
 
           workspaceUser = {
             ...workspaceUser,
@@ -148,6 +148,7 @@ export default class WorkspaceUser {
             email,
             display_name,
             main_roles,
+            meta,
           };
 
           await NocoCache.set(
@@ -161,6 +162,8 @@ export default class WorkspaceUser {
     if (workspaceUser?.deleted) {
       workspaceUser = null;
     }
+
+    await User.signUserImage(workspaceUser);
 
     return workspaceUser && new WorkspaceUser(workspaceUser);
   }
@@ -351,25 +354,6 @@ export default class WorkspaceUser {
         (workspaceUser) => workspaceUser.roles === roles,
       );
     }
-
-    workspaceUsers = await Promise.all(
-      workspaceUsers.map(async (workspaceUser) => {
-        if (
-          workspaceUser?.meta &&
-          (workspaceUser.meta as Record<string, any>)?.icon &&
-          (workspaceUser.meta as Record<string, any>)?.iconType ===
-            IconType.IMAGE
-        ) {
-          await PresignedUrl.signAttachment(
-            {
-              attachment: (workspaceUser.meta as Record<string, any>)?.icon,
-            },
-            Noco.ncMeta,
-          );
-        }
-        return workspaceUser;
-      }),
-    );
 
     return workspaceUsers;
   }

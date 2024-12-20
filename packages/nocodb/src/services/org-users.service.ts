@@ -32,7 +32,11 @@ export class OrgUsersService {
     // todo: add better typing
     query: Record<string, any>;
   }) {
-    return await User.list(param.query);
+    const users = await User.list(param.query);
+
+    await User.signUserImage(users);
+
+    return users;
   }
 
   async userUpdate(param: {

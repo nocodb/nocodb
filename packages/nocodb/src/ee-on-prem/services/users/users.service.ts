@@ -10,6 +10,7 @@ import { BasesService } from '~/services/bases.service';
 import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
+import { MetaType } from 'nocodb-sdk';
 
 @Injectable()
 export class UsersService extends UsersServiceEE {
@@ -40,6 +41,7 @@ export class UsersService extends UsersServiceEE {
     salt,
     password,
     email_verification_token,
+    meta,
     req,
   }: {
     avatar;
@@ -49,6 +51,7 @@ export class UsersService extends UsersServiceEE {
     salt: any;
     password;
     email_verification_token;
+    meta?: MetaType;
     req: NcRequest;
   }) {
     if (this.licenseService.isTrial()) {
@@ -74,6 +77,7 @@ export class UsersService extends UsersServiceEE {
       salt,
       password,
       email_verification_token,
+      meta,
       req,
     });
   }

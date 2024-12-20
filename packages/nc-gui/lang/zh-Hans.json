@@ -154,6 +154,7 @@
     "details": "详细信息",
     "skip": "跳过",
     "code": "代码",
+    "codeBlock": "Code Block",
     "duplicate": "复制",
     "duplicating": "复制",
     "duplicateEntity": "重复{entity}",

@@ -154,6 +154,7 @@
     "details": "Detaļas",
     "skip": "Izlaist",
     "code": "Kods",
+    "codeBlock": "Code Block",
     "duplicate": "Dublikāts",
     "duplicating": "Dublēšana",
     "duplicateEntity": "Dublēt {entity}",

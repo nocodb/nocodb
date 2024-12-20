@@ -3,7 +3,6 @@ import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-
 const { audits, isAuditLoading } = useExpandedFormStoreOrThrow()
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
@@ -46,7 +45,6 @@ watch(
     })
   },
 )
-
 </script>
 
 <template>
@@ -70,7 +68,12 @@ watch(
           <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
-                <GeneralUserIcon :email="audit?.created_by_email" :name="audit?.created_display_name" class="mt-0.5" size="medium" />
+                <GeneralUserIcon
+                  :email="audit?.created_by_email"
+                  :name="audit?.created_display_name"
+                  class="mt-0.5"
+                  size="medium"
+                />
                 <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
                   <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
                     {{ createdByAudit(audit) }}
@@ -81,14 +84,9 @@ watch(
                 </div>
               </div>
             </div>
-            <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">
-              created a record.
-            </div>
+            <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created a record.</div>
             <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
-              linked table
-              "{{ JSON.parse(audit.details)?.table_title }}"
-              to
-              "{{ JSON.parse(audit.details)?.ref_table_title }}"
+              linked table "{{ JSON.parse(audit.details)?.table_title }}" to "{{ JSON.parse(audit.details)?.ref_table_title }}"
             </div>
             <template v-else-if="audit?.op_type === 'DATA_UPDATE'">
               <div class="ml-9 rounded-lg border-1 border-gray-300 bg-gray-50 divide-y">

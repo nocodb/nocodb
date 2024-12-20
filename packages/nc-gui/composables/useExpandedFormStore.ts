@@ -389,7 +389,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const auditCommentGroups = computed(() => {
-    const adts = [...audits.value].map(it => ({
+    const adts = [...audits.value].map((it) => ({
       user: it.user,
       displayName: it.created_display_name,
       created_at: it.created_at,
@@ -397,7 +397,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       audit: it,
     }))
 
-    const cmnts = [...comments.value].map(it => ({
+    const cmnts = [...comments.value].map((it) => ({
       ...it,
       user: it.created_by_email,
       displayName: it.created_display_name,
@@ -409,7 +409,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return groups.sort((a, b) => {
       return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
     })
-
   })
 
   return {

@@ -30,7 +30,6 @@ function handleCreatingNewComment() {
   saveComment(newCommentText.value)
   newCommentText.value = ''
 }
-
 </script>
 
 <script lang="ts">

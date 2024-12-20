@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuditType } from 'nocodb-sdk';
+import type { AuditType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -34,7 +34,6 @@ const columnKeys = computed(() => {
 /* attachment */
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
 </script>
 
 <template>
@@ -46,15 +45,15 @@ const { getPossibleAttachmentSrc } = useAttachment()
     <div class="mb-1 ml-6.5">
       <div class="text-sm inline-flex items-center">
         changed
-        <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-2 mr-3">
-          <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.field_type}" class="!w-[12px] !h-[12px] !m-0" />
+        <span
+          class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-2 mr-3"
+        >
+          <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.field_type }" class="!w-[12px] !h-[12px] !m-0" />
           {{ columnKey }}
         </span>
         <template v-if="meta[columnKey]?.field_type === 'Attachment'">
           <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through">
-            <template v-if="!oldData[columnKey]?.length">
-              0 files
-            </template>
+            <template v-if="!oldData[columnKey]?.length"> 0 files </template>
             <template v-else>
               <div class="flex items-center gap-1">
                 <template v-for="(item, i) of oldData[columnKey]" :key="item.url || item.title">
@@ -73,13 +72,9 @@ const { getPossibleAttachmentSrc } = useAttachment()
               </div>
             </template>
           </span>
-          <span class="ml-2 text-xs">
-            to
-          </span>
+          <span class="ml-2 text-xs"> to </span>
           <span class="ml-2 text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1">
-            <template v-if="!newData[columnKey]?.length">
-              0 files
-            </template>
+            <template v-if="!newData[columnKey]?.length"> 0 files </template>
             <template v-else>
               <div class="flex items-center gap-1">
                 <template v-for="(item, i) of newData[columnKey]" :key="item.url || item.title">
@@ -102,27 +97,29 @@ const { getPossibleAttachmentSrc } = useAttachment()
         <template v-else>
           <span class="inline-flex items-center">
             <span class="line-through">
-              <span v-if="!oldData[columnKey]">
-                empty
-              </span>
+              <span v-if="!oldData[columnKey]"> empty </span>
               <SmartsheetCell
                 v-else
-                :column="{ uidt: meta[columnKey]?.field_type, meta: meta[columnKey]?.meta, colOptions: meta[columnKey]?.col_options }"
+                :column="{
+                  uidt: meta[columnKey]?.field_type,
+                  meta: meta[columnKey]?.meta,
+                  colOptions: meta[columnKey]?.col_options,
+                }"
                 :model-value="oldData[columnKey]"
                 :edit-enabled="false"
                 :read-only="true"
               />
             </span>
-            <span class="mx-2">
-              to
-            </span>
+            <span class="mx-2"> to </span>
             <span>
-              <span v-if="!newData[columnKey]">
-                empty
-              </span>
+              <span v-if="!newData[columnKey]"> empty </span>
               <SmartsheetCell
                 v-else
-                :column="{ uidt: meta[columnKey]?.field_type, meta: meta[columnKey]?.meta, colOptions: meta[columnKey]?.col_options }"
+                :column="{
+                  uidt: meta[columnKey]?.field_type,
+                  meta: meta[columnKey]?.meta,
+                  colOptions: meta[columnKey]?.col_options,
+                }"
                 :model-value="newData[columnKey]"
                 :edit-enabled="false"
                 :read-only="true"

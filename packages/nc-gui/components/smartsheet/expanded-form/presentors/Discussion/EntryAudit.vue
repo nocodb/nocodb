@@ -22,7 +22,6 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
     return '-'
   }
 }
-
 </script>
 
 <template>
@@ -35,17 +34,12 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
       <GeneralUserIcon :email="props.auditGroup.user" class="w-[24px] aspect-square ml-1" />
       <p class="text-sm font-medium mb-0">
         {{ props.auditGroup.displayName }}
-        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'">
-          created a record.
-        </span>
-        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
-          updated {{ fieldsChanged }} fields
-        </span>
+        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'"> created a record. </span>
+        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'"> updated {{ fieldsChanged }} fields </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'">
-          linked table
-          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'table_title') }}"
-          to
-          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_table_title') }}"
+          linked table "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'table_title') }}" to "{{
+            safeGetFromAuditDetails(props.auditGroup.audit, 'ref_table_title')
+          }}"
         </span>
       </p>
       <div class="text-xs text-gray-500">
@@ -58,9 +52,7 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
           icon="ncLink"
           class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm mb-1 ml-6.5">
-          Record was created.
-        </p>
+        <p class="text-sm mb-1 ml-6.5">Record was created.</p>
       </div>
     </template>
     <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
@@ -73,11 +65,9 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
           class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5">
-          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}"
-          field was linked to row
+          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}" field was linked to row
           {{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_row_id') }}
-          with value
-          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_display_value') }}"
+          with value "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_display_value') }}"
         </p>
       </div>
     </template>

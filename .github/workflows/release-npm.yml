@@ -50,7 +50,7 @@ jobs:
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
           registry-url: "https://registry.npmjs.org"
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"

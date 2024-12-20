@@ -815,8 +815,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7
       nc-lib-gui:
-        specifier: 0.258.3
-        version: 0.258.3
+        specifier: 0.258.10
+        version: 0.258.10
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(reflect-metadata@0.2.1))(ioredis@5.4.1)(reflect-metadata@0.2.1)
@@ -11441,8 +11441,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.258.3:
-    resolution: {integrity: sha512-/xwdyfiwtuyCKBm09Zy31FgX0f87JtaAIAu8W2xh4zzZyS+0AJ/UeK08dxLeAhaeqOpy35TcLPkC4brGa6PlUQ==}
+  nc-lib-gui@0.258.10:
+    resolution: {integrity: sha512-oH68ePmJ7SmAqDlxverh13+XJmCQgdurNDqiRJYnKtQQ3qF5cOXIma4tbjOM3jpUYokUlHzsY/ZGZu17I/zXxg==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -17039,7 +17039,7 @@ snapshots:
       '@babel/helper-compilation-targets': 7.23.6
       '@babel/helper-module-transforms': 7.23.3(@babel/core@7.24.3)
       '@babel/helpers': 7.24.1
-      '@babel/parser': 7.25.7
+      '@babel/parser': 7.26.3
       '@babel/template': 7.24.0
       '@babel/traverse': 7.24.1
       '@babel/types': 7.25.7
@@ -17258,7 +17258,7 @@ snapshots:
     dependencies:
       '@babel/template': 7.24.0
       '@babel/traverse': 7.24.1
-      '@babel/types': 7.25.7
+      '@babel/types': 7.26.3
     transitivePeerDependencies:
       - supports-color
 
@@ -17512,7 +17512,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.26.2
       '@babel/parser': 7.26.3
-      '@babel/types': 7.25.7
+      '@babel/types': 7.26.3
 
   '@babel/template@7.25.9':
     dependencies:
@@ -17529,7 +17529,7 @@ snapshots:
       '@babel/helper-hoist-variables': 7.22.5
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.26.3
-      '@babel/types': 7.25.7
+      '@babel/types': 7.26.3
       debug: 4.3.7(supports-color@9.4.0)
       globals: 11.12.0
     transitivePeerDependencies:
@@ -21296,7 +21296,7 @@ snapshots:
   '@types/babel__core@7.20.1':
     dependencies:
       '@babel/parser': 7.26.3
-      '@babel/types': 7.25.7
+      '@babel/types': 7.26.3
       '@types/babel__generator': 7.6.4
       '@types/babel__template': 7.4.1
       '@types/babel__traverse': 7.20.1
@@ -29435,7 +29435,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.258.3:
+  nc-lib-gui@0.258.10:
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:

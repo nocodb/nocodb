@@ -232,13 +232,17 @@ const PREFETCH_THRESHOLD = 40
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
 
+  const offset = chunkId * CHUNK_SIZE
+  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
+
+  if (offset >= totalRows.value) {
+    return
+  }
+
   chunkStates.value[chunkId] = 'loading'
   if (isInitialLoad) {
     chunkStates.value[chunkId + 1] = 'loading'
   }
-  const offset = chunkId * CHUNK_SIZE
-  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
-
   try {
     const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
@@ -1514,10 +1518,10 @@ watch(activeCell, (activeCell) => {
   eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
 })
 
-const reloadViewDataHookHandler = async () => {
-  // If the scroll Position is not at the top, scroll to the top
-  // This always loads the first page of data when the view data is reloaded
-  gridWrapper.value?.scrollTo(0, 0)
+const reloadViewDataHookHandler = async (param) => {
+  if (param?.fieldAdd) {
+    gridWrapper.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
 
   await saveOrUpdateRecords({
     keepNewRecords: true,

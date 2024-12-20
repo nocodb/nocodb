@@ -39,7 +39,9 @@ const onValidate = async () => {
 }
 
 const saveChanges = async () => {
-  const valid = await onValidate()
+  const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
+
+  const valid = isNameChanged ? await onValidate() : true
 
   if (!valid) {
     isErrored.value = true
@@ -54,7 +56,7 @@ const saveChanges = async () => {
   try {
     await updateUserProfile({
       attrs: {
-        ...(!isErrored.value ? { display_name: form.value?.title } : {}),
+        ...(!isErrored.value && isNameChanged ? { display_name: form.value?.title } : {}),
         meta: {
           ...(user.value?.meta ? parseProp(user.value.meta) : {}),
           icon:

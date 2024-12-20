@@ -1,15 +1,5 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
-import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
-import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
-import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
-import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
-import MsFormatH1 from '~icons/material-symbols/format-h1'
-import MsFormatH2 from '~icons/material-symbols/format-h2'
-import MsFormatH3 from '~icons/material-symbols/format-h3'
-import TablerBlockQuote from '~icons/tabler/blockquote'
-import MsCode from '~icons/material-symbols/code'
-import MsFormatQuote from '~icons/material-symbols/format-quote'
 import { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {

@@ -1,4 +1,4 @@
-import { ProjectRoles } from 'nocodb-sdk';
+import { IconType, ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -15,6 +15,7 @@ import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { PresignedUrl } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -268,7 +269,7 @@ export default class WorkspaceUser {
       workspaceList.map(async (workspace) => {
         if (
           (workspace.meta as Record<string, any>)?.icon &&
-          (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+          (workspace.meta as Record<string, any>)?.iconType === IconType.IMAGE
         ) {
           await PresignedUrl.signAttachment(
             {
@@ -308,6 +309,7 @@ export default class WorkspaceUser {
         `${MetaTable.USERS}.display_name`,
         // `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
         `${MetaTable.WORKSPACE_USER}.*`,
       );
 
@@ -324,6 +326,11 @@ export default class WorkspaceUser {
       });
 
       workspaceUsers = await queryBuilder;
+
+      workspaceUsers = workspaceUsers.map((workspaceUser) => {
+        workspaceUser.meta = parseMetaProp(workspaceUser);
+        return workspaceUser;
+      });
 
       await NocoCache.setList(
         CacheScope.WORKSPACE_USER,
@@ -344,6 +351,25 @@ export default class WorkspaceUser {
         (workspaceUser) => workspaceUser.roles === roles,
       );
     }
+
+    workspaceUsers = await Promise.all(
+      workspaceUsers.map(async (workspaceUser) => {
+        if (
+          workspaceUser?.meta &&
+          (workspaceUser.meta as Record<string, any>)?.icon &&
+          (workspaceUser.meta as Record<string, any>)?.iconType ===
+            IconType.IMAGE
+        ) {
+          await PresignedUrl.signAttachment(
+            {
+              attachment: (workspaceUser.meta as Record<string, any>)?.icon,
+            },
+            Noco.ncMeta,
+          );
+        }
+        return workspaceUser;
+      }),
+    );
 
     return workspaceUsers;
   }

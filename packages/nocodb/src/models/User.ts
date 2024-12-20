@@ -1,4 +1,4 @@
-import { extractRolesObj, type UserType } from 'nocodb-sdk';
+import { extractRolesObj, MetaType, type UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -13,6 +13,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
   id: string;
@@ -39,6 +40,7 @@ export default class User implements UserType {
 
   deleted_at?: Date;
   is_deleted?: boolean;
+  meta?: MetaType;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -62,6 +64,7 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'meta',
     ]);
 
     if (insertObj.email) {
@@ -72,7 +75,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      insertObj,
+      prepareForDb(insertObj),
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -104,6 +107,7 @@ export default class User implements UserType {
       'token_version',
       'display_name',
       'avatar',
+      'meta',
     ]);
 
     if (updateObj.email) {
@@ -129,7 +133,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      updateObj,
+      prepareForDb(updateObj),
       id,
     );
 
@@ -156,6 +160,11 @@ export default class User implements UserType {
           email,
         },
       );
+
+      if (user) {
+        user.meta = parseMetaProp(user);
+      }
+
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
 
@@ -206,6 +215,11 @@ export default class User implements UserType {
         MetaTable.USERS,
         userId,
       );
+
+      if (user) {
+        user.meta = parseMetaProp(user);
+      }
+
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
     }
 
@@ -235,6 +249,10 @@ export default class User implements UserType {
 
     if (user?.is_deleted) {
       return null;
+    }
+
+    if (user) {
+      user.meta = parseMetaProp(user);
     }
 
     return this.castType(user);
@@ -268,6 +286,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
         `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.meta`,
       )
       .select(
         ncMeta

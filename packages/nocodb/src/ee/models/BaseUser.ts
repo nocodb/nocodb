@@ -155,6 +155,7 @@ export default class BaseUser extends BaseUserCE {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
           ...(workspace_id
@@ -194,6 +195,8 @@ export default class BaseUser extends BaseUserCE {
       baseUser = await queryBuilder.first();
 
       if (baseUser) {
+        baseUser.meta = parseMetaProp(baseUser);
+
         await NocoCache.set(
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
@@ -243,6 +246,7 @@ export default class BaseUser extends BaseUserCE {
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.USERS}.created_at as created_at`,
+        `${MetaTable.USERS}.meta`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
         `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
@@ -278,6 +282,7 @@ export default class BaseUser extends BaseUserCE {
 
       baseUsers = baseUsers.map((baseUser) => {
         baseUser.base_id = base_id;
+        baseUser.meta = parseMetaProp(baseUser);
         return this.castType(baseUser);
       });
 

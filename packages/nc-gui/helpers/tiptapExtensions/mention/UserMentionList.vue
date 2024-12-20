@@ -108,7 +108,7 @@ export default {
         class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center text-gray-800 pl-4"
         @click="selectItem(index, $event)"
       >
-        <GeneralUserIcon :email="item.email" :name="item.name" class="w-4 h-4 mr-2" size="medium" />
+        <GeneralUserIcon :email="item.email" :name="item.name" :meta="item.meta" class="w-4 h-4 mr-2" size="medium" />
         <div class="max-w-64 truncate">
           {{ item.name && item.name.length > 0 ? item.name : item.email }}
         </div>

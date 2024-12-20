@@ -177,6 +177,7 @@ onMounted(() => {
               <GeneralUserIcon
                 :email="extractBaseOwner(base)?.email"
                 :name="extractBaseOwner(base)?.display_name"
+                :meta="extractBaseOwner(base)?.meta"
                 size="base"
                 class="flex-none"
               />

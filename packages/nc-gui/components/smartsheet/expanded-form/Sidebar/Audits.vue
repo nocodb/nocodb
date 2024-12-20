@@ -99,7 +99,7 @@ watch(
                     <div class="bg-white rounded-lg">
                       <div class="flex items-center gap-4 py-3 px-2">
                         <GeneralUserIcon
-                          class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
+                          class="border-1 border-gray-200 rounded-full"
                           :name="audit?.created_display_name"
                           :email="audit?.created_by_email"
                         />

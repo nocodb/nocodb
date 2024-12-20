@@ -458,6 +458,7 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralUserIcon
                           :email="collaboratorsMap.get(integration.created_by)?.email"
                           :name="collaboratorsMap.get(integration.created_by)?.display_name"
+                          :meta="collaboratorsMap.get(integration.created_by)?.meta"
                           size="base"
                           class="flex-none"
                           :class="{

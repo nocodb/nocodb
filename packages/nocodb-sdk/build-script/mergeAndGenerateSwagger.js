@@ -12,7 +12,7 @@ const swagger = {
     ...swaggerCE.paths,
     ...swaggerEE.paths,
   },
-  components: {x
+  components: {
     ...swaggerCE.components,
     ...swaggerEE.components,
     schemas: {

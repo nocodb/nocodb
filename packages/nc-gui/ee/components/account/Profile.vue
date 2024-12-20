@@ -30,25 +30,39 @@ const formRules = {
   ],
 }
 
+const onValidate = async () => {
+  try {
+    return await formValidator.value.validate()
+  } catch {
+    return false
+  }
+}
+
 const saveChanges = async () => {
-  const valid = await formValidator.value.validate()
+  const valid = await onValidate()
 
-  if (!valid) return
+  if (!valid) {
+    isErrored.value = true
 
-  isErrored.value = false
+    if (form.value.icon === parseProp(user.value?.meta).icon && form.value.iconType === parseProp(user.value?.meta).iconType) {
+      return
+    }
+  } else {
+    isErrored.value = false
+  }
 
   try {
     await updateUserProfile({
       attrs: {
-        display_name: form.value?.title,
-        // meta: {
-        //   ...(user.value?.meta ? user.value.meta : {}),
-        //   icon:
-        //     form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon)
-        //       ? { ...form.value.icon, data: '' }
-        //       : form.value.icon,
-        //   iconType: form.value.iconType,
-        // },
+        ...(!isErrored.value ? { display_name: form.value?.title } : {}),
+        meta: {
+          ...(user.value?.meta ? parseProp(user.value.meta) : {}),
+          icon:
+            form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon)
+              ? { ...form.value.icon, data: '' }
+              : form.value.icon,
+          iconType: form.value.iconType,
+        },
       },
     })
   } catch (e: any) {
@@ -66,19 +80,6 @@ const saveChangeWithDebounce = useDebounceFn(
 )
 
 const email = computed(() => user.value?.email)
-
-watch(
-  () => user.value?.display_name,
-  () => {
-    if (!user.value?.display_name) return
-
-    form.value.title = user.value.display_name
-    form.value.email = user.value.email
-  },
-  {
-    immediate: true,
-  },
-)
 
 const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   cropperConfig: {
@@ -101,6 +102,28 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
     maxFileSize: 2 * 1024 * 1024,
   },
 })
+
+watch(
+  user,
+  () => {
+    if (!user.value) {
+      return
+    }
+
+    console.log('user profile', isErrored.value, user)
+
+    if (!isErrored.value) {
+      form.value.title = user.value.display_name ?? ''
+    }
+
+    form.value.email = user.value.email
+    form.value.icon = parseProp(user.value.meta)?.icon ?? ''
+    form.value.iconType = parseProp(user.value.meta)?.iconType ?? ''
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -117,61 +140,72 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="flex flex-col w-150 mx-auto">
-        <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-          <div class="font-bold text-base text-nc-content-gray-emphasis" data-rec="true">{{ $t('labels.accountDetails') }}</div>
-          <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
-          <div class="flex flex-row mt-4">
-            <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
-              <div class="flex gap-4 mt-6">
-                <div>
-                  <GeneralIconSelector
-                    v-model:icon="form.icon"
-                    v-model:icon-type="form.iconType"
-                    v-model:image-cropper-data="imageCropperData"
-                    @submit="saveChanges"
-                  >
-                    <template #default="{ isOpen }">
-                      <div
-                        class="rounded-lg border-1 flex-none w-26.5 h-26.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
-                        :class="{
-                          'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
-                          'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
-                          'border-primary shadow-selected': isOpen,
-                        }"
-                      >
-                        <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
-                      </div>
-                    </template>
-                  </GeneralIconSelector>
-                </div>
+        <div class="mt-5 border-1 rounded-2xl border-gray-200 p-6">
+          <div>
+            <div class="font-bold text-base text-nc-content-gray-emphasis mb-2" data-rec="true">
+              {{ $t('labels.accountDetails') }}
+            </div>
+            <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
+          </div>
 
-                <div class="flex-1 flex flex-col gap-4">
-                  <div>
-                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
-                    <a-form-item name="title" :rules="formRules.title" class="!my-0">
-                      <a-input
-                        v-model:value="form.title"
-                        class="w-full !rounded-lg !px-4 h-10"
-                        :placeholder="$t('general.name')"
-                        data-testid="nc-account-settings-rename-input"
-                        @update:value="saveChangeWithDebounce"
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+            <div class="flex gap-4 mt-6">
+              <div>
+                <GeneralIconSelector
+                  v-model:icon="form.icon"
+                  v-model:icon-type="form.iconType"
+                  v-model:image-cropper-data="imageCropperData"
+                  @submit="saveChanges"
+                >
+                  <template #default="{ isOpen }">
+                    <div
+                      class="rounded-lg border-1 w-26.5 h-26.5 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+                      :class="{
+                        'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                        'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                        'border-primary shadow-selected': isOpen,
+                      }"
+                    >
+                      <GeneralUserIcon
+                        size="xlarge"
+                        :email="user?.email"
+                        :name="user?.display_name"
+                        :meta="{
+                          icon: form.icon,
+                          iconType: form.iconType,
+                        }"
                       />
-                    </a-form-item>
-                  </div>
-                  <div>
-                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+                    </div>
+                  </template>
+                </GeneralIconSelector>
+              </div>
+
+              <div class="flex-1 flex flex-col gap-4">
+                <div>
+                  <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
+                  <a-form-item name="title" :rules="formRules.title" class="!my-0">
                     <a-input
-                      v-model:value="email"
+                      v-model:value="form.title"
                       class="w-full !rounded-lg !px-4 h-10"
-                      :placeholder="$t('labels.email')"
-                      disabled
-                      data-testid="nc-account-settings-email-input"
+                      :placeholder="$t('general.name')"
+                      data-testid="nc-account-settings-rename-input"
+                      @update:value="saveChangeWithDebounce"
                     />
-                  </div>
+                  </a-form-item>
+                </div>
+                <div>
+                  <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+                  <a-input
+                    v-model:value="email"
+                    class="w-full !rounded-lg !px-4 h-10"
+                    :placeholder="$t('labels.email')"
+                    disabled
+                    data-testid="nc-account-settings-email-input"
+                  />
                 </div>
               </div>
-            </a-form>
-          </div>
+            </div>
+          </a-form>
         </div>
         <AccountDelete />
       </div>

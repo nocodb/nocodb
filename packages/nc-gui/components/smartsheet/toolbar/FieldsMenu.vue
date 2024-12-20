@@ -672,6 +672,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-r-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :shadow="false"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
@@ -684,6 +685,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-x-none !border-x-0 !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :shadow="false"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
@@ -696,6 +698,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-l-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :shadow="false"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >

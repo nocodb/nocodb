@@ -1870,9 +1870,13 @@ watch(activeAiTab, (newValue) => {
                                 data-testid="nc-field-item-action-duplicate"
                                 :disabled="isSystemColumn(field)"
                                 @click="duplicateField(field)"
+                                class="text-gray-800"
+                                :class="{
+                                  '!text-gray-400': isSystemColumn(field),
+                                }"
                               >
-                                <GeneralIcon icon="duplicate" class="text-gray-800" />
-                                <span class="text-gray-800">
+                                <GeneralIcon icon="duplicate" />
+                                <span>
                                   {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
                                 </span>
                               </NcMenuItem>
@@ -1905,7 +1909,9 @@ watch(activeAiTab, (newValue) => {
                                 :disabled="isSystemColumn(field)"
                                 @click="onFieldDelete(field)"
                               >
-                                <div class="text-red-500">
+                                <div class="text-red-500" :class="{
+                                  '!text-gray-400': isSystemColumn(field),
+                                }">
                                   <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
                                   {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
                                 </div>

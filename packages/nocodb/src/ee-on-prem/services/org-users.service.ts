@@ -6,8 +6,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 @Injectable()
 export class OrgUsersService extends OrgUsersServiceCE {
   constructor(
-    private readonly baseUsersService: BaseUsersService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly baseUsersService: BaseUsersService,
+    protected readonly appHooksService: AppHooksService,
   ) {
     super(baseUsersService, appHooksService);
   }

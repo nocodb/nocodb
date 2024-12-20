@@ -1518,7 +1518,11 @@ watch(activeCell, (activeCell) => {
   eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
 })
 
-const reloadViewDataHookHandler = async () => {
+const reloadViewDataHookHandler = async (param) => {
+  if (param?.fieldAdd) {
+    gridWrapper.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
+
   await saveOrUpdateRecords({
     keepNewRecords: true,
   })

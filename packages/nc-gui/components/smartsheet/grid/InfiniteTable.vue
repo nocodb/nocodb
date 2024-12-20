@@ -232,13 +232,17 @@ const PREFETCH_THRESHOLD = 40
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
 
+  const offset = chunkId * CHUNK_SIZE
+  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
+
+  if (offset >= totalRows.value) {
+    return
+  }
+
   chunkStates.value[chunkId] = 'loading'
   if (isInitialLoad) {
     chunkStates.value[chunkId + 1] = 'loading'
   }
-  const offset = chunkId * CHUNK_SIZE
-  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
-
   try {
     const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))

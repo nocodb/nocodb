@@ -157,7 +157,6 @@ const closeTextArea = () => {
         <GeneralIcon icon="bold" />
       </NcButton>
     </NcTooltip>
-
     <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">

@@ -397,7 +397,7 @@ watch(
         v-else
         ref="aselect"
         v-model:value="vModel"
-        class="w-full overflow-hidden"
+        class="w-full !h-6.5 overflow-hidden"
         :class="{ 'caret-transparent': !hasEditRoles }"
         :allow-clear="!column.rqd && editAllowed"
         :bordered="false"
@@ -484,7 +484,7 @@ watch(
 }
 
 :deep(.ant-select-selector) {
-  @apply !pl-0 !pr-4;
+  @apply !pl-0 !pr-4 !h-6.5;
 }
 
 :deep(.ant-select-selector .ant-select-selection-item) {

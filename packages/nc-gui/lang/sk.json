@@ -154,6 +154,7 @@
     "details": "Detaily",
     "skip": "Preskočiť",
     "code": "Kód",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikát",
     "duplicating": "Duplikovanie",
     "duplicateEntity": "Duplikovať {entity}",

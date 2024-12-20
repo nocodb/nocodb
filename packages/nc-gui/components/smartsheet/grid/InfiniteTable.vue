@@ -2622,16 +2622,17 @@ watch(vSelectedAllRecords, (selectedAll) => {
       </NcDropdown>
     </div>
 
-    <div class="absolute bottom-12 left-2">
+    <div class="absolute bottom-12 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed">
-        <div class="flex">
+        <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             class="nc-grid-add-new-row"
             size="small"
             type="secondary"
-            @click.stop="onNewRecordToFormClick()"
+            :shadow="false"
+            @click="onNewRecordToFormClick()"
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
@@ -2644,7 +2645,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
             class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
             size="small"
             type="secondary"
-            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            :shadow="false"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
@@ -2654,7 +2656,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
               <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
             </div>
           </NcButton>
-          <NcButton v-if="!isMobileMode" size="small" class="!rounded-l-none nc-add-record-more-info" type="secondary">
+          <NcButton
+            v-if="!isMobileMode"
+            size="small"
+            class="!rounded-l-none nc-add-record-more-info"
+            type="secondary"
+            :shadow="false"
+          >
             <GeneralIcon icon="arrowUp" />
           </NcButton>
         </div>
@@ -2843,6 +2851,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
       }
       .ant-select-selection-search-input {
         @apply !h-[23px];
+      }
+
+      .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+        @apply !h-auto;
       }
     }
   }

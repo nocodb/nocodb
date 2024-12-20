@@ -122,6 +122,7 @@ export default defineConfig({
         'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
         'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
         'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
+        'nc-sm': '0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02)',
       },
       colors: {
         ...windiColors,

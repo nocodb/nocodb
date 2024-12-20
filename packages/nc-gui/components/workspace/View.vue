@@ -128,7 +128,7 @@ onMounted(() => {
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
             <div class="tab-title">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <GeneralIcon icon="users" class="h-4 w-4" />
               Members
             </div>
           </template>
@@ -140,7 +140,7 @@ onMounted(() => {
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="settings" />
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
               Settings
             </div>
           </template>
@@ -152,7 +152,7 @@ onMounted(() => {
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
             <div class="tab-title">
-              <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
+              <GeneralIcon icon="audit" class="h-4 w-4" />
               Audit Logs
             </div>
           </template>

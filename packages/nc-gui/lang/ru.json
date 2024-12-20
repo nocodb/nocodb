@@ -154,6 +154,7 @@
     "details": "Подробности",
     "skip": "Пропустить",
     "code": "Код",
+    "codeBlock": "Code Block",
     "duplicate": "Копировать",
     "duplicating": "Дублирование",
     "duplicateEntity": "Дублировать {entity}",

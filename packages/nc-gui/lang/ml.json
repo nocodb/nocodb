@@ -154,6 +154,7 @@
     "details": "വിശദാംശങ്ങൾ",
     "skip": "വിട്ടുക",
     "code": "കോഡ്",
+    "codeBlock": "Code Block",
     "duplicate": "പകര്‍പ്പിക്കുക",
     "duplicating": "പകര്‍ത്തിക്കൊണ്ടിരിക്കുന്നു",
     "duplicateEntity": "മറുകൂടി {entity}",

@@ -6,6 +6,7 @@ import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
 import { runExternal } from '~/helpers/muxHelpers';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('DatabricksClient');
 
@@ -392,9 +393,9 @@ class DatabricksClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,

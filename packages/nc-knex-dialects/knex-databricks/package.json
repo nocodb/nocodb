@@ -7,8 +7,8 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@databricks/sql": "^1.7.1",
-    "knex": "^2.4.2",
+    "@databricks/sql": "^1.8.4",
+    "knex": "^3.1.0",
     "lodash": "^4.17.21"
   }
 }

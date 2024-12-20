@@ -17,7 +17,7 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 ###########
 # Builder
 ###########
-FROM node:18-alpine as builder
+FROM node:22-alpine as builder
 WORKDIR /usr/src/app
 
 # install node-gyp dependencies

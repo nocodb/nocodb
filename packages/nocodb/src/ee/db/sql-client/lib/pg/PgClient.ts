@@ -3,6 +3,7 @@ import knex from 'knex';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
 import { runExternal } from '~/helpers/muxHelpers';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
 
@@ -57,9 +58,9 @@ class PGClient extends PGClientCE {
     let tempSqlClient;
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
@@ -457,9 +458,9 @@ class PGClient extends PGClientCE {
 
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,

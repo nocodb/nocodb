@@ -13,6 +13,7 @@ import {
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
 
@@ -254,9 +255,9 @@ class PGClient extends KnexClient {
     try {
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,
@@ -459,9 +460,9 @@ class PGClient extends KnexClient {
     let tempSqlClient;
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
@@ -534,9 +535,9 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,

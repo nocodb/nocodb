@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "knex": "^2.4.2",
+    "knex": "^3.1.0",
     "lodash": "^4.17.21",
     "snowflake-sdk": "^1.6.11"
   }

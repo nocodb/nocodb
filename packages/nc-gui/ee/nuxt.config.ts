@@ -288,6 +288,13 @@ export default defineNuxtConfig({
         plugins: [NodeModulesPolyfillPlugin()],
       },
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          silenceDeprecations: ['legacy-js-api'],
+        },
+      },
+    },
   },
 
   // experimental props destructuring

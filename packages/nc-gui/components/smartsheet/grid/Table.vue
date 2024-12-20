@@ -2611,7 +2611,7 @@ onKeyStroke('ArrowDown', onDown)
     </div>
     <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2">
       <NcDropdown v-if="isAddingEmptyRowAllowed && !showSkeleton">
-        <div class="flex">
+        <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
@@ -2619,6 +2619,7 @@ onKeyStroke('ArrowDown', onDown)
             class="nc-grid-add-new-row"
             size="small"
             type="secondary"
+            :shadow="false"
             @click.stop="onNewRecordToFormClick()"
           >
             <div class="flex items-center gap-2">
@@ -2633,6 +2634,7 @@ onKeyStroke('ArrowDown', onDown)
             class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
             size="small"
             type="secondary"
+            :shadow="false"
             @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
@@ -2643,7 +2645,13 @@ onKeyStroke('ArrowDown', onDown)
               <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
             </div>
           </NcButton>
-          <NcButton v-if="!isMobileMode" size="small" class="!rounded-l-none nc-add-record-more-info" type="secondary">
+          <NcButton
+            v-if="!isMobileMode"
+            size="small"
+            class="!rounded-l-none nc-add-record-more-info"
+            type="secondary"
+            :shadow="false"
+          >
             <GeneralIcon icon="arrowUp" />
           </NcButton>
         </div>

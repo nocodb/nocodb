@@ -1254,7 +1254,7 @@ watch(activeAiTab, (newValue) => {
           </a-input>
           <div class="flex gap-2">
             <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
-              <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
+              <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
                 <NcTooltip :disabled="isLocked">
                   <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
                   <NcButton

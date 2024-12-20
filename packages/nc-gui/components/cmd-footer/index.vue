@@ -19,11 +19,11 @@ const renderCmdOrCtrlKey = () => {
         :class="activeCmd === 'cmd-j' ? 'text-brand-500' : ''"
         @click.stop="activeCmd !== 'cmd-j' ? setActiveCmdView('cmd-j') : () => undefined"
       >
-        <MdiFileOutline class="h-4 w-4" />
+        <GeneralIcon icon="ncFileSearch" class="h-4 w-4" />
         Document
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-j' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-j' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + J
         </span>
@@ -33,11 +33,11 @@ const renderCmdOrCtrlKey = () => {
         :class="activeCmd === 'cmd-k' ? 'text-brand-500' : ''"
         @click.stop="activeCmd !== 'cmd-k' ? setActiveCmdView('cmd-k') : () => undefined"
       >
-        <MdiMapMarkerOutline class="h-4 w-4" />
+        <GeneralIcon icon="ncCornerUpRight" class="h-4 w-4" />
         Quick Navigation
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-k' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-k' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + K
         </span>
@@ -50,8 +50,8 @@ const renderCmdOrCtrlKey = () => {
         <MdiClockOutline class="h-4 w-4" />
         Recent
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-l' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-l' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + L
         </span>

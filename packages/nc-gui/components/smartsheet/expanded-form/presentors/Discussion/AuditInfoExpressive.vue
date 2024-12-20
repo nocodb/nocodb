@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import type { AuditType } from 'nocodb-sdk';
+
 /* interface */
 
 const props = defineProps<{
-  audit: any
+  audit: AuditType
 }>()
 
 const details = computed(() => {
   try {
-    return JSON.parse(props.audit.details)
+    return JSON.parse(props.audit.details || '')
   } catch (e) {
     return {}
   }
@@ -28,19 +30,6 @@ const meta = computed(() => {
 const columnKeys = computed(() => {
   return Object.keys(newData.value)
 })
-
-/* formatting */
-
-function formatCurrency(value: string, currencyMeta: any) {
-  if (!value) {
-    return '"empty"'
-  }
-
-  return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
-    style: 'currency',
-    currency: currencyMeta.currency_code || 'USD',
-  }).format(Number(value))
-}
 
 /* attachment */
 

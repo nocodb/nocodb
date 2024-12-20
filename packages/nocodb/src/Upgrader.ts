@@ -55,16 +55,7 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!workspace_id) {
-        NcError.metaError({
-          message: 'Workspace ID is required',
-          sql: '',
-        });
-      }
-
-      insertObj.fk_workspace_id = workspace_id;
-
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -127,21 +118,12 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!workspace_id) {
-        NcError.metaError({
-          message: 'Workspace ID is required',
-          sql: '',
-        });
-      }
-
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
         });
       }
-
-      commonProps.fk_workspace_id = workspace_id;
       commonProps.base_id = base_id;
     }
 
@@ -200,13 +182,6 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!workspace_id) {
-        NcError.metaError({
-          message: 'Workspace ID is required',
-          sql: '',
-        });
-      }
-
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -275,14 +250,7 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!workspace_id) {
-        NcError.metaError({
-          message: 'Workspace ID is required',
-          sql: '',
-        });
-      }
-
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -347,13 +315,6 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!workspace_id) {
-        NcError.metaError({
-          message: 'Workspace ID is required',
-          sql: '',
-        });
-      }
-
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -401,8 +362,9 @@ export default class Upgrader extends MetaService {
     this._upgrader_mode = true;
   }
 
-  disableUpgraderMode?() {
+  async disableUpgraderMode?() {
     NocoCache.enableCache();
+    await NocoCache.destroy();
     this._upgrader_mode = false;
   }
 
@@ -421,35 +383,18 @@ export default class Upgrader extends MetaService {
 
     if (!queries.length) return [];
 
-    await this.knexConnection.raw(queries.join(';'));
+    const trans = await this.knexConnection.transaction();
 
-    return queries;
+    try {
+      for (const query of queries) {
+        await trans.raw(query);
+      }
+      await trans.commit();
+    } catch (e) {
+      await trans.rollback();
+      throw e;
+    }
   }
 
-  logHelper? = async (workspace_id, base_id, target, q) => {
-    const qStr = q.toQuery();
-
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
-      return;
-    }
-
-    if (target === MetaTable.PROJECT) {
-      if (!qStr.includes('fk_workspace_id') || !qStr.includes('id')) {
-        if (!(workspace_id in RootScopeTables)) {
-          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
-          console.log(new Error().stack);
-        }
-      }
-    } else {
-      if (
-        !qStr.includes('fk_workspace_id') ||
-        (base_id !== RootScopes.WORKSPACE && !qStr.includes('base_id'))
-      ) {
-        if (!(workspace_id in RootScopeTables)) {
-          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
-          console.log(new Error().stack);
-        }
-      }
-    }
-  };
+  logHelper? = async (_workspace_id, _base_id, _target, _q) => {};
 }

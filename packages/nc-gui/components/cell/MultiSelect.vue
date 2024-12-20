@@ -63,6 +63,10 @@ const { isPg, isMysql } = useBase()
 // temporary until it's add the option to column meta
 const tempSelectedOptsState = reactive<string[]>([])
 
+const isNewOptionCreateEnabled = computed(
+  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
+)
+
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
@@ -135,7 +139,7 @@ const vModel = computed({
     return selected
   },
   set: (val) => {
-    if (isOptionMissing.value && val.length && val[val.length - 1] === searchVal.value) {
+    if (isNewOptionCreateEnabled.value && isOptionMissing.value && val.length && val[val.length - 1] === searchVal.value) {
       return addIfMissingAndSave()
     }
     emit('update:modelValue', val.length === 0 ? null : val.join(','))
@@ -226,7 +230,7 @@ useSelectedCellKeyupListener(activeCell, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -374,6 +378,16 @@ const onFocus = () => {
 
   isOpen.value = true
 }
+
+watch(
+  () => active.value,
+  (newValue) => {
+    if (newValue) return
+
+    searchVal.value = ''
+    isOpen.value = false
+  },
+)
 </script>
 
 <template>
@@ -478,7 +492,7 @@ const onFocus = () => {
         :bordered="false"
         clear-icon
         :show-search="!isMobileMode"
-        :show-arrow="editAllowed && !readOnly"
+        :show-arrow="editAllowed && !readOnly && !searchVal"
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :class="{ 'caret-transparent': !hasEditRoles }"
@@ -529,9 +543,7 @@ const onFocus = () => {
         </a-select-option>
 
         <a-select-option
-          v-if="
-            !isMetaReadOnly && searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')
-          "
+          v-if="!isMetaReadOnly && searchVal && isOptionMissing && isNewOptionCreateEnabled"
           :key="searchVal"
           :value="searchVal"
         >
@@ -643,7 +655,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+  @apply !text-small;
 }
 </style>
 

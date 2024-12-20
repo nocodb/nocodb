@@ -850,6 +850,11 @@ useEventListener(
   },
   true,
 )
+
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => formViewData?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>
@@ -902,8 +907,8 @@ useEventListener(
                   <a-alert class="nc-form-success-msg !my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                     <template #message>
                       <LazyCellRichText
-                        v-if="formViewData?.success_msg?.trim()"
-                        :value="formViewData?.success_msg"
+                        v-if="templatedMessage"
+                        :value="templatedMessage"
                         class="!h-auto -ml-1"
                         is-form-field
                         read-only
@@ -1187,6 +1192,7 @@ useEventListener(
                             :autofocus="activeRow === NcForm.subheading"
                             :data-testid="NcForm.subheading"
                             :data-title="NcForm.subheading"
+                            hide-mention
                             @update:value="updateView"
                             @focus="activeRow = NcForm.subheading"
                             @blur="activeRow = ''"
@@ -1495,6 +1501,7 @@ useEventListener(
                       class="form-meta-input nc-form-input-help-text"
                       is-form-field
                       :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
+                      hide-mention
                       data-testid="nc-form-input-help-text"
                       @update:value="updateActiveFieldDescription"
                     />
@@ -1647,7 +1654,7 @@ useEventListener(
                                           </NcTooltip>
                                         </div>
                                         <div
-                                          v-if="field.label?.trim()"
+                                          v-if="field.label?.trim() && field.title !== field.label?.trim()"
                                           class="truncate inline-flex text-xs font-normal text-gray-700"
                                         >
                                           <span>&nbsp;(</span>
@@ -1883,8 +1890,14 @@ useEventListener(
 
                         <!-- Show this message -->
                         <div v-if="!isOpenRedirectUrl" class="pb-10">
-                          <div class="text-gray-800 mb-2">
+                          <div class="text-gray-800 mb-2 flex items-center">
                             {{ $t('msg.info.formDisplayMessage') }}
+                            <NcTooltip>
+                              <template #title>
+                                Use column name/title for templated field instead of field label. For example: "Hello {Title}!"
+                              </template>
+                              <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                            </NcTooltip>
                           </div>
                           <a-form-item class="!my-0">
                             <LazyCellRichText
@@ -1893,6 +1906,7 @@ useEventListener(
                               class="nc-form-after-submit-msg editable"
                               is-form-field
                               :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
+                              hide-mention
                               data-testid="nc-form-after-submit-msg"
                               @update:value="updateView" />
                             <LazyCellRichText
@@ -1962,8 +1976,11 @@ useEventListener(
   }
 
   :deep(input) {
-    @apply !px-1;
+    &:not(.ant-select-selection-search-input) {
+      @apply !px-1;
+    }
   }
+
   &.nc-cell-longtext {
     @apply p-0 h-auto;
   }

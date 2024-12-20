@@ -105,7 +105,7 @@ export class ExpandedFormPage extends BasePage {
     const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
       case 'text':
-        await field.locator('input').fill(value);
+        await field.locator('input, textarea').fill(value);
         break;
       case 'geodata': {
         const [lat, long] = value.split(',');

@@ -58,7 +58,7 @@ const tempSelectedOptState = ref<string>()
 const isFocusing = ref(false)
 
 const isNewOptionCreateEnabled = computed(
-  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value,
+  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
 )
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
@@ -160,7 +160,7 @@ useSelectedCellKeyupListener(activeCell, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -293,6 +293,16 @@ const onFocus = () => {
 
   isOpen.value = true
 }
+
+watch(
+  () => active.value,
+  (newValue) => {
+    if (newValue) return
+
+    searchVal.value = ''
+    isOpen.value = false
+  },
+)
 </script>
 
 <template>
@@ -394,7 +404,7 @@ const onFocus = () => {
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :show-search="!isMobileMode && isOpen && active"
-        :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined)"
+        :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
         :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
         :dropdown-match-select-width="true"
         @select="onSelect"
@@ -486,7 +496,7 @@ const onFocus = () => {
   @apply flex items-center;
 
   .ant-select-selection-search-input {
-    @apply !text-xs;
+    @apply !text-small;
   }
 }
 

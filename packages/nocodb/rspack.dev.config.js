@@ -2,7 +2,7 @@ const { join, resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { TsCheckerRspackPlugin } = require('ts-checker-rspack-plugin');
 
 const baseDevConfig = {
   mode: 'development',
@@ -76,7 +76,7 @@ const baseDevConfig = {
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
-    new ForkTsCheckerWebpackPlugin({
+    new TsCheckerRspackPlugin({
       typescript: {
         configFile: join('tsconfig.json'),
       },

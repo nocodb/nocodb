@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
 import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
@@ -52,9 +51,13 @@ const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -238,7 +241,7 @@ useSelectedCellKeyupListener(activeCell, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -272,22 +275,11 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj, null)
-
 const toggleMenu = () => {
-  if (cellClickHook) return
-  isOpen.value = editAllowed.value && !isOpen.value
-}
+  if (isFocusing.value) return
 
-const cellClickHookHandler = () => {
   isOpen.value = editAllowed.value && !isOpen.value
 }
-onMounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
-onUnmounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
 
 const handleClose = (e: MouseEvent) => {
   // close dropdown if clicked outside of dropdown
@@ -317,6 +309,31 @@ const filterOption = (input: string, option: any) => {
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {
   return !idUserMap.value?.[userIdOrEmail]?.deleted
+}
+
+const onKeyDown = (e: KeyboardEvent) => {
+  // Tab
+  if (e.key === 'Tab') {
+    isOpen.value = false
+    return
+  } else if (e.key === 'Escape' && isForm.value) {
+    isOpen.value = false
+    return
+  }
+
+  e.stopPropagation()
+}
+
+const onFocus = () => {
+  isFocusing.value = true
+
+  setTimeout(() => {
+    isFocusing.value = false
+  }, 250)
+
+  if (isSurveyForm.value && vModel.value) return
+
+  isOpen.value = true
 }
 </script>
 
@@ -474,7 +491,9 @@ const isCollaborator = (userIdOrEmail) => {
         :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         :filter-option="filterOption"
         @search="search"
-        @keydown.stop
+        @focus="onFocus"
+        @blur="isOpen = false"
+        @keydown="onKeyDown"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
@@ -640,8 +659,9 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 :deep(.ant-select-selection-search-input) {
-  @apply !text-xs;
+  @apply !text-small;
 }
+
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
 }

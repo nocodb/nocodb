@@ -413,7 +413,11 @@ export class OrderColumnMigration {
         this.logExecutionTime(`Populate order values query generated`, hrtime);
       } else {
         this.log(
-          `Order column already exists for model ${modelId}, Table: ${model.table_name}, BaseId ${base_id}, WorkspaceId ${context.workspace_id}`,
+          `Order column already exists for model ${modelId}, Table: ${
+            model.table_name
+          }, BaseId ${base_id}${
+            context.workspace_id ? `, WorkspaceId ${context.workspace_id}` : ''
+          }`,
         );
         await this.updateModelStatus(Noco.ncMeta, modelId, true);
         return;
@@ -431,7 +435,22 @@ export class OrderColumnMigration {
 
       const queries = source.upgraderQueries.splice(0);
 
-      await realDbDriver.raw(queries.join(';'));
+      if (isEE) {
+        await realDbDriver.raw(queries.join(';'));
+      } else {
+        const trans = await realDbDriver.transaction();
+
+        try {
+          for (const query of queries) {
+            await trans.raw(query);
+          }
+          await trans.commit();
+        } catch (e) {
+          await trans.rollback();
+          throw e;
+        }
+      }
+
       await ncMeta.runUpgraderQueries();
     } catch (error) {
       throw error;

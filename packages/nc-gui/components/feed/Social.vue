@@ -45,7 +45,7 @@ const openUrl = (url: string, e: string) => {
 <template>
   <div style="width: 230px" class="flex flex-col bg-white border-gray-200 rounded-lg border-1">
     <div class="text-gray-800 font-semibold leading-6 border-b-1 border-gray-200 px-4 py-3">Stay tuned</div>
-    <div class="flex flex-col">
+    <div class="flex flex-col p-1">
       <div
         v-for="social in socialIcons"
         :key="social.name"

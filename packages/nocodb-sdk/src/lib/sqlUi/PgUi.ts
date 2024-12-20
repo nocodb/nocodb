@@ -263,7 +263,7 @@ export class PgUi {
         dtxp: '40,20',
         dtxs: '',
         altered: 1,
-        uidt: 'Order',
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,

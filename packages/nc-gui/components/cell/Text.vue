@@ -27,25 +27,41 @@ const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+
+const textareaValue = computed({
+  get: () => vModel.value ?? '',
+  set: (val) => (vModel.value = val),
+})
 </script>
 
 <template>
-  <!-- eslint-disable vue/use-v-on-exact -->
-  <input
-    v-if="!readOnly && editEnabled"
-    :ref="focus"
-    v-model="vModel"
-    class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
-    @blur="editEnabled = false"
-    @keydown.down.stop
-    @keydown.left.stop
-    @keydown.right.stop
-    @keydown.up.stop
-    @keydown.delete.stop
-    @keydown.alt.stop
-    @selectstart.capture.stop
-    @mousedown.stop
-  />
+  <template v-if="!readOnly && editEnabled">
+    <!-- eslint-disable vue/use-v-on-exact -->
+    <input
+      v-if="!isExpandedFormOpen"
+      :ref="focus"
+      v-model="vModel"
+      class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
+      @blur="editEnabled = false"
+      @keydown.down.stop
+      @keydown.left.stop
+      @keydown.right.stop
+      @keydown.up.stop
+      @keydown.delete.stop
+      @keydown.alt.stop
+      @selectstart.capture.stop
+      @mousedown.stop
+    />
+    <a-textarea
+      v-else
+      :ref="focus"
+      v-model:value="textareaValue"
+      :auto-size="{ minRows: 1, maxRows: 6 }"
+      class="!border-0 !border-none !outline-0 !ring-0 focus:!border-0 focus:!outline-0 focus:!ring-0 !p-2 nc-scrollbar-thin"
+      style="color: inherit; resize: auto !important"
+      @keydown.enter.prevent
+    />
+  </template>
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 

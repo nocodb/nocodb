@@ -934,7 +934,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (isExpandedCellInputExist()) {
+    if (isExpandedCellInputExist() || isLinkDropdownExist()) {
       return
     }
 

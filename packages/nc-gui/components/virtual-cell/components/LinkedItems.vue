@@ -300,6 +300,20 @@ const onFilterChange = () => {
   // reset offset count when filter changes
   resetChildrenListOffsetCount()
 }
+
+const isSearchInputFocused = ref(false)
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    filterQueryRef.value?.blur()
+  } else if (e.key === 'Enter') {
+    const list = childrenList.value?.list ?? state.value?.[colTitle.value]
+
+    if (childrenListPagination.query && ncIsArray(list) && list.length) {
+      linkOrUnLink(list[0], '0')
+    }
+  }
+}
 </script>
 
 <template>
@@ -314,14 +328,10 @@ const onFilterChange = () => {
             placeholder="Search linked records..."
             class="w-full min-h-4 !pl-0"
             size="small"
+            @focus="isSearchInputFocused = true"
+            @blur="isSearchInputFocused = false"
             @change="onFilterChange"
-            @keydown.capture.stop="
-              (e) => {
-                if (e.key === 'Escape') {
-                  filterQueryRef?.blur()
-                }
-              }
-            "
+            @keydown.capture.stop="handleKeyDown"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
@@ -372,13 +382,14 @@ const onFilterChange = () => {
                 :fields="fields"
                 :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
                 :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
                 :row="refRow"
                 data-testid="nc-child-list-item"
                 @link-or-unlink="linkOrUnLink(refRow, id)"
                 @expand="onClick(refRow)"
-                @keydown.space.prevent.stop="linkOrUnLink(refRow, id)"
-                @keydown.enter.prevent.stop="() => onClick(refRow, id)"
+                @keydown.space.prevent.stop="() => linkOrUnLink(refRow, id)"
+                @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
               />
             </template>
           </div>

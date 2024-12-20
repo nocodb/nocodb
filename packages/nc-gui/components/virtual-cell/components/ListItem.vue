@@ -10,9 +10,11 @@ const props = withDefaults(
     displayValueTypeAndFormatProp: { type: string; format: string }
     isLoading: boolean
     isLinked: boolean
+    isSelected?: boolean
   }>(),
   {
     isLoading: false,
+    isSelected: false,
   },
 )
 
@@ -26,7 +28,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')
 
-const { isLinked, isLoading } = toRefs(props)
+const { isLinked, isLoading, isSelected } = toRefs(props)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -78,6 +80,7 @@ const displayValue = computed(() => {
       :class="{
         '!bg-white': isLoading,
         '!hover:bg-white': readOnly,
+        'nc-is-selected': isSelected,
       }"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
@@ -257,7 +260,8 @@ const displayValue = computed(() => {
       .ant-select-selector {
         @apply !border-none flex-nowrap pr-4.5;
       }
-      .ant-select-arrow {
+      .ant-select-arrow,
+      .ant-select-clear {
         @apply right-[3px];
       }
     }
@@ -279,7 +283,8 @@ const displayValue = computed(() => {
 .nc-list-item {
   @apply border-1 border-transparent rounded-md;
 
-  &:focus-visible {
+  &:focus-visible,
+  &.nc-is-selected {
     @apply border-brand-500;
     box-shadow: 0 0 0 1px #3366ff;
   }

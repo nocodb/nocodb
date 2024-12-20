@@ -297,8 +297,10 @@ const cellType = computed(() => {
   :deep(input),
   :deep(textarea),
   :deep(.nc-cell-field-link) {
-    @apply !text-sm;
-    font-weight: 500;
+    &:not(.ant-select-selection-search-input) {
+      @apply !text-sm;
+      font-weight: 500;
+    }
   }
 
   :deep(input::placeholder),

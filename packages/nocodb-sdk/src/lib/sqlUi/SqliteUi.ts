@@ -186,7 +186,7 @@ export class SqliteUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: 'Decimal',
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,

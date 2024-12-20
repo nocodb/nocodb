@@ -249,7 +249,13 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
-                  <NcButton type="secondary" size="small" class="!border-r-transparent !rounded-r-none" :disabled="isLocked">
+                  <NcButton
+                    type="secondary"
+                    size="small"
+                    class="!border-r-transparent !rounded-r-none"
+                    :shadow="false"
+                    :disabled="isLocked"
+                  >
                     <component :is="iconMap.drag" />
                   </NcButton>
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
@@ -313,6 +319,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                       class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
                       size="small"
                       type="secondary"
+                      :shadow="false"
                       :disabled="isLocked"
                       @click.stop="removeFieldFromGroupBy(group)"
                     >

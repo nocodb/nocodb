@@ -404,6 +404,7 @@ import NcUserMinusIcon from '~icons/nc-icons-v2/user-minus.svg'
 import NcBellIcon from '~icons/nc-icons-v2/bell.svg'
 import NcGitBranchIcon from '~icons/nc-icons-v2/git-branch.svg'
 import NcCodeIcon from '~icons/nc-icons-v2/code.svg'
+import NcCodeBlockIcon from '~icons/nc-icons-v2/code-block.svg'
 import NcCastIcon from '~icons/nc-icons-v2/cast.svg'
 import NcFlagIcon from '~icons/nc-icons-v2/flag.svg'
 import NcEyeOffIcon from '~icons/nc-icons-v2/eye-off.svg'
@@ -1229,6 +1230,7 @@ export const iconMap = {
   ncBell: NcBellIcon,
   ncGitBranch: NcGitBranchIcon,
   ncCode: NcCodeIcon,
+  ncCodeBlock: NcCodeBlockIcon,
   ncCast: NcCastIcon,
   ncFlag: NcFlagIcon,
   ncEyeOff: NcEyeOffIcon,
@@ -3213,6 +3215,10 @@ export const searchableMap = {
   },
   ncCode: {
     icon: NcCodeIcon,
+    keywords: ['programming', 'development', 'coding', 'software', 'script'],
+  },
+  ncCodeBlock: {
+    icon: NcCodeBlockIcon,
     keywords: ['programming', 'development', 'coding', 'software', 'script'],
   },
   ncCast: {

@@ -229,25 +229,12 @@ const closeTextArea = () => {
         <GeneralIcon icon="strike" />
       </NcButton>
     </NcTooltip>
-
-    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)" :placement="tooltipPlacement">
-      <template #title> {{ $t('general.code') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :tabindex="tabIndex"
-        :class="{ 'is-active': editor.isActive('codeBlock') }"
-        @click="editor!.chain().focus().toggleCodeBlock().run()"
-      >
-        <GeneralIcon icon="code" />
-      </NcButton>
-    </NcTooltip>
     <NcTooltip
       v-if="isFormField ? isOptionVisible(RichTextBubbleMenuOptions.quote) : !embedMode"
       :placement="tooltipPlacement"
       :disabled="editor.isActive('codeBlock')"
     >
-      <template #title> {{ $t('general.quote') }}</template>
+      <template #title> {{ $t('general.code') }}</template>
       <NcButton
         size="small"
         type="text"
@@ -256,9 +243,22 @@ const closeTextArea = () => {
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleCode().run()"
       >
-        <GeneralIcon icon="ncQuote" />
+        <GeneralIcon icon="code" />
       </NcButton>
     </NcTooltip>
+    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)" :placement="tooltipPlacement">
+      <template #title> {{ $t('general.codeBlock') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('codeBlock') }"
+        @click="editor!.chain().focus().toggleCodeBlock().run()"
+      >
+        <GeneralIcon icon="ncCodeBlock" />
+      </NcButton>
+    </NcTooltip>
+
     <div class="divider"></div>
 
     <template v-if="embedMode && !isFormField">
@@ -332,7 +332,7 @@ const closeTextArea = () => {
         :class="{ 'is-active': editor.isActive('blockquote') }"
         @click="editor!.chain().focus().toggleBlockquote().run()"
       >
-        <TablerBlockQuote class="-mt-0.25" />
+        <GeneralIcon icon="ncQuote" />
       </NcButton>
     </NcTooltip>
 

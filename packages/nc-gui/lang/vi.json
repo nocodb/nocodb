@@ -154,6 +154,7 @@
     "details": "Chi tiết",
     "skip": "Bỏ qua",
     "code": "Mã",
+    "codeBlock": "Code Block",
     "duplicate": "Tạo bản sao",
     "duplicating": "Đang nhân đôi",
     "duplicateEntity": "Tạo bản sao {entity}",

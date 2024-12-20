@@ -2852,6 +2852,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
       .ant-select-selection-search-input {
         @apply !h-[23px];
       }
+
+      .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+        @apply !h-auto;
+      }
     }
   }
 

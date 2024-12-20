@@ -184,7 +184,7 @@ async function getJunctionTableName(
 }
 
 @Injectable()
-export class ColumnsService {
+export class  ColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,

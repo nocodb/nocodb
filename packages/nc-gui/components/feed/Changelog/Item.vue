@@ -98,8 +98,8 @@ const handleOpenUrl = (url: string) => {
       />
     </div>
     <div class="flex my-4 px-4 items-center justify-between">
-      <div class="flex items-center">
-        <NcBadge :border="false" color="brand" class="font-semibold text-[13px] mr-3 nc-title-badge cursor-pointer">
+      <div class="flex items-center flex-wrap gap-3">
+        <NcBadge :border="false" color="brand" class="font-semibold text-[13px] nc-title-badge cursor-pointer whitespace-nowrap">
           {{ Title }}
         </NcBadge>
         <span
@@ -110,7 +110,7 @@ const handleOpenUrl = (url: string) => {
             'bg-purple-50': tag.color === 'purple',
             'bg-green-50': tag.color === 'green',
           }"
-          class="mr-3 flex gap-2 items-center px-1 rounded-md"
+          class="flex gap-2 items-center px-1 rounded-md"
         >
           <component
             :is="tag.icon"
@@ -127,13 +127,13 @@ const handleOpenUrl = (url: string) => {
               'text-purple-500': tag.color === 'purple',
               'text-green-700': tag.color === 'green',
             }"
-            class="leading-5 text-[13px]"
+            class="leading-5 text-[13px] whitespace-nowrap"
           >
             {{ tag.text }}
           </span>
         </span>
       </div>
-      <span class="font-medium text-sm text-gray-500">
+      <span class="font-medium text-sm text-gray-500 whitespace-nowrap">
         {{ dayjs(CreatedAt).format('MMM DD, YYYY') }}
       </span>
     </div>

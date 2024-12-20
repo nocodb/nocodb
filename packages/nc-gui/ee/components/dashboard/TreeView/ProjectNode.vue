@@ -686,11 +686,11 @@ const showNodeTooltip = ref(true)
               </div>
             </div>
 
-            <input
+            <a-input
               v-if="editMode"
               ref="input"
-              v-model="tempTitle"
-              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
+              v-model:value="tempTitle"
+              class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
               :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
               @click.stop
               @keyup.enter="updateProjectTitle"
@@ -905,8 +905,14 @@ const showNodeTooltip = ref(true)
                     :bordered="false"
                     ghost
                   >
-                    <template #expandIcon="{ isActive }">
+                    <template #expandIcon="{ isActive, header }">
                       <NcButton
+                        v-if="
+                          !(
+                            header?.[0]?.props?.['data-sourceId'] &&
+                            sourceRenameHelpers[header?.[0]?.props?.['data-sourceId']]?.editMode
+                          )
+                        "
                         v-e="['c:external:base:expand']"
                         type="text"
                         size="xxsmall"
@@ -922,7 +928,14 @@ const showNodeTooltip = ref(true)
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
-                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.5 pr-6.5 !ml-0">
+                        <div
+                          :data-sourceId="source.id"
+                          class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.5 !ml-0"
+                          :class="{
+                            'pr-0.5': source.id && sourceRenameHelpers[source.id]?.editMode,
+                            'pr-6.5': !(source.id && sourceRenameHelpers[source.id]?.editMode),
+                          }"
+                        >
                           <div
                             v-if="baseIndex === 0"
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
@@ -954,11 +967,11 @@ const showNodeTooltip = ref(true)
                               </div>
                             </NcTooltip>
 
-                            <input
+                            <a-input
                               v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
                               ref="input"
-                              v-model="sourceRenameHelpers[source.id].tempTitle"
-                              class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4 !text-gray-700"
+                              v-model:value="sourceRenameHelpers[source.id].tempTitle"
+                              class="capitalize !bg-transparent flex-1 mr-4 !pr-1.5 !text-gray-700 !rounded-md !h-6 animate-sidebar-node-input-padding"
                               :data-source-rename-input-id="source.id"
                               @click.stop
                               @keydown.enter.stop.prevent
@@ -978,7 +991,10 @@ const showNodeTooltip = ref(true)
                               </span>
                             </NcTooltip>
                           </div>
-                          <div class="flex flex-row items-center gap-x-0.25">
+                          <div
+                            v-if="!(source.id && sourceRenameHelpers[source.id]?.editMode)"
+                            class="flex flex-row items-center gap-x-0.25"
+                          >
                             <NcDropdown
                               :visible="isBasesOptionsOpen[source!.id!]"
                               :trigger="['click']"

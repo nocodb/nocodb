@@ -1079,3 +1079,16 @@ svg.nc-virtual-cell-icon {
     }
   }
 }
+
+@keyframes sidebar-node-input-padding-grow {
+  from {
+    padding-left: 0;
+  }
+  to {
+    padding-left: 6px;
+  }
+}
+
+.animate-sidebar-node-input-padding {
+  animation: sidebar-node-input-padding-grow 0.2s ease forwards;
+}

@@ -154,6 +154,7 @@
     "details": "Podrobnosti",
     "skip": "Preskoči",
     "code": "Koda",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikatni",
     "duplicating": "Podvajanje",
     "duplicateEntity": "Podvoji {entity}",

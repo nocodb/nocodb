@@ -154,6 +154,7 @@
     "details": "Detaljer",
     "skip": "Hoppa över",
     "code": "Kod",
+    "codeBlock": "Code Block",
     "duplicate": "Dubbla",
     "duplicating": "Duplicerar",
     "duplicateEntity": "Duplicera {entity}",

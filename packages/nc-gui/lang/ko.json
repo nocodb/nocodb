@@ -154,6 +154,7 @@
     "details": "세부사항",
     "skip": "건너뛰기",
     "code": "코드",
+    "codeBlock": "Code Block",
     "duplicate": "복제",
     "duplicating": "복사 중",
     "duplicateEntity": "{entity} 복제",

@@ -156,6 +156,8 @@ watch(
                   v-model:icon="form.icon"
                   v-model:icon-type="form.iconType"
                   v-model:image-cropper-data="imageCropperData"
+                  :default-active-tab="IconType.IMAGE"
+                  :tab-order="[IconType.IMAGE, IconType.ICON, IconType.EMOJI]"
                   @submit="() => saveChanges(true)"
                 >
                   <template #default="{ isOpen }">

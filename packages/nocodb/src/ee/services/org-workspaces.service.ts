@@ -5,15 +5,15 @@ import {
   parseProp,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import { parseMetaProp } from 'src/utils/modelUtils';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { User, OrgUser, Workspace, WorkspaceUser } from '~/models';
+import { OrgUser, User, Workspace, WorkspaceUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
-import { parseMetaProp } from 'src/utils/modelUtils';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 

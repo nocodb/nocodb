@@ -1,10 +1,10 @@
 import {
   extractRolesObj,
   IconType,
-  MetaType,
   ncIsObject,
   type UserType,
 } from 'nocodb-sdk';
+import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';

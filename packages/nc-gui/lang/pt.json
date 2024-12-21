@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Lista de carga falhada",
       "failedToLoadChildrenList": "Falha no carregamento da lista de crianças",
       "deleteFailed": "Eliminar falhou",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Desbloqueio falhado",
       "rowUpdateFailed": "Actualização da linha falhou",
       "deleteRowFailed": "Falha em eliminar fila",

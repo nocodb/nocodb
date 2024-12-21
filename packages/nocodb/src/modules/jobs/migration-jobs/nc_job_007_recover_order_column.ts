@@ -214,10 +214,7 @@ export class RecoverOrderColumnMigration {
         async () => Source.get(context, modelData.source_id),
       );
 
-      if (
-        !originalSource ||
-        (!originalSource.isMeta() && (!isEE || !originalSource.is_local))
-      ) {
+      if (!originalSource || !originalSource.isMeta()) {
         return;
       }
 

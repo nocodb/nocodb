@@ -34,6 +34,9 @@ const isValidFileSize = computed(() => {
 
 const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
+
+  if (!canvas) return
+
   previewImage.value = {
     canvas,
     src: canvas.toDataURL(imageConfig.type),
@@ -94,14 +97,28 @@ const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any
   }
 }
 
-watch(showCropper, () => {
-  if (!showCropper.value) {
-    previewImage.value = {
-      canvas: {},
-      src: '',
+watch(
+  showCropper,
+  () => {
+    if (!showCropper.value) {
+      previewImage.value = {
+        canvas: {},
+        src: '',
+      }
+    } else {
+      until(() => !!cropperRef.value?.getResult()?.canvas)
+        .toBeTruthy({ timeout: 2000 })
+        .then(() => {
+          nextTick(() => {
+            handleCropImage()
+          })
+        })
     }
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

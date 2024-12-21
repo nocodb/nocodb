@@ -31,6 +31,7 @@ import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-
 import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
 import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 
 // Jobs Module Related
@@ -113,6 +114,7 @@ export const JobsModuleMetadata = {
     CleanupDuplicateColumnMigration,
     OrderColumnMigration,
     NoOpMigration,
+    RecoverOrderColumnMigration,
   ],
   exports: ['JobsService'],
 };

@@ -154,6 +154,7 @@
     "details": "جزئیات",
     "skip": "رد کردن",
     "code": "کد",
+    "codeBlock": "Code Block",
     "duplicate": "کپی کردن",
     "duplicating": "کپی کردن",
     "duplicateEntity": "تکرار {entity}",

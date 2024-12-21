@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Listan kunde inte laddas",
       "failedToLoadChildrenList": "Misslyckades med att läsa in listan över barn",
       "deleteFailed": "Radering misslyckades",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Uppkoppling misslyckades",
       "rowUpdateFailed": "Uppdatering av rad misslyckades",
       "deleteRowFailed": "Radering av rad misslyckades",

@@ -1835,7 +1835,7 @@
       "failedToLoadList": "Échec du chargement de la liste",
       "failedToLoadChildrenList": "Échec du chargement de la liste des enfants",
       "deleteFailed": "Suppression échouée",
-      "failedToDuplicateTable": "Failed to duplicate table",
+      "failedToDuplicateTable": "Échec de la duplication de la table",
       "unlinkFailed": "Échec de la déliaison",
       "rowUpdateFailed": "La mise à jour des rangées a échoué",
       "deleteRowFailed": "Échec de la suppression de la ligne",

@@ -154,6 +154,7 @@
     "details": "Tiedot",
     "skip": "Ohita",
     "code": "Koodi",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikaatti",
     "duplicating": "Monistetaan",
     "duplicateEntity": "Monista {entity}",

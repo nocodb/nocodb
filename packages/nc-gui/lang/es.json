@@ -154,6 +154,7 @@
     "details": "Detalles",
     "skip": "Saltar",
     "code": "Código",
+    "codeBlock": "Code Block",
     "duplicate": "Duplicar",
     "duplicating": "Duplicando",
     "duplicateEntity": "Duplicado {entity}",

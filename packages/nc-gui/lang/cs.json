@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Nepodařilo se načíst seznam",
       "failedToLoadChildrenList": "Nepodařilo se načíst seznam dětí",
       "deleteFailed": "Odstranění se nezdařilo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Odpojení se nezdařilo",
       "rowUpdateFailed": "Aktualizace řádku se nezdařila",
       "deleteRowFailed": "Nepodařilo se odstranit řádek",

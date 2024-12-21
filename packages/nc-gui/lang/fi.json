@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Luettelon lataaminen epäonnistui",
       "failedToLoadChildrenList": "Lasten luettelon lataaminen epäonnistui",
       "deleteFailed": "Poista epäonnistui",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Yhteyden avaaminen epäonnistui",
       "rowUpdateFailed": "Rivin päivitys epäonnistui",
       "deleteRowFailed": "Rivin poistaminen epäonnistui",

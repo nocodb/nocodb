@@ -154,6 +154,7 @@
     "details": "विवरण",
     "skip": "छोड्नुहोस्",
     "code": "कोड",
+    "codeBlock": "Code Block",
     "duplicate": "प्रतिलिपि गर्नुहोस्",
     "duplicating": "नक्कल गर्दै",
     "duplicateEntity": "{entity} प्रतिलिपि बनाउनुहोस्",

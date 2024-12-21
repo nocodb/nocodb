@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Neizdevās ielādēt sarakstu",
       "failedToLoadChildrenList": "Neizdevās ielādēt bērnu sarakstu",
       "deleteFailed": "Dzēst neizdevās",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Atvienot neizdevās",
       "rowUpdateFailed": "Rindu atjaunināšana neizdevās",
       "deleteRowFailed": "Neizdevās dzēst rindu",

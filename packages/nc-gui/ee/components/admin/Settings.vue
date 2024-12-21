@@ -6,7 +6,7 @@ const orgStore = useOrg()
 const { t } = useI18n()
 
 const { org } = storeToRefs(orgStore)
-const { updateOrg, loadOrg } = orgStore
+const { updateOrg } = orgStore
 
 const isErrored = ref(false)
 

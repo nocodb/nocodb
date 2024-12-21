@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Nepodarilo sa načítať zoznam",
       "failedToLoadChildrenList": "Nepodarilo sa načítať zoznam detí",
       "deleteFailed": "Odstrániť sa nepodarilo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Odpojenie zlyhalo",
       "rowUpdateFailed": "Aktualizácia riadkov zlyhala",
       "deleteRowFailed": "Nepodarilo sa odstrániť riadok",

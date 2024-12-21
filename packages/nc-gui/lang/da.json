@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Det er ikke lykkedes at indlæse listen",
       "failedToLoadChildrenList": "Det lykkedes ikke at indlæse listen over børn",
       "deleteFailed": "Sletning mislykkedes",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Afbrydelse af forbindelsen mislykkedes",
       "rowUpdateFailed": "Opdatering af række mislykkedes",
       "deleteRowFailed": "Det er ikke lykkedes at slette en række",

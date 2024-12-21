@@ -1835,7 +1835,7 @@
       "failedToLoadList": "목록을 불러오지 못했습니다.",
       "failedToLoadChildrenList": "하위 목록을 불러오지 못했습니다.",
       "deleteFailed": "삭제 실패",
-      "failedToDuplicateTable": "Failed to duplicate table",
+      "failedToDuplicateTable": "데이터 복제 실패",
       "unlinkFailed": "링크 해제 실패",
       "rowUpdateFailed": "레코드 업데이트 실패",
       "deleteRowFailed": "레코드 삭제 실패",

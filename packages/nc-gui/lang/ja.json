@@ -1835,6 +1835,7 @@
       "failedToLoadList": "リストの読み込みに失敗しました",
       "failedToLoadChildrenList": "子供リストの読み込みに失敗しました",
       "deleteFailed": "削除に失敗しました",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "リンク解除に失敗しました",
       "rowUpdateFailed": "行の更新に失敗",
       "deleteRowFailed": "行の削除に失敗",

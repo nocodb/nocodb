@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Nu a reușit încărcarea listei",
       "failedToLoadChildrenList": "Nu a reușit încărcarea listei de copii",
       "deleteFailed": "Ștergerea a eșuat",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Deconectarea a eșuat",
       "rowUpdateFailed": "Eșec la actualizarea înregistrării",
       "deleteRowFailed": "Eșec la ștergerea înregistrării",

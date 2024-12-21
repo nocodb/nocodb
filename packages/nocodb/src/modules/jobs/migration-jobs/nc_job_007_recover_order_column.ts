@@ -54,7 +54,7 @@ export class RecoverOrderColumnMigration {
           .where(`${MetaTable.MODELS}.mm`, false)
           .where((builder) => {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-            if (isEE) builder.orWhere({ is_local: true });
+            builder.orWhere({ is_local: true });
           })
           .where((builder) => {
             builder
@@ -68,6 +68,16 @@ export class RecoverOrderColumnMigration {
                 `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
               )
               .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
+          })
+          .whereExists(function () {
+            this.select(1)
+              .from(MetaTable.COLUMNS)
+              .whereRaw(
+                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+              )
+              .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
+              .where(`${MetaTable.COLUMNS}.system`, true)
+              .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
           })
           .count('*', { as: 'count' })
           .first()
@@ -106,7 +116,7 @@ export class RecoverOrderColumnMigration {
           .where(`${MetaTable.MODELS}.mm`, false)
           .where((builder) => {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-            if (isEE) builder.orWhere({ is_local: true });
+            builder.orWhere({ is_local: true });
           })
           .where((builder) => {
             builder
@@ -124,6 +134,16 @@ export class RecoverOrderColumnMigration {
                 `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
               )
               .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
+          })
+          .whereExists(function () {
+            this.select(1)
+              .from(MetaTable.COLUMNS)
+              .whereRaw(
+                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+              )
+              .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
+              .where(`${MetaTable.COLUMNS}.system`, true)
+              .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
           })
           .limit(PARALLEL_LIMIT * 2);
 

@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Не вдалося завантажити список",
       "failedToLoadChildrenList": "Не вдалося завантажити дочірній список",
       "deleteFailed": "Видалення не вдалося",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Не вдалося від’єднатися",
       "rowUpdateFailed": "Не вдалося оновити рядок",
       "deleteRowFailed": "Не вдалося видалити рядок",

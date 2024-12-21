@@ -54,7 +54,7 @@ export class InitMigrationJobs {
     {
       version: '7',
       job: MigrationJobTypes.RecoverOrderColumnMigration,
-      service: this.recoverOrderColumnMigration,
+      service: isEE ? this.noOpMigration : this.recoverOrderColumnMigration,
     },
   ];
 

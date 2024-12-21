@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Ni uspelo naložiti seznama",
       "failedToLoadChildrenList": "Ni uspelo naložiti seznama otrok",
       "deleteFailed": "Brisanje ni uspelo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Odprava povezave ni uspela",
       "rowUpdateFailed": "Posodobitev vrstice ni uspela",
       "deleteRowFailed": "Ni uspelo izbrisati vrstice",

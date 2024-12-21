@@ -19,6 +19,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  ncIsObject,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -8517,7 +8518,9 @@ class BaseModelSqlv2 {
               id,
               email,
               display_name: display_name?.length ? display_name : null,
-              meta,
+              meta: ncIsObject(meta)
+                ? extractProps(meta, ['icon', 'iconType'])
+                : null,
             };
           });
 

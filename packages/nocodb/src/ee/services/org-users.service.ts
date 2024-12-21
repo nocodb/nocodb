@@ -43,7 +43,11 @@ export class OrgUsersService {
 
   async getOrgUsers(param: { orgId: string; req: NcRequest; user: User }) {
     // get all users in org
-    return await OrgUser.list(param.orgId);
+
+    const orgUsers = await OrgUser.list(param.orgId);
+    await User.signUserImage(orgUsers);
+
+    return orgUsers;
   }
 
   // remove user from org

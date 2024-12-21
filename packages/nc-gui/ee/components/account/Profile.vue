@@ -159,7 +159,7 @@ watch(
                 >
                   <template #default="{ isOpen }">
                     <div
-                      class="border-1 w-26.5 h-26.5 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+                      class="border-1 w-26.25 h-26.25 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
                       :class="{
                         'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
                         'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,

@@ -154,6 +154,7 @@
     "details": "Detalhes",
     "skip": "Pular",
     "code": "Código",
+    "codeBlock": "Code Block",
     "duplicate": "Duplicar",
     "duplicating": "Duplicando",
     "duplicateEntity": "Duplicar {entity}",

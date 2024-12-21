@@ -6,6 +6,7 @@ import isEmail from 'validator/lib/isEmail';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import type {
+  MetaType,
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
@@ -92,6 +93,7 @@ export class UsersService {
     params: {
       display_name?: string;
       avatar?: string;
+      meta?: MetaType;
     };
   }) {
     const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);

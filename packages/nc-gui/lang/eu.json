@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Zerrenda kargatzeak huts egin du",
       "failedToLoadChildrenList": "Haur zerrenda kargatzeak huts egin du",
       "deleteFailed": "Ezabapenak huts egin du",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Desestekatzeak huts egin du",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",

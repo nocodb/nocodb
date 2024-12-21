@@ -154,6 +154,7 @@
     "details": "Részletek",
     "skip": "Átugrás",
     "code": "Kód",
+    "codeBlock": "Code Block",
     "duplicate": "Kettőzés",
     "duplicating": "Kettőzés",
     "duplicateEntity": "{entity} duplikálása",

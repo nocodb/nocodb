@@ -154,6 +154,7 @@
     "details": "ព័ត៌មានលម្អិត",
     "skip": "រំលង",
     "code": "លេខកូដ",
+    "codeBlock": "Code Block",
     "duplicate": "ចម្លង",
     "duplicating": "កំពុងចម្លង",
     "duplicateEntity": "ស្ទួន {entity}",

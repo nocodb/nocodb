@@ -10,14 +10,14 @@ module.exports = {
   resolve: {
     ...baseConfig.resolve,
     tsConfig: {
-      configFile: resolve('tsconfig.ee.json'),
+      configFile: resolve('tsconfig.json'),
     },
   },
   plugins: [
     ...baseConfig.plugins.slice(0, -1),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: join('tsconfig.ee.json'),
+        configFile: join('tsconfig.json'),
       },
     }),
   ],

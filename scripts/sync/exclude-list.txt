@@ -25,6 +25,7 @@ packages/nocodb/rspack.ee-on-prem.config.js
 packages/nocodb/rspack.ee-cloud.config.js
 packages/nocodb/rspack.dev.ee-cloud.js
 packages/nocodb/rspack.dev.ee-on-prem.js
+packages/nocodb/rspack.dev.js
 packages/nocodb/rspack.dev.ee.js
 packages/nocodb/rspack.dev.config.js
 .idea

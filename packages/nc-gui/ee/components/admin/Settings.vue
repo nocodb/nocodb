@@ -87,7 +87,6 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
     stencilProps: {
       aspectRatio: 1,
       fillDefault: true,
-      circlePreview: true,
     },
     minHeight: 150,
     minWidth: 150,

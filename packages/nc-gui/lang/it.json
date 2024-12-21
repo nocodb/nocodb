@@ -154,6 +154,7 @@
     "details": "Dettagli",
     "skip": "Salta",
     "code": "Codice",
+    "codeBlock": "Code Block",
     "duplicate": "Duplicato",
     "duplicating": "Duplicazione",
     "duplicateEntity": "Duplica {entity}",

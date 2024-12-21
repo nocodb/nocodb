@@ -154,10 +154,10 @@ onMounted(() => {
         <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" :disabled="isLocked" @created="addSort" />
         <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
-            <template v-for="(sort, i) of sorts" :key="i">
+            <div v-for="(sort, i) of sorts" :key="i" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
               <SmartsheetToolbarFieldListAutoCompleteDropdown
                 v-model="sort.fk_column_id"
-                class="flex caption nc-sort-field-select w-44 flex-grow"
+                class="flex caption nc-sort-field-select !w-44 flex-grow"
                 :columns="columns"
                 is-sort
                 :meta="meta"
@@ -168,7 +168,7 @@ onMounted(() => {
 
               <NcSelect
                 v-model:value="sort.direction"
-                class="shrink grow-0 nc-sort-dir-select"
+                class="flex flex-grow-1 w-full nc-sort-dir-select"
                 :label="$t('labels.operation')"
                 dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
                 :disabled="isLocked"
@@ -193,17 +193,20 @@ onMounted(() => {
                 </a-select-option>
               </NcSelect>
 
-              <NcButton
-                v-e="['c:sort:delete']"
-                type="text"
-                size="small"
-                :disabled="isLocked"
-                class="nc-sort-item-remove-btn !max-w-8"
-                @click.stop="deleteSort(sort, i)"
-              >
-                <component :is="iconMap.deleteListItem" />
-              </NcButton>
-            </template>
+              <NcTooltip placement="top" title="Remove" class="flex-none">
+                <NcButton
+                  v-e="['c:sort:delete']"
+                  size="small"
+                  type="secondary"
+                  :shadow="false"
+                  :disabled="isLocked"
+                  class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
+                  @click.stop="deleteSort(sort, i)"
+                >
+                  <component :is="iconMap.deleteListItem" />
+                </NcButton>
+              </NcTooltip>
+            </div>
           </div>
 
           <NcDropdown
@@ -271,9 +274,27 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.sort-grid {
-  display: grid;
-  grid-template-columns: auto 150px auto;
-  @apply gap-x-2 gap-y-3;
+:deep(.nc-sort-field-select) {
+  @apply !w-44;
+  .ant-select-selector {
+    @apply !rounded-none !rounded-l-lg !border-r-0 !border-gray-200 !shadow-none !w-44;
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      @apply !border-r-transparent;
+    }
+  }
+}
+
+:deep(.nc-select:not(.ant-select-disabled):hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-gray-50;
+  }
+}
+
+:deep(.nc-sort-dir-select) {
+  .ant-select-selector {
+    @apply !rounded-none !border-gray-200 !shadow-none;
+  }
 }
 </style>

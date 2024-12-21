@@ -154,6 +154,7 @@
     "details": "詳細",
     "skip": "スキップ",
     "code": "コード",
+    "codeBlock": "Code Block",
     "duplicate": "複製",
     "duplicating": "複製中",
     "duplicateEntity": "{entity}を複製",

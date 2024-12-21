@@ -154,6 +154,7 @@
     "details": "বিস্তারিত",
     "skip": "এড়িয়ে যান",
     "code": "কোড",
+    "codeBlock": "Code Block",
     "duplicate": "ডুপ্লিকেট",
     "duplicating": "আবার তৈরি করা হচ্ছে",
     "duplicateEntity": "{entity} ডুপ্লিকেট",

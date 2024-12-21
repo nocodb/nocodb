@@ -38,33 +38,34 @@ const onValidate = async () => {
   }
 }
 
-const saveChanges = async () => {
-  const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
+const getIconMeta = () => {
+  return {
+    ...(user.value?.meta ? parseProp(user.value.meta) : {}),
+    icon:
+      form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon) ? { ...form.value.icon, data: '' } : form.value.icon,
+    iconType: form.value.iconType,
+  }
+}
 
-  const valid = isNameChanged ? await onValidate() : true
+const saveChanges = async (isIconUpdate = false) => {
+  if (!isIconUpdate) {
+    const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
 
-  if (!valid) {
-    isErrored.value = true
+    if (!isNameChanged) return
 
-    if (form.value.icon === parseProp(user.value?.meta).icon && form.value.iconType === parseProp(user.value?.meta).iconType) {
+    const valid = await onValidate()
+    if (!valid) {
+      isErrored.value = true
       return
+    } else {
+      isErrored.value = false
     }
-  } else {
-    isErrored.value = false
   }
 
   try {
     await updateUserProfile({
       attrs: {
-        ...(!isErrored.value && isNameChanged ? { display_name: form.value?.title } : {}),
-        meta: {
-          ...(user.value?.meta ? parseProp(user.value.meta) : {}),
-          icon:
-            form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon)
-              ? { ...form.value.icon, data: '' }
-              : form.value.icon,
-          iconType: form.value.iconType,
-        },
+        ...(isIconUpdate ? { meta: getIconMeta() } : { display_name: form.value?.title }),
       },
     })
   } catch (e: any) {
@@ -155,7 +156,7 @@ watch(
                   v-model:icon="form.icon"
                   v-model:icon-type="form.iconType"
                   v-model:image-cropper-data="imageCropperData"
-                  @submit="saveChanges"
+                  @submit="() => saveChanges(true)"
                 >
                   <template #default="{ isOpen }">
                     <div

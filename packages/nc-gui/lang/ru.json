@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Не удалось загрузить список",
       "failedToLoadChildrenList": "Не удалось загрузить список детей",
       "deleteFailed": "Не удалось удалить",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Не удалось отменить связь",
       "rowUpdateFailed": "Не удалось обновить строку",
       "deleteRowFailed": "Не удалось удалить строку",

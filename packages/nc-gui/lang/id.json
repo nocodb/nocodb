@@ -1835,6 +1835,7 @@
       "failedToLoadList": "Gagal memuat daftar",
       "failedToLoadChildrenList": "Gagal memuat daftar anak",
       "deleteFailed": "Menghapus gagal",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Putuskan tautan gagal",
       "rowUpdateFailed": "Pembaruan baris gagal",
       "deleteRowFailed": "Gagal menghapus baris",

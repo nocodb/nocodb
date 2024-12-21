@@ -154,6 +154,7 @@
     "details": "Rincian",
     "skip": "Lewati",
     "code": "Kode",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikat",
     "duplicating": "Menduplikasi",
     "duplicateEntity": "Duplikat {entity}",

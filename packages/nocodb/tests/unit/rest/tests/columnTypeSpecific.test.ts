@@ -418,6 +418,7 @@ function columnTypeSpecificTests() {
           id: context.user.id,
           email: context.user.email,
           display_name: context.user.display_name,
+          meta: context.user.meta,
         });
 
         expect(columns.columns[defaultTableColumns.length + 1].title).to.equal(

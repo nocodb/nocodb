@@ -229,7 +229,13 @@ const isDeleteOrUpdateAllowed = (user) => {
           </template>
 
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :email="record.email" :name="record.display_name" :meta="record.meta" class="flex-none" />
+            <GeneralUserIcon
+              size="base"
+              :email="record.email"
+              :name="record.display_name"
+              :meta="record.meta"
+              class="flex-none"
+            />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>

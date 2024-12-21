@@ -41,8 +41,8 @@ const userIcon = computed<{
     }
   }
 
-  let icon = parseProp(props.meta).icon || ''
-  let iconType = parseProp(props.meta).iconType || ''
+  const icon = parseProp(props.meta).icon || ''
+  const iconType = parseProp(props.meta).iconType || ''
 
   return {
     icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),

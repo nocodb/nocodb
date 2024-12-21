@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PublicAttachmentScope, IconType } from 'nocodb-sdk'
+import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 

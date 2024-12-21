@@ -457,7 +457,13 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="w-full flex items-center justify-between gap-3">
                         <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
-                          <GeneralUserIcon :email="coll?.email" :name="coll?.display_name" :meta="coll?.meta" size="base" class="flex-none" />
+                          <GeneralUserIcon
+                            :email="coll?.email"
+                            :name="coll?.display_name"
+                            :meta="coll?.meta"
+                            size="base"
+                            class="flex-none"
+                          />
                           <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                             <div class="w-full flex gap-3">
                               <span class="text-sm text-gray-800 capitalize font-semibold truncate">

@@ -1835,6 +1835,7 @@
       "failedToLoadList": "បរាជ័យក្នុងការផ្ទុកបញ្ជី",
       "failedToLoadChildrenList": "បរាជ័យក្នុងការផ្ទុកបញ្ជីកូន",
       "deleteFailed": "ការលុបបានបរាជ័យ",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "ការដកចេញបានបរាជ័យ",
       "rowUpdateFailed": "ការធ្វើបច្ចប្បន្នភាពកំណត់ត្រាមិនបានជោគជ័យ",
       "deleteRowFailed": "បរាជ័យក្នុងការលុប​កំណត់ត្រា",

@@ -154,6 +154,7 @@
     "details": "تفاصيل",
     "skip": "تخطي",
     "code": "رمز",
+    "codeBlock": "Code Block",
     "duplicate": "نسخة طبق الأصل",
     "duplicating": "جارٍ النسخ",
     "duplicateEntity": "تكرار {entity}",

@@ -154,6 +154,7 @@
     "details": "รายละเอียด",
     "skip": "ข้าม",
     "code": "รหัส",
+    "codeBlock": "Code Block",
     "duplicate": "คัดลอก",
     "duplicating": "การคัดลอก",
     "duplicateEntity": "คัดลอก {entity}",

@@ -35,6 +35,7 @@ import {
   BaseUser,
   Extension,
   Integration,
+  PresignedUrl,
   Store,
   SyncSource,
   User,
@@ -205,7 +206,7 @@ export class UsersService extends UsersServiceCE {
       req: req,
     });
 
-    await User.signUserImage(user);
+    await PresignedUrl.signMetaIconImage(user);
 
     return user;
   }

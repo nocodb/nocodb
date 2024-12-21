@@ -163,7 +163,7 @@ export default class WorkspaceUser {
       workspaceUser = null;
     }
 
-    await User.signUserImage(workspaceUser);
+    await PresignedUrl.signMetaIconImage(workspaceUser);
 
     return workspaceUser && new WorkspaceUser(workspaceUser);
   }

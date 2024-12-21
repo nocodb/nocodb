@@ -1,112 +1,108 @@
 <script lang="ts" setup>
+import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
+
 const orgStore = useOrg()
+
+const { t } = useI18n()
 
 const { org } = storeToRefs(orgStore)
 const { updateOrg, loadOrg } = orgStore
 
-const { getPossibleAttachmentSrc } = useAttachment()
+const isErrored = ref(false)
 
-const { open, onChange: onChangeFile } = useFileDialog({
-  accept: 'image/*',
-  multiple: false,
-  reset: true,
-})
+const form = ref<{
+  title: string
 
-const form = ref({
+  icon: string | Record<string, any>
+  iconType: IconType | string
+}>({
   title: '',
+  icon: '',
+  iconType: '',
 })
 
-watch(
-  () => org.value,
-  (val) => {
-    form.value.title = val?.title
-  },
-)
+const formValidator = ref()
 
-onMounted(async () => {
-  form.value.title = org.value?.title
-})
-
-const save = async () => {
-  await updateOrg({
-    ...org.value,
-    title: form.value.title,
-  })
+const formRules = {
+  title: [
+    { required: true, message: t('msg.error.nameRequired') },
+    { min: 2, message: t('msg.error.nameMinLength') },
+    { max: 60, message: t('msg.error.nameMaxLength') },
+  ],
 }
 
-const imageCropperData = ref({
+const onValidate = async () => {
+  try {
+    return await formValidator.value.validate()
+  } catch {
+    return false
+  }
+}
+
+const getIconMeta = () => {
+  return {
+    ...(org.value?.meta ? parseProp(org.value.meta) : {}),
+    icon:
+      form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon) ? { ...form.value.icon, data: '' } : form.value.icon,
+    iconType: form.value.iconType,
+  }
+}
+
+const saveChanges = async (isIconUpdate = false) => {
+  if (!isIconUpdate) {
+    const isNameChanged = (org.value?.display_name ?? '') !== form.value.title
+
+    if (!isNameChanged) return
+
+    const valid = await onValidate()
+    if (!valid) {
+      isErrored.value = true
+      return
+    } else {
+      isErrored.value = false
+    }
+  }
+
+  try {
+    await updateOrg({
+      ...org.value,
+      ...(isIconUpdate ? { meta: getIconMeta() } : { title: form.value?.title }),
+    })
+  } catch (e: any) {
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const saveChangeWithDebounce = useDebounceFn(
+  async () => {
+    await saveChanges()
+  },
+  250,
+  { maxWait: 2000 },
+)
+
+const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   cropperConfig: {
     stencilProps: {
-      aspectRatio: undefined,
+      aspectRatio: 1,
+      fillDefault: true,
+      circlePreview: true,
     },
     minHeight: 150,
     minWidth: 150,
   },
   imageConfig: {
-    src: org.value?.image,
+    src: '',
     type: 'image',
     name: 'icon',
   },
   uploadConfig: {
     path: [NOCO, 'org', org.value?.id, 'icon'].join('/'),
+    scope: PublicAttachmentScope.ORGANIZATIONPICS,
+    maxFileSize: 2 * 1024 * 1024,
   },
 })
-
-const handleOnUploadImage = async (data: any) => {
-  await updateOrg({
-    ...org.value,
-    image: data,
-  })
-
-  await loadOrg()
-}
-
-const openUploadImage = () => {
-  imageCropperData.value.uploadConfig = {
-    path: [NOCO, 'org', org.value.id, 'icon'].join('/'),
-  }
-
-  imageCropperData.value.cropperConfig = {
-    ...imageCropperData.value.cropperConfig,
-    stencilProps: {
-      aspectRatio: 1,
-    },
-    minHeight: 150,
-    minWidth: 150,
-  }
-  open()
-}
-
-const showImageCropper = ref(false)
-
-const getOrgLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(org.value.image)))
-
-onChangeFile((files) => {
-  if (files && files[0]) {
-    // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
-    if (imageCropperData.value.imageConfig.src) {
-      URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
-    }
-    // 2. Create the blob link to the file to optimize performance:
-    const blob = URL.createObjectURL(files[0])
-
-    // 3. Update the image. The type will be derived from the extension
-    imageCropperData.value.imageConfig = {
-      src: blob,
-      type: files[0].type,
-      name: files[0].name,
-    }
-
-    showImageCropper.value = true
-  }
-})
-
-const removeImage = async () => {
-  await updateOrg({
-    ...org.value,
-    image: '',
-  })
-}
 
 const inputEl = ref()
 
@@ -119,17 +115,29 @@ onMounted(() => {
     }, 100)
   }
 })
+
+watch(
+  org,
+  (val) => {
+    if (!val) {
+      return
+    }
+
+    if (!isErrored.value) {
+      form.value.title = val?.title
+    }
+
+    form.value.icon = val.meta?.icon ?? ''
+    form.value.iconType = val.meta?.iconType ?? ''
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <div class="flex flex-col" data-test-id="nc-admin-settings">
-    <GeneralImageCropper
-      v-model:show-cropper="showImageCropper"
-      :cropper-config="imageCropperData.cropperConfig"
-      :image-config="imageCropperData.imageConfig"
-      :upload-config="imageCropperData.uploadConfig"
-      @submit="handleOnUploadImage"
-    ></GeneralImageCropper>
     <div class="nc-breadcrumb px-2">
       <div class="nc-breadcrumb-item">
         {{ org.title }}
@@ -163,53 +171,54 @@ onMounted(() => {
           <span class="text-gray-600 mt-2">
             {{ $t('msg.controlOrgAppearance') }}
           </span>
-          <a-divider class="text-gray-200" />
-          <span class="text-gray-800 mb-3 font-bold">
-            {{ $t('labels.organizationImage') }}
-          </span>
-          <div class="flex items-center mb-5 space-x-3">
-            <div class="border-1 bg-gray-100 border-gray-200 w-16 flex items-center justify-center h-16 rounded-xl">
-              <img
-                v-if="org.image"
-                :src="getOrgLogoSrc"
-                :srcset="getOrgLogoSrc"
-                alt="Organization Logo"
-                class="w-16 h-16 rounded-xl"
-              />
-              <component :is="iconMap.office" v-else class="w-8 !fill-gray-600 h-8" />
+
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+            <div class="flex gap-4 mt-6">
+              <div>
+                <GeneralIconSelector
+                  v-model:icon="form.icon"
+                  v-model:icon-type="form.iconType"
+                  v-model:image-cropper-data="imageCropperData"
+                  @submit="() => saveChanges(true)"
+                >
+                  <template #default="{ isOpen }">
+                    <div
+                      class="border-1 w-17 h-17 flex-none rounded-lg overflow-hidden transition-all duration-300 cursor-pointer flex items-center justify-center"
+                      :class="{
+                        'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                        'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                        'border-primary shadow-selected': isOpen,
+                        'bg-gray-100': !org?.meta?.icon,
+                      }"
+                    >
+                      <GeneralWorkspaceIcon
+                        v-if="org?.meta?.icon"
+                        size="xlarge"
+                        :workspace="org"
+                        class="flex-none !w-full !h-full !min-w-full !rounded-lg select-none cursor-pointer"
+                      />
+                      <component :is="iconMap.office" v-else class="w-8 !fill-gray-600 h-8" />
+                    </div>
+                  </template>
+                </GeneralIconSelector>
+              </div>
+
+              <div class="flex-1 flex flex-col gap-4">
+                <div>
+                  <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.organizationName') }}</div>
+                  <a-form-item name="title" :rules="formRules.title" class="!my-0">
+                    <a-input
+                      ref="inputEl"
+                      v-model:value="form.title"
+                      class="w-full !rounded-lg !px-4 h-10"
+                      placeholder="Acme Inc"
+                      @update:value="saveChangeWithDebounce"
+                    />
+                  </a-form-item>
+                </div>
+              </div>
             </div>
-            <NcButton data-testid="nc-admin-settings-org-icon-btn" size="small" type="secondary" @click="openUploadImage">
-              <div class="flex gap-2 items-center">
-                <span>
-                  <component :is="iconMap.upload" class="w-4 h-4" />
-
-                  {{ org.image ? $t('general.replace') : $t('general.upload') }}
-                </span>
-              </div>
-            </NcButton>
-
-            <NcButton
-              v-if="org.image"
-              data-testid="nc-admin-settings-org-icon-remove-btn"
-              size="small"
-              type="secondary"
-              @click="removeImage"
-            >
-              <div class="flex gap-2 items-center">
-                <component :is="iconMap.delete" class="w-4 h-4" />
-                {{ $t('general.remove') }}
-              </div>
-            </NcButton>
-          </div>
-          <span class="text-gray-800 mb-3 font-bold">
-            {{ $t('labels.organizationName') }}
-          </span>
-          <a-input ref="inputEl" v-model:value="form.title" class="w-96" placeholder="Acme Inc" />
-          <div class="flex justify-end mt-3">
-            <NcButton type="primary" @click="save">
-              {{ $t('general.save') }}
-            </NcButton>
-          </div>
+          </a-form>
         </div>
         <!--
       <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">

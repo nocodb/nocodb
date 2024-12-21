@@ -21,7 +21,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { Store, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -58,7 +58,7 @@ export class UsersService {
       },
     );
 
-    await User.signUserImage(user);
+    await PresignedUrl.signMetaIconImage(user);
 
     return user;
   }
@@ -98,7 +98,7 @@ export class UsersService {
 
     const user = await User.update(id, updateObj);
 
-    await User.signUserImage(user);
+    await PresignedUrl.signMetaIconImage(user);
 
     return user;
   }

@@ -8,7 +8,8 @@ import {
 import { parseMetaProp } from 'src/utils/modelUtils';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OrgUser, User, Workspace, WorkspaceUser } from '~/models';
+import type { User } from '~/models';
+import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
@@ -34,7 +35,7 @@ export class OrgWorkspacesService {
       wsList.map(async (ws) => {
         ws.meta = parseMetaProp(ws);
 
-        await User.signUserImage(ws);
+        await PresignedUrl.signMetaIconImage(ws);
 
         if (!ncIsArray(ws?.members)) return ws;
 
@@ -45,7 +46,7 @@ export class OrgWorkspacesService {
 
               member.meta = parseMetaProp(member);
 
-              await User.signUserImage(parseProp(member));
+              await PresignedUrl.signMetaIconImage(member);
 
               return member;
             }),

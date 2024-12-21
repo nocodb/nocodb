@@ -43,6 +43,7 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
+  User,
 } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -57,7 +58,6 @@ import {
   PresignedUrl,
   Sort,
   Source,
-  User,
   View,
 } from '~/models';
 import { getAliasGenerator, nocoExecute } from '~/utils';
@@ -8481,7 +8481,7 @@ class BaseModelSqlv2 {
           base_id: this.model.base_id,
         });
 
-        await User.signUserImage(baseUsers);
+        await PresignedUrl.signMetaIconImage(baseUsers);
 
         if (Array.isArray(data)) {
           data = await Promise.all(

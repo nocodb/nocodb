@@ -6,7 +6,7 @@ import { isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    workspace: WorkspaceType | undefined
+    workspace: Partial<WorkspaceType> | undefined
     workspaceIcon?: {
       icon: string | Record<string, any>
       iconType: IconType | string
@@ -145,7 +145,7 @@ const size = computed(() => props.size || 'medium')
           'text-black': !isColorDark(workspaceColor),
         }"
       >
-        {{ props.workspace?.title?.slice(0, 2) }}
+        {{ workspace?.title?.slice(0, 2) }}
       </div>
     </template>
   </div>

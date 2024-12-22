@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, AuditV1OperationTypes, viewTypeAlias } from 'nocodb-sdk';
+import {
+  AppEvents,
+  AuditV1OperationTypes,
+  UITypes,
+  viewTypeAlias,
+} from 'nocodb-sdk';
 import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/services/app-hooks-listener.service';
 import { diff } from 'deep-object-diff';
 import type {
@@ -503,7 +508,7 @@ export class AppHooksListenerService
                   ...filterAndMapAliasToColProps(
                     extractNonSystemProps(
                       removeBlankPropsAndMask(param.column),
-                      additionalExcludePropsForCol,
+                      additionalExcludePropsForCol(param.column?.uidt),
                     ),
                   ),
                 },
@@ -560,7 +565,9 @@ export class AppHooksListenerService
                     ...(param.oldColumn?.colOptions ?? {}),
                     ...param.oldColumn,
                   }),
-                  additionalExcludePropsForCol,
+                  additionalExcludePropsForCol(
+                    param.oldColumn.uidt || param.column.uidt,
+                  ),
                 ),
               ),
             },
@@ -572,27 +579,20 @@ export class AppHooksListenerService
               })),
               ...filterAndMapAliasToColProps(
                 extractNonSystemProps(
-                  removeBlankPropsAndMask(param.column),
-                  additionalExcludePropsForCol,
+                  removeBlankPropsAndMask({
+                    ...(param.column?.colOptions ?? {}),
+                    ...param.column,
+                  }),
+                  additionalExcludePropsForCol(
+                    param.column.uidt || param.oldColumn.uidt,
+                  ),
                 ),
               ),
             },
             parseMeta: true,
-            exclude: [
-              'title',
-              'column_name',
-              'altered',
-              'fk_qr_value_column_id',
-              'fk_barcode_value_column_id',
-              'fk_relation_column_id',
-              'fk_lookup_column_id',
-              'fk_rollup_column_id',
-              'lookup_column_title',
-              'colOptions',
-              'rollup_column_title',
-              'child_id',
-              'column_id',
-            ],
+            exclude: additionalExcludePropsForCol(
+              param.column.uidt || param.oldColumn.uidt,
+            ),
             boolProps: ['required', 'primary_key', 'pk', 'pv', 'display_value'],
           });
 
@@ -2568,6 +2568,8 @@ export class AppHooksListenerService
                 error: param.error ?? undefined,
                 options: param.options && transformToSnakeCase(param.options),
               },
+              // todo: decide on target/source id
+              fk_model_id: param.destTable?.id,
               source_id: param.sourceTable.source_id,
               context: param.context,
               req: param.req,
@@ -2674,6 +2676,7 @@ export class AppHooksListenerService
   }
 
   async auditInsert(param: Partial<Audit>) {
+    // if(NcConfig.isAuditEnabled)
     await Audit.insert(param);
   }
 }

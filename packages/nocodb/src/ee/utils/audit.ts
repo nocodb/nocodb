@@ -405,7 +405,7 @@ export const extractRefColumnIfFound = async ({
   return {};
 };
 
-export const additionalExcludePropsForCol = [
+export const additionalExcludePropsForCol = (uidt) => [
   'title',
   'column_name',
   'altered',
@@ -422,6 +422,7 @@ export const additionalExcludePropsForCol = [
   'child_table',
   'child_id',
   'child_table_title',
+  'colOptions'
 ];
 
 const metaAliasMap = {

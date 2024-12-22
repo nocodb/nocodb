@@ -1,19 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { viewTypeAlias } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
-import type { TableReqType, UserType } from 'nocodb-sdk';
-import type { User } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import {Injectable, Logger} from '@nestjs/common';
+import type {TableReqType, UserType} from 'nocodb-sdk';
+import {NcApiVersion, UITypes, viewTypeAlias} from 'nocodb-sdk';
+import type {User} from '~/models';
+import type {NcContext, NcRequest} from '~/interface/config';
 import {Base, Model} from '~/models';
-import { ColumnsService } from '~/services/columns.service';
-import { MetaDiffsService } from '~/services/meta-diffs.service';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  builderGenerator,
-  columnBuilder,
-  columnV3ToV2Builder,
-} from '~/utils/api-v3-data-transformation.builder';
-import { TablesService } from '~/services/tables.service';
+import {ColumnsService} from '~/services/columns.service';
+import {MetaDiffsService} from '~/services/meta-diffs.service';
+import {AppHooksService} from '~/services/app-hooks/app-hooks.service';
+import {builderGenerator, columnBuilder, columnV3ToV2Builder,} from '~/utils/api-v3-data-transformation.builder';
+import {TablesService} from '~/services/tables.service';
 
 @Injectable()
 export class TablesV3Service {

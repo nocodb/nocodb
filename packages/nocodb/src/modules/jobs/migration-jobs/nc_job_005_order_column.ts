@@ -318,10 +318,7 @@ export class OrderColumnMigration {
         Source.get(context, source_id),
       );
 
-      if (
-        !originalSource ||
-        (!originalSource.isMeta() && (!isEE || !originalSource.is_local))
-      ) {
+      if (!originalSource || !originalSource.isMeta()) {
         return;
       }
 

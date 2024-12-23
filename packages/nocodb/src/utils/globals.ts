@@ -58,6 +58,7 @@ export enum MetaTable {
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
+  DATA_REFLECTION = 'nc_data_reflection',
 }
 
 export enum MetaTableOldV2 {
@@ -192,6 +193,7 @@ export enum CacheScope {
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
+  DATA_REFLECTION = 'dataReflection',
 }
 
 export enum CacheGetType {
@@ -235,6 +237,7 @@ export const RootScopeTables = {
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
+    MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],

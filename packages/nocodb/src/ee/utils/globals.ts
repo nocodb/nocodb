@@ -78,6 +78,7 @@ export enum MetaTable {
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
   SNAPSHOT = 'nc_snapshots',
+  DATA_REFLECTION = 'nc_data_reflection',
 }
 
 export const orderedMetaTables = [
@@ -208,6 +209,7 @@ export enum CacheScope {
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
+  DATA_REFLECTION = 'dataReflection',
 }
 
 export const RootScopeTables = {
@@ -222,6 +224,7 @@ export const RootScopeTables = {
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
+    MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],

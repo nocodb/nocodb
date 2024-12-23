@@ -1,8 +1,5 @@
 <script lang="ts" setup>
 import { type BaseType, type TableType, ViewTypes } from 'nocodb-sdk'
-import { toRef } from '@vue/reactivity'
-import { message } from 'ant-design-vue'
-import { storeToRefs } from 'pinia'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -15,9 +12,7 @@ const props = withDefaults(
   { sourceIndex: 0 },
 )
 
-const base = toRef(props, 'base')
-const table = toRef(props, 'table')
-const sourceIndex = toRef(props, 'sourceIndex')
+const { base, table, sourceIndex } = toRefs(props)
 
 const { openTable: _openTable } = useTableNew({
   baseId: base.value.id!,
@@ -34,6 +29,8 @@ const { updateTab } = tabStore
 
 const { $e, $api } = useNuxtApp()
 
+const { isMysql, isMssql, isPg } = useBase()
+
 useTableNew({
   baseId: base.value.id!,
 })
@@ -46,8 +43,10 @@ provide(SidebarTableInj, table)
 const {
   setMenuContext,
   openRenameTableDialog: _openRenameTableDialog,
+  handleTableRename,
   openTableDescriptionDialog: _openTableDescriptionDialog,
   duplicateTable: _duplicateTable,
+  contextMenuTarget,
 } = inject(TreeViewInj)!
 
 const { loadViews: _loadViews, navigateToView, duplicateView } = useViewsStore()
@@ -62,6 +61,10 @@ const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
+const source = computed(() => {
+  return base.value?.sources?.[sourceIndex.value]
+})
+
 const isTableDeleteDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
@@ -74,8 +77,54 @@ const isEditing = ref(false)
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
 const isStopped = ref(false)
 
-/** Original view title when editing the view name */
-const _title = ref<string | undefined>()
+const useForm = Form.useForm
+
+const formState = reactive({
+  title: '',
+})
+
+const validators = computed(() => {
+  return {
+    title: [
+      validateTableName,
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql(source.value?.id)) {
+              tableNameLengthLimit = 64
+            } else if (isPg(source.value?.id)) {
+              tableNameLengthLimit = 63
+            } else if (isMssql(source.value?.id)) {
+              tableNameLengthLimit = 128
+            }
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
+            }
+            resolve()
+          })
+        },
+      },
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (
+              !(tables?.value || []).every(
+                (t) => t.id === table.value.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+              )
+            ) {
+              return reject(new Error('Duplicate table alias'))
+            }
+            resolve()
+          })
+        },
+      },
+    ],
+  }
+})
+
+const { validate } = useForm(formState, validators)
 
 const setIcon = async (icon: string, table: TableType) => {
   try {
@@ -207,7 +256,7 @@ const openRenameTableDialog = (table: SidebarTableNode, sourceId: string) => {
 
   if (!isEditing.value) {
     isEditing.value = true
-    _title.value = table.title
+    formState.title = table.title
 
     nextTick(() => {
       focusInput()
@@ -272,15 +321,10 @@ const refreshViews = async () => {
   isExpanded.value = true
 }
 
-const source = computed(() => {
-  return base.value?.sources?.[sourceIndex.value]
-})
-
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
 
-  // vModel.value.title = _title || ''
   onStopEdit()
 }
 
@@ -288,7 +332,7 @@ function onCancel() {
 function onStopEdit() {
   isStopped.value = true
   isEditing.value = false
-  _title.value = ''
+  formState.title = ''
 
   setTimeout(() => {
     isStopped.value = false
@@ -326,8 +370,52 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
+const validateTitle = async () => {
+  try {
+    await validate()
+    return true
+  } catch (e: any) {
+    console.log('e', e)
+    const errMsg = e.errorFields?.[0]?.errors?.[0]
+
+    if (errMsg) {
+      message.error(errMsg)
+    }
+  }
+}
+
 /** Rename a table */
 async function onRename() {
+  if (!isEditing.value) return
+
+  if (formState.title) {
+    formState.title = formState.title.trim()
+  }
+
+  if (formState.title === undefined || table.value.title === '' || table.value.title === formState.title) {
+    onCancel()
+    return
+  }
+
+  const isValid = await validateTitle()
+
+  if (!isValid) {
+    onCancel()
+    return
+  }
+
+  const originalTitle = table.value.title
+
+  table.value.title = formState.title || ''
+
+  const updateTitle = (title: string) => {
+    table.value.title = title
+  }
+
+  handleTableRename(table.value, formState.title, originalTitle, updateTitle)
+
+  onStopEdit()
+
   onCancel()
 }
 </script>
@@ -394,17 +482,18 @@ async function onRename() {
             </div>
           </div>
         </div>
-        <a-input
-          v-if="isEditing"
-          ref="input"
-          v-model:value="_title"
-          class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
-          :class="{
-            'font-medium !text-brand-600': isTableOpened,
-          }"
-          @blur="onRename"
-          @keydown.stop="onKeyDown($event)"
-        />
+        <a-form v-if="isEditing" :model="formState" name="rename-table-form" class="w-full" @finish.prevent>
+          <a-input
+            ref="input"
+            v-model:value="formState.title"
+            class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
+            :class="{
+              'font-medium !text-brand-600': isTableOpened,
+            }"
+            @blur="onRename"
+            @keydown.stop="onKeyDown($event)"
+          />
+        </a-form>
         <NcTooltip
           v-else
           class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"

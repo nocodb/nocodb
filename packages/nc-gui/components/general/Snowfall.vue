@@ -1,41 +1,69 @@
 <script lang="ts" setup>
-const props = defineProps({
-  maxFlakes: { type: Number, default: 200 },
-  color: { type: String, default: '#fff' },
-  minSize: { type: Number, default: 2 },
-  maxSize: { type: Number, default: 6 },
-  speed: { type: Number, default: 1 },
+interface SnowflakeProps {
+  maxFlakes?: number
+  color?: string
+  minSize?: number
+  maxSize?: number
+  speed?: number
+}
+
+const props = withDefaults(defineProps<SnowflakeProps>(), {
+  maxFlakes: 200,
+  color: '#e0e0e0',
+  minSize: 2,
+  maxSize: 6,
+  speed: 1,
 })
 
-const snowflakes = ref([])
-const snowfallContainer = ref(null)
+interface Snowflake {
+  id: number
+  x: number
+  y: number
+  size: number
+  speed: number
+  content: string
+  horizontalDrift: number
+  rotation: number
+}
+
+const random = (min: number, max: number) => Math.random() * (max - min) + min
+
+const snowflakes = ref<Snowflake[]>([])
+const snowfallContainer = ref<HTMLDivElement | null>(null)
 const containerWidth = ref(0)
 const containerHeight = ref(0)
 const mouseX = ref(0)
 const mouseY = ref(0)
 
-const createSnowflake = (id) => ({
+const snowflakeSymbols = ['❄', '❅', '❆']
+
+const createSnowflake = (id: number): Snowflake => ({
   id,
   x: Math.random() * 100,
   y: Math.random() * 110 - 10,
   size: props.minSize + Math.random() * (props.maxSize - props.minSize),
   speed: (0.5 + Math.random()) * props.speed,
-  wobble: Math.random() * 100,
+  content: snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)],
+  horizontalDrift: random(-15, 15),
+  rotation: random(-360, 360),
 })
 
-const getSnowflakeStyle = computed(() => (snowflake) => ({
-  position: 'absolute',
-  color: props.color,
-  fontSize: `${snowflake.size}px`,
-  left: `${snowflake.x}%`,
-  top: `${snowflake.y}%`,
-  background: '#e0e0e0',
-  height: `${snowflake.size}px`,
-  width: `${snowflake.size}px`,
-  animation: `fall ${30 / snowflake.speed}s linear infinite, wobble ${5 + snowflake.wobble / 10}s ease-in-out infinite alternate`,
-}))
+const getSnowflakeStyle = (snowflake: Snowflake) => ({
+  'position': 'absolute',
+  'left': `${snowflake.x}%`,
+  'top': `${snowflake.y}%`,
+  'color': props.color,
+  'width': `${snowflake.size}px`,
+  'height': `${snowflake.size}px`,
+  'font-size': `${snowflake.size * 4}px`,
+  'animation': `fall ${30 / snowflake.speed}s linear infinite`,
+  '--horizontal-drift': `${snowflake.horizontalDrift}vw`,
+  '--rotation': `${snowflake.rotation}deg`,
+})
 
-const updateSnowflakePosition = (snowflake) => {
+const updateSnowflakePosition = (snowflake: Snowflake) => {
+  if (!snowfallContainer.value) return
+
   const dx = (snowflake.x / 100) * containerWidth.value - mouseX.value
   const dy = (snowflake.y / 100) * containerHeight.value - mouseY.value
   const distance = Math.sqrt(dx * dx + dy * dy)
@@ -60,6 +88,8 @@ const updateSnowflakes = () => {
 
     snowflake.x = Math.max(0, Math.min(100, snowflake.x))
     snowflake.y = Math.max(-10, Math.min(110, snowflake.y))
+    snowflake.horizontalDrift = random(-15, 15)
+    snowflake.rotation = random(-360, 360)
   })
   requestAnimationFrame(updateSnowflakes)
 }
@@ -71,7 +101,7 @@ const handleResize = () => {
   }
 }
 
-const handleMouseMove = (event) => {
+const handleMouseMove = (event: MouseEvent) => {
   mouseX.value = event.clientX
   mouseY.value = event.clientY
 }
@@ -95,17 +125,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="snowfallContainer" class="snowfall-container" @mousemove="handleMouseMove">
-    <div
-      v-for="snowflake in snowflakes"
-      :key="snowflake.id"
-      class="snowflake rounded-full"
-      :style="getSnowflakeStyle(snowflake)"
-    ></div>
+  <div ref="snowfallContainer" class="snowfall-container">
+    <div v-for="snowflake in snowflakes" class="snowflake" :style="getSnowflakeStyle(snowflake)">
+      {{ snowflake.content }}
+    </div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .snowfall-container {
   position: fixed;
   top: 0;
@@ -117,15 +144,16 @@ onUnmounted(() => {
   z-index: 99999;
 }
 
-@keyframes fall {
-  100% {
-    transform: translateY(110vh);
-  }
+.snowflake {
+  will-change: transform;
 }
 
-@keyframes wobble {
-  50% {
-    transform: translateX(5px);
+@keyframes fall {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) translateX(var(--horizontal-drift)) rotate(var(--rotation));
   }
 }
 </style>

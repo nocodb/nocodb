@@ -32,7 +32,7 @@ const { updateTab } = useTabs()
 
 const tablesStore = useTablesStore()
 
-const { loadProjectTables } = useTablesStore()
+const { loadProjectTables } = tablesStore
 
 const { activeTable: _activeTable } = storeToRefs(tablesStore)
 

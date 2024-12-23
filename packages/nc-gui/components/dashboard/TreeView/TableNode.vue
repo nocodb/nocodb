@@ -615,7 +615,7 @@ async function onRename() {
                         source,
                       }) &&
                       base.sources?.[sourceIndex] &&
-                      (source.is_meta || source.is_local)
+                      (source?.is_meta || source?.is_local)
                     "
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
                     @click="duplicateTable(table)"

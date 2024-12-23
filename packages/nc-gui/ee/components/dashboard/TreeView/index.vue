@@ -108,7 +108,7 @@ async function handleTableRename(
     await $api.dbTable.update(table.id as string, {
       base_id: table.base_id,
       table_name: title,
-      title: title,
+      title,
     })
 
     await loadProjectTables(table.base_id!, true)

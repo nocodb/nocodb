@@ -264,7 +264,7 @@ const onMove = async (
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
+  <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5 font-medium">
     <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
       <template v-if="starredProjectList?.length">
         <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">

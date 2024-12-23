@@ -337,7 +337,7 @@ const source = computed(() => {
         >
           <template #title>{{ table.title }}</template>
           <span
-            :class="isTableOpened ? 'text-brand-600 !font-medium' : 'text-gray-600'"
+            :class="isTableOpened ? 'text-brand-600 font-semibold' : 'text-gray-600'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >

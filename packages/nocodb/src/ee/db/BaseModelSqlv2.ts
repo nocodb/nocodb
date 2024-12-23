@@ -56,6 +56,7 @@ import {
   extractColMetaForAudit,
   filterAndMapAliasToColProps,
   generateAuditV1Payload,
+  remapWithAlias,
 } from '~/utils';
 import {
   Audit,
@@ -3308,17 +3309,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       qb,
       undefined,
     );
-  }
-}
-
-function remapWithAlias({ data, columns }) {
-  const remapped = {};
-  for (const [k, v] of Object.entries(data)) {
-    const col = columns.find((c) => c.column_name === k);
-    if (col) {
-      remapped[col.title] = v;
-    }
-    return remapped;
   }
 }
 

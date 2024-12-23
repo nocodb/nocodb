@@ -80,26 +80,11 @@ function openViewDescriptionDialog(view: ViewType) {
   }
 }
 
-function openRenameTableDialog(table: TableType) {
-  if (!table || !table.source_id) return
-
-  $e('c:table:rename')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableRename'), {
-    'modelValue': isOpen,
-    'tableMeta': table,
-    'sourceId': table.source_id, // || sources.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
+/**
+ * tableRenameId is combination of tableId & sourceId
+ * @example `${tableId}:${sourceId}`
+ */
+const tableRenameId = ref('')
 
 async function handleTableRename(
   table: TableType,
@@ -309,9 +294,9 @@ provide(TreeViewInj, {
   duplicateTable,
   openViewDescriptionDialog,
   openTableDescriptionDialog,
-  openRenameTableDialog,
   handleTableRename,
   contextMenuTarget,
+  tableRenameId,
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)

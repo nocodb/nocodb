@@ -279,7 +279,7 @@ export default class Upgrader extends MetaService {
     this.logHelper(workspace_id, base_id, target, query);
 
     if (this._upgrader_mode === true) {
-      await this.pushUpgraderQuery(query.toQuery());
+      await this.pushUpgraderQuery(query.del().toQuery());
       return;
     }
 

@@ -65,6 +65,10 @@ const relatedModel = computedAsync(async () => {
 })
 
 const createLookups = async () => {
+  if (!Object.values(selectedFields.value).filter(Boolean).length) {
+    return
+  }
+
   try {
     isLoading.value = true
 
@@ -124,6 +128,7 @@ const createLookups = async () => {
   } finally {
     isLoading.value = false
   }
+
 }
 
 watch([relatedModel, searchField], async () => {
@@ -150,11 +155,11 @@ const isOpened = ref(false)
         <div @click.stop>
           <a-input
             v-model:value="searchField"
-            class="w-full !border-0 !ring-0 !outline-0 a-input-without-effect"
+            class="w-full !border-0 !ring-0 !outline-0 !py-2 a-input-without-effect"
             placeholder="Search field to add as lookup"
           >
             <template #prefix>
-              <component :is="iconMap.search" class="w-3 text-gray-500 h-3 mr-2" />
+              <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1" />
             </template>
           </a-input>
           <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200">
@@ -163,10 +168,10 @@ const isOpened = ref(false)
                 <div
                   :key="field.id"
                   :data-testid="`nc-lookup-add-menu-${field.title}`"
-                  class="px-3 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
+                  class="px-1 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
                   @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
                 >
-                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                  <!-- <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" /> -->
                   <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
                     <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
                     <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
@@ -187,7 +192,6 @@ const isOpened = ref(false)
           <div class="flex w-full p-1">
             <NcButton
               :loading="isLoading"
-              :disabled="!Object.values(selectedFields).filter(Boolean).length"
               size="small"
               class="w-full"
               @click="createLookups"
@@ -210,6 +214,6 @@ const isOpened = ref(false)
   border: none !important;
 }
 :deep(.a-input-without-effect .ant-input) {
-  font-size: 0.75rem !important;
+  font-size: 0.8rem !important;
 }
 </style>

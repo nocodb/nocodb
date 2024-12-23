@@ -606,7 +606,7 @@ function getColumnOfField(field: Field) {
         </div>
 
         <div
-          class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
+          class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
         >
           <div class="nc-fields-list">
             <div
@@ -668,15 +668,17 @@ function getColumnOfField(field: Field) {
                       }
                     "
                   >
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" />
                     <SmartsheetToolbarAddLookupsDropdown v-if="metas" :column="getColumnOfField(field)!">
                       <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
                         <template #title>
                           {{ field.title }}
                         </template>
                         <template #default>
-                          <div class="inline-flex items-center">
-                            {{ field.title }}
+                          <div class="inline-flex items-center w-[170px]">
+                            <span class="truncate">
+                              {{ field.title }}
+                            </span>
                             <GeneralIcon v-if="getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-2" />
                           </div>
                         </template>
@@ -726,7 +728,7 @@ function getColumnOfField(field: Field) {
                     <NcSwitch
                       :checked="field.show"
                       :disabled="field.isViewEssentialField || isLocked"
-                      size="xsmall"
+                      size="xxsmall"
                       @change="$e('a:fields:show-hide')"
                       @click="
                         () => {
@@ -749,13 +751,13 @@ function getColumnOfField(field: Field) {
         <div v-if="!filterQuery" class="flex px-1 gap-1 py-1 border-t-1 justify-between border-gray-100">
           <NcButton
             v-if="!isLocalMode"
-            class="nc-fields-show-system-fields"
-            size="small"
+            class="nc-fields-show-system-fields !px-2"
+            size="xsmall"
             type="text"
             :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
-            <template v-if="!showSystemField">
+            <template v-if="showSystemField">
               <GeneralIcon icon="eyeSlash" class="!w-3 !h-3 mr-2" />
               System fields
             </template>
@@ -770,7 +772,7 @@ function getColumnOfField(field: Field) {
             overlay-class-name="nc-dropdown-grid-add-column"
             placement="right"
           >
-            <NcButton class="nc-fields-show-all-fields" size="small" type="ghost">
+            <NcButton class="nc-fields-show-all-fields !px-2" size="xsmall" type="ghost" :shadow="false">
               <GeneralIcon icon="plus" class="!w-3 !h-3 mr-2 mb-1 text-primary" />
               <span class="text-primary">New Field</span>
             </NcButton>

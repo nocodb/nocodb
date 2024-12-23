@@ -61,23 +61,26 @@ export class RecoverOrderColumnMigration {
               .where(`${MetaTable.MODELS}.deleted`, false)
               .orWhereNull(`${MetaTable.MODELS}.deleted`);
           })
-          .whereNotExists(function () {
-            this.select(1)
-              .from(MetaTable.COLUMNS)
-              .whereRaw(
-                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
-              )
-              .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
-          })
-          .whereExists(function () {
-            this.select(1)
-              .from(MetaTable.COLUMNS)
-              .whereRaw(
-                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
-              )
-              .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
-              .where(`${MetaTable.COLUMNS}.system`, true)
-              .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
+          .where((builder) => {
+            builder
+              .whereNotExists(function () {
+                this.select(1)
+                  .from(MetaTable.COLUMNS)
+                  .whereRaw(
+                    `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+                  )
+                  .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
+              })
+              .orWhereExists(function () {
+                this.select(1)
+                  .from(MetaTable.COLUMNS)
+                  .whereRaw(
+                    `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+                  )
+                  .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
+                  .where(`${MetaTable.COLUMNS}.system`, true)
+                  .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
+              });
           })
           .count('*', { as: 'count' })
           .first()
@@ -127,23 +130,26 @@ export class RecoverOrderColumnMigration {
             `${MetaTable.MODELS}.id`,
             this.processingModels.map((m) => m.fk_model_id),
           )
-          .whereNotExists(function () {
-            this.select(1)
-              .from(MetaTable.COLUMNS)
-              .whereRaw(
-                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
-              )
-              .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
-          })
-          .whereExists(function () {
-            this.select(1)
-              .from(MetaTable.COLUMNS)
-              .whereRaw(
-                `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
-              )
-              .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
-              .where(`${MetaTable.COLUMNS}.system`, true)
-              .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
+          .where((builder) => {
+            builder
+              .whereNotExists(function () {
+                this.select(1)
+                  .from(MetaTable.COLUMNS)
+                  .whereRaw(
+                    `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+                  )
+                  .where(`${MetaTable.COLUMNS}.uidt`, 'Order');
+              })
+              .orWhereExists(function () {
+                this.select(1)
+                  .from(MetaTable.COLUMNS)
+                  .whereRaw(
+                    `${MetaTable.COLUMNS}.fk_model_id = ${MetaTable.MODELS}.id`,
+                  )
+                  .where(`${MetaTable.COLUMNS}.uidt`, 'Decimal')
+                  .where(`${MetaTable.COLUMNS}.system`, true)
+                  .where(`${MetaTable.COLUMNS}.column_name`, '=', 'nc_order');
+              });
           })
           .limit(PARALLEL_LIMIT * 2);
 

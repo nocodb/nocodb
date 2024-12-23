@@ -146,7 +146,10 @@ export class FiltersV3Service {
       req: NcRequest;
     },
   ) {
-    validatePayload('swagger-v3.json#/components/schemas/FilterReq', param.filter);
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FilterReq',
+      param.filter,
+    );
 
     const filter = await Filter.get(context, param.filterId);
 

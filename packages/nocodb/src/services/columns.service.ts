@@ -2402,9 +2402,12 @@ export class ColumnsService {
     });
 
     if (param.apiVersion === NcApiVersion.V3) {
-      return savedColumn && await Column.get(context, {
-        colId: savedColumn.id,
-      }) as T extends NcApiVersion.V3 ? Column<any> : never;
+      return (
+        savedColumn &&
+        ((await Column.get(context, {
+          colId: savedColumn.id,
+        })) as T extends NcApiVersion.V3 ? Column<any> : never)
+      );
     }
 
     return table as T extends NcApiVersion.V3 | null | undefined
@@ -3323,7 +3326,7 @@ export class ColumnsService {
         }
       }
 
-     savedColumn =  await createHmAndBtColumn(
+      savedColumn = await createHmAndBtColumn(
         context,
         child,
         parent,

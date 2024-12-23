@@ -348,12 +348,10 @@ export default class Base implements BaseType {
       'roles',
     ]);
 
-
     // stringify meta
     if (updateObj.meta) {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
-
 
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
@@ -390,7 +388,7 @@ export default class Base implements BaseType {
       logger.error('Failed to clean command palette cache');
     });
 
-    if('meta' in updateObj) {
+    if ('meta' in updateObj) {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
 

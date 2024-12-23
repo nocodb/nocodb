@@ -113,10 +113,10 @@ export class ViewsV3Service {
         fk_grp_col_id: 'kanban_stack_by_field_id',
       },
       booleanProps: ['submit_another_form', 'show_blank_form'],
-      nestedExtract:{
-        "form_hide_branding": ['view', 'meta', 'hide_branding'],
-        "background_color": ['view', 'meta',"background_color"],
-        "form_hide_banner": ['view', 'meta', 'hide_banner']
+      nestedExtract: {
+        form_hide_branding: ['view', 'meta', 'hide_branding'],
+        background_color: ['view', 'meta', 'background_color'],
+        form_hide_banner: ['view', 'meta', 'hide_banner'],
       },
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;

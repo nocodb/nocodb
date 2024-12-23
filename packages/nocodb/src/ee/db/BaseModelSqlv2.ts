@@ -1452,10 +1452,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 );
               }
 
-              if (
-                isVirtualCol(col) &&
-                !isLinksOrLTAR(col)
-              ) {
+              if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
                 NcError.badRequest(
                   `Column "${col.title}" is virtual and cannot be updated`,
                 );

@@ -32,8 +32,6 @@ export class BaseUsersV3Controller {
     context: NcContext,
     @Param('baseId')
     baseId: string,
-    @Req()
-    req: NcRequest,
   ) {
     return await this.baseUsersV3Service.userList(context, {
       baseId,

@@ -3,15 +3,16 @@ import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
-import {builderGenerator, sortBuilder} from '~/utils/api-v3-data-transformation.builder';
+import {
+  builderGenerator,
+  sortBuilder,
+} from '~/utils/api-v3-data-transformation.builder';
 
 @Injectable()
 export class SortsV3Service {
-
   private revBuilder;
 
   constructor(protected readonly sortsService: SortsService) {
-
     this.revBuilder = builderGenerator({
       allowed: ['id', 'field_id', 'direction'],
       mappings: {

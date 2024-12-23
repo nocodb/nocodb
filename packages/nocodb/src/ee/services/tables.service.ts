@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -11,7 +12,6 @@ import { ColumnsService } from '~/services/columns.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import {NcApiVersion} from "nocodb-sdk";
 
 @Injectable()
 export class TablesService extends TableServiceCE {

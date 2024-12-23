@@ -1,7 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
-import { parseHelper, ncParseProp } from './helperFunctions';
+import { ncParseProp, parseHelper } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -249,18 +249,6 @@ export function isCreatedOrLastModifiedByCol(
     | ColumnType
 ) {
   return [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-    <UITypes>(typeof col === 'object' ? col?.uidt : col)
-  );
-}
-
-export function isIDCol(
-  col:
-    | UITypes
-    | { readonly uidt: UITypes | string }
-    | ColumnReqType
-    | ColumnType
-) {
-  return [UITypes.ID].includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
   );
 }

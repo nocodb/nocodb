@@ -2857,53 +2857,77 @@ class PGClient extends KnexClient {
     return result;
   }
 
-  alterTablePK(t, n, o, _existingQuery, createTable = false) {
-    const numOfPksInOriginal = [];
-    const numOfPksInNew = [];
-    let pksChanged = 0;
+  /**
+   * Generates SQL query to modify primary key constraints for a table
+   * @param {string} tableName - Full table name (can include schema)
+   * @param {Array<ColumnType>} newColumns - New column definitions
+   * @param {Array<ColumnType>} originalColumns - Original column definitions
+   * @param {string} _existingQuery - Existing SQL query (unused parameter)
+   * @param {boolean} [createTable=false] - Whether this is part of a CREATE TABLE statement
+   * @returns {string} SQL query for primary key modifications
+   */
+  alterTablePK(
+    tableName,
+    newColumns,
+    originalColumns,
+    _existingQuery,
+    createTable = false,
+  ) {
+    const originalPrimaryKeys = [];
+    const newPrimaryKeys = [];
+    let primaryKeyChanges = 0;
 
-    const altered_t = t.includes('.') ? t.split('.')[1] : t;
+    // Handle schema-qualified table names by extracting just the table name
+    const tableNameWithoutSchema = tableName.includes('.')
+      ? tableName.split('.')[1]
+      : tableName;
 
-    for (let i = 0; i < n.length; ++i) {
-      if (n[i].pk) {
-        if (n[i].altered !== 4) numOfPksInNew.push(n[i].cn);
+    // Collect new primary key columns (excluding dropped columns)
+    for (let i = 0; i < newColumns.length; ++i) {
+      if (newColumns[i].pk) {
+        if (newColumns[i].altered !== 4) newPrimaryKeys.push(newColumns[i].cn);
       }
     }
 
-    for (let i = 0; i < o.length; ++i) {
-      if (o[i].pk) {
-        numOfPksInOriginal.push(o[i].cn);
+    // Collect original primary key columns
+    for (let i = 0; i < originalColumns.length; ++i) {
+      if (originalColumns[i].pk) {
+        originalPrimaryKeys.push(originalColumns[i].cn);
       }
     }
 
-    if (numOfPksInNew.length === numOfPksInOriginal.length) {
-      for (let i = 0; i < numOfPksInNew.length; ++i) {
-        if (numOfPksInOriginal[i] !== numOfPksInNew[i]) {
-          pksChanged = 1;
+    // Determine if primary keys have changed
+    if (newPrimaryKeys.length === originalPrimaryKeys.length) {
+      for (let i = 0; i < newPrimaryKeys.length; ++i) {
+        if (originalPrimaryKeys[i] !== newPrimaryKeys[i]) {
+          primaryKeyChanges = 1;
           break;
         }
       }
     } else {
-      pksChanged = numOfPksInNew.length - numOfPksInOriginal.length;
+      primaryKeyChanges = newPrimaryKeys.length - originalPrimaryKeys.length;
     }
 
     let query = '';
-    if (!numOfPksInNew.length && !numOfPksInOriginal.length) {
-      // do nothing
-    } else if (pksChanged) {
-      query += numOfPksInOriginal.length
+    if (!newPrimaryKeys.length && !originalPrimaryKeys.length) {
+      // No primary keys in either version, no changes needed
+    } else if (primaryKeyChanges) {
+      // Drop existing primary key if it exists
+      query += originalPrimaryKeys.length
         ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [
-            t,
-            `${altered_t}_pkey`,
+            tableName,
+            `${tableNameWithoutSchema}_pkey`,
           ])
         : '';
-      if (numOfPksInNew.length) {
+
+      // Add new primary key if specified
+      if (newPrimaryKeys.length) {
         if (createTable) {
-          query += this.genQuery(`, PRIMARY KEY(??)`, [numOfPksInNew]);
+          query += this.genQuery(`, PRIMARY KEY(??)`, [newPrimaryKeys]);
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [t, `${altered_t}_pkey`, numOfPksInNew],
+            [tableName, `${tableNameWithoutSchema}_pkey`, newPrimaryKeys],
           );
         }
       }

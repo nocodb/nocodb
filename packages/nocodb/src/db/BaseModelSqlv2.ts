@@ -7156,7 +7156,7 @@ class BaseModelSqlv2 {
           );
 
           const oldRowId = linkedHmRowObj
-            ? linkedHmRowObj?.[childTable.primaryKey?.column_name]
+            ? linkedHmRowObj?.[childColumn?.column_name]
             : null;
 
           if (oldRowId) {
@@ -7274,7 +7274,7 @@ class BaseModelSqlv2 {
             );
 
             const oldChildRowId = linkedHmRowObj
-              ? linkedHmRowObj[childTable.primaryKeys[0]?.column_name]
+              ? linkedHmRowObj[childColumn.column_name]
               : null;
 
             if (oldChildRowId) {

@@ -109,9 +109,10 @@ export default {
         @click="selectItem(index, $event)"
       >
         <GeneralUserIcon
-          :email="item.email"
-          :name="item.name"
-          :meta="item.meta"
+          :user="{
+            ...item,
+            display_name: item.name,
+          }"
           class="mr-2 !text-[0.65rem] !h-[16.8px]"
           size="auto"
         />

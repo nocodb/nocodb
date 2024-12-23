@@ -12,8 +12,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       CommentType & {
         created_display_name: string
         resolved_display_name?: string
-        created_meta?: MetaType
-        resolved_meta?: MetaType
+        created_by_meta?: MetaType
+        resolved_by_meta?: MetaType
       }
     >
   >([])
@@ -50,10 +50,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
         return {
           ...comment,
-          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0] ?? '',
           resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : undefined,
-          created_meta: user?.meta,
-          resolved_meta: resolvedUser?.meta,
+          created_by_meta: user?.meta,
+          resolved_by_meta: resolvedUser?.meta,
         }
       })
     } catch (e: unknown) {
@@ -116,7 +116,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
             resolved_display_name: tempC.resolved_by
               ? undefined
               : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
-            resolved_meta: tempC.resolved_by ? undefined : $state.user?.value?.meta,
+            resolved_by_meta: tempC.resolved_by ? undefined : $state.user?.value?.meta,
           }
         }
         return c

@@ -27,12 +27,7 @@ const navigateTo = (item: MentionEventType) => {
 <template>
   <NotificationItemWrapper :item="item" @click="navigateTo(item)">
     <template #avatar>
-      <GeneralUserIcon
-        class="w-8 h-8"
-        :email="item.body.user.email"
-        :name="item.body.user.display_name"
-        :meta="item.body.user.meta"
-      />
+      <GeneralUserIcon class="w-8 h-8" :user="item.body.user" />
     </template>
     <div class="!mb-2">
       <div>

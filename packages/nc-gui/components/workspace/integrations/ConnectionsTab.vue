@@ -456,9 +456,7 @@ onKeyStroke('ArrowDown', onDown)
                         class="w-full flex gap-3 items-center"
                       >
                         <GeneralUserIcon
-                          :email="collaboratorsMap.get(integration.created_by)?.email"
-                          :name="collaboratorsMap.get(integration.created_by)?.display_name"
-                          :meta="collaboratorsMap.get(integration.created_by)?.meta"
+                          :user="collaboratorsMap.get(integration.created_by)"
                           size="base"
                           class="flex-none"
                           :class="{

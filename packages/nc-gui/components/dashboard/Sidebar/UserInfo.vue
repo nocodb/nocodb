@@ -212,7 +212,7 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
               <NcMenuItem v-if="shouldShowToggleMenu" @click="toggleSnowFall">
-                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="snow" class="menu-icon mt-0.5" />
                 <span v-if="!isSnowFallEnabled" class="menu-btn"> {{ $t('labels.enableSnowFall') }} </span>
                 <span v-else class="menu-btn"> {{ $t('labels.disableSnowFall') }} </span>
               </NcMenuItem>

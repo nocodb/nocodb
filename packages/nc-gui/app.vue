@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import { useStorage } from '@vueuse/core'
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
+import { EasterEggs } from '~/lib/enums'
 import type { CommandPaletteType } from '~/lib/types'
 
 const router = useRouter()
@@ -111,6 +114,11 @@ const _ = (window as any).ResizeObserver
     super(callback)
   }
 }
+
+const shouldShowSnowfall = useStorage(
+  EasterEggs.SNOWFLAKE_ENABLED,
+  dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`)),
+)
 </script>
 
 <template>
@@ -121,6 +129,8 @@ const _ = (window as any).ResizeObserver
       </ErrorBoundary>
     </NuxtLayout>
   </a-config-provider>
+
+  <GeneralSnowfall v-if="shouldShowSnowfall" />
 
   <ErrorBoundary>
     <div>

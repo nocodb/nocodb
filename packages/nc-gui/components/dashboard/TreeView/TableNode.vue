@@ -66,6 +66,17 @@ const isTableDeleteDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
+const input = ref<HTMLInputElement>()
+
+/** Is editing the table name enabled */
+const isEditing = ref(false)
+
+/** Helper to check if editing was disabled before the view navigation timeout triggers */
+const isStopped = ref(false)
+
+/** Original view title when editing the view name */
+const _title = ref<string | undefined>()
+
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
@@ -116,6 +127,8 @@ const onExpand = async () => {
 }
 
 const onOpenTable = async () => {
+  if (isEditing.value || isStopped.value) return
+
   if (isMac() ? metaKey.value : control.value) {
     await _openTable(table.value, true)
     return
@@ -180,9 +193,28 @@ const duplicateTable = (table: SidebarTableNode) => {
   _duplicateTable(table)
 }
 
+const focusInput = () => {
+  setTimeout(() => {
+    input.value?.focus()
+    input.value?.select()
+  })
+}
+
 const openRenameTableDialog = (table: SidebarTableNode, sourceId: string) => {
+  if (isMobileMode.value) return
+
   isOptionsOpen.value = false
-  _openRenameTableDialog(table, !!sourceId)
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = table.title
+
+    nextTick(() => {
+      focusInput()
+    })
+  }
+
+  // _openRenameTableDialog(table, !!sourceId)
 }
 
 const openTableDescriptionDialog = (table: SidebarTableNode) => {
@@ -243,6 +275,61 @@ const refreshViews = async () => {
 const source = computed(() => {
   return base.value?.sources?.[sourceIndex.value]
 })
+
+/** Cancel renaming view */
+function onCancel() {
+  if (!isEditing.value) return
+
+  // vModel.value.title = _title || ''
+  onStopEdit()
+}
+
+/** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
+function onStopEdit() {
+  isStopped.value = true
+  isEditing.value = false
+  _title.value = ''
+
+  setTimeout(() => {
+    isStopped.value = false
+  }, 250)
+}
+
+/** Handle keydown on input field */
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    onKeyEsc(event)
+  } else if (event.key === 'Enter') {
+    onKeyEnter(event)
+  }
+}
+
+/** Rename view when enter is pressed */
+function onKeyEnter(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onRename()
+}
+
+/** Disable renaming view when escape is pressed */
+function onKeyEsc(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onCancel()
+}
+
+onKeyStroke('Enter', (event) => {
+  if (isEditing.value) {
+    onKeyEnter(event)
+  }
+})
+
+/** Rename a table */
+async function onRename() {
+  onCancel()
+}
 </script>
 
 <template>
@@ -307,7 +394,19 @@ const source = computed(() => {
             </div>
           </div>
         </div>
+        <a-input
+          v-if="isEditing"
+          ref="input"
+          v-model:value="_title"
+          class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
+          :class="{
+            'font-medium !text-brand-600': isTableOpened,
+          }"
+          @blur="onRename"
+          @keydown.stop="onKeyDown($event)"
+        />
         <NcTooltip
+          v-else
           class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"
           show-on-truncate-only
         >
@@ -320,7 +419,7 @@ const source = computed(() => {
             {{ table.title }}
           </span>
         </NcTooltip>
-        <div class="flex items-center">
+        <div v-if="!isEditing" class="flex items-center">
           <NcTooltip v-if="table.description?.length" placement="bottom">
             <template #title>
               {{ table.description }}

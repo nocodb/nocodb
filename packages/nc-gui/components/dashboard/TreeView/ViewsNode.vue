@@ -75,8 +75,8 @@ const input = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
 
-const isEditing = ref(false)
 /** Is editing the view name enabled */
+const isEditing = ref(false)
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
 const isStopped = ref(false)

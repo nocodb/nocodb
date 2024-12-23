@@ -69,7 +69,7 @@ const isSnowFallEnabled = useStorage(
 )
 
 const shouldShowToggleMenu = computed(() => {
-  return isSnowFallEnabled.value || dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`))
+  return isSnowFallEnabled.value || dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-31`))
 })
 
 const toggleSnowFall = () => {

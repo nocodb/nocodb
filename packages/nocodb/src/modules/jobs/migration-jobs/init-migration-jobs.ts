@@ -14,6 +14,7 @@ import {
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { isEE } from '~/utils';
 
@@ -50,6 +51,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.OrderColumnCreation,
       service: isEE ? this.noOpMigration : this.orderColumnMigration,
     },
+    {
+      version: '7',
+      job: MigrationJobTypes.RecoverOrderColumnMigration,
+      service: isEE ? this.noOpMigration : this.recoverOrderColumnMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -62,6 +68,7 @@ export class InitMigrationJobs {
     private readonly recoverLinksMigration: RecoverLinksMigration,
     private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
     private readonly orderColumnMigration: OrderColumnMigration,
+    private readonly recoverOrderColumnMigration: RecoverOrderColumnMigration,
     private readonly noOpMigration: NoOpMigration,
   ) {}
 

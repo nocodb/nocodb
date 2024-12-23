@@ -18,6 +18,7 @@ import type {
   UpdatePayload,
 } from 'nocodb-sdk';
 import type { Request } from 'express';
+import { extractProps } from '~/helpers/extractProps';
 
 /**
  * Converts an array of key-value pair entries into an object.
@@ -422,7 +423,7 @@ export const additionalExcludePropsForCol = (uidt) => [
   'child_table',
   'child_id',
   'child_table_title',
-  'colOptions'
+  'colOptions',
 ];
 
 const metaAliasMap = {
@@ -857,6 +858,15 @@ export const filterAndMapAliasToColProps = (
             aliasKey,
             transformToSnakeCase(formattedVal, excludedMetaProps),
           ];
+        }
+
+        if (
+          key === 'options' &&
+          [UITypes.MultiSelect, UITypes.SingleSelect].includes(payload.uidt)
+        ) {
+          formattedVal = (val as any[]).map((opt) => {
+            return extractProps(opt, ['id', 'title', 'color', 'order']);
+          });
         }
 
         return [aliasKey, formattedVal];

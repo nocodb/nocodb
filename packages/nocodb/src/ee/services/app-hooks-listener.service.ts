@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditV1OperationTypes,
+  SelectOptionsType,
   UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
@@ -46,6 +47,7 @@ import type {
   TableDuplicatePayload,
   TableRenamePayload,
   TableUpdatePayload,
+  UpdatePayload,
   ViewColumnUpdatePayload,
   ViewCreatePayload,
   ViewDeletePayload,
@@ -134,6 +136,7 @@ import type {
   WorkspaceUserUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationUpdateEvent } from '~/services/app-hooks/interfaces';
+import type { SelectOption } from '~/models';
 import { Audit, Column } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -151,6 +154,64 @@ import {
   removeBlankPropsAndMask,
   transformToSnakeCase,
 } from '~/utils';
+import { extractProps } from '~/helpers/extractProps';
+
+function filterOutUnnecessaryMetas(column: ColumnType) {
+  // if uidt is MultiSelect/SingleSelect, remove unnecessary props from options
+  if (
+    column?.uidt === UITypes.MultiSelect ||
+    column?.uidt === UITypes.SingleSelect
+  ) {
+    const options = (
+      column?.colOptions as { options: SelectOption[] }
+    )?.options?.map((o) =>
+      extractProps(o, ['order', 'title', 'color', 'id', 'index']),
+    );
+    return {
+      ...column,
+      grouped_options: options.reduce((acc, o) => {
+        acc[o.id] = o;
+        return acc;
+      }, {}),
+    };
+  }
+}
+
+function formatUpdatePayloadOfOptions({
+  updatePayload,
+  oldColumn,
+  updatedColumn,
+}: {
+  updatePayload: UpdatePayload;
+  oldColumn: { grouped_options?: Record<string, any> };
+  updatedColumn: { grouped_options?: Record<string, any> };
+}) {
+  if (updatePayload.modifications?.grouped_options) {
+    updatePayload.modifications.options = Object.keys(
+      updatePayload.modifications?.grouped_options,
+    ).map((key) => {
+      const option = updatedColumn.grouped_options[key];
+      if (!option) return;
+
+      return extractProps(option, ['order', 'title', 'color', 'id', 'index']);
+    });
+    updatePayload.modifications.grouped_options = undefined;
+  }
+  if (updatePayload.previous_state?.grouped_options) {
+    updatePayload.previous_state.options = Object.keys(
+      updatePayload.previous_state?.grouped_options,
+    ).map((key) => {
+      const option = oldColumn.grouped_options[key];
+      if (!option) return;
+
+      return extractProps(option, ['order', 'title', 'color', 'id', 'index']);
+    });
+    updatePayload.previous_state.grouped_options = undefined;
+  }
+
+  oldColumn.grouped_options = undefined;
+  updatedColumn.grouped_options = undefined;
+}
 
 @Injectable()
 export class AppHooksListenerService
@@ -526,19 +587,20 @@ export class AppHooksListenerService
         {
           const param = data as ColumnUpdateEvent;
 
+          // filter out unnecessary metas from column
+          const oldColumn = filterOutUnnecessaryMetas(param.oldColumn);
+          const column = filterOutUnnecessaryMetas(param.column);
+
           // check if workspace rename
-          if (
-            param.column?.title &&
-            param.column?.title !== param.oldColumn?.title
-          ) {
+          if (column?.title && column?.title !== oldColumn?.title) {
             await this.auditInsert(
               generateAuditV1Payload<ColumnRenamePayload>(
                 AuditV1OperationTypes.COLUMN_RENAME,
                 {
                   details: {
-                    field_id: param.column.id ?? param.oldColumn.id,
-                    new_field_title: param.column.title,
-                    old_field_title: param.oldColumn.title,
+                    field_id: column.id ?? oldColumn.id,
+                    new_field_title: column.title,
+                    old_field_title: oldColumn.title,
                   },
                   fk_model_id: param.table.id,
                   context: param.context,
@@ -553,8 +615,8 @@ export class AppHooksListenerService
               primary_key: false,
               ...(await extractRefColumnIfFound({
                 column: {
-                  ...(param.oldColumn?.colOptions ?? {}),
-                  ...param.oldColumn,
+                  ...(oldColumn?.colOptions ?? {}),
+                  ...oldColumn,
                 },
                 columns: param.columns,
                 context: param.context,
@@ -562,54 +624,66 @@ export class AppHooksListenerService
               ...filterAndMapAliasToColProps(
                 extractNonSystemProps(
                   removeBlankPropsAndMask({
-                    ...(param.oldColumn?.colOptions ?? {}),
-                    ...param.oldColumn,
+                    ...(oldColumn?.colOptions ?? {}),
+                    ...oldColumn,
                   }),
-                  additionalExcludePropsForCol(
-                    param.oldColumn.uidt || param.column.uidt,
-                  ),
+                  additionalExcludePropsForCol(oldColumn.uidt || column.uidt),
                 ),
               ),
             },
             next: {
               ...(await extractRefColumnIfFound({
-                column: param.column,
+                column: {
+                  ...(column?.colOptions ?? {}),
+                  ...column,
+                },
                 columns: param.columns,
                 context: param.context,
               })),
               ...filterAndMapAliasToColProps(
                 extractNonSystemProps(
                   removeBlankPropsAndMask({
-                    ...(param.column?.colOptions ?? {}),
-                    ...param.column,
+                    ...(column?.colOptions ?? {}),
+                    ...column,
                   }),
-                  additionalExcludePropsForCol(
-                    param.column.uidt || param.oldColumn.uidt,
-                  ),
+                  additionalExcludePropsForCol(column.uidt || oldColumn.uidt),
                 ),
               ),
             },
             parseMeta: true,
             exclude: additionalExcludePropsForCol(
-              param.column.uidt || param.oldColumn.uidt,
+              column.uidt || oldColumn.uidt,
             ),
             boolProps: ['required', 'primary_key', 'pk', 'pv', 'display_value'],
           });
 
           if (!updatePayload) break;
 
+          // if multi/single select check for any changes in options and format it
+          if (
+            (column.uidt === UITypes.MultiSelect ||
+              column.uidt === UITypes.SingleSelect) &&
+            (column?.colOptions as any)?.options
+          ) {
+            formatUpdatePayloadOfOptions({
+              updatePayload,
+              oldColumn,
+              updatedColumn: column,
+            });
+          }
+
           await this.auditInsert(
             generateAuditV1Payload<ColumnUpdatePayload>(
               AuditV1OperationTypes.COLUMN_UPDATE,
               {
                 details: {
-                  field_id: param.column.id,
-                  field_title: param.column.title,
+                  field_id: column.id,
+                  field_title: column.title,
                   ...filterAndMapAliasToColProps(
                     extractNonSystemProps(
                       removeBlankPropsAndMask({
-                        ...(param.column?.colOptions ?? {}),
-                        ...param.column,
+                        ...(column?.colOptions ?? {}),
+                        ...column,
                       }),
                       [
                         'title',
@@ -636,13 +710,13 @@ export class AppHooksListenerService
                     ),
                   ),
                   ...(await extractRefColumnIfFound({
-                    column: param.column,
+                    column: column,
                     columns: param.columns,
                     context: param.context,
                   })),
                   ...updatePayload,
                 },
-                fk_model_id: param.column.fk_model_id,
+                fk_model_id: column.fk_model_id,
                 context: param.context,
                 req: param.req,
               },

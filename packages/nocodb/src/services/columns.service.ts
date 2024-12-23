@@ -6,6 +6,7 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isIDCol,
   isLinksOrLTAR,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -2388,7 +2389,7 @@ export class ColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
-    if (column.system && !param.forceDeleteSystem) {
+    if ((column.system || isIDCol(column)) && !param.forceDeleteSystem) {
       NcError.badRequest(
         `The column '${
           column.title || column.column_name

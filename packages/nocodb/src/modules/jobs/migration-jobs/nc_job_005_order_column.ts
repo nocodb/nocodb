@@ -203,6 +203,7 @@ export class OrderColumnMigration {
     } catch (error) {
       this.log('Migration failed:');
       console.error(error);
+      await ncMeta.disableUpgraderMode();
       return false;
     }
   }

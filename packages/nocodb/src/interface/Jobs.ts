@@ -16,6 +16,7 @@ export enum MigrationJobTypes {
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
   OrderColumnCreation = 'order-column-creation',
   NoOpMigration = 'no-op-migration',
+  RecoverOrderColumnMigration = 'recover-order-column-migration',
 }
 
 export enum JobTypes {

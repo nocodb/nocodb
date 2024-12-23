@@ -2862,6 +2862,8 @@ class PGClient extends KnexClient {
     const numOfPksInNew = [];
     let pksChanged = 0;
 
+    const altered_t = t.includes('.') ? t.split('.')[1] : t;
+
     for (let i = 0; i < n.length; ++i) {
       if (n[i].pk) {
         if (n[i].altered !== 4) numOfPksInNew.push(n[i].cn);
@@ -2892,7 +2894,7 @@ class PGClient extends KnexClient {
       query += numOfPksInOriginal.length
         ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [
             t,
-            `${t}_pkey`,
+            `${altered_t}_pkey`,
           ])
         : '';
       if (numOfPksInNew.length) {
@@ -2901,7 +2903,7 @@ class PGClient extends KnexClient {
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [t, `${t}_pkey`, numOfPksInNew],
+            [t, `${altered_t}_pkey`, numOfPksInNew],
           );
         }
       }

@@ -152,7 +152,7 @@ export class OrderColumnMigration {
           .where(`${MetaTable.MODELS}.mm`, false)
           .where((builder) => {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-            if (isEE) builder.orWhere({ is_local: true });
+            builder.orWhere({ is_local: true });
           })
           .whereNotIn(
             `${MetaTable.MODELS}.id`,
@@ -475,7 +475,7 @@ export class OrderColumnMigration {
       )
       .where((builder) => {
         builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-        if (isEE) builder.orWhere({ is_local: true });
+        builder.orWhere({ is_local: true });
       })
       .whereNotIn(
         `${MetaTable.MODELS}.id`,

@@ -253,6 +253,18 @@ export function isCreatedOrLastModifiedByCol(
   );
 }
 
+export function isIDCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.ID].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
 export function isOrderCol(
   col:
     | UITypes

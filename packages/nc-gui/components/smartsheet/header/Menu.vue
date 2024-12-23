@@ -3,6 +3,7 @@ import {
   type ColumnReqType,
   type ColumnType,
   columnTypeName,
+  isIDCol,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -341,7 +342,7 @@ const onInsertAfter = () => {
 }
 
 const isDeleteAllowed = computed(() => {
-  return column?.value && !column.value.system
+  return column?.value && !column.value.system && !isIDCol(column.value)
 })
 const isDuplicateAllowed = computed(() => {
   return (

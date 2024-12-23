@@ -532,7 +532,7 @@
     "hideAll": "להסתיר הכל",
     "hideSystemFields": "להסתיר שדות מערכת",
     "removeFile": "להסיר קובץ",
-    "hasMany": "יש רבים",
+    "hasMany": "רבים לאחד",
     "manyToMany": "רבים לרבים",
     "oneToOne": "אחד לאחד",
     "virtualRelation": "קשר וירטואלי",
@@ -1477,7 +1477,7 @@
     "webhookBodyMsg3": "כדי להתייחס לרשומה המתוארת",
     "formula": {
       "hintStart": "רמז: השתמש ב- {placeholder1} כדי להתייחס לשדות, לדוגמה: {placeholder2}. למידע נוסף, ראה את",
-      "hintEnd": "נוּסחָה.",
+      "hintEnd": "נוסחאות.",
       "noSuggestedFormulaFound": "לא נמצאה פורמולה מומלצת",
       "noSuggestedFieldFound": "לא נמצא שדה מוצע",
       "typeIsExpected": "{calleeName} מחפש {type} במיקום {position}",

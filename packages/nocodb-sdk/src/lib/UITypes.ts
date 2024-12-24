@@ -1,7 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
-import { parseHelper, ncParseProp } from './helperFunctions';
+import { ncParseProp, parseHelper } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',

@@ -341,7 +341,7 @@ const onInsertAfter = () => {
 }
 
 const isDeleteAllowed = computed(() => {
-  return column?.value && !column.value.system
+  return column?.value && !isSystemColumn(column.value)
 })
 const isDuplicateAllowed = computed(() => {
   return (

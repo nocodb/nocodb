@@ -28,6 +28,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 import { parseMetaProp } from '~/utils/modelUtils';
+import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class ExportService {
@@ -907,6 +908,7 @@ export class ExportService {
           baseModel,
           ignoreViewFilterAndSort: true,
           limitOverride: limit,
+          apiVersion: NcApiVersion.V1
         })
         .then((result) => {
           try {

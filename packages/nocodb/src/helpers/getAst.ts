@@ -23,6 +23,7 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
+import { NcApiVersion } from "nc-gui/lib/enums";
 
 const getAst = async (
   context: NcContext,
@@ -40,6 +41,7 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
+    apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
   }: {
     query?: RequestQuery;
@@ -52,6 +54,7 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
+    apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
   },
 ) => {

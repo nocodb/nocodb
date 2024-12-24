@@ -1,5 +1,4 @@
 import {
-  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isOrderCol,
   isSystemColumn,
@@ -7,6 +6,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { NcApiVersion } from 'nc-gui/lib/enums';
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -14,7 +14,6 @@ import type {
   Model,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   GalleryView,
@@ -23,7 +22,7 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
-import { NcApiVersion } from "nc-gui/lib/enums";
+import { NcError } from '~/helpers/catchError';
 
 const getAst = async (
   context: NcContext,
@@ -219,7 +218,10 @@ const getAst = async (
     }
     let isRequested;
 
-    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+    if (
+      col.system &&
+      apiVersion === NcApiVersion.V3
+    ) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn;

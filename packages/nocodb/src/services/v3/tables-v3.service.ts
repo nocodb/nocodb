@@ -123,7 +123,7 @@ export class TablesV3Service {
         table.source_id = undefined;
       }
       return table;
-    });
+    }));
   }
 
   async tableCreate(

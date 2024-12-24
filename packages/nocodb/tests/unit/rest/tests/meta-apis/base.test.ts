@@ -22,16 +22,14 @@ export default function (API_VERSION: 'v3' | 'v2') {
   const isV2 = API_VERSION === 'v2';
   const isEE = !!process.env.EE;
 
-  if(!isV3) return
-
-  describe.only('Base', () => {
+  describe(`Base ${API_VERSION}`, () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     beforeEach(async () => {
       context = await init();
     });
 
-    it('Create & Retrieve Base', async () => {
+    it(`Create & Retrieve Base ${API_VERSION}`, async () => {
       const base: Base = await createBase({
         title: 'Test Base',
         description: 'Test Description',
@@ -50,7 +48,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
       matchBase(responseBase, base);
     });
 
-    it('Update Base', async () => {
+    it(`Update Base ${API_VERSION}`, async () => {
       const base: Base = await createBase({
         title: 'Test Base',
         description: 'Test Description',
@@ -112,7 +110,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
       matchBase(response.body, base);
     });
 
-    it('Delete Base', async () => {
+    it(`Delete Base ${API_VERSION}`, async () => {
       const base: Base = await createBase({
         title: 'Test Base',
       });
@@ -130,7 +128,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
         .expect(404);
     });
 
-    it('List Base Users', async () => {
+    it(`List Base Users ${API_VERSION}`, async () => {
       const base: Base = await createBase({
         title: 'Test Base',
         description: 'Test Description',
@@ -233,7 +231,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
       });
     });
 
-    it('Create, Update and Delete Base Users', async () => {
+    it(`Create, Update and Delete Base Users ${API_VERSION}`, async () => {
       const base: Base = await createBase({
         title: 'Test Base',
         description: 'Test Description',
@@ -312,7 +310,9 @@ export default function (API_VERSION: 'v3' | 'v2') {
 
       if (isV2) {
         await request(context.app)
-          .patch(`/api/${API_VERSION}/meta/bases/${base.id}/users/${updateQueries[0].id}`)
+          .patch(
+            `/api/${API_VERSION}/meta/bases/${base.id}/users/${updateQueries[0].id}`,
+          )
           .set('xc-auth', context.token)
           .send(updateQueries[0])
           .expect(200);

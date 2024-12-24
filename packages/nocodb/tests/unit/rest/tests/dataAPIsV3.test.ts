@@ -2198,8 +2198,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
       });
 
       if (isV3) {
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
+        expect(rspFromRecordAPI.body.pageInfo).to.have.property('next');
+        expect(rspFromRecordAPI.body.pageInfo.next).to.include(
           `/api/v3/tables/${table.id}/records?page=2`,
         );
       } else {
@@ -2569,8 +2569,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
       });
 
       if (isV3) {
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
+        expect(rspFromRecordAPI.body.pageInfo).to.have.property('next');
+        expect(rspFromRecordAPI.body.pageInfo.next).to.include(
           `/api/v3/tables/${table.id}/records?page=2`,
         );
       } else {
@@ -3820,7 +3820,6 @@ export default function (API_VERSION: 'v2' | 'v3') {
   ///////////////////////////////////////////////////////////////////////////////
 
   function main() {
-    if (!isV3) return;
     // standalone tables
     describe('Text based', textBased);
     describe('Numerical', numberBased);

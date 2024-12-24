@@ -102,6 +102,7 @@ export class BasesService {
       'color',
       'status',
       'order',
+      'description'
     ]);
     await this.validateProjectTitle(context, data, base);
 

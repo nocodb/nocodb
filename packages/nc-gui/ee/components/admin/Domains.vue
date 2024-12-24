@@ -72,7 +72,7 @@ onMounted(async () => {
               </template>
             </span>
           </div>
-          <NcDropdown :trigger="['click']" @click.stop placement="bottomRight">
+          <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
             <NcButton class="!text-gray-500 !hover:text-gray-800" data-test-id="nc-domain-more-option" size="xsmall" type="text">
               <GeneralIcon class="text-inherit" icon="threeDotVertical" />
             </NcButton>

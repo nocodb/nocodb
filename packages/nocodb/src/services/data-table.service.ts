@@ -136,6 +136,7 @@ export class DataTableService {
         cookie: param.cookie,
         insertOneByOneAsFallback: true,
         isSingleRecordInsertion: !Array.isArray(param.body),
+        apiVersion: param.apiVersion
       },
     );
 

@@ -1,35 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AppEvents,
-  extractRolesObj,
-  OrgUserRoles,
-  PluginCategory,
-  ProjectRoles,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
-import * as ejs from 'ejs';
-import validator from 'validator';
-import type {
-  ProjectUserDeleteV3ReqType,
-  ProjectUserReqType,
-  ProjectUserV3ReqType,
-  UserType,
-} from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User } from '~/models';
-import { MetaTable } from '~/utils/globals';
-import { extractProps } from '~/helpers/extractProps';
-import { getProjectRolePower } from '~/utils/roleHelper';
-import { sanitiseEmailContent } from '~/utils';
+import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';

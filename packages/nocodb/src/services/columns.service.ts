@@ -21,6 +21,7 @@ import {
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
 import { parseMetaProp } from 'src/utils/modelUtils';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -284,6 +285,7 @@ export class ColumnsService {
       cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const reuse = param.reuse || {};
@@ -1683,6 +1685,10 @@ export class ColumnsService {
       req: param.req,
     });
 
+    if (param.apiVersion === NcApiVersion.V3) {
+      return column;
+    }
+
     return table;
   }
 
@@ -1695,17 +1701,21 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(context, column.fk_model_id, column.id);
   }
 
-  async columnAdd(
+  async columnAdd<T = NcApiVersion | null | undefined>(
     context: NcContext,
-    param: {
+    {
+      apiVersion = NcApiVersion.V2,
+      ...param
+    }: {
       req: NcRequest;
       tableId: string;
       column: ColumnReqType;
       user: UserType;
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
+      apiVersion?: T;
     },
-  ) {
+  ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -2371,7 +2381,15 @@ export class ColumnsService {
       req: param.req,
     });
 
-    return table;
+    if (apiVersion === NcApiVersion.V3) {
+      return (await Column.get(context, {
+        colId: colBody.id,
+      })) as T extends NcApiVersion.V3 ? Column<any> : never;
+    }
+
+    return table as T extends NcApiVersion.V3 | null | undefined
+      ? never
+      : Model;
   }
 
   async columnDelete(
@@ -3785,13 +3803,13 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          const tableMeta = await this.columnAdd(context, {
+          const tableMeta = (await this.columnAdd(context, {
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
-          });
+          })) as Model;
 
           await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {

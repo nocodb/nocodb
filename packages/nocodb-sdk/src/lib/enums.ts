@@ -446,3 +446,9 @@ export enum PublicAttachmentScope {
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
 }
+
+export enum NcApiVersion {
+  V1,
+  V2,
+  V3,
+}``

@@ -416,3 +416,70 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
     }
   }
 };
+
+
+export const checkboxIconList = [
+  {
+    checked: 'mdi-check-bold',
+    unchecked: 'mdi-crop-square',
+    label: 'square',
+  },
+  {
+    checked: 'mdi-check-circle-outline',
+    unchecked: 'mdi-checkbox-blank-circle-outline',
+    label: 'circle-check',
+  },
+  {
+    checked: 'mdi-star',
+    unchecked: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    checked: 'mdi-heart',
+    unchecked: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    checked: 'mdi-moon-full',
+    unchecked: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    checked: 'mdi-thumb-up',
+    unchecked: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    checked: 'mdi-flag',
+    unchecked: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];
+
+export const ratingIconList = [
+  {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    full: 'mdi-heart',
+    empty: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    full: 'mdi-moon-full',
+    empty: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    full: 'mdi-thumb-up',
+    empty: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    full: 'mdi-flag',
+    empty: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];

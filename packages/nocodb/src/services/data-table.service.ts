@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion } from 'nc-gui/lib/enums';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { nocoExecute } from '~/utils';

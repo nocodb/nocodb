@@ -6,7 +6,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nc-gui/lib/enums';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,

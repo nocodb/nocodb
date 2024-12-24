@@ -186,9 +186,3 @@ export enum WorkspaceIconType {
   EMOJI = 'EMOJI',
   ICON = 'ICON',
 }
-
-export enum NcApiVersion {
-  V1,
-  V2,
-  V3,
-}

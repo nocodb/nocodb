@@ -9,7 +9,7 @@ import {
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
-import { NcApiVersion } from 'nc-gui/lib/enums';
+import { NcApiVersion } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';

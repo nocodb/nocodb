@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
+import {Injectable} from '@nestjs/common';
+import {extractRolesObj, OrgUserRoles, BaseType} from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import { Base, BaseUser, Source } from '~/models';
-import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
-import { BasesService } from '~/services/bases.service';
+import type {NcContext, NcRequest} from '~/interface/config';
+import {Base, BaseUser, Source} from '~/models';
+import {builderGenerator} from '~/utils/api-v3-data-transformation.builder';
+import {BasesService} from '~/services/bases.service';
+import {RootScopes} from "~/utils/globals";
 
 @Injectable()
 export class BasesV3Service {
@@ -76,7 +77,7 @@ export class BasesV3Service {
 
     for (const base of bases) {
       const sources = this.sourceBuilder().build(
-        (await new Base(base).getSources()).filter(
+        (await new Base(base as Partial<Base>).getSources()).filter(
           (s) => !new Source(s).isMeta(),
         ),
       );
@@ -117,21 +118,22 @@ export class BasesV3Service {
     },
   ) {
     await this.basesService.baseUpdate(context, param);
-    return this.getProjectWithInfo(context, { baseId: param.baseId });
+    return this.getProjectWithInfo(context, {baseId: param.baseId});
   }
 
-  async baseCreate(_param: { base: ProjectReqType; user: any; req: any }) {
+  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
     const res = await this.basesService.baseCreate(param);
-    return this.getProjectWithInfo({ baseId: res.id });
+    return this.getProjectWithInfo(
+      {workspace_id: res.fk_workspace_id, base_id: RootScopes.WORKSPACE},
+      {baseId: res.id},
+    );
   }
-
 
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
   ) {
     await this.basesService.baseSoftDelete(context, param);
-    return { success: true };
+    return {success: true};
   }
-
 }

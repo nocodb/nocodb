@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
+import { useStorage } from '@vueuse/core'
+import { EasterEggs } from '~/lib/enums'
+
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
@@ -57,6 +61,19 @@ const isExperimentalFeatureModalOpen = ref(false)
 const openExperimentationMenu = () => {
   isMenuOpen.value = false
   isExperimentalFeatureModalOpen.value = true
+}
+
+const isSnowFallEnabled = useStorage(
+  EasterEggs.SNOWFLAKE_ENABLED,
+  dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`)),
+)
+
+const shouldShowToggleMenu = computed(() => {
+  return isSnowFallEnabled.value || dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`))
+})
+
+const toggleSnowFall = () => {
+  isSnowFallEnabled.value = !isSnowFallEnabled.value
 }
 
 const accountUrl = computed(() => {
@@ -193,6 +210,11 @@ const accountUrl = computed(() => {
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
+              </NcMenuItem>
+              <NcMenuItem v-if="shouldShowToggleMenu" @click="toggleSnowFall">
+                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <span v-if="!isSnowFallEnabled" class="menu-btn"> {{ $t('labels.enableSnowFall') }} </span>
+                <span v-else class="menu-btn"> {{ $t('labels.disableSnowFall') }} </span>
               </NcMenuItem>
 
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">

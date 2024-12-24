@@ -63,19 +63,6 @@ const openExperimentationMenu = () => {
   isExperimentalFeatureModalOpen.value = true
 }
 
-const isSnowFallEnabled = useStorage(
-  EasterEggs.SNOWFLAKE_ENABLED,
-  dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`)),
-)
-
-const shouldShowToggleMenu = computed(() => {
-  return isSnowFallEnabled.value || dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-31`))
-})
-
-const toggleSnowFall = () => {
-  isSnowFallEnabled.value = !isSnowFallEnabled.value
-}
-
 const accountUrl = computed(() => {
   return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
@@ -211,12 +198,6 @@ const accountUrl = computed(() => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-              <NcMenuItem v-if="shouldShowToggleMenu" @click="toggleSnowFall">
-                <GeneralIcon icon="snow" class="menu-icon mt-0.5" />
-                <span v-if="!isSnowFallEnabled" class="menu-btn"> {{ $t('labels.enableSnowFall') }} </span>
-                <span v-else class="menu-btn"> {{ $t('labels.disableSnowFall') }} </span>
-              </NcMenuItem>
-
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>

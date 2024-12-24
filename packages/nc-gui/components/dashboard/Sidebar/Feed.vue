@@ -16,7 +16,7 @@ const gotoFeed = () => navigateToFeed()
     type="text"
     full-width
     size="xsmall"
-    class="n!xs:hidden my-0.5 w-full !h-7 !rounded-md !font-normal !pl-4.5 !pr-5"
+    class="n!xs:hidden my-0.5 w-full !h-7 !rounded-md !pl-4.5 !pr-5"
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{

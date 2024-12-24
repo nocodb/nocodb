@@ -19465,6 +19465,39 @@
           "id": "3bvgqk9tn16ur"
         }
       },
+      "ProjectUserUpdateReq": {
+        "description": "Model for Base User Request",
+        "examples": [
+          {
+            "roles": "owner"
+          }
+        ],
+        "title": "Base User Request Model",
+        "type": "object",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string",
+            "description": "Base User Email"
+          },
+          "roles": {
+            "enum": [
+              "no-access",
+              "commenter",
+              "editor",
+              "guest",
+              "owner",
+              "viewer",
+              "creator"
+            ],
+            "type": "string",
+            "description": "Base User Role"
+          }
+        },
+        "required": [
+          "roles"
+        ]
+      },
       "ProjectUserMetaReq": {
         "description": "Model for Base User Meta Request",
         "examples": [

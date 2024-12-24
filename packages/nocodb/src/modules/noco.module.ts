@@ -128,9 +128,10 @@ import { CalendarDatasController } from '~/controllers/calendars-datas.controlle
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { IntegrationsService } from '~/services/integrations.service';
-import { DataV3Service } from '~/services/data-v3.service';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 import { Datav3Controller } from '~/controllers/data-v3.controller';
-import {BaseUsersV3Controller} from "~/controllers/v3/base-users-v3.controller";
+import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
+import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -251,6 +252,7 @@ export const nocoModuleMetadata = {
     OrgUsersService,
     PluginsService,
     BaseUsersService,
+    BaseUsersV3Service,
     BasesService,
     PublicMetasService,
     ViewsService,

@@ -20,9 +20,12 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { DataV3Service } from '~/services/data-v3.service';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import {PagedResponseImpl, PagedResponseV3Impl} from '~/helpers/PagedResponse';
+import {
+  PagedResponseImpl,
+  PagedResponseV3Impl,
+} from '~/helpers/PagedResponse';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -122,19 +125,16 @@ export class Datav3Controller {
       viewId,
       columnId,
       apiVersion: NcApiVersion.V3,
-    })
+    });
 
-    if(!(response instanceof PagedResponseImpl)) {
+    if (!(response instanceof PagedResponseImpl)) {
       return response;
     }
 
-    return new PagedResponseV3Impl(
-      response as PagedResponseImpl<any>,
-      {
-        baseUrl: req.baseUrl,
-        tableId: modelId,
-      },
-    );
+    return new PagedResponseV3Impl(response as PagedResponseImpl<any>, {
+      baseUrl: req.baseUrl,
+      tableId: modelId,
+    });
   }
 
   @Post(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])

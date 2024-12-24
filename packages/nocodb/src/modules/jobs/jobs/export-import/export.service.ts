@@ -9,6 +9,7 @@ import {
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import { NcApiVersion } from 'nc-gui/lib/enums';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
@@ -28,7 +29,6 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 import { parseMetaProp } from '~/utils/modelUtils';
-import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class ExportService {
@@ -908,7 +908,7 @@ export class ExportService {
           baseModel,
           ignoreViewFilterAndSort: true,
           limitOverride: limit,
-          apiVersion: NcApiVersion.V1
+          apiVersion: NcApiVersion.V1,
         })
         .then((result) => {
           try {

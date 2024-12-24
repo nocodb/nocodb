@@ -2338,8 +2338,13 @@ class BaseModelSqlv2 {
       colId,
       ids: _ids,
       apiVersion,
-      nested = false
-    }: { colId: string; ids: any[]; apiVersion?: NcApiVersion; nested?: boolean },
+      nested = false,
+    }: {
+      colId: string;
+      ids: any[];
+      apiVersion?: NcApiVersion;
+      nested?: boolean;
+    },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {
@@ -2593,7 +2598,6 @@ class BaseModelSqlv2 {
       colId,
       id,
       apiVersion,
-      nested = false,
     }: { colId: string; id: any; apiVersion?: NcApiVersion; nested?: boolean },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
@@ -5791,7 +5795,6 @@ class BaseModelSqlv2 {
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
       allowSystemColumn = false,
-      apiVersion = NcApiVersion.V1,
     }: {
       chunkSize?: number;
       cookie?: any;

@@ -218,10 +218,7 @@ const getAst = async (
     }
     let isRequested;
 
-    if (
-      col.system &&
-      apiVersion === NcApiVersion.V3
-    ) {
+    if (col.system && apiVersion === NcApiVersion.V3) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn;

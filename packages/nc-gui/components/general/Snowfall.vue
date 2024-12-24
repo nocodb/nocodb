@@ -1,13 +1,10 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-
 interface SnowflakeProps {
   maxFlakes?: number
   color?: string
   minSize?: number
   maxSize?: number
   speed?: number
-  enableRepel?: boolean
   symbols?: string[]
 }
 
@@ -17,7 +14,6 @@ const props = withDefaults(defineProps<SnowflakeProps>(), {
   minSize: 2,
   maxSize: 6,
   speed: 1,
-  enableRepel: true,
   symbols: () => ['❄', '❅', '❆'],
 })
 
@@ -37,7 +33,6 @@ const snowflakes: Snowflake[] = []
 
 const canvasWidth = ref(0)
 const canvasHeight = ref(0)
-
 const mouseX = ref(0)
 const mouseY = ref(0)
 
@@ -61,28 +56,32 @@ function initSnowflakes() {
   }
 }
 
+let rafId: number | null = null
+
 function updateAndDrawFlakes() {
   if (!ctx) return
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
   ctx.fillStyle = props.color ?? '#e0e0e0'
+
   for (const flake of snowflakes) {
-    if (props.enableRepel) {
-      const repelRange = 100
-      const dx = flake.x - mouseX.value
-      const dy = flake.y - mouseY.value
-      const dist = Math.sqrt(dx * dx + dy * dy)
-      if (dist < repelRange) {
-        const angle = Math.atan2(dy, dx)
-        const force = (repelRange - dist) / repelRange
-        flake.x += Math.cos(angle) * force * 5
-        flake.y += Math.sin(angle) * force * 5
-      }
+    const repelRange = 100
+    const dx = flake.x - mouseX.value
+    const dy = flake.y - mouseY.value
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist < repelRange) {
+      const angle = Math.atan2(dy, dx)
+      const force = (repelRange - dist) / repelRange
+      flake.x += Math.cos(angle) * force * 5
+      flake.y += Math.sin(angle) * force * 5
     }
+
     flake.y += flake.speedY
+
     if (flake.y > canvasHeight.value + 50) {
       flake.y = -50
       flake.x = random(0, canvasWidth.value)
     }
+
     const fontSize = flake.size * 4
     ctx.font = `${fontSize}px sans-serif`
     ctx.save()
@@ -93,13 +92,12 @@ function updateAndDrawFlakes() {
   }
 }
 
-let rafId: number | null = null
-
 function animate() {
   updateAndDrawFlakes()
   rafId = requestAnimationFrame(animate)
 }
 
+// Keep track of mouse events only if needed
 let ticking = false
 function handleMouseMove(e: MouseEvent) {
   if (!ticking) {
@@ -121,15 +119,18 @@ function handleResize() {
   initSnowflakes()
 }
 
-useEventListener(window, 'resize', handleResize)
-useEventListener(window, 'mousemove', handleMouseMove)
-
 onMounted(() => {
-  if (!canvasRef.value) return
-  ctx = canvasRef.value.getContext('2d') || null
-  handleResize()
-  initSnowflakes()
-  animate()
+  if (typeof window === 'undefined') return
+
+  if (canvasRef.value) {
+    ctx = canvasRef.value.getContext('2d') || null
+    handleResize()
+    initSnowflakes()
+    animate()
+  }
+
+  useEventListener(window, 'resize', handleResize)
+  useEventListener(window, 'mousemove', handleMouseMove)
 })
 
 onUnmounted(() => {

@@ -126,6 +126,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       ncBackendUrl: '',
+      ci: '',
       // Config Endpoint for fetching various config from the server
       // Used for Downtime alerts
       configServerUrl: process.env.NUXT_NC_CONFIG_ENDPOINT,

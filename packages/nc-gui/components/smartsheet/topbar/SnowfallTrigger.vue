@@ -2,6 +2,8 @@
 import { useStorage } from '@vueuse/core'
 import dayjs from 'dayjs'
 
+const config = useRuntimeConfig()
+
 const isSnowFallEnabled = useStorage(
   EasterEggs.SNOWFLAKE_ENABLED,
   dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`)),
@@ -18,7 +20,7 @@ const toggleSnowFall = () => {
 
 <template>
   <NcButton
-    v-if="shouldShowToggleMenu"
+    v-if="!config.public.ci && shouldShowToggleMenu"
     v-e="['c:easter-egg-snowfall']"
     type="secondary"
     size="small"

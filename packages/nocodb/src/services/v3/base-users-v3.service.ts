@@ -225,7 +225,7 @@ export class BaseUsersV3Service {
     );
   }
 
-/*  async baseUserDelete(
+  /*  async baseUserDelete(
     context: NcContext,
     param: {
       baseUsers: ProjectUserDeleteV3ReqType[];

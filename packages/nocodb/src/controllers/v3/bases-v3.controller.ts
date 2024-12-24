@@ -24,7 +24,7 @@ import { Filter } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import {BasesV3Service} from "~/services/v3/bases-v3.service";
+import { BasesV3Service } from '~/services/v3/bases-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -44,7 +44,7 @@ export class BasesController {
       user: req.user,
       query: queryParams,
     });
-    return  { bases }
+    return { bases };
   }
 
   @Acl('baseGet')

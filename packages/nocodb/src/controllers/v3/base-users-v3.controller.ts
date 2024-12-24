@@ -85,7 +85,7 @@ export class BaseUsersV3Controller {
     });
   }
 
-/*  @Delete(['/api/v3/meta/bases/:baseId/users'])
+  /*  @Delete(['/api/v3/meta/bases/:baseId/users'])
   @Acl('baseUserDelete')
   async baseUserDelete(
     @TenantContext() context: NcContext,

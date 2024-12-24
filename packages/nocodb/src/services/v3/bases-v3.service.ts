@@ -27,8 +27,7 @@ import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
-import {builderGenerator} from "~/utils/api-v3-data-transformation.builder";
-
+import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 
 @Injectable()
 export class BasesV3Service {
@@ -48,7 +47,7 @@ export class BasesV3Service {
         'created_at',
         'updated_at',
         'meta',
-        'sources'
+        'sources',
       ],
       mappings: {
         name: 'title',
@@ -58,12 +57,12 @@ export class BasesV3Service {
     });
     this.sourceBuilder = builderGenerator({
       allowed: [
-        "id",
-        "title",
-        "type",
-        "is_schema_readonly",
-        "is_data_readonly",
-        "integration_id"
+        'id',
+        'title',
+        'type',
+        'is_schema_readonly',
+        'is_data_readonly',
+        'integration_id',
       ],
       mappings: {
         name: 'title',
@@ -71,7 +70,6 @@ export class BasesV3Service {
         source: 'sources',
       },
     });
-
   }
 
   async baseList(
@@ -90,7 +88,7 @@ export class BasesV3Service {
     return {
       ...result,
       sources: result.sources && this.sourceBuilder().build(result.sources),
-    }
+    };
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {
@@ -197,9 +195,6 @@ export class BasesV3Service {
   }
 
   async baseCreate(_param: { base: ProjectReqType; user: any; req: any }) {
-
     return null;
   }
-
-
 }

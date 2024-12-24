@@ -1,8 +1,8 @@
 import { NcApiVersion } from 'nc-gui/lib/enums';
+import { Injectable } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
-import {Injectable} from "@nestjs/common";
 
 @Injectable()
 export class DataV3Service {

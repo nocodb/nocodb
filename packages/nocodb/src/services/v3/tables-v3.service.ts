@@ -4,7 +4,7 @@ import { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Model } from '~/models';
+import {Base, Model} from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -115,7 +115,15 @@ export class TablesV3Service {
   ) {
     const tables = await this.tablesService.getAccessibleTables(context, param);
 
-    return this.tableReadBuilder().build(tables);
+    const metaSourceId = (await Base.get(context, param.baseId).then(base => base?.getSources()))?.find(source => source.isMeta)?.id;
+
+    return this.tableReadBuilder().build(tables.map((table) => {
+      // exclude source_id for tables from meta source
+      if (metaSourceId && table.source_id === metaSourceId) {
+        table.source_id = undefined;
+      }
+      return table;
+    });
   }
 
   async tableCreate(

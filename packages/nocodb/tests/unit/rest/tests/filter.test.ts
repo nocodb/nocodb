@@ -4,10 +4,9 @@ import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
 import { createProject } from '../../factory/base';
-import Base from '~/models/Base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
-import type Model from '../../../../src/models/Model';
+import { type Model, Base } from '../../../../src/models';
 
 const debugMode = true;
 
@@ -23,7 +22,7 @@ async function retrieveRecordsAndValidate(
   },
   title: string,
 ) {
-  let expectedRecords = [];
+  let expectedRecords: any[] = [];
   let toFloat = false;
   if (
     ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating'].includes(
@@ -180,7 +179,7 @@ async function retrieveRecordsAndValidate(
 
 let context;
 let ctx: {
-  workspace_id: string;
+  workspace_id?: string;
   base_id: string;
 };
 let base: Base;
@@ -255,7 +254,7 @@ function filterTextBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
         SingleLineText: rowMixedValue(columns[1], i),
@@ -406,7 +405,7 @@ function filterNumberBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
         Number: rowMixedValue(columns[1], i),
@@ -554,7 +553,7 @@ function filterSelectBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
         SingleSelect: rowMixedValue(columns[1], i),
@@ -657,7 +656,7 @@ function filterDateBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 800; i++) {
       const row = {
         Date: rowMixedValue(columns[1], i),

@@ -22,7 +22,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
   <a-form-item>
     <a-select
       v-model:value="vModel.meta.date_format"
-      :disabled="!!isSystem"
+      :disabled="isSystem"
       show-search
       class="nc-date-select"
       dropdown-class-name="nc-dropdown-date-format"

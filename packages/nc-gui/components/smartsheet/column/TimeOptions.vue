@@ -26,7 +26,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           v-if="vModel.meta"
           v-model:value="vModel.meta.is12hrFormat"
           class="nc-time-form-layout"
-          :disabled="!!isSystem"
+          :disabled="isSystem"
         >
           <a-radio :value="true">12 Hrs</a-radio>
           <a-radio :value="false">24 Hrs</a-radio>

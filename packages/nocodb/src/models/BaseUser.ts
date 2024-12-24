@@ -195,10 +195,12 @@ export default class BaseUser {
       mode = 'full',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
+      user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       include_ws_deleted?: boolean;
+      user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser)[]> {
@@ -245,6 +247,10 @@ export default class BaseUser {
         'base_id',
         'id',
       ]);
+    }
+
+    if (user_ids) {
+      baseUsers = baseUsers.filter((u) => user_ids.includes(u.id));
     }
 
     if (mode === 'full') {

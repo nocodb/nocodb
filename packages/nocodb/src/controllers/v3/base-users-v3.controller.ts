@@ -42,15 +42,9 @@ export class BaseUsersV3Controller {
     req: NcRequest,
   ) {
     const baseRoles = Object.keys((req.user as any)?.base_roles ?? {});
-    const mode =
-      baseRoles.includes(ProjectRoles.OWNER) ||
-      baseRoles.includes(ProjectRoles.CREATOR)
-        ? 'full'
-        : 'viewer';
 
     return await this.baseUsersV3Service.userList(context, {
       baseId,
-      mode,
     });
   }
 
@@ -70,7 +64,7 @@ export class BaseUsersV3Controller {
     });
   }
 
-  @Patch(['/api/v3/meta/bases/:baseId/users/:userId'])
+  @Patch(['/api/v3/meta/bases/:baseId/users'])
   @Acl('baseUserUpdate')
   async baseUserUpdate(
     @TenantContext()
@@ -83,23 +77,19 @@ export class BaseUsersV3Controller {
     req: NcRequest,
     @Body() baseUsers: ProjectUserV3ReqType[],
   ): Promise<any> {
-    await this.baseUsersV3Service.baseUserUpdate(context, {
+    return await this.baseUsersV3Service.baseUserUpdate(context, {
       baseUsers,
       baseId,
       userId,
       req,
     });
-    return {
-      msg: 'The user has been updated successfully',
-    };
   }
 
-  @Delete(['/api/v3/meta/bases/:baseId/users/:userId'])
+/*  @Delete(['/api/v3/meta/bases/:baseId/users'])
   @Acl('baseUserDelete')
   async baseUserDelete(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Param('userId') userId: string,
     @Req() req: NcRequest,
     @Body() baseUsers: ProjectUserDeleteV3ReqType[],
   ): Promise<any> {
@@ -111,5 +101,5 @@ export class BaseUsersV3Controller {
     return {
       msg: 'The user has been deleted successfully',
     };
-  }
+  }*/
 }

@@ -51,6 +51,7 @@ export class BaseUsersService {
       baseUser: ProjectUserReqType;
       req: NcRequest;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
@@ -97,9 +98,9 @@ export class BaseUsersService {
 
     for (const email of emails) {
       // add user to base if user already exist
-      const user = await User.getByEmail(email);
+      const user = await User.getByEmail(email, ncMeta);
 
-      const base = await Base.get(context, param.baseId);
+      const base = await Base.get(context, param.baseId, ncMeta);
 
       if (!base) {
         return NcError.baseNotFound(param.baseId);
@@ -107,9 +108,9 @@ export class BaseUsersService {
 
       if (user) {
         // check if this user has been added to this base
-        const baseUser = await BaseUser.get(context, param.baseId, user.id);
+        const baseUser = await BaseUser.get(context, param.baseId, user.id, ncMeta);
 
-        const base = await Base.get(context, param.baseId);
+        const base = await Base.get(context, param.baseId, ncMeta);
 
         if (!base) {
           return NcError.baseNotFound(param.baseId);
@@ -128,6 +129,7 @@ export class BaseUsersService {
             param.baseId,
             user.id,
             param.baseUser.roles,
+            ncMeta
           );
         } else {
           await BaseUser.insert(context, {
@@ -135,7 +137,7 @@ export class BaseUsersService {
             fk_user_id: user.id,
             roles: param.baseUser.roles || 'editor',
             invited_by: param.req?.user?.id,
-          });
+          }, ncMeta);
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -154,7 +156,7 @@ export class BaseUsersService {
             email,
             roles: OrgUserRoles.VIEWER,
             token_version: randomTokenString(),
-          });
+          }, ncMeta);
 
           // add user to base
           await BaseUser.insert(context, {
@@ -162,7 +164,7 @@ export class BaseUsersService {
             fk_user_id: user.id,
             roles: param.baseUser.roles,
             invited_by: param.req?.user?.id,
-          });
+          }, ncMeta);
 
           this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
             base,
@@ -182,7 +184,7 @@ export class BaseUsersService {
               req: param.req,
               baseName: base.title,
               roles: param.baseUser.roles || 'editor',
-            });
+            }, ncMeta);
 
             if (!mailSendStatus) {
               return { invite_token, email };
@@ -194,7 +196,7 @@ export class BaseUsersService {
               req: param.req,
               baseName: base.title,
               roles: param.baseUser.roles || 'editor',
-            });
+            }, ncMeta);
           }
         } catch (e) {
           this.logger.error(e.message, e.stack);

@@ -42,7 +42,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataV3Service.dataList(context, {
@@ -63,7 +63,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
     @Body() body: any,
   ) {
     return await this.dataV3Service.dataInsert(context, {
@@ -80,8 +80,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
-    @Param('rowId') _rowId: string,
+    @Query('view_id') viewId: string,
   ) {
     return await this.dataV3Service.dataDelete(context, {
       modelId: modelId,
@@ -97,8 +96,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
-    @Param('rowId') _rowId: string,
+    @Query('view_id') viewId: string,
   ) {
     return await this.dataV3Service.dataUpdate(context, {
       modelId: modelId,
@@ -114,7 +112,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
@@ -143,7 +141,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
     @Body()
@@ -172,7 +170,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
     @Body()
@@ -195,7 +193,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
   ) {
     return await this.dataTableService.dataRead(context, {
@@ -214,7 +212,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('viewId') viewId: string,
+    @Query('view_id') viewId: string,
   ) {
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,

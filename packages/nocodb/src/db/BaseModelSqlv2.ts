@@ -5331,6 +5331,7 @@ class BaseModelSqlv2 {
     nestedCols: Column[];
     data: Record<string, any>;
     insertObj: Record<string, any>;
+    req: NcRequest
   }) {
     const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
     const preInsertOps: (() => Promise<string>)[] = [];
@@ -8641,7 +8642,7 @@ class BaseModelSqlv2 {
       model: auditConfig.parentModel,
       refModel: auditConfig.childModel,
       rowId,
-      childId,
+      refRowId: childId,
       columnTitle: auditConfig.parentColTitle,
       columnId: auditConfig.parentColId,
       req: cookie,

@@ -22,7 +22,12 @@ const { isSystem } = useColumnCreateStoreOrThrow()
   <div class="flex flex-col gap-4">
     <div class="flex items-center gap-2 children:flex-1">
       <a-form-item>
-        <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format"  :disabled="!!isSystem">
+        <a-select
+          v-model:value="vModel.meta.date_format"
+          class="nc-date-select"
+          dropdown-class-name="nc-dropdown-date-format"
+          :disabled="!!isSystem"
+        >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
@@ -41,7 +46,12 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         </a-select>
       </a-form-item>
       <a-form-item>
-        <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format" :disabled="!!isSystem">
+        <a-select
+          v-model:value="vModel.meta.time_format"
+          class="nc-time-select"
+          dropdown-class-name="nc-dropdown-time-format"
+          :disabled="!!isSystem"
+        >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
@@ -75,7 +85,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
 
   .ant-radio-wrapper {
     @apply transition-all;
-    &.ant-radio-wrapper-checked {
+    &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {
       @apply border-brand-500;
     }
   }

@@ -22,7 +22,12 @@ const { isSystem } = useColumnCreateStoreOrThrow()
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-2 children:flex-1">
       <a-form-item>
-        <a-radio-group v-if="vModel.meta" v-model:value="vModel.meta.is12hrFormat" class="nc-time-form-layout" :disabled="!!isSystem">
+        <a-radio-group
+          v-if="vModel.meta"
+          v-model:value="vModel.meta.is12hrFormat"
+          class="nc-time-form-layout"
+          :disabled="!!isSystem"
+        >
           <a-radio :value="true">12 Hrs</a-radio>
           <a-radio :value="false">24 Hrs</a-radio>
         </a-radio-group>
@@ -37,7 +42,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
 
   .ant-radio-wrapper {
     @apply transition-all;
-    &.ant-radio-wrapper-checked {
+    &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {
       @apply border-brand-500;
     }
   }

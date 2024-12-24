@@ -54,7 +54,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
-
         <NcButton
           v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view'"
           v-e="['c:extension-toggle']"
@@ -80,6 +79,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
 
+        <LazySmartsheetTopbarSnowfallTrigger />
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />
         </div>

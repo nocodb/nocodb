@@ -194,7 +194,6 @@ const accountUrl = computed(() => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>

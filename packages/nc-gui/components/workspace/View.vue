@@ -83,6 +83,7 @@ onMounted(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+      <LazySmartsheetTopbarSnowfallTrigger />
       <SmartsheetTopbarCmdK />
     </div>
     <template v-else>

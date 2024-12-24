@@ -129,6 +129,7 @@ watch(
           </NcTooltip>
         </div>
       </div>
+      <LazySmartsheetTopbarSnowfallTrigger />
 
       <SmartsheetTopbarCmdK v-if="!isSharedBase" />
 

@@ -36,7 +36,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       defaultColumns = meta.columns!;
     });
 
-    it.only(`Sort Meta CRUD ${API_VERSION}`, async () => {
+    it(`Sort Meta CRUD ${API_VERSION}`, async () => {
       let response = await request(context.app)
         .get(`${META_API_VIEW_ROUTE}/${defaultViewId}/sorts`)
         .set('xc-auth', context.token)

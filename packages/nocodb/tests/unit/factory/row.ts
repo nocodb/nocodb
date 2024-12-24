@@ -281,7 +281,8 @@ const generateDefaultRowAttributes = ({
       column.uidt === UITypes.ID ||
       column.uidt === UITypes.Order ||
       isCreatedOrLastModifiedTimeCol(column) ||
-      isCreatedOrLastModifiedByCol(column)
+      isCreatedOrLastModifiedByCol(column) ||
+      (column.uidt === UITypes.Number && column.column_name === 'nc_order')
     ) {
       return acc;
     }

@@ -1246,6 +1246,31 @@ watch(activeAiTab, (newValue) => {
     })
   }
 })
+
+const rightPanelRef = ref()
+
+const oldRightPanelWidth = ref()
+
+const { width: _rightPanelWidth } = useElementBounding(rightPanelRef)
+
+/**
+ * Tracks and computes the stable width of the right panel, accounting for transition effects.
+ *
+ * @remarks
+ * - `_rightPanelWidth` reflects the current width of the right panel reported by `useElementBounding`.
+ * - `oldRightPanelWidth` stores the last valid width to avoid using transitional `0` width values.
+ * - During transitions, `_rightPanelWidth` may initially be `0`, so `oldRightPanelWidth` ensures a consistent and reliable width value.
+ *
+ * @returns The stable width of the right panel.
+ */
+
+const rightPanelWidth = computed(() => {
+  if (_rightPanelWidth.value && _rightPanelWidth.value !== oldRightPanelWidth.value) {
+    oldRightPanelWidth.value = _rightPanelWidth.value
+  }
+
+  return oldRightPanelWidth.value
+})
 </script>
 
 <template>
@@ -1430,12 +1455,17 @@ watch(activeAiTab, (newValue) => {
         </div>
         <!-- Ai field wizard  -->
         <div
-          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200 max-w-full"
+          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200"
           :style="{
             height: `calc(100vh - (var(--topbar-height) * 3.6) - 24px)`,
           }"
         >
-          <div class="flex-1 h-full flex flex-col max-w-3/5">
+          <div
+            class="flex-1 h-full flex flex-col"
+            :style="{
+              width: rightPanelWidth ? `calc(100% - ${rightPanelWidth}px)` : undefined,
+            }"
+          >
             <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium overflow-x-scroll">
               <!-- Ai field wizard  -->
               <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
@@ -2067,13 +2097,14 @@ watch(activeAiTab, (newValue) => {
           <Transition name="slide-fade">
             <div
               v-if="!changingField"
-              class="border-gray-200 border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
+              ref="rightPanelRef"
+              class="flex-none border-gray-200 border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
               @keydown.up.stop
               @keydown.down.stop
             >
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
-                class="p-4 w-[25rem]"
+                class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"

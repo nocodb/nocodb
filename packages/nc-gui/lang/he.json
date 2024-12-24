@@ -653,6 +653,8 @@
     "lockedByUser": "נעול על ידי {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",

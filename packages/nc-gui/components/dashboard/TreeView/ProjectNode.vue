@@ -121,6 +121,8 @@ const showBaseOption = (source: SourceType) => {
 }
 
 const enableEditMode = () => {
+  if (!isUIAllowed('baseRename')) return
+
   editMode.value = true
   tempTitle.value = base.value.title!
   nextTick(() => {
@@ -131,12 +133,16 @@ const enableEditMode = () => {
 }
 
 const enableEditModeForSource = (sourceId: string) => {
+  if (!isUIAllowed('baseRename')) return
+
   const source = base.value.sources?.find((s) => s.id === sourceId)
   if (!source?.id) return
+
   sourceRenameHelpers.value[source.id] = {
     editMode: true,
     tempTitle: source.alias || '',
   }
+
   nextTick(() => {
     const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
     if (!input) return
@@ -590,7 +596,7 @@ const shouldOpenContextMenu = computed(() => {
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span>
+              <span @dblclick.stop="enableEditMode">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -880,7 +886,10 @@ const shouldOpenContextMenu = computed(() => {
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>
-                              <span :data-testid="`nc-sidebar-base-${source.alias}`">
+                              <span
+                                :data-testid="`nc-sidebar-base-${source.alias}`"
+                                @dblclick.stop="enableEditModeForSource(source.id!)"
+                              >
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>

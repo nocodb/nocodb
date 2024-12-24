@@ -249,7 +249,7 @@ const focusInput = () => {
 }
 
 const onRenameMenuClick = (table: SidebarTableNode) => {
-  if (isMobileMode.value) return
+  if (isMobileMode.value || !isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value })) return
 
   isOptionsOpen.value = false
 
@@ -520,6 +520,7 @@ async function onRename() {
             :class="isTableOpened ? 'text-brand-600 font-semibold' : 'text-gray-700'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            @dblclick.stop="onRenameMenuClick(table)"
           >
             {{ table.title }}
           </span>

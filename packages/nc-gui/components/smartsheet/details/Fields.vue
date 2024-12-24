@@ -1698,7 +1698,7 @@ watch(activeAiTab, (newValue) => {
                       'hover:bg-gray-100': !isSystemColumn(field),
                     }"
                     :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
-                    @click="!isSystemColumn(field) && changeField(field, $event)"
+                    @click="changeField(field, $event)"
                   >
                     <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                       <component
@@ -1739,20 +1739,17 @@ watch(activeAiTab, (newValue) => {
                           'text-brand-500': compareCols(field, activeField),
                         }"
                       />
-                      <NcTooltip :disabled="!isSystemColumn(field)">
-                        <template #title> Editing system columns is not supported </template>
-                        <NcTooltip
-                          :class="{
-                            'text-brand-500': compareCols(field, activeField),
-                          }"
-                          class="truncate flex-1"
-                          show-on-truncate-only
-                        >
-                          <template #title> {{ fieldState(field)?.title || field.title }} </template>
-                          <span data-testid="nc-field-title">
-                            {{ fieldState(field)?.title || field.title }}
-                          </span>
-                        </NcTooltip>
+                      <NcTooltip
+                        :class="{
+                          'text-brand-500': compareCols(field, activeField),
+                        }"
+                        class="truncate flex-1"
+                        show-on-truncate-only
+                      >
+                        <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                        <span data-testid="nc-field-title">
+                          {{ fieldState(field)?.title || field.title }}
+                        </span>
                       </NcTooltip>
                     </div>
                     <div class="flex items-center justify-end gap-1">
@@ -1876,9 +1873,7 @@ watch(activeAiTab, (newValue) => {
                                 }"
                               >
                                 <GeneralIcon icon="duplicate" />
-                                <span>
-                                  {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
-                                </span>
+                                <span> {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }} </span>
                               </NcMenuItem>
                               <NcMenuItem
                                 v-if="!field.pv"
@@ -1909,9 +1904,12 @@ watch(activeAiTab, (newValue) => {
                                 :disabled="isSystemColumn(field)"
                                 @click="onFieldDelete(field)"
                               >
-                                <div class="text-red-500" :class="{
-                                  '!text-gray-400': isSystemColumn(field),
-                                }">
+                                <div
+                                  class="text-red-500"
+                                  :class="{
+                                    '!text-gray-400': isSystemColumn(field),
+                                  }"
+                                >
                                   <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
                                   {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
                                 </div>

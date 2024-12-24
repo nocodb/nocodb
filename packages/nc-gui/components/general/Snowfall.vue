@@ -143,6 +143,8 @@ onUnmounted(() => {
 }
 
 .snowflake {
+  @apply select-none;
+
   will-change: transform;
 }
 </style>

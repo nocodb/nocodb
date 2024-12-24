@@ -117,7 +117,7 @@ const _ = (window as any).ResizeObserver
 
 const shouldShowSnowfall = useStorage(
   EasterEggs.SNOWFLAKE_ENABLED,
-  dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-28`)),
+  dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-31`)),
 )
 </script>
 

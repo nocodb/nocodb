@@ -9,9 +9,7 @@ import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
-import type Base from '~/models/Base';
-import type Sort from '../../../src/models/Sort';
-import {View} from "~/models";
+import type { Base, View, Sort} from '../../../src/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -30,7 +28,7 @@ const rowValue = (column: ColumnType, index: number) => {
   }
 };
 
-const rowMixedValue = (column: ColumnType, index: number) => {
+const _rowMixedValue = (column: ColumnType, index: number) => {
   // Array of country names
   const countries = [
     'Afghanistan',
@@ -203,6 +201,16 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   }
 };
 
+const rowMixedValue = (column: ColumnType, index: number, isV3: boolean = false) => {
+  const val = _rowMixedValue(column, index)
+  if (isV3) {
+    if (column.uidt === UITypes.MultiSelect) {
+      return val ? (val as string).split(',') : val
+    }
+  }
+  return val
+}
+
 const getRow = async (context, { base, table, id }) => {
   const response = await request(context.app)
     .get(`/api/v1/db/data/noco/${base.id}/${table.id}/${id}`)
@@ -374,9 +382,11 @@ const createChildRow = async (
 const generateMixedRowAttributes = ({
   columns,
   index = 0,
+  isV3 = false,
 }: {
   columns: ColumnType[];
   index?: number;
+  isV3?: boolean;
 }) =>
   columns.reduce((acc, column) => {
     if (

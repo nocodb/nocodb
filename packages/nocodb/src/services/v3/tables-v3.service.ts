@@ -52,9 +52,6 @@ export class TablesV3Service {
     return true;
   }
 
-  reorderTable(context: NcContext, param: { tableId: string; order: any }) {
-    return Model.updateOrder(context, param.tableId, param.order);
-  }
 
   async tableDelete(
     context: NcContext,
@@ -66,7 +63,7 @@ export class TablesV3Service {
     },
   ) {
     const result = await this.tablesService.tableDelete(context, param);
-    return result;
+    return {};
   }
 
   async getTableWithAccessibleViews(

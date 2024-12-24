@@ -1,4 +1,9 @@
-import { checkboxIconList, ratingIconList, UITypes } from 'nocodb-sdk';
+import {
+  checkboxIconList,
+  durationOptions,
+  ratingIconList,
+  UITypes,
+} from 'nocodb-sdk';
 
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -223,10 +228,16 @@ export const columnBuilder = builderGenerator({
     mappings: {
       is12hrFormat: '12hr_format',
       isLocaleString: 'locale_string',
-      duration: 'duration_format',
+      // duration: 'duration_format',
     },
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
-    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx'],
+    skipTransformFor: [
+      'currency_locale',
+      'currency_code',
+      'icon',
+      'iconIdx',
+      'duration',
+    ],
   },
   transformFn: (data) => {
     let options: Record<string, any> = data.options || {};
@@ -235,11 +246,14 @@ export const columnBuilder = builderGenerator({
         case UITypes.SingleSelect:
         case UITypes.MultiSelect:
           {
-            const choices = data.colOptions.options.map((opt) => ({
-              id: opt.id,
-              title: opt.title,
-              color: opt.color,
-            }));
+            const choices = data.colOptions.options.map((opt) => {
+              const res = {
+                title: opt.title,
+                color: opt.color,
+              };
+              if (opt.id) res.id = opt.id;
+              return res;
+            });
             options.choices = choices;
           }
           break;
@@ -279,6 +293,18 @@ export const columnBuilder = builderGenerator({
         options.icon = ratingIconList.find(
           (ic) => ic.full === icon?.['full'],
         )?.label;
+      }
+    } else if (data.type === UITypes.Duration) {
+      const { duration, duration_format, ...rest } = data.options as Record<
+        string,
+        any
+      >;
+      const durationFormat = duration ?? duration_format;
+      // extract option meta and include only label and color
+      options = rest;
+
+      if (durationFormat !== undefined && durationFormat !== null) {
+        options.duration_format = durationOptions[durationFormat]?.title;
       }
     }
 
@@ -332,11 +358,11 @@ export const columnV3ToV2Builder = builderGenerator({
     mappings: {
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
-      duration_format: 'duration',
+      // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
-    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx'],
+    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx', 'duration_format'],
   },
   transformFn: (data) => {
     let meta: Record<string, any> = data.meta || {};
@@ -346,11 +372,14 @@ export const columnV3ToV2Builder = builderGenerator({
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
         {
-          const choices = data.meta.choices.map((opt) => ({
-            id: opt.id,
-            title: opt.title,
-            color: opt.color,
-          }));
+          const choices = data.meta.choices.map((opt) => {
+            const res = {
+              title: opt.title,
+              color: opt.color,
+            };
+            if (opt.id) res.id = opt.id;
+            return res;
+          });
           colOptions = { options: choices };
         }
         break;
@@ -361,7 +390,7 @@ export const columnV3ToV2Builder = builderGenerator({
     }
 
     if (data.uidt === UITypes.Checkbox) {
-      const { icon, ...rest } = data.options as Record<string, any>;
+      const { icon, ...rest } = data.meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);
@@ -371,8 +400,8 @@ export const columnV3ToV2Builder = builderGenerator({
           meta.icon = rest;
         }
       }
-    } else if (data.type === UITypes.Rating) {
-      const { icon, ...rest } = data.options as Record<string, any>;
+    } else if (data.uidt === UITypes.Rating) {
+      const { icon, ...rest } = data.meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = ratingIconList.findIndex((ic) => ic.label === icon);
@@ -381,6 +410,19 @@ export const columnV3ToV2Builder = builderGenerator({
           meta.iconIdx = iconIdx;
           meta.icon = rest;
         }
+      }
+    } else if (data.uidt === UITypes.Duration) {
+      const { duration, duration_format, ...rest } = data.meta as Record<
+        string,
+        any
+      >;
+      const durationFormat = duration ?? duration_format;
+      // extract option meta and include only label and color
+      const durationIdx = durationOptions.findIndex(
+        (d) => d.title === durationFormat,
+      );
+      if (durationIdx > -1) {
+        meta.duration = durationIdx;
       }
     }
 

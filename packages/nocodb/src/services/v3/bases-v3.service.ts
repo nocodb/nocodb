@@ -134,6 +134,6 @@ export class BasesV3Service {
     param: { baseId: any; user: UserType; req: NcRequest },
   ) {
     await this.basesService.baseSoftDelete(context, param);
-    return {success: true};
+    return {};
   }
 }

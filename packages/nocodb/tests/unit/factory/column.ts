@@ -1,50 +1,136 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Model from '../../../src/models/Model';
-import { isPg, isSqlite } from '../init/db';
-import type Column from '../../../src/models/Column';
-import type FormViewColumn from '../../../src/models/FormViewColumn';
-import type GalleryViewColumn from '../../../src/models/GalleryViewColumn';
-import type GridViewColumn from '../../../src/models/GridViewColumn';
-import type Base from '~/models/Base';
-import type View from '../../../src/models/View';
 
-const defaultColumns = function (context) {
+import { isPg, isSqlite } from '../init/db';
+import {
+  Base,
+  FormViewColumn,
+  GridViewColumn,
+  GalleryViewColumn,
+  Column,
+  View,
+  Model,
+} from '../../../src/models';
+import init from '../init';
+
+type Context = Awaited<ReturnType<typeof init>>;
+
+const defaultColumns = function (
+  context: Context,
+  isV3: boolean = false,
+  optionsOverride: Record<string, any> = {},
+) {
   return [
-    {
-      column_name: 'id',
-      title: 'Id',
-      uidt: 'ID',
-    },
-    {
-      column_name: 'title',
-      title: 'Title',
-      uidt: 'SingleLineText',
-    },
-    {
-      cdf: isPg(context) ? 'now()' : 'CURRENT_TIMESTAMP',
-      column_name: 'created_at',
-      title: 'CreatedAt',
-      dtxp: '',
-      dtxs: '',
-      uidt: 'CreatedTime',
-      system: true,
-      dt: isPg(context) ? 'timestamp without time zone' : undefined,
-    },
-    {
-      cdf: isSqlite(context)
-        ? 'CURRENT_TIMESTAMP'
-        : isPg(context)
-        ? 'now()'
-        : 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      column_name: 'updated_at',
-      title: 'UpdatedAt',
-      dtxp: '',
-      dtxs: '',
-      uidt: 'LastModifiedTime',
-      system: true,
-      dt: isPg(context) ? 'timestamp without time zone' : undefined,
-    },
+    isV3
+      ? {
+          name: 'Id',
+          type: 'ID',
+          description: 'Test Id',
+          options: {
+            ...optionsOverride['Id'],
+          },
+        }
+      : {
+          column_name: 'id',
+          title: 'Id',
+          uidt: 'ID',
+          description: 'Test Id',
+          ...optionsOverride['Id'],
+        },
+    isV3
+      ? {
+          name: 'Title',
+          type: 'SingleLineText',
+          description: 'Title SingleLineText',
+          options: {
+            ...optionsOverride['Title'],
+          },
+        }
+      : {
+          column_name: 'title',
+          title: 'Title',
+          uidt: 'SingleLineText',
+          description: 'Title SingleLineText',
+          ...optionsOverride['Title'],
+        },
+    isV3
+      ? {
+          name: 'CreatedAt',
+          type: 'CreatedTime',
+          description: 'CreatedAt CreatedTime',
+          options: {
+            ...optionsOverride['CreatedAt'],
+          },
+        }
+      : {
+          column_name: 'created_at',
+          title: 'CreatedAt',
+          uidt: 'CreatedTime',
+          description: 'CreatedAt CreatedTime',
+          ...optionsOverride['CreatedAt'],
+        },
+    isV3
+      ? {
+          name: 'UpdatedAt',
+          type: 'LastModifiedTime',
+          description: 'UpdatedAt LastModifiedTime',
+          options: {
+            ...optionsOverride['UpdateAt'],
+          },
+        }
+      : {
+          column_name: 'updated_at',
+          title: 'UpdatedAt',
+          uidt: 'LastModifiedTime',
+          description: 'UpdatedAt LastModifiedTime',
+          ...optionsOverride['UpdateAt'],
+        },
+    isV3
+      ? {
+          name: 'CreatedBy',
+          type: 'CreatedBy',
+          description: 'CreatedBy CreatedBy',
+          options: {
+            ...optionsOverride['CreatedBy'],
+          },
+        }
+      : {
+          column_name: 'created_by',
+          title: 'CreatedBy',
+          uidt: 'CreatedBy',
+          description: 'CreatedBy CreatedBy',
+          ...optionsOverride['CreatedBy'],
+        },
+    isV3
+      ? {
+          name: 'UpdatedBy',
+          type: 'LastModifiedBy',
+          description: 'UpdatedBy LastModifiedBy',
+          options: {
+            ...optionsOverride['UpdatedBy'],
+          },
+        }
+      : {
+          column_name: 'updated_by',
+          title: 'UpdatedBy',
+          uidt: 'LastModifiedBy',
+          description: 'UpdatedBy LastModifiedBy',
+          ...optionsOverride['UpdatedBy'],
+        },
+    isV3 ? {
+      name: 'NcOrder',
+      type: 'Number',
+      description: 'NcOrder Number',
+      options: {
+        ...optionsOverride['NcOrder'],
+      }
+    } : {
+      column_name: 'nc_order',
+      title: 'NcOrder',
+      uidt: 'Number',
+      description: 'NcOrder Number',
+      ...optionsOverride['NcOrder']
+    }
   ];
 };
 
@@ -306,7 +392,11 @@ const customColumns = function (type: string, options: any = {}) {
   }
 };
 
-const createColumn = async (context, table, columnAttr) => {
+const createColumn = async (
+  context: Context,
+  table: Model,
+  columnAttr: Record<string, any>,
+) => {
   const ctx = {
     workspace_id: table.fk_workspace_id,
     base_id: table.base_id,
@@ -326,7 +416,7 @@ const createColumn = async (context, table, columnAttr) => {
 };
 
 const createRollupColumn = async (
-  context,
+  context: Context,
   {
     base,
     title,

@@ -705,12 +705,10 @@ export default class Filter implements FilterType {
         context.base_id,
         MetaTable.FILTER_EXP,
         {
-          // @ts-ignore
-          condition: { fk_hook_id: viewId },
+          condition: { fk_hook_id: hookId },
         },
       );
-      // @ts-ignore
-      await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
+      await NocoCache.setList(CacheScope.FILTER_EXP, [hookId], filterObjs);
     }
 
     return filterObjs?.map((f) => this.castType(f)) || [];

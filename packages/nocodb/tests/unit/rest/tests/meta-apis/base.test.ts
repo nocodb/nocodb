@@ -233,7 +233,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
       });
     });
 
-    it.only('Create, Update and Delete Base Users', async () => {
+    it('Create, Update and Delete Base Users', async () => {
       const base: Base = await createBase({
         title: 'Test Base',
         description: 'Test Description',

@@ -88,8 +88,6 @@ const updateSnowflakes = () => {
 
     snowflake.x = Math.max(0, Math.min(100, snowflake.x))
     snowflake.y = Math.max(-10, Math.min(110, snowflake.y))
-    snowflake.horizontalDrift = random(-15, 15)
-    snowflake.rotation = random(-360, 360)
   })
   requestAnimationFrame(updateSnowflakes)
 }
@@ -146,14 +144,5 @@ onUnmounted(() => {
 
 .snowflake {
   will-change: transform;
-}
-
-@keyframes fall {
-  0% {
-    transform: translateY(-10vh) translateX(0) rotate(0deg);
-  }
-  100% {
-    transform: translateY(100vh) translateX(var(--horizontal-drift)) rotate(var(--rotation));
-  }
 }
 </style>

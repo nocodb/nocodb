@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
-import { useStorage } from '@vueuse/core'
-import { EasterEggs } from '~/lib/enums'
-
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()

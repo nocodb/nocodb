@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
-import { useStorage } from '@vueuse/core'
-
 const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const router = useRouter()
@@ -30,7 +27,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
     return 'calc(\(100% - 12px\) / 2)'
   }
 })
-
 </script>
 
 <template>

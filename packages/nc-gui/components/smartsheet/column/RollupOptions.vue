@@ -314,6 +314,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
     </a-form-item>
     <a-form-item :label="$t('placeholder.precision')">
       <a-select
+        v-if="vModel.meta?.precision || (vModel.meta?.precision === 0)"
         v-model:value="vModel.meta.precision"
         :disabled="isMetaReadOnly"
         dropdown-class-name="nc-dropdown-decimal-format"

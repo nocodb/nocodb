@@ -65,25 +65,21 @@ const accountUrl = computed(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col py-0.9 px-1 border-gray-200 gap-y-1">
+  <div class="flex w-full flex-col border-gray-200 gap-y-1">
     <LazyGeneralMaintenanceAlert />
-    <div class="flex items-center pr-2 justify-between">
+    <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
-          class="flex flex-row py-1 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-8"
+          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-600 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
           data-testid="nc-sidebar-userinfo"
         >
           <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
-          <NcTooltip>
-            <div class="flex max-w-32 truncate">
-              {{ name ? name : user?.email }}
-            </div>
-
+          <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
             <template #title>
-              <span>
-                {{ name ? name : user?.email }}
-              </span>
+              {{ name ? name : user?.email }}
             </template>
+
+            {{ name ? name : user?.email }}
           </NcTooltip>
 
           <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />

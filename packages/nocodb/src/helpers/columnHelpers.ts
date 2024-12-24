@@ -299,6 +299,11 @@ export async function validateLookupPayload(
   const column = await Column.get(context, {
     colId: (payload as LookupColumnReqType).fk_relation_column_id,
   });
+
+  if (!column) {
+    throw new Error('Relation column not found');
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordType>(context);
 
   if (!relation) {

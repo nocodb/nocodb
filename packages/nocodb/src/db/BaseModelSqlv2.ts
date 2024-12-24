@@ -27,9 +27,10 @@ import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nc-gui/lib/enums';
-import { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
+import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -77,7 +78,6 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import applyAggregation from '~/db/aggregation';
 import { chunkArray } from '~/utils/tsUtils';
-import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 
@@ -259,12 +259,14 @@ class BaseModelSqlv2 {
       getHiddenColumn = false,
       throwErrorIfInvalidParams = false,
       extractOnlyPrimaries = false,
+      apiVersion,
       extractOrderColumn = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
       extractOnlyPrimaries?: boolean;
+      apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
     } = {},
   ): Promise<any> {
@@ -295,6 +297,7 @@ class BaseModelSqlv2 {
     try {
       data = await this.execAndParse(qb, null, {
         first: true,
+        apiVersion,
       });
     } catch (e) {
       if (
@@ -303,7 +306,9 @@ class BaseModelSqlv2 {
       )
         throw e;
       logger.log(e);
-      return this.readByPk(id, true);
+      return this.readByPk(id, true, query, {
+        apiVersion,
+      });
     }
 
     if (data) {
@@ -2330,7 +2335,11 @@ class BaseModelSqlv2 {
   }
 
   async multipleHmList(
-    { colId, ids: _ids }: { colId: string; ids: any[] },
+    {
+      colId,
+      ids: _ids,
+      apiVersion,
+    }: { colId: string; ids: any[]; apiVersion?: NcApiVersion },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
     try {
@@ -2387,7 +2396,12 @@ class BaseModelSqlv2 {
                     .where(_wherePk(parentTable.primaryKeys, p)),
                 );
               // todo: sanitize
-              query.limit(+rest?.limit || 25);
+
+              // get one extra record to check if there are more records in case of v3 api and nested
+              query.limit(
+                (+rest?.limit || 25) +
+                  (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+              );
               query.offset(+rest?.offset || 0);
 
               return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -2421,11 +2435,24 @@ class BaseModelSqlv2 {
   }
 
   public async mmList(
-    { colId, parentId },
+    {
+      colId,
+      parentId,
+      apiVersion,
+      nested = false,
+    }: {
+      colId: string;
+      parentId: any;
+      apiVersion?: NcApiVersion;
+      nested?: boolean;
+    },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     selectAllRecords = false,
   ) {
-    const { where, sort, ...rest } = this._getListArgs(args as any);
+    const { where, sort, ...rest } = this._getListArgs(args as any, {
+      apiVersion,
+      nested: true,
+    });
     const relColumn = (await this.model.getColumns(this.context)).find(
       (c) => c.id === colId,
     );
@@ -2485,7 +2512,11 @@ class BaseModelSqlv2 {
 
     // todo: sanitize
     if (!selectAllRecords) {
-      qb.limit(+rest?.limit || 25);
+      // get one extra record to check if there are more records in case of v3 api and nested
+      qb.limit(
+        (+rest?.limit || 25) +
+          (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+      );
     }
     qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
@@ -2558,11 +2589,19 @@ class BaseModelSqlv2 {
   }
 
   async hmList(
-    { colId, id },
+    {
+      colId,
+      id,
+      apiVersion,
+      nested = false,
+    }: { colId: string; id: any; apiVersion?: NcApiVersion; nested?: boolean },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      const { where, sort, ...rest } = this._getListArgs(args as any);
+      const { where, sort, ...rest } = this._getListArgs(args as any, {
+        apiVersion,
+        nested: true,
+      });
       // todo: get only required fields
 
       const relColumn = (await this.model.getColumns(this.context)).find(
@@ -2699,9 +2738,13 @@ class BaseModelSqlv2 {
     {
       colId,
       parentIds: _parentIds,
+      apiVersion,
+      nested = false,
     }: {
       colId: string;
       parentIds: any[];
+      apiVersion?: NcApiVersion;
+      nested?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -2772,9 +2815,11 @@ class BaseModelSqlv2 {
               .where(_wherePk(parentTable.primaryKeys, id)),
           )
           .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
-
-        // todo: sanitize
-        query.limit(+rest?.limit || 25);
+        // get one extra record to check if there are more records in case of v3 api and nested
+        query.limit(
+          (+rest?.limit || 25) +
+            (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+        );
         query.offset(+rest?.offset || 0);
 
         return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -3719,7 +3764,11 @@ class BaseModelSqlv2 {
     return qb;
   }
 
-  async getProto() {
+  async getProto({
+    apiVersion = NcApiVersion.V2,
+  }: {
+    apiVersion?: NcApiVersion;
+  } = {}) {
     if (this._proto) {
       return this._proto;
     }
@@ -3770,6 +3819,7 @@ class BaseModelSqlv2 {
                         {
                           colId: column.id,
                           ids,
+                          apiVersion,
                         },
                         (listLoader as any).args,
                       );
@@ -3782,6 +3832,8 @@ class BaseModelSqlv2 {
                           {
                             colId: column.id,
                             id: ids[0],
+                            apiVersion,
+                            nested: true,
                           },
                           (listLoader as any).args,
                         ),
@@ -3812,6 +3864,8 @@ class BaseModelSqlv2 {
                         {
                           parentIds: ids,
                           colId: column.id,
+                          apiVersion,
+                          nested: true,
                         },
                         (listLoader as any).args,
                       );
@@ -3823,6 +3877,8 @@ class BaseModelSqlv2 {
                           {
                             parentId: ids[0],
                             colId: column.id,
+                            apiVersion,
+                            nested: true,
                           },
                           (listLoader as any).args,
                         ),
@@ -4080,7 +4136,16 @@ class BaseModelSqlv2 {
     return proto;
   }
 
-  _getListArgs(args: XcFilterWithAlias): XcFilter {
+  _getListArgs(
+    args: XcFilterWithAlias,
+    {
+      apiVersion = NcApiVersion.V2,
+      nested = false,
+    }: {
+      apiVersion?: NcApiVersion;
+      nested?: boolean;
+    } = {},
+  ): XcFilter {
     const obj: XcFilter = extractLimitAndOffset(args);
     obj.where = args.filter || args.where || args.w || '';
     obj.having = args.having || args.h || '';
@@ -4090,7 +4155,9 @@ class BaseModelSqlv2 {
     obj.limit = Math.max(
       Math.min(
         Math.max(+(args.limit || args.l), 0) ||
-          BaseModelSqlv2.config.limitDefault,
+          (nested && apiVersion === NcApiVersion.V3)
+          ? BaseModelSqlv2.config.ltarV3Limit
+          : BaseModelSqlv2.config.limitDefault,
         BaseModelSqlv2.config.limitMax,
       ),
       BaseModelSqlv2.config.limitMin,
@@ -6027,18 +6094,23 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if (apiVersion === NcApiVersion.V3) {
-        // remove LTAR/Links if part of the update request
-        await this.updateLTARCols({
-          transaction,
-        });
-      }
-
       for (const o of toBeUpdated) {
         await transaction(this.tnPath).update(o.d).where(o.wherePk);
       }
 
       await transaction.commit();
+
+      // todo: wrap with transaction
+      if (apiVersion === NcApiVersion.V3) {
+        for (const d of datas) {
+          // remove LTAR/Links if part of the update request
+          await this.updateLTARCols({
+            rowId: this.extractPksValues(d, true),
+            cookie,
+            newData: d,
+          });
+        }
+      }
 
       if (!raw) {
         while (updatePkValues.length) {
@@ -6112,6 +6184,12 @@ class BaseModelSqlv2 {
         });
       }
 
+      existingLinks = existingLinks || [];
+
+      if (!Array.isArray(existingLinks)) {
+        existingLinks = [existingLinks];
+      }
+
       const idsToLink = [
         ...(Array.isArray(newData[col.title])
           ? newData[col.title]
@@ -6142,7 +6220,7 @@ class BaseModelSqlv2 {
           colId: col.id,
           childIds: idsToUnlink,
           cookie,
-          rowId
+          rowId,
         });
       }
 
@@ -6152,7 +6230,7 @@ class BaseModelSqlv2 {
           colId: col.id,
           childIds: idsToLink,
           cookie,
-          rowId
+          rowId,
         });
       }
     }
@@ -6933,10 +7011,13 @@ class BaseModelSqlv2 {
             .join('___')
         : pkValues;
     } else if (this.model.primaryKey) {
-      return (
-        data[this.model.primaryKey.title] ??
-        data[this.model.primaryKey.column_name]
-      );
+      if (typeof data === 'object')
+        return (
+          data[this.model.primaryKey.title] ??
+          data[this.model.primaryKey.column_name]
+        );
+
+      if (data !== undefined) return asString ? `${data}` : data;
     } else {
       return 'N/A';
     }
@@ -9921,7 +10002,7 @@ class BaseModelSqlv2 {
   }
 
   async btRead(
-    { colId, id }: { colId; id },
+    { colId, id }: { colId; id; apiVersion?: NcApiVersion },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {

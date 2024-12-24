@@ -145,14 +145,3 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
 
   describe(`Sort Meta Tests ${API_VERSION}`, filterTests);
 }
-/**
- * 
-"id": "so_xd4t51uv60ghzl",
-"fk_column_id": "cl_l11b769pe2j1ce",
-"fk_model_id": "md_ehn5izr99m7d45",
-"source_id": "ds_3l9qx8xqksenrl",
-"direction": "desc",
-"order": 1,
-"base_id": "p_9sx43moxhqtjm3"
-}
- */

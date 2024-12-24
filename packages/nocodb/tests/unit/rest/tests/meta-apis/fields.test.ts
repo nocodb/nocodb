@@ -19,10 +19,6 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     isV1 ? 'projects' : 'bases'
   }`;
 
-  const META_API_TABLE_ROUTE = `/api/${API_VERSION}${
-    isV1 ? '/db' : ''
-  }/meta/tables`;
-
   function fieldTests() {
     let context: Awaited<ReturnType<typeof init>>;
     let base: Base;
@@ -85,14 +81,19 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
 
       expect(fields.length).to.be.greaterThan(0); // Added this so if spelling mistake in fieldClass, test fails.
       expect(columns.length).to.eq(fields.length);
-      columns.forEach(c => validateColumn(c))
+      columns.forEach((c) => validateColumn(c));
     }
 
-    it(`Create text based fields ${API_VERSION}`, () => testFields('textBased'));
-    it(`Create number based fields ${API_VERSION}`, () => testFields('numberBased'));
-    it(`Create date based fields ${API_VERSION}`, () => testFields('dateBased'));
-    it(`Create select based fields ${API_VERSION}`, () => testFields('selectBased'));
-    it(`Create user based fields ${API_VERSION}`, () => testFields('userBased'));
+    it(`Create text based fields ${API_VERSION}`, () =>
+      testFields('textBased'));
+    it(`Create number based fields ${API_VERSION}`, () =>
+      testFields('numberBased'));
+    it(`Create date based fields ${API_VERSION}`, () =>
+      testFields('dateBased'));
+    it(`Create select based fields ${API_VERSION}`, () =>
+      testFields('selectBased'));
+    it(`Create user based fields ${API_VERSION}`, () =>
+      testFields('userBased'));
   }
 
   function validateColumn(responseColumn: any) {

@@ -182,11 +182,18 @@ const fields = computed<TableExplorerColumn[]>({
   },
 })
 
-const previousToggleAction = ref<boolean>(!fields.value?.some((vf) => vf.visible))
-const showOrHideAllFields = () => {
-  previousToggleAction.value = !previousToggleAction.value
+const isAllFieldsVisible = computed(() => {
+  return fields.value.every((field) => {
+    if (visibilityOps.value.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap.value[field.id!]?.show) {
+      return true
+    }
+    return false
+  })
+})
+
+const showOrHideAllFields = (isAllFieldsVisible = false) => {
   visibilityOps.value = []
-  fields.value.forEach((f) => toggleVisibility(previousToggleAction.value, viewFieldsMap.value[f.id]))
+  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
 }
 
 const showOrHideSystemFields = ref(showSystemFields.value)
@@ -1282,8 +1289,8 @@ watch(activeAiTab, (newValue) => {
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem class="!children:w-full" @click="showOrHideAllFields">
-                    {{ previousToggleAction ? $t('general.hideAll') : $t('general.showAll') }}
+                  <NcMenuItem class="!children:w-full" @click="showOrHideAllFields(isAllFieldsVisible)">
+                    {{ isAllFieldsVisible ? $t('general.hideAll') : $t('general.showAll') }}
                     {{ $t('objects.fields').toLowerCase() }}
                   </NcMenuItem>
                   <NcMenuItem class="!children:w-full" @click="showOrHideSystemFields = !showOrHideSystemFields">

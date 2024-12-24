@@ -653,6 +653,8 @@
     "lockedByUser": "Gesperrt durch {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Erstellen des Snapshots fehlgeschlagen",
     "snapshotCreationFailedDescription": "Projekt-Snapshot konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
     "snapshotCooldownDescription": "Snapshots müssen mindestens drei Stunden auseinanderliegen.",

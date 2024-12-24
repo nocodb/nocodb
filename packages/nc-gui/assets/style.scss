@@ -1092,3 +1092,9 @@ svg.nc-virtual-cell-icon {
 .animate-sidebar-node-input-padding {
   animation: sidebar-node-input-padding-grow 0.2s ease forwards;
 }
+
+@keyframes fall {
+  to {
+    transform: translateX(var(--horizontal-drift)) rotate(var(--rotation));
+  }
+}

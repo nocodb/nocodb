@@ -130,7 +130,6 @@ const getRenderAsTextFunForUiType = (type: UITypes) => {
       UITypes.DateTime,
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
-      UITypes.Decimal,
       UITypes.Currency,
       UITypes.Duration,
     ].includes(type)

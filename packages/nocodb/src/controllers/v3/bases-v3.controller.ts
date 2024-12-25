@@ -94,7 +94,6 @@ export class BasesV3Controller {
     scope: 'org',
   })
   @Post('/api/v3/meta/workspaces/:workspaceId/bases')
-  @HttpCode(200)
   async baseCreate(
     @TenantContext() context: NcContext,
     @Body() baseBody: ProjectReqType,

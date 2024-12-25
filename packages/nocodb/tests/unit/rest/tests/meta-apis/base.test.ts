@@ -6,8 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 
 import init from '../../../init';
-import { Base, Source, User, BaseUser } from '../../../../../src/models';
+import { BaseUser } from '../../../../../src/models';
 import { randomTokenString } from '../../../../../src/helpers/stringHelpers';
+import type { Base, Source, User } from '../../../../../src/models';
 
 interface CreateBaseArgs {
   title?: string;
@@ -143,6 +144,10 @@ export default function (API_VERSION: 'v3' | 'v2') {
         invite_token: uuidv4(),
       }));
 
+      const User = (
+        await import(`../../../../../src${isEE ? '/ee' : ''}/models/User`)
+      ).default;
+
       const users = await Promise.all(
         testData.map((testData) =>
           User.insert({
@@ -201,13 +206,13 @@ export default function (API_VERSION: 'v3' | 'v2') {
         usersResponseList = response.body.users.list;
         // expect(usersResponseList.length).to.eq(25);
       } else if (isV3) {
-        usersResponseList = response.body.users;
+        usersResponseList = response.body.list;
         expect(usersResponseList.length).to.eq(31);
       }
 
       if (isV2) {
-        expect(response.body.users).to.haveOwnProperty('pageInfo');
-        expect(response.body.users.pageInfo).to.deep.eq({
+        expect(response.body.list).to.haveOwnProperty('pageInfo');
+        expect(response.body.pageInfo).to.deep.eq({
           totalRows: 31,
           page: 1,
           pageSize: 25,
@@ -216,7 +221,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
         });
       } else {
         expect(response.body).to.not.haveOwnProperty('pageInfo');
-        expect(response.body.users).to.not.haveOwnProperty('pageInfo');
+        expect(response.body.list).to.not.haveOwnProperty('pageInfo');
       }
 
       usersResponseList.forEach((responseBaseUser) => {
@@ -227,7 +232,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
         if (responseBaseUser.roles === 'owner') return; // skip testing for org level user;
         const underlyingUser = users.find((u) => u.id === responseBaseUser.id)!;
 
-        matchBaseUser(responseBaseUser, baseUser, underlyingUser);
+        if (baseUser) matchBaseUser(responseBaseUser, baseUser, underlyingUser);
       });
     });
 
@@ -265,7 +270,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
         .send(isV2 ? createUserArgsList[0] : createUserArgsList)
         .expect(isV3 ? 201 : 200);
 
-      let users: any[] = (await fetchUsersFromBase(base.id)).filter((u) =>
+      const users: any[] = (await fetchUsersFromBase(base.id)).filter((u) =>
         (u.email as string).startsWith('test-crud'),
       );
 
@@ -625,8 +630,11 @@ export default function (API_VERSION: 'v3' | 'v2') {
       expect(responseBaseUser).to.haveOwnProperty('email');
       expect(responseBaseUser.email).to.eq(underlyingUser.email);
 
-      expect(responseBaseUser).to.haveOwnProperty('display_name');
-      expect(responseBaseUser.display_name).to.eq(underlyingUser.display_name);
+      if (underlyingUser.display_name) {
+        const prop = isV3 ? 'name' : 'display_name';
+        expect(responseBaseUser).to.haveOwnProperty(prop);
+        expect(responseBaseUser[prop]).to.eq(underlyingUser.display_name);
+      }
 
       expect(responseBaseUser).to.haveOwnProperty('created_at');
 

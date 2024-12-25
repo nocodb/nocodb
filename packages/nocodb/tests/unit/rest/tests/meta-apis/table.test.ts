@@ -1,13 +1,14 @@
 import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
-import { createView, deleteView } from '../../../../unit/factory/view';
 import { ViewTypes } from 'nocodb-sdk';
+import { createView, deleteView } from '../../../../unit/factory/view';
 import init from '../../../init';
 import { createProject } from '../../../factory/base';
 import { createTable, getAllTables, updateTable } from '../../../factory/table';
 import { defaultColumns } from '../../../factory/column';
-import { Base, Model } from '../../../../../src/models';
+import { Model } from '../../../../../src/models';
+import type { Base } from '../../../../../src/models';
 
 export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';
@@ -175,14 +176,15 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     });
 
     it(`Delete table ${API_VERSION}`, async function () {
+      let tables = await getAllTables({ base });
+      const initialLength = tables.length;
       await request(context.app)
         .delete(`${META_API_TABLE_ROUTE}/${table.id}`)
         .set('xc-auth', context.token)
         .send({})
         .expect(200);
-
-      const tables = await getAllTables({ base });
-      expect(tables.length).to.eq(0);
+      tables = await getAllTables({ base });
+      expect(tables.length).to.eq(initialLength - 1);
     });
 
     // todo: Check the condtion where the table being deleted is being refered by multiple tables
@@ -304,14 +306,20 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     expect(responseTable).to.haveOwnProperty('id');
     expect(responseTable.id).to.eq(table.id);
 
-    expect(responseTable).to.haveOwnProperty('source_id');
-    expect(responseTable.source_id).to.eq(table.source_id);
+    // for meta source table source_id is not present
+    if (isV1 || isV2) {
+      expect(responseTable).to.haveOwnProperty('source_id');
+      expect(responseTable.source_id).to.eq(table.source_id);
+    }
 
     expect(responseTable).to.haveOwnProperty('title');
     expect(responseTable.title).to.eq(table.title);
 
-    expect(responseTable).to.haveOwnProperty('description');
-    expect(responseTable.description).to.eq(table.description);
+    // check only if description is not null, since in v3 it excludes null values
+    if (table.description) {
+      expect(responseTable).to.haveOwnProperty('description');
+      expect(responseTable.description ?? null).to.eq(table.description);
+    }
 
     expect(responseTable).to.haveOwnProperty('base_id');
     expect(responseTable.base_id).to.eq(table.base_id);

@@ -70,7 +70,7 @@ const accountUrl = computed(() => {
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
-          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-600 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
+          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
           data-testid="nc-sidebar-userinfo"
         >
           <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />

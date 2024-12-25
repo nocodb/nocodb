@@ -154,7 +154,7 @@ const enableEditModeForSource = (sourceId: string) => {
     editMode: true,
     tempTitle: source.alias || '',
   }
-  
+
   nextTick(() => {
     const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
     if (!input) return

@@ -72,7 +72,7 @@ const logout = async () => {
                 @click="navigateTo('/account/profile')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUser" class="!h-3.5 !w-3.5" />
 
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
@@ -87,9 +87,9 @@ const logout = async () => {
                 @click="navigateTo('/account/tokens')"
               >
                 <div class="flex items-center space-x-2">
-                  <MdiShieldKeyOutline />
+                  <GeneralIcon icon="ncCode" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.tokens') }}</div>
+                  <div class="select-none">{{ $t('title.apiTokens') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -117,7 +117,7 @@ const logout = async () => {
                 @click="navigateTo('/account/authentication')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.lock" />
+                  <component :is="iconMap.ncLock" />
 
                   <div class="select-none text-sm">{{ $t('title.sso') }}</div>
                 </div>
@@ -129,7 +129,7 @@ const logout = async () => {
                 class="!bg-white !my-0"
               >
                 <template #icon>
-                  <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUsers" class="!h-3.5 !w-3.5" />
                 </template>
                 <template #title>{{ $t('objects.users') }}</template>
 
@@ -251,12 +251,12 @@ const logout = async () => {
 
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500;
+    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
   }
 }
 

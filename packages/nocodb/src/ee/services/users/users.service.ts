@@ -3,8 +3,8 @@ import { UsersService as UsersServiceCE } from 'src/services/users/users.service
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AdminDeleteUserCommand,
-  AdminDisableUserCommand,
   CognitoIdentityProviderClient,
+  ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   AppEvents,
@@ -425,6 +425,11 @@ export class UsersService extends UsersServiceCE {
     for (const bs of bases) {
       const workspace = await Workspace.get(bs.fk_workspace_id, false, ncMeta);
 
+      if (!workspace) {
+        this.logger.warn(`Hanging base found with id ${bs.id}`);
+        continue;
+      }
+
       const base = {
         ...bs,
         workspace_title: workspace.title,
@@ -677,21 +682,27 @@ export class UsersService extends UsersServiceCE {
           }),
         });
 
-        await client.send(
-          new AdminDisableUserCommand({
+        const { Users: userList } = await client.send(
+          new ListUsersCommand({
             UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
               infer: true,
             }),
-            Username: user.email,
+            Filter: `email = "${user.email}"`,
           }),
         );
+
+        if (userList.length !== 1) {
+          throw new Error('There was an error, please contact support');
+        }
+
+        const cognitoUser = userList[0];
 
         await client.send(
           new AdminDeleteUserCommand({
             UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
               infer: true,
             }),
-            Username: user.email,
+            Username: cognitoUser.Username,
           }),
         );
       }

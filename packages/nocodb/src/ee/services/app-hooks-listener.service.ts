@@ -29,6 +29,7 @@ import type {
   HookDeletePayload,
   HookUpdatePayload,
   ModelRoleVisibilityPayload,
+  NcContext,
   NcRequest,
   SharedBasePayload,
   SharedViewCreatePayload,
@@ -156,17 +157,24 @@ import {
 } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
 
-function filterOutUnnecessaryMetas(column: ColumnType) {
+async function filterOutUnnecessaryMetas(
+  column: ColumnType | Column,
+  context: NcContext,
+) {
   // if uidt is MultiSelect/SingleSelect, remove unnecessary props from options
   if (
     column?.uidt === UITypes.MultiSelect ||
     column?.uidt === UITypes.SingleSelect
   ) {
-    const options = (
-      column?.colOptions as { options: SelectOption[] }
-    )?.options?.map((o) =>
-      extractProps(o, ['order', 'title', 'color', 'id', 'index']),
-    );
+    if (!column.colOptions) {
+      column = new Column(column);
+      await (column as Column).getColOptions(context);
+    }
+
+    const options =
+      (column?.colOptions as { options: SelectOption[] })?.options?.map((o) =>
+        extractProps(o, ['order', 'title', 'color', 'id', 'index']),
+      ) ?? [];
     return {
       ...column,
       grouped_options: options.reduce((acc, o) => {
@@ -175,6 +183,8 @@ function filterOutUnnecessaryMetas(column: ColumnType) {
       }, {}),
     };
   }
+
+  return column;
 }
 
 function formatUpdatePayloadOfOptions({
@@ -588,8 +598,14 @@ export class AppHooksListenerService
           const param = data as ColumnUpdateEvent;
 
           // filter out unnecessary metas from column
-          const oldColumn = filterOutUnnecessaryMetas(param.oldColumn);
-          const column = filterOutUnnecessaryMetas(param.column);
+          const oldColumn = await filterOutUnnecessaryMetas(
+            param.oldColumn,
+            param.context,
+          );
+          const column = await filterOutUnnecessaryMetas(
+            param.column,
+            param.context,
+          );
 
           // check if workspace rename
           if (column?.title && column?.title !== oldColumn?.title) {
@@ -667,8 +683,10 @@ export class AppHooksListenerService
           ) {
             formatUpdatePayloadOfOptions({
               updatePayload,
-              oldColumn,
-              updatedColumn: column,
+              oldColumn: oldColumn as { grouped_options?: Record<string, any> },
+              updatedColumn: column as {
+                grouped_options?: Record<string, any>;
+              },
             });
           }
 

@@ -1300,7 +1300,11 @@ export class ColumnsService {
 
       await this.updateMetaAndDatabase(context, {
         table,
-        column: colBody,
+        // include id since it won't be part of api request
+        column: {
+           ...colBody,
+          id: column.id
+        },
         source,
         reuse,
         processColumn: async () => {

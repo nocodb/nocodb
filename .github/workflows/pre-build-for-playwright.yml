@@ -36,6 +36,7 @@ jobs:
       - name: build frontend (nc-gui)
         working-directory: ./packages/nc-gui
         run: |
+          export NUXT_PUBLIC_ENV=CI
           pnpm run build
         timeout-minutes: 20
       - name: upload frontend (nc-gui) build to artf server

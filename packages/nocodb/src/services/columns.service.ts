@@ -73,6 +73,7 @@ import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
+import { extractProps } from '~/helpers/extractProps';
 
 // todo: move
 export enum Altered {
@@ -351,7 +352,11 @@ export class ColumnsService {
     // This is the maximum length of column name allowed in the database
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-    if (!isVirtualCol(param.column) && !isMetaOnlyUpdateAllowed) {
+    if (
+      !isVirtualCol(param.column) &&
+      !isMetaOnlyUpdateAllowed &&
+      param.column.column_name
+    ) {
       param.column.column_name = sanitizeColumnName(
         param.column.column_name,
         source.type,
@@ -383,6 +388,7 @@ export class ColumnsService {
     if (
       !isMetaOnlyUpdateAllowed &&
       !isVirtualCol(param.column) &&
+      param.column.column_name &&
       param.column.column_name.length > mxColumnLength
     ) {
       NcError.badRequest(
@@ -397,6 +403,7 @@ export class ColumnsService {
     }
 
     if (
+      param.column.column_name &&
       !isVirtualCol(param.column) &&
       !isCreatedOrLastModifiedTimeCol(param.column) &&
       !isCreatedOrLastModifiedByCol(param.column) &&
@@ -409,6 +416,7 @@ export class ColumnsService {
       NcError.badRequest('Duplicate column name');
     }
     if (
+      param.column.title &&
       !(await Column.checkAliasAvailable(context, {
         title: param.column.title,
         fk_model_id: column.fk_model_id,
@@ -420,6 +428,12 @@ export class ColumnsService {
         `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
       );
     }
+
+    // extract missing required props from column to avoid broken column
+    param.column = {
+      ...extractProps(column, ['column_name', 'uidt', 'dt']),
+      ...param.column,
+    };
 
     let colBody = { ...param.column } as Column & {
       formula?: string;
@@ -1300,7 +1314,11 @@ export class ColumnsService {
 
       await this.updateMetaAndDatabase(context, {
         table,
-        column: colBody,
+        // include id since it won't be part of api request
+        column: {
+          ...colBody,
+          id: column.id,
+        },
         source,
         reuse,
         processColumn: async () => {
@@ -1430,7 +1448,8 @@ export class ColumnsService {
 
         await this.updateMetaAndDatabase(context, {
           table,
-          column: colBody,
+          // pass id since it won't be part of api request
+          column: { ...colBody, id: column.id },
           source,
           reuse,
           processColumn: async () => {
@@ -1526,7 +1545,8 @@ export class ColumnsService {
 
         await this.updateMetaAndDatabase(context, {
           table,
-          column: colBody,
+          // pass id since it won't be part of api request
+          column: { ...colBody, id: column.id },
           source,
           reuse,
           processColumn: async () => {
@@ -1649,7 +1669,8 @@ export class ColumnsService {
 
       await this.updateMetaAndDatabase(context, {
         table,
-        column: colBody,
+        // pass id since it won't be part of api request
+        column: { ...colBody, id: column.id },
         source,
         reuse,
         processColumn: async () => {
@@ -2287,8 +2308,8 @@ export class ColumnsService {
             let prompt = '';
 
             /*
-              Substitute column alias with id in prompt
-            */
+            Substitute column alias with id in prompt
+          */
             if (colBody.prompt_raw) {
               await table.getColumns(context);
 

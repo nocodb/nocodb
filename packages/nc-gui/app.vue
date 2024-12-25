@@ -132,7 +132,7 @@ const shouldShowSnowfall = useStorage(
     </NuxtLayout>
   </a-config-provider>
 
-  <GeneralSnowfall v-if="!config.public.ci && shouldShowSnowfall" />
+  <GeneralSnowfall v-if="config.public.env !== 'CI' && shouldShowSnowfall" />
 
   <ErrorBoundary>
     <div>

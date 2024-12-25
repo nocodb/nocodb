@@ -136,7 +136,7 @@ watch([relatedModel, searchField], async () => {
     const columns = metas.value[relatedModel.value.id].columns
     filteredColumns.value = columns
       .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
-      .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
+      .filter((c) => c?.title?.toLowerCase().includes(searchField.value?.toLowerCase()))
   }
 })
 
@@ -162,17 +162,17 @@ const isOpened = ref(false)
               <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1" />
             </template>
           </a-input>
-          <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200">
+          <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200 py-2">
             <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
               <template #item="{ element: field }">
                 <div
                   :key="field.id"
                   :data-testid="`nc-lookup-add-menu-${field.title}`"
-                  class="px-1 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
+                  class="px-1 py-0.75 mx-2 flex flex-row items-center rounded-md hover:bg-gray-100"
                   @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
                 >
                   <!-- <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" /> -->
-                  <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
+                  <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">
                     <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
                     <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                       <template #title>

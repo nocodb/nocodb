@@ -103,10 +103,10 @@ const onChange = (e: boolean, updateValue = false) => {
   }
 }
 .size-xxsmall {
-  @apply h-2.5 min-w-[20px] leading-[12px];
+  @apply h-2.5 min-w-[18px] leading-[12px];
 
   :deep(.ant-switch-handle) {
-    @apply h-[6px] w-[6px] top-[2px] left-[calc(100%_-_18px)];
+    @apply h-[6px] w-[6px] top-[2px] left-[calc(100%_-_16px)];
   }
 
   :deep(.ant-switch-inner) {

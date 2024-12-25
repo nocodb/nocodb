@@ -36,7 +36,7 @@ const precentageColor = computed(() => {
   <a-card class="nc-trial-card">
     <div class="flex flex-col gap-3">
       <div class="font-weight-semibold text-base flex gap-2">
-        <img width="48" alt="NocoDB" src="~/assets/img/icons/256x256.png" class="flex-none"/>
+        <img width="48" alt="NocoDB" src="~/assets/img/icons/256x256.png" class="flex-none" />
         Enterprise Trial License
       </div>
       <a-progress :percent="trialPercentage" :stroke-color="precentageColor" :show-info="false" />

@@ -153,6 +153,8 @@ const getFieldOrder = (field?: TableExplorerColumn) => {
   return -1
 }
 
+const showOrHideSystemFields = ref(showSystemFields.value)
+
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
     const x = ((localMetaColumns.value as ColumnType[]) ?? [])
@@ -190,13 +192,6 @@ const isAllFieldsVisible = computed(() => {
     return false
   })
 })
-
-const showOrHideAllFields = (isAllFieldsVisible = false) => {
-  visibilityOps.value = []
-  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
-}
-
-const showOrHideSystemFields = ref(showSystemFields.value)
 
 // Current Selected Field
 const activeField = ref()
@@ -1015,6 +1010,11 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
   })
 }
 
+const showOrHideAllFields = (isAllFieldsVisible = false) => {
+  visibilityOps.value = []
+  fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
+}
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
@@ -1329,7 +1329,7 @@ const rightPanelWidth = computed(() => {
             <NcDropdown :trigger="['hover']" placement="bottomRight">
               <NcButton size="small" type="secondary" icon-only :shadow="false">
                 <template #icon>
-                  <GeneralIcon :icon="'threeDotVertical'" class="text-xs !text-current w-4 h-4" />
+                  <GeneralIcon icon="threeDotVertical" class="text-xs !text-current w-4 h-4" />
                 </template>
               </NcButton>
               <template #overlay>
@@ -1442,7 +1442,7 @@ const rightPanelWidth = computed(() => {
                   ops.length < 1 &&
                   moveOps.length < 1 &&
                   visibilityOps.length < 1 &&
-                  showOrHideSystemFields == showSystemFields) ||
+                  showOrHideSystemFields === showSystemFields) ||
                 isLocked
               "
               @click="clearChanges()"
@@ -1460,7 +1460,7 @@ const rightPanelWidth = computed(() => {
                 :disabled="
                   (isColumnsValid
                     ? !loading &&
-                      showOrHideSystemFields == showSystemFields &&
+                      showOrHideSystemFields === showSystemFields &&
                       ops.length < 1 &&
                       moveOps.length < 1 &&
                       visibilityOps.length < 1
@@ -1923,11 +1923,11 @@ const rightPanelWidth = computed(() => {
                                 key="table-explorer-duplicate"
                                 data-testid="nc-field-item-action-duplicate"
                                 :disabled="isSystemColumn(field)"
-                                @click="duplicateField(field)"
                                 class="text-gray-800"
                                 :class="{
                                   '!text-gray-400': isSystemColumn(field),
                                 }"
+                                @click="duplicateField(field)"
                               >
                                 <GeneralIcon icon="duplicate" />
                                 <span> {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }} </span>

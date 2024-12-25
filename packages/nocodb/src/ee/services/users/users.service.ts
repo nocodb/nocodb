@@ -425,6 +425,11 @@ export class UsersService extends UsersServiceCE {
     for (const bs of bases) {
       const workspace = await Workspace.get(bs.fk_workspace_id, false, ncMeta);
 
+      if (!workspace) {
+        this.logger.warn(`Hanging base found with id ${bs.id}`);
+        continue;
+      }
+
       const base = {
         ...bs,
         workspace_title: workspace.title,

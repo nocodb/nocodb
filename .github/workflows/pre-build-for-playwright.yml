@@ -58,7 +58,7 @@ jobs:
         working-directory: ./packages/nc-gui
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          export NUXT_PUBLIC_CI=true
+          export NUXT_PUBLIC_ENV=CI
           pnpm run build:ee
 
       - name: Upload UI build

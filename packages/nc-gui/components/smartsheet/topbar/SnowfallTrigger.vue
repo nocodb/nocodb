@@ -20,7 +20,7 @@ const toggleSnowFall = () => {
 
 <template>
   <NcButton
-    v-if="!config.public.ci && shouldShowToggleMenu"
+    v-if="config.public.env !== 'CI' && shouldShowToggleMenu"
     v-e="['c:easter-egg-snowfall']"
     type="secondary"
     size="small"

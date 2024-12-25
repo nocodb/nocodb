@@ -12,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   let env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-  if (config.public.ci) {
+  if (config.public.env === 'CI') {
     env = 'playwright'
   }
 

@@ -8,6 +8,12 @@ interface Props {
   value?: boolean
 }
 
+const emit = defineEmits([
+  'created',
+]);
+
+const isOpened = ref(false)
+
 const props = defineProps<Props>()
 
 const { $api } = useNuxtApp()
@@ -123,6 +129,7 @@ const createLookups = async () => {
 
     isOpened.value = false
     selectedFields.value = {}
+    emit('created')
   } catch (e) {
     console.error(e)
   } finally {
@@ -144,7 +151,15 @@ onMounted(async () => {
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 
-const isOpened = ref(false)
+const isInSearchMode = ref(false);
+
+watch(isOpened, (val) => {
+  if (val) {
+    isInSearchMode.value = false
+    searchField.value = ''
+  }
+})
+
 </script>
 
 <template>
@@ -153,15 +168,31 @@ const isOpened = ref(false)
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">
         <div @click.stop>
-          <a-input
-            v-model:value="searchField"
-            class="w-full !border-0 !ring-0 !outline-0 !py-2 a-input-without-effect"
-            placeholder="Search field to add as lookup"
-          >
-            <template #prefix>
-              <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1" />
-            </template>
-          </a-input>
+          <div class="h-[44px] relative">
+            <transition name="slide-out" :duration="{ enter: 500, leave: 0 }">
+              <template v-if="isInSearchMode">
+                <a-input
+                  v-model:value="searchField"
+                  class="w-full !border-0 !ring-0 !outline-0 !py-3 a-input-without-effect absolute !bg-transparent"
+                  placeholder="Search field to add as lookup"
+                >
+                  <template #prefix>
+                    <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1" />
+                  </template>
+                </a-input>
+              </template>
+              <template v-else>
+                <div class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full">
+                  <div class="font-weight-600">
+                    Add Lookup fields
+                  </div>
+                  <NcButton type="text" size="small" @click="isInSearchMode = true">
+                    <component :is="iconMap.search" class="w-4 h-4" />
+                  </NcButton>
+                </div>
+              </template>
+            </transition>
+          </div>
           <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200 py-2">
             <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
               <template #item="{ element: field }">
@@ -215,5 +246,17 @@ const isOpened = ref(false)
 }
 :deep(.a-input-without-effect .ant-input) {
   font-size: 0.8rem !important;
+}
+.slide-out-enter-active,
+.slide-out-leave-active {
+  transition: all 0.25s ease-out;
+}
+.slide-out-enter-from {
+  opacity: 0;
+  transform: translateX(90px);
+}
+.slide-out-leave-to {
+  opacity: 0;
+  transform: translateX(-90px);
 }
 </style>

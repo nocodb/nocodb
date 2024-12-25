@@ -31,7 +31,7 @@ const gotoFeed = () => navigateToFeed()
         'font-semibold': isFeedPageOpened,
       }"
     >
-      <div class="flex flex-1 w-full items-center gap-3">
+      <div class="flex flex-1 w-full items-center gap-2">
         <GeneralIcon icon="megaPhone" class="!h-4" />
         <span class="">What’s New!</span>
       </div>

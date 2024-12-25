@@ -1,14 +1,9 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
 
-const { meta: tableMeta } = withDefaults(
-  defineProps<{
-    meta?: TableType
-  }>(),
-  {
-    meta: () => ({} as TableType),
-  },
-)
+const { meta: tableMeta } = defineProps<{
+  meta?: TableType
+}>()
 </script>
 
 <template>

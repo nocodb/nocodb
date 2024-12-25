@@ -6,11 +6,13 @@ import { defineNuxtPlugin } from 'nuxt/app'
 export default defineNuxtPlugin((nuxtApp) => {
   if (process.env.NC_ON_PREM === 'true') return
 
+  const config = useRuntimeConfig()
+
   const { vueApp } = nuxtApp
 
   let env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-  if (process.env.CI || process.env.PLAYWRIGHT) {
+  if (config.public.ci) {
     env = 'playwright'
   }
 

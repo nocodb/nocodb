@@ -5,6 +5,7 @@ interface SnowflakeProps {
   minSize?: number
   maxSize?: number
   speed?: number
+  symbols?: string[]
 }
 
 const props = withDefaults(defineProps<SnowflakeProps>(), {
@@ -13,138 +14,142 @@ const props = withDefaults(defineProps<SnowflakeProps>(), {
   minSize: 2,
   maxSize: 6,
   speed: 1,
+  symbols: () => ['❄', '❅', '❆'],
 })
 
 interface Snowflake {
-  id: number
   x: number
   y: number
   size: number
-  speed: number
-  content: string
-  horizontalDrift: number
+  speedY: number
   rotation: number
+  symbol: string
 }
 
-const random = (min: number, max: number) => Math.random() * (max - min) + min
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+let ctx: CanvasRenderingContext2D | null = null
 
-const snowflakes = ref<Snowflake[]>([])
-const snowfallContainer = ref<HTMLDivElement | null>(null)
-const containerWidth = ref(0)
-const containerHeight = ref(0)
+const snowflakes: Snowflake[] = []
+
+const canvasWidth = ref(0)
+const canvasHeight = ref(0)
 const mouseX = ref(0)
 const mouseY = ref(0)
 
-const snowflakeSymbols = ['❄', '❅', '❆']
+const random = (min: number, max: number) => Math.random() * (max - min) + min
 
-const createSnowflake = (id: number): Snowflake => ({
-  id,
-  x: Math.random() * 100,
-  y: Math.random() * 110 - 10,
-  size: props.minSize + Math.random() * (props.maxSize - props.minSize),
-  speed: (0.5 + Math.random()) * props.speed,
-  content: snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)],
-  horizontalDrift: random(-15, 15),
-  rotation: random(-360, 360),
-})
-
-const getSnowflakeStyle = (snowflake: Snowflake) => ({
-  'position': 'absolute',
-  'left': `${snowflake.x}%`,
-  'top': `${snowflake.y}%`,
-  'color': props.color,
-  'width': `${snowflake.size}px`,
-  'height': `${snowflake.size}px`,
-  'font-size': `${snowflake.size * 4}px`,
-  'animation': `fall ${30 / snowflake.speed}s linear infinite`,
-  '--horizontal-drift': `${snowflake.horizontalDrift}vw`,
-  '--rotation': `${snowflake.rotation}deg`,
-})
-
-const updateSnowflakePosition = (snowflake: Snowflake) => {
-  if (!snowfallContainer.value) return
-
-  const dx = (snowflake.x / 100) * containerWidth.value - mouseX.value
-  const dy = (snowflake.y / 100) * containerHeight.value - mouseY.value
-  const distance = Math.sqrt(dx * dx + dy * dy)
-  const repelRange = 100
-
-  if (distance < repelRange) {
-    const angle = Math.atan2(dy, dx)
-    const force = (repelRange - distance) / repelRange
-    snowflake.x += ((Math.cos(angle) * force * 5) / containerWidth.value) * 100
-    snowflake.y += ((Math.sin(angle) * force * 5) / containerHeight.value) * 100
+function createSnowflake(): Snowflake {
+  return {
+    x: random(0, canvasWidth.value),
+    y: random(-canvasHeight.value, 0),
+    size: random(props.minSize, props.maxSize),
+    speedY: (0.5 + Math.random()) * props.speed,
+    rotation: random(0, 360),
+    symbol: props.symbols[Math.floor(Math.random() * props.symbols.length)] || '❄',
   }
 }
 
-const updateSnowflakes = () => {
-  snowflakes.value.forEach((snowflake) => {
-    updateSnowflakePosition(snowflake)
-    snowflake.y += snowflake.speed * 0.1
-    if (snowflake.y > 110) {
-      snowflake.y = -10
-      snowflake.x = Math.random() * 100
+function initSnowflakes() {
+  snowflakes.length = 0
+  for (let i = 0; i < props.maxFlakes; i++) {
+    snowflakes.push(createSnowflake())
+  }
+}
+
+let rafId: number | null = null
+
+function updateAndDrawFlakes() {
+  if (!ctx) return
+  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
+  ctx.fillStyle = props.color ?? '#e0e0e0'
+
+  for (const flake of snowflakes) {
+    const repelRange = 100
+    const dx = flake.x - mouseX.value
+    const dy = flake.y - mouseY.value
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist < repelRange) {
+      const angle = Math.atan2(dy, dx)
+      const force = (repelRange - dist) / repelRange
+      flake.x += Math.cos(angle) * force * 5
+      flake.y += Math.sin(angle) * force * 5
     }
 
-    snowflake.x = Math.max(0, Math.min(100, snowflake.x))
-    snowflake.y = Math.max(-10, Math.min(110, snowflake.y))
-  })
-  requestAnimationFrame(updateSnowflakes)
-}
+    flake.y += flake.speedY
 
-const handleResize = () => {
-  if (snowfallContainer.value) {
-    containerWidth.value = snowfallContainer.value.clientWidth
-    containerHeight.value = snowfallContainer.value.clientHeight
+    if (flake.y > canvasHeight.value + 50) {
+      flake.y = -50
+      flake.x = random(0, canvasWidth.value)
+    }
+
+    const fontSize = flake.size * 4
+    ctx.font = `${fontSize}px sans-serif`
+    ctx.save()
+    ctx.translate(flake.x, flake.y)
+    ctx.rotate((flake.rotation * Math.PI) / 180)
+    ctx.fillText(flake.symbol, 0, 0)
+    ctx.restore()
   }
 }
 
-const handleMouseMove = (event: MouseEvent) => {
-  mouseX.value = event.clientX
-  mouseY.value = event.clientY
+function animate() {
+  updateAndDrawFlakes()
+  rafId = requestAnimationFrame(animate)
+}
+
+// Keep track of mouse events only if needed
+let ticking = false
+function handleMouseMove(e: MouseEvent) {
+  if (!ticking) {
+    ticking = true
+    requestAnimationFrame(() => {
+      mouseX.value = e.clientX
+      mouseY.value = e.clientY
+      ticking = false
+    })
+  }
+}
+
+function handleResize() {
+  if (!canvasRef.value) return
+  canvasWidth.value = window.innerWidth
+  canvasHeight.value = window.innerHeight
+  canvasRef.value.width = canvasWidth.value
+  canvasRef.value.height = canvasHeight.value
+  initSnowflakes()
 }
 
 onMounted(() => {
-  handleResize()
-  window.addEventListener('resize', handleResize)
-  window.addEventListener('mousemove', handleMouseMove)
+  if (typeof window === 'undefined') return
 
-  for (let i = 0; i < props.maxFlakes; i++) {
-    snowflakes.value.push(createSnowflake(i))
+  if (canvasRef.value) {
+    ctx = canvasRef.value.getContext('2d') || null
+    handleResize()
+    initSnowflakes()
+    animate()
   }
 
-  updateSnowflakes()
+  useEventListener(window, 'resize', handleResize)
+  useEventListener(window, 'mousemove', handleMouseMove)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  window.removeEventListener('mousemove', handleMouseMove)
+  if (rafId !== null) cancelAnimationFrame(rafId)
 })
 </script>
 
 <template>
-  <div ref="snowfallContainer" class="snowfall-container">
-    <div v-for="snowflake in snowflakes" class="snowflake" :style="getSnowflakeStyle(snowflake)">
-      {{ snowflake.content }}
-    </div>
-  </div>
+  <canvas ref="canvasRef" class="snow-canvas"></canvas>
 </template>
 
-<style scoped lang="scss">
-.snowfall-container {
+<style scoped>
+.snow-canvas {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
-  overflow: hidden;
   z-index: 99999;
-}
-
-.snowflake {
-  @apply select-none;
-
-  will-change: transform;
+  width: 100vw;
+  height: 100vh;
 }
 </style>

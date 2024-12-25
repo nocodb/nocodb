@@ -115,6 +115,8 @@ const _ = (window as any).ResizeObserver
   }
 }
 
+const config = useRuntimeConfig()
+
 const shouldShowSnowfall = useStorage(
   EasterEggs.SNOWFLAKE_ENABLED,
   dayjs().isBetween(dayjs(`${dayjs().year()}-12-20`), dayjs(`${dayjs().year()}-12-31`)),
@@ -130,7 +132,7 @@ const shouldShowSnowfall = useStorage(
     </NuxtLayout>
   </a-config-provider>
 
-  <GeneralSnowfall v-if="shouldShowSnowfall" />
+  <GeneralSnowfall v-if="!config.public.ci && shouldShowSnowfall" />
 
   <ErrorBoundary>
     <div>

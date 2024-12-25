@@ -604,7 +604,7 @@
     "quickImportAirtable": "Import from Airtable",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
-    "quickImportJSON": "Quick Json",
+    "quickImportJSON": "Import Json",
     "jsonEditor": "JSON Editor",
     "comingSoon": "Coming soon",
     "advancedSettings": "Advanced Settings",

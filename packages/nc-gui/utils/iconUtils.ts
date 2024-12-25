@@ -596,6 +596,7 @@ import NcFileTypeJson from '~icons/nc-icons-v2/file-type-json'
 
 import NcImportAirtable from '~icons/nc-icons-v2/import-airtable'
 import NcImportCsv from '~icons/nc-icons-v2/import-csv'
+import NcImportJson from '~icons/nc-icons-v2/import-json'
 import NcImportExcel from '~icons/nc-icons-v2/import-excel'
 import NcImportSheets from '~icons/nc-icons-v2/import-sheets'
 import NcImportSalesforce from '~icons/nc-icons-v2/import-salesforce'
@@ -1512,6 +1513,7 @@ export const iconMap = {
   ncErd: h(NcErd, { stroke: 'transparent' }),
   importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
   importCsv: h(NcImportCsv, { stroke: 'transparent' }),
+  importJson: h(NcImportJson, { stroke: 'transparent' }),
   importExcel: h(NcImportExcel, { stroke: 'transparent' }),
   importSheets: h(NcImportSheets, { stroke: 'transparent' }),
   importSalesforce: h(NcImportSalesforce, { stroke: 'transparent' }),

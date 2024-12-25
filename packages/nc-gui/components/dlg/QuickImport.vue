@@ -112,7 +112,7 @@ const importMeta = computed(() => {
   } else if (isImportTypeJson.value) {
     return {
       header: `${t('title.quickImportJSON')}`,
-      icon: 'cellJson',
+      icon: 'importJson',
       uploadHint: '',
       acceptTypes: '.json',
     }

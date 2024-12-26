@@ -130,7 +130,7 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 
 const vModel = computed({
   get: () => {
-    let selected: { label: string; value: string }[] = []
+    let selected: { label: string; value: string; meta: any }[] = []
 
     let localModelValue = modelValue
 
@@ -155,7 +155,7 @@ const vModel = computed({
           })
         }
         return acc
-      }, [] as { label: string; value: string }[])
+      }, [] as { label: string; value: string; meta: any }[])
     } else {
       selected = localModelValue
         ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
@@ -164,10 +164,11 @@ const vModel = computed({
               acc.push({
                 label,
                 value: item.id,
+                meta: item?.meta,
               })
             }
             return acc
-          }, [] as { label: string; value: string }[])
+          }, [] as { label: string; value: string; meta: any }[])
         : []
     }
 
@@ -193,7 +194,7 @@ const vModel = computed({
   },
 })
 
-console.log('localModelValue', modelValue, vModel.value)
+console.log('localModelValue', modelValue, options.value)
 
 const vModelListLayout = computed(() => {
   if (isMultiple.value) {
@@ -384,7 +385,7 @@ const onFocus = () => {
                     :name="op.display_name"
                     :email="op.email"
                     :meta="op.meta"
-                    class="!text-[0.65rem]"
+                    class="!text-[0.65rem] !h-[16.8px]"
                     :disabled="!isCollaborator(op.id)"
                   />
                 </div>
@@ -454,7 +455,7 @@ const onFocus = () => {
                   size="auto"
                   :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
                   :email="selectedOpt.label"
-                  class="!text-[0.65rem]"
+                  class="!text-[0.65rem] !h-[16.8px]"
                   :meta="selectedOpt.meta"
                 />
               </div>
@@ -535,7 +536,7 @@ const onFocus = () => {
                     :name="op.display_name"
                     :email="op.email"
                     :meta="op.meta"
-                    class="!text-[0.65rem]"
+                    class="!text-[0.65rem] !h-[16.8px]"
                   />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -589,8 +590,8 @@ const onFocus = () => {
                   size="auto"
                   :name="!label?.includes('@') ? label.trim() : ''"
                   :email="label"
-                  :meta="label.meta"
-                  class="!text-[0.65rem]"
+                  :meta="options.find((el) => el.id === val)?.meta"
+                  class="!text-[0.65rem] !h-[16.8px]"
                   :disabled="!isCollaborator(val)"
                 />
               </div>

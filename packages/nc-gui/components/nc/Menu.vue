@@ -23,12 +23,16 @@ const selectable = computed(() => props.selectable ?? false)
   @apply bg-white !rounded-md !py-1.5;
 
   &.nc-variant-small {
-    @apply gap-0.5;
+    @apply gap-0.5 !py-1;
     .ant-dropdown-menu-item {
-      @apply !py-1 !text-small !leading-[18px] mx-1 text-gray-700;
+      @apply !py-1 !text-small !leading-[18px] font-weight-550 mx-1;
 
       .nc-menu-item-inner {
-        @apply !text-small !leading-[18px];
+        @apply !text-small !leading-[18px] font-weight-550;
+      }
+
+      &:not(.ant-dropdown-menu-item-disabled) {
+        @apply hover:text-black text-gray-700;
       }
     }
   }

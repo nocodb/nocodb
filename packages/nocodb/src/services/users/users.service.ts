@@ -92,7 +92,7 @@ export class UsersService {
       avatar?: string;
     };
   }) {
-    const updateObj = extractProps(params, ['display_name', 'avatar']);
+    const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
 
     return await User.update(id, updateObj);
   }

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
+  IconType,
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
@@ -18,7 +19,7 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User } from '~/models';
+import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
@@ -34,10 +35,28 @@ export class BaseUsersService {
     context: NcContext,
     param: { baseId: string; mode?: 'full' | 'viewer' },
   ) {
-    const baseUsers = await BaseUser.getUsersList(context, {
+    let baseUsers = await BaseUser.getUsersList(context, {
       base_id: param.baseId,
       mode: param.mode,
     });
+
+    baseUsers = await Promise.all(
+      baseUsers.map(async (baseUser) => {
+        if (
+          baseUser?.meta &&
+          (baseUser.meta as Record<string, any>)?.icon &&
+          (baseUser.meta as Record<string, any>)?.iconType === IconType.IMAGE
+        ) {
+          await PresignedUrl.signAttachment(
+            {
+              attachment: (baseUser.meta as Record<string, any>)?.icon,
+            },
+            Noco.ncMeta,
+          );
+        }
+        return baseUser;
+      }),
+    );
 
     return new PagedResponseImpl(baseUsers, {
       count: baseUsers.length,

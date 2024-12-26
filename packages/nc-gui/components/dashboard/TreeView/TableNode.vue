@@ -405,7 +405,7 @@ async function onRename() {
     formState.title = formState.title.trim()
   }
 
-  if (formState.title === undefined || table.value.title === '' || table.value.title === formState.title) {
+  if (!formState.title?.trim() || table.value.title === formState.title) {
     onCancel()
     return
   }

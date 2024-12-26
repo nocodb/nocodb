@@ -223,7 +223,13 @@ watch(isOpen, (newValue) => {
 
 <template>
   <div>
-    <NcDropdown v-bind="$attrs" v-model:visible="isOpen" overlay-class-name="w-[432px]" @visible-change="onVisibilityChange">
+    <NcDropdown
+      v-bind="$attrs"
+      v-model:visible="isOpen"
+      overlay-class-name="w-[432px]"
+      @visible-change="onVisibilityChange"
+      class="nc-icon-selector"
+    >
       <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
       <template #overlay>
         <div class="pt-2 h-[320px]">
@@ -423,7 +429,7 @@ watch(isOpen, (newValue) => {
   @apply text-gray-500;
 }
 
-:deep(.nc-workspace-avatar img) {
+:deep(.nc-icon-selector img) {
   @apply !cursor-pointer;
 }
 </style>

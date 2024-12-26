@@ -171,10 +171,8 @@ watch(
                         size="xlarge"
                         :email="user?.email"
                         :name="user?.display_name"
-                        :meta="{
-                          icon: form.icon,
-                          iconType: form.iconType,
-                        }"
+                        :meta="user?.meta"
+                        class="!w-full !h-full !min-w-full select-none cursor-pointer"
                       />
                     </div>
                   </template>

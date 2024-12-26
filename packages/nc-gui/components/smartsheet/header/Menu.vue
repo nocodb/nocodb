@@ -348,8 +348,9 @@ const hideOrShowField = async () => {
       },
       scope: defineViewScope({ view: view.value }),
     })
-  } catch (e) {
+  } catch (e: any) {
     console.log('error', e)
+    message.error(t('msg.error.columnVisibilityUpdateFailed'))
   }
 
   isLoading.value = ''

@@ -37,7 +37,7 @@ const wrapper = ref()
 
 const { dashboardUrl } = useDashboard()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 

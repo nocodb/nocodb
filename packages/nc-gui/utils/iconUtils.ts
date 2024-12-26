@@ -17,8 +17,6 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MsMove from '~icons/material-symbols/drive-file-move-outline'
 import MSCloseRounded from '~icons/material-symbols/close-rounded'
 import MdiTableLarge from '~icons/mdi/table-large'
-import TablerColumnInsertLeft from '~icons/tabler/column-insert-left'
-import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsGroup from '~icons/material-symbols/groups-outline-rounded'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
@@ -599,6 +597,9 @@ import NcHeading3 from '~icons/nc-icons-v2/heading-3'
 import NcQuote from '~icons/nc-icons-v2/quote'
 
 import NcErd from '~icons/nc-icons/erd'
+import NcInsertBefore from '~icons/nc-icons/insert-before'
+import NcInsertAfter from '~icons/nc-icons/insert-after'
+
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -840,8 +841,8 @@ export const iconMap = {
   role: h('span', { class: 'material-symbols' }, 'badge'),
   tableKey: h('span', { class: 'material-symbols' }, 'table_rows'),
   export: h('span', { class: 'material-symbols' }, 'get_app'),
-  colInsertAfter: TablerColumnInsertRight,
-  colInsertBefore: TablerColumnInsertLeft,
+  colInsertAfter: NcInsertAfter,
+  colInsertBefore: NcInsertBefore,
   star: NcStar,
   unStar: NcUnStar,
   sortDesc: MsSort,

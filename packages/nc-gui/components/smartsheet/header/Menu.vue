@@ -663,14 +663,14 @@ const onDeleteColumn = () => {
           <NcDivider />
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-              <component :is="iconMap.colInsertAfter" class="opacity-80 !w-4.5 !h-4.5" />
+              <component :is="iconMap.colInsertAfter" class="opacity-80 w-4 h-4" />
               <!-- Insert After -->
               {{ t('general.insertAfter') }}
             </div>
           </NcMenuItem>
           <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
             <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-              <component :is="iconMap.colInsertBefore" class="opacity-80 !w-4.5 !h-4.5" />
+              <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
               <!-- Insert Before -->
               {{ t('general.insertBefore') }}
             </div>

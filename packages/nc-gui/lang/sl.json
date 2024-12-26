@@ -807,7 +807,7 @@
     "icon": "Ikona",
     "max": "Maks",
     "enableRichText": "Omogoči obogateno besedilo",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopirano URL zapisa",
     "copyRecordURL": "Kopiraj URL zapisa",
     "duplicateRecord": "Podvoji zapis",

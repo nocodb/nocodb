@@ -381,8 +381,7 @@ const source = computed(() => {
                       tableId: table.id,
                     })
                   "
-                >
-                </NcMenuItemCopyId>
+                />
 
                 <NcMenuItem
                   v-if="

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  id: string
+  id?: string
   tooltip?: string
   label?: string
 }

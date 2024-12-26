@@ -26,10 +26,10 @@ const selectable = computed(() => props.selectable ?? false)
     @apply flex flex-col gap-0.5 !py-1;
 
     .ant-dropdown-menu-item {
-      @apply !py-1 !text-small !leading-[18px] font-weight-550 mx-1;
+      @apply !py-1 !text-small !leading-5 font-weight-550 mx-1;
 
       .nc-menu-item-inner {
-        @apply !text-small !leading-[18px] font-weight-550;
+        @apply !text-small !leading-5 font-weight-550;
       }
 
       &:not(.ant-dropdown-menu-item-disabled) {

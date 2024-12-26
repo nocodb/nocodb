@@ -494,6 +494,8 @@ check_system_requirements() {
 }
 
 get_user_inputs() {
+  # For fixing test failures due to missing XTerm environment
+  clear || :
   cat << EOF
 ╔════════════════════════════════════════╗
 ║      NocoDB AutoUpstall Assistant      ║

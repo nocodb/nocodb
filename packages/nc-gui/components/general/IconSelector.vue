@@ -227,8 +227,8 @@ watch(isOpen, (newValue) => {
       v-bind="$attrs"
       v-model:visible="isOpen"
       overlay-class-name="w-[432px]"
-      @visible-change="onVisibilityChange"
       class="nc-icon-selector"
+      @visible-change="onVisibilityChange"
     >
       <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
       <template #overlay>

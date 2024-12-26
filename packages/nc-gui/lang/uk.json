@@ -807,7 +807,7 @@
     "icon": "Іконка",
     "max": "Максимум",
     "enableRichText": "Увімкнути форматування тексту",
-    "idColon": "Ідентифікатор:",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Скопійовано URL запису",
     "copyRecordURL": "Скопіювати URL запису",
     "duplicateRecord": "Дублювати запис",

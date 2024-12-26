@@ -1,4 +1,10 @@
-import { extractRolesObj, IconType, MetaType, type UserType } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  IconType,
+  MetaType,
+  ncIsObject,
+  type UserType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -393,14 +399,23 @@ export default class User implements UserType {
     if (!users) return;
 
     const promises = [];
-    
+
     try {
       for (const user of Array.isArray(users) ? users : [users]) {
-        const meta = parseMetaProp(user);
-        if (meta && meta.icon && meta.iconType === IconType.IMAGE) {
+        if (!ncIsObject(user)) {
+          continue;
+        }
+
+        user.meta = parseMetaProp(user);
+
+        if (
+          user.meta &&
+          (user.meta as Record<string, any>).icon &&
+          (user.meta as Record<string, any>).iconType === IconType.IMAGE
+        ) {
           promises.push(
             PresignedUrl.signAttachment({
-              attachment: meta.icon,
+              attachment: (user.meta as Record<string, any>).icon,
             }),
           );
         }

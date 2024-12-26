@@ -807,7 +807,7 @@
     "icon": "आइकन",
     "max": "अधिकतम",
     "enableRichText": "धनी पाठ सक्षम गर्नुहोस्",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "कॉपी गरिएको रेकर्ड URL",
     "copyRecordURL": "रेकर्ड URL प्रतिलिपि गर्नुहोस्",
     "duplicateRecord": "प्रतिलिपी रेकर्ड",

@@ -86,7 +86,7 @@ const exportFile = async (exportType: ExportTypes) => {
     {{ $t('labels.downloadData') }}
   </NcMenuItemLabel>
 
-  <a-menu-item class="!mx-1 !py-2 !rounded-md">
+  <NcMenuItem>
     <div
       v-e="['a:download:csv']"
       class="flex flex-row items-center nc-base-menu-item !py-0"
@@ -97,9 +97,9 @@ const exportFile = async (exportType: ExportTypes) => {
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 
-  <a-menu-item class="!mx-1 !py-2 !rounded-md">
+  <NcMenuItem>
     <div
       v-e="['a:download:excel']"
       class="flex flex-row items-center nc-base-menu-item !py-0"
@@ -111,5 +111,5 @@ const exportFile = async (exportType: ExportTypes) => {
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

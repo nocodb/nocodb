@@ -207,7 +207,7 @@ const isDefaultView = computed(() => view.value?.is_default)
       <NcDivider />
       <template v-if="inSidebar">
         <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-          <GeneralIcon icon="rename" />
+          <GeneralIcon icon="rename" class="opacity-80" />
           {{
             $t('general.renameEntity', {
               entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
@@ -216,8 +216,8 @@ const isDefaultView = computed(() => view.value?.is_default)
         </NcMenuItem>
         <NcTooltip v-else>
           <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-          <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-            <GeneralIcon icon="rename" />
+          <NcMenuItem disabled>
+            <GeneralIcon icon="rename" class="opacity-80" />
             {{
               $t('general.renameEntity', {
                 entity:
@@ -227,7 +227,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
-          <GeneralIcon icon="ncAlignLeft" />
+          <GeneralIcon icon="ncAlignLeft" class="opacity-80"/>
           {{ $t('general.edit') }}
 
           {{ $t('labels.description') }}
@@ -235,7 +235,7 @@ const isDefaultView = computed(() => view.value?.is_default)
       </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-        <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
+        <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
         {{
           $t('general.duplicateEntity', {
             entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),

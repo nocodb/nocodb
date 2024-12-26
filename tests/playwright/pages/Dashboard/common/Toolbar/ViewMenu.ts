@@ -107,9 +107,9 @@ export class ToolbarViewMenuPage extends BasePage {
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else {
-        const loacator = this.rootPage.getByTestId(`nc-view-action-lock-subaction-${subMenu}`).last();
+        const locator = this.rootPage.getByTestId(`nc-view-action-lock-subaction-${subMenu}`).last();
 
-        await loacator.click();
+        await locator.click();
 
         if (['Collaborative', 'Locked'].includes(subMenu)) {
           await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).waitFor({ state: 'visible' });

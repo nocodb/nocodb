@@ -24,7 +24,7 @@ export const useAttachmentIcon = (
     }
 
     if (isExcel(toValue(title) || '', toValue(mimetype))) {
-      return 'ncFileTypeExcel'
+      return 'ncFileTypeCsv'
     }
 
     if (isPresentation(toValue(title) || '', toValue(mimetype))) {

@@ -39,7 +39,7 @@ useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
     </NcButton>
 
     <template #overlay>
-      <NcMenu class="ml-6 !text-sm !rounded-lg overflow-hidden">
+      <NcMenu variant="small" class="ml-6 !text-sm !rounded-lg overflow-hidden">
         <LazySmartsheetToolbarExportSubActions />
       </NcMenu>
     </template>

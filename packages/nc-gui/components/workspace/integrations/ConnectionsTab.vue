@@ -520,7 +520,7 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>
                       <template #overlay>
-                        <NcMenu>
+                        <NcMenu variant="small">
                           <NcMenuItem
                             v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
                             @click="setDefaultIntegration(integration)"

@@ -634,7 +634,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           </NcButton>
 
                           <template #overlay>
-                            <NcMenu class="!text-sm">
+                            <NcMenu variant="small">
                               <NcMenuItem
                                 v-if="hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:add-new-record']"
@@ -1140,17 +1140,22 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
         </div>
         <!-- Drop down Menu -->
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <NcMenu @click="contextMenu = false">
-            <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
-              <div v-e="['a:kanban:expand-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
+          <NcMenu variant="small" @click="contextMenu = false">
+            <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.maximize" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem v-if="contextMenuTarget" class="!text-red-600 !hover:bg-red-50" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
+            <NcMenuItem
+              v-if="contextMenuTarget"
+              v-e="['a:kanban:delete-record']"
+              class="!text-red-600 !hover:bg-red-50"
+              @click="deleteRow(contextMenuTarget)"
+            >
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{

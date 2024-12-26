@@ -280,14 +280,14 @@ const isDeleteOrUpdateAllowed = (user) => {
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu>
+                <NcMenu variant="small">
                   <template v-if="isAdminPanel">
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />
                       <span>{{ $t('labels.signOutUser') }}</span>
                     </NcMenuItem>
 
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                   </template>
                   <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                     <template #title>

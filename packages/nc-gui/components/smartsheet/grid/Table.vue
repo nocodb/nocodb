@@ -1931,7 +1931,7 @@ onKeyStroke('ArrowDown', onDown)
                       </div>
 
                       <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
-                        <NcMenu class="predict-menu">
+                        <NcMenu class="predict-menu" variant="small">
                           <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
                               <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
@@ -2333,7 +2333,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
 
         <template #overlay>
-          <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+          <NcMenu class="!rounded !py-0" variant="small" @click="contextMenu = false">
             <NcMenuItem
               v-if="
                 isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
@@ -2563,14 +2563,14 @@ onKeyStroke('ArrowDown', onDown)
                       @click="onNewRecordToGridClick"
                     >
                       <div class="flex flex-row items-center justify-between w-full">
-                        <div class="flex flex-row items-center justify-start gap-x-3">
+                        <div class="flex flex-row items-center justify-start gap-x-2.5">
                           <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                           {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                         </div>
 
                         <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                       </div>
-                      <div class="flex flex-row text-xs text-gray-400 ml-7.25">
+                      <div class="flex flex-row text-xs text-gray-400 ml-6.5">
                         {{ $t('labels.addRowGrid') }}
                       </div>
                     </div>
@@ -2581,13 +2581,13 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="flex flex-row items-center justify-between w-full">
                         <div class="flex flex-row items-center justify-start gap-x-2.5">
-                          <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                          <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
                           {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                         </div>
 
                         <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                       </div>
-                      <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                      <div class="flex flex-row text-xs text-gray-400 ml-6.5">
                         {{ $t('labels.addRowForm') }}
                       </div>
                     </div>
@@ -2657,7 +2657,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu variant="small">
             <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
@@ -2668,7 +2668,8 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
             <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
               <div class="flex flex-row items-center justify-start gap-x-3">
-                <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
+
                 {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
               </div>
 

@@ -65,7 +65,7 @@ watch(openedSubTab, () => {
       <a-tab-pane key="relation">
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">
-            <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncErd" class="tab-icon" :class="{}" />
             <div>{{ $t('title.relations') }}</div>
           </div>
         </template>

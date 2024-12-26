@@ -1106,7 +1106,7 @@ svg.nc-virtual-cell-icon {
 
 .icon-fade-enter-active,
 .icon-fade-leave-active {
-  transition: opacity 0.5s ease, transform 0.5s ease; /* Added scaling transition */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Added scaling transition */
   position: absolute;
 }
 

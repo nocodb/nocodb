@@ -1269,7 +1269,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 placement="topLeft"
                               >
                                 <template #title> Conditionally visible field </template>
-                                <Transition name="icon-fade">
+                                <Transition name="icon-fade" :duration="500">
                                   <GeneralIcon
                                     v-if="element?.visible"
                                     icon="eye"

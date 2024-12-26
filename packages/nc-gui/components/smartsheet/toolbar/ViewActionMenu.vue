@@ -227,7 +227,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
-          <GeneralIcon icon="ncAlignLeft" class="opacity-80"/>
+          <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
           {{ $t('general.edit') }}
 
           {{ $t('labels.description') }}
@@ -246,7 +246,7 @@ const isDefaultView = computed(() => view.value?.is_default)
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">
-        <NcSubMenu key="upload">
+        <NcSubMenu key="upload" variant="small">
           <template #title>
             <div
               v-e="[
@@ -257,7 +257,7 @@ const isDefaultView = computed(() => view.value?.is_default)
               ]"
               class="nc-base-menu-item group"
             >
-              <GeneralIcon icon="upload" />
+              <GeneralIcon icon="upload" class="opacity-80" />
               {{ $t('general.upload') }}
             </div>
           </template>
@@ -278,14 +278,14 @@ const isDefaultView = computed(() => view.value?.is_default)
                 :class="{ disabled: lockType === LockType.Locked }"
                 class="nc-base-menu-item"
               >
-                <component :is="iconMap.cloudUpload" />
+                <component :is="iconMap.cloudUpload" class="opacity-80" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
               </div>
             </NcMenuItem>
           </template>
         </NcSubMenu>
       </template>
-      <NcSubMenu key="download">
+      <NcSubMenu key="download" variant="small">
         <template #title>
           <div
             v-e="[
@@ -296,7 +296,7 @@ const isDefaultView = computed(() => view.value?.is_default)
             ]"
             class="nc-base-menu-item group nc-view-context-download-option"
           >
-            <GeneralIcon icon="download" />
+            <GeneralIcon icon="download" class="opacity-80" />
             {{ $t('general.download') }}
           </div>
         </template>
@@ -309,6 +309,7 @@ const isDefaultView = computed(() => view.value?.is_default)
       <NcDivider />
       <NcSubMenu
         key="lock-type"
+        variant="small"
         :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && view.lock_type === LockType.Personal"
         class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
       >
@@ -394,8 +395,8 @@ const isDefaultView = computed(() => view.value?.is_default)
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon class="nc-view-delete-icon" icon="delete" />
+        <NcMenuItem class="!cursor-not-allowed !text-gray-400" disabled>
+          <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
           {{
             $t('general.deleteEntity', {
               entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
@@ -404,7 +405,7 @@ const isDefaultView = computed(() => view.value?.is_default)
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-        <GeneralIcon class="nc-view-delete-icon" icon="delete" />
+        <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
         {{
           $t('general.deleteEntity', {
             entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),

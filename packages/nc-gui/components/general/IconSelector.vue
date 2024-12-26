@@ -10,9 +10,20 @@ interface Props {
   icon: string | Record<string, any>
   iconType: IconType | string
   imageCropperData: Omit<ImageCropperProps, 'showCropper'>
+  tabOrder?: IconType[]
+  defaultActiveTab?: IconType
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+interface TabItemType {
+  title: string
+  icon: IconMapKey
+  value: IconType
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  tabOrder: () => [IconType.ICON, IconType.IMAGE, IconType.EMOJI],
+  defaultActiveTab: IconType.ICON,
+})
 
 const emits = defineEmits(['update:icon', 'update:iconType', 'update:imageCropperData', 'submit'])
 
@@ -34,7 +45,7 @@ const inputRef = ref<HTMLInputElement>()
 
 const searchQuery = ref<string>('')
 
-const activeTabLocal = ref<IconType>(IconType.ICON)
+const activeTabLocal = ref<IconType>(props.defaultActiveTab)
 
 const activeTab = computed({
   get: () => activeTabLocal.value,
@@ -202,6 +213,26 @@ function focusInput() {
   }
 }
 
+const tabs = computed(() => {
+  return [
+    {
+      title: 'Icon',
+      value: IconType.ICON,
+      icon: 'ncPlaceholderIcon',
+    },
+    {
+      title: 'Upload',
+      value: IconType.IMAGE,
+      icon: 'ncUpload',
+    },
+    {
+      title: 'Emoji',
+      value: IconType.EMOJI,
+      icon: 'ncSmile',
+    },
+  ].sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
+})
+
 watch(showImageCropper, (newValue) => {
   if (newValue) {
     showImageCropperLocal.value = true
@@ -242,15 +273,15 @@ watch(isOpen, (newValue) => {
                 <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
               </div>
             </template>
-            <a-tab-pane :key="IconType.ICON" class="w-full" :disabled="isLoading">
+            <a-tab-pane v-for="tabItem of tabs" :key="tabItem.value" class="w-full" :disabled="isLoading">
               <template #tab>
                 <div class="tab-title">
-                  <GeneralIcon icon="ncPlaceholderIcon" class="flex-none" />
-                  Icon
+                  <GeneralIcon :icon="tabItem.icon" class="flex-none" />
+                  {{ tabItem.title }}
                 </div>
               </template>
 
-              <div class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
+              <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
                 <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
                   <a-input
                     ref="inputRef"
@@ -275,20 +306,8 @@ watch(isOpen, (newValue) => {
                   <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
                 </div>
               </div>
-            </a-tab-pane>
-            <a-tab-pane :key="IconType.IMAGE" class="w-full" :disabled="isLoading">
-              <template #tab>
-                <div
-                  class="tab-title"
-                  :class="{
-                    '!cursor-wait': isLoading,
-                  }"
-                >
-                  <GeneralIcon icon="ncUpload" class="flex-none" />
-                  Upload
-                </div>
-              </template>
-              <div class="p-2 flex flex-col gap-2.5 h-full">
+
+              <div v-if="tabItem.value === IconType.IMAGE" class="p-2 flex flex-col gap-2.5 h-full">
                 <div v-if="getWorkspaceLogoSrc.length" class="flex items-center gap-4">
                   <div class="h-12 w-12 p-2">
                     <CellAttachmentPreviewImage
@@ -342,15 +361,8 @@ watch(isOpen, (newValue) => {
                   </a-upload-dragger>
                 </div>
               </div>
-            </a-tab-pane>
-            <a-tab-pane :key="IconType.EMOJI" class="w-full" :disabled="isLoading">
-              <template #tab>
-                <div class="tab-title">
-                  <GeneralIcon icon="ncSmile" class="flex-none" />
-                  Emoji
-                </div>
-              </template>
-              <div class="h-full">
+
+              <div v-if="tabItem.value === IconType.EMOJI" class="h-full">
                 <Picker
                   :data="emojiIndex"
                   :native="true"

@@ -8495,7 +8495,7 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected async _convertUserFormat(
+  protected _convertUserFormat(
     userColumns: Column[],
     baseUsers: Partial<User>[],
     d: Record<string, any>,

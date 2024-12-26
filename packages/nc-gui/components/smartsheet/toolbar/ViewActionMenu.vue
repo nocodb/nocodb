@@ -50,6 +50,11 @@ const onDescriptionUpdateClick = () => {
 
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
+const importAlias = {
+  csv: 'CSV',
+  excel: 'Excel',
+}
+
 const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
     acc[curr] = ref(false)
@@ -279,7 +284,7 @@ const isDefaultView = computed(() => view.value?.is_default)
                 class="nc-base-menu-item"
               >
                 <component :is="iconMap.cloudUpload" class="opacity-80" />
-                {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+                {{ importAlias[type] }}
               </div>
             </NcMenuItem>
           </template>

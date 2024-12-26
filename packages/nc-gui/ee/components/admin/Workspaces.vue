@@ -153,7 +153,7 @@ onMounted(() => {
       </div>
       <NcPageHeader>
         <template #icon>
-          <GeneralIcon class="flex-none !h-5 !w-5" icon="ncWorkspace" />
+          <GeneralIcon class="flex-none !h-5 !w-5 fill-gray-200" icon="ncWorkspace" />
         </template>
         <template #title>
           <span data-rec="true">
@@ -224,15 +224,21 @@ onMounted(() => {
             <div v-if="column.key === 'baseCount'">
               {{ ws.baseCount }}
             </div>
-            <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
-              <NcButton class="!rounded-r-none" size="small" type="secondary" @click.prevent="addMemberToWorkspace(ws.id)">
+            <div v-if="column.key === 'action'" class="flex justify-end shadow-nc-sm rounded-lg" @click.stop>
+              <NcButton
+                class="!rounded-r-none"
+                size="small"
+                type="secondary"
+                :shadow="false"
+                @click.prevent="addMemberToWorkspace(ws.id)"
+              >
                 <div class="flex items-center gap-2">
                   <component :is="iconMap.accountPlus" />
                   {{ $t('labels.addMember') }}
                 </div>
               </NcButton>
               <NcDropdown>
-                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary">
+                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" :shadow="false">
                   <component :is="iconMap.threeDotVertical" />
                 </NcButton>
                 <template #overlay>

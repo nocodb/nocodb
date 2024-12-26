@@ -132,7 +132,7 @@ onMounted(() => {
       <NcPageHeader>
         <template #icon>
           <div class="flex justify-center items-center h-5 w-5">
-            <GeneralProjectIcon class="flex-none h-4.5 w-4.5" />
+            <GeneralProjectIcon class="flex-none h-5 w-5" />
           </div>
         </template>
         <template #title>

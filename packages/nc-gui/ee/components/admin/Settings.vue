@@ -148,9 +148,7 @@ watch(
     </div>
     <NcPageHeader>
       <template #icon>
-        <div class="flex justify-center items-center h-5 w-5">
-          <GeneralIcon icon="settings" class="flex-none text-[20px]" />
-        </div>
+        <GeneralIcon icon="ncSettings" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

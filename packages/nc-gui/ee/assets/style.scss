@@ -1098,11 +1098,6 @@ svg.nc-virtual-cell-icon {
   animation: sidebar-node-input-padding-grow 0.2s ease forwards;
 }
 
-@keyframes fall {
-  to {
-    transform: translateX(var(--horizontal-drift)) rotate(var(--rotation));
-  }
-}
 .icon-fade-enter-active,
 .icon-fade-leave-active {
   transition: opacity 0.3s ease, transform 0.3s ease; /* Added scaling transition */

@@ -20,7 +20,7 @@ test.describe.skip('Expanded form files mode', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: rowIndex,
       columnHeader: 'testAttach',
-      filePath: filePathAppned.map(filePath => `${process.cwd()}/fixtures/sampleFiles/${filePath}`),
+      filePath: filePathAppned.map(filePath => `${__dirname}/../../../fixtures/sampleFiles/${filePath}`),
     });
 
     await dashboard.rootPage.waitForTimeout(500);

@@ -15,7 +15,7 @@ on:
 
 jobs:
   sync:
-    runs-on: [self-hosted, runner]
+    runs-on: [self-hosted, v4, generic]
     steps:
       - name: Log event
         run: |

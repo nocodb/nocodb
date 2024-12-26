@@ -69,7 +69,7 @@ jobs:
           rm -rf ./ee-private/.git
           rsync -rvzhP ./ee-private/packages/nocodb/ ./packages/nocodb/
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

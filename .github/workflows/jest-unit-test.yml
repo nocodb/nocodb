@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   jest-unit-test:
-    runs-on: [self-hosted, runner]
+    runs-on: [self-hosted, v4, generic]
     timeout-minutes: 20
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
     steps:
@@ -42,7 +42,7 @@ jobs:
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

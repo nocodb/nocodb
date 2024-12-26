@@ -16,7 +16,7 @@ on:
 jobs:
   unit-tests:
 
-    runs-on: [self-hosted, runner]
+    runs-on: [self-hosted, v4, generic]
 
     strategy:
       matrix:

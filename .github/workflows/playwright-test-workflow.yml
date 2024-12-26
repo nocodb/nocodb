@@ -13,7 +13,7 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, runner]
+    runs-on: [self-hosted, v4, playwright]
     timeout-minutes: 100
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

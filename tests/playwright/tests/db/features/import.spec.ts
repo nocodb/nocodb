@@ -51,7 +51,7 @@ test.describe('Import', () => {
 
     await dashboard.treeView.quickImport({ title: 'Microsoft Excel', baseTitle: context.base.title, context });
     await dashboard.importTemplate.import({
-      file: `${process.cwd()}/fixtures/sampleFiles/simple.xlsx`,
+      file: `${__dirname}/../../../fixtures/sampleFiles/simple.xlsx`,
       result: expected,
     });
 

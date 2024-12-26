@@ -106,9 +106,11 @@ watch(
         src: '',
       }
     } else {
-      until(() => !!cropperRef.value?.getResult()?.canvas)
+      until(() => !!cropperRef.value?.getResult?.()?.canvas)
         .toBeTruthy({ timeout: 2000 })
-        .then(() => {
+        .then((canvas) => {
+          if (!canvas) return
+
           nextTick(() => {
             handleCropImage()
           })

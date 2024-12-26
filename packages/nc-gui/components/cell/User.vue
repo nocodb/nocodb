@@ -380,9 +380,7 @@ const onFocus = () => {
                 <div>
                   <GeneralUserIcon
                     size="auto"
-                    :name="op.display_name"
-                    :email="op.email"
-                    :meta="op.meta"
+                    :user="op"
                     class="!text-[0.65rem] !h-[16.8px]"
                     :disabled="!isCollaborator(op.id)"
                   />
@@ -451,10 +449,12 @@ const onFocus = () => {
                 <GeneralUserIcon
                   :disabled="!isCollaborator(selectedOpt.value)"
                   size="auto"
-                  :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
-                  :email="selectedOpt.label"
+                  :user="{
+                    display_name: !selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : '',
+                    email: selectedOpt.label,
+                    meta: selectedOpt.meta,
+                  }"
                   class="!text-[0.65rem] !h-[16.8px]"
-                  :meta="selectedOpt.meta"
                 />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -529,13 +529,7 @@ const onFocus = () => {
                 :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :name="op.display_name"
-                    :email="op.email"
-                    :meta="op.meta"
-                    class="!text-[0.65rem] !h-[16.8px]"
-                  />
+                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.65rem] !h-[16.8px]" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
@@ -586,9 +580,11 @@ const onFocus = () => {
               <div>
                 <GeneralUserIcon
                   size="auto"
-                  :name="!label?.includes('@') ? label.trim() : ''"
-                  :email="label"
-                  :meta="options.find((el) => el.id === val)?.meta"
+                  :user="{
+                    display_name: !label?.includes('@') ? label.trim() : '',
+                    email: label,
+                    meta: options.find((el) => el.id === val)?.meta,
+                  }"
                   class="!text-[0.65rem] !h-[16.8px]"
                   :disabled="!isCollaborator(val)"
                 />

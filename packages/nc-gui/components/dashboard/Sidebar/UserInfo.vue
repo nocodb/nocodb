@@ -73,7 +73,7 @@ const accountUrl = computed(() => {
           class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
           data-testid="nc-sidebar-userinfo"
         >
-          <GeneralUserIcon :email="user?.email" size="medium" :name="user?.display_name" :meta="user?.meta" />
+          <GeneralUserIcon :user="user" size="medium" />
           <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
             <template #title>
               {{ name ? name : user?.email }}

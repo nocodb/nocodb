@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, type MetaType } from 'nocodb-sdk'
+import { IconType, type MetaType, type UserType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
 import { isColorDark, stringToColor } from '#imports'
@@ -7,13 +7,12 @@ import { isColorDark, stringToColor } from '#imports'
 const props = withDefaults(
   defineProps<{
     size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
-    name?: string | null
-    email?: string
+    user?: Partial<UserType> | Partial<User> | null
     disabled?: boolean
-    meta?: MetaType
     iconBgColor?: string
   }>(),
   {
+    user: () => ({}),
     size: 'medium',
     name: '',
     email: '',
@@ -26,23 +25,28 @@ const { size } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const displayName = computed(() => props.name?.trim() || '')
-
-const userEmail = computed(() => props.email?.trim() || '')
+const user = computed(() => {
+  return {
+    ...(props.user || {}),
+    email: props.user?.email?.trim() || '',
+    display_name: props.user?.display_name?.trim() || '',
+    meta: props.user?.meta || null,
+  }
+})
 
 const userIcon = computed<{
   icon: any
   iconType: IconType | string
 }>(() => {
-  if (!props.meta) {
+  if (!user.value.meta) {
     return {
       icon: '',
       iconType: '',
     }
   }
 
-  const icon = parseProp(props.meta).icon || ''
-  const iconType = parseProp(props.meta).iconType || ''
+  const icon = parseProp(user.value.meta).icon || ''
+  const iconType = parseProp(user.value.meta).iconType || ''
 
   return {
     icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),
@@ -56,10 +60,10 @@ const backgroundColor = computed(() => {
   }
 
   // in comments we need to generate user icon from email
-  const color = displayName.value
-    ? stringToColor(displayName.value)
-    : userEmail.value
-    ? stringToColor(userEmail.value)
+  const color = user.value.display_name
+    ? stringToColor(user.value.display_name)
+    : user.value.email
+    ? stringToColor(user.value.email)
     : '#FFFFFF'
 
   if (userIcon.value.icon) {
@@ -88,16 +92,16 @@ const usernameInitials = computed(() => {
     return ''
   }
 
-  const displayNameSplit = displayName.value?.split(' ').filter((name) => name) ?? []
+  const displayNameSplit = user.value.display_name?.split(' ').filter((name) => name) ?? []
 
   if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
       return displayNameSplit[0][0] + displayNameSplit[1][0]
     } else {
-      return displayName.value.slice(0, 2)
+      return user.value.display_name.slice(0, 2)
     }
   } else {
-    return userEmail.value?.split('@')[0].slice(0, 2)
+    return user.value.email?.split('@')[0].slice(0, 2)
   }
 })
 </script>

@@ -170,9 +170,7 @@ watch(
                     >
                       <GeneralUserIcon
                         size="xlarge"
-                        :email="user?.email"
-                        :name="user?.display_name"
-                        :meta="user?.meta"
+                        :user="user"
                         class="!w-full !h-full !min-w-full select-none cursor-pointer"
                       />
                     </div>

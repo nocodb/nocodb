@@ -473,6 +473,24 @@ const openBaseSettings = async (baseId: string) => {
 }
 
 const showNodeTooltip = ref(true)
+
+const shouldOpenContextMenu = computed(() => {
+  if (isSharedBase.value || !contextMenuTarget.value) return false
+
+  if (contextMenuTarget.type === 'table') {
+    return true
+  }
+
+  // if (contextMenuTarget.type === 'base' && base.value.type === 'database') {
+  //   return true
+  // }
+
+  // if (contextMenuTarget.type === 'source') {
+  //   return true
+  // }
+
+  return false
+})
 </script>
 
 <template>
@@ -954,11 +972,12 @@ const showNodeTooltip = ref(true)
         </template>
       </div>
     </div>
-    <template v-if="!isSharedBase" #overlay>
+    <template v-if="shouldOpenContextMenu" #overlay>
       <NcMenu
         class="!py-0 rounded text-sm"
         :class="{
           '!min-w-62.5': contextMenuTarget.type === 'table',
+          '!min-w-50': contextMenuTarget.type !== 'table',
         }"
         variant="small"
       >

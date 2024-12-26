@@ -807,7 +807,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Rich-Text-Format aktivieren",
-    "idColon": "ID: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopierte Datensatz-URL",
     "copyRecordURL": "Datensatz-URL kopieren",
     "duplicateRecord": "Zeile duplizieren",

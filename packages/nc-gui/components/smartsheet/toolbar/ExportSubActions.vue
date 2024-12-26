@@ -89,7 +89,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="isExportingType === ExportTypes.CSV" size="regular" />
-      <component :is="iconMap.csv" v-else class="w-4" />
+      <component :is="iconMap.ncFileTypeCsvSmall" v-else class="w-4" />
       <!-- Download as CSV -->
       CSV
     </div>
@@ -98,7 +98,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" size="regular" />
-      <component :is="iconMap.excel" v-else class="w-4" />
+      <component :is="iconMap.ncFileTypeExcel" v-else class="w-4" />
 
       <!-- Download as XLSX -->
       Excel

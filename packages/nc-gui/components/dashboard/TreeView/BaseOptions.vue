@@ -96,7 +96,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('json')"
     >
       <div v-e="['c:import:json']" class="flex gap-2 items-center">
-        <GeneralIcon icon="code" class="w-4" />
+        <GeneralIcon icon="ncFileTypeJson" class="w-4" />
         {{ $t('labels.jsonFile') }}
       </div>
     </NcMenuItem>

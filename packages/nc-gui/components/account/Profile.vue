@@ -37,34 +37,34 @@ const onValidate = async () => {
     return false
   }
 }
+const getIconMeta = () => {
+  return {
+    ...(user.value?.meta ? parseProp(user.value.meta) : {}),
+    icon:
+      form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon) ? { ...form.value.icon, data: '' } : form.value.icon,
+    iconType: form.value.iconType,
+  }
+}
 
-const saveChanges = async () => {
-  const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
+const saveChanges = async (isIconUpdate = false) => {
+  if (!isIconUpdate) {
+    const isNameChanged = (user.value?.display_name ?? '') !== form.value.title
 
-  const valid = isNameChanged ? await onValidate() : true
+    if (!isNameChanged) return
 
-  if (!valid) {
-    isErrored.value = true
-
-    if (form.value.icon === parseProp(user.value?.meta).icon && form.value.iconType === parseProp(user.value?.meta).iconType) {
+    const valid = await onValidate()
+    if (!valid) {
+      isErrored.value = true
       return
+    } else {
+      isErrored.value = false
     }
-  } else {
-    isErrored.value = false
   }
 
   try {
     await updateUserProfile({
       attrs: {
-        ...(!isErrored.value && isNameChanged ? { display_name: form.value?.title } : {}),
-        meta: {
-          ...(user.value?.meta ? parseProp(user.value.meta) : {}),
-          icon:
-            form.value.iconType === IconType.IMAGE && ncIsObject(form.value.icon)
-              ? { ...form.value.icon, data: '' }
-              : form.value.icon,
-          iconType: form.value.iconType,
-        },
+        ...(isIconUpdate ? { meta: getIconMeta() } : { display_name: form.value?.title }),
       },
     })
   } catch (e: any) {

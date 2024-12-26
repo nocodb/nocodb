@@ -10,7 +10,6 @@ import {
   AuditOperationTypes,
   ButtonActionsType,
   extractFilterFromXwhere,
-  IconType,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -58,8 +57,8 @@ import {
   PresignedUrl,
   Sort,
   Source,
-  View,
   User,
+  View,
 } from '~/models';
 import { getAliasGenerator, nocoExecute } from '~/utils';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';

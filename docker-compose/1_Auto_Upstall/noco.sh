@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+if [ "$1" == '--debug' ]; then
+	set -x
+fi
 
 set -e
-set -x
 # Constants
 NOCO_HOME="./nocodb"
 CURRENT_PATH=$(pwd)

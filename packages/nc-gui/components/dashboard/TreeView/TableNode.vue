@@ -371,7 +371,7 @@ const source = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
+              <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`" variant="small">
                 <NcTooltip>
                   <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
                   <div
@@ -403,7 +403,7 @@ const source = computed(() => {
                 >
                   <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                     <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                     {{ $t('labels.editDescription') }}
                   </div>
                 </NcMenuItem>
@@ -423,7 +423,7 @@ const source = computed(() => {
                     @click="openRenameTableDialog(table, source.id)"
                   >
                     <div v-e="['c:table:rename']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="rename" class="text-gray-700" />
+                      <GeneralIcon icon="rename" class="opacity-80" />
                       {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>
@@ -436,7 +436,7 @@ const source = computed(() => {
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                       <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                      <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                       {{ $t('labels.editDescription') }}
                     </div>
                   </NcMenuItem>
@@ -453,7 +453,7 @@ const source = computed(() => {
                     @click="duplicateTable(table)"
                   >
                     <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      <GeneralIcon icon="duplicate" class="opacity-80" />
                       {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>
@@ -461,7 +461,7 @@ const source = computed(() => {
 
                   <NcMenuItem class="!text-gray-700" @click="onDuplicate">
                     <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-                    <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
+                    <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
                     {{
                       $t('general.duplicateEntity', {
                         entity: $t('title.defaultView').toLowerCase(),
@@ -477,7 +477,7 @@ const source = computed(() => {
                     @click="deleteTable"
                   >
                     <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
+                      <GeneralIcon icon="delete" class="opacity-80"/>
                       {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>

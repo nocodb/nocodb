@@ -203,6 +203,7 @@ const isDefaultView = computed(() => view.value?.is_default)
     :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
     class="!min-w-70"
     data-id="toolbar-actions"
+    variant="small"
   >
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>

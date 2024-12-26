@@ -29,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex p-5 nc-base-settings justify-center overflow-auto gap-8">
+  <div class="flex p-6 nc-base-settings justify-center overflow-auto gap-8">
     <!-- Left Pane -->
     <div v-if="isEeUI" class="flex flex-col">
       <div class="h-full w-60">

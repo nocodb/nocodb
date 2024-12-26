@@ -24,7 +24,7 @@ const props = withDefaults(
         </div>
 
         <slot v-if="$slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="arrowRight" class="nc-submenu-arrow text-base" />
+        <GeneralIcon v-else icon="ncChevronRight" class="nc-submenu-arrow !opacity-60" />
       </div>
     </template>
 
@@ -44,8 +44,8 @@ const props = withDefaults(
       @apply hover:text-gray-800;
     }
 
-    .nc-submenu-arrow {
-      @apply text-gray-600 group-hover:text-gray-800;
+    .nc-icon {
+      @apply opacity-80;
     }
   }
 

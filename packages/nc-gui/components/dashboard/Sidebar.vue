@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full"
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium"
     :style="{
       outlineWidth: '1px',
     }"
@@ -56,9 +56,8 @@ onUnmounted(() => {
     >
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" class="flex-none overflow-auto">
+    <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
       <GeneralGift v-if="!isEeUI" />
-      <div class="border-t-1 w-full"></div>
       <DashboardSidebarBeforeUserInfo />
       <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
       <DashboardSidebarUserInfo />
@@ -69,5 +68,20 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
   @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+}
+
+.nc-sidebar-bottom-section {
+  @apply flex-none overflow-auto p-1 border-t-1;
+
+  & > * {
+    @apply my-0.5;
+  }
+
+  & > :first-child {
+    @apply mt-0;
+  }
+  & > :last-child {
+    @apply mb-0;
+  }
 }
 </style>

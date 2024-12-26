@@ -577,6 +577,9 @@ const showNodeTooltip = ref(true)
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
               :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
+              :style="{
+                fontWeight: 'inherit',
+              }"
               @click.stop
               @keyup.enter="updateProjectTitle"
               @keyup.esc="updateProjectTitle"
@@ -864,6 +867,9 @@ const showNodeTooltip = ref(true)
                               ref="input"
                               v-model:value="sourceRenameHelpers[source.id].tempTitle"
                               class="capitalize !bg-transparent flex-1 mr-4 !pr-1.5 !text-gray-700 !rounded-md !h-6 animate-sidebar-node-input-padding"
+                              :style="{
+                                fontWeight: 'inherit',
+                              }"
                               :data-source-rename-input-id="source.id"
                               @click.stop
                               @keydown.enter.stop.prevent

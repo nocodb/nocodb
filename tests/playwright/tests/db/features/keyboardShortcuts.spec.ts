@@ -241,7 +241,7 @@ test.describe('Clipboard support', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
-      filePath: [`${__dirname}/fixtures/sampleFiles/1.json`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/1.json`],
     });
   });
 

@@ -27023,6 +27023,10 @@
           "deleted": {
             "type": "boolean",
             "required": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         }
       },

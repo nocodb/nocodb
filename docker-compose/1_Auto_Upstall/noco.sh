@@ -494,7 +494,6 @@ check_system_requirements() {
 }
 
 get_user_inputs() {
-  clear
   cat << EOF
 ╔════════════════════════════════════════╗
 ║      NocoDB AutoUpstall Assistant      ║

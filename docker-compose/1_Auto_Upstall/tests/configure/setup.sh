@@ -13,5 +13,5 @@ cd "$WORKING_DIR" || exit
 rm -rf "$NOCO_HOME"
 
 if [ "$1" = "setup" ]; then
-  ../noco.sh <<< $'\n\nN\n'
+  ../noco.sh --debug <<< $'\n\n\nN\nN\n'
 fi

@@ -70,8 +70,10 @@ const relatedModel = computedAsync(async () => {
   return null
 })
 
+const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
+
 const createLookups = async () => {
-  if (!Object.values(selectedFields.value).filter(Boolean).length) {
+  if (!hasSelectedFields.value) {
     return
   }
 
@@ -225,6 +227,7 @@ watch(isOpened, (val) => {
               :loading="isLoading"
               size="small"
               class="w-full"
+              :disabled="!hasSelectedFields"
               @click="createLookups"
             >
               {{

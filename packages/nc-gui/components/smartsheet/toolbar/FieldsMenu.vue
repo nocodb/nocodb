@@ -434,8 +434,13 @@ function getColumnOfField(field: Field) {
   return meta.value?.columns?.find((it) => it.id === field.fk_column_id)
 }
 
-const columnedKeys = reactive<Record<string, number>>({});
+const lookupDropdownsTickle = ref(0);
 
+function scrollToLatestField() {
+  setTimeout(() => {
+    document.querySelector('.nc-fields-menu-item:last-child')?.scrollIntoView({ behavior: 'smooth' })
+  }, 500);
+}
 </script>
 
 <template>
@@ -489,7 +494,7 @@ const columnedKeys = reactive<Record<string, number>>({});
 
     <template #overlay>
       <div
-        class="pt-1 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu"
+        class="pt-1 bg-white w-[320px] rounded-lg nc-table-toolbar-menu"
         data-testid="nc-fields-menu"
         @click.stop
       >
@@ -603,13 +608,13 @@ const columnedKeys = reactive<Record<string, number>>({});
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
+              <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-3" />
             </template>
           </a-input>
         </div>
 
         <div
-          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
+          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
         >
           <div class="nc-fields-list">
             <div
@@ -642,7 +647,7 @@ const columnedKeys = reactive<Record<string, number>>({});
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-md"
+                  class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
                   :class="{
                     'hover:bg-gray-100': !isLocked,
                   }"
@@ -674,22 +679,22 @@ const columnedKeys = reactive<Record<string, number>>({});
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" />
                     <SmartsheetToolbarAddLookupsDropdown
                       v-if="metas"
-                      :key="columnedKeys[getColumnOfField(field)?.id || '0']"
+                      :key="lookupDropdownsTickle"
                       :column="getColumnOfField(field)!"
-                      @created="columnedKeys[getColumnOfField(field)?.id || '0'] = (columnedKeys[getColumnOfField(field)?.id || '0'] || 0) + 1">
-                      <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
-                        <template #title>
-                          {{ field.title }}
-                        </template>
-                        <template #default>
-                          <div class="inline-flex items-center w-[170px]">
+                      @created="lookupDropdownsTickle++">
+                      <div class="inline-flex items-center w-full">
+                        <NcTooltip class="w-0 flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
+                          <template #title>
+                            {{ field.title }}
+                          </template>
+                          <template #default>
                             <span class="truncate">
                               {{ field.title }}
+                              <GeneralIcon v-if="getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-1 relative top-1" />
                             </span>
-                            <GeneralIcon v-if="getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-2" />
-                          </div>
-                        </template>
-                      </NcTooltip>
+                          </template>
+                        </NcTooltip>
+                      </div>
                     </SmartsheetToolbarAddLookupsDropdown>
                     <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                       <NcButton
@@ -785,11 +790,10 @@ const columnedKeys = reactive<Record<string, number>>({});
             </NcButton>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">
-                <!-- :column-position="columnOrder" -->
                 <LazySmartsheetColumnEditOrAddProvider
                   v-if="addColumnDropdown"
                   ref="editOrAddProviderRef"
-                  @submit="addColumnDropdown = false"
+                  @submit="addColumnDropdown = false; scrollToLatestField();"
                   @cancel="addColumnDropdown = false"
                   @click.stop
                   @keydown.stop

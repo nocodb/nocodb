@@ -594,7 +594,7 @@ const showNodeTooltip = ref(true)
                 </NcButton>
                 <template #overlay>
                   <NcMenu
-                    class="nc-scrollbar-md"
+                    class="nc-scrollbar-md !min-w-50"
                     :style="{
                       maxHeight: '70vh',
                       overflow: 'overlay',
@@ -888,7 +888,7 @@ const showNodeTooltip = ref(true)
                               </NcButton>
                               <template #overlay>
                                 <NcMenu
-                                  class="nc-scrollbar-md"
+                                  class="nc-scrollbar-md !min-w-50"
                                   :style="{
                                     maxHeight: '70vh',
                                     overflow: 'overlay',

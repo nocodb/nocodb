@@ -290,6 +290,21 @@ export class AppHooksListenerService
           });
         }
         break;
+      case AppEvents.USER_SIGNOUT:
+        {
+          const param = data as UserSignupEvent;
+
+          // assign user to req (as this is self-event)
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNOUT, {
+              context: param.context,
+              req: param.req,
+            }),
+          );
+        }
+        break;
       case AppEvents.USER_INVITE:
         {
           const param = data as UserInviteEvent;

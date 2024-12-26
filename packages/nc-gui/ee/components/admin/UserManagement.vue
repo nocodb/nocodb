@@ -166,13 +166,18 @@ watch(selected, () => {
     <div class="nc-content-max-w h-full max-h-[calc(100vh_-_100px)] flex flex-col items-center gap-6 p-6">
       <div class="w-full justify-between flex items-center">
         <div class="flex items-center gap-2">
-          <a-input v-model:value="searchInput" placeholder="Search for a member">
+          <a-input
+            v-model:value="searchInput"
+            placeholder="Search for a member"
+            allow-clear
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
             <template #prefix>
               <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
             </template>
           </a-input>
-          <NcDropdown>
-            <NcButton :disabled="!isSomeSelected">
+          <NcDropdown v-if="isSomeSelected">
+            <NcButton size="small">
               <div class="flex gap-2 items-center">
                 <component :is="iconMap.threeDotVertical" />
                 {{ $t('labels.action') }}
@@ -189,7 +194,7 @@ watch(selected, () => {
           </NcDropdown>
         </div>
 
-        <NcButton @click="bulkAddMemberDlg = true">
+        <NcButton size="small" @click="bulkAddMemberDlg = true">
           <component :is="iconMap.plus" />
           {{ $t('activity.addMembers') }}
         </NcButton>

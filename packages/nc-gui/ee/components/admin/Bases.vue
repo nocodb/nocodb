@@ -144,9 +144,14 @@ onMounted(() => {
 
       <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col gap-6 p-6">
         <div class="w-full justify-between flex items-center">
-          <a-input v-model:value="searchInput" placeholder="Search a base">
+          <a-input
+            v-model:value="searchInput"
+            allow-clear
+            placeholder="Search a base"
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
             <template #prefix>
-              <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
             </template>
           </a-input>
         </div>

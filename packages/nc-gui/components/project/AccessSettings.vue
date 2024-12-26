@@ -406,10 +406,6 @@ const isDeleteOrUpdateAllowed = (user) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-input::placeholder) {
-  @apply text-gray-500;
-}
-
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }

@@ -327,10 +327,6 @@ const isDeleteOrUpdateAllowed = (user) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-input::placeholder) {
-  @apply text-gray-500;
-}
-
 .badge-text {
   @apply text-[14px] pt-1 text-center;
 }

@@ -653,6 +653,8 @@
     "lockedByUser": "{user}에 의해 잠김"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "스냅샷 생성 실패",
     "snapshotCreationFailedDescription": "프로젝트 스냅샷을 생성하는 데 실패했습니다. 나중에 다시 시도하세요.",
     "snapshotCooldownDescription": "스냅샷은 3시간 간격으로만 찍을 수 있습니다.",

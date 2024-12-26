@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import { useStorage } from '@vueuse/core'
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
-import { EasterEggs } from '~/lib/enums'
 import type { CommandPaletteType } from '~/lib/types'
 
 const router = useRouter()

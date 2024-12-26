@@ -354,7 +354,10 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            'font-medium !text-brand-600': activeView?.id === vModel.id,
+            '!font-semibold !text-brand-600': activeView?.id === vModel.id,
+          }"
+          :style="{
+            fontWeight: 'inherit',
           }"
           @blur="onRename"
           @keydown.stop="onKeyDown($event)"
@@ -372,7 +375,7 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-medium text-brand-600': activeView?.id === vModel.id,
+              'font-semibold text-brand-600': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >

@@ -3,7 +3,7 @@ const { appInfo } = useGlobal()
 </script>
 
 <template>
-  <div v-if="appInfo.isTrial" class="p-2" :class="{ expired: appInfo.isTrialExpired }">
+  <div v-if="appInfo.isTrial" :class="{ expired: appInfo.isTrialExpired }">
     <DashboardSidebarTrial class="nc-trial-card" />
   </div>
 </template>

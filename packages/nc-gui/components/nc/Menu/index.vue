@@ -23,7 +23,8 @@ const selectable = computed(() => props.selectable ?? false)
   @apply bg-white !rounded-md !py-1.5;
 
   &.nc-variant-small {
-    @apply gap-0.5 !py-1;
+    @apply flex flex-col gap-0.5 !py-1;
+
     .ant-dropdown-menu-item {
       @apply !py-1 !text-small !leading-[18px] font-weight-550 mx-1;
 
@@ -34,6 +35,10 @@ const selectable = computed(() => props.selectable ?? false)
       &:not(.ant-dropdown-menu-item-disabled) {
         @apply hover:text-black text-gray-700;
       }
+    }
+
+    .nc-divider {
+      @apply my-0.5;
     }
   }
 }

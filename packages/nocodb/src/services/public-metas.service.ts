@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
+  ncIsObject,
   RelationTypes,
   UITypes,
   ViewTypes,
@@ -23,6 +24,7 @@ import {
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class PublicMetasService {
@@ -127,7 +129,9 @@ export class PublicMetasService {
         id: u.id,
         display_name: u.display_name,
         email: u.email,
-        meta: u.meta,
+        meta: ncIsObject(u.meta)
+          ? extractProps(u.meta, ['icon', 'iconType'])
+          : null,
       }));
     }
 

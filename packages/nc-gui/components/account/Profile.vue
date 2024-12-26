@@ -108,7 +108,6 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
 watch(
   user,
   () => {
-    console.log('user', user.value)
     if (!user.value) {
       return
     }

@@ -241,8 +241,10 @@ export default class BaseUser {
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
-        baseUser.base_id = base_id;
-        baseUser.meta = parseMetaProp(baseUser);
+        if (baseUser) {
+          baseUser.base_id = base_id;
+          baseUser.meta = parseMetaProp(baseUser);
+        }
 
         return this.castType(baseUser);
       });

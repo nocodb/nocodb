@@ -754,7 +754,12 @@ const onDeleteColumn = () => {
   />
 
   <LazySmartsheetHeaderAddLookups v-if="addLookupMenu" v-model:value="addLookupMenu" :column="column" />
-  <LazySmartsheetHeaderUpdateDisplayValue v-if="changeTitleFieldMenu" v-model:value="changeTitleFieldMenu" :column="column" />
+  <LazySmartsheetHeaderUpdateDisplayValue
+    v-if="changeTitleFieldMenu"
+    v-model:value="changeTitleFieldMenu"
+    :column="column"
+    :use-meta-fields="meta?.id !== view?.fk_model_id"
+  />
 </template>
 
 <style scoped lang="scss">

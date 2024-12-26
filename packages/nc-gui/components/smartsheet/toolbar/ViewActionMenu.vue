@@ -289,7 +289,7 @@ const isDefaultView = computed(() => view.value?.is_default)
                 :class="{ disabled: lockType === LockType.Locked }"
                 class="nc-base-menu-item"
               >
-                <component v-if="importAlias[type]?.icon" :is="importAlias[type].icon" class="opacity-80" />
+                <component :is="importAlias[type].icon" v-if="importAlias[type]?.icon" class="opacity-80" />
                 {{ importAlias[type]?.title }}
               </div>
             </NcMenuItem>

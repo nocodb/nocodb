@@ -600,7 +600,6 @@ import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 
-
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {

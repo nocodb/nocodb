@@ -120,7 +120,13 @@ watch(showCropper, () => {
           cropperConfig.stencilProps?.fillDefault || cropperConfig.stencilProps?.fillDefault === undefined ? { defaultSize } : {}
         "
       />
-      <div v-if="previewImage.src" class="result_preview">
+      <div
+        v-if="previewImage.src"
+        class="result_preview"
+        :class="{
+          'rounded-full overflow-hidden': cropperConfig?.stencilProps?.circlePreview,
+        }"
+      >
         <img :src="previewImage.src" alt="Preview Image" />
       </div>
     </div>

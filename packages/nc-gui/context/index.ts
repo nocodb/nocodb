@@ -65,6 +65,14 @@ export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  handleTableRename: (
+    table: TableType,
+    title: string,
+    orignalTitle: string,
+    updateTitle: (title: string) => void,
+    undo?: boolean,
+    disableTitleDiffCheck?: boolean,
+  ) => void
   openViewDescriptionDialog: (view: ViewType) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }

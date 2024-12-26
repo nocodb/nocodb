@@ -16,7 +16,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, Store, SyncSource, User } from '~/models';
+import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -34,7 +34,7 @@ export class OrgUsersService {
   }) {
     const users = await User.list(param.query);
 
-    await User.signUserImage(users);
+    await PresignedUrl.signMetaIconImage(users);
 
     return users;
   }

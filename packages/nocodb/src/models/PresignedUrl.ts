@@ -1,11 +1,14 @@
 import { nanoid } from 'nanoid';
 import contentDisposition from 'content-disposition';
 import slash from 'slash';
+import { IconType, ncIsObject } from 'nocodb-sdk';
+import type { MetaType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
@@ -275,5 +278,45 @@ export default class PresignedUrl {
         ncMeta,
       );
     }
+  }
+
+  public static async signMetaIconImage(
+    data:
+      | Partial<{
+          meta?: MetaType;
+          [key: string]: any;
+        }>
+      | Partial<{
+          meta?: MetaType;
+          [key: string]: any;
+        }>[],
+  ) {
+    if (!data) return;
+
+    const promises = [];
+
+    try {
+      for (const d of Array.isArray(data) ? data : [data]) {
+        if (!ncIsObject(d)) {
+          continue;
+        }
+
+        d.meta = parseMetaProp(d);
+
+        if (
+          d.meta &&
+          (d.meta as Record<string, any>).icon &&
+          (d.meta as Record<string, any>).iconType === IconType.IMAGE
+        ) {
+          promises.push(
+            PresignedUrl.signAttachment({
+              attachment: (d.meta as Record<string, any>).icon,
+            }),
+          );
+        }
+      }
+
+      await Promise.all(promises);
+    } catch {}
   }
 }

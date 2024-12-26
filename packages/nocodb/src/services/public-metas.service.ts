@@ -18,8 +18,8 @@ import {
   Column,
   GridViewColumn,
   Model,
+  PresignedUrl,
   Source,
-  User,
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -121,7 +121,7 @@ export class PublicMetasService {
         base_id: view.model.base_id,
       });
 
-      await User.signUserImage(baseUsers);
+      await PresignedUrl.signMetaIconImage(baseUsers);
 
       view.users = baseUsers.map((u) => ({
         id: u.id,

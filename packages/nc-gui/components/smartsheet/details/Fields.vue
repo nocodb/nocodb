@@ -1000,10 +1000,18 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
     message.warning(t('msg.warning.multiField.fieldVisibility'))
     return
   }
-  if (visibilityOps.value.find((op) => op.column.fk_column_id === field.fk_column_id)) {
-    visibilityOps.value = visibilityOps.value.filter((op) => op.column.fk_column_id !== field.fk_column_id)
+
+  const visibilityOpIndex = visibilityOps.value.findIndex((op) => op.column.fk_column_id === field.fk_column_id)
+
+  if (visibilityOpIndex !== -1) {
+    if (field.show === checked) {
+      visibilityOps.value = visibilityOps.value.filter((op) => op.column.fk_column_id !== field.fk_column_id)
+    } else {
+      visibilityOps.value[visibilityOpIndex]!.visible = checked
+    }
     return
   }
+
   visibilityOps.value.push({
     visible: checked,
     column: field,
@@ -1011,7 +1019,6 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
 }
 
 const showOrHideAllFields = (isAllFieldsVisible = false) => {
-  visibilityOps.value = []
   fields.value.forEach((f) => toggleVisibility(!isAllFieldsVisible, viewFieldsMap.value[f.id]))
 }
 
@@ -1333,7 +1340,7 @@ const rightPanelWidth = computed(() => {
                 </template>
               </NcButton>
               <template #overlay>
-                <NcMenu>
+                <NcMenu variant="small">
                   <NcMenuItem class="!children:w-full" @click="showOrHideAllFields(isAllFieldsVisible)">
                     {{ isAllFieldsVisible ? $t('general.hideAll') : $t('general.showAll') }}
                     {{ $t('objects.fields').toLowerCase() }}
@@ -1923,10 +1930,6 @@ const rightPanelWidth = computed(() => {
                                 key="table-explorer-duplicate"
                                 data-testid="nc-field-item-action-duplicate"
                                 :disabled="isSystemColumn(field)"
-                                class="text-gray-800"
-                                :class="{
-                                  '!text-gray-400': isSystemColumn(field),
-                                }"
                                 @click="duplicateField(field)"
                               >
                                 <GeneralIcon icon="duplicate" />
@@ -1938,7 +1941,7 @@ const rightPanelWidth = computed(() => {
                                 data-testid="nc-field-item-action-insert-above"
                                 @click="addField(field, true)"
                               >
-                                <GeneralIcon icon="ncArrowUp" class="text-gray-800" />
+                                <GeneralIcon icon="ncArrowUp" />
                                 <span>{{ $t('general.insertAbove') }}</span>
                               </NcMenuItem>
                               <NcMenuItem
@@ -1946,7 +1949,7 @@ const rightPanelWidth = computed(() => {
                                 data-testid="nc-field-item-action-insert-below"
                                 @click="addField(field)"
                               >
-                                <GeneralIcon icon="ncArrowDown" class="text-gray-800" />
+                                <GeneralIcon icon="ncArrowDown" />
                                 <span>{{ $t('general.insertBelow') }}</span>
                               </NcMenuItem>
 
@@ -1954,9 +1957,6 @@ const rightPanelWidth = computed(() => {
 
                               <NcMenuItem
                                 key="table-explorer-delete"
-                                :class="{
-                                  '!hover:bg-red-50': !isSystemColumn(field),
-                                }"
                                 data-testid="nc-field-item-action-delete"
                                 :disabled="isSystemColumn(field)"
                                 @click="onFieldDelete(field)"

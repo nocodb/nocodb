@@ -347,6 +347,7 @@ const isDefaultView = computed(() => view.value?.is_default)
         </NcMenuItemLabel>
         <NcMenuItem
           class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+          data-testid="nc-view-action-lock-subaction-Collaborative"
           :disabled="!isUIAllowed('fieldAdd')"
           @click="changeLockType(LockType.Collaborative)"
         >
@@ -358,6 +359,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
           <NcMenuItem
+            data-testid="nc-view-action-lock-subaction-Personal"
             :disabled="!isViewOwner || !!isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
@@ -366,6 +368,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           </NcMenuItem>
         </SmartsheetToolbarNotAllowedTooltip>
         <NcMenuItem
+          data-testid="nc-view-action-lock-subaction-Locked"
           class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
           :disabled="!isUIAllowed('fieldAdd')"
           @click="changeLockType(LockType.Locked)"

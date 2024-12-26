@@ -105,7 +105,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
       </div>
 
       <template #overlay>
-        <NcMenu>
+        <NcMenu variant="small">
           <NcMenuItem
             v-for="(agg, i) in getAggregations(column)"
             :key="i"

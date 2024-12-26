@@ -105,16 +105,16 @@ const columns = [
   {
     key: 'baseCount',
     title: t('labels.numberOfBases'),
-    minWidth: 180,
-    width: 180,
+    minWidth: 150,
+    width: 150,
     dataIndex: 'baseCount',
     showOrderBy: true,
   },
   {
     key: 'action',
     title: t('labels.actions'),
-    width: 220,
-    minWidth: 220,
+    width: 200,
+    minWidth: 200,
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
@@ -241,7 +241,7 @@ onMounted(() => {
                   <component :is="iconMap.threeDotVertical" />
                 </NcButton>
                 <template #overlay>
-                  <NcMenu>
+                  <NcMenu variant="small">
                     <NcMenuItem data-testid="nc-admin-org-workspace-rename-ws" @click="renameWorkspace(ws.id, ws.title)">
                       <GeneralIcon class="text-gray-800" icon="rename" />
                       <span>{{ $t('general.rename') }}</span>
@@ -256,7 +256,7 @@ onMounted(() => {
                       </NcMenuItem>
                     </NuxtLink>
                     <!--
-                        <a-menu-divider class="my-1.5" />
+                        <NcDivider />
 
                         <NcMenuItem class="!hover:bg-red-50" data-testid="nc-admin-org-user-delete">
                           <div class="text-red-500">

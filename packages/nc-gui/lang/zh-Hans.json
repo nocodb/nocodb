@@ -653,6 +653,8 @@
     "lockedByUser": "被{user} 锁定"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "快照创建失败",
     "snapshotCreationFailedDescription": "创建项目快照失败。请稍后再试。",
     "snapshotCooldownDescription": "快照只能间隔三小时记录一次。",

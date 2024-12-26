@@ -1345,8 +1345,8 @@ importers:
         version: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
     devDependencies:
       '@playwright/test':
-        specifier: 1.43.1
-        version: 1.43.1
+        specifier: 1.49.1
+        version: 1.49.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.1.0
         version: 6.1.0(@typescript-eslint/parser@6.1.0(eslint@8.33.0))(eslint@8.33.0)
@@ -5786,9 +5786,9 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@playwright/test@1.43.1':
-    resolution: {integrity: sha512-HgtQzFgNEEo4TE22K/X7sYTYNqEMMTZmFS8kTq6m8hXj+m1D8TgwgIbumHddJa9h4yl4GkKb8/bgAl2+g7eDgA==}
-    engines: {node: '>=16'}
+  '@playwright/test@1.49.1':
+    resolution: {integrity: sha512-Ky+BVzPz8pL6PQxHqNRW1k3mIyv933LML7HktS8uik0bUXNCdPhoS/kLihiO1tMf/egaJb4IutXd7UywvXEW+g==}
+    engines: {node: '>=18'}
     hasBin: true
 
   '@polka/url@1.0.0-next.21':
@@ -15398,14 +15398,14 @@ packages:
       node-notifier:
         optional: true
 
-  playwright-core@1.43.1:
-    resolution: {integrity: sha512-EI36Mto2Vrx6VF7rm708qSnesVQKbxEWvPrfA1IPY6HgczBplDx7ENtx+K2n4kJ41sLLkuGfmb0ZLSSXlDhqPg==}
-    engines: {node: '>=16'}
+  playwright-core@1.49.1:
+    resolution: {integrity: sha512-BzmpVcs4kE2CH15rWfzpjzVGhWERJfmnXmniSyKeRZUs9Ws65m+RGIi7mjJK/euCegfn3i7jvqWeWyHe9y3Vgg==}
+    engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.43.1:
-    resolution: {integrity: sha512-V7SoH0ai2kNt1Md9E3Gwas5B9m8KR2GVvwZnAI6Pg0m3sh7UvgiYhRrhsziCmqMJNouPckiOhk8T+9bSAK0VIA==}
-    engines: {node: '>=16'}
+  playwright@1.49.1:
+    resolution: {integrity: sha512-VYL8zLoNTBxVOrJBbDuRgDWa3i+mfQgDTrL8Ah9QXZ7ax4Dsj0MSq5bYgytRnDVVe+njoKnfsYkH3HzqVj5UZA==}
+    engines: {node: '>=18'}
     hasBin: true
 
   plimit-lit@1.5.0:
@@ -26509,9 +26509,9 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@playwright/test@1.43.1':
+  '@playwright/test@1.49.1':
     dependencies:
-      playwright: 1.43.1
+      playwright: 1.49.1
 
   '@polka/url@1.0.0-next.21': {}
 
@@ -39345,11 +39345,11 @@ snapshots:
       - encoding
       - supports-color
 
-  playwright-core@1.43.1: {}
+  playwright-core@1.49.1: {}
 
-  playwright@1.43.1:
+  playwright@1.49.1:
     dependencies:
-      playwright-core: 1.43.1
+      playwright-core: 1.49.1
     optionalDependencies:
       fsevents: 2.3.2
 

@@ -191,7 +191,7 @@ onMounted(async () => {
                 </span>
               </div>
 
-              <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
+              <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
                 <NcButton
                   :class="`nc-saml-${sam.title}-more-option`"
                   class="!text-gray-500 !hover:text-gray-800"
@@ -202,20 +202,20 @@ onMounted(async () => {
                   <GeneralIcon class="text-inherit" icon="threeDotVertical" />
                 </NcButton>
                 <template #overlay>
-                  <NcMenu>
+                  <NcMenu variant="small">
                     <NcMenuItem data-test-id="nc-saml-edit" @click="enableEdit(sam)">
                       <div class="flex flex-row items-center">
-                        <component :is="iconMap.edit" class="text-gray-800" />
-                        <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
+                        <component :is="iconMap.edit" />
+                        <span class="ml-2"> {{ $t('general.edit') }} </span>
                       </div>
                     </NcMenuItem>
                     <NcMenuItem class="!hover:bg-white !cursor-not-allowed" data-test-id="nc-saml-duplicate">
                       <div class="flex flex-row items-center">
-                        <component :is="iconMap.copy" class="text-gray-400" />
-                        <span class="text-gray-400 ml-2"> {{ $t('general.duplicate') }} </span>
+                        <component :is="iconMap.copy" />
+                        <span class="ml-2"> {{ $t('general.duplicate') }} </span>
                       </div>
                     </NcMenuItem>
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                     <NcMenuItem data-test-id="nc-saml-delete" @click="deleteProvider(sam.id)">
                       <div class="text-red-500">
                         <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
@@ -261,7 +261,7 @@ onMounted(async () => {
                 </span>
               </div>
 
-              <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
+              <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
                 <NcButton
                   :class="`nc-oidc-${oid.title}-more-option`"
                   class="!text-gray-500 !hover:text-gray-800"
@@ -272,11 +272,11 @@ onMounted(async () => {
                   <GeneralIcon class="text-inherit" icon="threeDotVertical" />
                 </NcButton>
                 <template #overlay>
-                  <NcMenu>
+                  <NcMenu variant="small">
                     <NcMenuItem data-test-id="nc-oidc-edit" @click="enableEdit(oid)">
                       <div class="flex flex-row items-center">
-                        <component :is="iconMap.edit" class="text-gray-800" />
-                        <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
+                        <component :is="iconMap.edit" />
+                        <span class="ml-2"> {{ $t('general.edit') }} </span>
                       </div>
                     </NcMenuItem>
                     <NcMenuItem
@@ -285,11 +285,11 @@ onMounted(async () => {
                       @click="duplicateProvider(oid.id)"
                     >
                       <div class="flex flex-row items-center">
-                        <component :is="iconMap.copy" class="text-gray-400" />
-                        <span class="text-gray-400 ml-2"> {{ $t('general.duplicate') }} </span>
+                        <component :is="iconMap.copy" />
+                        <span class="ml-2"> {{ $t('general.duplicate') }} </span>
                       </div>
                     </NcMenuItem>
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                     <NcMenuItem data-test-id="nc-oidc-delete" @click="deleteProvider(oid.id)">
                       <div class="text-red-500">
                         <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />

@@ -2462,7 +2462,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
         </div>
 
         <template #overlay>
-          <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+          <NcMenu class="!rounded !py-0" variant="small" @click="contextMenu = false">
             <template v-if="!vSelectedAllRecords">
               <NcMenuItem
                 v-if="isEeUI && !contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
@@ -2672,7 +2672,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
         </div>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu variant="small">
             <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
@@ -2683,7 +2683,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             </NcMenuItem>
             <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
               <div class="flex flex-row items-center justify-start gap-x-3">
-                <GeneralIcon class="h-4.5 w-4.5" icon="article" />
+                <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
                 {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
               </div>
 

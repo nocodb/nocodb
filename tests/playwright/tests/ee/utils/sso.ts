@@ -31,7 +31,7 @@ export const startOpenIDIdp = async (env = {}) => {
         if (log.includes('oidc-provider listening on port 4000')) resolve(null);
       });
 
-      openIDChildProcess.stdout.on('error', function (data) {
+      openIDChildProcess.stderr.on('data', function (data) {
         console.log(data.toString());
         reject(data);
       });

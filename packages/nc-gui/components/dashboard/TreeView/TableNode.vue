@@ -40,8 +40,6 @@ useTableNew({
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { copy } = useCopy()
-
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
@@ -100,9 +98,6 @@ const canUserEditEmote = computed(() => {
 const isExpanded = ref(false)
 const isLoading = ref(false)
 
-// Tracks if the table ID has been successfully copied to the clipboard
-const isTableIdCopied = ref(false)
-
 const onExpand = async () => {
   if (isExpanded.value) {
     isExpanded.value = false
@@ -138,25 +133,6 @@ const onOpenTable = async () => {
   } finally {
     isLoading.value = false
     isExpanded.value = true
-  }
-}
-let tableIdCopiedTimeout: NodeJS.Timeout
-
-const onTableIdCopy = async () => {
-  if (tableIdCopiedTimeout) {
-    clearTimeout(tableIdCopiedTimeout)
-  }
-
-  try {
-    await copy(table.value!.id!)
-    isTableIdCopied.value = true
-
-    tableIdCopiedTimeout = setTimeout(() => {
-      isTableIdCopied.value = false
-      clearTimeout(tableIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
   }
 }
 
@@ -371,26 +347,17 @@ const source = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
-                <NcTooltip>
-                  <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
-                  <div
-                    class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-                    @click.stop="onTableIdCopy"
-                  >
-                    <div class="flex text-xs font-bold text-gray-500 ml-1">
-                      {{
-                        $t('labels.tableIdColon', {
-                          tableId: table?.id,
-                        })
-                      }}
-                    </div>
-                    <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-                      <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
-                      <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-                    </NcButton>
-                  </div>
-                </NcTooltip>
+              <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`" variant="small">
+                <NcMenuItemCopyId
+                  v-if="table"
+                  :id="table.id"
+                  :tooltip="$t('labels.clickToCopyTableID')"
+                  :label="
+                    $t('labels.tableIdColon', {
+                      tableId: table.id,
+                    })
+                  "
+                />
 
                 <NcMenuItem
                   v-if="
@@ -403,7 +370,7 @@ const source = computed(() => {
                 >
                   <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                     <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                     {{ $t('labels.editDescription') }}
                   </div>
                 </NcMenuItem>
@@ -423,7 +390,7 @@ const source = computed(() => {
                     @click="openRenameTableDialog(table, source.id)"
                   >
                     <div v-e="['c:table:rename']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="rename" class="text-gray-700" />
+                      <GeneralIcon icon="rename" class="opacity-80" />
                       {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>
@@ -436,7 +403,7 @@ const source = computed(() => {
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                       <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                      <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                       {{ $t('labels.editDescription') }}
                     </div>
                   </NcMenuItem>
@@ -453,15 +420,15 @@ const source = computed(() => {
                     @click="duplicateTable(table)"
                   >
                     <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="duplicate" class="text-gray-700" />
+                      <GeneralIcon icon="duplicate" class="opacity-80" />
                       {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />
 
-                  <NcMenuItem class="!text-gray-700" @click="onDuplicate">
+                  <NcMenuItem @click="onDuplicate">
                     <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-                    <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
+                    <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
                     {{
                       $t('general.duplicateEntity', {
                         entity: $t('title.defaultView').toLowerCase(),
@@ -477,7 +444,7 @@ const source = computed(() => {
                     @click="deleteTable"
                   >
                     <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
+                      <GeneralIcon icon="delete" class="opacity-80" />
                       {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>

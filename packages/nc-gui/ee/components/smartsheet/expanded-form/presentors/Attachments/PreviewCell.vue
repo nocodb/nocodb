@@ -51,7 +51,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
 
   if (isExcel(props.attachment.title || '', props.attachment.mimetype)) {
     return {
-      icon: 'ncFileTypeExcel',
+      icon: 'ncFileTypeCsv',
       title: 'Excel',
     }
   }

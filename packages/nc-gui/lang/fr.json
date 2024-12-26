@@ -653,6 +653,8 @@
     "lockedByUser": "Verrouillé par {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "La création de l'instantané a échoué",
     "snapshotCreationFailedDescription": "Impossible de créer votre instantané de base. Réessayez plus tard.",
     "snapshotCooldownDescription": "Les instantanés ne peuvent être pris qu'à trois heures d'intervalle.",

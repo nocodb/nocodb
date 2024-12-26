@@ -175,7 +175,7 @@ export default {
               <GeneralIcon icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
-              <NcMenu>
+              <NcMenu variant="small">
                 <NcMenuItem @click="downloadCurrentFile()">
                   <GeneralIcon icon="download" />
                   Download current file

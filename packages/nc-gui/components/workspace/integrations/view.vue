@@ -58,8 +58,6 @@ onBeforeMount(() => {
         </h1>
       </div>
 
-      <LazySmartsheetTopbarSnowfallTrigger />
-
       <SmartsheetTopbarCmdK />
     </div>
     <NcTabs v-model:activeKey="activeViewTab">

@@ -79,7 +79,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
 
-        <LazySmartsheetTopbarSnowfallTrigger />
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />
         </div>

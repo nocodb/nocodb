@@ -1292,7 +1292,7 @@ watch(activeAiTab, (newValue) => {
                       </template>
                     </NcButton>
                     <template #overlay>
-                      <NcMenu>
+                      <NcMenu variant="medium">
                         <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode()">
                           <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
                           {{ $t('labels.autoSuggestFields') }}
@@ -1781,33 +1781,19 @@ watch(activeAiTab, (newValue) => {
                         </NcButton>
 
                         <template #overlay>
-                          <NcMenu style="padding-top: 0.45rem !important">
+                          <NcMenu variant="small">
                             <template v-if="fieldStatus(field) !== 'add'">
-                              <NcTooltip placement="top">
-                                <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
-
-                                <div
-                                  class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
-                                  data-testid="nc-field-item-action-copy-id"
-                                  @click="onClickCopyFieldUrl(field)"
-                                >
-                                  <div
-                                    class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
-                                    data-testid="nc-field-item-id"
-                                  >
-                                    {{
-                                      $t('labels.idColon', {
-                                        id: field.id,
-                                      })
-                                    }}
-                                  </div>
-                                  <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
-                                    <GeneralIcon v-if="isFieldIdCopied" icon="check" />
-                                    <GeneralIcon v-else icon="copy" />
-                                  </NcButton>
-                                </div>
-                              </NcTooltip>
-                              <a-menu-divider v-if="!isLocked" class="my-1.5" />
+                              <NcMenuItemCopyId
+                                data-testid="nc-field-item-action-copy-id"
+                                :id="field.id!"
+                                :tooltip="$t('msg.clickToCopyFieldId')"
+                                :label="
+                                  $t('labels.idColon', {
+                                    id: field.id,
+                                  })
+                                "
+                              />
+                              <NcDivider v-if="!isLocked" />
                             </template>
 
                             <template v-if="!isLocked">
@@ -1837,7 +1823,7 @@ watch(activeAiTab, (newValue) => {
                                 <span>{{ $t('general.insertBelow') }}</span>
                               </NcMenuItem>
 
-                              <a-menu-divider class="my-1.5" />
+                              <NcDivider />
 
                               <NcMenuItem
                                 key="table-explorer-delete"
@@ -1967,31 +1953,17 @@ watch(activeAiTab, (newValue) => {
                         </NcButton>
 
                         <template #overlay>
-                          <NcMenu>
-                            <NcTooltip placement="top">
-                              <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
-
-                              <div
-                                class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
-                                data-testid="nc-field-item-action-copy-id"
-                                @click="onClickCopyFieldUrl(displayColumn)"
-                              >
-                                <div
-                                  class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
-                                  data-testid="nc-field-item-id"
-                                >
-                                  {{
-                                    $t('labels.idColon', {
-                                      id: displayColumn.id,
-                                    })
-                                  }}
-                                </div>
-                                <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
-                                  <GeneralIcon v-if="isFieldIdCopied" icon="check" />
-                                  <GeneralIcon v-else icon="copy" />
-                                </NcButton>
-                              </div>
-                            </NcTooltip>
+                          <NcMenu variant="small">
+                            <NcMenuItemCopyId
+                              data-testid="nc-field-item-id"
+                              :id="displayColumn.id!"
+                              :tooltip="$t('msg.clickToCopyFieldId')"
+                              :label="
+                                $t('labels.idColon', {
+                                  id: displayColumn.id,
+                                })
+                              "
+                            />
                           </NcMenu>
                         </template>
                       </NcDropdown>

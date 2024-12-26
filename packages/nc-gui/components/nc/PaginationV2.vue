@@ -143,8 +143,13 @@ const pageSizeOptions = [
         </NcButton>
 
         <template #overlay>
-          <NcMenu class="nc-pagination-menu overflow-hidden">
-            <NcSubMenu v-if="showSizeChanger" :key="`${localPageSize}page`" class="bg-gray-100 z-20 top-0 !sticky">
+          <NcMenu class="nc-pagination-menu overflow-hidden" variant="small">
+            <NcSubMenu
+              v-if="showSizeChanger"
+              :key="`${localPageSize}page`"
+              class="bg-gray-100 z-20 top-0 !sticky"
+              variant="small"
+            >
               <template #title>
                 <div class="rounded-lg text-[13px] font-medium w-full">{{ localPageSize }} / page</div>
               </template>
@@ -165,14 +170,14 @@ const pageSizeOptions = [
               :key="localPageSize"
               :list="pagesList"
               height="auto"
-              :options="{ itemHeight: 36 }"
-              class="mt-1 max-h-46"
+              :options="{ itemHeight: 28 }"
+              class="mt-1 max-h-46 nc-scrollbar-thin"
             >
               <template #default="{ data: item }">
                 <NcMenuItem
                   :key="`${localPageSize}${item.value}`"
                   :style="{
-                    height: '36px',
+                    height: '28px',
                   }"
                   @click.stop="
                     changePage({

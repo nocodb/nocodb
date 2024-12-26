@@ -37,7 +37,7 @@ const onClickDetails = () => {
       @click="onClickDetails"
     >
       <GeneralIcon
-        icon="erd"
+        icon="ncErd"
         class="tab-icon"
         :class="{}"
         :style="{

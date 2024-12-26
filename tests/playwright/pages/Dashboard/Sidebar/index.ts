@@ -104,6 +104,8 @@ export class SidebarPage extends BasePage {
     const createViewButtonOfActiveProject = this.dashboard
       .get()
       .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+
+    await createViewButtonOfActiveProject.waitFor({ state: 'visible' });
     await createViewButtonOfActiveProject.scrollIntoViewIfNeeded();
     await createViewButtonOfActiveProject.click();
 

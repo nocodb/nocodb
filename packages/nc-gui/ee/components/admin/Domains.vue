@@ -72,12 +72,12 @@ onMounted(async () => {
               </template>
             </span>
           </div>
-          <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
+          <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
             <NcButton class="!text-gray-500 !hover:text-gray-800" data-test-id="nc-domain-more-option" size="xsmall" type="text">
               <GeneralIcon class="text-inherit" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
-              <NcMenu>
+              <NcMenu variant="small">
                 <NcMenuItem data-test-id="nc-domain-verify" @click="verifyDomain(domain.id)">
                   <div class="flex flex-row items-center">
                     <component :is="iconMap.check" class="text-gray-800" />
@@ -90,7 +90,7 @@ onMounted(async () => {
                     <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                   </div>
                 </NcMenuItem>
-                <a-menu-divider class="my-1.5" />
+                <NcDivider />
                 <NcMenuItem data-test-id="nc-domain-delete" @click="deleteDomain(domain.id)">
                   <div class="text-red-500">
                     <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />

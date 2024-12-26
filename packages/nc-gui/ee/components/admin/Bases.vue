@@ -73,21 +73,21 @@ const columns = [
   {
     key: 'workspaceName',
     title: t('labels.workspaceName'),
-    minWidth: 288,
+    minWidth: 260,
   },
   {
     key: 'memberCount',
     title: t('labels.numberOfMembers'),
-    minWidth: 180,
-    width: 180,
+    minWidth: 170,
+    width: 170,
     dataIndex: 'memberCount',
     showOrderBy: true,
   },
   {
     key: 'action',
     title: t('labels.actions'),
-    width: 120,
-    minWidth: 120,
+    width: 80,
+    minWidth: 80,
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
@@ -224,7 +224,7 @@ onMounted(() => {
                   <component :is="iconMap.threeDotVertical" />
                 </NcButton>
                 <template #overlay>
-                  <NcMenu>
+                  <NcMenu variant="small">
                     <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="renameBase(base.id)">
                       <GeneralIcon class="text-gray-800" icon="rename" />
                       <span>{{ $t('general.rename') }}</span>

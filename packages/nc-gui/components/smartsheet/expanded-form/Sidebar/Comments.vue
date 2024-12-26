@@ -343,11 +343,10 @@ const getUserRole = (email: string) => {
                     <GeneralIcon class="text-md" icon="threeDotVertical" />
                   </NcButton>
                   <template #overlay>
-                    <NcMenu>
+                    <NcMenu variant="small">
                       <NcMenuItem
                         v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
                         v-e="['c:comment-expand:comment:edit']"
-                        class="text-gray-700"
                         @click="editComment(commentItem)"
                       >
                         <div class="flex gap-2 items-center">
@@ -355,7 +354,7 @@ const getUserRole = (email: string) => {
                           {{ $t('general.edit') }}
                         </div>
                       </NcMenuItem>
-                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" class="text-gray-700" @click="copyComment(commentItem)">
+                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(commentItem)">
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.copy" class="cursor-pointer" />
                           {{ $t('general.copy') }} URL

@@ -108,11 +108,11 @@ async function handleTableRename(
 ) {
   if (!table || !table.source_id) return
 
-  if (title === originalTitle && !disableTitleDiffCheck) return
-
   if (title) {
     title = title.trim()
   }
+
+  if (title === originalTitle && !disableTitleDiffCheck) return
 
   updateTitle(title)
 

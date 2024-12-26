@@ -194,8 +194,6 @@ const vModel = computed({
   },
 })
 
-console.log('localModelValue', modelValue, options.value)
-
 const vModelListLayout = computed(() => {
   if (isMultiple.value) {
     return (vModel.value || []).map((item) => item.value)

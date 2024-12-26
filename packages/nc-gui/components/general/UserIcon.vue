@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType } from 'nocodb-sdk'
+import { IconType, type MetaType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
 import { isColorDark, stringToColor } from '#imports'
@@ -10,10 +10,7 @@ const props = withDefaults(
     name?: string | null
     email?: string
     disabled?: boolean
-    meta?: {
-      icon: string | Record<string, any>
-      iconType: IconType | string
-    }
+    meta?: MetaType
     iconBgColor?: string
   }>(),
   {
@@ -44,8 +41,8 @@ const userIcon = computed<{
     }
   }
 
-  let icon = props.meta?.icon || ''
-  let iconType = props.meta?.iconType || ''
+  let icon = parseProp(props.meta).icon || ''
+  let iconType = parseProp(props.meta).iconType || ''
 
   return {
     icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),

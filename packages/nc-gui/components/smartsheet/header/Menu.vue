@@ -476,7 +476,7 @@ const onDeleteColumn = () => {
           "
         />
 
-        <a-divider class="!my-0.5" />
+        <NcDivider />
         <GeneralSourceRestrictionTooltip
           v-if="isUIAllowed('fieldAlter')"
           message="Field properties cannot be edited."
@@ -546,7 +546,7 @@ const onDeleteColumn = () => {
             {{ t('general.addLookupField') }}
           </div>
         </NcMenuItem>
-        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0.5" />
+        <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
         <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
@@ -577,7 +577,7 @@ const onDeleteColumn = () => {
         </NcTooltip>
 
         <template v-if="!isExpandedForm">
-          <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0.5" />
+          <NcDivider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
             <NcTooltip :disabled="isSortSupported">
@@ -608,7 +608,7 @@ const onDeleteColumn = () => {
             </NcTooltip>
           </template>
 
-          <a-divider class="!my-0.5" />
+          <NcDivider />
 
           <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
             <template #title>
@@ -660,7 +660,7 @@ const onDeleteColumn = () => {
             </NcMenuItem>
           </NcTooltip>
 
-          <a-divider class="!my-0.5" />
+          <NcDivider />
           <NcMenuItem @click="onInsertAfter">
             <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
               <component :is="iconMap.colInsertAfter" class="opacity-80 !w-4.5 !h-4.5" />
@@ -676,7 +676,7 @@ const onDeleteColumn = () => {
             </div>
           </NcMenuItem>
         </template>
-        <a-divider v-if="!column?.pv" class="!my-0.5" />
+        <NcDivider v-if="!column?.pv" />
         <GeneralSourceRestrictionTooltip
           v-if="!column?.pv && isUIAllowed('fieldDelete')"
           message="Field cannot be deleted."

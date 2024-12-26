@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     selectable?: boolean | undefined
-    variant?: 'default' | 'small'
+    variant?: 'default' | 'small' | 'medium'
   }>(),
   {
     variant: 'default',
@@ -22,7 +22,7 @@ const selectable = computed(() => props.selectable ?? false)
 .nc-menu {
   @apply bg-white !rounded-md !py-1.5;
 
-  &.nc-variant-small {
+  &:not(.nc-variant-default) {
     @apply flex flex-col gap-0.5 !py-1;
 
     .ant-dropdown-menu-item {
@@ -35,6 +35,24 @@ const selectable = computed(() => props.selectable ?? false)
       &:not(.ant-dropdown-menu-item-disabled) {
         @apply hover:text-black text-gray-700;
       }
+    }
+
+    &.nc-variant-small {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-7;
+      }
+    }
+
+    &.nc-variant-medium {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-8;
+      }
+    }
+
+    .nc-ant-dropdown-menu-item-label {
+      @apply py-0 mx-1;
     }
 
     .nc-divider {

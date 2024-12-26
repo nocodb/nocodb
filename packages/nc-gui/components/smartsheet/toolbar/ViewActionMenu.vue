@@ -262,9 +262,9 @@ const isDefaultView = computed(() => view.value?.is_default)
             </div>
           </template>
 
-          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
+          <NcMenuItemLabel>
             {{ $t('activity.uploadData') }}
-          </div>
+          </NcMenuItemLabel>
 
           <template v-for="(dialog, type) in quickImportDialogs">
             <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
@@ -336,9 +336,10 @@ const isDefaultView = computed(() => view.value?.is_default)
             <div class="flex flex-grow"></div>
           </div>
         </template>
-        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
+
+        <NcMenuItemLabel>
           {{ $t('labels.viewMode') }}
-        </div>
+        </NcMenuItemLabel>
         <a-menu-item
           class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
           :disabled="!isUIAllowed('fieldAdd')"

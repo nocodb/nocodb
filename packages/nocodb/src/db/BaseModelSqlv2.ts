@@ -10,6 +10,7 @@ import {
   AuditOperationTypes,
   ButtonActionsType,
   extractFilterFromXwhere,
+  IconType,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -42,7 +43,6 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
-  User,
 } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -58,6 +58,7 @@ import {
   Sort,
   Source,
   View,
+  User,
 } from '~/models';
 import { getAliasGenerator, nocoExecute } from '~/utils';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -8480,6 +8481,8 @@ class BaseModelSqlv2 {
           base_id: this.model.base_id,
         });
 
+        await User.signUserImage(baseUsers);
+
         if (Array.isArray(data)) {
           data = await Promise.all(
             data.map((d) => this._convertUserFormat(userColumns, baseUsers, d)),
@@ -8492,7 +8495,7 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected _convertUserFormat(
+  protected async _convertUserFormat(
     userColumns: Column[],
     baseUsers: Partial<User>[],
     d: Record<string, any>,
@@ -8506,13 +8509,15 @@ class BaseModelSqlv2 {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name } = baseUsers.find(
+            const { id, email, display_name, meta } = baseUsers.find(
               (u) => u.id === fid,
             );
+
             return {
               id,
               email,
               display_name: display_name?.length ? display_name : null,
+              meta,
             };
           });
 

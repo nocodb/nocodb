@@ -103,6 +103,7 @@ const options = computed<UserFieldRecordType[]>(() => {
           display_name: user.display_name,
           deleted: user.deleted,
           order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
+          meta: user.meta,
         }))
         .sort((a, b) => a.order - b.order),
     )
@@ -115,6 +116,7 @@ const options = computed<UserFieldRecordType[]>(() => {
           display_name: user.display_name,
           deleted: user.deleted,
           order: order++,
+          meta: user.meta,
         }))
         .sort((a, b) => a.order - b.order),
     )
@@ -149,6 +151,7 @@ const vModel = computed({
           acc.push({
             label: user?.display_name || user?.email,
             value: user.id,
+            meta: user.meta,
           })
         }
         return acc
@@ -189,6 +192,8 @@ const vModel = computed({
     }
   },
 })
+
+console.log('localModelValue', modelValue, vModel.value)
 
 const vModelListLayout = computed(() => {
   if (isMultiple.value) {
@@ -378,6 +383,7 @@ const onFocus = () => {
                     size="auto"
                     :name="op.display_name"
                     :email="op.email"
+                    :meta="op.meta"
                     class="!text-[0.65rem]"
                     :disabled="!isCollaborator(op.id)"
                   />
@@ -449,6 +455,7 @@ const onFocus = () => {
                   :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
                   :email="selectedOpt.label"
                   class="!text-[0.65rem]"
+                  :meta="selectedOpt.meta"
                 />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -523,7 +530,13 @@ const onFocus = () => {
                 :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
-                  <GeneralUserIcon size="auto" :name="op.display_name" :email="op.email" class="!text-[0.65rem]" />
+                  <GeneralUserIcon
+                    size="auto"
+                    :name="op.display_name"
+                    :email="op.email"
+                    :meta="op.meta"
+                    class="!text-[0.65rem]"
+                  />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
@@ -576,6 +589,7 @@ const onFocus = () => {
                   size="auto"
                   :name="!label?.includes('@') ? label.trim() : ''"
                   :email="label"
+                  :meta="label.meta"
                   class="!text-[0.65rem]"
                   :disabled="!isCollaborator(val)"
                 />

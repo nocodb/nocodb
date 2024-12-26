@@ -40,23 +40,7 @@ export class BaseUsersService {
       mode: param.mode,
     });
 
-    baseUsers = await Promise.all(
-      baseUsers.map(async (baseUser) => {
-        if (
-          baseUser?.meta &&
-          (baseUser.meta as Record<string, any>)?.icon &&
-          (baseUser.meta as Record<string, any>)?.iconType === IconType.IMAGE
-        ) {
-          await PresignedUrl.signAttachment(
-            {
-              attachment: (baseUser.meta as Record<string, any>)?.icon,
-            },
-            Noco.ncMeta,
-          );
-        }
-        return baseUser;
-      }),
-    );
+    await User.signUserImage(baseUsers);
 
     return new PagedResponseImpl(baseUsers, {
       count: baseUsers.length,

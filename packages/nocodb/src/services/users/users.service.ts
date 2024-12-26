@@ -58,6 +58,8 @@ export class UsersService {
       },
     );
 
+    await User.signUserImage(user);
+
     return user;
   }
 
@@ -94,7 +96,11 @@ export class UsersService {
   }) {
     const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
 
-    return await User.update(id, updateObj);
+    const user = await User.update(id, updateObj);
+
+    await User.signUserImage(user);
+
+    return user;
   }
 
   async registerNewUserIfAllowed({

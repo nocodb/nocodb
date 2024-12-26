@@ -19,6 +19,7 @@ import {
   GridViewColumn,
   Model,
   Source,
+  User,
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -120,10 +121,13 @@ export class PublicMetasService {
         base_id: view.model.base_id,
       });
 
+      await User.signUserImage(baseUsers);
+
       view.users = baseUsers.map((u) => ({
         id: u.id,
         display_name: u.display_name,
         email: u.email,
+        meta: u.meta,
       }));
     }
 

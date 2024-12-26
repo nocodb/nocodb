@@ -501,7 +501,10 @@ async function onRename() {
             v-model:value="formState.title"
             class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
             :class="{
-              'font-medium !text-brand-600': isTableOpened,
+              '!font-semibold !text-brand-600': isTableOpened,
+            }"
+            :style="{
+              fontWeight: 'inherit',
             }"
             @blur="onRename"
             @keydown.stop="onKeyDown($event)"

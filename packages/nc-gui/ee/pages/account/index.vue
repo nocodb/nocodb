@@ -133,6 +133,16 @@ const logout = async () => {
                 </template>
                 <template #title>{{ $t('objects.users') }}</template>
 
+                <template #expandIcon="{ isOpen }">
+                  <NcButton type="text" size="xxsmall" class="">
+                    <GeneralIcon
+                      icon="chevronRight"
+                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
+                      :class="{ '!rotate-90': isOpen }"
+                    />
+                  </NcButton>
+                </template>
+
                 <NcMenuItem
                   v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
                   key="list"
@@ -199,17 +209,14 @@ const logout = async () => {
                   </NcButton>
 
                   <template #overlay>
-                    <div class="!py-1 !rounded-md bg-white overflow-hidden">
-                      <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                        <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
-                          <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
-
-                          <span class="prose group-hover:text-primary">
-                            {{ $t('general.signOut') }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <NcMenu variant="medium">
+                      <NcMenuItem data-testid="nc-menu-accounts__sign-out" class="group" @click="logout">
+                        <component :is="iconMap.signout" class="group-hover:text-accent" />
+                        <span class="group-hover:text-primary">
+                          {{ $t('general.signOut') }}
+                        </span>
+                      </NcMenuItem>
+                    </NcMenu>
                   </template>
                 </NcDropdown>
               </template>
@@ -261,8 +268,12 @@ const logout = async () => {
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-gray-200 text-gray-700);
   width: calc(100% - 1rem);
+
+  & + ul {
+    @apply !-mt-1;
+  }
 }
 
 :deep(.ant-menu) {

@@ -1931,7 +1931,7 @@ onKeyStroke('ArrowDown', onDown)
                       </div>
 
                       <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
-                        <NcMenu class="predict-menu">
+                        <NcMenu class="predict-menu" variant="small">
                           <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
                               <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
@@ -2333,7 +2333,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
 
         <template #overlay>
-          <NcMenu class="!rounded !py-0" @click="contextMenu = false">
+          <NcMenu class="!rounded !py-0" @click="contextMenu = false" variant="small">
             <NcMenuItem
               v-if="
                 isEeUI && !contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly
@@ -2657,7 +2657,7 @@ onKeyStroke('ArrowDown', onDown)
         </div>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu variant="small">
             <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />

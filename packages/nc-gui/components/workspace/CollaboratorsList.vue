@@ -280,7 +280,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu>
+                <NcMenu variant="small">
                   <template v-if="isAdminPanel">
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />

@@ -76,14 +76,14 @@ export default {
             </NcButton>
 
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem class="text-gray-700" @click="_loadRow()">
+              <NcMenu variant="small">
+                <NcMenuItem @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
                     {{ $t('general.reload') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? emits('copy:record-url') : () => {}">
+                <NcMenuItem v-if="rowId" @click="!isNew ? emits('copy:record-url') : () => {}">
                   <div v-e="['c:row-expand:copy-url']" class="flex gap-2 items-center" data-testid="nc-expanded-form-copy-url">
                     <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                     {{ $t('labels.copyRecordURL') }}

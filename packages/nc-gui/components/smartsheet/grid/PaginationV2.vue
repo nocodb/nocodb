@@ -213,7 +213,7 @@ const renderAltOrOptlKey = () => {
         </div>
 
         <template #overlay>
-          <NcMenu v-if="displayFieldComputed.field && displayFieldComputed.column?.id">
+          <NcMenu v-if="displayFieldComputed.field && displayFieldComputed.column?.id" variant="small">
             <NcMenuItem
               v-for="(agg, index) in getAggregations(displayFieldComputed.column)"
               :key="index"
@@ -295,7 +295,7 @@ const renderAltOrOptlKey = () => {
         </div>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu variant="small">
             <NcMenuItem v-for="(agg, i) in getAggregations(column)" :key="i" @click="updateAggregate(column.id, agg)">
               <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}

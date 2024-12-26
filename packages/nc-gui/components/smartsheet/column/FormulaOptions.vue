@@ -91,7 +91,6 @@ const parsedTree = ref<any>({
 
 const previousDisplayType = ref()
 
-const savedDisplayColumnMeta = ref(vModel.value.meta.display_column_meta)
 const savedDisplayType = ref(vModel.value.meta.display_type)
 
 const hadError = ref(false)
@@ -121,6 +120,7 @@ const debouncedValidate = useDebounceFn(async () => {
     if (hadError.value && previousDisplayType.value) {
       vModel.value.meta.display_type = previousDisplayType.value
     }
+    previousDisplayType.value = undefined
     hadError.value = false
   } catch (e) {
     // Update parsedTree only if this is the latest invocation
@@ -129,14 +129,13 @@ const debouncedValidate = useDebounceFn(async () => {
         dataType: FormulaDataTypes.UNKNOWN,
       }
     }
+    previousDisplayType.value = vModel.value.meta.display_type
     hadError.value = true
   } finally {
     if (vModel.value?.colOptions?.parsed_tree?.dataType !== parsedTree.value?.dataType) {
-      previousDisplayType.value = vModel.value.meta.display_type
       vModel.value.meta.display_type = null
     } else {
       vModel.value.meta.display_type = savedDisplayType.value
-      vModel.value.meta.display_column_meta = savedDisplayColumnMeta.value
     }
   }
 }, 300)
@@ -226,6 +225,12 @@ watch(
               v-model:value="vModel.meta.display_type"
               class="w-full nc-select-shadow"
               :placeholder="$t('labels.selectAFormatType')"
+              @change="
+                (v) => {
+
+                  savedDisplayType = v
+                }
+              "
               allow-clear
             >
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">

@@ -86,27 +86,19 @@ const exportFile = async (exportType: ExportTypes) => {
     {{ $t('labels.downloadData') }}
   </NcMenuItemLabel>
 
-  <NcMenuItem>
-    <div
-      v-e="['a:download:csv']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click.stop="exportFile(ExportTypes.CSV)"
-    >
-      <GeneralLoader v-if="isExportingType === ExportTypes.CSV" class="!max-h-4.5 !-mt-1 !mr-0.7" />
-      <component :is="iconMap.csv" v-else />
+  <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExportingType === ExportTypes.CSV" size="regular" />
+      <component :is="iconMap.csv" v-else class="w-4" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
   </NcMenuItem>
 
-  <NcMenuItem>
-    <div
-      v-e="['a:download:excel']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click="exportFile(ExportTypes.EXCEL)"
-    >
-      <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" class="!max-h-4.5 !-mt-1 !mr-0.7" />
-      <component :is="iconMap.excel" v-else />
+  <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" size="regular" />
+      <component :is="iconMap.excel" v-else class="w-4" />
 
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}

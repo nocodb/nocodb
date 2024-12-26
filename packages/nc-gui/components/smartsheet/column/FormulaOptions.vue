@@ -90,7 +90,11 @@ const parsedTree = ref<any>({
 })
 
 const previousDisplayType = ref()
-const hadError = ref(false);
+
+const savedDisplayColumnMeta = ref(vModel.value.meta.display_column_meta)
+const savedDisplayType = ref(vModel.value.meta.display_type)
+
+const hadError = ref(false)
 
 // Initialize a counter to track watcher invocations
 let watcherCounter = 0
@@ -114,11 +118,10 @@ const debouncedValidate = useDebounceFn(async () => {
     if (currentCounter === watcherCounter) {
       parsedTree.value = parsed
     }
-
     if (hadError.value && previousDisplayType.value) {
       vModel.value.meta.display_type = previousDisplayType.value
     }
-    hadError.value = false;
+    hadError.value = false
   } catch (e) {
     // Update parsedTree only if this is the latest invocation
     if (currentCounter === watcherCounter) {
@@ -126,11 +129,14 @@ const debouncedValidate = useDebounceFn(async () => {
         dataType: FormulaDataTypes.UNKNOWN,
       }
     }
-    hadError.value = true;
+    hadError.value = true
   } finally {
     if (vModel.value?.colOptions?.parsed_tree?.dataType !== parsedTree.value?.dataType) {
-      previousDisplayType.value = vModel.value.meta.display_type;
+      previousDisplayType.value = vModel.value.meta.display_type
       vModel.value.meta.display_type = null
+    } else {
+      vModel.value.meta.display_type = savedDisplayType.value
+      vModel.value.meta.display_column_meta = savedDisplayColumnMeta.value
     }
   }
 }, 300)

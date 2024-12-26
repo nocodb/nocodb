@@ -56,6 +56,7 @@ import * as nc_066_ai_button from '~/meta/migrations/v2/nc_066_ai_button';
 import * as nc_067_personal_view from '~/meta/migrations/v2/nc_067_personal_view';
 import * as nc_068_user_delete from '~/meta/migrations/v2/nc_068_user_delete';
 import * as nc_069_ai_prompt from '~/meta/migrations/v2/nc_069_ai_prompt';
+import * as nc_070_data_reflection from '~/meta/migrations/v2/nc_070_data_reflection';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -123,6 +124,7 @@ export default class XcMigrationSourcev2 {
       'nc_067_personal_view',
       'nc_068_user_delete',
       'nc_069_ai_prompt',
+      'nc_070_data_reflection',
     ]);
   }
 
@@ -248,6 +250,8 @@ export default class XcMigrationSourcev2 {
         return nc_068_user_delete;
       case 'nc_069_ai_prompt':
         return nc_069_ai_prompt;
+      case 'nc_070_data_reflection':
+        return nc_070_data_reflection;
     }
   }
 }

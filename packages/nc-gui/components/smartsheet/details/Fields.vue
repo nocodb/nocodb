@@ -1936,7 +1936,7 @@ watch(activeAiTab, (newValue) => {
                           <NcMenu variant="small">
                             <NcMenuItemCopyId
                               :id="displayColumn.id!"
-                              data-testid="nc-field-item-id"
+                              data-testid="nc-field-item-action-copy-id"
                               :tooltip="$t('msg.clickToCopyFieldId')"
                               :label="
                                 $t('labels.idColon', {
@@ -2006,10 +2006,6 @@ watch(activeAiTab, (newValue) => {
 
 .nc-dropdown-table-explorer-display-column {
   @apply !overflow-hidden;
-}
-
-.nc-dropdown-table-explorer-display-column > div > ul.ant-dropdown-menu.nc-menu {
-  @apply !py-1.5;
 }
 </style>
 

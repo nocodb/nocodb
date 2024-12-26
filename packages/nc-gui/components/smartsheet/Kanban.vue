@@ -1140,7 +1140,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
         </div>
         <!-- Drop down Menu -->
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <NcMenu @click="contextMenu = false" variant="small">
+          <NcMenu variant="small" @click="contextMenu = false">
             <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.maximize" class="flex" />
@@ -1151,8 +1151,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             <NcDivider />
             <NcMenuItem
               v-if="contextMenuTarget"
-              class="!text-red-600 !hover:bg-red-50"
               v-e="['a:kanban:delete-record']"
+              class="!text-red-600 !hover:bg-red-50"
               @click="deleteRow(contextMenuTarget)"
             >
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">

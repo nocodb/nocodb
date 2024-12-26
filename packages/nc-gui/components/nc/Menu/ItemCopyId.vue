@@ -54,7 +54,7 @@ const onClickCopy = async () => {
       </template>
 
       <div
-        class="nc-copy-field flex flex-row justify-between items-center w-[calc(100%_-_8px)] pl-2 pr-1 py-1 mx-1 rounded-md hover:bg-gray-100 cursor-pointer group transition-colors duration-300"
+        class="flex flex-row justify-between items-center w-[calc(100%_-_8px)] pl-2 pr-1 py-1 mx-1 rounded-md hover:bg-gray-100 cursor-pointer group transition-colors duration-300"
         @click.stop="onClickCopy"
       >
         <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">

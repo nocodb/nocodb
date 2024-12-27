@@ -6,6 +6,8 @@ const emits = defineEmits<{
   'upload': [fileList: File[]]
 }>()
 
+const { isMobileMode } = useGlobal();
+
 const dropZoneRef = ref<HTMLDivElement>()
 
 const tempFiles = ref<File[]>([])
@@ -135,13 +137,13 @@ onBeforeUnmount(() => {
         <div
           class="grid overflow-y-auto flex-grow-1 nc-scrollbar-md grid-cols-4 w-full h-full items-start py-2 justify-center gap-4"
         >
-          <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group min-w-34 max-w-28 pb-4 flex-col relative">
+          <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group max-w-34 pb-4 flex-col relative">
             <div
               v-if="!thumbnails.get(file)"
               style="height: 140px"
               class="flex items-center justify-center rounded-md bg-gray-300"
             >
-              <component :is="iconMap.file" class="w-16 h-16" />
+              <component :is="iconMap.file" class="w-16 h-16" :class="{ '!w-12 !h-12': isMobileMode }" />
             </div>
             <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 

@@ -37,7 +37,7 @@ const wrapper = ref()
 
 const { dashboardUrl } = useDashboard()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
@@ -686,7 +686,7 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
             <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" />
+              <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
                 {{ tableTitle }}
               </span>

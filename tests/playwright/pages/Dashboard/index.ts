@@ -28,6 +28,7 @@ import { CmdJ } from './Command/CmdJPage';
 import { CmdK } from './Command/CmdKPage';
 import { CmdL } from './Command/CmdLPage';
 import { CalendarPage } from './Calendar';
+import { Extensions } from './Extensions';
 
 export class DashboardPage extends BasePage {
   readonly base: any;
@@ -61,6 +62,7 @@ export class DashboardPage extends BasePage {
   readonly cmdJ: CmdJ;
   readonly cmdK: CmdK;
   readonly cmdL: CmdL;
+  readonly extensions: Extensions;
 
   constructor(rootPage: Page, base: any) {
     super(rootPage);
@@ -94,6 +96,7 @@ export class DashboardPage extends BasePage {
     this.cmdJ = new CmdJ(this);
     this.cmdK = new CmdK(this);
     this.cmdL = new CmdL(this);
+    this.extensions = new Extensions(this);
   }
 
   get() {

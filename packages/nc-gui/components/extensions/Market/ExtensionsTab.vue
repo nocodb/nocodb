@@ -73,7 +73,7 @@ const onAddExtension = (ext: any) => {
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">
               <div>
-                <div class="text-sm font-bold text-nc-content-gray line-clamp-1">
+                <div class="text-sm font-bold text-nc-content-gray line-clamp-1" data-testid="nc-extension-name">
                   {{ ext.title }}
                 </div>
                 <div v-if="ext.publisher?.name" class="mt-0.5 text-xs leading-[18px] text-nc-content-gray-muted line-clamp-1">

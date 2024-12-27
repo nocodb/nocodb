@@ -16,7 +16,7 @@ export const usePredictFields = createSharedComposable(
   (isFromTableExplorer?: Ref<boolean>, fields?: WritableComputedRef<Record<string, any>[]>) => {
     const { t } = useI18n()
 
-    const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas } = useNocoAi()
+    const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas, predictNextButtons } = useNocoAi()
 
     const { meta, view } = useSmartsheetStoreOrThrow()
 
@@ -34,7 +34,9 @@ export const usePredictFields = createSharedComposable(
       return aiMode.value && localIsFromFieldModal.value
     })
 
-    const isFormulaPredictionMode = ref(false)
+    const fieldPredictionMode = ref<'field' | 'formula' | 'button'>('field')
+
+    const isFormulaPredictionMode = computed(() => fieldPredictionMode.value === 'formula')
 
     const aiModeStep = ref<AiStep | null>(null)
 
@@ -179,7 +181,12 @@ export const usePredictFields = createSharedComposable(
 
       return {
         title: field.title,
-        uidt: isFormulaPredictionMode.value ? UITypes.Formula : field.type,
+        uidt:
+          fieldPredictionMode.value === 'formula'
+            ? UITypes.Formula
+            : fieldPredictionMode.value === 'button'
+            ? UITypes.Button
+            : field.type,
         column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
         ...(field.formula ? { formula_raw: field.formula } : {}),
         ...(field.colOptions ? { colOptions: field.colOptions } : {}),
@@ -205,21 +212,21 @@ export const usePredictFields = createSharedComposable(
         ),
       )
 
+      const predictionFn =
+        fieldPredictionMode.value === 'formula'
+          ? predictNextFormulas
+          : fieldPredictionMode.value === 'button'
+          ? predictNextButtons
+          : _predictNextFields
+
       return (
-        await (isFormulaPredictionMode.value
-          ? predictNextFormulas(
-              meta.value?.id as string,
-              fieldHistory,
-              meta.value?.base_id,
-              activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
-            )
-          : _predictNextFields(
-              meta.value?.id as string,
-              fieldHistory,
-              meta.value?.base_id,
-              activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
-              isForm.value ? formViewHiddenColTypes : [],
-            ))
+        await predictionFn(
+          meta.value?.id as string,
+          fieldHistory,
+          meta.value?.base_id,
+          activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+          isForm.value ? formViewHiddenColTypes : [],
+        )
       )
         .filter(
           (f) =>
@@ -484,11 +491,13 @@ export const usePredictFields = createSharedComposable(
         return false
       }
     }
-    const toggleAiMode = async (isFormulaMode: boolean = false, fromFieldModal = false) => {
-      if (isFormulaMode) {
-        isFormulaPredictionMode.value = true
+    const toggleAiMode = async (mode: 'field' | 'button' | 'formula' = 'field', fromFieldModal = false) => {
+      if (mode === 'formula') {
+        fieldPredictionMode.value = 'formula'
+      } else if (mode === 'button') {
+        fieldPredictionMode.value = 'button'
       } else {
-        isFormulaPredictionMode.value = false
+        fieldPredictionMode.value = 'field'
       }
 
       localIsFromFieldModal.value = !!fromFieldModal
@@ -512,7 +521,7 @@ export const usePredictFields = createSharedComposable(
 
     function onInit() {
       activeSelectedField.value = null
-      isFormulaPredictionMode.value = false
+      fieldPredictionMode.value = 'field'
       aiMode.value = false
       localIsFromFieldModal.value = false
       aiModeStep.value = null
@@ -561,6 +570,7 @@ export const usePredictFields = createSharedComposable(
       activeAiTab,
       isPredictFromPromptLoading,
       isFormulaPredictionMode,
+      fieldPredictionMode,
       failedToSaveFields,
       onInit,
       toggleAiMode,

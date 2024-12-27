@@ -207,8 +207,13 @@ function focusInput() {
     })
   } else if (activeTab.value === IconType.ICON) {
     setTimeout(() => {
-      inputRef.value?.focus()
-      inputRef.value?.select()
+      if (ncIsArray(inputRef.value)) {
+        inputRef.value?.[0]?.focus()
+        inputRef.value?.[0]?.select()
+      } else {
+        inputRef.value?.focus()
+        inputRef.value?.select()
+      }
     }, 250)
   }
 }

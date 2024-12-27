@@ -83,7 +83,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/setup')"
               >
                 <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
 
                   <div class="select-none">
                     {{ $t('labels.setup') }}
@@ -109,7 +109,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/profile')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUser" class="!h-4 !w-4" />
 
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
@@ -155,9 +155,19 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">
                 <template #icon>
-                  <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUsers" class="!h- !w-4" />
                 </template>
                 <template #title>{{ $t('objects.users') }}</template>
+
+                <template #expandIcon="{ isOpen }">
+                  <NcButton type="text" size="xxsmall" class="">
+                    <GeneralIcon
+                      icon="chevronRight"
+                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
+                      :class="{ '!rotate-90': isOpen }"
+                    />
+                  </NcButton>
+                </template>
 
                 <NcMenuItem
                   v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
@@ -225,17 +235,14 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   </NcButton>
 
                   <template #overlay>
-                    <div class="!py-1 !rounded-md bg-white overflow-hidden">
-                      <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                        <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
-                          <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
-
-                          <span class="prose group-hover:text-primary">
-                            {{ $t('general.signOut') }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <NcMenu variant="medium">
+                      <NcMenuItem data-testid="nc-menu-accounts__sign-out" class="group" @click="logout">
+                        <component :is="iconMap.signout" class="group-hover:text-accent" />
+                        <span class="group-hover:text-primary">
+                          {{ $t('general.signOut') }}
+                        </span>
+                      </NcMenuItem>
+                    </NcMenu>
                   </template>
                 </NcDropdown>
               </template>
@@ -276,18 +283,22 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 }
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500;
+    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-gray-200 text-gray-700);
   width: calc(100% - 1rem);
+
+  & + ul {
+    @apply !-mt-1;
+  }
 }
 
 :deep(.ant-menu) {

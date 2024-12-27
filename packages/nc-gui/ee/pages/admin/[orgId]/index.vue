@@ -32,7 +32,7 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout>
-    <div v-if="org" :key="org.title" class="mx-auto h-full">
+    <div v-if="org" class="mx-auto h-full">
       <div class="h-full flex">
         <!-- Side tabs -->
         <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
@@ -61,7 +61,7 @@ onMounted(async () => {
             </div>
             <NcDivider class="!mt-0" />
 
-            <div class="text-sm ml-2 p-2 mt-2 flex items-center justify-between gap-2">
+            <div :key="org.title" class="text-sm ml-2 p-2 mt-2 flex items-center justify-between gap-2">
               <div class="text-base font-bold text-nc-content-gray-emphasis">
                 {{ org.title }}
               </div>

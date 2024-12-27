@@ -142,7 +142,7 @@ watch(
   <div class="flex flex-col" data-test-id="nc-admin-settings">
     <div class="nc-breadcrumb px-2">
       <div class="nc-breadcrumb-item">
-        <!-- {{ org.title }} -->
+        {{ org.title }}
       </div>
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
       <div class="nc-breadcrumb-item active">

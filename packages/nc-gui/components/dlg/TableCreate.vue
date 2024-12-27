@@ -20,6 +20,8 @@ const maxSelectionCount = 100
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { $e } = useNuxtApp()
+
 const isAdvanceOptVisible = ref(false)
 
 const inputEl = ref<HTMLInputElement>()
@@ -104,6 +106,8 @@ const activeAiTab = computed({
         aiPromptInputRef.value?.focus()
       })
     }
+
+    $e(`c:table:ai:tab-change:${value}`)
   },
 })
 
@@ -140,6 +144,8 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
+  $e('a:table:ai:predict-more')
+
   const predictions = await predictNextTables()
 
   if (predictions.length) {
@@ -152,6 +158,8 @@ const predictMore = async () => {
 
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
+
+  $e('a:table:ai:predict-refresh')
 
   const predictions = await predictNextTables()
 
@@ -166,6 +174,10 @@ const predictRefresh = async () => {
 
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
+
+  $e('a:table:ai:predict-from-prompt', {
+    prompt: prompt.value,
+  })
 
   const predictions = await predictNextTables()
 
@@ -217,6 +229,8 @@ const onSelectAll = () => {
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
+  $e(`c:table:ai:toggle:${true}`)
+
   aiError.value = ''
 
   aiMode.value = true
@@ -233,6 +247,8 @@ const toggleAiMode = async () => {
 }
 
 const disableAiMode = () => {
+  $e(`c:table:ai:toggle:${false}`)
+
   aiMode.value = false
   aiModeStep.value = null
   predictedTables.value = []
@@ -250,6 +266,8 @@ const disableAiMode = () => {
 
 const onAiEnter = async () => {
   calledFunction.value = 'generateTables'
+
+  $e('a:table:ai:create')
 
   if (activeTabSelectedTables.value.length) {
     await generateTables(
@@ -780,7 +798,6 @@ const handleRefreshOnError = () => {
             </NcButton>
             <NcButton
               v-else-if="aiIntegrationAvailable"
-              v-e="['a:table:create']"
               type="primary"
               theme="ai"
               size="small"

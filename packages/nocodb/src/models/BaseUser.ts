@@ -151,6 +151,7 @@ export default class BaseUser {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
@@ -172,6 +173,8 @@ export default class BaseUser {
       baseUser = await queryBuilder.first();
 
       if (baseUser) {
+        baseUser.meta = parseMetaProp(baseUser);
+
         await NocoCache.set(
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
@@ -218,6 +221,7 @@ export default class BaseUser {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
@@ -237,7 +241,11 @@ export default class BaseUser {
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
-        baseUser.base_id = base_id;
+        if (baseUser) {
+          baseUser.base_id = base_id;
+          baseUser.meta = parseMetaProp(baseUser);
+        }
+
         return this.castType(baseUser);
       });
 

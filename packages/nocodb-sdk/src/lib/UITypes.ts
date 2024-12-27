@@ -1,7 +1,7 @@
 import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
-import { ncParseProp, parseHelper } from './helperFunctions';
+import { parseProp } from './helperFunctions';
 
 enum UITypes {
   ID = 'ID',
@@ -101,11 +101,11 @@ export const columnTypeName = (column?: ColumnType) => {
 
   switch (column.uidt) {
     case UITypes.LongText: {
-      if (ncParseProp(column.meta)?.richMode) {
+      if (parseProp(column.meta)?.richMode) {
         return UITypesName.RichText;
       }
 
-      if (ncParseProp(column.meta)[LongTextAiMetaProp]) {
+      if (parseProp(column.meta)[LongTextAiMetaProp]) {
         return UITypesName.AIPrompt;
       }
 
@@ -225,7 +225,7 @@ export function isVirtualCol(
 export function isAIPromptCol(col: ColumnReqType | ColumnType) {
   return (
     col.uidt === UITypes.LongText &&
-    parseHelper((col as any)?.meta)?.[LongTextAiMetaProp]
+    parseProp((col as any)?.meta)?.[LongTextAiMetaProp]
   );
 }
 
@@ -403,8 +403,8 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
     }
     case UITypes.LongText: {
       if (
-        ncParseProp(column.meta)?.richMode ||
-        ncParseProp(column.meta)[LongTextAiMetaProp]
+        parseProp(column.meta)?.richMode ||
+        parseProp(column.meta)[LongTextAiMetaProp]
       ) {
         return false;
       }

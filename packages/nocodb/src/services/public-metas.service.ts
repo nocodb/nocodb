@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
+  ncIsObject,
   RelationTypes,
   UITypes,
   ViewTypes,
@@ -18,10 +19,12 @@ import {
   Column,
   GridViewColumn,
   Model,
+  PresignedUrl,
   Source,
   View,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class PublicMetasService {
@@ -120,10 +123,15 @@ export class PublicMetasService {
         base_id: view.model.base_id,
       });
 
+      await PresignedUrl.signMetaIconImage(baseUsers);
+
       view.users = baseUsers.map((u) => ({
         id: u.id,
         display_name: u.display_name,
         email: u.email,
+        meta: ncIsObject(u.meta)
+          ? extractProps(u.meta, ['icon', 'iconType'])
+          : null,
       }));
     }
 

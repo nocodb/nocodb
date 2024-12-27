@@ -446,3 +446,9 @@ export enum PublicAttachmentScope {
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
 }
+
+export enum IconType {
+  IMAGE = 'IMAGE',
+  EMOJI = 'EMOJI',
+  ICON = 'ICON',
+}

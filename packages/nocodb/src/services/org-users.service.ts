@@ -16,7 +16,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, Store, SyncSource, User } from '~/models';
+import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -32,7 +32,11 @@ export class OrgUsersService {
     // todo: add better typing
     query: Record<string, any>;
   }) {
-    return await User.list(param.query);
+    const users = await User.list(param.query);
+
+    await PresignedUrl.signMetaIconImage(users);
+
+    return users;
   }
 
   async userUpdate(param: {

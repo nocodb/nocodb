@@ -25,6 +25,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import { PresignedUrl } from 'src/models';
 
 @Controller()
 export class AuthController {
@@ -135,6 +136,9 @@ export class AuthController {
       workspace_roles: extractRolesObj(req.user.workspace_roles),
       base_roles: extractRolesObj(req.user.base_roles),
     };
+
+    await PresignedUrl.signMetaIconImage(user);
+
     return user;
   }
 

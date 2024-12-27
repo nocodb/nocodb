@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { MetaType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -50,6 +50,7 @@ interface Collaborators {
   workspace_roles: WorkspaceUserRoles
   created_at: string
   display_name: string | null
+  meta: MetaType
 }
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
@@ -349,7 +350,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           </template>
 
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
-            <GeneralUserIcon size="base" :email="record.email" :name="record.display_name" class="flex-none" />
+            <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>

@@ -531,7 +531,7 @@ const onFocus = () => {
                 <div>
                   <GeneralUserIcon size="auto" :user="op" class="!text-[0.65rem] !h-[16.8px]" />
                 </div>
-                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only placement="right">
                   <template #title>
                     {{ op.display_name?.trim() || op.email }}
                   </template>

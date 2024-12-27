@@ -532,7 +532,7 @@ export class AppHooksListenerService
                 AuditV1OperationTypes.TABLE_UPDATE,
                 {
                   details: {
-                    table_title: param.table.title,
+                    table_title: param.table.title ?? param.prevTable.title,
                     ...updateEventPayload,
                   },
                   context: param.context,

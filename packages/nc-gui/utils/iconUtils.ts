@@ -70,6 +70,7 @@ import HasManySolidIcon from '~icons/nc-icons/hm-solid'
 import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
 import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
 import Record from '~icons/nc-icons/record'
+import TableCurrent from '~icons/nc-icons/table-current'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
@@ -912,7 +913,8 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: Record,
+  tableOld: Record,
+  table: TableCurrent,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,

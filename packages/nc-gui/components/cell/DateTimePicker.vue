@@ -494,7 +494,7 @@ const currentDate = ($event) => {
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="!!isMobileMode || isColDisabled"
+            :readonly="isColDisabled"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
             @keydown="handleKeydown($event, isOpen, true)"

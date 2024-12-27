@@ -154,7 +154,7 @@
     "details": "Détails",
     "skip": "Ignorer",
     "code": "Code",
-    "codeBlock": "Code Block",
+    "codeBlock": "Bloc de code",
     "duplicate": "Dupliquer",
     "duplicating": "Dupliquer",
     "duplicateEntity": "{entity} copiée",
@@ -653,8 +653,8 @@
     "lockedByUser": "Verrouillé par {user}"
   },
   "labels": {
-    "enableSnowFall": "Enable Snowfall",
-    "disableSnowFall": "Disable Snowfall",
+    "enableSnowFall": "Activer Snowfall",
+    "disableSnowFall": "Désactiver Snowfall",
     "snapshotCreationFailed": "La création de l'instantané a échoué",
     "snapshotCreationFailedDescription": "Impossible de créer votre instantané de base. Réessayez plus tard.",
     "snapshotCooldownDescription": "Les instantanés ne peuvent être pris qu'à trois heures d'intervalle.",
@@ -807,7 +807,7 @@
     "icon": "Icône",
     "max": "Maximum",
     "enableRichText": "Activer le texte enrichi",
-    "idColon": "FIELD ID: {id}",
+    "idColon": "Champ ID : {id}",
     "copiedRecordURL": "URL de l'enregistrement copié",
     "copyRecordURL": "Copier l'URL de l'enregistrement",
     "duplicateRecord": "Dupliquer la ligne",

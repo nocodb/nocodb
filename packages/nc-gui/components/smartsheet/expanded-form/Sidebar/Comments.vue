@@ -7,7 +7,7 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useRoles()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const route = useRoute()
 

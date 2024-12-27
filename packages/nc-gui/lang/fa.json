@@ -807,7 +807,7 @@
     "icon": "آیکون",
     "max": "حداکثر",
     "enableRichText": "فعال‌سازی متن غنی",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL رکورد کپی شده",
     "copyRecordURL": "کپی کردن URL رکورد",
     "duplicateRecord": "کپی کردن ردیف",

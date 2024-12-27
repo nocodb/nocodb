@@ -807,7 +807,7 @@
     "icon": "រូបតំណាង",
     "max": "អតិបរមា",
     "enableRichText": "បើកការនិពន្ធអត្ថបទចំរុះ",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "បានចម្លងURLកំណត់ត្រចៀក",
     "copyRecordURL": "ចម្លងURLកំណត់ត្រចៀក",
     "duplicateRecord": "កំណត់ត្រចៀកស្ទួន",

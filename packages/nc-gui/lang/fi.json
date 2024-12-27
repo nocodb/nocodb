@@ -807,7 +807,7 @@
     "icon": "Ikoni",
     "max": "Max",
     "enableRichText": "Ota käyttöön muokattu teksti",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopioitu tietueen URL",
     "copyRecordURL": "Kopioi tietueen URL",
     "duplicateRecord": "Monista tietue",

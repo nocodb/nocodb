@@ -807,7 +807,7 @@
     "icon": "Biểu tượng",
     "max": "Tối đa",
     "enableRichText": "Bật văn bản phong phú",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Đã sao chép URL bản ghi",
     "copyRecordURL": "Sao chép URL bản ghi",
     "duplicateRecord": "Tạo bản sao bản ghi",

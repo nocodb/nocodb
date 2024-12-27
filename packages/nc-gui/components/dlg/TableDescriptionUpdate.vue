@@ -125,9 +125,9 @@ const updateDescription = async (undo = false) => {
 <template>
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" class="w-6 h-6 text-gray-700" />
-        <span class="text-gray-900 font-bold">
+      <div class="flex flex-row items-center gap-x-2 text-base">
+        <GeneralIcon icon="table" class="w-5 h-5 text-gray-600" />
+        <span class="text-base font-semibold text-gray-800">
           {{ tableMeta?.title ?? tableMeta?.table_name }}
         </span>
       </div>

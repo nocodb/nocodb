@@ -19,7 +19,7 @@ const route = router.currentRoute
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
+const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj)!
 
@@ -121,6 +121,8 @@ const showBaseOption = (source: SourceType) => {
 }
 
 const enableEditMode = () => {
+  if (!isUIAllowed('baseRename')) return
+
   editMode.value = true
   tempTitle.value = base.value.title!
   nextTick(() => {
@@ -131,12 +133,16 @@ const enableEditMode = () => {
 }
 
 const enableEditModeForSource = (sourceId: string) => {
+  if (!isUIAllowed('baseRename')) return
+
   const source = base.value.sources?.find((s) => s.id === sourceId)
   if (!source?.id) return
+
   sourceRenameHelpers.value[source.id] = {
     editMode: true,
     tempTitle: source.alias || '',
   }
+
   nextTick(() => {
     const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
     if (!input) return
@@ -590,7 +596,7 @@ const shouldOpenContextMenu = computed(() => {
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span>
+              <span @dblclick.stop="enableEditMode">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -880,7 +886,10 @@ const shouldOpenContextMenu = computed(() => {
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>
-                              <span :data-testid="`nc-sidebar-base-${source.alias}`">
+                              <span
+                                :data-testid="`nc-sidebar-base-${source.alias}`"
+                                @dblclick.stop="enableEditModeForSource(source.id!)"
+                              >
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>
@@ -1006,7 +1015,7 @@ const shouldOpenContextMenu = computed(() => {
             <NcDivider />
             <NcMenuItem
               v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
-              @click="openRenameTableDialog(contextMenuTarget.value, true)"
+              @click="tableRenameId = `${contextMenuTarget.value?.id}:${contextMenuTarget.value?.source_id}`"
             >
               <div v-e="['c:table:rename']" class="nc-base-option-item flex gap-2 items-center">
                 <GeneralIcon icon="rename" />

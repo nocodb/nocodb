@@ -807,7 +807,7 @@
     "icon": "Simge",
     "max": "Maksimum",
     "enableRichText": "Zengin Metni Etkinleştir",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kayıt URL'si Kopyalandı",
     "copyRecordURL": "Kayıt URL'sini Kopyala",
     "duplicateRecord": "Kaydı Çoğalt",

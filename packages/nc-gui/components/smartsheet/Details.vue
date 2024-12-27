@@ -88,7 +88,7 @@ watch(openedSubTab, () => {
       <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />
             <div>{{ $t('objects.webhooks') }}</div>
           </div>
         </template>

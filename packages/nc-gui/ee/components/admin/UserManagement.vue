@@ -225,7 +225,7 @@ watch(selected, () => {
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
             <GeneralUserIcon :user="member" size="base" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
+              <div class="flex gap-2">
                 <NcTooltip
                   class="truncate text-gray-800 capitalize font-semibold"
                   :class="{
@@ -240,7 +240,14 @@ watch(selected, () => {
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
                 <!-- Todo: badge size  -->
-                <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
+                <RolesBadge
+                  v-if="member.cloud_org_roles"
+                  :border="false"
+                  :role="member.cloud_org_roles"
+                  size="xs"
+                  :show-icon="false"
+                  class="!px-1"
+                />
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>
@@ -306,7 +313,7 @@ watch(selected, () => {
           <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
             <NcDropdown>
               <NcButton size="small" type="secondary">
-                <component :is="iconMap.threeDotVertical" class="h-4 w-4"/>
+                <component :is="iconMap.threeDotVertical" class="h-4 w-4" />
               </NcButton>
               <template #overlay>
                 <NcMenu variant="small">

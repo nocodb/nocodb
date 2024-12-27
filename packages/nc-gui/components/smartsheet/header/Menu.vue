@@ -431,7 +431,7 @@ const onDeleteColumn = () => {
     :disabled="isLocked"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
-    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
+    :overlay-class-name="`nc-dropdown-column-operations ${isOpen ? 'active' : ''} !border-1 rounded-lg !shadow-xl`"
     @click.stop="openDropdown"
   >
     <div class="flex gap-1 items-center" @dblclick.stop>

@@ -380,6 +380,10 @@ export class ToolbarFilterPage extends BasePage {
           if (!['is blank', 'is not blank'].includes(operation)) {
             await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
 
+            await this.rootPage.locator(`.nc-dropdown-user-select-cell`).waitFor({ state: 'visible' });
+
+            await this.rootPage.waitForTimeout(20000);
+
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
               const selectUser = () =>

@@ -9,7 +9,7 @@ const props = withDefaults(
     border?: boolean
     showIcon?: boolean
     iconOnly?: boolean
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'xs' | 'sm' | 'md' | 'lg'
     disabled?: boolean
   }>(),
   {

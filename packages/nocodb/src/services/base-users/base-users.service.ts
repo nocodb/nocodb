@@ -159,6 +159,7 @@ export class BaseUsersService {
           base,
           user,
           role: param.baseUser.roles,
+          invitedBy: param.req?.user,
           req: param.req,
           context,
         });
@@ -193,6 +194,7 @@ export class BaseUsersService {
             user,
             role: param.baseUser.roles,
             req: param.req,
+            invitedBy: param.req?.user,
             context,
           });
 

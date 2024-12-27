@@ -30,6 +30,7 @@ export interface NcBaseEvent {
 export interface ProjectInviteEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
+  invitedBy: UserType;
   role: ProjectRoles | string;
 }
 

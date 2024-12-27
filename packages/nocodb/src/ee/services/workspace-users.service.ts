@@ -438,6 +438,7 @@ export class WorkspaceUsersService {
         workspace,
         user,
         roles: roles || WorkspaceUserRoles.NO_ACCESS,
+        invitedBy: param.req?.user,
         req: param.req,
       });
     }

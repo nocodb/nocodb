@@ -9,6 +9,7 @@ export interface WorkspaceUserInviteEvent
   extends Optional<NcBaseEvent, 'context'> {
   workspace: WorkspaceType;
   user: UserType;
+  invitedBy: UserType;
   roles: string;
 }
 

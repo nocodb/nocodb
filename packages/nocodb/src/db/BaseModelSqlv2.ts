@@ -23,7 +23,6 @@ import {
   ncIsObject,
   RelationTypes,
   UITypes,
-  NcRequest,
 } from 'nocodb-sdk';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
@@ -100,11 +99,9 @@ import {
 } from '~/ee/utils';
 import { Audit, ModelStat } from '~/ee/models';
 import {
-  UPDATE_MODEL_STAT,
   UPDATE_WORKSPACE_COUNTER,
 } from '~/ee/services/update-stats.service';
 import { MetaTable } from '~/ee/utils/globals';
-import { getLimit } from '~/ee/plan-limits';
 import { extractColsMetaForAudit } from '~/ee/db/BaseModelSqlv2';
 
 dayjs.extend(utc);

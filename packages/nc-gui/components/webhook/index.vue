@@ -586,7 +586,7 @@ onMounted(async () => {
     <template #header>
       <div class="flex w-full items-center p-4 justify-between">
         <div class="flex items-center gap-3">
-          <GeneralIcon class="text-gray-900 text-2xl" icon="webhook" />
+          <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">
             {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
           </span>

@@ -4926,6 +4926,10 @@
                   "display_name": {
                     "type": "string",
                     "description": "The display name of the user who invited to the base"
+                  },
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta",
+                    "description": "Meta data for user"
                   }
                 },
                 "required": [
@@ -4992,6 +4996,10 @@
                   "display_name": {
                     "type": "string",
                     "description": "The display name of the user who invited to the base"
+                  },
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta",
+                    "description": "Meta data for user"
                   }
                 },
                 "required": [
@@ -5149,6 +5157,10 @@
                   "display_name": {
                     "type": "string",
                     "description": "The display name of the user who mentioned"
+                  },
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta",
+                    "description": "Meta data for user"
                   }
                 },
                 "required": [

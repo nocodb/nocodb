@@ -7,6 +7,7 @@ import type {
   FilterType,
   MetaType,
   PaginatedType,
+  PublicAttachmentScope,
   Roles,
   RolesObj,
   TableType,
@@ -30,6 +31,7 @@ interface User {
   base_id?: string
   display_name?: string | null
   featureFlags?: Record<string, boolean>
+  meta?: MetaType
 }
 
 interface ProjectMetaInfo {
@@ -252,10 +254,27 @@ interface ImageCropperConfig {
      * @default true
      */
     fillDefault?: boolean
+    circlePreview?: boolean
   }
   minHeight?: number
   minWidth?: number
   imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
+}
+
+interface ImageCropperProps {
+  imageConfig: {
+    src: string
+    type: string
+    name: string
+  }
+  cropperConfig: ImageCropperConfig
+  uploadConfig?: {
+    path?: string
+    scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
+  }
+  showCropper: boolean
 }
 
 interface AuditLogsQuery {
@@ -338,6 +357,7 @@ export type {
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
+  ImageCropperProps,
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,

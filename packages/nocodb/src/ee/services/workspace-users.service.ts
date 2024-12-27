@@ -18,7 +18,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, User } from '~/models';
+import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -43,6 +43,7 @@ export class WorkspaceUsersService {
       include_deleted: param.includeDeleted,
     });
 
+    await PresignedUrl.signMetaIconImage(users);
     // todo: pagination
     return new PagedResponseImpl<WorkspaceType>(users, {
       count: users.length,
@@ -60,6 +61,8 @@ export class WorkspaceUsersService {
     const user = await WorkspaceUser.get(workspaceId, userId);
 
     if (!user) NcError.userNotFound(userId);
+
+    await PresignedUrl.signMetaIconImage(user);
 
     return user;
   }
@@ -156,6 +159,8 @@ export class WorkspaceUsersService {
     }).then(() => {
       /* ignore */
     });
+
+    await PresignedUrl.signMetaIconImage(workspaceUser);
 
     return workspaceUser;
   }

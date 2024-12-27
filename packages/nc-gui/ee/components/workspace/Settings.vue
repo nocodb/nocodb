@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { WorkspaceIconType } from '#imports'
+import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -30,7 +30,7 @@ const form = reactive<{
   title: string
   modalInput: string
   icon: string | Record<string, any>
-  iconType: typeof WorkspaceIconType | string
+  iconType: IconType | string
 }>({
   title: '',
   modalInput: '',
@@ -56,6 +56,27 @@ const currentWorkspace = computedAsync(async () => {
     return ws
   }
   return activeWorkspace.value
+})
+
+const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
+  cropperConfig: {
+    stencilProps: {
+      aspectRatio: 1,
+      fillDefault: true,
+    },
+    minHeight: 150,
+    minWidth: 150,
+  },
+  imageConfig: {
+    src: '',
+    type: 'image',
+    name: 'icon',
+  },
+  uploadConfig: {
+    path: [NOCO, 'workspace', currentWorkspace.value?.id, 'icon'].join('/'),
+    scope: PublicAttachmentScope.WORKSPACEPICS,
+    maxFileSize: 2 * 1024 * 1024,
+  },
 })
 
 const onDelete = async () => {
@@ -106,7 +127,7 @@ const saveChanges = async () => {
       title: form.title,
       meta: {
         ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
-        icon: form.iconType === WorkspaceIconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
+        icon: form.iconType === IconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
         iconType: form.iconType,
       },
     })
@@ -172,12 +193,33 @@ watch(
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
         <div class="flex gap-4 mt-6">
           <div>
-            <GeneralWorkspaceIconSelector
+            <GeneralIconSelector
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
-              :current-workspace="currentWorkspace"
+              v-model:image-cropper-data="imageCropperData"
               @submit="saveChanges"
-            />
+            >
+              <template #default="{ isOpen }">
+                <div
+                  class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
+                  :class="{
+                    'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                    'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                    'border-primary shadow-selected': isOpen,
+                  }"
+                >
+                  <GeneralWorkspaceIcon
+                    :workspace="currentWorkspace"
+                    :workspace-icon="{
+                      icon: form.icon,
+                      iconType: form.iconType,
+                    }"
+                    size="xlarge"
+                    class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
+                  />
+                </div>
+              </template>
+            </GeneralIconSelector>
           </div>
           <div class="flex-1">
             <div class="text-sm text-nc-content-gray-subtle2">Name</div>

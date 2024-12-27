@@ -181,7 +181,7 @@ export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
 }
 
-export enum WorkspaceIconType {
+export enum IconType {
   IMAGE = 'IMAGE',
   EMOJI = 'EMOJI',
   ICON = 'ICON',

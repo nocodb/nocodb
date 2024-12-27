@@ -352,6 +352,7 @@ export default class Workspace implements WorkspaceType {
           'display_name', ${MetaTable.USERS}.display_name,
           'email', ${MetaTable.USERS}.email,
           'main_roles', ${MetaTable.USERS}.roles,
+          'meta', ${MetaTable.USERS}.meta,
           'roles', ${MetaTable.WORKSPACE_USER}.roles,
           'created_at', ${MetaTable.WORKSPACE_USER}.created_at
         )::TEXT

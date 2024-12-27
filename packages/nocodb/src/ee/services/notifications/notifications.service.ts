@@ -68,6 +68,7 @@ export class NotificationsService extends NotificationsServiceCE {
                   id: invitedBy.id,
                   email: invitedBy.email,
                   displayName: invitedBy.display_name,
+                  meta: invitedBy.meta,
                 },
                 workspace: {
                   id: ws.id,
@@ -191,6 +192,7 @@ export class NotificationsService extends NotificationsServiceCE {
                     id: user.id,
                     email: user.email,
                     display_name: user.display_name,
+                    meta: user.meta,
                   },
                 },
               },
@@ -252,6 +254,7 @@ export class NotificationsService extends NotificationsServiceCE {
                   id: user.id,
                   email: user.email,
                   display_name: user.display_name,
+                  meta: user.meta,
                 },
                 table: {
                   id: model.id,

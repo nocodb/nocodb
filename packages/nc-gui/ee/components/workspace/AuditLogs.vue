@@ -457,7 +457,7 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="w-full flex items-center justify-between gap-3">
                         <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
-                          <GeneralUserIcon :email="coll?.email" :name="coll?.display_name" size="base" class="flex-none" />
+                          <GeneralUserIcon :user="coll" size="base" class="flex-none" />
                           <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                             <div class="w-full flex gap-3">
                               <span class="text-sm text-gray-800 capitalize font-semibold truncate">
@@ -879,12 +879,7 @@ onKeyStroke('ArrowDown', onDown)
                   <td class="cell-user">
                     <div>
                       <div v-if="audit.user && collaboratorsMap.get(audit.user)?.email" class="w-full flex gap-3 items-center">
-                        <GeneralUserIcon
-                          :email="collaboratorsMap.get(audit.user)?.email"
-                          :name="collaboratorsMap.get(audit.user)?.display_name"
-                          size="base"
-                          class="flex-none"
-                        />
+                        <GeneralUserIcon :user="collaboratorsMap.get(audit.user)" size="base" class="flex-none" />
                         <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                           <div class="w-full flex gap-3">
                             <NcTooltip
@@ -1055,12 +1050,7 @@ onKeyStroke('ArrowDown', onDown)
                   v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
                   class="w-full flex gap-3 items-center"
                 >
-                  <GeneralUserIcon
-                    :email="collaboratorsMap.get(selectedAudit.user)?.email"
-                    :name="collaboratorsMap.get(selectedAudit.user)?.display_name"
-                    size="base"
-                    class="flex-none"
-                  />
+                  <GeneralUserIcon :user="collaboratorsMap.get(selectedAudit.user)" size="base" class="flex-none" />
                   <div class="flex-1 flex flex-col">
                     <div class="w-full flex gap-3">
                       <span class="text-sm text-gray-800 capitalize font-semibold">

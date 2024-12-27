@@ -2,6 +2,7 @@ import { UsersService as UsersServiceEE } from 'src/ee/services/users/users.serv
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LicenseService } from '../license/license.service';
+import type { MetaType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { MetaService } from '~/meta/meta.service';
@@ -40,6 +41,7 @@ export class UsersService extends UsersServiceEE {
     salt,
     password,
     email_verification_token,
+    meta,
     req,
   }: {
     avatar;
@@ -49,6 +51,7 @@ export class UsersService extends UsersServiceEE {
     salt: any;
     password;
     email_verification_token;
+    meta?: MetaType;
     req: NcRequest;
   }) {
     if (this.licenseService.isTrial()) {
@@ -74,6 +77,7 @@ export class UsersService extends UsersServiceEE {
       salt,
       password,
       email_verification_token,
+      meta,
       req,
     });
   }

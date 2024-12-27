@@ -1,4 +1,4 @@
-import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, MetaType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
@@ -10,7 +10,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const audits = ref<Array<AuditType>>([])
+  const audits = ref<
+    Array<
+      AuditType & {
+        created_display_name?: string
+        created_by_email?: string
+        created_by_meta?: MetaType
+      }
+    >
+  >([])
 
   const isAuditLoading = ref(false)
 
@@ -118,6 +126,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           ...audit,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
           created_by_email: user?.email,
+          created_by_meta: user?.meta,
         }
       })
     } catch (e: any) {

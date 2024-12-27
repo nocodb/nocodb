@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CloudOrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  CloudOrgUserRoles,
+  ncIsArray,
+  parseProp,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
+import { parseMetaProp } from 'src/utils/modelUtils';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
-import { OrgUser, Workspace, WorkspaceUser } from '~/models';
+import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
@@ -21,9 +27,43 @@ export class OrgWorkspacesService {
     orgId: string;
     req: NcRequest;
   }) {
-    const wsList = await Workspace.listByOrgId({
+    let wsList = await Workspace.listByOrgId({
       orgId: param.orgId,
     });
+
+    wsList = Promise.all(
+      wsList.map(async (ws) => {
+        ws.meta = parseMetaProp(ws);
+
+        await PresignedUrl.signMetaIconImage(ws);
+
+        if (!ncIsArray(ws?.members)) return ws;
+
+        if (ncIsArray(ws?.members)) {
+          ws.members = await Promise.all(
+            ws.members.map(async (member) => {
+              member = parseProp(member);
+
+              member.meta = parseMetaProp(member);
+
+              await PresignedUrl.signMetaIconImage(member);
+
+              return member;
+            }),
+          );
+        }
+
+        if (ncIsArray(ws?.bases)) {
+          ws.bases = await Promise.all(
+            ws.bases.map(async (base) => {
+              return parseProp(base);
+            }),
+          );
+        }
+
+        return ws;
+      }),
+    );
 
     return wsList;
   }

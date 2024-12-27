@@ -80,11 +80,19 @@ export const useOrganization = () => {
       ws = ws.map((w) => {
         w.meta = parseProp(w.meta)
 
-        w.members = w.members.map((user: any) => JSON.parse(user))
+        w.members = w.members.map((user: any) => {
+          user = parseProp(user)
+
+          if (user.meta) {
+            user.meta = parseProp(user.meta)
+          }
+
+          return user
+        })
         w.memberCount = w.members.length
 
         w.bases = w.bases.map((b) => {
-          b = JSON.parse(b)
+          b = parseProp(b)
           return b
         })
         w.baseCount = w.bases.length

@@ -3,6 +3,7 @@ import type { OrgUserType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 // todo: caching
 export default class OrgUser {
@@ -24,6 +25,7 @@ export default class OrgUser {
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.USERS}.created_at as created_at`,
+        `${MetaTable.USERS}.meta`,
         `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
         ncMeta.knex.raw(
           "ARRAY_AGG(DISTINCT JSON_BUILD_OBJECT('id', ??, 'created_at', ??, 'roles', ??, 'title', ??)::text) as workspaces",
@@ -69,6 +71,7 @@ export default class OrgUser {
 
     res = res.map((r) => {
       r.workspaces = r.workspaces.map((w) => JSON.parse(w));
+      r.meta = parseMetaProp(r);
       return r;
     });
     return res;

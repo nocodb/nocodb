@@ -312,7 +312,7 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
             ? [data[field].id]
             : []
 
-          const filterValues = filter.value.split(',').map((v) => v.trim())
+          const filterValues = (filter.value?.split(',') || []).map((v) => v.trim())
 
           switch (filter.comparison_op) {
             case 'anyof':

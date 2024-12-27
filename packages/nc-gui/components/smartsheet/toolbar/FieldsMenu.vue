@@ -604,11 +604,13 @@ function scrollToLatestField() {
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
             :placeholder="$t('placeholder.searchFields')"
-            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none"
+            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none !pb-1.5 !pt-2.5"
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-3" />
+              <div style="scrollbar-gutter: stable;">
+                <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
+              </div>
             </template>
           </a-input>
         </div>

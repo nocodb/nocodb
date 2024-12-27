@@ -20,7 +20,6 @@ test.describe.only('Test block name', () => {
 
   test('Test case name', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
   });
 });

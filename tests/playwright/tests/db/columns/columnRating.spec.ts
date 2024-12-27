@@ -47,9 +47,6 @@ test.describe('Rating - cell, filter, sort', () => {
   });
 
   test('Rating', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });

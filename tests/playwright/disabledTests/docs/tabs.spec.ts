@@ -63,7 +63,6 @@ test.describe('Docs Tabs test', () => {
     await dashboard.verifyOpenedTab({ title: 'nested-child-single-page', emoji: 'rolling-on-the-floor-laughing' });
     await dashboard.docs.openedPage.verifyTitle({ title: 'new-nested-child-single-page' });
 
-    await dashboard.closeTab({ title: 'nested-child-single-page' });
     await dashboard.verifyOpenedTab({ title: 'nested-root-single-page' });
     await dashboard.docs.openedPage.verifyTitle({ title: 'nested-root-single-page' });
 
@@ -85,7 +84,6 @@ test.describe('Docs Tabs test', () => {
 
     await dashboard.verifyOpenedTab({ title: 'nested-root-single-page', emoji: 'rolling-on-the-floor-laughing' });
 
-    await dashboard.closeTab({ title: 'nested-root-single-page' });
     await dashboard.verifyOpenedTab({ title: base.title as any });
     await dashboard.docs.pagesList.verifyProjectTitle({ title: base.title as any });
 

@@ -20,8 +20,6 @@ test.describe('View', () => {
     toolbar = toolbar = dashboard.kanban.toolbar;
     topbar = dashboard.kanban.topbar;
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
 
     if (isSqlite(context)) {

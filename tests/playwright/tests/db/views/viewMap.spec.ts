@@ -19,8 +19,6 @@ test.describe.skip('Map View', () => {
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Actor' });
 
     const grid = dashboard.grid;

@@ -807,7 +807,7 @@
     "icon": "ഐകോണ്‍",
     "max": "പരമാവധി",
     "enableRichText": "റിച്ച് ടെക്സ്റ്റ് പ്രവർത്തനക്ഷമമാക്കുക",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL പകർത്തിയ റെക്കോർഡ്",
     "copyRecordURL": "റെക്കോർഡ് URL പകർത്തുക",
     "duplicateRecord": "പഴുതപയർ റെക്കോർഡ്",

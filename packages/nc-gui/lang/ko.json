@@ -154,7 +154,7 @@
     "details": "세부사항",
     "skip": "건너뛰기",
     "code": "코드",
-    "codeBlock": "Code Block",
+    "codeBlock": "코드 블록",
     "duplicate": "복제",
     "duplicating": "복사 중",
     "duplicateEntity": "{entity} 복제",
@@ -653,8 +653,8 @@
     "lockedByUser": "{user}에 의해 잠김"
   },
   "labels": {
-    "enableSnowFall": "Enable Snowfall",
-    "disableSnowFall": "Disable Snowfall",
+    "enableSnowFall": "눈 내림 효과 활성화",
+    "disableSnowFall": "눈 내림 효과 비활성화",
     "snapshotCreationFailed": "스냅샷 생성 실패",
     "snapshotCreationFailedDescription": "프로젝트 스냅샷을 생성하는 데 실패했습니다. 나중에 다시 시도하세요.",
     "snapshotCooldownDescription": "스냅샷은 3시간 간격으로만 찍을 수 있습니다.",
@@ -807,7 +807,7 @@
     "icon": "아이콘",
     "max": "최대",
     "enableRichText": "서식있는 텍스트 활성화",
-    "idColon": "Id: {id}",
+    "idColon": "필드 ID: {id}",
     "copiedRecordURL": "레코드 URL을 복사했습니다",
     "copyRecordURL": "레코드 URL 복사",
     "duplicateRecord": "레코드 복제",

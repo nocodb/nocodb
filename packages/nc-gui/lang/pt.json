@@ -807,7 +807,7 @@
     "icon": "Ícone",
     "max": "Máximo",
     "enableRichText": "Ativar texto rico",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL do registro copiado",
     "copyRecordURL": "Copiar URL do registro",
     "duplicateRecord": "Duplicar registo",

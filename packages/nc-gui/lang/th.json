@@ -807,7 +807,7 @@
     "icon": "ไอคอน",
     "max": "สูงสุด",
     "enableRichText": "เปิดใช้งาน Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL ของบันทึกที่คัดลอก",
     "copyRecordURL": "คัดลอก URL ของบันทึก",
     "duplicateRecord": "คัดลอกแถว",

@@ -5,15 +5,28 @@ import type { Row } from '../lib/types'
 import { validateRowFilters } from '../utils/dataUtils'
 import { NavigateDir } from '../lib/enums'
 
-const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
-  list.map((row, index) => ({
+const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
+  // If pageInfo exists, use it for calculation
+  if (pageInfo?.page && pageInfo?.pageSize) {
+    return list.map((row, index) => ({
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {
+        rowIndex: (pageInfo.page - 1) * pageInfo.pageSize + index,
+      },
+    }))
+  }
+
+  // If no pageInfo, fall back to params
+  const offset = params?.offset ?? 0
+  return list.map((row, index) => ({
     row: { ...row },
     oldRow: { ...row },
     rowMeta: {
-      // Calculate the rowIndex based on the offset and the index of the row
-      rowIndex: (pageInfo.page - 1) * pageInfo.pageSize + index,
+      rowIndex: offset + index,
     },
   }))
+}
 
 export function useInfiniteData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
@@ -222,9 +235,9 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo)
+      const data = formatData(response.list, response.pageInfo, params)
 
-      if (response.pageInfo.totalRows) {
+      if ('totalRows' in response.pageInfo) {
         totalRows.value = response.pageInfo.totalRows
       }
 

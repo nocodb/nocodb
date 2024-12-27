@@ -201,7 +201,10 @@ const activeAiTab = computed({
         aiPromptInputRef.value?.focus()
       })
     }
-    $e(`c:view:ai:tab-change:${value}`)
+
+    if (aiMode.value) {
+      $e(`c:view:ai:tab-change:${value}`)
+    }
   },
 })
 
@@ -580,10 +583,12 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
     })
 }
 
-const predictMore = async () => {
+const predictMore = async (triggerTele = false) => {
   calledFunction.value = 'predictMore'
 
-  $e('a:view:ai:predict-more')
+  if (triggerTele) {
+    $e('a:view:ai:predict-more')
+  }
 
   const predictions = await predictViews()
 
@@ -595,10 +600,12 @@ const predictMore = async () => {
   }
 }
 
-const predictRefresh = async () => {
+const predictRefresh = async (triggerTele = false) => {
   calledFunction.value = 'predictRefresh'
 
-  $e('a:view:ai:predict-refresh')
+  if (triggerTele) {
+    $e('a:view:ai:predict-refresh')
+  }
 
   const predictions = await predictViews()
 
@@ -611,12 +618,14 @@ const predictRefresh = async () => {
   aiModeStep.value = AiStep.pick
 }
 
-const predictFromPrompt = async () => {
+const predictFromPrompt = async (triggerTele = false) => {
   calledFunction.value = 'predictFromPrompt'
 
-  $e('a:view:ai:predict-from-prompt', {
-    prompt: prompt.value,
-  })
+  if (triggerTele) {
+    $e('a:view:ai:predict-from-prompt', {
+      prompt: prompt.value,
+    })
+  }
 
   const predictions = await predictViews()
 
@@ -665,10 +674,12 @@ const onSelectAll = () => {
   })
 }
 
-const toggleAiMode = async () => {
+const toggleAiMode = async (triggerTele = false) => {
   if (aiMode.value) return
 
-  $e(`c:view:ai:toggle:${true}`)
+  if (triggerTele) {
+    $e(`c:view:ai:toggle:${true}`)
+  }
 
   formValidator.value?.clearValidate()
   aiError.value = ''
@@ -719,7 +730,7 @@ const fullAuto = async (e) => {
   }
 
   if (!aiModeStep.value) {
-    await toggleAiMode()
+    await toggleAiMode(true)
   } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length === 0) {
     await onSelectAll()
   } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length > 0) {
@@ -889,7 +900,7 @@ const getPluralName = (name: string) => {
               '!pointer-events-none !cursor-not-allowed': aiLoading,
               '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
             }"
-            @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
+            @click.stop="aiMode ? disableAiMode() : toggleAiMode(true)"
           >
             <div class="flex items-center justify-center">
               <GeneralIcon icon="ncAutoAwesome" />
@@ -1262,7 +1273,7 @@ const getPluralName = (name: string) => {
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictMore'"
                         icon-only
-                        @click="predictMore"
+                        @click="predictMore(true)"
                       >
                         <template #icon>
                           <GeneralIcon icon="ncPlusAi" class="!text-current" />
@@ -1277,7 +1288,7 @@ const getPluralName = (name: string) => {
                         theme="ai"
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictRefresh'"
-                        @click="predictRefresh"
+                        @click="predictRefresh(true)"
                       >
                         <template #loadingIcon>
                           <!-- eslint-disable vue/no-lone-template -->
@@ -1322,7 +1333,7 @@ const getPluralName = (name: string) => {
                     "
                     :loading="isPredictFromPromptLoading"
                     icon-only
-                    @click="predictFromPrompt"
+                    @click="predictFromPrompt(true)"
                   >
                     <template #loadingIcon>
                       <GeneralLoader class="!text-purple-700" size="medium" />

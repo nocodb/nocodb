@@ -56,7 +56,7 @@ watch(openedSubTab, () => {
       <a-tab-pane v-if="isUIAllowed('fieldAdd')" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
-            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
             <div>Fields</div>
           </div>
         </template>

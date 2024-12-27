@@ -239,6 +239,7 @@ watch(selected, () => {
                   </template>
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
+                <!-- Todo: badge size  -->
                 <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
@@ -305,7 +306,7 @@ watch(selected, () => {
           <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
             <NcDropdown>
               <NcButton size="small" type="secondary">
-                <component :is="iconMap.threeDotVertical" />
+                <component :is="iconMap.threeDotVertical" class="h-4 w-4"/>
               </NcButton>
               <template #overlay>
                 <NcMenu variant="small">

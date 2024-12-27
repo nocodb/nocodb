@@ -72,7 +72,7 @@ const logout = async () => {
                 @click="navigateTo('/account/profile')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="ncUser" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUser" class="!h-4 !w-4" />
 
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
@@ -129,7 +129,7 @@ const logout = async () => {
                 class="!bg-white !my-0"
               >
                 <template #icon>
-                  <GeneralIcon icon="ncUsers" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUsers" class="!h-4 !w-4" />
                 </template>
                 <template #title>{{ $t('objects.users') }}</template>
 

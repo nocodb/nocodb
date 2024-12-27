@@ -45,10 +45,6 @@ onMounted(async () => {
           <div class="flex items-center gap-5">
             <GeneralWorkspaceIcon
               :workspace="org"
-              :class="{
-                'w-24 h-24': !org?.meta?.icon,
-              }"
-              :is-rounded="!org?.meta?.icon"
               size="xlarge"
             />
             <span class="text-gray-900 text-2xl font-semibold"> {{ org.title }} </span>

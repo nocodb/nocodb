@@ -221,7 +221,7 @@ onMounted(() => {
             <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
               <NcDropdown>
                 <NcButton size="small" type="secondary">
-                  <component :is="iconMap.threeDotVertical" />
+                  <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">

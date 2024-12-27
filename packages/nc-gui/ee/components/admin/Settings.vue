@@ -48,7 +48,7 @@ const getIconMeta = () => {
   }
 }
 
-const saveChanges = async (isIconUpdate = false) => {
+const saveChanges = async (isIconUpdate = false, showToastMsg = true) => {
   if (!isIconUpdate) {
     const isNameChanged = (org.value?.display_name ?? '') !== form.value.title
 
@@ -64,10 +64,13 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 
   try {
-    await updateOrg({
-      ...org.value,
-      ...(isIconUpdate ? { meta: getIconMeta() } : { title: form.value?.title }),
-    })
+    await updateOrg(
+      {
+        ...org.value,
+        ...(isIconUpdate ? { meta: getIconMeta() } : { title: form.value?.title }),
+      },
+      showToastMsg,
+    )
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -76,7 +79,7 @@ const saveChanges = async (isIconUpdate = false) => {
 
 const saveChangeWithDebounce = useDebounceFn(
   async () => {
-    await saveChanges()
+    await saveChanges(false, false)
   },
   250,
   { maxWait: 2000 },
@@ -139,7 +142,7 @@ watch(
   <div class="flex flex-col" data-test-id="nc-admin-settings">
     <div class="nc-breadcrumb px-2">
       <div class="nc-breadcrumb-item">
-        {{ org.title }}
+        <!-- {{ org.title }} -->
       </div>
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
       <div class="nc-breadcrumb-item active">

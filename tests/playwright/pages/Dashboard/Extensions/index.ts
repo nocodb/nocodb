@@ -35,8 +35,10 @@ export class Extensions extends BasePage {
       await this.toggleExtensionButton();
     }
     const extensionPane = this.getExtensionPane();
-    const listLocator = extensionPane.locator('.nc-extension-list-wrapper');
-    return listLocator.locator('.nc-extension-item').all();
+    await this.dashboardPage.waitForLoaderToDisappear();
+
+    const listLocator = extensionPane.locator('div.nc-extension-list-wrapper');
+    return listLocator.locator('div.nc-extension-item').all();
   }
 
   getInstalledExtension(name: string) {
@@ -70,15 +72,15 @@ export class Extensions extends BasePage {
     return undefined;
   }
 
-  addExtension({ name }: { name: string }) {
-    return this._addExtension({ name });
+  addExtension({ id }: { id: string }) {
+    return this._addExtension({ id });
   }
 
   addFirstExtension() {
     return this._addExtension({ first: true });
   }
 
-  private async _addExtension({ name, first = false }: { name?: string; first?: boolean }) {
+  private async _addExtension({ id, first = false }: { id?: string; first?: boolean }) {
     const extensionPaneOpen = await this.isExtensionPaneOpen();
     if (!extensionPaneOpen) {
       await this.toggleExtensionButton();
@@ -87,19 +89,19 @@ export class Extensions extends BasePage {
     const addExtensionButton = extensionPane.locator('button.ant-btn.ant-btn-primary');
     await addExtensionButton.click();
     const extensionMarketModal = this.dashboardPage.get().locator('div.nc-modal-extension-market');
-    const availableExtensions = await extensionMarketModal.locator('.nc-market-extension-item').all();
-    if (availableExtensions.length === 0) {
-      throw new Error('No extensions installed.');
-    }
     if (first) {
+      const availableExtensions = await extensionMarketModal.locator('div.nc-market-extension-item').all();
+      if (availableExtensions.length === 0) {
+        throw new Error('No extensions available in the marketplace.');
+      }
       await availableExtensions[0].locator('button.ant-btn.ant-btn-secondary.small').click();
-    } else {
-      for (const e of availableExtensions) {
-        const extensionName = await e.getByTestId('nc-extension-name').textContent();
-        if (extensionName === name) {
-          await e.locator('button.ant-btn.ant-btn-secondary.small').click();
-          break;
-        }
+    } else if (id) {
+      const e = extensionMarketModal.getByTestId(`nc-extension-${id}`);
+      if (await e.isVisible()) {
+        await e.locator('button.ant-btn.ant-btn-secondary.small').click();
+        await this.dashboardPage.waitForLoaderToDisappear();
+      } else {
+        throw new Error(`No extension with id ${id} found in the marketplace.`);
       }
     }
   }

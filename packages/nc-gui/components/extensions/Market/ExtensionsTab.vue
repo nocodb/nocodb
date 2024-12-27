@@ -67,13 +67,14 @@ const onAddExtension = (ext: any) => {
             class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
             :data-testid="`nc-extension-${ext.id}`"
             @click="onExtensionClick(ext.id)"
+            :data-testid="`nc-extension-${ext.id}`"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
               <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">
               <div>
-                <div class="text-sm font-bold text-nc-content-gray line-clamp-1" data-testid="nc-extension-name">
+                <div class="text-sm font-bold text-nc-content-gray line-clamp-1">
                   {{ ext.title }}
                 </div>
                 <div v-if="ext.publisher?.name" class="mt-0.5 text-xs leading-[18px] text-nc-content-gray-muted line-clamp-1">

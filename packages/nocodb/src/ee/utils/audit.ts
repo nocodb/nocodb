@@ -2,7 +2,7 @@ import {
   checkboxIconList,
   durationOptions,
   ratingIconList,
-  UITypes,
+  UITypes, UpdateDestructedPayload,
 } from 'nocodb-sdk';
 import { diff } from 'deep-object-diff';
 import { Column, Hook } from '../../models';
@@ -615,6 +615,7 @@ export const populateUpdatePayloadDiff = ({
   replaceAlias = false,
   boolProps,
   aliasMap,
+  keepUnderModified = false,
 }: {
   prev: any;
   next: any;
@@ -625,7 +626,8 @@ export const populateUpdatePayloadDiff = ({
   replaceAlias?: boolean;
   boolProps?: string[];
   aliasMap?: Record<string, string>;
-}): UpdatePayload | false => {
+  keepUnderModified?: boolean;
+}): UpdatePayload | UpdateDestructedPayload | false => {
   if (parseMeta)
     parseMetaIfFound({ payloads: [next, prev], metaProps: metaProps });
 
@@ -672,10 +674,15 @@ export const populateUpdatePayloadDiff = ({
     extractPropsFromPrev(prev, updatedProps),
   ) as Record<string, unknown>;
 
-  return {
-    modifications: updatedProps,
-    previous_state: prevState,
-  };
+  return keepUnderModified
+    ? {
+        modifications: updatedProps,
+        previous_state: prevState,
+      }
+    : {
+        ...updatedProps,
+        previous_state: prevState,
+      };
 };
 
 const colAliasMap = {
@@ -874,7 +881,6 @@ export const filterAndMapAliasToColProps = (
   );
 };
 
-
 export function remapWithAlias({ data, columns }) {
   const remapped = {};
   for (const [k, v] of Object.entries(data)) {
@@ -885,4 +891,3 @@ export function remapWithAlias({ data, columns }) {
     return remapped;
   }
 }
-

@@ -196,16 +196,16 @@ function formatUpdatePayloadOfOptions({
   oldColumn: { grouped_options?: Record<string, any> };
   updatedColumn: { grouped_options?: Record<string, any> };
 }) {
-  if (updatePayload.modifications?.grouped_options) {
-    updatePayload.modifications.options = Object.keys(
-      updatePayload.modifications?.grouped_options,
+  if (updatePayload?.grouped_options) {
+    updatePayload.options = Object.keys(
+      updatePayload?.grouped_options,
     ).map((key) => {
       const option = updatedColumn.grouped_options[key];
       if (!option) return;
 
       return extractProps(option, ['order', 'title', 'color', 'id', 'index']);
     });
-    updatePayload.modifications.grouped_options = undefined;
+    updatePayload.grouped_options = undefined;
   }
   if (updatePayload.previous_state?.grouped_options) {
     updatePayload.previous_state.options = Object.keys(
@@ -1102,6 +1102,7 @@ export class AppHooksListenerService
                 details: {
                   workspace_title: param.workspace.title,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   user_role: param.roles,
                   user_id: param.user.id,
                 },
@@ -1123,6 +1124,7 @@ export class AppHooksListenerService
                 details: {
                   workspace_title: param.workspace.title,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   user_id: param.user.id,
                   user_role: param.workspaceUser.roles,
                 },
@@ -1154,6 +1156,7 @@ export class AppHooksListenerService
                 details: {
                   workspace_title: param.workspace.title,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   user_id: param.user.id,
                   user_role: param.workspaceUser.roles,
                   ...updatePayload,
@@ -2159,15 +2162,15 @@ export class AppHooksListenerService
           // todo: refactor and move to utils
           // if headers or parameters are updated, then keep the entire array as it is
           if (
-            (updatePayload.modifications?.notification as any)?.payload
+            (updatePayload?.notification as any)?.payload
               ?.parameters &&
             Object.keys(
-              (updatePayload.modifications.notification as any).payload
+              (updatePayload.notification as any).payload
                 .parameters,
             ).length
           ) {
             (
-              updatePayload.modifications.notification as any
+              updatePayload.notification as any
             ).payload.parameters = (
               param.hook?.notification as any
             )?.payload?.parameters;
@@ -2179,13 +2182,13 @@ export class AppHooksListenerService
           }
 
           if (
-            (updatePayload.modifications?.notification as any)?.payload
+            (updatePayload?.notification as any)?.payload
               ?.headers &&
             Object.keys(
-              (updatePayload.modifications.notification as any).payload.headers,
+              (updatePayload.notification as any).payload.headers,
             ).length
           ) {
-            (updatePayload.modifications.notification as any).payload.headers =
+            (updatePayload.notification as any).payload.headers =
               (param.hook?.notification as any)?.payload?.headers;
             (updatePayload.previous_state.notification as any).payload.headers =
               (param.oldHook?.notification as any)?.payload?.headers;

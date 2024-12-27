@@ -256,11 +256,9 @@ export type ColumnMeta = Record<string, unknown>;
 
 export interface DataBulkInsertPayload {}
 
-export interface DataBulkInsertPayloadRecord {
-}
+export interface DataBulkInsertPayloadRecord {}
 
-export interface DataBulkUpdatePayload {
-}
+export interface DataBulkUpdatePayload {}
 
 export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
@@ -311,7 +309,13 @@ export interface DataUnlinkPayload {
 }
 
 export interface UpdatePayload {
-  modifications: Record<string, unknown>;
+  modifications?: Record<string, unknown>;
+  previous_state: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface UpdateDestructedPayload {
+  [key: string]: unknown;
   previous_state: Record<string, unknown>;
 }
 
@@ -370,6 +374,7 @@ export interface TableRenamePayload {
 export interface WorkspaceInvitePayload {
   workspace_title: string;
   user_email: string;
+  user_name?: string;
   user_id: string;
   user_role: string;
 }
@@ -377,6 +382,7 @@ export interface WorkspaceInvitePayload {
 export interface WorkspaceUserUpdatePayload extends UpdatePayload {
   workspace_title: string;
   user_email: string;
+  user_name?: string;
   user_role: string;
   user_id: string;
 }
@@ -384,6 +390,7 @@ export interface WorkspaceUserUpdatePayload extends UpdatePayload {
 export interface WorkspaceUserDeletePayload {
   workspace_title: string;
   user_email: string;
+  user_name?: string;
   user_id: string;
   user_role: string;
 }

@@ -237,7 +237,7 @@ export function useInfiniteData(args: {
 
       const data = formatData(response.list, response.pageInfo, params)
 
-      if ('totalRows' in response.pageInfo) {
+      if (response.pageInfo?.totalRows) {
         totalRows.value = response.pageInfo.totalRows
       }
 

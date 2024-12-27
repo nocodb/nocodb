@@ -75,7 +75,7 @@ watch(openedSubTab, () => {
       <a-tab-pane key="api">
         <template #tab>
           <div class="tab" data-testid="nc-apis-tab">
-            <GeneralIcon icon="code" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncCode" class="tab-icon" :class="{}" />
             <div>{{ $t('labels.apiSnippet') }}</div>
           </div>
         </template>

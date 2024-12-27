@@ -236,13 +236,13 @@ onMounted(() => {
                 @click.prevent="addMemberToWorkspace(ws.id)"
               >
                 <div class="flex items-center gap-2">
-                  <component :is="iconMap.accountPlus" />
+                  <component :is="iconMap.ncUserPlus" />
                   {{ $t('labels.addMember') }}
                 </div>
               </NcButton>
               <NcDropdown>
                 <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" :shadow="false">
-                  <component :is="iconMap.threeDotVertical" />
+                  <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">

@@ -18,9 +18,7 @@ export class Extensions extends BasePage {
   }
 
   isExtensionPaneOpen() {
-    const extensionPane = this.getExtensionPane();
-    if (!extensionPane) throw new Error('Extension feature not enabled. Table/View must be open for extension to run.');
-    return extensionPane.isVisible();
+    return this.getExtensionPane().isVisible();
   }
 
   get(): Locator {

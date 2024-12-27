@@ -74,7 +74,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   )
 
   function report(error: Error) {
-    if (config.public.ci) {
+    if (config.public.env === 'CI') {
       return
     }
 

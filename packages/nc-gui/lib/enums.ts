@@ -186,7 +186,3 @@ export enum IconType {
   EMOJI = 'EMOJI',
   ICON = 'ICON',
 }
-
-export enum EasterEggs {
-  SNOWFLAKE_ENABLED = 'nc-snowfall-enabled',
-}

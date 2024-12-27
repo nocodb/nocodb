@@ -223,11 +223,11 @@ test.describe('Fill Handle', () => {
   test('Miscellaneous (Checkbox, attachment)', async () => {
     const fields = [
       { title: 'Checkbox', value: 'true', type: 'checkbox' },
-      { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
+      { title: 'Attachment', value: `${__dirname}/../../../fixtures/sampleFiles/1.json`, type: 'attachment' },
     ];
 
     await p.dashboard.grid.cell.checkbox.click({ index: 0, columnHeader: 'Checkbox' });
-    const filepath = [`${process.cwd()}/fixtures/sampleFiles/1.json`];
+    const filepath = [`${__dirname}/../../../fixtures/sampleFiles/1.json`];
     await p.dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',

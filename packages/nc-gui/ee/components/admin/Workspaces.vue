@@ -153,7 +153,7 @@ onMounted(() => {
       </div>
       <NcPageHeader>
         <template #icon>
-          <GeneralIcon class="flex-none !h-5 !w-5" icon="ncWorkspace" />
+          <GeneralIcon class="flex-none !h-5 !w-5 fill-gray-200" icon="ncWorkspace" />
         </template>
         <template #title>
           <span data-rec="true">
@@ -164,17 +164,20 @@ onMounted(() => {
 
       <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col gap-6 p-6">
         <div class="w-full justify-between flex items-center">
-          <a-input v-model:value="searchInput" placeholder="Search for a workspace">
+          <a-input
+            v-model:value="searchInput"
+            allow-clear
+            placeholder="Search for a workspace"
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
             <template #prefix>
-              <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
             </template>
           </a-input>
-          <div class="flex items-center gap-6">
-            <NcButton type="secondary" @click="newWorkspaceDlg = true">
-              <component :is="iconMap.plus" />
-              {{ $t('activity.newWorkspace') }}
-            </NcButton>
-          </div>
+          <NcButton type="secondary" size="small" @click="newWorkspaceDlg = true">
+            <component :is="iconMap.plus" class="mr-1.5" />
+            {{ $t('activity.newWorkspace') }}
+          </NcButton>
         </div>
 
         <NcTable
@@ -224,16 +227,22 @@ onMounted(() => {
             <div v-if="column.key === 'baseCount'">
               {{ ws.baseCount }}
             </div>
-            <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
-              <NcButton class="!rounded-r-none" size="small" type="secondary" @click.prevent="addMemberToWorkspace(ws.id)">
+            <div v-if="column.key === 'action'" class="flex justify-end shadow-nc-sm rounded-lg" @click.stop>
+              <NcButton
+                class="!rounded-r-none"
+                size="small"
+                type="secondary"
+                :shadow="false"
+                @click.prevent="addMemberToWorkspace(ws.id)"
+              >
                 <div class="flex items-center gap-2">
-                  <component :is="iconMap.accountPlus" />
+                  <component :is="iconMap.ncUserPlus" />
                   {{ $t('labels.addMember') }}
                 </div>
               </NcButton>
               <NcDropdown>
-                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary">
-                  <component :is="iconMap.threeDotVertical" />
+                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" :shadow="false">
+                  <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">

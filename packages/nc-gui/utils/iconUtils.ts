@@ -600,6 +600,7 @@ import NcQuote from '~icons/nc-icons-v2/quote'
 import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
+import NcWebhook from '~icons/nc-icons-v2/webhook'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1413,6 +1414,7 @@ export const iconMap = {
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,
   ncQuote: NcQuote,
+  ncWebhook: NcWebhook,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3789,6 +3791,10 @@ export const searchableMap = {
   ncFileSearch: {
     icon: h(NcFileSearch, { stroke: 'transparent' }),
     keywords: ['search', 'file', 'document'],
+  },
+  ncWebhook: {
+    icon: NcWebhook,
+    keywords: ['webhook'],
   },
 }
 

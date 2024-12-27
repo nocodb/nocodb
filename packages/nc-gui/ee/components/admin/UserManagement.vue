@@ -166,13 +166,18 @@ watch(selected, () => {
     <div class="nc-content-max-w h-full max-h-[calc(100vh_-_100px)] flex flex-col items-center gap-6 p-6">
       <div class="w-full justify-between flex items-center">
         <div class="flex items-center gap-2">
-          <a-input v-model:value="searchInput" placeholder="Search for a member">
+          <a-input
+            v-model:value="searchInput"
+            placeholder="Search for a member"
+            allow-clear
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
             <template #prefix>
               <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
             </template>
           </a-input>
-          <NcDropdown>
-            <NcButton :disabled="!isSomeSelected">
+          <NcDropdown v-if="isSomeSelected">
+            <NcButton size="small">
               <div class="flex gap-2 items-center">
                 <component :is="iconMap.threeDotVertical" />
                 {{ $t('labels.action') }}
@@ -189,7 +194,7 @@ watch(selected, () => {
           </NcDropdown>
         </div>
 
-        <NcButton @click="bulkAddMemberDlg = true">
+        <NcButton size="small" @click="bulkAddMemberDlg = true">
           <component :is="iconMap.plus" />
           {{ $t('activity.addMembers') }}
         </NcButton>
@@ -220,7 +225,7 @@ watch(selected, () => {
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
             <GeneralUserIcon :user="member" size="base" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
+              <div class="flex gap-2">
                 <NcTooltip
                   class="truncate text-gray-800 capitalize font-semibold"
                   :class="{
@@ -234,7 +239,15 @@ watch(selected, () => {
                   </template>
                   {{ member.display_name || member.email.split('@')[0] }}
                 </NcTooltip>
-                <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
+                <!-- Todo: badge size  -->
+                <RolesBadge
+                  v-if="member.cloud_org_roles"
+                  :border="false"
+                  :role="member.cloud_org_roles"
+                  size="xs"
+                  :show-icon="false"
+                  class="!px-1"
+                />
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>
@@ -300,7 +313,7 @@ watch(selected, () => {
           <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
             <NcDropdown>
               <NcButton size="small" type="secondary">
-                <component :is="iconMap.threeDotVertical" />
+                <component :is="iconMap.threeDotVertical" class="h-4 w-4" />
               </NcButton>
               <template #overlay>
                 <NcMenu variant="small">

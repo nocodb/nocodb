@@ -28,15 +28,18 @@ export const useOrg = defineStore('orgStore', () => {
     }
   })
 
-  const updateOrg = async (updateObj: Partial<OrgType>) => {
+  const updateOrg = async (updateObj: Partial<OrgType>, showToastMsg = true) => {
     try {
       await $api.org.update(orgId.value, updateObj)
-      const oldOrg = org.value
+
       org.value = {
-        ...oldOrg,
+        ...org.value,
         ...updateObj,
       }
-      message.success('Organization details updated successfully')
+
+      if (showToastMsg) {
+        message.success('Organization details updated successfully')
+      }
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))

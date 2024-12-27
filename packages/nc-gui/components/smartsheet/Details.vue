@@ -56,7 +56,7 @@ watch(openedSubTab, () => {
       <a-tab-pane v-if="isUIAllowed('fieldAdd')" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
-            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
             <div>Fields</div>
           </div>
         </template>
@@ -75,7 +75,7 @@ watch(openedSubTab, () => {
       <a-tab-pane key="api">
         <template #tab>
           <div class="tab" data-testid="nc-apis-tab">
-            <GeneralIcon icon="code" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncCode" class="tab-icon" :class="{}" />
             <div>{{ $t('labels.apiSnippet') }}</div>
           </div>
         </template>
@@ -88,7 +88,7 @@ watch(openedSubTab, () => {
       <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />
             <div>{{ $t('objects.webhooks') }}</div>
           </div>
         </template>

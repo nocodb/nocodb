@@ -122,9 +122,7 @@ onMounted(async () => {
     </div>
     <NcPageHeader>
       <template #icon>
-        <div class="flex justify-center items-center h-5 w-5">
-          <GeneralIcon icon="lock" class="flex-none text-[20px]" />
-        </div>
+        <GeneralIcon icon="ncLock" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

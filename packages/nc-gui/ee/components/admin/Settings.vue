@@ -48,7 +48,7 @@ const getIconMeta = () => {
   }
 }
 
-const saveChanges = async (isIconUpdate = false) => {
+const saveChanges = async (isIconUpdate = false, showToastMsg = true) => {
   if (!isIconUpdate) {
     const isNameChanged = (org.value?.display_name ?? '') !== form.value.title
 
@@ -64,10 +64,13 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 
   try {
-    await updateOrg({
-      ...org.value,
-      ...(isIconUpdate ? { meta: getIconMeta() } : { title: form.value?.title }),
-    })
+    await updateOrg(
+      {
+        ...org.value,
+        ...(isIconUpdate ? { meta: getIconMeta() } : { title: form.value?.title }),
+      },
+      showToastMsg,
+    )
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -76,7 +79,7 @@ const saveChanges = async (isIconUpdate = false) => {
 
 const saveChangeWithDebounce = useDebounceFn(
   async () => {
-    await saveChanges()
+    await saveChanges(false, false)
   },
   250,
   { maxWait: 2000 },
@@ -148,9 +151,7 @@ watch(
     </div>
     <NcPageHeader>
       <template #icon>
-        <div class="flex justify-center items-center h-5 w-5">
-          <GeneralIcon icon="settings" class="flex-none text-[20px]" />
-        </div>
+        <GeneralIcon icon="ncSettings" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

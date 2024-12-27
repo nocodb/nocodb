@@ -82,7 +82,8 @@ export class NotificationsService extends NotificationsServiceCE {
         break;
       case AppEvents.WORKSPACE_USER_INVITE:
         {
-          const { workspace, user, invitedBy, req } = data as WorkspaceUserInviteEvent;
+          const { workspace, user, invitedBy, req } =
+            data as WorkspaceUserInviteEvent;
 
           await this.insertNotification(
             {

@@ -2,7 +2,7 @@ import {
   checkboxIconList,
   durationOptions,
   ratingIconList,
-  UITypes, UpdateDestructedPayload,
+  UITypes,
 } from 'nocodb-sdk';
 import { diff } from 'deep-object-diff';
 import { Column, Hook } from '../../models';
@@ -15,6 +15,7 @@ import type {
   NcContext,
   NcRequest,
   SelectOptionsType,
+  UpdateDestructedPayload,
   UpdatePayload,
 } from 'nocodb-sdk';
 import type { Request } from 'express';
@@ -29,7 +30,9 @@ import { extractProps } from '~/helpers/extractProps';
 export function fromEntries<T = any>(
   entries: [string, T][],
 ): { [key: string]: T } {
-  return entries.reduce((acc, [key, value]) => {
+  return entries.reduce((acc, entry) => {
+    if(!entry) return acc;
+    const [key, value] = entry;
     acc[key] = value;
     return acc;
   }, {} as { [key: string]: T });
@@ -636,7 +639,7 @@ export const populateUpdatePayloadDiff = ({
       if (next && prop in next) {
         next[prop] = !!next[prop];
       }
-      if (prev && prop in prev) {
+      if (prev && prop in next) {
         prev[prop] = !!prev[prop];
       }
     }
@@ -644,14 +647,29 @@ export const populateUpdatePayloadDiff = ({
 
   // if aliasMap is provided, map the alias
   if (aliasMap) {
+    // avoid overwriting mapped props
+    let mappedProps = new Set();
     next = fromEntries(
       Object.entries(next).map(([key, val]) => {
-        return [aliasMap[key] ?? key, val];
+        if (key in aliasMap) {
+          mappedProps.add(aliasMap[key]);
+          return [aliasMap[key], val];
+        } else if (mappedProps.has(key)) {
+          return undefined;
+        }
+        return [key, val];
       }),
     );
+    mappedProps = new Set();
     prev = fromEntries(
       Object.entries(prev).map(([key, val]) => {
-        return [aliasMap[key] ?? key, val];
+        if (key in aliasMap) {
+          mappedProps.add(aliasMap[key]);
+          return [aliasMap[key], val];
+        } else if (mappedProps.has(key)) {
+          return undefined;
+        }
+        return [key, val];
       }),
     );
   }

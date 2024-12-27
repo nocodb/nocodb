@@ -16,6 +16,7 @@ import type {
   BaseDuplicatePayload,
   BaseRenamePayload,
   BaseUpdatePayload,
+  BaseUserRoleUpdatePayload,
   ColumnDuplicatePayload,
   ColumnRenamePayload,
   ColumnType,
@@ -138,6 +139,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationUpdateEvent } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
+import type { ProjectUserUpdateEvent } from '~/services/app-hooks/interfaces';
 import { Audit, Column } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -197,14 +199,14 @@ function formatUpdatePayloadOfOptions({
   updatedColumn: { grouped_options?: Record<string, any> };
 }) {
   if (updatePayload?.grouped_options) {
-    updatePayload.options = Object.keys(
-      updatePayload?.grouped_options,
-    ).map((key) => {
-      const option = updatedColumn.grouped_options[key];
-      if (!option) return;
+    updatePayload.options = Object.keys(updatePayload?.grouped_options).map(
+      (key) => {
+        const option = updatedColumn.grouped_options[key];
+        if (!option) return;
 
-      return extractProps(option, ['order', 'title', 'color', 'id', 'index']);
-    });
+        return extractProps(option, ['order', 'title', 'color', 'id', 'index']);
+      },
+    );
     updatePayload.grouped_options = undefined;
   }
   if (updatePayload.previous_state?.grouped_options) {
@@ -404,6 +406,39 @@ export class AppHooksListenerService
                   user_email: param.user.email,
                   user_role: param.role,
                   base_title: param.base.title,
+                },
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.PROJECT_USER_UPDATE:
+        {
+          const param = data as ProjectUserUpdateEvent;
+
+          const updatePayload = populateUpdatePayloadDiff({
+            next: param.baseUser,
+            prev: param.oldBaseUser,
+            aliasMap: {
+              roles: 'user_role',
+            },
+            exclude: ['deleted'],
+          });
+
+          if (!updatePayload) break;
+
+          await this.auditInsert(
+            generateAuditV1Payload<BaseUserRoleUpdatePayload>(
+              AuditV1OperationTypes.BASE_USER_UPDATE,
+              {
+                details: {
+                  user_id: param.user.id,
+                  user_email: param.user.email,
+                  base_title: param.base.title,
+                  user_role: param.baseUser.roles,
+                  ...updatePayload,
                 },
                 context: param.context,
                 req: param.req,
@@ -937,29 +972,23 @@ export class AppHooksListenerService
             );
           }
 
-          parseMetaIfFound({ payloads: [param.updateObj, param.oldBaseObj] });
-
-          const updatedProps = removeBlankPropsAndMask(
-            diff(param.oldBaseObj, param.updateObj),
-            ['title'],
-          );
+          const updateEventPayload = populateUpdatePayloadDiff({
+            prev: param.oldBaseObj,
+            next: param.updateObj,
+            parseMeta: true,
+            boolProps: ['starred'],
+            exclude: ['title'],
+          });
 
           // check if any other update change (except title)
-          if (param.updateObj && Object.keys(updatedProps).length) {
-            const prevState = diff(
-              extractPropsFromPrev(param.updateObj, updatedProps),
-              extractPropsFromPrev(param.oldBaseObj, updatedProps),
-            ) as Record<string, unknown>;
+          if (updateEventPayload) {
             await this.auditInsert(
               generateAuditV1Payload<BaseUpdatePayload>(
                 AuditV1OperationTypes.BASE_UPDATE,
                 {
                   details: {
                     base_title: param.base.title,
-                    modifications: removeBlankPropsAndMask(
-                      diff(param.oldBaseObj, param.updateObj),
-                    ),
-                    previous_state: prevState,
+                    ...updateEventPayload,
                   },
                   context: param.context,
                   req: param.req,
@@ -2162,16 +2191,11 @@ export class AppHooksListenerService
           // todo: refactor and move to utils
           // if headers or parameters are updated, then keep the entire array as it is
           if (
-            (updatePayload?.notification as any)?.payload
-              ?.parameters &&
-            Object.keys(
-              (updatePayload.notification as any).payload
-                .parameters,
-            ).length
+            (updatePayload?.notification as any)?.payload?.parameters &&
+            Object.keys((updatePayload.notification as any).payload.parameters)
+              .length
           ) {
-            (
-              updatePayload.notification as any
-            ).payload.parameters = (
+            (updatePayload.notification as any).payload.parameters = (
               param.hook?.notification as any
             )?.payload?.parameters;
             (
@@ -2182,14 +2206,13 @@ export class AppHooksListenerService
           }
 
           if (
-            (updatePayload?.notification as any)?.payload
-              ?.headers &&
-            Object.keys(
-              (updatePayload.notification as any).payload.headers,
-            ).length
+            (updatePayload?.notification as any)?.payload?.headers &&
+            Object.keys((updatePayload.notification as any).payload.headers)
+              .length
           ) {
-            (updatePayload.notification as any).payload.headers =
-              (param.hook?.notification as any)?.payload?.headers;
+            (updatePayload.notification as any).payload.headers = (
+              param.hook?.notification as any
+            )?.payload?.headers;
             (updatePayload.previous_state.notification as any).payload.headers =
               (param.oldHook?.notification as any)?.payload?.headers;
           }

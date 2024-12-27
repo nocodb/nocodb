@@ -337,6 +337,7 @@ export class BaseUsersService {
       param.baseUser.roles,
       ncMeta,
     );
+
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,
       user,

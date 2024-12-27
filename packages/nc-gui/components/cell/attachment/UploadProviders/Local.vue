@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-4">
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
-          <h1>
+          <span class="p-4">
             {{ $t('labels.clickTo') }}
 
             <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 
             {{ $t('labels.toUpload') }}
-          </h1>
+          </span>
         </template>
         <template v-if="isOverDropZone">
           <component :is="iconMap.upload" class="w-8 text-brand-500 h-8" />

@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Los campos de búsqueda muestran los datos de los registros vinculados. Seleccione campos específicos de ",
     "addNewLookupHelperText2": "Para agregarlos como campos de Búsqueda en esta tabla.",
     "formatting": "Formateando",
-    "selectAFormatType": "-Seleccione un tipo de formulario (opcional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Tipo de formato",
     "toUpload": "Para cargar",
     "dragFilesHere": "Arrastre los archivos aquí",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Algo salió mal",
       "draggedContentIsNotTypeOfImage": "El contenido arrastrado no es del tipo de imagen",
       "fieldToParseImageData": "Campo para analizar datos de imagen",
-      "someOfTheRequiredFieldsAreEmpty": "Algunos de los campos requeridos están vacíos"
+      "someOfTheRequiredFieldsAreEmpty": "Algunos de los campos requeridos están vacíos",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",

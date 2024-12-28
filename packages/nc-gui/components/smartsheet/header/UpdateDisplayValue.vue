@@ -4,6 +4,7 @@ import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSyste
 interface Props {
   column: ColumnType
   value?: boolean
+  useMetaFields?: boolean
 }
 
 const props = defineProps<Props>()
@@ -18,31 +19,40 @@ const { fields } = useViewColumnsOrThrow()
 
 const meta = inject(MetaInj, ref())
 
-const column = toRef(props, 'column')
-
 const value = useVModel(props, 'value')
+
+const { column, useMetaFields } = toRefs(props)
 
 const selectedFieldId = ref()
 
 const isLoading = ref(false)
 
+const getFormatedColumn = (column: ColumnType) => ({
+  title: column.title,
+  id: column.id,
+  ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
+  ncItemTooltip:
+    !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
+      ? `${columnTypeName(column)} field cannot be used as display value field`
+      : '',
+  column,
+})
+
 const filteredColumns = computed(() => {
   const columns = meta.value?.columnsById ?? {}
+
+  if (useMetaFields.value) {
+    return (meta.value?.columns ?? [])
+      .filter((c) => c?.id && !isSystemColumn(c))
+      .map((column) => {
+        return getFormatedColumn(column)
+      })
+  }
 
   return (fields.value ?? [])
     .filter((f) => columns[f?.fk_column_id] && !isSystemColumn(columns[f.fk_column_id]))
     .map((f) => {
-      const column = columns[f.fk_column_id] as ColumnType
-      return {
-        title: f.title,
-        id: f.fk_column_id,
-        ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
-        ncItemTooltip:
-          !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
-            ? `${columnTypeName(column)} field cannot be used as display value field`
-            : '',
-        column,
-      }
+      return getFormatedColumn(columns[f.fk_column_id] as ColumnType)
     })
 })
 
@@ -70,7 +80,9 @@ const cellIcon = (c: ColumnType) =>
   })
 
 onMounted(() => {
-  selectedFieldId.value = fields.value?.find((f) => f.fk_column_id === column.value.id)?.fk_column_id
+  selectedFieldId.value = useMetaFields.value
+    ? meta.value?.columns?.find((c) => c.id === column.value.id)?.id
+    : fields.value?.find((f) => f.fk_column_id === column.value.id)?.fk_column_id
 })
 </script>
 

@@ -625,10 +625,10 @@ export default class Column<T = any> implements ColumnType {
       ? await View.getColumns(context, fk_default_view_id, ncMeta)
       : [];
 
-    const defaultViewColumnOrderMap = defaultViewColumns.reduce((acc, col) => {
-      acc[col.fk_column_id] = col.order;
+    const defaultViewColumnMap = defaultViewColumns.reduce((acc, col) => {
+      acc[col.fk_column_id] = col;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     if (!isNoneList && !columnsList.length) {
       columnsList = await ncMeta.metaList2(
@@ -663,7 +663,8 @@ export default class Column<T = any> implements ColumnType {
         if (defaultViewColumns.length) {
           m.meta = {
             ...parseMetaProp(m),
-            defaultViewColOrder: defaultViewColumnOrderMap[m.id],
+            defaultViewColOrder: defaultViewColumnMap[m.id]?.order,
+            defaultViewColVisibility: defaultViewColumnMap[m.id]?.show,
           };
         }
 

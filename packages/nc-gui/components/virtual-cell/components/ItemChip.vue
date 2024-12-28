@@ -42,6 +42,7 @@ function openExpandedForm() {
       meta: relatedTableMeta.value,
       rowId,
       useMetaFields: true,
+      maintainDefaultViewOrder: true,
       loadRow: !isPublic.value,
     })
   }

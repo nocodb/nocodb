@@ -89,6 +89,12 @@ const parsedTree = ref<any>({
   dataType: FormulaDataTypes.UNKNOWN,
 })
 
+const previousDisplayType = ref()
+
+const savedDisplayType = ref(vModel.value.meta.display_type)
+
+const hadError = ref(false)
+
 // Initialize a counter to track watcher invocations
 let watcherCounter = 0
 
@@ -111,6 +117,11 @@ const debouncedValidate = useDebounceFn(async () => {
     if (currentCounter === watcherCounter) {
       parsedTree.value = parsed
     }
+    if (hadError.value && previousDisplayType.value) {
+      vModel.value.meta.display_type = previousDisplayType.value
+    }
+    previousDisplayType.value = undefined
+    hadError.value = false
   } catch (e) {
     // Update parsedTree only if this is the latest invocation
     if (currentCounter === watcherCounter) {
@@ -118,9 +129,13 @@ const debouncedValidate = useDebounceFn(async () => {
         dataType: FormulaDataTypes.UNKNOWN,
       }
     }
+    previousDisplayType.value = vModel.value.meta.display_type
+    hadError.value = true
   } finally {
     if (vModel.value?.colOptions?.parsed_tree?.dataType !== parsedTree.value?.dataType) {
       vModel.value.meta.display_type = null
+    } else {
+      vModel.value.meta.display_type = savedDisplayType.value
     }
   }
 }, 300)
@@ -210,6 +225,12 @@ watch(
               v-model:value="vModel.meta.display_type"
               class="w-full nc-select-shadow"
               :placeholder="$t('labels.selectAFormatType')"
+              @change="
+                (v) => {
+
+                  savedDisplayType = v
+                }
+              "
               allow-clear
             >
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">

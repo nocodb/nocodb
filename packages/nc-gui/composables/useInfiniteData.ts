@@ -237,10 +237,6 @@ export function useInfiniteData(args: {
 
       const data = formatData(response.list, response.pageInfo, params)
 
-      if (response.pageInfo?.totalRows) {
-        totalRows.value = response.pageInfo.totalRows
-      }
-
       loadAggCommentsCount(data)
 
       return data

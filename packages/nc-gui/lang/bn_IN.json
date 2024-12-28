@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "লুকআপ ক্ষেত্রগুলি লিঙ্ক করা রেকর্ড থেকে ডেটা দেখায়। থেকে নির্দিষ্ট ক্ষেত্রগুলি নির্বাচন করুন ",
     "addNewLookupHelperText2": " এই টেবিলে তাদের লুকআপ ক্ষেত্র হিসেবে যোগ করার জন্য টেবিল।",
     "formatting": "ফরম্যাটিং",
-    "selectAFormatType": "- -একটি ফরম্যাট প্রকার নির্বাচন করুন (ঐচ্ছিক)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ফরম্যাট প্রকার",
     "toUpload": "আপলোড করতে",
     "dragFilesHere": "ফাইলগুলি এখানে টেনে আনুন",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "কিছু ভুল হয়েছে",
       "draggedContentIsNotTypeOfImage": "টানা সামগ্রী ছবি টাইপ নয়",
       "fieldToParseImageData": "ছবি ডেটা বিশ্লেষণের জন্য ক্ষেত্র",
-      "someOfTheRequiredFieldsAreEmpty": "কিছু প্রয়োজনীয় ক্ষেত্র খালি"
+      "someOfTheRequiredFieldsAreEmpty": "কিছু প্রয়োজনীয় ক্ষেত্র খালি",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

@@ -25,6 +25,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedFormCloseAfterSave = ref(false)
 
+const isNewRecord = ref(false)
+
 const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -151,9 +153,12 @@ const addNewRecord = () => {
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
 }
 
 const onCreatedRecord = (record: any) => {
+  if (!isNewRecord.value) return
+
   const msgVNode = h(
     'div',
     {
@@ -181,6 +186,8 @@ const onCreatedRecord = (record: any) => {
   )
 
   message.success(msgVNode)
+
+  isNewRecord.value = false
 }
 
 const relation = computed(() => {
@@ -476,18 +483,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :row="{
           row: expandedFormRow,
           oldRow: expandedFormRow,
-          rowMeta:
-            Object.keys(expandedFormRow).length > 0
-              ? {}
-              : {
-                  new: true,
-                },
+          rowMeta: !isNewRecord
+            ? {}
+            : {
+                new: true,
+              },
         }"
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
         maintain-default-view-order
-        new-record-submit-btn-text="Create & Link"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
       />
     </Suspense>

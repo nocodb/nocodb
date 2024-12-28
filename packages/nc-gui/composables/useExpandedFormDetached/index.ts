@@ -11,6 +11,7 @@ interface UseExpandedFormDetachedProps {
   'view'?: ViewType
   'onCancel'?: Function
   'onUpdate:modelValue'?: Function
+  'maintainDefaultViewOrder'?: boolean
 }
 
 const [setup, use] = useInjectionState(() => {

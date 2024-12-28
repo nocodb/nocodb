@@ -96,13 +96,13 @@ const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col))
+        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
+    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
   }
   return _fields?.value ?? []
 })

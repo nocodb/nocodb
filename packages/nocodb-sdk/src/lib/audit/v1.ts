@@ -144,6 +144,7 @@ export interface UserSignupPayload {}
 export interface UserInvitePayload {
   user_id: string;
   user_email: string;
+  user_name?: string;
 }
 
 export interface UserPasswordChangePayload {}
@@ -158,6 +159,7 @@ export interface BaseUserInvitePayload {
   user_email: string;
   user_id: string;
   user_role: string;
+  user_name?: string;
   base_title: string;
 }
 
@@ -165,6 +167,7 @@ export interface BaseUserDeletePayload {
   user_email: string;
   user_id: string;
   user_role: string;
+  user_name?: string;
   base_title: string;
 }
 
@@ -172,6 +175,7 @@ export interface BaseUserInviteResendPayload {
   user_id: string;
   user_email: string;
   user_role: string;
+  user_name?: string;
   base_title: string;
 }
 
@@ -179,6 +183,7 @@ export interface BaseUserRoleUpdatePayload extends UpdatePayload {
   user_id: string;
   user_email: string;
   user_role: string;
+  user_name?: string;
   base_title: string;
 }
 

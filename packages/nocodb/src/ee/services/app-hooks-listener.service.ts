@@ -3,7 +3,7 @@ import {
   AppEvents,
   AuditV1OperationTypes,
   SelectOptionsType,
-  UITypes, UserProfileUpdatePayload,
+  UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
 import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/services/app-hooks-listener.service';
@@ -50,6 +50,7 @@ import type {
   TableRenamePayload,
   TableUpdatePayload,
   UpdatePayload,
+  UserProfileUpdatePayload,
   ViewColumnUpdatePayload,
   ViewCreatePayload,
   ViewDeletePayload,
@@ -120,7 +121,8 @@ import type {
   UserInviteEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent, UserProfileUpdateEvent,
+  UserPasswordResetEvent,
+  UserProfileUpdateEvent,
   UserSigninEvent,
   UserSignupEvent,
   ViewColumnUpdateEvent,
@@ -140,7 +142,7 @@ import type {
 import type { IntegrationUpdateEvent } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
 import type { ProjectUserUpdateEvent } from '~/services/app-hooks/interfaces';
-import { Audit, Column } from '~/models';
+import { Audit, Column, User } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
@@ -273,7 +275,6 @@ export class AppHooksListenerService
       case AppEvents.USER_PROFILE_UPDATE:
         {
           const param = data as UserProfileUpdateEvent;
-
 
           const updatePayload = populateUpdatePayloadDiff({
             next: param.user,
@@ -1644,12 +1645,27 @@ export class AppHooksListenerService
               'uuid',
               'fk_cover_image_col_id',
               'fk_grp_col_id',
+              'owned_by',
             ],
+            aliasMap: {
+              owned_by: 'view_owner_id',
+            },
           });
 
           if (!payloadDiff) {
             break;
           }
+
+          // if previous state include view_owner_id, then extract corresponding user details and include in payload
+          if ('view_owner_id' in payloadDiff.previous_state) {
+            const user = await User.get(
+              payloadDiff.previous_state.view_owner_id,
+            );
+            payloadDiff.previous_state.view_owner_email = user?.email;
+            payloadDiff.previous_state.view_owner_name =
+              user?.display_name ?? undefined;
+          }
+
           await this.auditInsert(
             generateAuditV1Payload<ViewUpdatePayload>(
               AuditV1OperationTypes.VIEW_UPDATE,
@@ -1660,6 +1676,7 @@ export class AppHooksListenerService
                   view_type: type,
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
+                  view_owner_name: param.owner?.display_name ?? undefined,
                   ...extractNonSystemProps(
                     {
                       ...param.view,

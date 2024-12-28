@@ -246,6 +246,9 @@ export const RootScopeTables = {
   [RootScopes.WORKSPACE]: [
     MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATIONS_STORE,
+    // We need to clear fk_integration_id from following tables
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
   ],
 };
 

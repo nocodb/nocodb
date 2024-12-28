@@ -29,17 +29,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex p-5 nc-base-settings justify-center overflow-auto gap-8">
+  <div class="w-full flex p-6 nc-base-settings overflow-auto gap-8">
     <!-- Left Pane -->
     <div v-if="isEeUI" class="flex flex-col">
-      <div class="h-full w-60">
+      <div class="h-full flex flex-col gap-1 w-60">
         <div
           v-if="isEeUI && hasPermissionForSnapshots"
           data-testid="snapshots-tab"
           :class="{
             'active-menu': activeMenu === 'snapshots',
           }"
-          class="gap-3 !hover:bg-gray-50 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           @click="selectMenu('snapshots')"
         >
           <GeneralIcon icon="camera" />
@@ -53,7 +53,7 @@ onMounted(() => {
           :class="{
             'active-menu': activeMenu === 'visibility',
           }"
-          class="gap-3 !hover:bg-gray-50 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="visibility-tab"
           @click="selectMenu('visibility')"
         >
@@ -66,7 +66,7 @@ onMounted(() => {
     </div>
     <!-- Data Pane -->
 
-    <div class="flex flex-col w-[760px]">
+    <div class="flex flex-col flex-1 max-w-[760px]">
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
     </div>

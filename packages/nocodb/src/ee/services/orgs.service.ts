@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import type { DomainReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
-import { Domain, Org } from '~/models';
+import { Domain, Org, PresignedUrl } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { verifyTXTRecord } from '~/utils';
 
@@ -112,7 +112,10 @@ export class OrgsService {
   }
 
   async readOrg(param: { orgId: string; user: User; req: NcRequest }) {
-    return await Org.get(param.orgId);
+    const org = await Org.get(param.orgId);
+
+    await PresignedUrl.signMetaIconImage(org);
+    return org;
   }
 
   async baseList(param: { orgId: string; req: NcRequest }) {

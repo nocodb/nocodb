@@ -14,6 +14,7 @@ import {
 import { BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
+import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User extends UserCE implements UserType {
   user_name?: string;
@@ -46,6 +47,7 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
+      'meta',
     ]);
 
     if (insertObj.email) {
@@ -56,7 +58,7 @@ export default class User extends UserCE implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      insertObj,
+      prepareForDb(insertObj),
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -83,6 +85,7 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
+      'meta',
     ]);
 
     if (updateObj.user_name) {
@@ -119,7 +122,7 @@ export default class User extends UserCE implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      updateObj,
+      prepareForDb(updateObj),
       id,
     );
 
@@ -139,6 +142,10 @@ export default class User extends UserCE implements UserType {
         user_name: username,
       },
     );
+
+    if (user) {
+      user.meta = parseMetaProp(user);
+    }
 
     return this.castType(user);
   }
@@ -176,6 +183,7 @@ export default class User extends UserCE implements UserType {
         `${MetaTable.USERS}.bio`,
         `${MetaTable.USERS}.location`,
         `${MetaTable.USERS}.website`,
+        `${MetaTable.USERS}.meta`,
       )
       .select(
         ncMeta
@@ -190,7 +198,14 @@ export default class User extends UserCE implements UserType {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    return queryBuilder;
+    let users = await queryBuilder;
+
+    users = users.map((user) => {
+      user.meta = parseMetaProp(user);
+      return user;
+    });
+
+    return users;
   }
 
   // TODO: cache
@@ -212,8 +227,14 @@ export default class User extends UserCE implements UserType {
         'bio',
         'location',
         'website',
+        'meta',
       ],
     );
+
+    if (profile) {
+      profile.meta = parseMetaProp(profile);
+    }
+
     const followerCount = (await this.getFollowerList(userId)).length;
     const followingCount = (await this.getFollowingList(userId)).length;
     return {
@@ -272,6 +293,7 @@ export default class User extends UserCE implements UserType {
         `${MetaTable.USERS}.avatar`,
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`,
+        `${MetaTable.USERS}.meta`,
       )
       .whereIn(
         `${MetaTable.USERS}.id`,
@@ -281,7 +303,14 @@ export default class User extends UserCE implements UserType {
           .where('fk_follower_id', userId),
       );
 
-    return qb;
+    let users = await qb;
+
+    users = users.map((user) => {
+      user.meta = parseMetaProp(user);
+      return user;
+    });
+
+    return users;
   }
 
   // TODO: cache
@@ -320,7 +349,14 @@ export default class User extends UserCE implements UserType {
           .where('fk_user_id', userId),
       );
 
-    return qb;
+    let users = await qb;
+
+    users = users.map((user) => {
+      user.meta = parseMetaProp(user);
+      return user;
+    });
+
+    return users;
   }
 
   static async createFollower(

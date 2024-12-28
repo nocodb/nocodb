@@ -70,6 +70,7 @@ import HasManySolidIcon from '~icons/nc-icons/hm-solid'
 import ManytoManySolidIcon from '~icons/nc-icons/mm-solid'
 import BelongsToSolidIcon from '~icons/nc-icons/bt-solid'
 import Record from '~icons/nc-icons/record'
+import TableCurrent from '~icons/nc-icons/table-current'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
@@ -599,6 +600,7 @@ import NcQuote from '~icons/nc-icons-v2/quote'
 import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
+import NcWebhook from '~icons/nc-icons-v2/webhook'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -912,7 +914,8 @@ export const iconMap = {
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
   threeDotVertical: MdiDotsVertical,
   threeDotHorizontal: MdiDotsHorizontal,
-  table: Record,
+  tableOld: Record,
+  table: TableCurrent,
   excel: PhExcelThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
@@ -1411,6 +1414,7 @@ export const iconMap = {
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,
   ncQuote: NcQuote,
+  ncWebhook: NcWebhook,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3787,6 +3791,10 @@ export const searchableMap = {
   ncFileSearch: {
     icon: h(NcFileSearch, { stroke: 'transparent' }),
     keywords: ['search', 'file', 'document'],
+  },
+  ncWebhook: {
+    icon: NcWebhook,
+    keywords: ['webhook'],
   },
 }
 

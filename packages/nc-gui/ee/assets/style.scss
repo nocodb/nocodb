@@ -120,6 +120,10 @@ main {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
     @apply border-[var(--ant-primary-5)];
   }
+
+  .ant-input::placeholder {
+    @apply text-gray-500;
+  }
 }
 
 .ant-form-item-explain {

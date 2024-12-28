@@ -313,6 +313,8 @@ async function deleteSelectedRowsWrapper() {
       @update:model-value="addRowExpandOnClose(expandedFormRow)"
     />
   </Suspense>
+
+  <!-- eslint-disable vue/eqeqeq -->
   <SmartsheetExpandedForm
     v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId == vGroup.key"
     v-model="expandedFormOnRowIdDlg"

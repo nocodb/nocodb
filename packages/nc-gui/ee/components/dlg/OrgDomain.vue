@@ -145,9 +145,9 @@ const saveDomain = async () => {
 }
 
 .nc-form-step-container {
-  @apply border-1 border-gray mt-3 mb-2 rounded-lg;
+  @apply border-1 border-nc-border-gray-medium mt-3 mb-2 rounded-lg overflow-hidden;
   .nc-form-step-title {
-    @apply bg-gray-50 p-2 border-b-1 border-gray font-weight-medium;
+    @apply bg-gray-50 p-2 border-b-1 border-nc-border-gray-medium font-weight-medium;
   }
 
   .nc-form-step-content-wrapper {
@@ -156,6 +156,6 @@ const saveDomain = async () => {
 }
 
 .nc-txt-verification-info {
-  @apply p-3 border-1 border-gray mt-3 mb-2 rounded-lg font-weight-medium;
+  @apply p-3 border-1 border-nc-border-gray-medium mt-3 mb-2 rounded-lg font-weight-medium;
 }
 </style>

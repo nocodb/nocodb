@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  IconType,
   IntegrationsType,
   ProjectRoles,
   ProjectStatus,
@@ -459,7 +460,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (
       (workspace.meta as Record<string, any>)?.icon &&
-      (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+      (workspace.meta as Record<string, any>)?.iconType === IconType.IMAGE
     ) {
       await PresignedUrl.signAttachment(
         {

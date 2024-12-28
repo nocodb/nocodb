@@ -142,6 +142,7 @@ const tiptapExtensions = [
             id: user.id,
             name: user.display_name,
             email: user.email,
+            meta: user.meta,
           }))
           .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
     },

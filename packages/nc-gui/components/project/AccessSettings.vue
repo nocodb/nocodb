@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { MetaType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -50,6 +50,7 @@ interface Collaborators {
   workspace_roles: WorkspaceUserRoles
   created_at: string
   display_name: string | null
+  meta: MetaType
 }
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
@@ -300,7 +301,7 @@ const isDeleteOrUpdateAllowed = (user) => {
     </div>
 
     <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
-      <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-350 gap-3">
+      <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
         <a-input
           v-model:value="userSearchText"
           :placeholder="$t('title.searchMembers')"
@@ -328,7 +329,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         :data="sortedCollaborators"
         :bordered="false"
         :custom-row="customRow"
-        class="flex-1 nc-collaborators-list max-w-350"
+        class="flex-1 nc-collaborators-list max-w-full"
       >
         <template #emptyText>
           <a-empty :description="$t('title.noMembersFound')" />
@@ -349,7 +350,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           </template>
 
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
-            <GeneralUserIcon size="base" :email="record.email" :name="record.display_name" class="flex-none" />
+            <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
@@ -405,10 +406,6 @@ const isDeleteOrUpdateAllowed = (user) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-input::placeholder) {
-  @apply text-gray-500;
-}
-
 .color-band {
   @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }

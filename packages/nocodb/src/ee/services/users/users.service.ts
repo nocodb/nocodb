@@ -20,7 +20,7 @@ import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { setTokenCookie } from './helpers';
-import type { BaseType, SignUpReqType, UserType } from 'nocodb-sdk';
+import type { BaseType, MetaType, SignUpReqType, UserType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { T } from '~/utils';
@@ -35,6 +35,7 @@ import {
   BaseUser,
   Extension,
   Integration,
+  PresignedUrl,
   Store,
   SyncSource,
   User,
@@ -146,6 +147,7 @@ export class UsersService extends UsersServiceCE {
     salt,
     password,
     email_verification_token,
+    meta,
     req,
   }: {
     avatar;
@@ -155,6 +157,7 @@ export class UsersService extends UsersServiceCE {
     salt: any;
     password;
     email_verification_token;
+    meta?: MetaType;
     req: NcRequest;
   }) {
     this.validateEmailPattern(email);
@@ -189,6 +192,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token,
       roles,
       token_version,
+      meta,
     });
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
@@ -201,6 +205,8 @@ export class UsersService extends UsersServiceCE {
       user,
       req: req,
     });
+
+    await PresignedUrl.signMetaIconImage(user);
 
     return user;
   }

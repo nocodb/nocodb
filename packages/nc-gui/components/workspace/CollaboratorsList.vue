@@ -229,7 +229,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           </template>
 
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :email="record.email" :name="record.display_name" class="flex-none" />
+            <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
@@ -277,7 +277,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           <div v-if="column.key === 'action'">
             <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
               <NcButton size="small" type="secondary">
-                <component :is="iconMap.threeDotVertical" />
+                <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu variant="small">
@@ -327,10 +327,6 @@ const isDeleteOrUpdateAllowed = (user) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-input::placeholder) {
-  @apply text-gray-500;
-}
-
 .badge-text {
   @apply text-[14px] pt-1 text-center;
 }

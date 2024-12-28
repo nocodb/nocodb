@@ -1,4 +1,4 @@
-import { ProjectRoles } from 'nocodb-sdk';
+import { IconType, ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -15,6 +15,7 @@ import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { PresignedUrl } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -139,7 +140,7 @@ export default class WorkspaceUser {
         const user = await User.get(userId, ncMeta);
 
         if (user) {
-          const { id, email, display_name, roles: main_roles } = user;
+          const { id, email, display_name, roles: main_roles, meta } = user;
 
           workspaceUser = {
             ...workspaceUser,
@@ -147,6 +148,7 @@ export default class WorkspaceUser {
             email,
             display_name,
             main_roles,
+            meta,
           };
 
           await NocoCache.set(
@@ -160,6 +162,8 @@ export default class WorkspaceUser {
     if (workspaceUser?.deleted) {
       workspaceUser = null;
     }
+
+    await PresignedUrl.signMetaIconImage(workspaceUser);
 
     return workspaceUser && new WorkspaceUser(workspaceUser);
   }
@@ -268,7 +272,7 @@ export default class WorkspaceUser {
       workspaceList.map(async (workspace) => {
         if (
           (workspace.meta as Record<string, any>)?.icon &&
-          (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+          (workspace.meta as Record<string, any>)?.iconType === IconType.IMAGE
         ) {
           await PresignedUrl.signAttachment(
             {
@@ -308,6 +312,7 @@ export default class WorkspaceUser {
         `${MetaTable.USERS}.display_name`,
         // `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
         `${MetaTable.WORKSPACE_USER}.*`,
       );
 
@@ -324,6 +329,11 @@ export default class WorkspaceUser {
       });
 
       workspaceUsers = await queryBuilder;
+
+      workspaceUsers = workspaceUsers.map((workspaceUser) => {
+        workspaceUser.meta = parseMetaProp(workspaceUser);
+        return workspaceUser;
+      });
 
       await NocoCache.setList(
         CacheScope.WORKSPACE_USER,

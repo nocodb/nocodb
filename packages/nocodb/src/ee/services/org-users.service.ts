@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { NcRequest } from '../../interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { OrgUser, User } from '~/models';
+import { OrgUser, PresignedUrl, User } from '~/models';
 
 @Injectable()
 export class OrgUsersService {
@@ -43,7 +43,12 @@ export class OrgUsersService {
 
   async getOrgUsers(param: { orgId: string; req: NcRequest; user: User }) {
     // get all users in org
-    return await OrgUser.list(param.orgId);
+
+    const orgUsers = await OrgUser.list(param.orgId);
+
+    await PresignedUrl.signMetaIconImage(orgUsers);
+
+    return orgUsers;
   }
 
   // remove user from org

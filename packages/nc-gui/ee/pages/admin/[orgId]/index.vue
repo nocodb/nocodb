@@ -32,7 +32,7 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout>
-    <div v-if="org" :key="org.title" class="mx-auto h-full">
+    <div v-if="org" class="mx-auto h-full">
       <div class="h-full flex">
         <!-- Side tabs -->
         <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
@@ -61,11 +61,11 @@ onMounted(async () => {
             </div>
             <NcDivider class="!mt-0" />
 
-            <div class="text-sm ml-3 p-2 mt-2 flex justify-between gap-2">
-              <div class="font-bold text-gray-900">
+            <div :key="org.title" class="text-sm ml-2 p-2 mt-2 flex items-center justify-between gap-2">
+              <div class="text-base font-bold text-nc-content-gray-emphasis">
                 {{ org.title }}
               </div>
-              <span class="text-gray-600 gray-600">{{ $t('labels.adminPanel') }}</span>
+              <span class="text-nc-content-gray-muted">{{ $t('labels.adminPanel') }}</span>
             </div>
 
             <NcMenuItem
@@ -78,7 +78,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="home1" />
+                <GeneralIcon class="!h-4 !w-4" icon="home1" />
 
                 <div class="select-none">{{ $t('labels.dashboard') }}</div>
               </div>
@@ -92,7 +92,14 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/workspaces`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="ncWorkspace" />
+                <GeneralIcon
+                  icon="ncWorkspace"
+                  class="!h-4 !w-4"
+                  :class="{
+                    'fill-gray-200': !($route.params.page === 'workspaces' || $route.params?.workspaceId),
+                    'fill-brand-200': $route.params.page === 'workspaces' || $route.params?.workspaceId,
+                  }"
+                />
 
                 <div class="select-none">{{ $t('labels.workspaces') }}</div>
               </div>
@@ -107,7 +114,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/bases`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralProjectIcon color="gray" />
+                <GeneralProjectIcon :color="$route.params.page === 'bases' || $route.params?.baseId ? undefined : 'gray'" />
                 <div class="select-none">{{ $t('objects.projects') }}</div>
               </div>
             </NcMenuItem>
@@ -120,7 +127,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/members`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="users" />
+                <GeneralIcon class="!h-4 !w-4" icon="ncUsers" />
                 <div class="select-none">{{ $t('labels.members') }}</div>
               </div>
             </NcMenuItem>
@@ -135,7 +142,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/sso`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="lock" />
+                <GeneralIcon class="!h-4 !w-4" icon="ncLock" />
                 <div class="select-none">{{ $t('title.sso') }}</div>
               </div>
             </NcMenuItem>
@@ -149,7 +156,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/settings`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="text-[16px]" icon="settings" />
+                <GeneralIcon class="h-4 w-4" icon="ncSettings" />
 
                 <div class="select-none">{{ $t('labels.settings') }}</div>
               </div>
@@ -190,12 +197,12 @@ onMounted(async () => {
 
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500;
+    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
   }
 }
 

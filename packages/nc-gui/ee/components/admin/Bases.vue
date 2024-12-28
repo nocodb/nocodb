@@ -132,7 +132,7 @@ onMounted(() => {
       <NcPageHeader>
         <template #icon>
           <div class="flex justify-center items-center h-5 w-5">
-            <GeneralProjectIcon class="flex-none h-4.5 w-4.5" />
+            <GeneralProjectIcon class="flex-none h-5 w-5" />
           </div>
         </template>
         <template #title>
@@ -144,9 +144,14 @@ onMounted(() => {
 
       <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col gap-6 p-6">
         <div class="w-full justify-between flex items-center">
-          <a-input v-model:value="searchInput" placeholder="Search a base">
+          <a-input
+            v-model:value="searchInput"
+            allow-clear
+            placeholder="Search a base"
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
             <template #prefix>
-              <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
             </template>
           </a-input>
         </div>
@@ -174,12 +179,7 @@ onMounted(() => {
               </NcTooltip>
             </div>
             <div v-if="column.key === 'owner'" class="w-full flex gap-3 items-center">
-              <GeneralUserIcon
-                :email="extractBaseOwner(base)?.email"
-                :name="extractBaseOwner(base)?.display_name"
-                size="base"
-                class="flex-none"
-              />
+              <GeneralUserIcon :user="extractBaseOwner(base)" size="base" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex gap-3">
                   <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
@@ -221,7 +221,7 @@ onMounted(() => {
             <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
               <NcDropdown>
                 <NcButton size="small" type="secondary">
-                  <component :is="iconMap.threeDotVertical" />
+                  <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">

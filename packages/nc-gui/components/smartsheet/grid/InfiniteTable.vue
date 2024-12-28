@@ -1635,6 +1635,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const triggerReload = () => {
   calculateSlices()
+  refreshFillHandle()
+  updateVisibleRows()
 }
 
 onBeforeUnmount(async () => {

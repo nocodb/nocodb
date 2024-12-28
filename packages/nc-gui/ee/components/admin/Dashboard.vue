@@ -44,15 +44,7 @@ onMounted(async () => {
         <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-5">
           <div class="flex items-center gap-5">
             <GeneralWorkspaceIcon
-              :workspace="{
-                id: org.id,
-                title: org?.title,
-                ...(org.image ? { meta: { icon: parseProp(org.image), iconType: WorkspaceIconType.IMAGE } } : {}),
-              }"
-              :class="{
-                'w-24 h-24': !org.image,
-              }"
-              :is-rounded="!org.image"
+              :workspace="org"
               size="xlarge"
             />
             <span class="text-gray-900 text-2xl font-semibold"> {{ org.title }} </span>

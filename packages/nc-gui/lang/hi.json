@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "लुकअप फ़ील्ड जुड़े हुए रिकॉर्ड से डेटा दिखाते हैं। इस तालिका में उन्हें लुकअप फ़ील्ड के रूप में जोड़ने के लिए विशेष फ़ील्ड का चयन करें",
     "addNewLookupHelperText2": " तालिका।",
     "formatting": "फॉर्मेटिंग",
-    "selectAFormatType": "- - एक फ़ॉर्मेट प्रकार चुनें (वैकल्पिक) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "फ़ॉर्मेट प्रकार",
     "toUpload": "अपलोड करने के लिए",
     "dragFilesHere": "फाइलें यहाँ खींचें",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "कुछ गलत हो गया",
       "draggedContentIsNotTypeOfImage": "खींची गई सामग्री छवि के प्रकार की नहीं है",
       "fieldToParseImageData": "छवि डेटा को पार्स करने का फ़ील्ड",
-      "someOfTheRequiredFieldsAreEmpty": "कुछ आवश्यक फ़ील्ड खाली हैं"
+      "someOfTheRequiredFieldsAreEmpty": "कुछ आवश्यक फ़ील्ड खाली हैं",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",

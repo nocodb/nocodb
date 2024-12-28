@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { type ColumnReqType, columnTypeName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  columnTypeName,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
@@ -251,64 +257,101 @@ const addColumn = async (before = false) => {
   })
 }
 
+const getViewId = () => {
+  if (meta.value?.id !== view.value?.fk_model_id) {
+    return meta.value?.views?.find((v) => v.is_default)?.id
+  }
+
+  return view.value?.id
+}
+
+const updateDefaultViewColVisibility = (columnId?: string, show: boolean = false) => {
+  //  Don't update meta if it is not default view
+  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !view.value?.is_default) return
+
+  meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+    if (c.id !== columnId) return c
+
+    c.meta = { ...parseProp(c.meta || {}), defaultViewColVisibility: show }
+    return c
+  })
+
+  if (meta.value?.columnsById?.[columnId]) {
+    meta.value.columnsById[columnId].meta = {
+      ...parseProp(meta.value.columnsById[columnId].meta),
+      defaultViewColVisibility: show,
+    }
+  }
+}
+
 // hide the field in view
 const hideOrShowField = async () => {
   isLoading.value = 'hideOrShow'
-  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
-  const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
+  const viewId = getViewId() as string
 
-  const promises = [$api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })]
+  try {
+    const gridViewColumnList = (await $api.dbViewColumn.list(viewId)).list
 
-  if (isExpandedForm.value) {
-    promises.push(getMeta(meta?.value?.id as string, true))
-  }
+    const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
 
-  await Promise.all(promises)
+    await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
 
-  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-  if (!currentColumn.show) {
-    reloadDataHook?.trigger()
-  }
+    if (isExpandedForm.value) {
+      await getMeta(meta?.value?.id as string, true)
+    } else {
+      updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+    }
 
-  addUndo({
-    redo: {
-      fn: async function redo(id: string, show: boolean) {
-        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show: !show })]
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    if (!currentColumn.show) {
+      reloadDataHook?.trigger()
+    }
 
-        if (isExpandedForm.value) {
-          promises.push(getMeta(meta?.value?.id as string, true))
-        }
+    addUndo({
+      redo: {
+        fn: async function redo(id: string, fk_column_id: string, show: boolean) {
+          await $api.dbViewColumn.update(viewId, id, { show: !show })
 
-        await Promise.all(promises)
+          if (isExpandedForm.value) {
+            await getMeta(meta?.value?.id as string, true)
+          } else {
+            updateDefaultViewColVisibility(fk_column_id, !show)
+          }
 
-        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        if (!show) {
-          reloadDataHook?.trigger()
-        }
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+          if (!show) {
+            reloadDataHook?.trigger()
+          }
+        },
+        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
       },
-      args: [currentColumn!.id, currentColumn.show],
-    },
-    undo: {
-      fn: async function undo(id: string, show: boolean) {
-        const promises = [$api.dbViewColumn.update(view.value!.id!, id, { show })]
+      undo: {
+        fn: async function undo(id: string, fk_column_id: string, show: boolean) {
+          await $api.dbViewColumn.update(viewId, id, { show })
 
-        if (isExpandedForm.value) {
-          promises.push(getMeta(meta?.value?.id as string, true))
-        }
+          if (isExpandedForm.value) {
+            await getMeta(meta?.value?.id as string, true)
+          } else {
+            updateDefaultViewColVisibility(fk_column_id, show)
+          }
 
-        await Promise.all(promises)
+          await Promise.all(promises)
 
-        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        reloadDataHook?.trigger()
-        if (show) {
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
           reloadDataHook?.trigger()
-        }
+          if (show) {
+            reloadDataHook?.trigger()
+          }
+        },
+        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
       },
-      args: [currentColumn!.id, currentColumn.show],
-    },
-    scope: defineViewScope({ view: view.value }),
-  })
+      scope: defineViewScope({ view: view.value }),
+    })
+  } catch (e: any) {
+    console.log('error', e)
+    message.error(t('msg.error.columnVisibilityUpdateFailed'))
+  }
 
   isLoading.value = ''
 }
@@ -711,7 +754,12 @@ const onDeleteColumn = () => {
   />
 
   <LazySmartsheetHeaderAddLookups v-if="addLookupMenu" v-model:value="addLookupMenu" :column="column" />
-  <LazySmartsheetHeaderUpdateDisplayValue v-if="changeTitleFieldMenu" v-model:value="changeTitleFieldMenu" :column="column" />
+  <LazySmartsheetHeaderUpdateDisplayValue
+    v-if="changeTitleFieldMenu"
+    v-model:value="changeTitleFieldMenu"
+    :column="column"
+    :use-meta-fields="meta?.id !== view?.fk_model_id"
+  />
 </template>
 
 <style scoped lang="scss">

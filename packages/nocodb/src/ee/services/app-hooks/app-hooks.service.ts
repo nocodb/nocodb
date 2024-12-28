@@ -46,7 +46,7 @@ import type {
   UserInviteEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent,
+  UserPasswordResetEvent, UserProfileUpdateEvent,
   UserSignoutEvent,
   ViewColumnEvent,
   ViewColumnUpdateEvent,
@@ -430,6 +430,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SNAPSHOT_RESTORE, data: SnapshotRestoreEvent): void;
   emit(event: AppEvents.DATA_EXPORT, data: DataExportEvent): void;
   emit(event: AppEvents.DATA_IMPORT, data: DataImportEvent): void;
+  emit(
+    event: AppEvents.USER_PROFILE_UPDATE,
+    data: UserProfileUpdateEvent,
+  ): void;
   emit(event, data): void {
     return super.emit(event, data);
   }

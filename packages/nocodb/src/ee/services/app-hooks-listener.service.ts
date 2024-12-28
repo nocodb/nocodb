@@ -3,7 +3,7 @@ import {
   AppEvents,
   AuditV1OperationTypes,
   SelectOptionsType,
-  UITypes,
+  UITypes, UserProfileUpdatePayload,
   viewTypeAlias,
 } from 'nocodb-sdk';
 import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/services/app-hooks-listener.service';
@@ -120,7 +120,7 @@ import type {
   UserInviteEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent,
+  UserPasswordResetEvent, UserProfileUpdateEvent,
   UserSigninEvent,
   UserSignupEvent,
   ViewColumnUpdateEvent,
@@ -270,6 +270,36 @@ export class AppHooksListenerService
           );
         }
         break;
+      case AppEvents.USER_PROFILE_UPDATE:
+        {
+          const param = data as UserProfileUpdateEvent;
+
+
+          const updatePayload = populateUpdatePayloadDiff({
+            next: param.user,
+            prev: param.oldUser,
+            exclude: ['password', 'salt'],
+          });
+
+          if (!updatePayload) break;
+
+          await this.auditInsert(
+            generateAuditV1Payload<UserProfileUpdatePayload>(
+              AuditV1OperationTypes.USER_PROFILE_UPDATE,
+              {
+                details: {
+                  user_id: param.user.id,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  ...updatePayload,
+                },
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
       case AppEvents.USER_SIGNUP:
         {
           const param = data as UserSignupEvent;
@@ -318,6 +348,7 @@ export class AppHooksListenerService
                 details: {
                   user_id: param.user.id,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                 },
                 context: param.context,
                 req: param.req,
@@ -404,6 +435,7 @@ export class AppHooksListenerService
                 details: {
                   user_id: param.user.id,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   user_role: param.role,
                   base_title: param.base.title,
                 },
@@ -436,6 +468,7 @@ export class AppHooksListenerService
                 details: {
                   user_id: param.user.id,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   base_title: param.base.title,
                   user_role: param.baseUser.roles,
                   ...updatePayload,
@@ -589,6 +622,7 @@ export class AppHooksListenerService
                 details: {
                   user_id: param.user.id,
                   user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
                   base_title: param.base.title,
                   user_role: param.baseUser.roles,
                 },

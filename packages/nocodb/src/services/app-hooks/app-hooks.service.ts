@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { Logger } from '@nestjs/common';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ApiCreatedEvent,
@@ -48,7 +49,8 @@ import type {
   UserInviteEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent, UserProfileUpdateEvent,
+  UserPasswordResetEvent,
+  UserProfileUpdateEvent,
   UserSigninEvent,
   UserSignoutEvent,
   UserSignupEvent,
@@ -72,6 +74,8 @@ const ALL_EVENTS = '__nc_all_events__';
 
 @Injectable()
 export class AppHooksService {
+  logger = new Logger('AppHooksService');
+
   protected listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
     new Map();
 
@@ -414,9 +418,15 @@ export class AppHooksService {
     listener: (payload: {
       event: AppEvents | 'notification';
       data: any;
-    }) => void,
+    }) => void | Promise<void>,
   ) {
-    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, listener);
+    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, async (...args) => {
+      try {
+        await listener(...args);
+      } catch (e) {
+        this.logger.error(e?.message, e?.stack);
+      }
+    });
     this.listenerUnsubscribers.set(listener, unsubscribe);
     return unsubscribe;
   }

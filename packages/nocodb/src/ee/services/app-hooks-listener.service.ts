@@ -2,12 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditV1OperationTypes,
-  SelectOptionsType,
   UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
 import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/services/app-hooks-listener.service';
-import { diff } from 'deep-object-diff';
 import type {
   APITokenCreatePayload,
   APITokenDeletePayload,
@@ -142,6 +140,7 @@ import type {
 import type { IntegrationUpdateEvent } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
 import type { ProjectUserUpdateEvent } from '~/services/app-hooks/interfaces';
+import { columnBuilder } from '~/utils/data-transformation.builder';
 import { Audit, Column, User } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -641,6 +640,12 @@ export class AppHooksListenerService
           parseMetaIfFound({
             payloads: [param.column],
           });
+          const columnBuilderRef = columnBuilder();
+
+          const column =
+            columnBuilderRef.build(
+              param.columns.find((c) => c.id === param.column.id),
+            ) ?? param.column;
 
           // update context with table & source
           Object.assign(param.context, {
@@ -655,18 +660,20 @@ export class AppHooksListenerService
                 details: {
                   field_id: param.column.id,
                   field_title: param.column.title,
+                  field_type: param.column.uidt,
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,
                     context: param.context,
                   })),
-                  ...(param.column.colOptions || {}),
-                  ...filterAndMapAliasToColProps(
-                    extractNonSystemProps(
-                      removeBlankPropsAndMask(param.column),
-                      additionalExcludePropsForCol(param.column?.uidt),
-                    ),
-                  ),
+                  // ...(param.column.colOptions || {}),
+                  // ...filterAndMapAliasToColProps(
+                  //   extractNonSystemProps(
+                  //     removeBlankPropsAndMask(param.column),
+                  //     additionalExcludePropsForCol(param.column?.uidt),
+                  //   ),
+                  // ),
+                  ...(column as Record<string, unknown>),
                 },
                 fk_model_id: param.column.fk_model_id,
                 context: param.context,
@@ -683,11 +690,11 @@ export class AppHooksListenerService
           const param = data as ColumnUpdateEvent;
 
           // filter out unnecessary metas from column
-          const oldColumn = await filterOutUnnecessaryMetas(
+          let oldColumn = await filterOutUnnecessaryMetas(
             param.oldColumn,
             param.context,
           );
-          const column = await filterOutUnnecessaryMetas(
+          let column = await filterOutUnnecessaryMetas(
             param.column,
             param.context,
           );
@@ -711,49 +718,38 @@ export class AppHooksListenerService
             );
           }
 
+          const columnBuilderRef = columnBuilder();
+
+          oldColumn = columnBuilderRef.build(oldColumn);
+          column = columnBuilderRef.build(column);
+
           const updatePayload = populateUpdatePayloadDiff({
             prev: {
               primary_key: false,
               ...(await extractRefColumnIfFound({
                 column: {
-                  ...(oldColumn?.colOptions ?? {}),
-                  ...oldColumn,
+                  ...(param.oldColumn?.colOptions ?? {}),
+                  ...param.oldColumn,
                 },
                 columns: param.columns,
                 context: param.context,
               })),
-              ...filterAndMapAliasToColProps(
-                extractNonSystemProps(
-                  removeBlankPropsAndMask({
-                    ...(oldColumn?.colOptions ?? {}),
-                    ...oldColumn,
-                  }),
-                  additionalExcludePropsForCol(oldColumn?.uidt || column?.uidt),
-                ),
-              ),
+              ...oldColumn,
             },
             next: {
               ...(await extractRefColumnIfFound({
                 column: {
-                  ...(column?.colOptions ?? {}),
-                  ...column,
+                  ...(param.column?.colOptions ?? {}),
+                  ...param.column,
                 },
                 columns: param.columns,
                 context: param.context,
               })),
-              ...filterAndMapAliasToColProps(
-                extractNonSystemProps(
-                  removeBlankPropsAndMask({
-                    ...(column?.colOptions ?? {}),
-                    ...column,
-                  }),
-                  additionalExcludePropsForCol(column?.uidt || oldColumn?.uidt),
-                ),
-              ),
+              ...column,
             },
             parseMeta: true,
             exclude: additionalExcludePropsForCol(
-              column?.uidt || oldColumn?.uidt,
+              param.column?.uidt || param.oldColumn?.uidt,
             ),
             boolProps: ['required', 'primary_key', 'pk', 'pv', 'display_value'],
           });
@@ -782,38 +778,39 @@ export class AppHooksListenerService
                 details: {
                   field_id: column.id,
                   field_title: column.title,
-                  ...filterAndMapAliasToColProps(
-                    extractNonSystemProps(
-                      removeBlankPropsAndMask({
-                        ...(column?.colOptions ?? {}),
-                        ...column,
-                      }),
-                      [
-                        'title',
-                        'column_name',
-                        'altered',
-                        'fk_qr_value_column_id',
-                        'fk_barcode_value_column_id',
-                        'fk_relation_column_id',
-                        'fk_lookup_column_id',
-                        'fk_rollup_column_id',
-                        'lookup_column_title',
-                        'colOptions',
-                        'rollup_column_title',
-                        'fk_child_column_id',
-                        'fk_parent_column_id',
-                        'fk_mm_model_id',
-                        'fk_mm_child_column_id',
-                        'fk_mm_parent_column_id',
-                        'rollup_function',
-                        'child_id',
-                        'fk_column_id',
-                        'related_model_id',
-                      ],
-                    ),
-                  ),
+                  // ...filterAndMapAliasToColProps(
+                  //   extractNonSystemProps(
+                  //     removeBlankPropsAndMask({
+                  //       ...(column?.colOptions ?? {}),
+                  //       ...column,
+                  //     }),
+                  //     [
+                  //       'title',
+                  //       'column_name',
+                  //       'altered',
+                  //       'fk_qr_value_column_id',
+                  //       'fk_barcode_value_column_id',
+                  //       'fk_relation_column_id',
+                  //       'fk_lookup_column_id',
+                  //       'fk_rollup_column_id',
+                  //       'lookup_column_title',
+                  //       'colOptions',
+                  //       'rollup_column_title',
+                  //       'fk_child_column_id',
+                  //       'fk_parent_column_id',
+                  //       'fk_mm_model_id',
+                  //       'fk_mm_child_column_id',
+                  //       'fk_mm_parent_column_id',
+                  //       'rollup_function',
+                  //       'child_id',
+                  //       'fk_column_id',
+                  //       'related_model_id',
+                  //     ],
+                  //   ),
+                  // ),
+                  ...columnBuilderRef.build(column),
                   ...(await extractRefColumnIfFound({
-                    column: column,
+                    column: param.column,
                     columns: param.columns,
                     context: param.context,
                   })),
@@ -831,6 +828,8 @@ export class AppHooksListenerService
         {
           const param = data as ColumnEvent;
 
+          const columnBuilderRef = columnBuilder();
+
           // update context with table & source
           Object.assign(param.context, {
             fk_model_id: param.column.fk_model_id,
@@ -844,13 +843,14 @@ export class AppHooksListenerService
                 details: {
                   field_id: param.column.id,
                   field_title: param.column.title,
-                  ...filterAndMapAliasToColProps(
-                    extractNonSystemProps(param.column, [
-                      'fk_qr_value_column_id',
-                      'fk_barcode_value_column_id',
-                      'colOptions',
-                    ]),
-                  ),
+                  // ...filterAndMapAliasToColProps(
+                  //   extractNonSystemProps(param.column, [
+                  //     'fk_qr_value_column_id',
+                  //     'fk_barcode_value_column_id',
+                  //     'colOptions',
+                  //   ]),
+                  // ),
+                  ...columnBuilderRef.build(param.column),
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,

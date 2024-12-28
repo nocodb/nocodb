@@ -20,6 +20,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Request } from 'express';
 import { extractProps } from '~/helpers/extractProps';
+import { columnBuilder } from '~/utils/data-transformation.builder';
 
 /**
  * Converts an array of key-value pair entries into an object.
@@ -31,7 +32,7 @@ export function fromEntries<T = any>(
   entries: [string, T][],
 ): { [key: string]: T } {
   return entries.reduce((acc, entry) => {
-    if(!entry) return acc;
+    if (!entry) return acc;
     const [key, value] = entry;
     acc[key] = value;
     return acc;
@@ -254,16 +255,13 @@ export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
 
   // extract meta and other info from colOptions
   return column
-    ? {
-        field_type: column.uidt,
-        field_id: column.id,
-        meta: column.meta ?? undefined,
-
+    ? columnBuilder().build({
+        ...column,
         // exclude id base_id, created_by, etc... from colOptions
         colOptions: colOptions
           ? extractReqPropsFromColOpt(colOptions)
           : undefined,
-      }
+      } as ColumnType)
     : undefined;
 };
 

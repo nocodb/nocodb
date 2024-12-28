@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Oppslagsfelt viser data fra tilkoblede poster. Velg spesifikke felt fra ",
     "addNewLookupHelperText2": " tabell for å legge dem til som oppslagsfelt i denne tabellen.",
     "formatting": "Formatering",
-    "selectAFormatType": "- -Velg en formattype (valgfritt)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formattype",
     "toUpload": "å laste opp",
     "dragFilesHere": "dra filer her",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Noe gikk galt",
       "draggedContentIsNotTypeOfImage": "Dratt innhold er ikke av bilde type",
       "fieldToParseImageData": "Felt for å analysere bilde data",
-      "someOfTheRequiredFieldsAreEmpty": "Noen av de nødvendige feltene er tomme"
+      "someOfTheRequiredFieldsAreEmpty": "Noen av de nødvendige feltene er tomme",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",

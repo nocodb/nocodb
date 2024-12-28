@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Bakış alanları bağlı kayıtların verilerini gösterir. Belirli alanları seçin ",
     "addNewLookupHelperText2": " bu tabloya Bakış alanları olarak eklemek için tabloyu seçin.",
     "formatting": "Biçimlendirme",
-    "selectAFormatType": "- -Bir biçim türü seç (isteğe bağlı)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Biçim türü",
     "toUpload": "yüklemek için",
     "dragFilesHere": "dosyaları buraya sürükleyin",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Bir hata oluştu",
       "draggedContentIsNotTypeOfImage": "Sürüklenen içerik resim türünde değil",
       "fieldToParseImageData": "Resim verilerini işlemek için sütun",
-      "someOfTheRequiredFieldsAreEmpty": "Gerekli alanların bazıları boş"
+      "someOfTheRequiredFieldsAreEmpty": "Gerekli alanların bazıları boş",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

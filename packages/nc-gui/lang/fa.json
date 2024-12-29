@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "فیلدهای جستجو داده‌ها را از رکوردهای مرتبط نشان می‌دهند. فیلدهای خاصی را از ",
     "addNewLookupHelperText2": " جدول انتخاب کنید تا آنها را به عنوان فیلدهای جستجو به این جدول اضافه کنید.",
     "formatting": "قالب‌بندی",
-    "selectAFormatType": "- -یک نوع فرمت را انتخاب کنید (اختیاری)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "قالب تایپ",
     "toUpload": "برای بارگذاری",
     "dragFilesHere": "فایل‌ها را اینجا بکشید",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "مشکلی پیش آمده است",
       "draggedContentIsNotTypeOfImage": "محتوای کشیده شده از نوع تصویر نیست",
       "fieldToParseImageData": "فیلدی برای تجزیه داده‌های تصویر",
-      "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند"
+      "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

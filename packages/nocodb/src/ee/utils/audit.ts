@@ -917,3 +917,43 @@ export function remapWithAlias({ data, columns }) {
     return remapped;
   }
 }
+
+/**
+ * Exclude unnecessary properties from the attachment object, like signed url, thumbnail url, base64, etc.
+ *
+ * @param obj The object to transform.
+ */
+export const excludeAttachmentProps = (obj: Record<string, unknown>) => {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  return fromEntries(
+    Object.entries(obj).filter(([key]) => {
+      return !['data', 'signedPath', 'thumbnails'].includes(key);
+    }),
+  );
+};
+
+/**
+ * Extracts certain props which store attachment and exclude unnecessary properties. It's an additional wrapper for excludeAttachmentProps function.
+ *
+ * @param obj The object to transform.
+ * @param props The properties to transform.
+ * @returns A new object with transformed property values.
+ */
+export const extractAttachmentPropsAndFormat = (
+  obj: Record<string, unknown>,
+  props: string[] = ['banner_image_url', 'logo_url'],
+) => {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  return fromEntries(
+    Object.entries(obj).map(([key, val]) => {
+      return [
+        key,
+        props.includes(key)
+          ? excludeAttachmentProps(val as Record<string, unknown>)
+          : val,
+      ];
+    }),
+  );
+};

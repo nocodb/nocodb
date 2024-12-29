@@ -19,6 +19,7 @@ import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
   extractSortsObject,
+  formatDataForAudit,
   getAs,
   getColumnName,
   getCompositePkValue,
@@ -1159,7 +1160,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             row_id: id,
           },
           details: {
-            data: filteredAuditData,
+            data: formatDataForAudit(filteredAuditData, this.model.columns),
             column_meta: extractColsMetaForAudit(
               this.model.columns,
               filteredAuditData,
@@ -1221,12 +1222,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 row_id: this.extractPksValues(data, true),
               },
               details: {
-                data: removeBlankPropsAndMask(data, [
-                  'created_at',
-                  'updated_at',
-                  'created_by',
-                  'updated_by',
-                ]),
+                data: formatDataForAudit(
+                  removeBlankPropsAndMask(data, [
+                    'created_at',
+                    'updated_at',
+                    'created_by',
+                    'updated_by',
+                  ]),
+                  this.model.columns,
+                ),
                 column_meta: extractColsMetaForAudit(this.model.columns, data),
               },
               req,
@@ -1255,7 +1259,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         AuditV1OperationTypes.DATA_DELETE,
         {
           details: {
-            data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+            data: formatDataForAudit(
+              removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              this.model.columns,
+            ),
             column_meta: extractColsMetaForAudit(this.model.columns, data),
           },
           context: {
@@ -1354,7 +1361,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             {
               details: {
                 data: d
-                  ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                      this.model.columns,
+                    )
                   : null,
                 column_meta,
               },
@@ -3106,8 +3116,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             row_id: id,
           },
           details: {
-            old_data: oldData,
-            data: data,
+            old_data: formatDataForAudit(oldData, this.model.columns),
+            data: formatDataForAudit(data, this.model.columns),
             column_meta: extractColsMetaForAudit(
               this.model.columns,
               data,
@@ -3177,13 +3187,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 },
                 details: {
                   old_data: prevData?.[i]
-                    ? removeBlankPropsAndMask(prevData?.[i], [
-                        'CreatedAt',
-                        'UpdatedAt',
-                      ])
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(prevData?.[i], [
+                          'CreatedAt',
+                          'UpdatedAt',
+                        ]),
+                        this.model.columns,
+                      )
                     : null,
                   data: d
-                    ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                        this.model.columns,
+                      )
                     : null,
                   column_meta: extractColsMetaForAudit(
                     this.model.columns,

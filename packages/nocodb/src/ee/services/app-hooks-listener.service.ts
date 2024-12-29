@@ -146,6 +146,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   additionalExcludePropsForCol,
+  extractAttachmentPropsAndFormat,
   extractNonSystemProps,
   extractPropsFromPrev,
   extractRefColumnIfFound,
@@ -537,6 +538,9 @@ export class AppHooksListenerService
                     'table_name',
                     'columns',
                     'is_hybrid',
+                    'meta',
+                    'prefix',
+                    'pgSerialLastVal',
                   ]),
                 },
                 context: param.context,
@@ -654,10 +658,11 @@ export class AppHooksListenerService
           });
           const columnBuilderRef = columnBuilder();
 
-          const column =
-            columnBuilderRef.build(
-              param.columns.find((c) => c.id === param.column.id),
-            ) ?? param.column;
+          const column = columnBuilderRef.build(
+            param.columns.find((c) => c.id === param.column.id) ??
+              param.column ??
+              (await Column.get(param.context, { colId: param.column.id })),
+          );
 
           // update context with table & source
           Object.assign(param.context, {
@@ -1628,6 +1633,9 @@ export class AppHooksListenerService
               break;
           }
 
+          next = extractAttachmentPropsAndFormat(next);
+          prev = extractAttachmentPropsAndFormat(prev);
+
           // check if view rename
           if (next?.title && next?.title !== prev?.title) {
             await this.auditInsert(
@@ -1693,16 +1701,18 @@ export class AppHooksListenerService
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
                   view_owner_name: param.owner?.display_name ?? undefined,
-                  ...extractNonSystemProps(
-                    {
-                      ...param.view,
-                      meta: param.view?.meta && {
-                        ...((param.view.meta as any) || {}),
-                        allowCSVDownload: undefined,
+                  ...extractAttachmentPropsAndFormat(
+                    extractNonSystemProps(
+                      {
+                        ...param.view,
+                        meta: param.view?.meta && {
+                          ...((param.view.meta as any) || {}),
+                          allowCSVDownload: undefined,
+                        },
+                        ...next,
                       },
-                      ...next,
-                    },
-                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                      ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                    ),
                   ),
                   ...payloadDiff,
                 },
@@ -1730,17 +1740,19 @@ export class AppHooksListenerService
                   view_type: 'form',
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
-                  ...extractNonSystemProps(param.view, [
-                    'title',
-                    'type',
-                    'id',
-                    'fk_mode_id',
-                    'owned_by',
-                    'show',
-                    ...((event as AppEvents) !== AppEvents.CALENDAR_UPDATE
-                      ? ['calendar_range']
-                      : []),
-                  ]),
+                  ...extractAttachmentPropsAndFormat(
+                    extractNonSystemProps(param.view, [
+                      'title',
+                      'type',
+                      'id',
+                      'fk_mode_id',
+                      'owned_by',
+                      'show',
+                      ...((event as AppEvents) !== AppEvents.CALENDAR_UPDATE
+                        ? ['calendar_range']
+                        : []),
+                    ]),
+                  ),
                 },
                 fk_model_id: param.view.fk_model_id,
                 source_id: param.view.source_id,

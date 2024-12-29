@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { UserType } from '~/lib/Api';
+import type {TableType, UserType} from '~/lib/Api';
 
 export interface NcContext {
   org_id?: string;
@@ -13,6 +13,7 @@ export interface NcRequest extends Partial<Request> {
   ncBaseId?: string;
   ncSourceId?: string;
   ncParentAuditId?: string;
+  ncModel?: TableType;
   user: UserType & {
     base_roles?: Record<string, boolean>;
     workspace_roles?: Record<string, boolean>;

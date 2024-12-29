@@ -28,7 +28,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
-import deepClone from "~/helpers/deepClone";
+import deepClone from '~/helpers/deepClone';
 
 @Injectable()
 export class UsersService {
@@ -92,7 +92,7 @@ export class UsersService {
   async profileUpdate({
     id,
     params,
-    req
+    req,
   }: {
     id: string;
     params: {

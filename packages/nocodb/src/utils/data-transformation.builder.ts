@@ -351,7 +351,10 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
         )?.label;
       }
     } else if (data.type === UITypes.Rating) {
-      const { icon, iconIdx, ...rest } = (data.options || {}) as Record<string, any>;
+      const { icon, iconIdx, ...rest } = (data.options || {}) as Record<
+        string,
+        any
+      >;
 
       // extract option meta and include only label and color
       options = rest;
@@ -485,10 +488,8 @@ export const columnV3ToV2Builder = builderGenerator({
         }
       }
     } else if (data.uidt === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = (data.meta || {}) as Record<
-        string,
-        any
-      >;
+      const { duration, duration_format, ...rest } = (data.meta ||
+        {}) as Record<string, any>;
       const durationFormat = duration ?? duration_format;
       // extract option meta and include only label and color
       const durationIdx = durationOptions.findIndex(

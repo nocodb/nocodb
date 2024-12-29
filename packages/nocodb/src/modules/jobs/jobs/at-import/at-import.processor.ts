@@ -139,7 +139,7 @@ export class AtImportProcessor {
     } as NcRequest;
 
     await Audit.insert(
-      generateAuditV1Payload<AirtableImportPayload>(
+      await generateAuditV1Payload<AirtableImportPayload>(
         AuditV1OperationTypes.AIRTABLE_IMPORT,
         {
           context,
@@ -2651,7 +2651,7 @@ export class AtImportProcessor {
       }
     } catch (e) {
       await Audit.insert(
-        generateAuditV1Payload<AirtableImportFailPayload>(
+        await generateAuditV1Payload<AirtableImportFailPayload>(
           AuditV1OperationTypes.AIRTABLE_IMPORT_ERROR,
           {
             context,

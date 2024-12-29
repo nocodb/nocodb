@@ -7072,7 +7072,7 @@ class BaseModelSqlv2 {
         .map((c) => c.title),
     ]);
     await Audit.insert(
-      generateAuditV1Payload<DataInsertPayload>(
+      await generateAuditV1Payload<DataInsertPayload>(
         AuditV1OperationTypes.DATA_INSERT,
         {
           context: {
@@ -7111,7 +7111,7 @@ class BaseModelSqlv2 {
       parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
-        generateAuditV1Payload<DataBulkDeletePayload>(
+        await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_INSERT,
           {
             details: {},
@@ -7130,31 +7130,33 @@ class BaseModelSqlv2 {
     }
     // data here is not mapped to column alias
     await Audit.insert(
-      data.map((d) => {
-        const data = remapWithAlias({ data: d, columns: this.model.columns });
+      await Promise.all(
+        data.map((d) => {
+          const data = remapWithAlias({ data: d, columns: this.model.columns });
 
-        return generateAuditV1Payload<DataBulkInsertPayload>(
-          AuditV1OperationTypes.DATA_INSERT,
-          {
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: this.extractPksValues(data, true),
+          return generateAuditV1Payload<DataInsertPayload>(
+            AuditV1OperationTypes.DATA_INSERT,
+            {
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(data, true),
+              },
+              details: {
+                data: removeBlankPropsAndMask(data, [
+                  'created_at',
+                  'updated_at',
+                  'created_by',
+                  'updated_by',
+                ]),
+                column_meta: extractColsMetaForAudit(this.model.columns, data),
+              },
+              req,
             },
-            details: {
-              data: removeBlankPropsAndMask(data, [
-                'created_at',
-                'updated_at',
-                'created_by',
-                'updated_by',
-              ]),
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
-            },
-            req,
-          },
-        );
-      }),
+          );
+        }),
+      ),
     );
 
     await this.handleRichTextMentions(null, data, req);
@@ -7164,7 +7166,7 @@ class BaseModelSqlv2 {
     const id = this.extractPksValues(data);
 
     await Audit.insert(
-      generateAuditV1Payload<DataDeletePayload>(
+      await generateAuditV1Payload<DataDeletePayload>(
         AuditV1OperationTypes.DATA_DELETE,
         {
           details: {
@@ -7183,12 +7185,6 @@ class BaseModelSqlv2 {
     );
 
     await this.handleHooks('after.delete', null, data, req);
-
-    const modelStats = await ModelStat.get(
-      this.context,
-      this.model.fk_workspace_id,
-      this.model.id,
-    );
   }
 
   public async afterBulkDelete(
@@ -7197,16 +7193,14 @@ class BaseModelSqlv2 {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfDeletedRecords: number = data;
     if (!isBulkAllOperation) {
-      noOfDeletedRecords = data.length;
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
     const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
     await Audit.insert(
-      generateAuditV1Payload<DataBulkDeletePayload>(
+      await generateAuditV1Payload<DataBulkDeletePayload>(
         AuditV1OperationTypes.DATA_BULK_DELETE,
         {
           details: {},
@@ -7224,24 +7218,26 @@ class BaseModelSqlv2 {
 
     const column_meta = extractColsMetaForAudit(this.model.columns);
     await Audit.insert(
-      data?.map?.((d) =>
-        generateAuditV1Payload<DataBulkDeletePayload>(
-          AuditV1OperationTypes.DATA_DELETE,
-          {
-            details: {
-              data: d
-                ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
-                : null,
-              column_meta,
+      await Promise.all(
+        data?.map?.((d) =>
+          generateAuditV1Payload<DataDeletePayload>(
+            AuditV1OperationTypes.DATA_DELETE,
+            {
+              details: {
+                data: d
+                  ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                  : null,
+                column_meta,
+              },
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(d, true),
+              },
+              req,
             },
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: this.extractPksValues(d, true),
-            },
-            req,
-          },
+          ),
         ),
       ),
     );
@@ -7262,7 +7258,7 @@ class BaseModelSqlv2 {
       const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
-        generateAuditV1Payload<DataBulkUpdatePayload>(
+        await generateAuditV1Payload<DataBulkUpdatePayload>(
           AuditV1OperationTypes.DATA_BULK_UPDATE,
           {
             details: {},
@@ -7280,34 +7276,36 @@ class BaseModelSqlv2 {
       req.ncParentAuditId = parentAuditId;
 
       await Audit.insert(
-        newData.map((d, i) =>
-          generateAuditV1Payload<DataUpdatePayload>(
-            AuditV1OperationTypes.DATA_UPDATE,
-            {
-              context: {
-                ...this.context,
-                source_id: this.model.source_id,
-                fk_model_id: this.model.id,
-                row_id: this.extractPksValues(d, true),
+        await Promise.all(
+          newData.map((d, i) =>
+            generateAuditV1Payload<DataUpdatePayload>(
+              AuditV1OperationTypes.DATA_UPDATE,
+              {
+                context: {
+                  ...this.context,
+                  source_id: this.model.source_id,
+                  fk_model_id: this.model.id,
+                  row_id: this.extractPksValues(d, true),
+                },
+                details: {
+                  old_data: prevData?.[i]
+                    ? removeBlankPropsAndMask(prevData?.[i], [
+                        'CreatedAt',
+                        'UpdatedAt',
+                      ])
+                    : null,
+                  data: d
+                    ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                    : null,
+                  column_meta: extractColsMetaForAudit(
+                    this.model.columns,
+                    d,
+                    prevData?.[i],
+                  ),
+                },
+                req,
               },
-              details: {
-                old_data: prevData?.[i]
-                  ? removeBlankPropsAndMask(prevData?.[i], [
-                      'CreatedAt',
-                      'UpdatedAt',
-                    ])
-                  : null,
-                data: d
-                  ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
-                  : null,
-                column_meta: extractColsMetaForAudit(
-                  this.model.columns,
-                  d,
-                  prevData?.[i],
-                ),
-              },
-              req,
-            },
+            ),
           ),
         ),
       );
@@ -7354,7 +7352,7 @@ class BaseModelSqlv2 {
     }
 
     await Audit.insert(
-      generateAuditV1Payload<DataUpdatePayload>(
+      await generateAuditV1Payload<DataUpdatePayload>(
         AuditV1OperationTypes.DATA_UPDATE,
         {
           context: {
@@ -8404,26 +8402,29 @@ class BaseModelSqlv2 {
     }
 
     await Audit.insert(
-      generateAuditV1Payload<DataLinkPayload>(AuditV1OperationTypes.DATA_LINK, {
-        context: {
-          ...this.context,
-          source_id: model.source_id,
-          fk_model_id: model.id,
-          row_id: rowId as string,
+      await generateAuditV1Payload<DataLinkPayload>(
+        AuditV1OperationTypes.DATA_LINK,
+        {
+          context: {
+            ...this.context,
+            source_id: model.source_id,
+            fk_model_id: model.id,
+            row_id: rowId as string,
+          },
+          details: {
+            table_title: model.title,
+            ref_table_title: refModel.title,
+            link_field_title: columnTitle,
+            link_field_id: columnId,
+            row_id: rowId,
+            ref_row_id: refRowId,
+            display_value: displayValue,
+            ref_display_value: refDisplayValue,
+            type,
+          },
+          req,
         },
-        details: {
-          table_title: model.title,
-          ref_table_title: refModel.title,
-          link_field_title: columnTitle,
-          link_field_id: columnId,
-          row_id: rowId,
-          ref_row_id: refRowId,
-          display_value: displayValue,
-          ref_display_value: refDisplayValue,
-          type,
-        },
-        req,
-      }),
+      ),
     );
   }
 
@@ -8678,7 +8679,6 @@ class BaseModelSqlv2 {
     );
   }
 
-
   public async afterRemoveChild({
     columnTitle,
     columnId,
@@ -8728,7 +8728,7 @@ class BaseModelSqlv2 {
     }
 
     await Audit.insert(
-      generateAuditV1Payload<DataUnlinkPayload>(
+      await generateAuditV1Payload<DataUnlinkPayload>(
         AuditV1OperationTypes.DATA_UNLINK,
         {
           context: {
@@ -11478,7 +11478,7 @@ class BaseModelSqlv2 {
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
       auditUpdateObj.push(
-        generateAuditV1Payload<DataBulkUpdateAllPayload>(
+        await generateAuditV1Payload<DataBulkUpdateAllPayload>(
           AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
           {
             context: {

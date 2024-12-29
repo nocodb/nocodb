@@ -264,7 +264,7 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNIN, {
+            await generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNIN, {
               context: param.context,
               req: param.req,
             }),
@@ -284,7 +284,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<UserProfileUpdatePayload>(
+            await generateAuditV1Payload<UserProfileUpdatePayload>(
               AuditV1OperationTypes.USER_PROFILE_UPDATE,
               {
                 details: {
@@ -308,7 +308,7 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNUP, {
+            await generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNUP, {
               context: param.context,
               req: param.req,
             }),
@@ -330,7 +330,7 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNOUT, {
+            await generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNOUT, {
               context: param.context,
               req: param.req,
             }),
@@ -342,7 +342,7 @@ export class AppHooksListenerService
           const param = data as UserInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<UserInvitePayload>(
+            await generateAuditV1Payload<UserInvitePayload>(
               AuditV1OperationTypes.USER_INVITE,
               {
                 details: {
@@ -372,10 +372,13 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_PASSWORD_CHANGE, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_PASSWORD_CHANGE,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;
@@ -387,10 +390,13 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_PASSWORD_FORGOT, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_PASSWORD_FORGOT,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;
@@ -402,10 +408,13 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_PASSWORD_RESET, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_PASSWORD_RESET,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;
@@ -417,10 +426,13 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.USER_EMAIL_VERIFY, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_EMAIL_VERIFY,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;
@@ -429,7 +441,7 @@ export class AppHooksListenerService
           const param = data as ProjectInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseUserInvitePayload>(
+            await generateAuditV1Payload<BaseUserInvitePayload>(
               AuditV1OperationTypes.BASE_USER_INVITE,
               {
                 details: {
@@ -462,7 +474,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseUserRoleUpdatePayload>(
+            await generateAuditV1Payload<BaseUserRoleUpdatePayload>(
               AuditV1OperationTypes.BASE_USER_UPDATE,
               {
                 details: {
@@ -485,7 +497,7 @@ export class AppHooksListenerService
           // const param = data as ProjectUserDeleteEvent;
           //
           // await this.auditInsert(
-          //   generateAuditV1Payload<BaseUserDeletePayload>(
+          //   await generateAuditV1Payload<BaseUserDeletePayload>(
           //     AuditV1OperationTypes.BASE_USER_DELETE,
           //     {
           //       details: {
@@ -515,7 +527,7 @@ export class AppHooksListenerService
           });
 
           await this.auditInsert(
-            generateAuditV1Payload<TableCreatePayload>(
+            await generateAuditV1Payload<TableCreatePayload>(
               AuditV1OperationTypes.TABLE_CREATE,
               {
                 details: {
@@ -544,7 +556,7 @@ export class AppHooksListenerService
           });
 
           await this.auditInsert(
-            generateAuditV1Payload<TableDeletePayload>(
+            await generateAuditV1Payload<TableDeletePayload>(
               AuditV1OperationTypes.TABLE_DELETE,
               {
                 details: {
@@ -572,7 +584,7 @@ export class AppHooksListenerService
             param.prevTable?.title !== param.table?.title
           ) {
             await this.auditInsert(
-              generateAuditV1Payload<TableRenamePayload>(
+              await generateAuditV1Payload<TableRenamePayload>(
                 AuditV1OperationTypes.TABLE_RENAME,
                 {
                   details: {
@@ -596,7 +608,7 @@ export class AppHooksListenerService
           // check if any other update change (except title)
           if (updateEventPayload) {
             await this.auditInsert(
-              generateAuditV1Payload<TableUpdatePayload>(
+              await generateAuditV1Payload<TableUpdatePayload>(
                 AuditV1OperationTypes.TABLE_UPDATE,
                 {
                   details: {
@@ -616,7 +628,7 @@ export class AppHooksListenerService
           const param = data as ProjectUserResendInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseUserInviteResendPayload>(
+            await generateAuditV1Payload<BaseUserInviteResendPayload>(
               AuditV1OperationTypes.BASE_USER_INVITE_RESEND,
               {
                 details: {
@@ -654,7 +666,7 @@ export class AppHooksListenerService
           });
 
           await this.auditInsert(
-            generateAuditV1Payload<ColumnCreatePayload>(
+            await generateAuditV1Payload<ColumnCreatePayload>(
               AuditV1OperationTypes.COLUMN_CREATE,
               {
                 details: {
@@ -702,7 +714,7 @@ export class AppHooksListenerService
           // check if workspace rename
           if (column?.title && column?.title !== oldColumn?.title) {
             await this.auditInsert(
-              generateAuditV1Payload<ColumnRenamePayload>(
+              await generateAuditV1Payload<ColumnRenamePayload>(
                 AuditV1OperationTypes.COLUMN_RENAME,
                 {
                   details: {
@@ -772,7 +784,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<ColumnUpdatePayload>(
+            await generateAuditV1Payload<ColumnUpdatePayload>(
               AuditV1OperationTypes.COLUMN_UPDATE,
               {
                 details: {
@@ -837,12 +849,13 @@ export class AppHooksListenerService
           });
 
           await this.auditInsert(
-            generateAuditV1Payload<ColumnDeletePayload>(
+            await generateAuditV1Payload<ColumnDeletePayload>(
               AuditV1OperationTypes.COLUMN_DELETE,
               {
                 details: {
                   field_id: param.column.id,
                   field_title: param.column.title,
+                  field_type: param.column.uidt as UITypes,
                   // ...filterAndMapAliasToColProps(
                   //   extractNonSystemProps(param.column, [
                   //     'fk_qr_value_column_id',
@@ -889,7 +902,7 @@ export class AppHooksListenerService
           const param = data as OrgUserInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<OrgUserInvitePayload>(
+            await generateAuditV1Payload<OrgUserInvitePayload>(
               AuditV1OperationTypes.ORG_USER_INVITE,
               {
                 details: {
@@ -909,7 +922,7 @@ export class AppHooksListenerService
           const param = data as OrgUserInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<OrgUserInviteResendPayload>(
+            await generateAuditV1Payload<OrgUserInviteResendPayload>(
               AuditV1OperationTypes.ORG_USER_INVITE_RESEND,
               {
                 details: {
@@ -942,7 +955,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewColumnUpdatePayload>(
+            await generateAuditV1Payload<ViewColumnUpdatePayload>(
               AuditV1OperationTypes.VIEW_COLUMN_UPDATE,
               {
                 details: {
@@ -969,7 +982,7 @@ export class AppHooksListenerService
           const param = data as ProjectCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseCreatePayload>(
+            await generateAuditV1Payload<BaseCreatePayload>(
               AuditV1OperationTypes.BASE_CREATE,
               {
                 details: {
@@ -993,7 +1006,7 @@ export class AppHooksListenerService
             param.oldBaseObj?.title !== param.updateObj.title
           ) {
             await this.auditInsert(
-              generateAuditV1Payload<BaseRenamePayload>(
+              await generateAuditV1Payload<BaseRenamePayload>(
                 AuditV1OperationTypes.BASE_RENAME,
                 {
                   details: {
@@ -1018,7 +1031,7 @@ export class AppHooksListenerService
           // check if any other update change (except title)
           if (updateEventPayload) {
             await this.auditInsert(
-              generateAuditV1Payload<BaseUpdatePayload>(
+              await generateAuditV1Payload<BaseUpdatePayload>(
                 AuditV1OperationTypes.BASE_UPDATE,
                 {
                   details: {
@@ -1039,7 +1052,7 @@ export class AppHooksListenerService
           const param = data as ProjectDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseDeletePayload>(
+            await generateAuditV1Payload<BaseDeletePayload>(
               AuditV1OperationTypes.BASE_DELETE,
               {
                 details: {
@@ -1058,10 +1071,13 @@ export class AppHooksListenerService
           const param = data as FormColumnEvent;
           // assign user to req (as this is self-event)
           await this.auditInsert(
-            generateAuditV1Payload(AuditV1OperationTypes.FORM_COLUMN_UPDATE, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.FORM_COLUMN_UPDATE,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;
@@ -1070,7 +1086,7 @@ export class AppHooksListenerService
           const param = data as WorkspaceEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceCreatePayload>(
+            await generateAuditV1Payload<WorkspaceCreatePayload>(
               AuditV1OperationTypes.WORKSPACE_CREATE,
               {
                 details: {
@@ -1089,7 +1105,7 @@ export class AppHooksListenerService
           const param = data as WorkspaceEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceDeletePayload>(
+            await generateAuditV1Payload<WorkspaceDeletePayload>(
               AuditV1OperationTypes.WORKSPACE_DELETE,
               {
                 details: {
@@ -1113,7 +1129,7 @@ export class AppHooksListenerService
             param.oldWorkspace?.title !== param.workspace.title
           ) {
             await this.auditInsert(
-              generateAuditV1Payload<WorkspaceRenamePayload>(
+              await generateAuditV1Payload<WorkspaceRenamePayload>(
                 AuditV1OperationTypes.WORKSPACE_RENAME,
                 {
                   details: {
@@ -1139,7 +1155,7 @@ export class AppHooksListenerService
             break;
           }
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceUpdatePayload>(
+            await generateAuditV1Payload<WorkspaceUpdatePayload>(
               AuditV1OperationTypes.WORKSPACE_UPDATE,
               {
                 details: {
@@ -1160,7 +1176,7 @@ export class AppHooksListenerService
           const param = data as WorkspaceUserInviteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceInvitePayload>(
+            await generateAuditV1Payload<WorkspaceInvitePayload>(
               AuditV1OperationTypes.WORKSPACE_USER_INVITE,
               {
                 details: {
@@ -1182,7 +1198,7 @@ export class AppHooksListenerService
           const param = data as WorkspaceUserDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceUserDeletePayload>(
+            await generateAuditV1Payload<WorkspaceUserDeletePayload>(
               AuditV1OperationTypes.WORKSPACE_USER_DELETE,
               {
                 details: {
@@ -1214,7 +1230,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<WorkspaceUserUpdatePayload>(
+            await generateAuditV1Payload<WorkspaceUserUpdatePayload>(
               AuditV1OperationTypes.WORKSPACE_USER_UPDATE,
               {
                 details: {
@@ -1238,7 +1254,7 @@ export class AppHooksListenerService
           const param = data as IntegrationEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<IntegrationCreatePayload>(
+            await generateAuditV1Payload<IntegrationCreatePayload>(
               AuditV1OperationTypes.INTEGRATION_CREATE,
               {
                 details: {
@@ -1276,7 +1292,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<IntegrationUpdatePayload>(
+            await generateAuditV1Payload<IntegrationUpdatePayload>(
               AuditV1OperationTypes.INTEGRATION_UPDATE,
               {
                 details: {
@@ -1297,7 +1313,7 @@ export class AppHooksListenerService
           const param = data as IntegrationEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<IntegrationDeletePayload>(
+            await generateAuditV1Payload<IntegrationDeletePayload>(
               AuditV1OperationTypes.INTEGRATION_DELETE,
               {
                 details: {
@@ -1329,7 +1345,7 @@ export class AppHooksListenerService
           const param = data as SnapshotEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SnapshotPayload>(
+            await generateAuditV1Payload<SnapshotPayload>(
               AuditV1OperationTypes.SNAPSHOT_CREATE,
               {
                 details: {
@@ -1350,7 +1366,7 @@ export class AppHooksListenerService
           const param = data as SnapshotDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SnapshotPayload>(
+            await generateAuditV1Payload<SnapshotPayload>(
               AuditV1OperationTypes.SNAPSHOT_DELETE,
               {
                 details: {
@@ -1371,7 +1387,7 @@ export class AppHooksListenerService
           const param = data as SnapshotRestoreEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SnapshotRestorePayload>(
+            await generateAuditV1Payload<SnapshotRestorePayload>(
               AuditV1OperationTypes.SNAPSHOT_RESTORE,
               {
                 details: {
@@ -1395,7 +1411,7 @@ export class AppHooksListenerService
           const param = data as DataExportEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<DataExportPayload>(
+            await generateAuditV1Payload<DataExportPayload>(
               AuditV1OperationTypes.DATA_EXPORT,
               {
                 details: {
@@ -1418,7 +1434,7 @@ export class AppHooksListenerService
           const param = data as DataImportEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<DataImportPayload>(
+            await generateAuditV1Payload<DataImportPayload>(
               AuditV1OperationTypes.DATA_IMPORT,
               {
                 details: {
@@ -1443,7 +1459,7 @@ export class AppHooksListenerService
           const param = data as ViewCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewCreatePayload>(
+            await generateAuditV1Payload<ViewCreatePayload>(
               AuditV1OperationTypes.VIEW_CREATE,
               {
                 details: {
@@ -1478,7 +1494,7 @@ export class AppHooksListenerService
           const param = data as ViewDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDeletePayload>(
+            await generateAuditV1Payload<ViewDeletePayload>(
               AuditV1OperationTypes.VIEW_DELETE,
               {
                 details: {
@@ -1511,7 +1527,7 @@ export class AppHooksListenerService
           const param = data as ViewCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewCreatePayload>(
+            await generateAuditV1Payload<ViewCreatePayload>(
               AuditV1OperationTypes.VIEW_CREATE,
               {
                 details: {
@@ -1615,7 +1631,7 @@ export class AppHooksListenerService
           // check if view rename
           if (next?.title && next?.title !== prev?.title) {
             await this.auditInsert(
-              generateAuditV1Payload<ViewRenamePayload>(
+              await generateAuditV1Payload<ViewRenamePayload>(
                 AuditV1OperationTypes.VIEW_RENAME,
                 {
                   details: {
@@ -1667,7 +1683,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewUpdatePayload>(
+            await generateAuditV1Payload<ViewUpdatePayload>(
               AuditV1OperationTypes.VIEW_UPDATE,
               {
                 details: {
@@ -1705,7 +1721,7 @@ export class AppHooksListenerService
           const param = data as ViewDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDeletePayload>(
+            await generateAuditV1Payload<ViewDeletePayload>(
               AuditV1OperationTypes.VIEW_DELETE,
               {
                 details: {
@@ -1740,7 +1756,7 @@ export class AppHooksListenerService
           const param = data as ViewCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewCreatePayload>(
+            await generateAuditV1Payload<ViewCreatePayload>(
               AuditV1OperationTypes.VIEW_CREATE,
               {
                 details: {
@@ -1780,7 +1796,7 @@ export class AppHooksListenerService
           const param = data as ViewDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDeletePayload>(
+            await generateAuditV1Payload<ViewDeletePayload>(
               AuditV1OperationTypes.VIEW_DELETE,
               {
                 details: {
@@ -1819,7 +1835,7 @@ export class AppHooksListenerService
           const param = data as ViewCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewCreatePayload>(
+            await generateAuditV1Payload<ViewCreatePayload>(
               AuditV1OperationTypes.VIEW_CREATE,
               {
                 details: {
@@ -1859,7 +1875,7 @@ export class AppHooksListenerService
           const param = data as ViewDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDeletePayload>(
+            await generateAuditV1Payload<ViewDeletePayload>(
               AuditV1OperationTypes.VIEW_DELETE,
               {
                 details: {
@@ -1898,7 +1914,7 @@ export class AppHooksListenerService
           const param = data as ViewCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewCreatePayload>(
+            await generateAuditV1Payload<ViewCreatePayload>(
               AuditV1OperationTypes.VIEW_CREATE,
               {
                 details: {
@@ -1925,7 +1941,7 @@ export class AppHooksListenerService
           const param = data as ViewDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDeletePayload>(
+            await generateAuditV1Payload<ViewDeletePayload>(
               AuditV1OperationTypes.VIEW_DELETE,
               {
                 details: {
@@ -1993,7 +2009,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<FilterCreatePayload>(event, {
+            await generateAuditV1Payload<FilterCreatePayload>(event, {
               details: {
                 ...(mapAlias(
                   extractNonSystemProps(param.filter, [
@@ -2075,7 +2091,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<FilterUpdatePayload>(event, {
+            await generateAuditV1Payload<FilterUpdatePayload>(event, {
               details: {
                 filter_id: param.filter.id,
                 filter_field_id: param.filter.fk_column_id,
@@ -2158,7 +2174,7 @@ export class AppHooksListenerService
             }));
 
           await this.auditInsert(
-            generateAuditV1Payload<FilterDeletePayload>(event, {
+            await generateAuditV1Payload<FilterDeletePayload>(event, {
               details: {
                 ...mapAlias(
                   extractNonSystemProps(param.filter, [
@@ -2194,7 +2210,7 @@ export class AppHooksListenerService
             metaProps: ['notification'],
           });
           await this.auditInsert(
-            generateAuditV1Payload<HookCreatePayload>(
+            await generateAuditV1Payload<HookCreatePayload>(
               AuditV1OperationTypes.HOOK_CREATE,
               {
                 details: {
@@ -2269,7 +2285,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<HookUpdatePayload>(
+            await generateAuditV1Payload<HookUpdatePayload>(
               AuditV1OperationTypes.HOOK_UPDATE,
               {
                 details: {
@@ -2295,7 +2311,7 @@ export class AppHooksListenerService
           });
 
           await this.auditInsert(
-            generateAuditV1Payload<HookDeletePayload>(
+            await generateAuditV1Payload<HookDeletePayload>(
               AuditV1OperationTypes.HOOK_DELETE,
               {
                 details: {
@@ -2331,7 +2347,7 @@ export class AppHooksListenerService
           const param = data as SortEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SortCreatePayload>(
+            await generateAuditV1Payload<SortCreatePayload>(
               AuditV1OperationTypes.VIEW_SORT_CREATE,
               {
                 details: {
@@ -2363,7 +2379,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<SortUpdatePayload>(
+            await generateAuditV1Payload<SortUpdatePayload>(
               AuditV1OperationTypes.VIEW_SORT_UPDATE,
               {
                 details: {
@@ -2392,7 +2408,7 @@ export class AppHooksListenerService
           const param = data as SortEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SortDeletePayload>(
+            await generateAuditV1Payload<SortDeletePayload>(
               AuditV1OperationTypes.VIEW_SORT_DELETE,
               {
                 details: {
@@ -2422,7 +2438,7 @@ export class AppHooksListenerService
           const param = data as ApiTokenCreateEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<APITokenCreatePayload>(
+            await generateAuditV1Payload<APITokenCreatePayload>(
               AuditV1OperationTypes.API_TOKEN_CREATE,
               {
                 details: {
@@ -2443,7 +2459,7 @@ export class AppHooksListenerService
           const param = data as ApiTokenDeleteEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<APITokenDeletePayload>(
+            await generateAuditV1Payload<APITokenDeletePayload>(
               AuditV1OperationTypes.API_TOKEN_DELETE,
               {
                 details: {
@@ -2465,7 +2481,7 @@ export class AppHooksListenerService
           parseMetaIfFound({ payloads: [param.view] });
 
           await this.auditInsert(
-            generateAuditV1Payload<SharedViewCreatePayload>(
+            await generateAuditV1Payload<SharedViewCreatePayload>(
               AuditV1OperationTypes.SHARED_VIEW_CREATE,
               {
                 details: {
@@ -2517,7 +2533,7 @@ export class AppHooksListenerService
           if (!updatePayload) break;
 
           await this.auditInsert(
-            generateAuditV1Payload<SharedViewUpdatePayload>(
+            await generateAuditV1Payload<SharedViewUpdatePayload>(
               AuditV1OperationTypes.SHARED_VIEW_UPDATE,
               {
                 details: {
@@ -2558,7 +2574,7 @@ export class AppHooksListenerService
           parseMetaIfFound({ payloads: [param.view] });
 
           await this.auditInsert(
-            generateAuditV1Payload<SharedViewDeletePayload>(
+            await generateAuditV1Payload<SharedViewDeletePayload>(
               AuditV1OperationTypes.SHARED_VIEW_DELETE,
               {
                 details: {
@@ -2593,7 +2609,7 @@ export class AppHooksListenerService
           const param = data as SharedBaseEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SharedBasePayload>(
+            await generateAuditV1Payload<SharedBasePayload>(
               AuditV1OperationTypes.SHARED_BASE_CREATE,
               {
                 details: {
@@ -2612,7 +2628,7 @@ export class AppHooksListenerService
           const param = data as SharedBaseEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SharedBasePayload>(
+            await generateAuditV1Payload<SharedBasePayload>(
               AuditV1OperationTypes.SHARED_BASE_DELETE,
               {
                 details: {
@@ -2632,7 +2648,7 @@ export class AppHooksListenerService
           const param = data as SourceEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SourceCreatePayload>(
+            await generateAuditV1Payload<SourceCreatePayload>(
               AuditV1OperationTypes.SOURCE_CREATE,
               {
                 details: {
@@ -2665,7 +2681,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<SourceUpdatePayload>(
+            await generateAuditV1Payload<SourceUpdatePayload>(
               AuditV1OperationTypes.SOURCE_UPDATE,
               {
                 details: {
@@ -2688,7 +2704,7 @@ export class AppHooksListenerService
           const param = data as SourceEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<SourceDeletePayload>(
+            await generateAuditV1Payload<SourceDeletePayload>(
               AuditV1OperationTypes.SOURCE_DELETE,
               {
                 details: {
@@ -2716,7 +2732,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<BaseDuplicatePayload>(auditEvent, {
+            await generateAuditV1Payload<BaseDuplicatePayload>(auditEvent, {
               details: {
                 source_base_title: param.sourceBase.title,
                 source_base_id: param.sourceBase.id,
@@ -2743,7 +2759,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<TableDuplicatePayload>(auditEvent, {
+            await generateAuditV1Payload<TableDuplicatePayload>(auditEvent, {
               details: {
                 source_table_title: param.sourceTable.title,
                 source_table_id: param.sourceTable.id,
@@ -2773,7 +2789,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<ColumnDuplicatePayload>(auditEvent, {
+            await generateAuditV1Payload<ColumnDuplicatePayload>(auditEvent, {
               details: {
                 source_field_title: param.sourceColumn.title,
                 source_field_id: param.sourceColumn.id,
@@ -2802,7 +2818,7 @@ export class AppHooksListenerService
           }
 
           await this.auditInsert(
-            generateAuditV1Payload<ViewDuplicatePayload>(auditEvent, {
+            await generateAuditV1Payload<ViewDuplicatePayload>(auditEvent, {
               details: {
                 duplicated_view_title: param.destView.title,
                 duplicated_view_id: param.destView.id,
@@ -2824,7 +2840,7 @@ export class AppHooksListenerService
           const param = data as ModelRoleVisibilityEvent;
 
           await this.auditInsert(
-            generateAuditV1Payload<ModelRoleVisibilityPayload>(
+            await generateAuditV1Payload<ModelRoleVisibilityPayload>(
               AuditV1OperationTypes.UI_ACL,
               {
                 details: {

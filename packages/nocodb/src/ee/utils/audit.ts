@@ -139,10 +139,10 @@ export function extractNonSystemProps<T>(
  * @param params Additional parameters for generating the audit payload.
  * @returns The generated audit payload.
  */
-export function generateAuditV1Payload<T>(
+export async function generateAuditV1Payload<T = Record<string, unknown>>(
   opType: AuditV1OperationTypes,
   params: {
-    details?: T;
+    details?: T & { table_title?: string };
     context?: NcContext & {
       source_id?: string;
       fk_model_id?: string;
@@ -156,8 +156,18 @@ export function generateAuditV1Payload<T>(
     fk_workspace_id?: string;
     row_id?: string;
   },
-): AuditV1<T> {
+): Promise<AuditV1<T>> {
   const { details, context, req, id } = params;
+
+  // todo: handle it in a better way
+  // if payload includes view_id and view_title and not table_title, then extract table_title
+  if (!details.table_title && (params.fk_model_id || context?.fk_model_id)) {
+    details.table_title = (
+      req.ncModel ||
+      (await Model.get(context, params.fk_model_id ?? context?.fk_model_id))
+    )?.title;
+  }
+
   return {
     user: req?.user?.email,
     ip: req?.ip,

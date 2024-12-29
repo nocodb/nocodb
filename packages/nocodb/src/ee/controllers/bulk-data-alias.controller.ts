@@ -48,7 +48,7 @@ export class BulkDataAliasController extends BulkDataAliasControllerCE {
       parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
-        generateAuditV1Payload<DataImportPayload>(
+        await generateAuditV1Payload<DataImportPayload>(
           AuditV1OperationTypes.DATA_IMPORT,
           {
             details: {

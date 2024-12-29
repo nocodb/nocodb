@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "查詢欄位顯示來自連結記錄的數據。從中選擇特定欄位",
     "addNewLookupHelperText2": " 表以添加它們作為此表中的查閱欄位。",
     "formatting": "格式化",
-    "selectAFormatType": "- -選擇格式類型（可選）- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "格式類型",
     "toUpload": "上傳",
     "dragFilesHere": "將文件拖到這裡",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "發生錯誤",
       "draggedContentIsNotTypeOfImage": "拖曳的內容不是圖片類型",
       "fieldToParseImageData": "解析圖片數據的欄位",
-      "someOfTheRequiredFieldsAreEmpty": "部分必填欄位為空"
+      "someOfTheRequiredFieldsAreEmpty": "部分必填欄位為空",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

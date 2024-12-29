@@ -37,7 +37,6 @@ import type {
   ColumnMeta,
   ColumnType,
   DataBulkDeletePayload,
-  DataBulkInsertPayload,
   DataBulkUpdateAllPayload,
   DataBulkUpdatePayload,
   DataDeletePayload,

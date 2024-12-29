@@ -139,7 +139,7 @@ export function extractNonSystemProps<T>(
  * @param params Additional parameters for generating the audit payload.
  * @returns The generated audit payload.
  */
-export async function generateAuditV1Payload<T = Record<string, unknown>>(
+export async function generateAuditV1Payload<T = any>(
   opType: AuditV1OperationTypes,
   params: {
     details?: T & { table_title?: string };
@@ -417,7 +417,7 @@ export const extractRefColumnIfFound = async ({
   return {};
 };
 
-export const additionalExcludePropsForCol = (uidt) => [
+export const additionalExcludePropsForCol = (_uidt) => [
   'title',
   'column_name',
   'altered',

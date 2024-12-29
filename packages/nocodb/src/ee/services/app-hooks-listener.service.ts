@@ -1293,8 +1293,8 @@ export class AppHooksListenerService
             prev: param.oldIntegration,
             exclude: ['config'],
             aliasMap: {
-              title: 'integration_title'
-            }
+              title: 'integration_title',
+            },
           });
 
           if (!updatePayload) break;
@@ -1306,6 +1306,7 @@ export class AppHooksListenerService
                 details: {
                   integration_id: param.integration?.id,
                   integration_type: param.integration?.type,
+                  integration_title: param.integration?.title,
                   ...updatePayload,
                 },
                 context: param.context,

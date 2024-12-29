@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "حقول البحث تعرض البيانات من السجلات المرتبطة. اختر حقول معينة من ",
     "addNewLookupHelperText2": " الجدول لإضافتها كحقول بحث في هذا الجدول.",
     "formatting": "تنسيق",
-    "selectAFormatType": "- -اختر نوع التنسيق (اختياري)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "نوع التنسيق",
     "toUpload": "للرفع",
     "dragFilesHere": "اسحب الملفات هنا",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "حدث خطأ ما",
       "draggedContentIsNotTypeOfImage": "المحتوى المسحوب ليس من نوع الصورة",
       "fieldToParseImageData": "حقل لتحليل بيانات الصور",
-      "someOfTheRequiredFieldsAreEmpty": "بعض الحقول المطلوبة فارغة"
+      "someOfTheRequiredFieldsAreEmpty": "بعض الحقول المطلوبة فارغة",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

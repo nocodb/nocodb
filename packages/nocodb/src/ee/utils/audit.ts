@@ -161,7 +161,11 @@ export async function generateAuditV1Payload<T = any>(
 
   // todo: handle it in a better way
   // if payload includes view_id and view_title and not table_title, then extract table_title
-  if (!details.table_title && (params.fk_model_id || context?.fk_model_id)) {
+  if (
+    details &&
+    !details.table_title &&
+    (params.fk_model_id || context?.fk_model_id)
+  ) {
     details.table_title = (
       req.ncModel ||
       (await Model.get(context, params.fk_model_id ?? context?.fk_model_id))

@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Поля перегляду відображають дані з пов'язаних записів. Виберіть конкретні поля з ",
     "addNewLookupHelperText2": " таблиці, щоб додати їх як поля перегляду в цю таблицю.",
     "formatting": "Форматування",
-    "selectAFormatType": "- -Виберіть тип формату (необов'язково)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Тип формату",
     "toUpload": "завантажити",
     "dragFilesHere": "перетягніть файли сюди",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Щось пішло не так",
       "draggedContentIsNotTypeOfImage": "Перетягнутий вміст не є типом зображення",
       "fieldToParseImageData": "Поле для розбору даних зображення",
-      "someOfTheRequiredFieldsAreEmpty": "Деякі обов’язкові поля залишились порожніми"
+      "someOfTheRequiredFieldsAreEmpty": "Деякі обов’язкові поля залишились порожніми",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

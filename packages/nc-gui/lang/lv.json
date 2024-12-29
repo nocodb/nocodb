@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Izvietojuma lauki rāda datus no saistītajiem ierakstiem. Atlasiet konkrētus laukus no ",
     "addNewLookupHelperText2": " tabula, lai pievienotu tos kā Izvietojuma laukus šajā tabulā.",
     "formatting": "Formatēšana",
-    "selectAFormatType": "- -Izvēlieties formāta tipu (pēc izvēles)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formāta tips",
     "toUpload": "lai augšupielādētu",
     "dragFilesHere": "velciet failus šeit",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Kaut kas nogāja greizi",
       "draggedContentIsNotTypeOfImage": "Pievilktais saturs nav attēla tips",
       "fieldToParseImageData": "Lauks attēla datu parsēšanai",
-      "someOfTheRequiredFieldsAreEmpty": "Daži no nepieciešamajiem laukiem ir tukši"
+      "someOfTheRequiredFieldsAreEmpty": "Daži no nepieciešamajiem laukiem ir tukši",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

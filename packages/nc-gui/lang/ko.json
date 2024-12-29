@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "조회 필드는 연결된 레코드의 데이터를 표시합니다. 다음에서 특정 필드를 선택하세요 ",
     "addNewLookupHelperText2": "이 테이블에 조회 필드로 추가하려면 테이블을 클릭합니다",
     "formatting": "서식 설정",
-    "selectAFormatType": "- -양식 유형을 선택하세요(선택 사항)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "형식 유형",
     "toUpload": "업로드하기",
     "dragFilesHere": "여기로 파일 드래그",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "문제가 발생했습니다",
       "draggedContentIsNotTypeOfImage": "드래그된 콘텐츠가 이미지 유형이 아닙니다",
       "fieldToParseImageData": "이미지 데이터를 구문 분석할 필드",
-      "someOfTheRequiredFieldsAreEmpty": "필수 필드 중 일부가 비어 있습니다"
+      "someOfTheRequiredFieldsAreEmpty": "필수 필드 중 일부가 비어 있습니다",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

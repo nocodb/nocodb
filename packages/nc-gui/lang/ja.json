@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "ルックアップフィールドはリンクされたレコードからデータを表示します。特定のフィールドを選択してください",
     "addNewLookupHelperText2": "これらをこのテーブルのルックアップフィールドとして追加します。",
     "formatting": "書式設定",
-    "selectAFormatType": "- - 形式タイプを選択 (オプション) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "フォーマット タイプ",
     "toUpload": "アップロードする",
     "dragFilesHere": "ファイルをここにドラッグ",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "問題が発生しました",
       "draggedContentIsNotTypeOfImage": "ドラッグされたコンテンツは画像タイプではありません",
       "fieldToParseImageData": "画像データを解析するフィールド",
-      "someOfTheRequiredFieldsAreEmpty": "必須フィールドのいくつかが空です"
+      "someOfTheRequiredFieldsAreEmpty": "必須フィールドのいくつかが空です",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

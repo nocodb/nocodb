@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Lookup polja prikazuju podatke iz povezanih zapisa. Odaberite određena polja iz ",
     "addNewLookupHelperText2": " tablice kako biste ih dodali kao Lookup polja u ovoj tablici.",
     "formatting": "Formatiranje",
-    "selectAFormatType": "- -Odaberite vrstu formata (opcionalno)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Vrsta formata",
     "toUpload": "za prijenos",
     "dragFilesHere": "povucite datoteke ovdje",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Nešto je pošlo po krivu",
       "draggedContentIsNotTypeOfImage": "Povučeni sadržaj nije tip slike",
       "fieldToParseImageData": "Polje za parsiranje podataka o slici",
-      "someOfTheRequiredFieldsAreEmpty": "Neka od obaveznih polja su prazna"
+      "someOfTheRequiredFieldsAreEmpty": "Neka od obaveznih polja su prazna",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

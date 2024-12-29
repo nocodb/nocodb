@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Keresőmezők kapcsolt rekordok adatait mutatják. Válasszon ki konkrét mezőket a ",
     "addNewLookupHelperText2": " táblázatba, hogy hozzáadja azokat keresési mezőként ebben a táblázatban.",
     "formatting": "Formázás",
-    "selectAFormatType": "- -Válassza ki a formátum típusát (opcionális)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formátum típus",
     "toUpload": "feltölteni",
     "dragFilesHere": "húzza ide a fájlokat",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Valami elromlott",
       "draggedContentIsNotTypeOfImage": "A húzott tartalom nem kép típusú",
       "fieldToParseImageData": "Mező kép adatok elemzésére",
-      "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt"
+      "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Polja za iskanje prikazujejo podatke iz povezanih zapisov. Izberite določena polja iz ",
     "addNewLookupHelperText2": " tabele, da jih dodate kot polja za iskanje v tej tabeli.",
     "formatting": "Oblikovanje",
-    "selectAFormatType": "- -Izberite vrsto oblike (izbirno)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Vrsta oblike",
     "toUpload": "za nalaganje",
     "dragFilesHere": "povlecite datoteke sem",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Nekaj je šlo narobe",
       "draggedContentIsNotTypeOfImage": "Povlečena vsebina ni vrsta slike",
       "fieldToParseImageData": "Polje za razčlenitev slikovnih podatkov",
-      "someOfTheRequiredFieldsAreEmpty": "Nekatera obvezna polja so prazna"
+      "someOfTheRequiredFieldsAreEmpty": "Nekatera obvezna polja so prazna",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

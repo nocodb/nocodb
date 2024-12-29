@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Vyhľadávacie polia zobrazujú údaje z prepojených záznamov. Vyberte konkrétne polia z ",
     "addNewLookupHelperText2": " tabuľky na pridanie ako vyhľadávacie polia v tejto tabuľke.",
     "formatting": "Formátovanie",
-    "selectAFormatType": "- -Vyberte typ formátu (voliteľný)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formátu",
     "toUpload": "na nahratie",
     "dragFilesHere": "pretiahnuť súbory sem",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Niečo sa pokazilo",
       "draggedContentIsNotTypeOfImage": "Presunutý obsah nie je typu obrázka",
       "fieldToParseImageData": "Pole na spracovanie údajov z obrázka",
-      "someOfTheRequiredFieldsAreEmpty": "Niektoré z povinných polí sú prázdne"
+      "someOfTheRequiredFieldsAreEmpty": "Niektoré z povinných polí sú prázdne",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",

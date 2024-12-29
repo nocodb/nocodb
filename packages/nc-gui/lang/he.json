@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "שדות החיפוש מציגים נתונים מרשומות מקושרות. בחר שדות ספציפיים מ",
     "addNewLookupHelperText2": " הטבלה כדי להוסיף אותם כשדות חיפוש בטבלה זו.",
     "formatting": "עיצוב",
-    "selectAFormatType": "- -בחר סוג תצוגה (אופציונלי)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "סוג תצוגה",
     "toUpload": "להעלות",
     "dragFilesHere": "גרור קבצים לכאן",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "משהו השתבש",
       "draggedContentIsNotTypeOfImage": "התוכן שגורר אינו סוג תמונה",
       "fieldToParseImageData": "שדה לניתוח נתוני התמונה",
-      "someOfTheRequiredFieldsAreEmpty": "חלק מהשדות הדרושים ריקים"
+      "someOfTheRequiredFieldsAreEmpty": "חלק מהשדות הדרושים ריקים",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

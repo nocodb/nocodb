@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Trường tra cứu hiển thị dữ liệu từ các bản ghi liên kết. Chọn các trường cụ thể từ ",
     "addNewLookupHelperText2": " bảng để thêm chúng làm các trường tra cứu trong bảng này.",
     "formatting": "Định dạng",
-    "selectAFormatType": "- -Chọn loại định dạng (tùy chọn)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Loại định dạng",
     "toUpload": "để tải lên",
     "dragFilesHere": "kéo tệp vào đây",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Có điều gì đó không ổn",
       "draggedContentIsNotTypeOfImage": "Nội dung kéo không phải là loại hình ảnh",
       "fieldToParseImageData": "Trường để phân tích dữ liệu hình ảnh",
-      "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống"
+      "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

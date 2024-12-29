@@ -41,8 +41,6 @@ const { baseTables } = storeToRefs(tablesStore)
 
 const activeKey = ref('uploadTab')
 
-const jsonEditorRef = ref()
-
 const templateEditorRef = ref()
 
 const preImportLoading = ref(false)
@@ -628,6 +626,7 @@ async function pasteJsonContent() {
           :base-id="baseId"
           :source-id="sourceId"
           :import-worker="importWorker"
+          :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
           @import="handleImport"
           @error="onError"

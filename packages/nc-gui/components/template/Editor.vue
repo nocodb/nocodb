@@ -24,6 +24,7 @@ interface Props {
   baseId: string
   sourceId: string
   importWorker: Worker
+  tableIcon?: string
 }
 
 interface Option {
@@ -41,6 +42,7 @@ const {
   baseId,
   sourceId,
   importWorker,
+  tableIcon
 } = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
@@ -246,10 +248,12 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
             c.column_name = cn
           }
           c.key = idx
+          c.selected = true;
           return c
         }),
         ...v.map((v: any) => ({
           column_name: v.title,
+          selected: true,
           table_name: {
             ...v,
           },
@@ -535,6 +539,8 @@ async function importTemplate() {
           }
         }
 
+        table.columns = table.columns?.filter((c) => !('selected' in c) || (c as any).selected)
+
         if (table.columns) {
           for (const column of table.columns) {
             // set pk & rqd if ID is provided
@@ -564,8 +570,11 @@ async function importTemplate() {
         if (process.env.NC_SANITIZE_COLUMN_NAME !== 'false') {
           // column_name could have been updated in tableCreate
           // e.g. sanitize column name to something like field_1, field_2, and etc
+          // todo: see why we have extra columns when json is imported through pasting
           createdTable.columns.forEach((column, i) => {
-            table.columns[i].column_name = column.column_name
+            if (table.columns[i]) {
+              table.columns[i].column_name = column.column_name
+            }
           })
         }
 
@@ -873,7 +882,7 @@ watch(modelRef, async () => {
       </a-collapse>
     </a-card>
 
-    <a-card v-else>
+    <a-card v-else class="!border-none !px-0 !mx-0" :body-style="{ padding: '0 !important' }">
       <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
@@ -883,24 +892,30 @@ watch(modelRef, async () => {
         <a-collapse
           v-if="data.tables && data.tables.length"
           v-model:activeKey="expansionPanel"
-          class="template-collapse"
+          class="template-collapse !rounded-lg !overflow-hidden"
           accordion
+          expand-icon-position="right"
         >
-          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
+          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !border-none">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
-                  <a-input
-                    v-model:value="table.table_name"
-                    class="font-weight-bold text-lg !rounded-md"
-                    size="large"
-                    hide-details
-                    :bordered="true"
-                    @click.stop
-                    @blur="handleEditableTnChange(tableIdx)"
-                    @keydown.enter="handleEditableTnChange(tableIdx)"
-                    @dblclick="setEditableTn(tableIdx, true)"
-                  />
+                  <div class="flex items-center">
+                    <div v-if="tableIcon" class="w-8 h-8 flex items-center justify-center bg-gray-100 mr-2 rounded-lg flex-shrink-0">
+                      <GeneralIcon :icon="tableIcon as any" class="w-5 h-5" />
+                    </div>
+                    <a-input
+                      v-model:value="table.table_name"
+                      class="!rounded-md"
+                      hide-details
+                      :bordered="true"
+                      @click.stop
+                      @blur="handleEditableTnChange(tableIdx)"
+                      @keydown.enter="handleEditableTnChange(tableIdx)"
+                      @dblclick="setEditableTn(tableIdx, true)"
+                    />
+                  </div>
+
                   <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-3">
                     {{ formError?.[`tables.${tableIdx}.table_name`].join('\n') }}
                   </div>
@@ -921,7 +936,7 @@ watch(modelRef, async () => {
                 />
               </NcTooltip>
             </template>
-            <div v-if="table.columns && table.columns.length" class="flex w-full max-h-[calc(80vh_-_200px)]">
+            <div v-if="table.columns && table.columns.length" class="bg-gray-50 max-h-[200px] overflow-y-auto nc-scrollbar-thin">
               <NcTable
                 class="template-form flex-1"
                 body-row-class-name="template-form-row"
@@ -930,27 +945,12 @@ watch(modelRef, async () => {
                 :bordered="false"
                 :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
               >
-                <template #headerCell="{ column }">
-                  <template v-if="column.key === 'column_name'">
-                    <span>
-                      {{ $t('labels.columnName') }}
-                    </span>
-                  </template>
-
-                  <template v-else-if="column.key === 'uidt'">
-                    <span>
-                      {{ $t('labels.columnType') }}
-                    </span>
-                  </template>
-
-                  <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
-                    <span>
-                      {{ $t('general.options') }}
-                    </span>
-                  </template>
-                </template>
-
                 <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'enabled'">
+                    <a-checkbox
+                      v-model:checked="record.selected"
+                    />
+                  </template>
                   <template v-if="column.key === 'column_name'">
                     <a-form-item
                       v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
@@ -971,62 +971,6 @@ watch(modelRef, async () => {
                         </template>
                       </a-input>
                     </a-form-item>
-                  </template>
-
-                  <template v-else-if="column.key === 'uidt'">
-                    <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]" class="!mb-0 w-full">
-                      <NcTooltip :disabled="importDataOnly">
-                        <template #title>
-                          {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
-                        </template>
-                        <a-select
-                          v-model:value="record.uidt"
-                          class="w-52"
-                          show-search
-                          :filter-option="filterOption"
-                          dropdown-class-name="nc-dropdown-template-uidt"
-                          :disabled="!importDataOnly"
-                          @change="handleUIDTChange(record, table)"
-                        >
-                          <template #suffixIcon>
-                            <GeneralIcon icon="arrowDown" class="text-current" />
-                          </template>
-
-                          <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
-                            <div class="flex items-center gap-2">
-                              <component :is="getUIDTIcon(UITypes[option.value])" class="h-3.5 w-3.5" />
-                              <NcTooltip placement="right" :disabled="!importDataOnly" show-on-truncate-only>
-                                <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                                  {{
-                                    $t('msg.tooLargeFieldEntity', {
-                                      entity: option.label,
-                                    })
-                                  }}
-                                </template>
-                                {{ option.label }}
-                              </NcTooltip>
-                            </div>
-                          </a-select-option>
-                        </a-select>
-                      </NcTooltip>
-                    </a-form-item>
-                  </template>
-
-                  <template v-if="column.key === 'action'">
-                    <NcTooltip class="inline-block">
-                      <template #title>
-                        <span>{{ $t('activity.column.delete') }}</span>
-                      </template>
-
-                      <NcButton
-                        type="text"
-                        size="small"
-                        :disabled="table.columns.length === 1"
-                        @click="deleteTableColumn(tableIdx, record.key)"
-                      >
-                        <component :is="iconMap.deleteListItem" />
-                      </NcButton>
-                    </NcTooltip>
                   </template>
                 </template>
               </NcTable>
@@ -1051,6 +995,12 @@ watch(modelRef, async () => {
 }
 .nc-table-field-name {
   :deep(.ant-form-item-explain) {
+    @apply hidden;
+  }
+}
+:deep(.nc-import-table-box .ant-collapse-content-box) {
+  @apply p-0;
+  .nc-table-header-row {
     @apply hidden;
   }
 }

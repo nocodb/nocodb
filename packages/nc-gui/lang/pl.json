@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Pola Lookup pokazują dane z powiązanych rekordów. Wybierz konkretne pola z ",
     "addNewLookupHelperText2": " tabeli, aby dodać je jako pola Lookup w tej tabeli.",
     "formatting": "Formatowanie",
-    "selectAFormatType": "-Wybierz typ formularza (opcjonalnie)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formatu",
     "toUpload": "do prześlij",
     "dragFilesHere": "przeciągnij pliki tutaj",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Coś poszło nie tak",
       "draggedContentIsNotTypeOfImage": "Przeciągnięta zawartość nie jest typem obrazu",
       "fieldToParseImageData": "Pole do analizy danych obrazu",
-      "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste"
+      "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

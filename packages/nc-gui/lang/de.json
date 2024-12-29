@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Referenzfelder zeigen Daten aus verknüpften Datensätzen an. Wählen Sie bestimmte Felder aus ",
     "addNewLookupHelperText2": " Tabelle aus, um sie als Referenzfelder in diese Tabelle hinzuzufügen.",
     "formatting": "Formatierung",
-    "selectAFormatType": "- -Wählen Sie einen Formattyp (optional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formattyp",
     "toUpload": "hochladen",
     "dragFilesHere": "Dateien hierher ziehen",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Etwas ist schief gelaufen",
       "draggedContentIsNotTypeOfImage": "Diese Inhalte sind keine Bilder",
       "fieldToParseImageData": "Feld zum Parsen von Bilddaten",
-      "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer"
+      "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",

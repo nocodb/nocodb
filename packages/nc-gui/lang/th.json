@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "ฟิลด์โล้โก้อัพแสดงข้อมูลจากรายการที่เชื่อมโยง เลือกฟิลด์เฉพาะจาก ",
     "addNewLookupHelperText2": " ตารางเพื่อเพิ่มเป็นฟิลด์โล้โก้อัพในตารางนี้",
     "formatting": "การจัดรูปแบบ",
-    "selectAFormatType": "- -เลือกรูปแบบ (ไม่บังคับ)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ประเภทการจัดรูปแบบ",
     "toUpload": "เพื่ออัปโหลด",
     "dragFilesHere": "ลากไฟล์มาที่นี่",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "มีบางอย่างผิดพลาด",
       "draggedContentIsNotTypeOfImage": "เนื้อหาที่ลากไม่ใช่ประเภทของรูปภาพ",
       "fieldToParseImageData": "ฟิลด์เพื่อวิเคราะห์ข้อมูลรูปภาพ",
-      "someOfTheRequiredFieldsAreEmpty": "ช่องที่จำเป็นบางช่องว่าง"
+      "someOfTheRequiredFieldsAreEmpty": "ช่องที่จำเป็นบางช่องว่าง",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

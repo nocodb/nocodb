@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Bilatu eremuetan lotutako grabazioetatik datuak erakutsi. Aukeratu zehazki ",
     "addNewLookupHelperText2": " taula bertan Lookup eremu bezala gehitzeko.",
     "formatting": "Formatua",
-    "selectAFormatType": "- - Formatu mota bat aukeratu (aukerazkoa) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formatu mota",
     "toUpload": "igortzeko",
     "dragFilesHere": "fitxategiak hemen arrastatu",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Zerbait gaizki joan da",
       "draggedContentIsNotTypeOfImage": "Arrastatutako edukia ez da irudi mota",
       "fieldToParseImageData": "Irudi datuak analizatzeko eremua",
-      "someOfTheRequiredFieldsAreEmpty": "Beharrezko eremuetako batzuk hutsik daude"
+      "someOfTheRequiredFieldsAreEmpty": "Beharrezko eremuetako batzuk hutsik daude",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Bidang lookup menampilkan data dari catatan terkait. Pilih kolom spesifik dari ",
     "addNewLookupHelperText2": " tabel untuk menambahkannya sebagai bidang lookup dalam tabel ini.",
     "formatting": "Pemformatan",
-    "selectAFormatType": "- -Pilih jenis format (opsional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Jenis format",
     "toUpload": "untuk mengunggah",
     "dragFilesHere": "seret berkas ke sini",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Terjadi kesalahan",
       "draggedContentIsNotTypeOfImage": "Konten yang diseret bukan tipe gambar",
       "fieldToParseImageData": "Kesalahan memparse data gambar",
-      "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong"
+      "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

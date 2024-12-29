@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "ലിങ്കുചെയ്ത റെക്കോർഡുകളിൽ നിന്ന് ഡാറ്റ കാണിക്കാൻ ലുക്കപ്പ് ഫീൽഡുകൾ ഉപയോഗിക്കുന്നു. പകുതിയിലായി നിൽക്കുന്ന ഫീൽഡുകൾ തിരഞ്ഞെടുക്കുക ",
     "addNewLookupHelperText2": " ടേബിളില്‍ ഇവയെ ലുക്ക്അപ്പ് ഫീല്‍ഡുകള്‍ ആയി കൂട്ടിച്ചേര്‍ക്കാൻ പ്രത്യേക ഫീല്‍ഡുകള്‍ തിരഞ്ഞെടുക്കുക.",
     "formatting": "ഫോർമാറ്റിംഗ്",
-    "selectAFormatType": "- -ഒരു ഫോർമാറ്റ് തരം തിരഞ്ഞെടുക്കുക (ഐച്ഛികം)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ഫോർമാറ്റ് തരം",
     "toUpload": "അപ്‌ലോഡ് ചെയ്യാനുള്ളത്",
     "dragFilesHere": "ഫയലുകൾ ഇവിടെ വലയിടുക",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "എന്തോ ഒരു പിശക് സംഭവിച്ചു",
       "draggedContentIsNotTypeOfImage": "വലിച്ചിടൽ ഉള്ളടക്കം ചിത്രമല്ലാത്ത തരത്തിൽ ഉണ്ട്",
       "fieldToParseImageData": "ചിത്ര ഡാറ്റ പാഴ്സ് ചെയ്യാൻ ഫീൽഡ് ആവശ്യമാണ്",
-      "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്"
+      "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

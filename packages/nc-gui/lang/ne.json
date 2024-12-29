@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "लुकअप फिल्डहरूले लिङ्क गरिएका रेकर्डहरूबाट डाटा देखाउँछन्। विशिष्ट फिल्डहरू चयन गर्नुहोस् ",
     "addNewLookupHelperText2": " तालिकामा तिनीहरूलाई Lookup क्षेत्रहरू रूपमा थप्न।",
     "formatting": "फारम्याटिंग",
-    "selectAFormatType": "- -फारम प्रकार चयन गर्नुहोस् (वैकल्पिक)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "फारम प्रकार",
     "toUpload": "अपलोड गर्न",
     "dragFilesHere": "यहाँ फाइलहरू तान्नुहोस्",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "केहि गलत भयो",
       "draggedContentIsNotTypeOfImage": "तानेको सामग्री छवि प्रकारको छैन",
       "fieldToParseImageData": "छवि डेटा पार्स गर्न क्षेत्र",
-      "someOfTheRequiredFieldsAreEmpty": "केही आवश्यक फिल्डहरू खाली छन्"
+      "someOfTheRequiredFieldsAreEmpty": "केही आवश्यक फिल्डहरू खाली छन्",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",

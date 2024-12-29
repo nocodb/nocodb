@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Linkityskentät näyttävät tietoja linkitetyistä tietueista. Valitse tietyt kentät ",
     "addNewLookupHelperText2": " taulukosta lisätäksesi ne hakukentiksi tähän taulukkoon.",
     "formatting": "Muotoilu",
-    "selectAFormatType": "- -Valitse muototyyppi (valinnainen)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Muototyyppi",
     "toUpload": "ladata tai näyttää",
     "dragFilesHere": "vedä tiedostot tänne",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Jokin meni pieleen",
       "draggedContentIsNotTypeOfImage": "Raahattava sisältö ei ole kuvatyyppi",
       "fieldToParseImageData": "Kenttä kuvadatan jäsentämiseen",
-      "someOfTheRequiredFieldsAreEmpty": "Jotkut vaaditut kentät ovat tyhjiä"
+      "someOfTheRequiredFieldsAreEmpty": "Jotkut vaaditut kentät ovat tyhjiä",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",

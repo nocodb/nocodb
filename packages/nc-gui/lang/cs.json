@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "Pole vyhledávání zobrazují data z propojených záznamů. Vyberte konkrétní pole z ",
     "addNewLookupHelperText2": " tabulky k jejich přidání jako pole vyhledávání.",
     "formatting": "Formátování",
-    "selectAFormatType": "- -Vyberte typ formátu (volitelné)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formátu",
     "toUpload": "nahrát",
     "dragFilesHere": "přetáhněte soubory sem",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "Něco se pokazilo",
       "draggedContentIsNotTypeOfImage": "Přetažený obsah není obrazového typu",
       "fieldToParseImageData": "Pole pro analýzu obrazových dat",
-      "someOfTheRequiredFieldsAreEmpty": "Některá z povinných polí jsou prázdná"
+      "someOfTheRequiredFieldsAreEmpty": "Některá z povinných polí jsou prázdná",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat projektu",

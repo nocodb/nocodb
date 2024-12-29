@@ -698,7 +698,7 @@
     "addNewLookupHelperText1": "查找字段显示来自关联记录的数据。从中选择特定字段 ",
     "addNewLookupHelperText2": " 将它们添加为此表中的查找字段。",
     "formatting": "格式化",
-    "selectAFormatType": "- -选择一个格式类型（可选）- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "格式类型",
     "toUpload": "上传",
     "dragFilesHere": "将文件拖到这里",
@@ -1869,7 +1869,8 @@
       "somethingWentWrong": "出现了一些错误",
       "draggedContentIsNotTypeOfImage": "拖动内容不是图像",
       "fieldToParseImageData": "无法解析图像数据",
-      "someOfTheRequiredFieldsAreEmpty": "必填字段不能为空"
+      "someOfTheRequiredFieldsAreEmpty": "必填字段不能为空",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

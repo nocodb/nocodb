@@ -660,7 +660,7 @@ export class AppHooksListenerService
                 details: {
                   field_id: param.column.id,
                   field_title: param.column.title,
-                  field_type: param.column.uidt,
+                  field_type: param.column.uidt as UITypes,
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,
@@ -808,7 +808,7 @@ export class AppHooksListenerService
                   //     ],
                   //   ),
                   // ),
-                  ...columnBuilderRef.build(column),
+                  ...(columnBuilderRef.build(column) as object),
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,
@@ -850,7 +850,7 @@ export class AppHooksListenerService
                   //     'colOptions',
                   //   ]),
                   // ),
-                  ...columnBuilderRef.build(param.column),
+                  ...(columnBuilderRef.build(param.column) as object),
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,

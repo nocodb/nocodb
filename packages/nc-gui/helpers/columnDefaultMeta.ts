@@ -1,6 +1,6 @@
 import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
 
-export const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8]
+export const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8] as const
 
 export const supportedBarcodeFormats = [
   { value: 'CODE128', label: 'CODE128' },
@@ -14,7 +14,19 @@ export const supportedBarcodeFormats = [
   { value: 'MSI', label: 'MSI' },
   { value: 'PHARMACODE', label: 'PHARMACODE' },
   { value: 'CODABAR', label: 'CODABAR' },
-]
+] as const
+
+export const makePrecisionFormatsDiplay = (t: (input: string) => string) =>
+  ({
+    1: t('placeholder.decimal1'),
+    2: t('placeholder.decimal2'),
+    3: t('placeholder.decimal3'),
+    4: t('placeholder.decimal4'),
+    5: t('placeholder.decimal5'),
+    6: t('placeholder.decimal6'),
+    7: t('placeholder.decimal7'),
+    8: t('placeholder.decimal8'),
+  } as const)
 
 const barcodeDefaultMeta = {
   barcodeFormat: supportedBarcodeFormats[0].value,
@@ -45,6 +57,11 @@ const dateTimeDefaultMeta = {
 }
 
 const decimalDefaultMeta = {
+  precision: precisionFormats[0],
+  isLocaleString: false,
+}
+
+const rollupDefaultMeta = {
   precision: precisionFormats[0],
   isLocaleString: false,
 }
@@ -93,4 +110,5 @@ export const columnDefaultMeta = {
   [UITypes.Time]: timeDefaultMeta,
   [UITypes.User]: userDefaultMeta,
   [UITypes.Barcode]: barcodeDefaultMeta,
+  [UITypes.Rollup]: rollupDefaultMeta,
 }

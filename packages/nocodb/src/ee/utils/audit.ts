@@ -167,7 +167,7 @@ export async function generateAuditV1Payload<T = any>(
     (params.fk_model_id || context?.fk_model_id)
   ) {
     details.table_title = (
-      req.ncModel ||
+      req?.ncModel ||
       (await Model.get(context, params.fk_model_id ?? context?.fk_model_id))
     )?.title;
   }

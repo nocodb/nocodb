@@ -3071,7 +3071,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      await this.afterBulkDelete(response.length, this.dbDriver, cookie, true);
+      await this.afterBulkDelete(response, this.dbDriver, cookie, true);
 
       return response;
     } catch (e) {

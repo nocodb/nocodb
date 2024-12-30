@@ -145,7 +145,11 @@ function baseModelSqlTests() {
 
     const columns = await table.getColumns(ctx);
 
-    await baseModelSql.insert(generateDefaultRowAttributes({ columns }));
+    await baseModelSql.insert(
+      generateDefaultRowAttributes({ columns }),
+      undefined,
+      request,
+    );
     const rowId = 1;
     await baseModelSql.updateByPk(rowId, { Title: 'test' }, undefined, request);
 

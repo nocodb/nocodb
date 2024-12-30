@@ -159,6 +159,11 @@ export const useRowDragging = ({
     window.addEventListener('mouseup', mouseUp)
   }
 
+  // Cleanup on component unmount
+  onUnmounted(() => {
+    cancel()
+  })
+
   return {
     startDragging,
     draggingRecord: row,

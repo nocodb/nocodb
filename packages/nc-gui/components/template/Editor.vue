@@ -907,6 +907,13 @@ function toggleTableSelecteds(table: any) {
           accordion
           expand-icon-position="right"
         >
+          <template #expandIcon="{ isActive }">
+            <GeneralIcon
+              icon="ncChevronDown"
+              class="text-lg !-translate-y-1/2 !transition"
+              :class="{ '!transform !rotate-180': isActive }"
+            />
+          </template>
           <a-collapse-panel
             v-for="(table, tableIdx) of data.tables"
             :key="tableIdx"
@@ -1005,15 +1012,15 @@ function toggleTableSelecteds(table: any) {
           </a-collapse-panel>
         </a-collapse>
       </a-form>
-      <a-alert v-if="!isAnyColumnSelectedInEachTable" type="error" class="!rounded-lg !mt-2">
+      <a-alert v-if="!isAnyColumnSelectedInEachTable" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
         <template #message>
-          <div class="flex flex-row items-center gap-3">
-            <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
-            <span class="font-weight-bold">Column Selection Issue</span>
+          <div class="flex flex-row items-center gap-2 mb-3">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+            <span class="font-weight-700 text-[14px]">Column Selection Issue</span>
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 ml-9">There must be at least one column selected in each table.</div>
+          <div class="text-gray-500 text-[13px] leading-5 ml-6">There must be at least one column selected in each table.</div>
         </template>
       </a-alert>
     </a-card>

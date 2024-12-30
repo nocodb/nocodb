@@ -18,6 +18,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcErrorType,
   ncIsObject,
   RelationTypes,
   UITypes,
@@ -67,10 +68,7 @@ import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { extractLimitAndOffset } from '~/helpers';
-import {
-  CannotCalculateIntermediateOrderError,
-  NcError,
-} from '~/helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
@@ -97,6 +95,8 @@ const isPrimitiveType = (val) =>
 const JSON_COLUMN_TYPES = [UITypes.Button];
 
 const ORDER_STEP_INCREMENT = 1;
+
+const MAX_RECURSION_DEPTH = 2;
 
 export async function populatePk(
   context: NcContext,
@@ -9933,13 +9933,17 @@ class BaseModelSqlv2 {
 
   findIntermediateOrder(before: number, after: number) {
     if (after <= before) {
-      throw new Error('After order must be greater than before order');
+      NcError.cannotCalculateIntermediateOrderError();
     }
     return before + (after - before) / 2;
   }
 
-  async getUniqueOrdersBeforeItem(before: unknown, amount = 1) {
+  async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
     try {
+      if (depth > MAX_RECURSION_DEPTH) {
+        NcError.reorderFailed();
+      }
+
       const orderColumn = this.model.columns.find((c) => isOrderCol(c));
       if (!orderColumn) {
         return;
@@ -9989,16 +9993,16 @@ class BaseModelSqlv2 {
         newOrder = Number(intermediateOrder.toFixed(20));
 
         if (newOrder === adjacentOrder || newOrder === row[orderColumn.title]) {
-          throw new CannotCalculateIntermediateOrderError();
+          NcError.cannotCalculateIntermediateOrderError();
         }
         newOrders.push(newOrder);
       }
       return newOrders;
     } catch (error) {
-      if (error instanceof CannotCalculateIntermediateOrderError) {
+      if ((error.error = NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER)) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
-        return await this.getUniqueOrdersBeforeItem(before, amount);
+        return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
       }
       throw error;
     }

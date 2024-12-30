@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { makePrecisionFormatsDiplay, precisionFormats } from '../../../helpers/columnDefaultMeta'
 
 const props = defineProps<{
   value: any

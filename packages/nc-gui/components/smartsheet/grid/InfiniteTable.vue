@@ -2248,7 +2248,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
                       }"

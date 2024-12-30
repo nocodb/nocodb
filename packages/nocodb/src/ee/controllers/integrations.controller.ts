@@ -43,10 +43,9 @@ export class IntegrationsController {
       },
     );
 
-    // hide config if not the owner or if not requested or if global integration
+    // hide config if not the owner or if not requested
     if (
       includeConfig !== 'true' ||
-      (integration.is_global && req.user.id !== integration.created_by) ||
       (integration.is_private && req.user.id !== integration.created_by)
     )
       integration.config = undefined;

@@ -1,19 +1,10 @@
 import { Integration as IntegrationCE } from 'src/models';
 import { integrationCategoryNeedDefault } from 'nocodb-sdk';
-import type {
-  BoolType,
-  IntegrationsType,
-  IntegrationType,
-  SourceType,
-} from 'nocodb-sdk';
+import { IntegrationsType } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
+import type { BoolType, IntegrationType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-  RootScopes,
-} from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
@@ -24,8 +15,9 @@ import {
 } from '~/utils/modelUtils';
 import { decryptPropIfRequired, partialExtract } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Source, User } from '~/models';
-import NocoCache from '~/cache/NocoCache';
+import { Source } from '~/models';
+
+const logger = new Logger('Integration');
 
 export default class Integration extends IntegrationCE {
   id?: string;
@@ -42,6 +34,8 @@ export default class Integration extends IntegrationCE {
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
+
+  static globalIntegrations?: Integration[] = [];
 
   constructor(integration: Partial<IntegrationType>) {
     super(integration);
@@ -62,6 +56,24 @@ export default class Integration extends IntegrationCE {
     // we use dynamic import to avoid circular reference
     Integration.availableIntegrations = [...ceIntegrations, ...eeIntegrations];
     IntegrationCE.availableIntegrations = Integration.availableIntegrations;
+
+    for (const tp of Object.values(IntegrationsType)) {
+      if (!integrationCategoryNeedDefault(tp as IntegrationsType)) continue;
+
+      const env = process.env[`NC_INTEGRATION_${tp.toUpperCase()}`];
+      if (env) {
+        try {
+          const integration = JSON.parse(env);
+          if (integration) {
+            integration.id = `global_${tp}`;
+            integration.is_global = true;
+            Integration.globalIntegrations.push(integration);
+          }
+        } catch (e) {
+          logger.error(e);
+        }
+      }
+    }
   }
 
   public static async createIntegration(
@@ -72,7 +84,6 @@ export default class Integration extends IntegrationCE {
       meta?: any;
       is_encrypted?: boolean;
       is_default?: boolean;
-      is_global?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -86,24 +97,9 @@ export default class Integration extends IntegrationCE {
       'created_by',
       'is_private',
       'is_encrypted',
-      'is_global',
     ]);
 
     this.encryptConfigIfRequired(insertObj);
-
-    if (insertObj.is_global) {
-      const user = await User.get(insertObj.created_by, ncMeta);
-
-      if (!user.email.match(/@nocodb.com$/)) {
-        NcError.badRequest('Only admin can create global integrations');
-      }
-
-      // delete global integration cache for the type
-      await NocoCache.deepDel(
-        `${CacheScope.INTEGRATION_GLOBAL}:${insertObj.type}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -202,14 +198,6 @@ export default class Integration extends IntegrationCE {
       }
     }
 
-    // if global integration is updated then delete cache
-    if (oldIntegration.is_global) {
-      await NocoCache.deepDel(
-        `${CacheScope.INTEGRATION_GLOBAL}:${oldIntegration.type}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
     await ncMeta.metaUpdate(
       context.workspace_id,
       RootScopes.WORKSPACE,
@@ -235,8 +223,6 @@ export default class Integration extends IntegrationCE {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {
-    let globalDefault: Integration;
-
     // TODO: remove offset & limit / limit maximum per workspace instead
     const { offset } = args;
     let { limit } = args;
@@ -258,17 +244,6 @@ export default class Integration extends IntegrationCE {
     // if type is provided then filter integrations based on type
     if (args.type) {
       qb.where(`${MetaTable.INTEGRATIONS}.type`, args.type);
-
-      // get global default integration for the type if available
-      globalDefault = await this.getGlobalDefault(args.type, ncMeta);
-
-      // remove meta information from global default integration
-      if (globalDefault) {
-        globalDefault.created_by = null;
-        globalDefault.config = null;
-        globalDefault.fk_workspace_id = null;
-        globalDefault.is_private = null;
-      }
     }
 
     qb.where((whereQb) => {
@@ -323,8 +298,14 @@ export default class Integration extends IntegrationCE {
       }
     }
 
-    if (globalDefault) {
-      integrations.unshift(globalDefault);
+    if (args.type) {
+      const globals = this.globalIntegrations.filter(
+        (i) => i.type === args.type,
+      );
+
+      if (globals.length) {
+        integrations.push(...globals);
+      }
     }
 
     if (limit) {
@@ -354,10 +335,14 @@ export default class Integration extends IntegrationCE {
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
-    /*
-      This is a special scenario as we need to allow fetching global integrations without workspace_id
-      So, we pass bypass as context & manually add workspace_id condition with exclusion of global integrations
-    */
+    const globalIntegration = await Integration.globalIntegrations.find(
+      (i) => i.id === id,
+    );
+
+    if (globalIntegration) {
+      return this.castType(globalIntegration);
+    }
+
     const integrationData = await ncMeta.metaGet2(
       RootScopes.BYPASS,
       RootScopes.BYPASS,
@@ -371,18 +356,9 @@ export default class Integration extends IntegrationCE {
               context.workspace_id !== RootScopes.BYPASS
                 ? [
                     {
-                      _or: [
-                        {
-                          fk_workspace_id: {
-                            eq: context.workspace_id,
-                          },
-                        },
-                        {
-                          is_global: {
-                            eq: true,
-                          },
-                        },
-                      ],
+                      fk_workspace_id: {
+                        eq: context.workspace_id,
+                      },
                     },
                   ]
                 : []),
@@ -394,18 +370,9 @@ export default class Integration extends IntegrationCE {
               context.workspace_id !== RootScopes.BYPASS
                 ? [
                     {
-                      _or: [
-                        {
-                          fk_workspace_id: {
-                            eq: context.workspace_id,
-                          },
-                        },
-                        {
-                          is_global: {
-                            eq: true,
-                          },
-                        },
-                      ],
+                      fk_workspace_id: {
+                        eq: context.workspace_id,
+                      },
                     },
                   ]
                 : []),
@@ -478,60 +445,17 @@ export default class Integration extends IntegrationCE {
 
     // try to get global default integration if workspace default integration is not found
     if (!integrationData) {
-      integrationData = await this.getGlobalDefault(type, ncMeta);
+      const globalIntegration = this.globalIntegrations.find(
+        (i) => i.type === type,
+      );
+
+      if (globalIntegration) {
+        integrationData = globalIntegration;
+      }
     }
 
     if (integrationData) {
       integrationData.meta = parseMetaProp(integrationData, 'meta');
-    }
-
-    return this.castType(integrationData);
-  }
-
-  static async getGlobalDefault(
-    type: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Integration> {
-    let integrationData = await NocoCache.get(
-      `${CacheScope.INTEGRATION_GLOBAL}:${type}`,
-      CacheGetType.TYPE_OBJECT,
-    );
-
-    if (integrationData === 'NONE') {
-      return null;
-    }
-
-    if (!integrationData) {
-      integrationData = await ncMeta.metaGet2(
-        RootScopes.BYPASS,
-        RootScopes.BYPASS,
-        MetaTable.INTEGRATIONS,
-        { type, is_global: true },
-        null,
-        {
-          _or: [
-            {
-              deleted: {
-                neq: true,
-              },
-            },
-            {
-              deleted: {
-                eq: null,
-              },
-            },
-          ],
-        },
-      );
-
-      if (integrationData) {
-        await NocoCache.set(
-          `${CacheScope.INTEGRATION_GLOBAL}:${type}`,
-          integrationData,
-        );
-      } else {
-        await NocoCache.set(`${CacheScope.INTEGRATION_GLOBAL}:${type}`, 'NONE');
-      }
     }
 
     return this.castType(integrationData);
@@ -559,18 +483,6 @@ export default class Integration extends IntegrationCE {
     }
 
     return config;
-  }
-
-  async delete(ncMeta = Noco.ncMeta) {
-    // delete global integration cache for the type
-    if (this.is_global) {
-      await NocoCache.deepDel(
-        `${CacheScope.INTEGRATION_GLOBAL}:${this.type}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    return await super.delete(ncMeta);
   }
 
   async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {

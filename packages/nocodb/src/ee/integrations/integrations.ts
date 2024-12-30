@@ -23,6 +23,9 @@ import AiGoogleManifest from '~/integrations/ai/google/manifest';
 import AiGroqEntry from '~/integrations/ai/groq/entry';
 import AiGroqForm from '~/integrations/ai/groq/credentials.form';
 import AiGroqManifest from '~/integrations/ai/groq/manifest';
+import AiNocodbEntry from '~/integrations/ai/nocodb/entry';
+import AiNocodbForm from '~/integrations/ai/nocodb/credentials.form';
+import AiNocodbManifest from '~/integrations/ai/nocodb/manifest';
 import AiOpenaiEntry from '~/integrations/ai/openai/entry';
 import AiOpenaiForm from '~/integrations/ai/openai/credentials.form';
 import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
@@ -76,6 +79,16 @@ export default [
     meta: {
       ...AiCommonManifest,
       ...AiGroqManifest,
+    },
+  },
+  {
+    type: 'ai',
+    subType: 'nocodb',
+    wrapper: AiNocodbEntry,
+    form: AiNocodbForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiNocodbManifest,
     },
   },
   {

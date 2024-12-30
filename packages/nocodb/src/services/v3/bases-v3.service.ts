@@ -31,11 +31,13 @@ export class BasesV3Service {
         'updated_at',
         'meta',
         'sources',
+        'fk_workspace_id',
       ],
       mappings: {
         name: 'title',
         isMeta: 'is_meta',
         source: 'sources',
+        fk_workspace_id: 'workspace_id',
       },
       meta: {
         snakeCase: true,
@@ -130,6 +132,11 @@ export class BasesV3Service {
       req: NcRequest;
     },
   ) {
+    if (param.base.meta?.icon_color) {
+      param.base.meta.iconColor = param.base.meta.icon_color;
+      param.base.meta.icon_color = undefined;
+    }
+
     await this.basesService.baseUpdate(context, param);
     return this.getProjectWithInfo(context, { baseId: param.baseId });
   }
@@ -145,6 +152,11 @@ export class BasesV3Service {
       fk_workspace_id: param.workspaceId,
       type: 'database',
     } as ProjectReqType;
+
+    if (param.base.meta?.icon_color) {
+      param.base.meta.iconColor = param.base.meta.icon_color;
+      param.base.meta.icon_color = undefined;
+    }
 
     const res = await this.basesService.baseCreate({
       ...param,

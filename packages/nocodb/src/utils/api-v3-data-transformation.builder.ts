@@ -304,7 +304,12 @@ export const columnBuilder = builderGenerator<Column | ColumnType>({
       isLocaleString: 'locale_string',
       // duration: 'duration_format',
     },
-    excluded: ['defaultViewColOrder', 'singular', 'plural'],
+    excluded: [
+      'defaultViewColOrder',
+      'defaultViewColVisibility',
+      'singular',
+      'plural',
+    ],
     skipTransformFor: [
       'currency_locale',
       'currency_code',
@@ -382,10 +387,11 @@ export const columnBuilder = builderGenerator<Column | ColumnType>({
       }
     }
 
+    options = options || data.options;
     return {
       ...data,
       colOptions: undefined,
-      options: options || data.options,
+      options: options && Object.keys(options)?.length ? options : undefined,
     };
   },
 });

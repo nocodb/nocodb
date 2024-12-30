@@ -1729,7 +1729,7 @@ watch(
   },
 )
 
-watch([() => fields.value.length, () => cachedRows.value.size], () => {
+watch([() => fields.value.length], () => {
   calculateSlices()
   refreshFillHandle()
   updateVisibleRows()

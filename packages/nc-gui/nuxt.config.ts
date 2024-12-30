@@ -213,6 +213,7 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       include: [
+        '@ckpack/vue-color',
         '@tiptap/core',
         '@tiptap/extension-link',
         '@tiptap/extension-mention',
@@ -226,6 +227,7 @@ export default defineNuxtConfig({
         '@vue-flow/core',
         '@vuelidate/core',
         '@vuelidate/validators',
+        '@vueuse/integrations/useQRCode',
         'company-email-validator',
         'crossoriginworker',
         'dayjs/plugin/utc',

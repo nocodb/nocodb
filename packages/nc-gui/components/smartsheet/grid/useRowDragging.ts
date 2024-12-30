@@ -21,24 +21,15 @@ export const useRowDragging = ({
   virtualMargin: number
 }) => {
   const isDragging = ref(false)
-
   const row = ref<null | Row>(null)
-
   const startRowTop = ref(0)
-
   const targetRow = ref<null | Row>(null)
-
   const mouseStart = ref(0)
-
   const draggingTop = ref(0)
-
   const targetTop = ref(32)
-
   const lastMoveEvent = ref<null | MouseEvent>(null)
-
   const autoScrolling = ref(false)
-
-  const scrollTimeout = ref<null | ReturnType<typeof setTimeout>>(null)
+  const animationFrameId = ref<number | null>(null)
 
   const moveHandler = (event: MouseEvent, startAutoScroll = false) => {
     if (event !== null) {
@@ -93,24 +84,23 @@ export const useRowDragging = ({
           autoScrolling.value = true
           gridWrapper.value.scrollTop = newScrollTop
 
-          // Clear any existing timeout before setting a new one
-          if (scrollTimeout.value) {
-            clearTimeout(scrollTimeout.value)
+            if (animationFrameId.value !== null) {
+              cancelAnimationFrame(animationFrameId.value)
+            }
+            animationFrameId.value = requestAnimationFrame(() => {
+              moveHandler(null, false)
+            })
+          } else {
+            autoScrolling.value = false
           }
-
-          scrollTimeout.value = setTimeout(() => {
-            moveHandler(null, false)
-          }, 16)
         } else {
           autoScrolling.value = false
-        }
-      } else {
-        autoScrolling.value = false
-        if (scrollTimeout.value) {
-          clearTimeout(scrollTimeout.value)
+          if (animationFrameId.value !== null) {
+            cancelAnimationFrame(animationFrameId.value)
+            animationFrameId.value = null
+          }
         }
       }
-    }
 
     // If Math.max is not set the value goes negative
     targetRow.value = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
@@ -127,10 +117,20 @@ export const useRowDragging = ({
   }
 
   function cancel(): void {
-    isDragging.value = false
-    autoScrolling.value = false
-    window.removeEventListener('mousemove', moveHandler)
-    window.removeEventListener('mouseup', mouseUp)
+    try {
+      isDragging.value = false
+      autoScrolling.value = false
+
+      if (animationFrameId.value !== null) {
+        cancelAnimationFrame(animationFrameId.value)
+        animationFrameId.value = null
+      }
+
+      window.removeEventListener('mousemove', moveHandler)
+      window.removeEventListener('mouseup', mouseUp)
+    } catch (error) {
+      console.error('Error in cancel:', error)
+    }
   }
 
   const getRowTop = (rowIndex: number) => {

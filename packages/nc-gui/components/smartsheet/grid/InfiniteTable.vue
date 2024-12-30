@@ -327,7 +327,7 @@ const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col
 
 const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
 
-const isRowReorderDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
+const isRowReorderDisabled = computed(() => sorts.value?.length)
 
 const addColumnDropdown = ref(false)
 

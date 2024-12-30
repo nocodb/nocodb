@@ -269,10 +269,10 @@ export function useInfiniteData(args: {
 
     let targetRecord: Row | null = null
     let targetRecordPk: string | null = null
-    let finalTargetIndex = targetIndex
+    let finalTargetIndex: number | null
 
     if (targetIndex === null) {
-      finalTargetIndex = cachedRows.value.size
+      finalTargetIndex = cachedRows.value.size - 1
     } else {
       finalTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex
       targetRecord = cachedRows.value.get(targetIndex) ?? null
@@ -280,28 +280,25 @@ export function useInfiniteData(args: {
       targetRecordPk = extractPkFromRow(targetRecord.row, meta.value?.columns as ColumnType[]) || null
     }
 
-    if (typeof finalTargetIndex === 'number') {
-      if (finalTargetIndex < draggedIndex) {
-        for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
-          const row = newCachedRows.get(i)
-          if (row) {
-            const newIndex = i + 1
-            row.rowMeta.rowIndex = newIndex
-            newCachedRows.set(newIndex, row)
-          }
+    if (finalTargetIndex < draggedIndex) {
+      for (let i = draggedIndex - 1; i >= finalTargetIndex; i--) {
+        const row = newCachedRows.get(i)
+        if (row) {
+          const newIndex = i + 1
+          row.rowMeta.rowIndex = newIndex
+          newCachedRows.set(newIndex, row)
         }
-      } else {
-        for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
-          const row = newCachedRows.get(i)
-          if (row) {
-            const newIndex = i - 1
-            row.rowMeta.rowIndex = newIndex
-            newCachedRows.set(newIndex, row)
-          }
+      }
+    } else {
+      for (let i = draggedIndex + 1; i <= finalTargetIndex; i++) {
+        const row = newCachedRows.get(i)
+        if (row) {
+          const newIndex = i - 1
+          row.rowMeta.rowIndex = newIndex
+          newCachedRows.set(newIndex, row)
         }
       }
     }
-
     originalRecord.rowMeta.rowIndex = finalTargetIndex
     newCachedRows.set(finalTargetIndex, originalRecord)
 
@@ -309,14 +306,13 @@ export function useInfiniteData(args: {
 
     for (const [_, row] of newCachedRows) {
       if (indices.has(row.rowMeta.rowIndex)) {
-        console.error('Duplicate index detected:', row.rowMeta.rowIndex)
+        console.error('Duplicate index detected:', _, row.rowMeta.rowIndex)
         break
       }
       indices.add(row.rowMeta.rowIndex)
     }
 
-    const targetChunkIndex =
-      typeof finalTargetIndex === 'number' ? getChunkIndex(finalTargetIndex) : getChunkIndex(cachedRows.value.size - 1)
+    const targetChunkIndex = getChunkIndex(finalTargetIndex)
     const sourceChunkIndex = getChunkIndex(draggedIndex)
 
     for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {

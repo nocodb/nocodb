@@ -56,6 +56,9 @@ export class CacheWarmingJob {
       id: model.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
+    if(1==1) {
+	    return
+    }
     const cachePageSize = 100
     var data = await this.datasService
       .getDataList(context, {

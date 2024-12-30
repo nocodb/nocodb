@@ -24,7 +24,7 @@ FROM --platform=$BUILDPLATFORM node:22-alpine as builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ py3-setuptools
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate

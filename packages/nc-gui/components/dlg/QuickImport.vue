@@ -767,10 +767,12 @@ async function pasteJsonContent() {
           key="cancel"
           type="text"
           size="small"
-          @click="() => {
-            dialogShow = false
-            emit('back')
-          }"
+          @click="
+            () => {
+              dialogShow = false
+              emit('back')
+            }
+          "
         >
           {{ $t('general.back') }}
         </nc-button>

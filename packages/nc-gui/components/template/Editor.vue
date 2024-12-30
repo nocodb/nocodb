@@ -907,7 +907,11 @@ function toggleTableSelecteds(table: any) {
           accordion
           expand-icon-position="right"
         >
-          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !border-b-1 !rounded-b-lg !overflow-hidden">
+          <a-collapse-panel
+            v-for="(table, tableIdx) of data.tables"
+            :key="tableIdx"
+            class="nc-import-table-box !border-b-1 !rounded-b-lg !overflow-hidden"
+          >
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
@@ -1009,9 +1013,7 @@ function toggleTableSelecteds(table: any) {
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 ml-9">
-            There must be at least one column selected in each table.
-          </div>
+          <div class="text-gray-500 ml-9">There must be at least one column selected in each table.</div>
         </template>
       </a-alert>
     </a-card>

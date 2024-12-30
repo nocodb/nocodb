@@ -36,7 +36,7 @@ export class ColumnsService extends ColumnsServiceCE {
     super(metaService, appHooksService);
   }
 
-  async columnAdd<T = NcApiVersion | null | undefined>(
+  async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
       req: NcRequest;

@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
+import {
+  BaseReqType,
+  BaseType,
+  extractRolesObj,
+  OrgUserRoles,
+} from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
@@ -96,7 +101,7 @@ export class BasesV3Service {
       ),
     );
     base.sources = sources.length ? sources : undefined;
-    return this.builder().build(bases);
+    return this.builder().build(base);
   }
 
   async getProjectWithInfo(
@@ -139,7 +144,7 @@ export class BasesV3Service {
       ...param.base,
       fk_workspace_id: param.workspaceId,
       type: 'database',
-    };
+    } as ProjectReqType;
 
     const res = await this.basesService.baseCreate({
       ...param,

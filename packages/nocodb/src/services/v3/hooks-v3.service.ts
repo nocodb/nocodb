@@ -8,7 +8,7 @@ import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 
 @Injectable()
 export class HooksService {
-  protected builder = builderGenerator({
+  protected builder = builderGenerator<Hook>({
     allowed: [
       'id',
       'fk_model_id',
@@ -36,6 +36,6 @@ export class HooksService {
   async hookList(context: NcContext, param: { tableId: string }) {
     const list = await Hook.list(context, { fk_model_id: param.tableId });
 
-    return this.builder(list);
+    return this.builder().build(list);
   }
 }

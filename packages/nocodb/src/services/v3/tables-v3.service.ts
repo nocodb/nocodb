@@ -178,9 +178,11 @@ export class TablesV3Service {
       (column) => column.pv,
     )?.id;
 
-    result.fields = tableCreateOutput.columns.map((column) => {
-      return columnBuilder().build(column);
-    });
+    result.fields = tableCreateOutput.columns
+      .filter((c) => c.system)
+      .map((column) => {
+        return columnBuilder().build(column);
+      });
 
     return result;
   }

@@ -25,7 +25,7 @@ export class FiltersV3Service {
       filter: FilterReqType;
       user: UserType;
       req: NcRequest;
-    } & ({ viewId: string } | { hookId: string }),
+    } & ({ viewId: string } | { hookId: string } | { linkColumnId: string }),
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/FilterV3Req',
@@ -60,9 +60,7 @@ export class FiltersV3Service {
           req: NcRequest;
         } & { hookId: string })
       | ({ filter: FilterReqType; user: UserType; req: NcRequest } & {
-          viewId: string;
-        } & {
-          viewId: unknown;
+          linkColumnId: string;
         }),
     context: NcContext,
   ) {
@@ -108,35 +106,6 @@ export class FiltersV3Service {
     return {};
   }
 
-  async filterCreate(
-    context: NcContext,
-    param: {
-      filter: FilterReqType;
-      viewId: string;
-      user: UserType;
-      req: NcRequest;
-    },
-  ) {
-    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
-
-    const view = await View.get(context, param.viewId);
-
-    const remappedFilter = filterRevBuilder().build(param.filter);
-
-    const filter = await Filter.insert(context, {
-      ...remappedFilter,
-      fk_view_id: param.viewId,
-    });
-
-    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
-      filter,
-      view,
-      req: param.req,
-    });
-
-    return filterBuilder().build(filter);
-  }
-
   async filterUpdate(
     context: NcContext,
     param: {
@@ -161,7 +130,7 @@ export class FiltersV3Service {
 
     await this.filtersService.filterUpdate(context, {
       filterId: param.filterId,
-      filter: remappedFilter,
+      filter: remappedFilter as FilterReqType,
       user: param.user,
       req: param.req,
     });
@@ -171,7 +140,7 @@ export class FiltersV3Service {
 
   async filterList(
     context: NcContext,
-    param: { viewId: string } | { hookId: boolean } | { linkColumnId: boolean },
+    param: { viewId: string } | { hookId: string } | { linkColumnId: string },
   ) {
     let filters = [];
 

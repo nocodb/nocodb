@@ -29,7 +29,7 @@ export class CommentsV3Controller {
     @TenantContext() context: NcContext,
     @Req() req: any,
     @Param('rowId') rowId: string,
-    @Param('tableId') tableId: str,
+    @Param('tableId') tableId: string,
   ) {
     return new PagedResponseImpl(
       await this.commentsV3Service.commentList(context, {

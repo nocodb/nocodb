@@ -57,6 +57,8 @@ export class SortsV3Service {
   }
 
   async sortList(context: NcContext, param: { viewId: string }) {
-    return sortBuilder().build(Sort.list(context, { viewId: param.viewId }));
+    return sortBuilder().build(
+      await Sort.list(context, { viewId: param.viewId }),
+    );
   }
 }

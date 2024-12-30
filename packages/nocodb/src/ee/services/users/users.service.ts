@@ -3,6 +3,7 @@ import { UsersService as UsersServiceCE } from 'src/services/users/users.service
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AdminDeleteUserCommand,
+  AdminDisableUserCommand,
   CognitoIdentityProviderClient,
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -139,27 +140,30 @@ export class UsersService extends UsersServiceCE {
   ) {
     super(metaService, appHooksService, baseService);
   }
-  async registerNewUserIfAllowed({
-    avatar,
-    display_name,
-    user_name,
-    email,
-    salt,
-    password,
-    email_verification_token,
-    meta,
-    req,
-  }: {
-    avatar;
-    display_name;
-    user_name;
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
-    meta?: MetaType;
-    req: NcRequest;
-  }, ncMeta = Noco.ncMeta) {
+  async registerNewUserIfAllowed(
+    {
+      avatar,
+      display_name,
+      user_name,
+      email,
+      salt,
+      password,
+      email_verification_token,
+      meta,
+      req,
+    }: {
+      avatar;
+      display_name;
+      user_name;
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      meta?: MetaType;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     this.validateEmailPattern(email);
 
     let roles: string = OrgUserRoles.CREATOR;
@@ -182,18 +186,21 @@ export class UsersService extends UsersServiceCE {
     }
 
     const token_version = randomTokenString();
-    const user = await User.insert({
-      avatar,
-      display_name,
-      user_name,
-      email,
-      salt,
-      password,
-      email_verification_token,
-      roles,
-      token_version,
-      meta,
-    }, ncMeta);
+    const user = await User.insert(
+      {
+        avatar,
+        display_name,
+        user_name,
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+        meta,
+      },
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,

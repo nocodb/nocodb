@@ -828,14 +828,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           (this.dbDriver as any).extDb,
         );
       } else {
-        response = await this.dbDriver.raw(formattedQuery);
+        response = await this.execAndGetRows(formattedQuery);
       }
       return response;
     };
 
     if (client === 'mysql2') {
       const version = await executeQuery('SELECT VERSION()');
-      const isMySql8Plus = parseFloat(version[0][0]['VERSION()']) >= 8.0;
+      const isMySql8Plus = parseFloat(version[0]?.[0]?.['VERSION()']) >= 8.0;
 
       if (isMySql8Plus) {
         await executeQuery(sql[client].modern, params[client]);

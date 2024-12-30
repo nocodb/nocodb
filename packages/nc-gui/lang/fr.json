@@ -154,6 +154,7 @@
     "details": "Détails",
     "skip": "Ignorer",
     "code": "Code",
+    "codeBlock": "Bloc de code",
     "duplicate": "Dupliquer",
     "duplicating": "Dupliquer",
     "duplicateEntity": "{entity} copiée",
@@ -652,6 +653,8 @@
     "lockedByUser": "Verrouillé par {user}"
   },
   "labels": {
+    "enableSnowFall": "Activer Snowfall",
+    "disableSnowFall": "Désactiver Snowfall",
     "snapshotCreationFailed": "La création de l'instantané a échoué",
     "snapshotCreationFailedDescription": "Impossible de créer votre instantané de base. Réessayez plus tard.",
     "snapshotCooldownDescription": "Les instantanés ne peuvent être pris qu'à trois heures d'intervalle.",
@@ -804,7 +807,7 @@
     "icon": "Icône",
     "max": "Maximum",
     "enableRichText": "Activer le texte enrichi",
-    "idColon": "Identifiant:",
+    "idColon": "Champ ID : {id}",
     "copiedRecordURL": "URL de l'enregistrement copié",
     "copyRecordURL": "Copier l'URL de l'enregistrement",
     "duplicateRecord": "Dupliquer la ligne",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Échec du chargement de la liste",
       "failedToLoadChildrenList": "Échec du chargement de la liste des enfants",
       "deleteFailed": "Suppression échouée",
+      "failedToDuplicateTable": "Échec de la duplication de la table",
       "unlinkFailed": "Échec de la déliaison",
       "rowUpdateFailed": "La mise à jour des rangées a échoué",
       "deleteRowFailed": "Échec de la suppression de la ligne",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Quelque chose n'a pas fonctionné",
       "draggedContentIsNotTypeOfImage": "Le contenu déposé n'est pas de type image",
       "fieldToParseImageData": "Champ pour analyser les données de l'image",
-      "someOfTheRequiredFieldsAreEmpty": "Certains des champs requis sont vides"
+      "someOfTheRequiredFieldsAreEmpty": "Certains des champs requis sont vides",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

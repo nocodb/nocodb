@@ -18,7 +18,7 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User } from '~/models';
+import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
@@ -38,6 +38,8 @@ export class BaseUsersService {
       base_id: param.baseId,
       mode: param.mode,
     });
+
+    await PresignedUrl.signMetaIconImage(baseUsers);
 
     return new PagedResponseImpl(baseUsers, {
       count: baseUsers.length,

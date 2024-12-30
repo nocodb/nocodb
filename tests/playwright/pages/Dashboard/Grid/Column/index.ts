@@ -395,6 +395,8 @@ export class ColumnPageObject extends BasePage {
 
     await this.get().waitFor({ state: 'visible' });
 
+    await this.rootPage.waitForTimeout(200);
+
     if (selectType) {
       await this.selectType({ type, first: true });
     }

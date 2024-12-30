@@ -653,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -805,7 +807,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
@@ -1867,7 +1869,8 @@
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
       "fieldToParseImageData": "Field to parse image data",
-      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

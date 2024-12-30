@@ -353,7 +353,7 @@ export class FieldsPage extends BasePage {
       : this.rootPage.locator('.nc-field-item-action-dropdown');
 
     await fieldActionDropdown.waitFor({ state: 'visible' });
-    const fieldId = await fieldActionDropdown.getByTestId('nc-field-item-id').textContent();
+    const fieldId = await fieldActionDropdown.getByTestId('nc-field-item-action-copy-id').innerText();
     await field.getByTestId('nc-field-item-action-button').click();
     await fieldActionDropdown.waitFor({ state: 'hidden' });
 

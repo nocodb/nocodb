@@ -154,6 +154,7 @@
     "details": "Detaljer",
     "skip": "Spring over",
     "code": "Kode",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikat",
     "duplicating": "Duplikerer",
     "duplicateEntity": "Kopier {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Opslagsfelter viser data fra tilknyttede poster. Vælg specifikke felter fra ",
     "addNewLookupHelperText2": " tabellen for at tilføje dem som opslagsfelter i denne tabel.",
     "formatting": "Formatering",
-    "selectAFormatType": "- -Vælg en format type (valgfri)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Format type",
     "toUpload": "at uploade",
     "dragFilesHere": "træk filer hertil",
@@ -804,7 +807,7 @@
     "icon": "Ikon",
     "max": "Max",
     "enableRichText": "Aktiver rich text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopieret post-URL",
     "copyRecordURL": "Kopier post-URL",
     "duplicateRecord": "Dupliker post",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Det er ikke lykkedes at indlæse listen",
       "failedToLoadChildrenList": "Det lykkedes ikke at indlæse listen over børn",
       "deleteFailed": "Sletning mislykkedes",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Afbrydelse af forbindelsen mislykkedes",
       "rowUpdateFailed": "Opdatering af række mislykkedes",
       "deleteRowFailed": "Det er ikke lykkedes at slette en række",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Noget gik galt",
       "draggedContentIsNotTypeOfImage": "Trukket indhold er ikke af typen billede",
       "fieldToParseImageData": "Felt til at analysere billeddata",
-      "someOfTheRequiredFieldsAreEmpty": "Nogle af de påkrævede felter er tomme"
+      "someOfTheRequiredFieldsAreEmpty": "Nogle af de påkrævede felter er tomme",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",

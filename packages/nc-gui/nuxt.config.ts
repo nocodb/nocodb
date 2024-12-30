@@ -118,6 +118,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       ncBackendUrl: '',
+      env: 'production',
     },
   },
 

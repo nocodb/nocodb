@@ -82,9 +82,9 @@ const closeAndShowAgain = () => {
 
 <style scoped lang="scss">
 .container {
-  @apply relative bg-white hover:(shadow-default bg-gray-50) overflow-hidden cursor-pointer;
+  @apply relative bg-white hover:(shadow-default bg-gray-50) overflow-hidden cursor-pointer rounded-lg;
   .wrapper {
-    @apply p-3 border-t-1;
+    @apply p-3;
 
     .header {
       @apply flex items-center gap-3 mb-2;

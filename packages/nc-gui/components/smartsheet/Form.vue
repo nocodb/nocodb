@@ -1269,7 +1269,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 placement="topLeft"
                               >
                                 <template #title> Conditionally visible field </template>
-                                <Transition name="icon-fade">
+                                <Transition name="icon-fade" :duration="500">
                                   <GeneralIcon
                                     v-if="element?.visible"
                                     icon="eye"
@@ -2106,32 +2106,6 @@ const { message: templatedMessage } = useTemplatedMessage(
       }
     }
   }
-}
-
-.icon-fade-enter-active,
-.icon-fade-leave-active {
-  transition: opacity 0.5s ease, transform 0.5s ease; /* Added scaling transition */
-  position: absolute;
-}
-
-.icon-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.5); /* Start smaller and scale up */
-}
-
-.icon-fade-enter-to {
-  opacity: 1;
-  transform: scale(1); /* Scale to full size */
-}
-
-.icon-fade-leave-from {
-  opacity: 1;
-  transform: scale(1); /* Start at full size */
-}
-
-.icon-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.5); /* Scale down and fade out */
 }
 </style>
 

@@ -62,9 +62,9 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import">
+  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import" variant="small">
     <template #title>
-      <GeneralIcon icon="download" />
+      <GeneralIcon icon="download" class="opacity-80" />
       {{ $t('labels.importData') }}
     </template>
 
@@ -74,7 +74,7 @@ function openQuickImportDialog(type: string) {
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
       <div v-e="['c:import:airtable']" class="flex gap-2 items-center">
-        <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+        <GeneralIcon icon="airtable" class="max-w-3.75" />
         <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
       </div>
     </NcMenuItem>
@@ -85,7 +85,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('csv')"
     >
       <div v-e="['c:import:csv']" class="flex gap-2 items-center">
-        <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
+        <GeneralIcon icon="csv" class="w-4" />
         {{ $t('labels.csvFile') }}
       </div>
     </NcMenuItem>
@@ -96,7 +96,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('json')"
     >
       <div v-e="['c:import:json']" class="flex gap-2 items-center">
-        <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
+        <GeneralIcon icon="ncFileTypeJson" class="w-4" />
         {{ $t('labels.jsonFile') }}
       </div>
     </NcMenuItem>
@@ -107,7 +107,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('excel')"
     >
       <div v-e="['c:import:excel']" class="flex gap-2 items-center">
-        <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
+        <GeneralIcon icon="excel" class="max-w-4" />
         {{ $t('labels.microsoftExcel') }}
       </div>
     </NcMenuItem>

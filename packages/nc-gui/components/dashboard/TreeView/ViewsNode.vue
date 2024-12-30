@@ -75,8 +75,8 @@ const input = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
 
-const isEditing = ref(false)
 /** Is editing the view name enabled */
+const isEditing = ref(false)
 
 /** Helper to check if editing was disabled before the view navigation timeout triggers */
 const isStopped = ref(false)
@@ -124,8 +124,7 @@ const focusInput = () => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
-  if (isMobileMode.value) return
-  if (!isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -291,7 +290,6 @@ watch(isDropdownOpen, async () => {
       '!pl-19 ': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
-    @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
     <NcTooltip
@@ -354,7 +352,10 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            'font-medium !text-brand-600': activeView?.id === vModel.id,
+            '!font-semibold !text-brand-600': activeView?.id === vModel.id,
+          }"
+          :style="{
+            fontWeight: 'inherit',
           }"
           @blur="onRename"
           @keydown.stop="onKeyDown($event)"
@@ -372,9 +373,10 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-medium text-brand-600': activeView?.id === vModel.id,
+              'font-semibold text-brand-600': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            @dblclick.stop="onDblClick"
           >
             {{ vModel.alias || vModel.title }}
           </div>

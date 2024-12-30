@@ -7,7 +7,7 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useRoles()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const route = useRoute()
 
@@ -82,6 +82,7 @@ const saveComment = async () => {
       created_by: user.value?.id,
       created_by_email: user.value?.email,
       created_display_name: user.value?.display_name ?? '',
+      created_by_meta: user.value?.meta ?? '',
     },
   ]
 
@@ -285,8 +286,11 @@ const getUserRole = (email: string) => {
                 }"
               >
                 <GeneralUserIcon
-                  :email="commentItem.created_by_email"
-                  :name="commentItem.created_display_name"
+                  :user="{
+                    display_name: commentItem?.created_display_name,
+                    email: commentItem?.created_by_email,
+                    meta: commentItem?.created_by_meta,
+                  }"
                   class="mt-0.5"
                   size="medium"
                 />
@@ -300,9 +304,13 @@ const getUserRole = (email: string) => {
                       <div class="bg-white rounded-lg">
                         <div class="flex items-center gap-4 py-3 px-2">
                           <GeneralUserIcon
-                            class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
-                            :name="commentItem.created_display_name"
-                            :email="commentItem.created_by_email"
+                            class="border-1 border-gray-200 rounded-full"
+                            :user="{
+                              display_name: commentItem?.created_display_name,
+                              email: commentItem?.created_by_email,
+                              meta: commentItem?.created_by_meta,
+                            }"
+                            size="base"
                           />
                           <div class="flex flex-col">
                             <div class="font-semibold text-gray-800">
@@ -343,11 +351,10 @@ const getUserRole = (email: string) => {
                     <GeneralIcon class="text-md" icon="threeDotVertical" />
                   </NcButton>
                   <template #overlay>
-                    <NcMenu>
+                    <NcMenu variant="small">
                       <NcMenuItem
                         v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
                         v-e="['c:comment-expand:comment:edit']"
-                        class="text-gray-700"
                         @click="editComment(commentItem)"
                       >
                         <div class="flex gap-2 items-center">
@@ -355,7 +362,7 @@ const getUserRole = (email: string) => {
                           {{ $t('general.edit') }}
                         </div>
                       </NcMenuItem>
-                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" class="text-gray-700" @click="copyComment(commentItem)">
+                      <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(commentItem)">
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.copy" class="cursor-pointer" />
                           {{ $t('general.copy') }} URL

@@ -225,7 +225,7 @@ test.describe('Form view', () => {
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/sampleImage.jpeg`],
       skipElemClick: true,
     });
     await sharedForm.cell.fillText({
@@ -1356,7 +1356,7 @@ test.describe('Form view: field validation', () => {
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/sampleImage.jpeg`],
       skipElemClick: true,
     });
 
@@ -1372,7 +1372,7 @@ test.describe('Form view: field validation', () => {
 
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/Image/2.png`],
       skipElemClick: true,
     });
     await attError.verify({ hasError: false });
@@ -1405,7 +1405,7 @@ test.describe('Form view: field validation', () => {
 
     await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/sampleImage.jpeg`],
       skipElemClick: true,
     });
 
@@ -1421,7 +1421,7 @@ test.describe('Form view: field validation', () => {
 
     await surveyForm.cell.attachment.addFile({
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/Image/2.png`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/Image/2.png`],
       skipElemClick: true,
     });
     await surveryAttError.verify({ hasError: false });

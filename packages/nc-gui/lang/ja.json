@@ -154,6 +154,7 @@
     "details": "詳細",
     "skip": "スキップ",
     "code": "コード",
+    "codeBlock": "Code Block",
     "duplicate": "複製",
     "duplicating": "複製中",
     "duplicateEntity": "{entity}を複製",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "ルックアップフィールドはリンクされたレコードからデータを表示します。特定のフィールドを選択してください",
     "addNewLookupHelperText2": "これらをこのテーブルのルックアップフィールドとして追加します。",
     "formatting": "書式設定",
-    "selectAFormatType": "- - 形式タイプを選択 (オプション) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "フォーマット タイプ",
     "toUpload": "アップロードする",
     "dragFilesHere": "ファイルをここにドラッグ",
@@ -804,7 +807,7 @@
     "icon": "アイコン",
     "max": "最大値",
     "enableRichText": "リッチテキストを有効にする",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "レコードURLをコピー済み",
     "copyRecordURL": "レコードURLをコピー",
     "duplicateRecord": "レコード重複",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "リストの読み込みに失敗しました",
       "failedToLoadChildrenList": "子供リストの読み込みに失敗しました",
       "deleteFailed": "削除に失敗しました",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "リンク解除に失敗しました",
       "rowUpdateFailed": "行の更新に失敗",
       "deleteRowFailed": "行の削除に失敗",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "問題が発生しました",
       "draggedContentIsNotTypeOfImage": "ドラッグされたコンテンツは画像タイプではありません",
       "fieldToParseImageData": "画像データを解析するフィールド",
-      "someOfTheRequiredFieldsAreEmpty": "必須フィールドのいくつかが空です"
+      "someOfTheRequiredFieldsAreEmpty": "必須フィールドのいくつかが空です",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

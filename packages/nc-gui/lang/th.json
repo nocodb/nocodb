@@ -154,6 +154,7 @@
     "details": "รายละเอียด",
     "skip": "ข้าม",
     "code": "รหัส",
+    "codeBlock": "Code Block",
     "duplicate": "คัดลอก",
     "duplicating": "การคัดลอก",
     "duplicateEntity": "คัดลอก {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "ฟิลด์โล้โก้อัพแสดงข้อมูลจากรายการที่เชื่อมโยง เลือกฟิลด์เฉพาะจาก ",
     "addNewLookupHelperText2": " ตารางเพื่อเพิ่มเป็นฟิลด์โล้โก้อัพในตารางนี้",
     "formatting": "การจัดรูปแบบ",
-    "selectAFormatType": "- -เลือกรูปแบบ (ไม่บังคับ)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ประเภทการจัดรูปแบบ",
     "toUpload": "เพื่ออัปโหลด",
     "dragFilesHere": "ลากไฟล์มาที่นี่",
@@ -804,7 +807,7 @@
     "icon": "ไอคอน",
     "max": "สูงสุด",
     "enableRichText": "เปิดใช้งาน Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL ของบันทึกที่คัดลอก",
     "copyRecordURL": "คัดลอก URL ของบันทึก",
     "duplicateRecord": "คัดลอกแถว",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
       "deleteFailed": "Delete failed",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Unlink failed",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "มีบางอย่างผิดพลาด",
       "draggedContentIsNotTypeOfImage": "เนื้อหาที่ลากไม่ใช่ประเภทของรูปภาพ",
       "fieldToParseImageData": "ฟิลด์เพื่อวิเคราะห์ข้อมูลรูปภาพ",
-      "someOfTheRequiredFieldsAreEmpty": "ช่องที่จำเป็นบางช่องว่าง"
+      "someOfTheRequiredFieldsAreEmpty": "ช่องที่จำเป็นบางช่องว่าง",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

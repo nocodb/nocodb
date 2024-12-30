@@ -64,10 +64,18 @@ export const SidebarTableInj: InjectionKey<Ref<TableType>> = Symbol('sidebar-tab
 export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
-  openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  handleTableRename: (
+    table: TableType,
+    title: string,
+    orignalTitle: string,
+    updateTitle: (title: string) => void,
+    undo?: boolean,
+    disableTitleDiffCheck?: boolean,
+  ) => void
   openViewDescriptionDialog: (view: ViewType) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+  tableRenameId: Ref<string>
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')

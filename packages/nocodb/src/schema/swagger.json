@@ -26087,7 +26087,8 @@
             "bio": "foo",
             "location": "Istanbul",
             "created_at": "2019-08-24",
-            "avatar": "https://dummyimage.com/300.png"
+            "avatar": "https://dummyimage.com/300.png",
+            "meta": {}
           }
         ],
         "title": "User Model",
@@ -26140,6 +26141,10 @@
           "token_version": {
             "description": "Access token version",
             "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         },
         "required": ["id", "email", "email_verified"],
@@ -27018,6 +27023,10 @@
           "deleted": {
             "type": "boolean",
             "required": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         }
       },

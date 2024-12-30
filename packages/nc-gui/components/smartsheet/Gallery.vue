@@ -370,7 +370,7 @@ reloadViewDataHook?.on(async () => {
       overlay-class-name="nc-dropdown-grid-context-menu"
     >
       <template #overlay>
-        <NcMenu @click="contextMenu = false">
+        <NcMenu variant="small" @click="contextMenu = false">
           <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
             <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
               <component :is="iconMap.maximize" class="flex" />

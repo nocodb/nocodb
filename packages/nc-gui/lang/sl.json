@@ -154,6 +154,7 @@
     "details": "Podrobnosti",
     "skip": "Preskoči",
     "code": "Koda",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikatni",
     "duplicating": "Podvajanje",
     "duplicateEntity": "Podvoji {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Polja za iskanje prikazujejo podatke iz povezanih zapisov. Izberite določena polja iz ",
     "addNewLookupHelperText2": " tabele, da jih dodate kot polja za iskanje v tej tabeli.",
     "formatting": "Oblikovanje",
-    "selectAFormatType": "- -Izberite vrsto oblike (izbirno)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Vrsta oblike",
     "toUpload": "za nalaganje",
     "dragFilesHere": "povlecite datoteke sem",
@@ -804,7 +807,7 @@
     "icon": "Ikona",
     "max": "Maks",
     "enableRichText": "Omogoči obogateno besedilo",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopirano URL zapisa",
     "copyRecordURL": "Kopiraj URL zapisa",
     "duplicateRecord": "Podvoji zapis",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Ni uspelo naložiti seznama",
       "failedToLoadChildrenList": "Ni uspelo naložiti seznama otrok",
       "deleteFailed": "Brisanje ni uspelo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Odprava povezave ni uspela",
       "rowUpdateFailed": "Posodobitev vrstice ni uspela",
       "deleteRowFailed": "Ni uspelo izbrisati vrstice",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Nekaj je šlo narobe",
       "draggedContentIsNotTypeOfImage": "Povlečena vsebina ni vrsta slike",
       "fieldToParseImageData": "Polje za razčlenitev slikovnih podatkov",
-      "someOfTheRequiredFieldsAreEmpty": "Nekatera obvezna polja so prazna"
+      "someOfTheRequiredFieldsAreEmpty": "Nekatera obvezna polja so prazna",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

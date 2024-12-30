@@ -154,6 +154,7 @@
     "details": "ព័ត៌មានលម្អិត",
     "skip": "រំលង",
     "code": "លេខកូដ",
+    "codeBlock": "Code Block",
     "duplicate": "ចម្លង",
     "duplicating": "កំពុងចម្លង",
     "duplicateEntity": "ស្ទួន {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "វាលស្វែងរកបង្ហាញទិន្នន័យពីកំណត់ត្រាដែលភ្ជាប់។ ជ្រើសវាលជាក់លាក់ទៅពី ",
     "addNewLookupHelperText2": " តារាងដើម្បីបន្ថែមវាលស្វែងរកនៅក្នុងតារាងនេះ។",
     "formatting": "រៀបចំ",
-    "selectAFormatType": "- -ជ្រើសប្រភេទទំរង់ (សម្រេចចិត្តដោយឬប្រសិនបើអាចលែងបាន)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ប្រភេទទំរង់",
     "toUpload": "ដើម្បីបញ្ចូល",
     "dragFilesHere": "រុញឯកសារដែលនៅទីនេះ",
@@ -804,7 +807,7 @@
     "icon": "រូបតំណាង",
     "max": "អតិបរមា",
     "enableRichText": "បើកការនិពន្ធអត្ថបទចំរុះ",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "បានចម្លងURLកំណត់ត្រចៀក",
     "copyRecordURL": "ចម្លងURLកំណត់ត្រចៀក",
     "duplicateRecord": "កំណត់ត្រចៀកស្ទួន",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "បរាជ័យក្នុងការផ្ទុកបញ្ជី",
       "failedToLoadChildrenList": "បរាជ័យក្នុងការផ្ទុកបញ្ជីកូន",
       "deleteFailed": "ការលុបបានបរាជ័យ",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "ការដកចេញបានបរាជ័យ",
       "rowUpdateFailed": "ការធ្វើបច្ចប្បន្នភាពកំណត់ត្រាមិនបានជោគជ័យ",
       "deleteRowFailed": "បរាជ័យក្នុងការលុប​កំណត់ត្រា",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "មានអ្វីមួយពុំបានចុះ។",
       "draggedContentIsNotTypeOfImage": "មាតិកាដែលត្រូវបានបង្គន់មិនមែនជាប្រភេទរូបភាព",
       "fieldToParseImageData": "វាលត្រូវបានបញ្ចីនឈ្មោះដើម្បីបម្លែងទិន្នន័យរូបភាព",
-      "someOfTheRequiredFieldsAreEmpty": "ខ្លះនៃវាលដែលត្រូវការគឺទទេ"
+      "someOfTheRequiredFieldsAreEmpty": "ខ្លះនៃវាលដែលត្រូវការគឺទទេ",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",

@@ -154,6 +154,7 @@
     "details": "Detaljer",
     "skip": "Hoppa över",
     "code": "Kod",
+    "codeBlock": "Code Block",
     "duplicate": "Dubbla",
     "duplicating": "Duplicerar",
     "duplicateEntity": "Duplicera {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Uppslagsfält visar data från länkade poster. Välj specifika fält från ",
     "addNewLookupHelperText2": " tabell för att lägga till dem som uppslagsfält i denna tabell.",
     "formatting": "Formatering",
-    "selectAFormatType": "- -Välj en formaterings typ (valfritt)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formateringstyp",
     "toUpload": "för att ladda upp",
     "dragFilesHere": "dra filer hit",
@@ -804,7 +807,7 @@
     "icon": "Ikon",
     "max": "Max",
     "enableRichText": "Aktivera rik text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopierad post-URL",
     "copyRecordURL": "Kopiera post-URL",
     "duplicateRecord": "Dubbla poster",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Listan kunde inte laddas",
       "failedToLoadChildrenList": "Misslyckades med att läsa in listan över barn",
       "deleteFailed": "Radering misslyckades",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Uppkoppling misslyckades",
       "rowUpdateFailed": "Uppdatering av rad misslyckades",
       "deleteRowFailed": "Radering av rad misslyckades",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Något gick fel",
       "draggedContentIsNotTypeOfImage": "Dra innehåll är inte av bilden typ",
       "fieldToParseImageData": "Fält för att tolka bilddata",
-      "someOfTheRequiredFieldsAreEmpty": "Vissa av de obligatoriska fälten är tomma"
+      "someOfTheRequiredFieldsAreEmpty": "Vissa av de obligatoriska fälten är tomma",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

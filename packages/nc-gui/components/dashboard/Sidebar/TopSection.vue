@@ -76,7 +76,7 @@ const navigateToIntegrations = () => {
             'font-semibold': isWorkspaceSettingsPageOpened,
           }"
         >
-          <GeneralIcon icon="settings" class="!h-4" />
+          <GeneralIcon icon="ncSettings" class="!h-4 w-4" />
           <div>{{ $t('title.teamAndSettings') }}</div>
         </div>
       </NcButton>
@@ -111,7 +111,7 @@ const navigateToIntegrations = () => {
         class="nc-sidebar-top-button !hover:(bg-gray-200 text-gray-700) !xs:hidden !h-7 my-0.5"
         data-testid="nc-sidebar-create-base-btn"
       >
-        <div class="gap-x-2 flex flex-row w-full items-center !font-normal">
+        <div class="gap-x-2 flex flex-row w-full items-center">
           <GeneralIcon icon="plus" />
 
           <div class="flex">{{ $t('title.createBase') }}</div>
@@ -123,6 +123,6 @@ const navigateToIntegrations = () => {
 
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
-  @apply w-full !rounded-md !font-normal !px-3;
+  @apply w-full !rounded-md !font-medium !px-3;
 }
 </style>

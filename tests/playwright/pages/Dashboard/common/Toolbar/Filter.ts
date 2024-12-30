@@ -380,14 +380,15 @@ export class ToolbarFilterPage extends BasePage {
           if (!['is blank', 'is not blank'].includes(operation)) {
             await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
 
+            await this.rootPage.locator(`.nc-dropdown-user-select-cell.active`).waitFor({ state: 'visible' });
+
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
               const selectUser = () =>
                 this.rootPage
-                  .locator(`.nc-dropdown-user-select-cell`)
-                  .getByTestId('select-option-User-filter')
-                  .getByText(v[i])
-                  .click({ force: true });
+                  .locator(`.nc-dropdown-user-select-cell.active`)
+                  .locator(`[data-testid="select-option-User-filter"]:has-text("${v[i]}")`)
+                  .click();
               await this.waitForResponse({
                 uiAction: selectUser,
                 httpMethodsToMatch: ['GET'],

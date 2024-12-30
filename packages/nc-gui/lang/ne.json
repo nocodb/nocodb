@@ -154,6 +154,7 @@
     "details": "विवरण",
     "skip": "छोड्नुहोस्",
     "code": "कोड",
+    "codeBlock": "Code Block",
     "duplicate": "प्रतिलिपि गर्नुहोस्",
     "duplicating": "नक्कल गर्दै",
     "duplicateEntity": "{entity} प्रतिलिपि बनाउनुहोस्",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "लुकअप फिल्डहरूले लिङ्क गरिएका रेकर्डहरूबाट डाटा देखाउँछन्। विशिष्ट फिल्डहरू चयन गर्नुहोस् ",
     "addNewLookupHelperText2": " तालिकामा तिनीहरूलाई Lookup क्षेत्रहरू रूपमा थप्न।",
     "formatting": "फारम्याटिंग",
-    "selectAFormatType": "- -फारम प्रकार चयन गर्नुहोस् (वैकल्पिक)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "फारम प्रकार",
     "toUpload": "अपलोड गर्न",
     "dragFilesHere": "यहाँ फाइलहरू तान्नुहोस्",
@@ -804,7 +807,7 @@
     "icon": "आइकन",
     "max": "अधिकतम",
     "enableRichText": "धनी पाठ सक्षम गर्नुहोस्",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "कॉपी गरिएको रेकर्ड URL",
     "copyRecordURL": "रेकर्ड URL प्रतिलिपि गर्नुहोस्",
     "duplicateRecord": "प्रतिलिपी रेकर्ड",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "सूची लोड गर्न असफल भयो",
       "failedToLoadChildrenList": "बालबालिका सूची लोड गर्न असफल भयो",
       "deleteFailed": "हटाउन असफल भयो",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "अनलिंक गर्न असफल भयो",
       "rowUpdateFailed": "रेकर्ड अपडेट असफल भएको छ",
       "deleteRowFailed": "रेकर्ड मेटाउन असफल भयो",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "केहि गलत भयो",
       "draggedContentIsNotTypeOfImage": "तानेको सामग्री छवि प्रकारको छैन",
       "fieldToParseImageData": "छवि डेटा पार्स गर्न क्षेत्र",
-      "someOfTheRequiredFieldsAreEmpty": "केही आवश्यक फिल्डहरू खाली छन्"
+      "someOfTheRequiredFieldsAreEmpty": "केही आवश्यक फिल्डहरू खाली छन्",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",

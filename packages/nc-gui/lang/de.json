@@ -154,6 +154,7 @@
     "details": "Details",
     "skip": "Überspringen",
     "code": "Code",
+    "codeBlock": "Code Block",
     "duplicate": "Duplizieren",
     "duplicating": "Dupliziere",
     "duplicateEntity": "{entity} duplizieren",
@@ -652,6 +653,8 @@
     "lockedByUser": "Gesperrt durch {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Erstellen des Snapshots fehlgeschlagen",
     "snapshotCreationFailedDescription": "Projekt-Snapshot konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.",
     "snapshotCooldownDescription": "Snapshots müssen mindestens drei Stunden auseinanderliegen.",
@@ -661,8 +664,8 @@
     "confirmRestore": "Wiederherstellung bestätigen",
     "visibilityAndDataHandling": "Sichtbarkeit & Datenverarbeitung",
     "visibilityConfigLabel": "Projektspezifische Konfigurationen für Darstellung und Standardverhalten",
-    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
-    "newSnapshot": "New Snapshot",
+    "snapShotSubText": "Ein Snapshot ist eine umfassende Sicherungskopie, die den aktuellen Status Ihres Projekts festhält. Wenn Sie einen Snapshot wiederherstellen, wird eine neue Instanz des Projekts im jeweiligen Arbeitsbereich erstellt.",
+    "newSnapshot": "Neuer Snapshot",
     "searchASnapshot": "Snapshot suchen",
     "continue": "Weiter",
     "toggleExperimentalFeature": "Schalten Sie experimentelle Funktionen zum Ausprobieren einfach ein und aus.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Referenzfelder zeigen Daten aus verknüpften Datensätzen an. Wählen Sie bestimmte Felder aus ",
     "addNewLookupHelperText2": " Tabelle aus, um sie als Referenzfelder in diese Tabelle hinzuzufügen.",
     "formatting": "Formatierung",
-    "selectAFormatType": "- -Wählen Sie einen Formattyp (optional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formattyp",
     "toUpload": "hochladen",
     "dragFilesHere": "Dateien hierher ziehen",
@@ -804,7 +807,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Rich-Text-Format aktivieren",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopierte Datensatz-URL",
     "copyRecordURL": "Datensatz-URL kopieren",
     "duplicateRecord": "Zeile duplizieren",
@@ -890,7 +893,7 @@
     "lengthValue": "Länge / Wert",
     "dbType": "Datenbanktyp",
     "servername": "Servername / Hostadresse",
-    "sqliteFile": "SQLite file path",
+    "sqliteFile": "SQLite-Dateipfad",
     "hostAddress": "Host-Adresse",
     "port": "Port-Nummer",
     "username": "Benutzername",
@@ -954,7 +957,7 @@
       "joinCommunity": "NocoDB Community beitreten",
       "joinReddit": "/r/NocoDB beitreten",
       "followNocodb": "Folgen Sie NocoDB",
-      "communityTranslated": "(Community/AI Translated)"
+      "communityTranslated": "(Community/KI-übersetzt)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentenverweis",
@@ -1037,7 +1040,7 @@
     "appearanceSettings": "Darstellungseinstellungen",
     "backgroundColor": "Hintergrundfarbe",
     "hideNocodbBranding": "NocoDB-Branding ausblenden",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "Unter Bedingungen anzeigen",
     "showFieldOnConditionsMet": "Zeigt Spalte nur an, wenn Bedingungen erfüllt sind.",
     "limitOptions": "Optionen beschränken",
     "limitOptionsSubtext": "Optionen auswählen, die Benutzern angezeigt werden",
@@ -1067,7 +1070,7 @@
     "viewHide": "Sichtbarkeit anzeigen"
   },
   "activity": {
-    "deleteAllRecords": "Delete all records",
+    "deleteAllRecords": "Alle Einträge löschen",
     "assignView": "Ansicht zuweisen",
     "webhookDetails": "Webhook-Details",
     "showSaturdaysAndSundays": "Samstage und Sonntage anzeigen",
@@ -1087,7 +1090,7 @@
     "toggleSidebar": "Seitenleiste umschalten",
     "addEndDate": "Enddatum hinzufügen",
     "endDate": "Enddatum",
-    "withEndDate": "With end date",
+    "withEndDate": "Mit Enddatum",
     "calendar": "Kalender",
     "viewSettings": "Einstellungen anzeigen",
     "googleOAuth": "Google OAuth",
@@ -1381,7 +1384,7 @@
     "aiIntegrationReConfigure": "Die KI-Integration wurde entfernt. Konfigurieren Sie das Feld im Bearbeitungsmodus neu, um die NocoAI-Funktionen zu nutzen.",
     "aiIntegrationAddAndReConfigure": "Die KI-Integration wurde entfernt. Fügen Sie das Feld neu hinzu und konfigurieren Sie es im Bearbeitungsmodus, um die NocoAI-Funktionen zu nutzen.",
     "generateFieldDataUsingAiButtonOption": "Generiere Werte für mehrere Felder in dieser Tabelle mittels bestehenden Datensätzen und NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Quelldaten sind schreibgeschützt."
   },
   "placeholder": {
     "searchIcons": "Icons suchen",
@@ -1641,7 +1644,7 @@
       "apiOptions": "Zugriff auf das Projekt via",
       "submitAnotherForm": "Weiteres Formular übermitteln'-Button anzeigen",
       "showBlankForm": "Ein leeres Formular nach 5 Sekunden anzeigen",
-      "emailForm": "Email responses to",
+      "emailForm": "E-Mail-Antwort an:",
       "showSysFields": "Systemfelder anzeigen",
       "filterAutoApply": "Automatisch anwenden",
       "formDisplayMessage": "Nachricht anzeigen",
@@ -1649,7 +1652,7 @@
       "showAllViews": "Alle geteilten Ansichten dieser Tabelle anzeigen",
       "collabView": "Mitarbeitern mit Bearbeitungsberechtigung oder höher können die Ansichtenkonfiguration ändern",
       "lockedView": "Niemand kann die Ansichtenkonfiguration bearbeiten, bis sie freigeschaltet ist.",
-      "personalView": "Only you can edit the view configuration.",
+      "personalView": "Nur Sie können die Konfiguration dieser Ansicht bearbeiten.",
       "canEditLockedViewConfiguration": "Entsperren Sie diese Ansicht, um die Konfiguration zu ändern. ",
       "cannotEditViewConfiguration": "Sie können diese Ansicht nicht konfigurieren.",
       "onlyYouCanConfigureThisView": "Nur {user} kann diese Ansicht bearbeiten.",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Liste konnte nicht geladen werden",
       "failedToLoadChildrenList": "Liste der Kinder konnte nicht geladen werden",
       "deleteFailed": "Löschen fehlgeschlagen",
+      "failedToDuplicateTable": "Duplizieren der Tabelle fehlgeschlagen",
       "unlinkFailed": "Entfernen der Verknüpfung fehlgeschlagen",
       "rowUpdateFailed": "Aktualisieren des Datensatzes fehlgeschlagen",
       "deleteRowFailed": "Fehler beim Löschen der Zeile",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Etwas ist schief gelaufen",
       "draggedContentIsNotTypeOfImage": "Diese Inhalte sind keine Bilder",
       "fieldToParseImageData": "Feld zum Parsen von Bilddaten",
-      "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer"
+      "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",

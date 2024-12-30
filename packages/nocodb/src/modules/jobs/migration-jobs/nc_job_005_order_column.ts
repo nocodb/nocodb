@@ -8,6 +8,7 @@ import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
+import SimpleLRUCache from '~/utils/cache';
 import { isEE } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -24,40 +25,6 @@ const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 10;
 const TEMP_TABLE = 'nc_temp_processed_order_models';
 
 const propsByClientType = {};
-
-class SimpleLRUCache {
-  private cache: { [key: string]: any } = {};
-  private keys: string[] = [];
-
-  constructor(private readonly limit = 1000) {}
-
-  async get<T = any>(key: string, valueGetter: () => Promise<T>) {
-    if (this.cache[key]) {
-      this.keys = this.keys.filter((k) => k !== key);
-      this.keys.push(key);
-      return this.cache[key];
-    } else {
-      const value = await valueGetter();
-      this.set(key, value);
-      return value;
-    }
-  }
-
-  set(key: string, value: any) {
-    if (this.keys.length >= this.limit) {
-      const keyToRemove = this.keys.shift();
-      delete this.cache[keyToRemove];
-    }
-
-    this.cache[key] = value;
-    this.keys.push(key);
-  }
-
-  clear() {
-    this.cache = {};
-    this.keys = [];
-  }
-}
 
 const sql = {
   mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
@@ -152,7 +119,7 @@ export class OrderColumnMigration {
           .where(`${MetaTable.MODELS}.mm`, false)
           .where((builder) => {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-            if (isEE) builder.orWhere({ is_local: true });
+            builder.orWhere({ is_local: true });
           })
           .whereNotIn(
             `${MetaTable.MODELS}.id`,
@@ -236,6 +203,7 @@ export class OrderColumnMigration {
     } catch (error) {
       this.log('Migration failed:');
       console.error(error);
+      await ncMeta.disableUpgraderMode();
       return false;
     }
   }
@@ -351,15 +319,15 @@ export class OrderColumnMigration {
         Source.get(context, source_id),
       );
 
+      if (!originalSource || !originalSource.isMeta()) {
+        return;
+      }
+
       const source = new Source({
         ...originalSource,
         upgraderMode: true,
         upgraderQueries: [],
       });
-
-      if (!source || (!source.isMeta() && (!isEE || !source.is_local))) {
-        return;
-      }
 
       source.upgraderMode = true;
 
@@ -475,7 +443,7 @@ export class OrderColumnMigration {
       )
       .where((builder) => {
         builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-        if (isEE) builder.orWhere({ is_local: true });
+        builder.orWhere({ is_local: true });
       })
       .whereNotIn(
         `${MetaTable.MODELS}.id`,

@@ -154,6 +154,7 @@
     "details": "Rincian",
     "skip": "Lewati",
     "code": "Kode",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikat",
     "duplicating": "Menduplikasi",
     "duplicateEntity": "Duplikat {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Bidang lookup menampilkan data dari catatan terkait. Pilih kolom spesifik dari ",
     "addNewLookupHelperText2": " tabel untuk menambahkannya sebagai bidang lookup dalam tabel ini.",
     "formatting": "Pemformatan",
-    "selectAFormatType": "- -Pilih jenis format (opsional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Jenis format",
     "toUpload": "untuk mengunggah",
     "dragFilesHere": "seret berkas ke sini",
@@ -804,7 +807,7 @@
     "icon": "Ikon",
     "max": "Maksimal",
     "enableRichText": "Aktifkan teks kaya",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL Rekaman Tersalin",
     "copyRecordURL": "Salin URL Rekaman",
     "duplicateRecord": "Duplikat rekaman",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Gagal memuat daftar",
       "failedToLoadChildrenList": "Gagal memuat daftar anak",
       "deleteFailed": "Menghapus gagal",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Putuskan tautan gagal",
       "rowUpdateFailed": "Pembaruan baris gagal",
       "deleteRowFailed": "Gagal menghapus baris",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Terjadi kesalahan",
       "draggedContentIsNotTypeOfImage": "Konten yang diseret bukan tipe gambar",
       "fieldToParseImageData": "Kesalahan memparse data gambar",
-      "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong"
+      "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

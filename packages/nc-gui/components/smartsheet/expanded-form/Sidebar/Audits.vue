@@ -84,8 +84,11 @@ watch(
           <div class="flex items-start justify-between">
             <div class="flex items-start gap-3 flex-1 w-full">
               <GeneralUserIcon
-                :email="audit?.created_by_email"
-                :name="audit?.created_display_name"
+                :user="{
+                  display_name: audit?.created_display_name,
+                  email: audit?.created_by_email,
+                  meta: audit?.created_by_meta,
+                }"
                 class="mt-0.5"
                 size="medium"
               />
@@ -99,9 +102,12 @@ watch(
                     <div class="bg-white rounded-lg">
                       <div class="flex items-center gap-4 py-3 px-2">
                         <GeneralUserIcon
-                          class="!w-8 !h-8 border-1 border-gray-200 rounded-full"
-                          :name="audit?.created_display_name"
-                          :email="audit?.created_by_email"
+                          class="border-1 border-gray-200 rounded-full"
+                          :user="{
+                            display_name: audit?.created_display_name,
+                            email: audit?.created_by_email,
+                            meta: audit?.created_by_meta,
+                          }"
                         />
                         <div class="flex flex-col">
                           <div class="font-semibold text-gray-800">

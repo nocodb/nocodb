@@ -6,6 +6,7 @@ import isEmail from 'validator/lib/isEmail';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import type {
+  MetaType,
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
@@ -21,7 +22,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { Store, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -58,6 +59,8 @@ export class UsersService {
       },
     );
 
+    await PresignedUrl.signMetaIconImage(user);
+
     return user;
   }
 
@@ -90,11 +93,16 @@ export class UsersService {
     params: {
       display_name?: string;
       avatar?: string;
+      meta?: MetaType;
     };
   }) {
-    const updateObj = extractProps(params, ['display_name', 'avatar']);
+    const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
 
-    return await User.update(id, updateObj);
+    const user = await User.update(id, updateObj);
+
+    await PresignedUrl.signMetaIconImage(user);
+
+    return user;
   }
 
   async registerNewUserIfAllowed({

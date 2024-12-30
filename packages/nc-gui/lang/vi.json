@@ -154,6 +154,7 @@
     "details": "Chi tiết",
     "skip": "Bỏ qua",
     "code": "Mã",
+    "codeBlock": "Code Block",
     "duplicate": "Tạo bản sao",
     "duplicating": "Đang nhân đôi",
     "duplicateEntity": "Tạo bản sao {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Trường tra cứu hiển thị dữ liệu từ các bản ghi liên kết. Chọn các trường cụ thể từ ",
     "addNewLookupHelperText2": " bảng để thêm chúng làm các trường tra cứu trong bảng này.",
     "formatting": "Định dạng",
-    "selectAFormatType": "- -Chọn loại định dạng (tùy chọn)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Loại định dạng",
     "toUpload": "để tải lên",
     "dragFilesHere": "kéo tệp vào đây",
@@ -804,7 +807,7 @@
     "icon": "Biểu tượng",
     "max": "Tối đa",
     "enableRichText": "Bật văn bản phong phú",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Đã sao chép URL bản ghi",
     "copyRecordURL": "Sao chép URL bản ghi",
     "duplicateRecord": "Tạo bản sao bản ghi",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
       "deleteFailed": "Delete failed",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Unlink failed",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Có điều gì đó không ổn",
       "draggedContentIsNotTypeOfImage": "Nội dung kéo không phải là loại hình ảnh",
       "fieldToParseImageData": "Trường để phân tích dữ liệu hình ảnh",
-      "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống"
+      "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

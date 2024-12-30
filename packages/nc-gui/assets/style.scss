@@ -119,6 +119,10 @@ main {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
     @apply border-[var(--ant-primary-5)];
   }
+
+  .ant-input::placeholder {
+    @apply text-gray-500;
+  }
 }
 
 .ant-form-item-explain {
@@ -1092,3 +1096,36 @@ svg.nc-virtual-cell-icon {
 .animate-sidebar-node-input-padding {
   animation: sidebar-node-input-padding-grow 0.2s ease forwards;
 }
+
+.nc-base-node-tooltip .nc-role-badge {
+  & > div {
+    @apply bg-transparent;
+  }
+}
+
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Added scaling transition */
+  position: absolute;
+}
+
+.icon-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.5); /* Start smaller and scale up */
+}
+
+.icon-fade-enter-to {
+  opacity: 1;
+  transform: scale(1); /* Scale to full size */
+}
+
+.icon-fade-leave-from {
+  opacity: 1;
+  transform: scale(1); /* Start at full size */
+}
+
+.icon-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5); /* Scale down and fade out */
+}
+

@@ -154,6 +154,7 @@
     "details": "Xehetasunak",
     "skip": "Jauzi",
     "code": "Kodea",
+    "codeBlock": "Code Block",
     "duplicate": "Bikoiztu",
     "duplicating": "Bikoizten",
     "duplicateEntity": "Bikoiztu {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Bilatu eremuetan lotutako grabazioetatik datuak erakutsi. Aukeratu zehazki ",
     "addNewLookupHelperText2": " taula bertan Lookup eremu bezala gehitzeko.",
     "formatting": "Formatua",
-    "selectAFormatType": "- - Formatu mota bat aukeratu (aukerazkoa) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formatu mota",
     "toUpload": "igortzeko",
     "dragFilesHere": "fitxategiak hemen arrastatu",
@@ -804,7 +807,7 @@
     "icon": "Ikonoa",
     "max": "Max",
     "enableRichText": "Testu aberatsa gaitu",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Erregistroaren URL-a kopiatu da",
     "copyRecordURL": "Erregistroaren URL-a kopiatu",
     "duplicateRecord": "Bikoiztu errenkada",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Zerrenda kargatzeak huts egin du",
       "failedToLoadChildrenList": "Haur zerrenda kargatzeak huts egin du",
       "deleteFailed": "Ezabapenak huts egin du",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Desestekatzeak huts egin du",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Zerbait gaizki joan da",
       "draggedContentIsNotTypeOfImage": "Arrastatutako edukia ez da irudi mota",
       "fieldToParseImageData": "Irudi datuak analizatzeko eremua",
-      "someOfTheRequiredFieldsAreEmpty": "Beharrezko eremuetako batzuk hutsik daude"
+      "someOfTheRequiredFieldsAreEmpty": "Beharrezko eremuetako batzuk hutsik daude",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

@@ -19,7 +19,7 @@ const route = router.currentRoute
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { setMenuContext, openRenameTableDialog, duplicateTable, contextMenuTarget } = inject(TreeViewInj)!
+const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj)!
 
@@ -121,6 +121,8 @@ const showBaseOption = (source: SourceType) => {
 }
 
 const enableEditMode = () => {
+  if (!isUIAllowed('baseRename')) return
+
   editMode.value = true
   tempTitle.value = base.value.title!
   nextTick(() => {
@@ -131,12 +133,16 @@ const enableEditMode = () => {
 }
 
 const enableEditModeForSource = (sourceId: string) => {
+  if (!isUIAllowed('baseRename')) return
+
   const source = base.value.sources?.find((s) => s.id === sourceId)
   if (!source?.id) return
+
   sourceRenameHelpers.value[source.id] = {
     editMode: true,
     tempTitle: source.alias || '',
   }
+
   nextTick(() => {
     const input: HTMLInputElement | null = document.querySelector(`[data-source-rename-input-id="${sourceId}"]`)
     if (!input) return
@@ -451,29 +457,6 @@ const projectDelete = () => {
   $e('c:project:delete')
 }
 
-// Tracks if the table ID has been successfully copied to the clipboard
-const isTableIdCopied = ref(false)
-
-let tableIdCopiedTimeout: NodeJS.Timeout
-
-const onTableIdCopy = async () => {
-  if (tableIdCopiedTimeout) {
-    clearTimeout(tableIdCopiedTimeout)
-  }
-
-  try {
-    await copy(contextMenuTarget.value.id)
-    isTableIdCopied.value = true
-
-    tableIdCopiedTimeout = setTimeout(() => {
-      isTableIdCopied.value = false
-      clearTimeout(tableIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
@@ -496,6 +479,24 @@ const openBaseSettings = async (baseId: string) => {
 }
 
 const showNodeTooltip = ref(true)
+
+const shouldOpenContextMenu = computed(() => {
+  if (isSharedBase.value || !contextMenuTarget.value) return false
+
+  if (contextMenuTarget.type === 'table') {
+    return true
+  }
+
+  // if (contextMenuTarget.type === 'base' && base.value.type === 'database') {
+  //   return true
+  // }
+
+  // if (contextMenuTarget.type === 'source') {
+  //   return true
+  // }
+
+  return false
+})
 </script>
 
 <template>
@@ -577,6 +578,9 @@ const showNodeTooltip = ref(true)
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
               :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
+              :style="{
+                fontWeight: 'inherit',
+              }"
               @click.stop
               @keyup.enter="updateProjectTitle"
               @keyup.esc="updateProjectTitle"
@@ -592,7 +596,7 @@ const showNodeTooltip = ref(true)
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span>
+              <span @dblclick.stop="enableEditMode">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -614,12 +618,13 @@ const showNodeTooltip = ref(true)
                 </NcButton>
                 <template #overlay>
                   <NcMenu
-                    class="nc-scrollbar-md"
+                    class="nc-scrollbar-md !min-w-50"
                     :style="{
                       maxHeight: '70vh',
                       overflow: 'overlay',
                     }"
                     :data-testid="`nc-sidebar-base-${base.title}-options`"
+                    variant="small"
                     @click="isOptionsOpen = false"
                   >
                     <template v-if="!isSharedBase">
@@ -629,7 +634,7 @@ const showNodeTooltip = ref(true)
                         @click="enableEditMode"
                       >
                         <div v-e="['c:base:rename']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="rename" class="group-hover:text-black" />
+                          <GeneralIcon icon="rename" />
                           {{ $t('general.rename') }}
                         </div>
                       </NcMenuItem>
@@ -640,7 +645,7 @@ const showNodeTooltip = ref(true)
                         @click="duplicateProject(base)"
                       >
                         <div v-e="['c:base:duplicate']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="duplicate" class="text-gray-700" />
+                          <GeneralIcon icon="duplicate" />
                           {{ $t('general.duplicate') }}
                         </div>
                       </NcMenuItem>
@@ -655,7 +660,7 @@ const showNodeTooltip = ref(true)
                         @click.stop="copyProjectInfo"
                       >
                         <div v-e="['c:base:copy-proj-info']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="copy" class="group-hover:text-black" />
+                          <GeneralIcon icon="copy" />
                           {{ $t('activity.account.projInfo') }}
                         </div>
                       </NcMenuItem>
@@ -668,7 +673,7 @@ const showNodeTooltip = ref(true)
                         @click="openErdView(base?.sources?.[0])"
                       >
                         <div v-e="['c:base:erd']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="erd" />
+                          <GeneralIcon icon="ncErd" />
                           {{ $t('title.relations') }}
                         </div>
                       </NcMenuItem>
@@ -686,7 +691,7 @@ const showNodeTooltip = ref(true)
                         "
                       >
                         <div v-e="['c:base:api-docs']" class="flex gap-2 items-center">
-                          <GeneralIcon icon="snippet" class="group-hover:text-black !max-w-3.9" />
+                          <GeneralIcon icon="ncCode" class="!max-w-3.9" />
                           {{ $t('activity.account.swagger') }}
                         </div>
                       </NcMenuItem>
@@ -707,7 +712,7 @@ const showNodeTooltip = ref(true)
                       @click="openBaseSettings(base.id)"
                     >
                       <div v-e="['c:base:settings']" class="flex gap-2 items-center">
-                        <GeneralIcon icon="settings" class="group-hover:text-black" />
+                        <GeneralIcon icon="settings" />
                         {{ $t('activity.settings') }}
                       </div>
                     </NcMenuItem>
@@ -814,7 +819,7 @@ const showNodeTooltip = ref(true)
                         <GeneralIcon
                           icon="chevronDown"
                           class="flex-none cursor-pointer transform transition-transform duration-500 rotate-270"
-                          :class="{ '!rotate-180': isActive }"
+                          :class="{ '!rotate-360': isActive }"
                         />
                       </NcButton>
                     </template>
@@ -864,6 +869,9 @@ const showNodeTooltip = ref(true)
                               ref="input"
                               v-model:value="sourceRenameHelpers[source.id].tempTitle"
                               class="capitalize !bg-transparent flex-1 mr-4 !pr-1.5 !text-gray-700 !rounded-md !h-6 animate-sidebar-node-input-padding"
+                              :style="{
+                                fontWeight: 'inherit',
+                              }"
                               :data-source-rename-input-id="source.id"
                               @click.stop
                               @keydown.enter.stop.prevent
@@ -878,7 +886,10 @@ const showNodeTooltip = ref(true)
                               show-on-truncate-only
                             >
                               <template #title> {{ source.alias || '' }}</template>
-                              <span :data-testid="`nc-sidebar-base-${source.alias}`">
+                              <span
+                                :data-testid="`nc-sidebar-base-${source.alias}`"
+                                @dblclick.stop="enableEditModeForSource(source.id!)"
+                              >
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>
@@ -904,11 +915,12 @@ const showNodeTooltip = ref(true)
                               </NcButton>
                               <template #overlay>
                                 <NcMenu
-                                  class="nc-scrollbar-md"
+                                  class="nc-scrollbar-md !min-w-50"
                                   :style="{
                                     maxHeight: '70vh',
                                     overflow: 'overlay',
                                   }"
+                                  variant="small"
                                   @click="isBasesOptionsOpen[source!.id!] = false"
                                 >
                                   <NcMenuItem
@@ -916,7 +928,7 @@ const showNodeTooltip = ref(true)
                                     data-testid="nc-sidebar-source-rename"
                                     @click="enableEditModeForSource(source.id!)"
                                   >
-                                    <GeneralIcon icon="rename" class="group-hover:text-black" />
+                                    <GeneralIcon icon="rename" />
                                     {{ $t('general.rename') }}
                                   </NcMenuItem>
 
@@ -925,7 +937,7 @@ const showNodeTooltip = ref(true)
                                   <!-- ERD View -->
                                   <NcMenuItem key="erd" @click="openErdView(source)">
                                     <div v-e="['c:source:erd']" class="flex gap-2 items-center">
-                                      <GeneralIcon icon="erd" />
+                                      <GeneralIcon icon="ncErd" />
                                       {{ $t('title.relations') }}
                                     </div>
                                   </NcMenuItem>
@@ -969,37 +981,30 @@ const showNodeTooltip = ref(true)
         </template>
       </div>
     </div>
-    <template v-if="!isSharedBase" #overlay>
+    <template v-if="shouldOpenContextMenu" #overlay>
       <NcMenu
         class="!py-0 rounded text-sm"
         :class="{
           '!min-w-62.5': contextMenuTarget.type === 'table',
+          '!min-w-50': contextMenuTarget.type !== 'table',
         }"
+        variant="small"
       >
         <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'source'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcTooltip>
-            <template #title> {{ $t('labels.clickToCopyTableID') }}</template>
-            <div
-              class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-              @click.stop="onTableIdCopy"
-            >
-              <div class="flex text-xs font-bold text-gray-500 ml-1">
-                {{
-                  $t('labels.tableIdColon', {
-                    tableId: contextMenuTarget.value?.id,
-                  })
-                }}
-              </div>
-              <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-                <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
-                <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-              </NcButton>
-            </div>
-          </NcTooltip>
+          <NcMenuItemCopyId
+            v-if="contextMenuTarget.value"
+            :id="contextMenuTarget.value.id"
+            :tooltip="$t('labels.clickToCopyTableID')"
+            :label="
+              $t('labels.tableIdColon', {
+                tableId: contextMenuTarget.value?.id,
+              })
+            "
+          />
 
           <template
             v-if="
@@ -1010,10 +1015,10 @@ const showNodeTooltip = ref(true)
             <NcDivider />
             <NcMenuItem
               v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
-              @click="openRenameTableDialog(contextMenuTarget.value, true)"
+              @click="tableRenameId = `${contextMenuTarget.value?.id}:${contextMenuTarget.value?.source_id}`"
             >
               <div v-e="['c:table:rename']" class="nc-base-option-item flex gap-2 items-center">
-                <GeneralIcon icon="rename" class="text-gray-700" />
+                <GeneralIcon icon="rename" />
                 {{ $t('general.rename') }} {{ $t('objects.table') }}
               </div>
             </NcMenuItem>
@@ -1026,7 +1031,7 @@ const showNodeTooltip = ref(true)
               @click="duplicateTable(contextMenuTarget.value)"
             >
               <div v-e="['c:table:duplicate']" class="nc-base-option-item flex gap-2 items-center">
-                <GeneralIcon icon="duplicate" class="text-gray-700" />
+                <GeneralIcon icon="duplicate" />
                 {{ $t('general.duplicate') }} {{ $t('objects.table') }}
               </div>
             </NcMenuItem>

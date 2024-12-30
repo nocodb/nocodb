@@ -456,8 +456,7 @@ onKeyStroke('ArrowDown', onDown)
                         class="w-full flex gap-3 items-center"
                       >
                         <GeneralUserIcon
-                          :email="collaboratorsMap.get(integration.created_by)?.email"
-                          :name="collaboratorsMap.get(integration.created_by)?.display_name"
+                          :user="collaboratorsMap.get(integration.created_by)"
                           size="base"
                           class="flex-none"
                           :class="{
@@ -520,7 +519,7 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>
                       <template #overlay>
-                        <NcMenu>
+                        <NcMenu variant="small">
                           <NcMenuItem
                             v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
                             @click="setDefaultIntegration(integration)"

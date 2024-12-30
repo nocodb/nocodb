@@ -154,6 +154,7 @@
     "details": "Podrobnosti",
     "skip": "Přeskočit",
     "code": "Kód",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikovat",
     "duplicating": "Duplikování",
     "duplicateEntity": "Duplikovat {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Pole vyhledávání zobrazují data z propojených záznamů. Vyberte konkrétní pole z ",
     "addNewLookupHelperText2": " tabulky k jejich přidání jako pole vyhledávání.",
     "formatting": "Formátování",
-    "selectAFormatType": "- -Vyberte typ formátu (volitelné)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formátu",
     "toUpload": "nahrát",
     "dragFilesHere": "přetáhněte soubory sem",
@@ -804,7 +807,7 @@
     "icon": "Ikona",
     "max": "Max",
     "enableRichText": "Enable Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopírovaná URL záznamu",
     "copyRecordURL": "Kopírovat URL záznamu",
     "duplicateRecord": "Duplikovat řádek",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Nepodařilo se načíst seznam",
       "failedToLoadChildrenList": "Nepodařilo se načíst seznam dětí",
       "deleteFailed": "Odstranění se nezdařilo",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Odpojení se nezdařilo",
       "rowUpdateFailed": "Aktualizace řádku se nezdařila",
       "deleteRowFailed": "Nepodařilo se odstranit řádek",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Něco se pokazilo",
       "draggedContentIsNotTypeOfImage": "Přetažený obsah není obrazového typu",
       "fieldToParseImageData": "Pole pro analýzu obrazových dat",
-      "someOfTheRequiredFieldsAreEmpty": "Některá z povinných polí jsou prázdná"
+      "someOfTheRequiredFieldsAreEmpty": "Některá z povinných polí jsou prázdná",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat projektu",

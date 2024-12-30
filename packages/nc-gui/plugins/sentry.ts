@@ -6,11 +6,13 @@ import { defineNuxtPlugin } from 'nuxt/app'
 export default defineNuxtPlugin((nuxtApp) => {
   if (isEeUI) return
 
+  const config = useRuntimeConfig()
+
   const { vueApp } = nuxtApp
 
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-  if (process.env.CI || process.env.PLAYWRIGHT) {
+  if (config.public.env === 'CI') {
     return
   }
 

@@ -299,7 +299,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       <a-input
         v-model:value="searchQuery"
         type="text"
-        class="nc-search-data-source-input !max-w-90 nc-input-sm"
+        class="nc-search-data-source-input nc-input-border-on-value !max-w-90 nc-input-sm"
         placeholder="Search data source"
         allow-clear
       >
@@ -553,9 +553,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
-                          <NcMenu>
+                          <NcMenu variant="small">
                             <NcMenuItem @click="handleClickRow(source, 'edit')">
-                              <GeneralIcon class="text-gray-800" icon="edit" />
+                              <GeneralIcon icon="edit" />
                               <span>{{ $t('general.edit') }}</span>
                             </NcMenuItem>
 

@@ -154,6 +154,7 @@
     "details": "Details",
     "skip": "Overslaan",
     "code": "Code",
+    "codeBlock": "Code Block",
     "duplicate": "Dubbele",
     "duplicating": "Dupliceren",
     "duplicateEntity": "Dupliceer {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Geblokkeerd door {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Opzoekvelden tonen gegevens uit gekoppelde records. Selecteer specifieke velden van ",
     "addNewLookupHelperText2": " tabel om deze als Opzoekvelden toe te voegen in deze tabel.",
     "formatting": "Opmaak",
-    "selectAFormatType": "- -Selecteer een opmaaktype (optioneel)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Opmaaktype",
     "toUpload": "te uploaden",
     "dragFilesHere": "sleep bestanden hierheen",
@@ -804,7 +807,7 @@
     "icon": "Icoon",
     "max": "Max",
     "enableRichText": "Rijke tekst inschakelen",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Gekopieerde Record URL",
     "copyRecordURL": "Kopieer Record URL",
     "duplicateRecord": "Duplicaatrecord",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Lijst niet geladen",
       "failedToLoadChildrenList": "Laadt geen lijst met kinderen",
       "deleteFailed": "Verwijderen mislukt",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Ontkoppeling mislukt",
       "rowUpdateFailed": "Rij update mislukt",
       "deleteRowFailed": "Rij niet verwijderd",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Er is iets fout gegaan",
       "draggedContentIsNotTypeOfImage": "Gesleepte inhoud is niet van het type afbeelding",
       "fieldToParseImageData": "Veld om afbeeldingsgegevens te parseren",
-      "someOfTheRequiredFieldsAreEmpty": "Enkele verplichte velden zijn leeg"
+      "someOfTheRequiredFieldsAreEmpty": "Enkele verplichte velden zijn leeg",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

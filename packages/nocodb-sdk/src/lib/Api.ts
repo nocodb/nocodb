@@ -2792,6 +2792,8 @@ export interface UserType {
   avatar?: string;
   /** Access token version */
   token_version?: string;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 /**
@@ -3074,6 +3076,8 @@ export interface UserFieldRecordType {
   display_name?: string;
   email: string;
   deleted?: boolean;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 export type NestedListCopyPasteOrDeleteAllReqType = {

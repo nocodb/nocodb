@@ -342,7 +342,7 @@ const userRoleOptions = [
                   </NcButton>
 
                   <template #overlay>
-                    <NcMenu>
+                    <NcMenu variant="small">
                       <template v-if="!el.roles?.includes('super')">
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">

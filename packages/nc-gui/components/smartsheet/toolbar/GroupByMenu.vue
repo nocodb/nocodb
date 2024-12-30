@@ -316,7 +316,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                   <NcTooltip placement="top" title="Remove" class="flex-none">
                     <NcButton
                       v-e="['c:group-by:remove']"
-                      class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none min-w-40"
+                      class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none"
                       size="small"
                       type="secondary"
                       :shadow="false"

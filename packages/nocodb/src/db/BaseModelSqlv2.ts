@@ -18,6 +18,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  ncIsObject,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -7156,7 +7157,7 @@ class BaseModelSqlv2 {
           );
 
           const oldRowId = linkedHmRowObj
-            ? linkedHmRowObj?.[childTable.primaryKey?.column_name]
+            ? linkedHmRowObj?.[childColumn?.column_name]
             : null;
 
           if (oldRowId) {
@@ -7274,7 +7275,7 @@ class BaseModelSqlv2 {
             );
 
             const oldChildRowId = linkedHmRowObj
-              ? linkedHmRowObj[childTable.primaryKeys[0]?.column_name]
+              ? linkedHmRowObj[childColumn.column_name]
               : null;
 
             if (oldChildRowId) {
@@ -8480,6 +8481,8 @@ class BaseModelSqlv2 {
           base_id: this.model.base_id,
         });
 
+        await PresignedUrl.signMetaIconImage(baseUsers);
+
         if (Array.isArray(data)) {
           data = await Promise.all(
             data.map((d) => this._convertUserFormat(userColumns, baseUsers, d)),
@@ -8506,13 +8509,17 @@ class BaseModelSqlv2 {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name } = baseUsers.find(
+            const { id, email, display_name, meta } = baseUsers.find(
               (u) => u.id === fid,
             );
+
             return {
               id,
               email,
               display_name: display_name?.length ? display_name : null,
+              meta: ncIsObject(meta)
+                ? extractProps(meta, ['icon', 'iconType'])
+                : null,
             };
           });
 

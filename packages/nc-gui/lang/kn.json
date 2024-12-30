@@ -154,6 +154,7 @@
     "details": "ವಿವರಗಳು",
     "skip": "ಬಿಟ್ಟುಬಿಡಿ",
     "code": "ಕೋಡ್",
+    "codeBlock": "Code Block",
     "duplicate": "ನಕಲು",
     "duplicating": "ನಕಲಿಸುತ್ತಿದೆ",
     "duplicateEntity": "ನಕಲು {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "ಲಿಂಕ್ಡ్ ದಾಖಲೆಗಳಿಂದ ಡೇಟಾವನ್ನು ತೋರಿಸುತ್ತವೆ. ನಿಗದಿತ ಕ್ಷೇತ್ರಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ ",
     "addNewLookupHelperText2": " ಟೇಬಲ್ ಈ ಟೇಬಲ್ ನಲ್ಲಿ ಅವುಗಳನ್ನು ಲುಕ್ಅಪ್ ಕ್ಷೇತ್ರಗಳಾಗಿ ಸೇರಿಸಲು.",
     "formatting": "ಫಾರ್ಮಾಟಿಂಗ್",
-    "selectAFormatType": "- - ಫಾರ್ಮಾಟ್ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ (ಐಚ್ಛಿಕ) - -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ಫಾರ್ಮಾಟ್ ಪ್ರಕಾರ",
     "toUpload": "ಅಪ್ಲೋಡ್ ಮಾಡಲು",
     "dragFilesHere": "ಇಲ್ಲಿ ಫೈಲ್‌ಗಳನ್ನು ಎಳೆದಿಡಿ",
@@ -804,7 +807,7 @@
     "icon": "ಚಿಹ್ನೆ",
     "max": "ಅತ್ಯಂತ ಹೆಚ್ಚು",
     "enableRichText": "ಸಮೃದ್ಧ ಪಠ್ಯ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "ನಕಲಿ ದಾಖಲೆ URL",
     "copyRecordURL": "ದಾಖಲೆ URL ನಕಲು",
     "duplicateRecord": "ನಕಲಿ ದಾಖಲೆ",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "ಪಟ್ಟಿ ಲೋಡ್ ಮಾಡುವುದು ವಿಫಲವಾಗಿದೆ",
       "failedToLoadChildrenList": "ಮಕ್ಕಳ ಪಟ್ಟಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
       "deleteFailed": "ಅಳಿಸಲು ವಿಫಲವಾಯಿತು",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "ಅನ್‌ಲಿಂಕ್ ವಿಫಲವಾಯಿತು",
       "rowUpdateFailed": "ರೆಕಾರ್ಡ್ ಪರಿಷ್ಕರಣೆ ವಿಫಲವಾಗಿದೆ",
       "deleteRowFailed": "ರೆಕಾರ್ಡ್ ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "ಏನೋ ತಪ್ಪಾಗಿದೆ",
       "draggedContentIsNotTypeOfImage": "ಇಳಕಿ ತಂದ ವಿಷಯ ಚಿತ್ರ ಪ್ರಕಾರವಲ್ಲ",
       "fieldToParseImageData": "ಚಿತ್ರದ ಡೇಟಾವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಕ್ಷೇತ್ರ",
-      "someOfTheRequiredFieldsAreEmpty": "ಕೋಷ್ಟಕವನ್ನು ಅಗತ್ಯವಲ್ಲದ ರೂಪದಲ್ಲಿ ಖಾಲಿ ಮಾಡಲಾಗಿದೆ"
+      "someOfTheRequiredFieldsAreEmpty": "ಕೋಷ್ಟಕವನ್ನು ಅಗತ್ಯವಲ್ಲದ ರೂಪದಲ್ಲಿ ಖಾಲಿ ಮಾಡಲಾಗಿದೆ",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

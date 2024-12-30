@@ -103,6 +103,7 @@ const options = computed<UserFieldRecordType[]>(() => {
           display_name: user.display_name,
           deleted: user.deleted,
           order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
+          meta: user.meta,
         }))
         .sort((a, b) => a.order - b.order),
     )
@@ -115,6 +116,7 @@ const options = computed<UserFieldRecordType[]>(() => {
           display_name: user.display_name,
           deleted: user.deleted,
           order: order++,
+          meta: user.meta,
         }))
         .sort((a, b) => a.order - b.order),
     )
@@ -128,7 +130,7 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 
 const vModel = computed({
   get: () => {
-    let selected: { label: string; value: string }[] = []
+    let selected: { label: string; value: string; meta: any }[] = []
 
     let localModelValue = modelValue
 
@@ -149,10 +151,11 @@ const vModel = computed({
           acc.push({
             label: user?.display_name || user?.email,
             value: user.id,
+            meta: user.meta,
           })
         }
         return acc
-      }, [] as { label: string; value: string }[])
+      }, [] as { label: string; value: string; meta: any }[])
     } else {
       selected = localModelValue
         ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
@@ -161,10 +164,11 @@ const vModel = computed({
               acc.push({
                 label,
                 value: item.id,
+                meta: item?.meta,
               })
             }
             return acc
-          }, [] as { label: string; value: string }[])
+          }, [] as { label: string; value: string; meta: any }[])
         : []
     }
 
@@ -376,9 +380,8 @@ const onFocus = () => {
                 <div>
                   <GeneralUserIcon
                     size="auto"
-                    :name="op.display_name"
-                    :email="op.email"
-                    class="!text-[0.65rem]"
+                    :user="op"
+                    class="!text-[0.65rem] !h-[16.8px]"
                     :disabled="!isCollaborator(op.id)"
                   />
                 </div>
@@ -446,9 +449,12 @@ const onFocus = () => {
                 <GeneralUserIcon
                   :disabled="!isCollaborator(selectedOpt.value)"
                   size="auto"
-                  :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
-                  :email="selectedOpt.label"
-                  class="!text-[0.65rem]"
+                  :user="{
+                    display_name: !selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : '',
+                    email: selectedOpt.label,
+                    meta: selectedOpt.meta,
+                  }"
+                  class="!text-[0.65rem] !h-[16.8px]"
                 />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -523,9 +529,9 @@ const onFocus = () => {
                 :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
-                  <GeneralUserIcon size="auto" :name="op.display_name" :email="op.email" class="!text-[0.65rem]" />
+                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.65rem] !h-[16.8px]" />
                 </div>
-                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only placement="right">
                   <template #title>
                     {{ op.display_name?.trim() || op.email }}
                   </template>
@@ -574,9 +580,12 @@ const onFocus = () => {
               <div>
                 <GeneralUserIcon
                   size="auto"
-                  :name="!label?.includes('@') ? label.trim() : ''"
-                  :email="label"
-                  class="!text-[0.65rem]"
+                  :user="{
+                    display_name: !label?.includes('@') ? label.trim() : '',
+                    email: label,
+                    meta: options.find((el) => el.id === val)?.meta,
+                  }"
+                  class="!text-[0.65rem] !h-[16.8px]"
                   :disabled="!isCollaborator(val)"
                 />
               </div>

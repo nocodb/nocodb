@@ -37,7 +37,7 @@ const wrapper = ref()
 
 const { dashboardUrl } = useDashboard()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
@@ -96,13 +96,13 @@ const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col))
+        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
+    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
   }
   return _fields?.value ?? []
 })
@@ -686,7 +686,7 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
             <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" />
+              <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
                 {{ tableTitle }}
               </span>
@@ -746,9 +746,15 @@ export default {
               size="xsmall"
               @click="copyRecordUrl()"
             >
-              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex items-center">
-                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+              <div
+                v-e="['c:row-expand:copy-url']"
+                data-testid="nc-expanded-form-copy-url"
+                class="flex items-center relative h-4 w-4"
+              >
+                <Transition name="icon-fade" :duration="200">
+                  <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                  <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                </Transition>
               </div>
             </NcButton>
           </NcTooltip>
@@ -757,8 +763,8 @@ export default {
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
             </NcButton>
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem class="text-gray-700" @click="_loadRow()">
+              <NcMenu variant="small">
+                <NcMenuItem @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
                     {{ $t('general.reload') }} {{ $t('objects.record') }}
@@ -767,7 +773,7 @@ export default {
                 <NcMenuItem
                   v-if="!isNew && rowId"
                   type="secondary"
-                  class="!lg:hidden text-gray-700"
+                  class="!lg:hidden"
                   :disabled="isLoading"
                   @click="copyRecordUrl()"
                 >
@@ -776,7 +782,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit')" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">

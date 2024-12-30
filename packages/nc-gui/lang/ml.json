@@ -154,6 +154,7 @@
     "details": "വിശദാംശങ്ങൾ",
     "skip": "വിട്ടുക",
     "code": "കോഡ്",
+    "codeBlock": "Code Block",
     "duplicate": "പകര്‍പ്പിക്കുക",
     "duplicating": "പകര്‍ത്തിക്കൊണ്ടിരിക്കുന്നു",
     "duplicateEntity": "മറുകൂടി {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "ലിങ്കുചെയ്ത റെക്കോർഡുകളിൽ നിന്ന് ഡാറ്റ കാണിക്കാൻ ലുക്കപ്പ് ഫീൽഡുകൾ ഉപയോഗിക്കുന്നു. പകുതിയിലായി നിൽക്കുന്ന ഫീൽഡുകൾ തിരഞ്ഞെടുക്കുക ",
     "addNewLookupHelperText2": " ടേബിളില്‍ ഇവയെ ലുക്ക്അപ്പ് ഫീല്‍ഡുകള്‍ ആയി കൂട്ടിച്ചേര്‍ക്കാൻ പ്രത്യേക ഫീല്‍ഡുകള്‍ തിരഞ്ഞെടുക്കുക.",
     "formatting": "ഫോർമാറ്റിംഗ്",
-    "selectAFormatType": "- -ഒരു ഫോർമാറ്റ് തരം തിരഞ്ഞെടുക്കുക (ഐച്ഛികം)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ഫോർമാറ്റ് തരം",
     "toUpload": "അപ്‌ലോഡ് ചെയ്യാനുള്ളത്",
     "dragFilesHere": "ഫയലുകൾ ഇവിടെ വലയിടുക",
@@ -804,7 +807,7 @@
     "icon": "ഐകോണ്‍",
     "max": "പരമാവധി",
     "enableRichText": "റിച്ച് ടെക്സ്റ്റ് പ്രവർത്തനക്ഷമമാക്കുക",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL പകർത്തിയ റെക്കോർഡ്",
     "copyRecordURL": "റെക്കോർഡ് URL പകർത്തുക",
     "duplicateRecord": "പഴുതപയർ റെക്കോർഡ്",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "പട്ടിക ലോഡ് ചെയ്യാൻ പരാജയപ്പെട്ടു",
       "failedToLoadChildrenList": "കുട്ടികളുടെ പട്ടിക ലോഡ് ചെയ്യുന്നതു പരാജയപ്പെട്ടു",
       "deleteFailed": "മായ്ക്കൽ പരാജയപ്പെട്ടു",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "അൺലിങ്ക് പരാജയപ്പെട്ടു",
       "rowUpdateFailed": "റെക്കോർഡ് അപ്ഡേറ്റ് പരാജയപ്പെട്ടു",
       "deleteRowFailed": "റെക്കോർഡ് മായ്ക്കാൻ പരാജയപ്പെട്ടു",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "എന്തോ ഒരു പിശക് സംഭവിച്ചു",
       "draggedContentIsNotTypeOfImage": "വലിച്ചിടൽ ഉള്ളടക്കം ചിത്രമല്ലാത്ത തരത്തിൽ ഉണ്ട്",
       "fieldToParseImageData": "ചിത്ര ഡാറ്റ പാഴ്സ് ചെയ്യാൻ ഫീൽഡ് ആവശ്യമാണ്",
-      "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്"
+      "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

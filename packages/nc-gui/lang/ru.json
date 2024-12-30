@@ -154,6 +154,7 @@
     "details": "Подробности",
     "skip": "Пропустить",
     "code": "Код",
+    "codeBlock": "Code Block",
     "duplicate": "Копировать",
     "duplicating": "Дублирование",
     "duplicateEntity": "Дублировать {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Поля поиска показывают данные из связанных записей. Выберите конкретные поля из ",
     "addNewLookupHelperText2": " таблицы, чтобы добавить их как поля поиска в эту таблицу.",
     "formatting": "Форматирование",
-    "selectAFormatType": "- -Выберите тип формата (необязательно)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Тип формата",
     "toUpload": "загрузить",
     "dragFilesHere": "перетащите файлы сюда",
@@ -804,7 +807,7 @@
     "icon": "Иконка",
     "max": "Макс",
     "enableRichText": "Включить насыщенный текст",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL скопированной записи",
     "copyRecordURL": "Копировать URL записи",
     "duplicateRecord": "Дублировать запись",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Не удалось загрузить список",
       "failedToLoadChildrenList": "Не удалось загрузить список детей",
       "deleteFailed": "Не удалось удалить",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Не удалось отменить связь",
       "rowUpdateFailed": "Не удалось обновить строку",
       "deleteRowFailed": "Не удалось удалить строку",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Что-то пошло не так",
       "draggedContentIsNotTypeOfImage": "Перетаскиваемый контент не является изображением",
       "fieldToParseImageData": "Ошибка при анализе данных изображения",
-      "someOfTheRequiredFieldsAreEmpty": "Некоторые из обязательных полей пусты"
+      "someOfTheRequiredFieldsAreEmpty": "Некоторые из обязательных полей пусты",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

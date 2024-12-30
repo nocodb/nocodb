@@ -154,6 +154,7 @@
     "details": "Detalles",
     "skip": "Saltar",
     "code": "Código",
+    "codeBlock": "Code Block",
     "duplicate": "Duplicar",
     "duplicating": "Duplicando",
     "duplicateEntity": "Duplicado {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Los campos de búsqueda muestran los datos de los registros vinculados. Seleccione campos específicos de ",
     "addNewLookupHelperText2": "Para agregarlos como campos de Búsqueda en esta tabla.",
     "formatting": "Formateando",
-    "selectAFormatType": "-Seleccione un tipo de formulario (opcional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Tipo de formato",
     "toUpload": "Para cargar",
     "dragFilesHere": "Arrastre los archivos aquí",
@@ -804,7 +807,7 @@
     "icon": "Icono",
     "max": "Máximo",
     "enableRichText": "Activar Texto Enriquecido",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL del registro copiado",
     "copyRecordURL": "Copiar URL de registro",
     "duplicateRecord": "Duplicar registro",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Fallo al cargar la lista",
       "failedToLoadChildrenList": "Fallo al cargar la lista de niños",
       "deleteFailed": "Eliminación fallida",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Error de desvinculación",
       "rowUpdateFailed": "Falló la actualización de filas",
       "deleteRowFailed": "Fallo al borrar fila",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Algo salió mal",
       "draggedContentIsNotTypeOfImage": "El contenido arrastrado no es del tipo de imagen",
       "fieldToParseImageData": "Campo para analizar datos de imagen",
-      "someOfTheRequiredFieldsAreEmpty": "Algunos de los campos requeridos están vacíos"
+      "someOfTheRequiredFieldsAreEmpty": "Algunos de los campos requeridos están vacíos",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",

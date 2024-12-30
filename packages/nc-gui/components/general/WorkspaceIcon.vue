@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import type { WorkspaceType } from 'nocodb-sdk'
+import { IconType, type WorkspaceType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { WorkspaceIconType, isColorDark, stringToColor } from '#imports'
+import { isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    workspace: WorkspaceType | undefined
+    workspace: Partial<WorkspaceType> | undefined
     workspaceIcon?: {
       icon: string | Record<string, any>
-      iconType: WorkspaceIconType | string
+      iconType: IconType | string
     }
     hideLabel?: boolean
     size?: 'small' | 'medium' | 'large' | 'xlarge'
@@ -42,7 +42,7 @@ const workspaceIcon = computed(() => {
   }
 
   return {
-    icon: iconType === WorkspaceIconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : icon,
+    icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : icon,
     iconType,
   }
 })
@@ -52,13 +52,13 @@ const workspaceColor = computed(() => {
 
   if (!props.hideLabel && workspaceIcon.value.icon) {
     switch (workspaceIcon.value.iconType) {
-      case WorkspaceIconType.IMAGE: {
+      case IconType.IMAGE: {
         return ''
       }
-      case WorkspaceIconType.EMOJI: {
+      case IconType.EMOJI: {
         return props.iconBgColor
       }
-      case WorkspaceIconType.ICON: {
+      case IconType.ICON: {
         return props.iconBgColor
       }
 
@@ -86,17 +86,17 @@ const size = computed(() => props.size || 'medium')
     }"
     :style="{
       backgroundColor:
-        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE ? undefined : workspaceColor,
+        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE ? undefined : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">
       <CellAttachmentPreviewImage
-        v-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE"
+        v-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE"
         :srcs="workspaceIcon.icon"
         class="flex-none !object-contain max-h-full max-w-full !m-0"
       />
       <div
-        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.EMOJI"
+        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.EMOJI"
         class="flex items-center justify-center"
         :class="{
           'text-white': isColorDark(workspaceColor),
@@ -125,7 +125,7 @@ const size = computed(() => props.size || 'medium')
         </template>
       </div>
       <GeneralIcon
-        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.ICON"
+        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.ICON"
         :icon="workspaceIcon.icon"
         class="flex-none"
         :class="{
@@ -145,7 +145,7 @@ const size = computed(() => props.size || 'medium')
           'text-black': !isColorDark(workspaceColor),
         }"
       >
-        {{ props.workspace?.title?.slice(0, 2) }}
+        {{ workspace?.title?.slice(0, 2) }}
       </div>
     </template>
   </div>

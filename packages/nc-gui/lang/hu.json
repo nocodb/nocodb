@@ -154,6 +154,7 @@
     "details": "Részletek",
     "skip": "Átugrás",
     "code": "Kód",
+    "codeBlock": "Code Block",
     "duplicate": "Kettőzés",
     "duplicating": "Kettőzés",
     "duplicateEntity": "{entity} duplikálása",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Keresőmezők kapcsolt rekordok adatait mutatják. Válasszon ki konkrét mezőket a ",
     "addNewLookupHelperText2": " táblázatba, hogy hozzáadja azokat keresési mezőként ebben a táblázatban.",
     "formatting": "Formázás",
-    "selectAFormatType": "- -Válassza ki a formátum típusát (opcionális)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formátum típus",
     "toUpload": "feltölteni",
     "dragFilesHere": "húzza ide a fájlokat",
@@ -804,7 +807,7 @@
     "icon": "Ikon",
     "max": "Max",
     "enableRichText": "Enable Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Rekord URL másolva",
     "copyRecordURL": "Rekord URL másolása",
     "duplicateRecord": "Rekord duplikálása",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Nem sikerült betölteni a listát",
       "failedToLoadChildrenList": "Nem sikerült betölteni a gyermek listát",
       "deleteFailed": "A törlés nem sikerült",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "A kapcsolat megszüntetése nem sikerült",
       "rowUpdateFailed": "Rekord frissítése nem sikerült",
       "deleteRowFailed": "Rekord törlése nem sikerült",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Valami elromlott",
       "draggedContentIsNotTypeOfImage": "A húzott tartalom nem kép típusú",
       "fieldToParseImageData": "Mező kép adatok elemzésére",
-      "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt"
+      "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

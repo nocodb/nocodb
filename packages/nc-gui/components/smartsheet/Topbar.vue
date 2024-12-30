@@ -54,9 +54,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
-
         <NcButton
-          v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view'"
+          v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view' && !isMobileMode"
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"

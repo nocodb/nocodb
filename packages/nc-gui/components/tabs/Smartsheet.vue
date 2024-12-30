@@ -205,6 +205,9 @@ const onReady = () => {
       <Splitpanes
         v-if="openedViewsTab === 'view'"
         class="nc-extensions-content-resizable-wrapper"
+        :class="{
+          'nc-is-open-extensions': isPanelExpanded,
+        }"
         @ready="() => onReady()"
         @resized="onResize"
       >
@@ -248,29 +251,37 @@ const onReady = () => {
   @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
 }
 
-.nc-extensions-content-resizable-wrapper > {
-  .splitpanes__splitter {
-    @apply !w-0 relative overflow-visible z-40 -ml-1px;
-  }
-  .splitpanes__splitter:before {
-    @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
-    content: '';
+.nc-extensions-content-resizable-wrapper {
+  &:not(.nc-is-open-extensions) > {
+    .splitpanes__splitter {
+      @apply hidden;
+    }
   }
 
-  .splitpanes__splitter:hover:before {
-    @apply bg-scrollbar;
-    width: 3px !important;
-    left: 0px;
-  }
+  & > {
+    .splitpanes__splitter {
+      @apply !w-0 relative overflow-visible z-40 -ml-1px;
+    }
+    .splitpanes__splitter:before {
+      @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
+      content: '';
+    }
 
-  .splitpanes--dragging .splitpanes__splitter:before {
-    @apply bg-scrollbar;
-    width: 3px !important;
-    left: 0px;
-  }
+    .splitpanes__splitter:hover:before {
+      @apply bg-scrollbar;
+      width: 3px !important;
+      left: 0px;
+    }
 
-  .splitpanes--dragging .splitpanes__splitter {
-    @apply w-1 mr-0;
+    .splitpanes--dragging .splitpanes__splitter:before {
+      @apply bg-scrollbar;
+      width: 3px !important;
+      left: 0px;
+    }
+
+    .splitpanes--dragging .splitpanes__splitter {
+      @apply w-1 mr-0;
+    }
   }
 }
 

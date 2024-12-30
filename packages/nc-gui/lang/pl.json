@@ -154,6 +154,7 @@
     "details": "Szczegóły",
     "skip": "Pomiń",
     "code": "Kod",
+    "codeBlock": "Code Block",
     "duplicate": "Duplikuj",
     "duplicating": "Duplikowanie",
     "duplicateEntity": "Zduplikuj {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "Pola Lookup pokazują dane z powiązanych rekordów. Wybierz konkretne pola z ",
     "addNewLookupHelperText2": " tabeli, aby dodać je jako pola Lookup w tej tabeli.",
     "formatting": "Formatowanie",
-    "selectAFormatType": "-Wybierz typ formularza (opcjonalnie)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formatu",
     "toUpload": "do prześlij",
     "dragFilesHere": "przeciągnij pliki tutaj",
@@ -804,7 +807,7 @@
     "icon": "Ikona",
     "max": "Maks",
     "enableRichText": "Włącz Edytor Tekstu",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Skopiowano URL rekordu",
     "copyRecordURL": "Kopiuj URL rekordu",
     "duplicateRecord": "Zduplikowany rekord",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "Nie udało się załadować listy",
       "failedToLoadChildrenList": "Nie udało się załadować listy podrzędnej",
       "deleteFailed": "Usunięcie nie powiodło się",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "Nie udało się odłączyć",
       "rowUpdateFailed": "Aktualizacja wiersza nie powiodła się",
       "deleteRowFailed": "Nie udało się usunąć wiersza",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "Coś poszło nie tak",
       "draggedContentIsNotTypeOfImage": "Przeciągnięta zawartość nie jest typem obrazu",
       "fieldToParseImageData": "Pole do analizy danych obrazu",
-      "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste"
+      "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

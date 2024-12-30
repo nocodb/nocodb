@@ -154,6 +154,7 @@
     "details": "جزئیات",
     "skip": "رد کردن",
     "code": "کد",
+    "codeBlock": "Code Block",
     "duplicate": "کپی کردن",
     "duplicating": "کپی کردن",
     "duplicateEntity": "تکرار {entity}",
@@ -652,6 +653,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "enableSnowFall": "Enable Snowfall",
+    "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
     "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
     "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
@@ -695,7 +698,7 @@
     "addNewLookupHelperText1": "فیلدهای جستجو داده‌ها را از رکوردهای مرتبط نشان می‌دهند. فیلدهای خاصی را از ",
     "addNewLookupHelperText2": " جدول انتخاب کنید تا آنها را به عنوان فیلدهای جستجو به این جدول اضافه کنید.",
     "formatting": "قالب‌بندی",
-    "selectAFormatType": "- -یک نوع فرمت را انتخاب کنید (اختیاری)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "قالب تایپ",
     "toUpload": "برای بارگذاری",
     "dragFilesHere": "فایل‌ها را اینجا بکشید",
@@ -804,7 +807,7 @@
     "icon": "آیکون",
     "max": "حداکثر",
     "enableRichText": "فعال‌سازی متن غنی",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL رکورد کپی شده",
     "copyRecordURL": "کپی کردن URL رکورد",
     "duplicateRecord": "کپی کردن ردیف",
@@ -1835,6 +1838,7 @@
       "failedToLoadList": "لیست بارگذاری نشد",
       "failedToLoadChildrenList": "لیست زیرین بارگذاری نشد",
       "deleteFailed": "حذف نشد",
+      "failedToDuplicateTable": "Failed to duplicate table",
       "unlinkFailed": "لغوپیوند نشد",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
@@ -1865,7 +1869,8 @@
       "somethingWentWrong": "مشکلی پیش آمده است",
       "draggedContentIsNotTypeOfImage": "محتوای کشیده شده از نوع تصویر نیست",
       "fieldToParseImageData": "فیلدی برای تجزیه داده‌های تصویر",
-      "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند"
+      "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند",
+      "columnVisibilityUpdateFailed": "Failed to update field visibility"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

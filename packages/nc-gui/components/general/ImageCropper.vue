@@ -2,25 +2,11 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
-import type { ImageCropperConfig } from '#imports'
+import type { AttachmentReqType } from 'nocodb-sdk'
+import type { ImageCropperProps } from '#imports'
 
-interface Props {
-  imageConfig: {
-    src: string
-    type: string
-    name: string
-  }
-  cropperConfig: ImageCropperConfig
-  uploadConfig?: {
-    path?: string
-    scope?: PublicAttachmentScope
-    // filesize in bytes
-    maxFileSize?: number
-  }
-  showCropper: boolean
-}
-const { imageConfig, uploadConfig, ...props } = defineProps<Props>()
+const { imageConfig, uploadConfig, ...props } = defineProps<ImageCropperProps>()
+
 const emit = defineEmits(['update:showCropper', 'submit'])
 
 const showCropper = useVModel(props, 'showCropper', emit)
@@ -48,6 +34,9 @@ const isValidFileSize = computed(() => {
 
 const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
+
+  if (!canvas) return
+
   previewImage.value = {
     canvas,
     src: canvas.toDataURL(imageConfig.type),
@@ -108,14 +97,30 @@ const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any
   }
 }
 
-watch(showCropper, () => {
-  if (!showCropper.value) {
-    previewImage.value = {
-      canvas: {},
-      src: '',
+watch(
+  showCropper,
+  () => {
+    if (!showCropper.value) {
+      previewImage.value = {
+        canvas: {},
+        src: '',
+      }
+    } else {
+      until(() => !!cropperRef.value?.getResult?.()?.canvas)
+        .toBeTruthy({ timeout: 2000 })
+        .then((canvas) => {
+          if (!canvas) return
+
+          nextTick(() => {
+            handleCropImage()
+          })
+        })
     }
-  }
-})
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -134,7 +139,13 @@ watch(showCropper, () => {
           cropperConfig.stencilProps?.fillDefault || cropperConfig.stencilProps?.fillDefault === undefined ? { defaultSize } : {}
         "
       />
-      <div v-if="previewImage.src" class="result_preview">
+      <div
+        v-if="previewImage.src"
+        class="result_preview"
+        :class="{
+          'rounded-full overflow-hidden': cropperConfig?.stencilProps?.circlePreview,
+        }"
+      >
         <img :src="previewImage.src" alt="Preview Image" />
       </div>
     </div>

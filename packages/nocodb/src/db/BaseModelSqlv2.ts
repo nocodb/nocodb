@@ -10060,17 +10060,25 @@ class BaseModelSqlv2 {
 
     // For MySQL, check version and use appropriate query
     if (client === 'mysql2') {
-      const version = await this.dbDriver.raw('SELECT VERSION()');
-      const isMySql8Plus = parseFloat(version[0][0]['VERSION()']) >= 8.0;
+      const version = await this.execAndGetRows('SELECT VERSION()');
+      const isMySql8Plus = parseFloat(version[0]?.[0]?.['VERSION()']) >= 8.0;
 
       if (isMySql8Plus) {
-        await this.dbDriver.raw(sql[client].modern, params[client]);
+        await this.execAndGetRows(
+          this.dbDriver.raw(sql[client].modern, params[client]).toQuery(),
+        );
       } else {
-        await this.dbDriver.raw(sql[client].legacy.init);
-        await this.dbDriver.raw(sql[client].legacy.update, params[client]);
+        await this.execAndGetRows(sql[client].legacy.init);
+        await this.execAndGetRows(
+          this.dbDriver
+            .raw(sql[client].legacy.update, params[client])
+            .toQuery(),
+        );
       }
     } else {
-      await this.dbDriver.raw(sql[client], params[client]);
+      await this.execAndGetRows(
+        this.dbDriver.raw(sql[client], params[client]).toQuery(),
+      );
     }
   }
 

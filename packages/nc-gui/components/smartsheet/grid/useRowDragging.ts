@@ -36,7 +36,8 @@ export const useRowDragging = ({
     const clone = originalElement.cloneNode(true) as HTMLElement
     clone.style.position = 'absolute'
     clone.style.background = 'white'
-    clone.style.width = `${originalElement.offsetWidth}px`
+    clone.style.width = `${500}px`
+    clone.style.overflowX = 'hidden'
     clone.style.height = `${originalElement.offsetHeight}px`
     clone.style.pointerEvents = 'none'
     clone.style.zIndex = '1000'
@@ -44,6 +45,9 @@ export const useRowDragging = ({
     clone.style.transition = 'transform'
     clone.style.borderRadius = '6px'
     clone.style.boxShadow = '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+    clone.style.transformOrigin = 'center center'
+    clone.style.animation = `dragStart 0.2s ease-out forwards`
+
     clone.setAttribute('data-testid', `grid-row-${rowIndex}`)
     document.body.appendChild(clone)
     return clone
@@ -80,7 +84,6 @@ export const useRowDragging = ({
         0,
         Math.min(startRowTop.value + event.clientY - mouseStart.value, gridWrapperHeight - rowHeight.value),
       )
-
       updateClonePosition(event.clientX)
 
       const mouseTop = event.clientY - gridWrapperRect.top + gridWrapper.value.scrollTop
@@ -90,6 +93,10 @@ export const useRowDragging = ({
       const adjustedRowIndex = Math.max(visibleStart, Math.min(rowIndex, rowSlice.end + virtualMargin))
 
       targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32) + (rowHeight.value === 32 ? 0 : 32)
+
+      if (targetTop.value === 0 && rowHeight.value !== 32) {
+        targetTop.value = targetTop.value - 32
+      }
 
       const beforeRowIndex = rowIndex - rowSlice.start - (rowHeight.value === 32 ? 1 : 0)
 
@@ -133,8 +140,17 @@ export const useRowDragging = ({
           }
         }
       }
+      const newTargetRow = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
+      targetRow.value = newTargetRow
 
-      targetRow.value = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
+      if (
+        newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex &&
+        newTargetRow?.rowMeta.rowIndex !== row.value.rowMeta.rowIndex + 1
+      ) {
+        targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32) + (rowHeight.value === 32 ? 0 : 32)
+      } else {
+        targetTop.value = -9999
+      }
     } catch (error) {
       console.error('Error in moveHandler:', error)
       cancel()

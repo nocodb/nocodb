@@ -60,7 +60,6 @@ function baseModelSqlTests() {
     const inputData: any = generateDefaultRowAttributes({ columns });
     const response = await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
-      undefined,
       request,
     );
     const insertedRow = (await baseModelSql.list())[0];
@@ -147,7 +146,6 @@ function baseModelSqlTests() {
 
     await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
-      undefined,
       request,
     );
     const rowId = 1;
@@ -432,8 +430,8 @@ function baseModelSqlTests() {
         ...generateDefaultRowAttributes({ columns }),
         [ltarColumn.title]: [{ Id: childRow['Id'] }],
       },
-      undefined,
       request,
+      undefined,
     );
 
     const childBaseModel = new BaseModelSqlv2({
@@ -491,7 +489,6 @@ function baseModelSqlTests() {
 
     await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
-      undefined,
       request,
     );
     const insertedRow = await baseModelSql.readByPk(1);
@@ -562,7 +559,6 @@ function baseModelSqlTests() {
 
     await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
-      undefined,
       request,
     );
     const insertedRow = await baseModelSql.readByPk(1);

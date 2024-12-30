@@ -77,7 +77,7 @@ export class OldDatasService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    return await baseModel.insert(param.body, param.cookie);
   }
 
   async dataRead(

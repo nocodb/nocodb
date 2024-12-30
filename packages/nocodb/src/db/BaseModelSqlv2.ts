@@ -4623,7 +4623,7 @@ class BaseModelSqlv2 {
     qb.select(res);
   }
 
-  async insert(data, trx?, cookie?, _disableOptimization = false) {
+  async insert(data, request: NcRequest, trx?, _disableOptimization = false) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -4653,10 +4653,10 @@ class BaseModelSqlv2 {
       await this.validate(insertObj, columns);
 
       if ('beforeInsert' in this) {
-        await this.beforeInsert(insertObj, trx, cookie);
+        await this.beforeInsert(insertObj, trx, request);
       }
 
-      await this.prepareNocoData(insertObj, true, cookie);
+      await this.prepareNocoData(insertObj, true, request);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -4750,11 +4750,11 @@ class BaseModelSqlv2 {
         data: response,
         insertData: data,
         trx,
-        req: cookie,
+        req: request,
       });
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
-      await this.errorInsert(e, data, trx, cookie);
+      await this.errorInsert(e, data, trx, request);
       throw e;
     }
   }
@@ -5125,7 +5125,7 @@ class BaseModelSqlv2 {
     );
   }
 
-  async nestedInsert(data, _trx = null, cookie?, param?) {
+  async nestedInsert(data, request: NcRequest, _trx = null, param?) {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
       const source = await this.getSource();
@@ -5148,14 +5148,14 @@ class BaseModelSqlv2 {
           nestedCols,
           data,
           insertObj,
-          req: cookie,
+          req: request,
         });
 
       await this.validate(insertObj, columns);
 
-      await this.beforeInsert(insertObj, this.dbDriver, cookie);
+      await this.beforeInsert(insertObj, this.dbDriver, request);
 
-      await this.prepareNocoData(insertObj, true, cookie, null, {
+      await this.prepareNocoData(insertObj, true, request, null, {
         ncOrder: null,
         before: param?.before,
         undo: param?.undo,
@@ -5264,7 +5264,7 @@ class BaseModelSqlv2 {
       await this.afterInsert({
         data: response,
         trx: this.dbDriver,
-        req: cookie,
+        req: request,
         insertData: data,
       });
 
@@ -7801,6 +7801,9 @@ class BaseModelSqlv2 {
                     (col) => `${childTable.table_name}.${col.column_name}`,
                   ),
                 ),
+              )
+              .whereNotNull(
+                `${childTable.table_name}.${childColumn.column_name}`,
               )
               .where(_wherePk(childTable.primaryKeys, childId)),
             null,

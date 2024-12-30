@@ -132,9 +132,11 @@ export class BasesV3Service {
       req: NcRequest;
     },
   ) {
-    if (param.base.meta?.icon_color) {
-      param.base.meta.iconColor = param.base.meta.icon_color;
-      param.base.meta.icon_color = undefined;
+    const meta = param.base.meta as unknown as Record<string, unknown>;
+
+    if (meta?.icon_color) {
+      meta.iconColor = meta.icon_color;
+      meta.icon_color = undefined;
     }
 
     await this.basesService.baseUpdate(context, param);
@@ -153,9 +155,11 @@ export class BasesV3Service {
       type: 'database',
     } as ProjectReqType;
 
-    if (param.base.meta?.icon_color) {
-      param.base.meta.iconColor = param.base.meta.icon_color;
-      param.base.meta.icon_color = undefined;
+    const meta = param.base.meta as unknown as Record<string, unknown>;
+
+    if (meta?.icon_color) {
+      meta.iconColor = meta.icon_color;
+      meta.icon_color = undefined;
     }
 
     const res = await this.basesService.baseCreate({

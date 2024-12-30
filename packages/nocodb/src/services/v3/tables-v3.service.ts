@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NcApiVersion, viewTypeAlias } from 'nocodb-sdk';
+import { NcApiVersion, UITypes, viewTypeAlias } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -35,6 +35,7 @@ export class TablesV3Service {
         'description',
         'fk_workspace_id',
         'source_id',
+        'meta',
       ],
       mappings: {
         fk_workspace_id: 'workspace_id',
@@ -45,6 +46,11 @@ export class TablesV3Service {
           table.description = undefined;
         }
         return table;
+      },
+      meta: {
+        snakeCase: true,
+        metaProps: ['meta'],
+        allowed: ['icon_color'],
       },
     });
 
@@ -117,7 +123,7 @@ export class TablesV3Service {
     result.display_field_id = table.columns.find((column) => column.pv)?.id;
 
     result.fields = table.columns
-      .filter((c) => !c.system)
+      .filter((c) => !c.system || c.uidt === UITypes.ID)
       .map((column) => {
         return columnBuilder().build(column);
       });
@@ -188,7 +194,7 @@ export class TablesV3Service {
     )?.id;
 
     result.fields = tableCreateOutput.columns
-      .filter((c) => !c.system)
+      .filter((c) => !c.system || c.uidt === UITypes.ID)
       .map((column) => {
         return columnBuilder().build(column);
       });

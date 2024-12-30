@@ -672,7 +672,7 @@ function scrollToLatestField() {
                     }"
                     @click="
                       () => {
-                        if (isLocked || getColumnOfField(field)?.uidt === 'Links') return
+                        if (isLocked || (getColumnOfField(field)?.uidt === 'Links' && !isLocalMode)) return
 
                         field.show = !field.show
                         toggleFieldVisibility(field.show, field)
@@ -684,6 +684,7 @@ function scrollToLatestField() {
                       v-if="metas"
                       :key="lookupDropdownsTickle"
                       :column="getColumnOfField(field)!"
+                      :disabled="isLocalMode"
                       @created="lookupDropdownsTickle++"
                       @update:is-opened="openSubmenusCount += $event === true ? 1 : -1">
                       <div class="inline-flex items-center w-full">
@@ -694,7 +695,7 @@ function scrollToLatestField() {
                           <template #default>
                             <span class="truncate">
                               {{ field.title }}
-                              <GeneralIcon v-if="getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-1 relative top-1" />
+                              <GeneralIcon v-if="!isLocalMode && getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-1 relative top-1" />
                             </span>
                           </template>
                         </NcTooltip>
@@ -764,9 +765,8 @@ function scrollToLatestField() {
           </div>
         </div>
 
-        <div v-if="!filterQuery" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-gray-100">
+        <div v-if="!filterQuery && !isLocalMode" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-gray-100">
           <NcButton
-            v-if="!isLocalMode"
             class="nc-fields-show-system-fields !px-2"
             size="xsmall"
             type="text"

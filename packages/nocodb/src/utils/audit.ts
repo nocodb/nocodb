@@ -1,15 +1,15 @@
 import {
   checkboxIconList,
   durationOptions,
+  isSystemColumn,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
 import { diff } from 'deep-object-diff';
-import { Column, Hook } from '../../models';
-import { Model, View } from '../models';
 import type {
   AuditV1,
   AuditV1OperationTypes,
+  ColumnMeta,
   ColumnType,
   LinkToAnotherRecordType,
   NcContext,
@@ -19,6 +19,8 @@ import type {
   UpdatePayload,
 } from 'nocodb-sdk';
 import type { Request } from 'express';
+import { Column, Hook } from '~/models';
+import { Model, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { columnBuilder } from '~/utils/data-transformation.builder';
 
@@ -960,4 +962,24 @@ export const extractAttachmentPropsAndFormat = (
       ];
     }),
   );
+};
+
+export const extractColsMetaForAudit = (
+  columns: ColumnType[],
+  ...datas: Record<string, unknown>[]
+) => {
+  return columns
+    .filter((col) => !isSystemColumn(col))
+    .reduce((acc, col) => {
+      if (
+        !datas.length ||
+        datas.some((data) => data[col.title] !== undefined)
+      ) {
+        acc[col.title] = filterAndMapAliasToColProps(
+          extractColMetaForAudit(col, datas),
+          ['defaultViewColOrder'],
+        );
+      }
+      return acc;
+    }, {} as Record<string, ColumnMeta>);
 };

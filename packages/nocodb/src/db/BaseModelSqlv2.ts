@@ -96,11 +96,10 @@ import {
   generateAuditV1Payload,
   remapWithAlias,
   removeBlankPropsAndMask,
-} from '~/ee/utils';
-import { Audit } from '~/ee/models';
-import { UPDATE_WORKSPACE_COUNTER } from '~/ee/services/update-stats.service';
-import { MetaTable } from '~/ee/utils/globals';
-import { extractColsMetaForAudit } from '~/ee/db/BaseModelSqlv2';
+} from '~/utils';
+import { Audit } from '~/models';
+import { MetaTable } from '~/utils/globals';
+import { extractColsMetaForAudit } from '~/utils';
 
 dayjs.extend(utc);
 
@@ -7094,14 +7093,6 @@ class BaseModelSqlv2 {
     );
 
     await this.handleRichTextMentions(null, data, req);
-
-    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-      context: this.context,
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      fk_model_id: this.model.id,
-      count: 1,
-    });
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {

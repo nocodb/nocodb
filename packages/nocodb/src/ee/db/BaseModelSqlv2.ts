@@ -34,8 +34,6 @@ import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import type {
-  ColumnMeta,
-  ColumnType,
   DataBulkDeletePayload,
   DataBulkUpdateAllPayload,
   DataBulkUpdatePayload,
@@ -53,8 +51,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
-  extractColMetaForAudit,
-  filterAndMapAliasToColProps,
+  extractColsMetaForAudit,
   generateAuditV1Payload,
   remapWithAlias,
 } from '~/utils';
@@ -86,25 +83,6 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
 
-export const extractColsMetaForAudit = (
-  columns: ColumnType[],
-  ...datas: Record<string, unknown>[]
-) => {
-  return columns
-    .filter((col) => !isSystemColumn(col))
-    .reduce((acc, col) => {
-      if (
-        !datas.length ||
-        datas.some((data) => data[col.title] !== undefined)
-      ) {
-        acc[col.title] = filterAndMapAliasToColProps(
-          extractColMetaForAudit(col, datas),
-          ['defaultViewColOrder'],
-        );
-      }
-      return acc;
-    }, {} as Record<string, ColumnMeta>);
-};
 export function replaceDynamicFieldWithValue(
   row: any,
   rowId,

@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import type { OnApplicationShutdown } from '@nestjs/common';
 import type { Response } from 'express';
 import { NotificationsService } from '~/services/notifications/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -26,7 +27,7 @@ const POLL_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class NotificationsController {
+export class NotificationsController implements OnApplicationShutdown {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get('/api/v1/notifications/poll')
@@ -126,5 +127,20 @@ export class NotificationsController {
     return this.notificationsService.markAllRead({
       user: req.user,
     });
+  }
+
+  async onApplicationShutdown() {
+    /*
+     * Close all long polling connections
+     */
+    for (const userId in this.notificationsService.connections) {
+      for (const res of this.notificationsService.connections[userId]) {
+        if (!res.headersSent) {
+          res.send({
+            status: 'refresh',
+          });
+        }
+      }
+    }
   }
 }

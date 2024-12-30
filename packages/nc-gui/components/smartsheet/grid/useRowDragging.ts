@@ -1,5 +1,4 @@
-import { ref } from 'vue'
-import type { ComputedRef, type Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import type { Row } from '~/lib/types'
 
 export const useRowDragging = ({
@@ -31,58 +30,57 @@ export const useRowDragging = ({
   const autoScrolling = ref(false)
   const animationFrameId = ref<number | null>(null)
 
-  const moveHandler = (event: MouseEvent, startAutoScroll = false) => {
-    if (event !== null) {
-      event.preventDefault()
-      lastMoveEvent.value = event
-    } else {
-      event = lastMoveEvent.value
-    }
-
-    if (!gridWrapper.value) return
-
-    const gridWrapperRect = gridWrapper.value.getBoundingClientRect()
-    const gridWrapperHeight = gridWrapperRect.bottom - gridWrapperRect.top
-
-    draggingTop.value = Math.max(
-      0,
-      Math.min(startRowTop.value + event.clientY - mouseStart.value, gridWrapperHeight - rowHeight.value),
-    )
-
-    const mouseTop = event.clientY - gridWrapperRect.top + gridWrapper.value.scrollTop
-    const rowIndex = Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
-
-    const visibleStart = Math.max(0, rowSlice.start - virtualMargin)
-    const adjustedRowIndex = Math.max(visibleStart, Math.min(rowIndex, rowSlice.end + virtualMargin))
-
-    targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32)
-
-    const beforeRowIndex = rowIndex - rowSlice.start - 1
-
-    if (!autoScrolling.value || !startAutoScroll) {
-      const side = Math.ceil((gridWrapperHeight / 100) * 10)
-      const autoScrollMouseTop = event.clientY - gridWrapperRect.top
-      const autoScrollMouseBottom = gridWrapperHeight - autoScrollMouseTop
-
-      let speed = 0
-
-      // Check if we can scroll further in the respective direction
-      const canScrollUp = gridWrapper.value.scrollTop > 0
-      const canScrollDown = gridWrapper.value.scrollTop < gridWrapper.value.scrollHeight - gridWrapperHeight
-
-      if (autoScrollMouseTop < side && canScrollUp) {
-        speed = -(6 - Math.ceil((Math.max(0, autoScrollMouseTop) / side) * 6))
-      } else if (autoScrollMouseBottom < side && canScrollDown) {
-        speed = 6 - Math.ceil((Math.max(0, autoScrollMouseBottom) / side) * 6)
+  const moveHandler = (event: MouseEvent | null, startAutoScroll = false) => {
+    try {
+      if (event !== null) {
+        event.preventDefault()
+        lastMoveEvent.value = event
+      } else {
+        event = lastMoveEvent.value
       }
 
-      if (speed !== 0) {
-        const newScrollTop = gridWrapper.value.scrollTop + speed
+      if (!gridWrapper.value || !event) return
 
-        // Check if the new scroll position would be within bounds
-        if (newScrollTop >= 0 && newScrollTop <= gridWrapper.value.scrollHeight - gridWrapperHeight) {
-          autoScrolling.value = true
-          gridWrapper.value.scrollTop = newScrollTop
+      const gridWrapperRect = gridWrapper.value.getBoundingClientRect()
+      const gridWrapperHeight = gridWrapperRect.bottom - gridWrapperRect.top
+
+      draggingTop.value = Math.max(
+        0,
+        Math.min(startRowTop.value + event.clientY - mouseStart.value, gridWrapperHeight - rowHeight.value),
+      )
+
+      const mouseTop = event.clientY - gridWrapperRect.top + gridWrapper.value.scrollTop
+      const rowIndex = Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
+
+      const visibleStart = Math.max(0, rowSlice.start - virtualMargin)
+      const adjustedRowIndex = Math.max(visibleStart, Math.min(rowIndex, rowSlice.end + virtualMargin))
+
+      targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32)
+
+      const beforeRowIndex = rowIndex - rowSlice.start - 1
+
+      if (!autoScrolling.value || !startAutoScroll) {
+        const side = Math.ceil((gridWrapperHeight / 100) * 10)
+        const autoScrollMouseTop = event.clientY - gridWrapperRect.top
+        const autoScrollMouseBottom = gridWrapperHeight - autoScrollMouseTop
+
+        let speed = 0
+
+        const canScrollUp = gridWrapper.value.scrollTop > 0
+        const canScrollDown = gridWrapper.value.scrollTop < gridWrapper.value.scrollHeight - gridWrapperHeight
+
+        if (autoScrollMouseTop < side && canScrollUp) {
+          speed = -(6 - Math.ceil((Math.max(0, autoScrollMouseTop) / side) * 6))
+        } else if (autoScrollMouseBottom < side && canScrollDown) {
+          speed = 6 - Math.ceil((Math.max(0, autoScrollMouseBottom) / side) * 6)
+        }
+
+        if (speed !== 0) {
+          const newScrollTop = gridWrapper.value.scrollTop + speed
+
+          if (newScrollTop >= 0 && newScrollTop <= gridWrapper.value.scrollHeight - gridWrapperHeight) {
+            autoScrolling.value = true
+            gridWrapper.value.scrollTop = newScrollTop
 
             if (animationFrameId.value !== null) {
               cancelAnimationFrame(animationFrameId.value)
@@ -102,18 +100,28 @@ export const useRowDragging = ({
         }
       }
 
-    // If Math.max is not set the value goes negative
-    targetRow.value = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
+      targetRow.value = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
+    } catch (error) {
+      console.error('Error in moveHandler:', error)
+      cancel()
+    }
   }
 
   const mouseUp = async (event: MouseEvent) => {
-    event.preventDefault()
-    cancel()
+    try {
+      event.preventDefault()
+      cancel()
 
-    await updateRecordOrder(row.value.rowMeta.rowIndex!, targetRow.value ? targetRow.value.rowMeta.rowIndex : null)
+      if (row.value && row.value.rowMeta.rowIndex !== undefined) {
+        await updateRecordOrder(row.value.rowMeta.rowIndex, targetRow.value ? targetRow.value.rowMeta.rowIndex : null)
+      }
 
-    row.value = null
-    targetRow.value = null
+      row.value = null
+      targetRow.value = null
+    } catch (error) {
+      console.error('Error in mouseUp:', error)
+      cancel()
+    }
   }
 
   function cancel(): void {
@@ -138,25 +146,25 @@ export const useRowDragging = ({
   }
 
   const startDragging = (_row: Row, event: MouseEvent) => {
-    row.value = _row
+    try {
+      row.value = _row
+      startRowTop.value = getRowTop(_row.rowMeta.rowIndex) - (gridWrapper.value?.scrollTop || 0)
+      mouseStart.value = event.clientY
+      draggingTop.value = 32
+      targetTop.value = 32
+      targetRow.value = null
 
-    startRowTop.value = getRowTop(_row.rowMeta.rowIndex) - (gridWrapper.value?.scrollTop || 0)
+      // Add opacity effect immediately when starting to drag
+      isDragging.value = true
 
-    mouseStart.value = event.clientY
+      moveHandler(event)
 
-    draggingTop.value = 32
-
-    targetTop.value = 32
-
-    targetRow.value = null
-
-    moveHandler(event)
-
-    isDragging.value = true
-
-    window.addEventListener('mousemove', moveHandler)
-
-    window.addEventListener('mouseup', mouseUp)
+      window.addEventListener('mousemove', moveHandler)
+      window.addEventListener('mouseup', mouseUp)
+    } catch (error) {
+      console.error('Error in startDragging:', error)
+      cancel()
+    }
   }
 
   // Cleanup on component unmount

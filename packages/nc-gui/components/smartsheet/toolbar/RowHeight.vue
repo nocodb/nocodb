@@ -29,11 +29,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const { isUIAllowed } = useRoles()
+
 const { $api } = useNuxtApp()
 
 const { addUndo, defineViewScope } = useUndoRedo()
-
-const { user } = useGlobal()
 
 const open = ref(false)
 
@@ -42,7 +42,6 @@ const updateRowHeight = async (rh: number, undo = false) => {
 
   if (view.value?.id) {
     if (rh === (view.value.view as GridType).row_height) return
-
     if (!undo) {
       addUndo({
         redo: {
@@ -58,14 +57,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
     }
 
     try {
-      if (
-        !isPublic.value &&
-        !isSharedBase.value &&
-        !(
-          extractRolesObj(user.value?.roles ?? {})[ProjectRoles.VIEWER] ||
-          extractRolesObj(user.value?.roles ?? {})[OrgUserRoles.VIEWER]
-        )
-      ) {
+      if (!isPublic.value && !isSharedBase.value && isUIAllowed('viewCreateOrEdit')) {
         await $api.dbView.gridUpdate(view.value.id, {
           row_height: rh,
         })

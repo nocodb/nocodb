@@ -112,7 +112,8 @@ export class DataTableService {
       viewId?: string;
       modelId: string;
       body: any;
-      cookie: any;
+      cookie: any
+      undo?: boolean;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -131,11 +132,42 @@ export class DataTableService {
         cookie: param.cookie,
         insertOneByOneAsFallback: true,
         isSingleRecordInsertion: !Array.isArray(param.body),
+        undo: param.undo,
       },
     );
 
     return Array.isArray(param.body) ? result : result[0];
   }
+
+  async dataMove(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      rowId: string;
+      cookie: any;
+      beforeRowId?: string;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    await baseModel.moveRecord({
+      cookie: param.cookie,
+      rowId: param.rowId,
+      beforeRowId: param.beforeRowId,
+    })
+
+    return true
+  }
+
 
   async dataUpdate(
     context: NcContext,

@@ -11,12 +11,14 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isOrderCol,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
 
 import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
+import { useRowDragging } from './useRowDragging'
 import { type CellRange, NavigateDir, type Row } from '#imports'
 
 const props = defineProps<{
@@ -31,10 +33,12 @@ const props = defineProps<{
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    beforeRow?: string,
   ) => Promise<any>
   deleteSelectedRows?: () => Promise<void>
   clearInvalidRows?: () => void
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
+  updateRecordOrder?: (originalIndex: number, targetIndex: number) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
@@ -78,6 +82,7 @@ const {
   deleteRangeOfRows,
   removeRowIfNew,
   clearInvalidRows,
+  updateRecordOrder,
   applySorting,
   bulkDeleteAll,
 } = props
@@ -315,6 +320,14 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   tableBodyEl,
   gridWrapper,
 })
+
+const { allFilters, sorts } = useSmartsheetStoreOrThrow()
+
+const isOrderColumnExists = computed(() => meta.value?.columns.some((col) => isOrderCol(col)))
+
+const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts?.value.length)
+
+const isRowReorderDisabled = computed(() => allFilters.value?.length || sorts?.value.length)
 
 const addColumnDropdown = ref(false)
 
@@ -961,11 +974,11 @@ function scrollToRow(row?: number) {
   scrollToCell?.(row)
 }
 
-async function saveEmptyRow(rowObj: Row) {
-  await updateOrSaveRow?.(rowObj)
+async function saveEmptyRow(rowObj: Row, before?: string) {
+  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
-async function addEmptyRow(row?: number, skipUpdate = false) {
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
@@ -974,7 +987,7 @@ async function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj)
+    saveEmptyRow(rowObj, before)
   }
 
   nextTick().then(() => {
@@ -1453,9 +1466,9 @@ function refreshFillHandle() {
 
     // 32 for the header
     fillHandleTop.value = (rowIndex + 1) * rowHeight.value + 32
-    // 64 for the row number column
+    // 80 for the row number column
     fillHandleLeft.value =
-      64 +
+      80 +
       colPositions.value[colIndex + 1] +
       (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
   }
@@ -1770,7 +1783,7 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
 }
 
 const maxGridWidth = computed(() => {
-  return colPositions.value[colPositions.value.length - 1] + 64
+  return colPositions.value[colPositions.value.length - 1] + 80
 })
 
 const maxGridHeight = computed(() => {
@@ -1788,6 +1801,32 @@ watch(
     immediate: true,
   },
 )
+
+const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
+  const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
+
+  if (row) {
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
+  } else {
+    addEmptyRow()
+  }
+}
+
+const onRecordDragStart = (row: Row) => {
+  activeCell.row = null
+  activeCell.col = null
+
+  row.rowMeta.isDragging = true
+
+  cachedRows.value.set(row.rowMeta.rowIndex, row)
+}
+
+const { isDragging, dragIndex, targetIndex, startDragging, onHover } = useRowDragging({
+  updateRecordOrder: updateRecordOrder!,
+  onDragStart: onRecordDragStart,
+  gridWrapper,
+})
 
 const toggleRowSelection = (row: number) => {
   if (vSelectedAllRecords.value) return
@@ -1850,7 +1889,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
             <thead ref="tableHeadEl">
               <tr v-if="isViewColumnsLoading">
@@ -1881,7 +1920,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
               >
                 <th
                   ref="numColHeader"
-                  class="w-[64px] min-w-[64px]"
+                  class="w-[80px] min-w-[80px]"
                   :style="{
                     left: `-${leftOffset}px`,
                   }"
@@ -1921,7 +1960,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     'width': gridViewCols[fields[0].id]?.width || '180px',
                     ...(leftOffset > 0
                       ? {
-                          left: `-${leftOffset - 64}px`,
+                          left: `-${leftOffset - 80}px`,
                         }
                       : {}),
                   }"
@@ -2141,6 +2180,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             >
               <tbody
                 ref="tableBodyEl"
+                class="xc-row-table"
                 :style="{
                   transform: `translateX(${leftOffset}px) translateY(${rowSlice.start * rowHeight}px)`,
                 }"
@@ -2205,24 +2245,38 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected || vSelectedAllRecords,
                         'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
+                        'is-dragging': dragIndex === row.rowMeta.rowIndex,
+                        'is-target': targetIndex === row.rowMeta.rowIndex,
                       }"
+                      @mouseover="onHover(row)"
                     >
                       <td
                         key="row-index"
-                        class="caption nc-grid-cell w-[64px] min-w-[64px]"
+                        class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                         :style="{
                           left: `-${leftOffset}px`,
                         }"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
+                        <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
+                            class="nc-row-no min-w-4 h-4 text-xs flex items-center justify-center text-gray-500"
                             :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected || vSelectedAllRecords }"
                           >
                             {{ row.rowMeta.rowIndex + 1 }}
                           </div>
+
+                          <div
+                            v-if="!selectedRows.length && isOrderColumnExists && !isRowReorderDisabled"
+                            :class="{ toggle: !readOnly }"
+                            class="nc-drag-handle hidden"
+                          >
+                            <NcButton size="xxsmall" type="text" @mousedown="startDragging(row, $event)">
+                              <GeneralIcon class="text-nc-content-gray hover:text-nc-content-brand" icon="ncDrag" />
+                            </NcButton>
+                          </div>
+
                           <div
                             v-if="!readOnly"
                             :class="{
@@ -2234,15 +2288,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
                               :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
+                              class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
-                          <span class="flex-1" />
 
                           <div
-                            class="nc-expand"
-                            :data-testid="`nc-expand-${row.rowMeta.rowIndex}`"
+                            v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                            :data-testid="`nc-expand-${row.rowMeta.rowIndex}`"
+                            class="nc-expand"
                           >
                             <a-spin
                               v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
@@ -2297,7 +2352,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'width': gridViewCols[fields[0].id]?.width || '180px',
                           ...(leftOffset > 0
                             ? {
-                                left: `-${leftOffset - 64}px`,
+                                left: `-${leftOffset - 80}px`,
                               }
                             : {}),
                         }"
@@ -2419,14 +2474,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
-                  class="text-left nc-grid-add-new-cell mb-64 transition-all cursor-pointer group relative z-3 xs:hidden"
+                  class="text-left nc-grid-add-new-cell mb-[80px] transition-all cursor-pointer group relative z-3 xs:hidden"
                   :class="{
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
                   :style="{
                     height: '32px',
                   }"
-                  @mouseup.stop
+                  @mouseover="onHover('end')"
                   @click="addEmptyRow()"
                 >
                   <td
@@ -2445,6 +2500,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 </tr>
               </tbody>
             </table>
+
             <div
               v-show="showFillHandle"
               ref="fillHandle"
@@ -2503,6 +2559,32 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
+            <template v-if="isOrderColumnExists">
+              <NcMenuItem
+                v-if="contextMenuTarget"
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-add-above"
+                @click="callAddNewRow(contextMenuTarget, 'above')"
+              >
+                <div v-e="['a:row:insert:above']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncChevronUp" />
+                  Insert above
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && !isInsertBelowDisabled"
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-add-below"
+                @click="callAddNewRow(contextMenuTarget, 'below')"
+              >
+                <div v-e="['a:row:insert:below']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncChevronDown" />
+                  Insert below
+                </div>
+              </NcMenuItem>
+              <NcDivider />
+            </template>
 
             <NcTooltip
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
@@ -2699,6 +2781,29 @@ watch(vSelectedAllRecords, (selectedAll) => {
     <LazySmartsheetGridPaginationV2 :total-rows="totalRows" :scroll-left="scrollLeft" :disable-pagination="true" />
   </div>
 </template>
+
+<style lang="scss">
+.is-target {
+  position: relative;
+  z-index: 100000;
+  border-radius: 6px !important;
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 -2px 0 0 #3366ff !important;
+    pointer-events: none;
+  }
+}
+
+.is-dragging {
+  @apply opacity-50;
+}
+</style>
 
 <style scoped lang="scss">
 .nc-grid-wrapper {
@@ -2946,14 +3051,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
     thead th:nth-child(2) {
       position: sticky !important;
       z-index: 5;
-      left: 64px;
+      left: 80px;
       @apply border-r-1 border-r-gray-200;
     }
 
     tbody tr:not(.nc-grid-add-new-cell):not(.placeholder) td:not(.placeholder-column):nth-child(2) {
       position: sticky !important;
       z-index: 4;
-      left: 64px;
+      left: 80px;
       background: white;
       @apply border-r-1 border-r-gray-100;
     }
@@ -3009,7 +3114,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
 .nc-grid-row {
   .nc-row-expand-and-checkbox {
-    @apply !xs:hidden w-full items-center justify-between;
+    @apply !xs:hidden items-center justify-between;
   }
 
   .nc-expand {
@@ -3026,6 +3131,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
   &:not(.mouse-down):hover {
     .nc-row-no.toggle {
       @apply hidden;
+    }
+
+    .nc-drag-handle {
+      @apply block;
     }
 
     .nc-expand {

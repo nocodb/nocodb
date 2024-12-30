@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -33,12 +34,14 @@ export class BulkDataAliasController {
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
+    @Query('undo') undo: string,
   ) {
     const exists = await this.bulkDataAliasService.bulkDataInsert(context, {
       body: body,
       cookie: req,
       baseName: baseName,
       tableName: tableName,
+      undo: undo === 'true',
     });
 
     res.json(exists);
@@ -124,12 +127,14 @@ export class BulkDataAliasController {
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
+    @Query('undo') undo: string,
   ) {
     return await this.bulkDataAliasService.bulkDataUpsert(context, {
       body: body,
       cookie: req,
       baseName: baseName,
       tableName: tableName,
+      undo: undo === 'true',
     });
   }
 }

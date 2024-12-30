@@ -474,13 +474,13 @@ export default class Integration extends IntegrationCE {
   }
 
   public getConfig(): any {
+    if (this.is_global) {
+      return this.config;
+    }
+
     const config = decryptPropIfRequired({
       data: this,
     });
-
-    if (!Array.isArray(config?.models)) {
-      config.models = [];
-    }
 
     return config;
   }

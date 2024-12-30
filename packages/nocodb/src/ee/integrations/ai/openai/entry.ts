@@ -83,13 +83,6 @@ export default class OpenAiIntegration extends AiIntegration {
     return aliases[model] || model;
   }
 
-  public availableModels(): { value: string; label: string }[] {
-    return this.getConfig().models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
-  }
-
   public async fileSearch(args: {
     messages: (ThreadCreateParams.Message & {
       attachments: { file_id: string; tools: { type: 'file_search' }[] }[];

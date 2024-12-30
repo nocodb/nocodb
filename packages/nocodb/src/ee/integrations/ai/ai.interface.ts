@@ -19,7 +19,12 @@ export default abstract class AiIntegration extends IntegrationWrapper {
     data: T;
   }>;
 
-  public abstract availableModels(): { value: string; label: string }[];
-
   public abstract getModelAlias(model: string): string;
+
+  public availableModels(): { value: string; label: string }[] {
+    return (this.getConfig()?.models || []).map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
+  }
 }

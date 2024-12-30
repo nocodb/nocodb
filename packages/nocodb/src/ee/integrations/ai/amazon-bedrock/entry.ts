@@ -74,11 +74,4 @@ export default class AmazonBedrockIntegration extends AiIntegration {
 
     return aliases[model] || model;
   }
-
-  public availableModels(): { value: string; label: string }[] {
-    return this.getConfig().models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
-  }
 }

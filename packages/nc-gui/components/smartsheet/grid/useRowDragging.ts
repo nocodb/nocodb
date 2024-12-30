@@ -32,7 +32,7 @@ export const useRowDragging = ({
 
   const draggingTop = ref(0)
 
-  const targetTop = ref(0)
+  const targetTop = ref(32)
 
   const lastMoveEvent = ref<null | MouseEvent>(null)
 
@@ -64,7 +64,7 @@ export const useRowDragging = ({
     const visibleStart = Math.max(0, rowSlice.start - virtualMargin)
     const adjustedRowIndex = Math.max(visibleStart, Math.min(rowIndex, rowSlice.end + virtualMargin))
 
-    targetTop.value = adjustedRowIndex * rowHeight.value
+    targetTop.value = Math.max(adjustedRowIndex * rowHeight.value, 32)
 
     const beforeRowIndex = rowIndex - rowSlice.start - 1
 
@@ -112,7 +112,8 @@ export const useRowDragging = ({
       }
     }
 
-    targetRow.value = cachedRows.value.get(rowSlice.start + beforeRowIndex)
+    // If Math.max is not set the value goes negative
+    targetRow.value = cachedRows.value.get(Math.max(rowSlice.start + beforeRowIndex, 0))
   }
 
   const mouseUp = async (event: MouseEvent) => {
@@ -143,9 +144,9 @@ export const useRowDragging = ({
 
     mouseStart.value = event.clientY
 
-    draggingTop.value = 0
+    draggingTop.value = 32
 
-    targetTop.value = 0
+    targetTop.value = 32
 
     targetRow.value = null
 

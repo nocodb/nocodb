@@ -2301,7 +2301,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`">
                             <a-spin
                               v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
-                              class="!flex items-center"
+                              class="hidden nc-row-spinner items-center"
                               :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                             />
 
@@ -2710,7 +2710,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
       </NcDropdown>
     </div>
 
-    <div class="absolute bottom-12 left-2" @click.stop>
+    <div class="absolute bottom-12 z-5 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
@@ -2784,7 +2784,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
 <style lang="scss">
 .dragging-record {
-  @apply h-0.5 absolute z-5;
+  @apply h-0.5 absolute z-4;
   background-color: #3366ff;
 }
 
@@ -3105,6 +3105,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
     @apply !xs:hidden items-center justify-between;
   }
 
+  .nc-row-spinner {
+    @apply hidden;
+  }
+
   .nc-expand {
     &:not(.nc-comment) {
       @apply hidden;
@@ -3127,6 +3131,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
     .nc-expand {
       @apply flex;
+    }
+
+    .nc-row-spinner {
+      @apply block;
     }
 
     .nc-row-expand-and-checkbox {

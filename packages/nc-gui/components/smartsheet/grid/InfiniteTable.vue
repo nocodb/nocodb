@@ -1822,10 +1822,19 @@ const onRecordDragStart = (row: Row) => {
   cachedRows.value.set(row.rowMeta.rowIndex, row)
 }
 
-const { dragIndex, targetIndex, startDragging, onHover } = useRowDragging({
+const {
+  initDrag: startDragging,
+  isActive: isDragging,
+  activeItem: draggingRecord,
+  dropZoneY: targetTop,
+} = useRowDragging({
   updateRecordOrder: updateRecordOrder!,
   onDragStart: onRecordDragStart,
   gridWrapper,
+  rowHeight,
+  totalRows,
+  rowSlice,
+  cachedRows,
 })
 
 const toggleRowSelection = (row: number) => {
@@ -2161,6 +2170,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
               </tr>
             </thead>
           </table>
+
+          <div
+            v-show="isDragging"
+            class="dragging-record"
+            :style="{ left: `${leftOffset}px`, width: `${width}px`, top: `${rowSlice.start * rowHeight + targetTop}px` }"
+          ></div>
+
           <div
             class="table-overlay"
             :style="{
@@ -2245,10 +2261,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected || vSelectedAllRecords,
                         'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
-                        'is-dragging': dragIndex === row.rowMeta.rowIndex,
-                        'is-target': targetIndex === row.rowMeta.rowIndex,
+                        'is-dragging': row.rowMeta?.rowIndex === draggingRecord?.rowMeta?.rowIndex,
                       }"
-                      @mouseover="onHover(row)"
                     >
                       <td
                         key="row-index"
@@ -2268,7 +2282,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           </div>
 
                           <div
-                            v-if="!selectedRows.length && isOrderColumnExists && !isRowReorderDisabled"
+                            v-if="!selectedRows.length && isOrderColumnExists && !isRowReorderDisabled && !vSelectedAllRecords"
                             :class="{ toggle: !readOnly }"
                             class="nc-drag-handle hidden"
                           >
@@ -2481,7 +2495,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   :style="{
                     height: '32px',
                   }"
-                  @mouseover="onHover('end')"
                   @click="addEmptyRow()"
                 >
                   <td
@@ -2783,21 +2796,9 @@ watch(vSelectedAllRecords, (selectedAll) => {
 </template>
 
 <style lang="scss">
-.is-target {
-  position: relative;
-  z-index: 100000;
-  border-radius: 6px !important;
-
-  &:after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    box-shadow: 0 -2px 0 0 #3366ff !important;
-    pointer-events: none;
-  }
+.dragging-record {
+  @apply h-0.5 absolute z-5;
+  background-color: #3366ff;
 }
 
 .is-dragging {

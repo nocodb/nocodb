@@ -6,7 +6,6 @@ import { useSortable } from './sort'
 const { isUIAllowed } = useRoles()
 
 const {
-  open,
   isLoading,
   isPublic,
   isReadonly: readOnly,
@@ -61,6 +60,8 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
     onDrop(event.clipboardData.files)
   }
 })
+
+const isNewAttachmentModalOpen = ref(false)
 </script>
 
 <template>
@@ -71,7 +72,7 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
     :class="{ active: modalVisible }"
     width="80%"
   >
-    <div class="flex justify-between pb-6 gap-4">
+    <div class="flex justify-between pb-6 gap-4 items-center">
       <div class="font-semibold text-xl">{{ column?.title }}</div>
 
       <div class="flex items-center gap-2">
@@ -87,7 +88,7 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
           class="nc-attach-file group"
           size="small"
           data-testid="attachment-expand-file-picker-button"
-          @click="open"
+          @click="isNewAttachmentModalOpen = true"
         >
           <div class="flex gap-2 items-center">
             <component :is="iconMap.cellAttachment" class="w-4 h-4" />
@@ -217,6 +218,8 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
             </div>
           </a-card>
         </div>
+
+        <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen"/>
       </div>
     </div>
   </NcModal>

@@ -94,6 +94,7 @@
     "ant-design-vue": "^3.2.20",
     "aws-amplify": "^5.3.11",
     "chart.js": "^4.4.2",
+    "client-zip": "^2.4.6",
     "company-email-validator": "^1.1.0",
     "crossoriginworker": "^1.1.0",
     "d3-scale": "^4.0.2",

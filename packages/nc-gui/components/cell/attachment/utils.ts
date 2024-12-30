@@ -1,6 +1,7 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
 import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
+import { downloadZip } from 'client-zip'
 import RenameFile from './RenameFile.vue'
 import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
 import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
@@ -335,9 +336,67 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** bulk download selected files */
-    async function bulkDownloadAttachments() {
+    async function bulkDownloadAttachmentsLegacy() {
       await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadAttachment(visibleItems.value[i]))))
       selectedVisibleItems.value = Array.from({ length: visibleItems.value.length }, () => false)
+    }
+
+    async function bulkDownloadAttachments() {
+      const items: AttachmentType[] = selectedVisibleItems.value
+        .map((v, i) => (v ? visibleItems.value[i] : undefined))
+        .filter((v) => !!v)
+
+      if (items.length === 0) return
+      if (items.length === 1) {
+        return downloadAttachment(items[0]!)
+      }
+
+      if (!meta.value || !column.value) return
+      const modelId = meta.value.id
+      const columnId = column.value.id
+      const rowId = extractPkFromRow(unref(row).row, meta.value.columns!)
+
+      if (!modelId || !columnId || !rowId) {
+        console.error('Missing modelId, columnId or rowId')
+        message.error('Failed to download file')
+      }
+
+      const filePromises = items.map(async (item) => {
+        const src = item.url || item.path
+        if (!src) {
+          console.error('Missing src')
+          message.error('Failed to download file')
+          return undefined
+        }
+        const apiPromise = isPublic.value
+          ? () => fetchSharedViewAttachment(columnId!, rowId!, src)
+          : () =>
+              $api.dbDataTableRow.attachmentDownload(modelId!, columnId!, rowId!, {
+                urlOrPath: src,
+              })
+        const res = await apiPromise()
+        if (!res) {
+          console.error('Invalid response')
+          message.error('Failed to download file')
+          return undefined
+        }
+        let file: Response
+        if (res.path) {
+          file = await fetch(`${baseURL}/${res.path}`)
+        } else if (res.url) {
+          file = await fetch(`${res.url}`)
+        } else {
+          console.error('Invalid blob response')
+          message.error('Failed to download file')
+          return undefined
+        }
+        return file
+      })
+      const files = (await Promise.all(filePromises)).filter((f) => !!f)
+      const zipBlob = await downloadZip(files).blob()
+      const zipURL = URL.createObjectURL(zipBlob)
+      window.open(zipURL, '_self')
+      setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
     }
 
     /** download a file */

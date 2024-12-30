@@ -194,4 +194,25 @@ export default class Audit extends AuditCE {
       },
     );
   }
+
+  public static async insert(
+    audit: Partial<Audit> | Partial<Audit>[],
+    ncMeta = Noco.ncMeta,
+    {
+      forceAwait,
+      catchException = false,
+    }: { forceAwait: boolean; catchException?: boolean } = {
+      forceAwait: process.env['TEST'] === 'true',
+    },
+  ) {
+    // disable audit by default and enable it only in test environment
+    if (
+      process.env.NC_ENABLE_AUDIT !== 'true' &&
+      process.env.NODE_ENV !== 'test'
+    ) {
+      return;
+    }
+
+    return AuditCE.insert(audit, ncMeta, { forceAwait, catchException });
+  }
 }

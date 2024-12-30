@@ -67,7 +67,7 @@ export class AttachmentsService {
       NcError.invalidAttachmentUploadScope();
     }
 
-    const userId = param.req?.user.id || 'anonymous';
+    const userId = param.req?.user?.id || 'anonymous';
 
     param.path = param.scope
       ? `${hash(userId)}`
@@ -231,7 +231,7 @@ export class AttachmentsService {
       NcError.invalidAttachmentUploadScope();
     }
 
-    const userId = param.req?.user.id || 'anonymous';
+    const userId = param.req?.user?.id || 'anonymous';
 
     param.path = param.scope
       ? `${hash(userId)}`

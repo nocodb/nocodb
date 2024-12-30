@@ -3,7 +3,13 @@ import type {
   AppEventPayload as AppEventPayloadCE,
   NcBaseEvent,
 } from 'src/services/app-hooks/interfaces';
-import type { IntegrationType, UserType, WorkspaceType } from 'nocodb-sdk';
+import type {
+  BaseType,
+  IntegrationType,
+  UserType,
+  WorkspaceType,
+} from 'nocodb-sdk';
+import type Snapshot from '~/models/Snapshot';
 
 export interface WorkspaceUserInviteEvent
   extends Optional<NcBaseEvent, 'context'> {
@@ -50,6 +56,22 @@ export interface IntegrationEvent extends Optional<NcBaseEvent, 'context'> {
 
 export interface IntegrationUpdateEvent extends IntegrationEvent {
   oldIntegration: IntegrationType;
+}
+
+export interface SnapshotEvent extends NcBaseEvent {
+  snapshot: Snapshot;
+  base: BaseType;
+}
+
+export interface SnapshotDeleteEvent extends NcBaseEvent {
+  snapshot: Snapshot;
+  base: BaseType;
+}
+
+export interface SnapshotRestoreEvent extends NcBaseEvent {
+  snapshot: Snapshot;
+  targetBase: BaseType;
+  sourceBase: BaseType;
 }
 
 export * from 'src/services/app-hooks/interfaces';

@@ -180,9 +180,9 @@ export enum AppEvents {
   BASE_DUPLICATE_COMPLETE = 'base.duplicate.complete',
   BASE_DUPLICATE_FAIL = 'base.duplicate.fail',
 
-  TABLE_DUPLICATE_START = 'TABLE.duplicate.start',
-  TABLE_DUPLICATE_COMPLETE = 'TABLE.duplicate.complete',
-  TABLE_DUPLICATE_FAIL = 'TABLE.duplicate.fail',
+  TABLE_DUPLICATE_START = 'table.duplicate.start',
+  TABLE_DUPLICATE_COMPLETE = 'table.duplicate.complete',
+  TABLE_DUPLICATE_FAIL = 'table.duplicate.fail',
 
   COLUMN_DUPLICATE_START = 'column.duplicate.start',
   COLUMN_DUPLICATE_COMPLETE = 'column.duplicate.complete',

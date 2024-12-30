@@ -17,7 +17,6 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type Snapshot from '~/ee/models/Snapshot';
 
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
@@ -286,22 +285,6 @@ export interface RelationEvent extends NcBaseEvent {
 export interface WebhookEvent extends NcBaseEvent {
   hook: HookType;
   tableId: string;
-}
-
-export interface SnapshotEvent extends NcBaseEvent {
-  snapshot: Snapshot;
-  base: BaseType;
-}
-
-export interface SnapshotDeleteEvent extends NcBaseEvent {
-  snapshot: Snapshot;
-  base: BaseType;
-}
-
-export interface SnapshotRestoreEvent extends NcBaseEvent {
-  snapshot: Snapshot;
-  targetBase: BaseType;
-  sourceBase: BaseType;
 }
 
 export interface WebhookUpdateEvent extends WebhookEvent {

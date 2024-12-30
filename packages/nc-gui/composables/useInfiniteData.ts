@@ -159,7 +159,7 @@ export function useInfiniteData(args: {
 
       const hasImportantRows = Array.from(cachedRows.value)
         .filter(([index]) => index >= chunkStart && index < chunkEnd)
-        .some(([_, row]) => row.rowMeta.selected || row.rowMeta.new || row.rowMeta?.isDragging)
+        .some(([_, row]) => row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)
 
       if (isVisibleChunk || hasImportantRows) {
         for (let i = chunkStart; i < chunkEnd; i++) {

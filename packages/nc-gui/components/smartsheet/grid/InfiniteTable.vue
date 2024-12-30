@@ -1818,7 +1818,7 @@ const onRecordDragStart = (row: Row) => {
   cachedRows.value.set(row.rowMeta.rowIndex, row)
 }
 
-const { startDragging, isDragging, draggingRecord, targetTop } = useRowDragging({
+const { startDragging: _startDragging, isDragging, draggingRecord, targetTop } = useRowDragging({
   updateRecordOrder,
   onDragStart: onRecordDragStart,
   gridWrapper,
@@ -1828,6 +1828,12 @@ const { startDragging, isDragging, draggingRecord, targetTop } = useRowDragging(
   rowSlice,
   cachedRows,
 })
+
+const startDragging = (row: Row, event: MouseEvent) => {
+  row.rowMeta.isDragging = true
+  cachedRows.value.set(row.rowMeta.rowIndex!, row)
+  _startDragging(row, event)
+}
 
 const toggleRowSelection = (row: number) => {
   if (vSelectedAllRecords.value) return

@@ -608,12 +608,7 @@ async function pasteJsonContent() {
         </a>
       </div>
 
-      <div
-        class="mt-5"
-        :class="{
-          'mb-4': templateEditorModal,
-        }"
-      >
+      <div class="mt-5">
         <LazyTemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"

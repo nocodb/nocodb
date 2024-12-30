@@ -200,7 +200,6 @@ export class DataTableController {
     });
   }
 
-
   @Get(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataList')
   async nestedDataList(

@@ -1822,7 +1822,7 @@ const onRecordDragStart = (row: Row) => {
   cachedRows.value.set(row.rowMeta.rowIndex, row)
 }
 
-const { isDragging, dragIndex, targetIndex, startDragging, onHover } = useRowDragging({
+const { dragIndex, targetIndex, startDragging, onHover } = useRowDragging({
   updateRecordOrder: updateRecordOrder!,
   onDragStart: onRecordDragStart,
   gridWrapper,

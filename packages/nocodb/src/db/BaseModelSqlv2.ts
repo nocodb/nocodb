@@ -4808,19 +4808,38 @@ class BaseModelSqlv2 {
     return res;
   }
 
-  async moveRecord({rowId,beforeRowId,cookie }: { rowId: string; beforeRowId: string;cookie? : { user?: any }; }) {
-
+  async moveRecord({
+    rowId,
+    beforeRowId,
+    cookie,
+  }: {
+    rowId: string;
+    beforeRowId: string;
+    cookie?: { user?: any };
+  }) {
     const columns = await this.model.getColumns(this.context);
 
-    const row = await this.readByPk(rowId, false, {}, { ignoreView: true, getHiddenColumn: true });
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
 
     if (!row) {
       NcError.recordNotFound(rowId);
     }
 
-    const newRecordOrder = (await this.getUniqueOrdersBeforeItem(beforeRowId, 1))[0]
+    const newRecordOrder = (
+      await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
+    )[0];
 
-    return await this.dbDriver(this.tnPath).update({ [columns.find(c => c.uidt === UITypes.Order).column_name]: newRecordOrder }).where(await this._wherePk(rowId));
+    return await this.dbDriver(this.tnPath)
+      .update({
+        [columns.find((c) => c.uidt === UITypes.Order).column_name]:
+          newRecordOrder,
+      })
+      .where(await this._wherePk(rowId));
   }
 
   async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
@@ -5421,7 +5440,7 @@ class BaseModelSqlv2 {
         } else {
           await this.prepareNocoData(data, true, cookie, null, {
             ncOrder: order,
-            undo
+            undo,
           });
           order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);
@@ -9924,9 +9943,9 @@ class BaseModelSqlv2 {
         return;
       }
 
-      let row = null
+      let row = null;
 
-      if(before) {
+      if (before) {
         row = await this.readByPk(
           before,
           false,

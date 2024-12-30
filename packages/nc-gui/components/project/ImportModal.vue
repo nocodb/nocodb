@@ -12,7 +12,7 @@ const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
-const transitionName = ref<string | undefined>(undefined);
+const transitionName = ref<string | undefined>(undefined)
 
 const { $e } = useNuxtApp()
 
@@ -22,10 +22,10 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve';
+  transitionName.value = 'dissolve'
 
-  await nextTick();
-  visible.value = false;
+  await nextTick()
+  visible.value = false
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
@@ -34,8 +34,8 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
     'onBack': () => {
-      visible.value = true;
-    }
+      visible.value = true
+    },
   })
 
   function closeDialog() {
@@ -51,10 +51,10 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve';
+  transitionName.value = 'dissolve'
 
-  await nextTick();
-  visible.value = false;
+  await nextTick()
+  visible.value = false
 
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
@@ -64,8 +64,8 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
     'onBack': () => {
-      visible.value = true;
-    }
+      visible.value = true
+    },
   })
 
   function closeDialog() {
@@ -76,7 +76,6 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
 }
 
 const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
-  
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else {
@@ -94,30 +93,22 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
       <NcMenu class="border-1 divide-y-1 nc-import-items-menu overflow-clip">
         <NcMenuItem @click="onClick('airtable')">
           <GeneralIcon icon="importAirtable" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700">
-            Airtable
-          </span>
+          <span class="ml-1 text-[13px] font-weight-700"> Airtable </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('csv')">
           <GeneralIcon icon="importCsv" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700">
-            CSV
-          </span>
+          <span class="ml-1 text-[13px] font-weight-700"> CSV </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('json')">
           <GeneralIcon icon="importJson" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700">
-            Json
-          </span>
+          <span class="ml-1 text-[13px] font-weight-700"> Json </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('excel')">
           <GeneralIcon icon="importExcel" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700">
-            Excel
-          </span>
+          <span class="ml-1 text-[13px] font-weight-700"> Excel </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <!-- <NcMenuItem disabled>

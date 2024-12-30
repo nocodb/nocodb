@@ -144,18 +144,16 @@ const isPreImportUrlFilled = computed(() => {
 })
 
 const isPreImportJsonFilled = computed(() => {
-  return JSON.stringify(importState.jsonEditor).length > 2 && !jsonErrorText.value;
+  return JSON.stringify(importState.jsonEditor).length > 2 && !jsonErrorText.value
 })
 
 const disablePreImportButton = computed(() => {
   if (isImportTypeCsv.value) {
-    return isPreImportFileFilled.value === isPreImportUrlFilled.value;
-  }
-  else if (IsImportTypeExcel.value) {
-    return isPreImportFileFilled.value === isPreImportUrlFilled.value;
-  }
-  else if (isImportTypeJson.value) {
-    return isPreImportFileFilled.value === isPreImportJsonFilled.value;
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value
+  } else if (IsImportTypeExcel.value) {
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value
+  } else if (isImportTypeJson.value) {
+    return isPreImportFileFilled.value === isPreImportJsonFilled.value
   }
 })
 
@@ -176,8 +174,7 @@ async function handlePreImport() {
   if (isImportTypeCsv.value) {
     if (isPreImportFileFilled.value) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
-    }
-    else if (isPreImportUrlFilled.value) {
+    } else if (isPreImportUrlFilled.value) {
       try {
         await validate()
         await parseAndExtractData(importState.url)
@@ -185,28 +182,24 @@ async function handlePreImport() {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
-  }
-  else if (isImportTypeJson.value) {
+  } else if (isImportTypeJson.value) {
     if (isPreImportFileFilled.value) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
       } else {
         await parseAndExtractData((importState.fileList as importFileList)[0].data)
       }
-    }
-    else {
+    } else {
       await parseAndExtractData(JSON.stringify(importState.jsonEditor))
     }
-  }
-  else if (IsImportTypeExcel) {
+  } else if (IsImportTypeExcel) {
     if (isPreImportFileFilled.value) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
       } else {
         await parseAndExtractData((importState.fileList as importFileList)[0].data)
       }
-    }
-    else if (isPreImportUrlFilled.value) {
+    } else if (isPreImportUrlFilled.value) {
       try {
         await validate()
         await parseAndExtractData(importState.url)
@@ -284,7 +277,7 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
-  temporaryJson.value = JSON.stringify(importState.jsonEditor, null, 2);
+  temporaryJson.value = JSON.stringify(importState.jsonEditor, null, 2)
   jsonErrorText.value = ''
 }
 
@@ -311,8 +304,7 @@ function getAdapter(val: any) {
         ...importState.parserConfig,
         importFromURL: false,
       })
-    }
-    else {
+    } else {
       return new CSVTemplateAdapter(val, {
         ...importState.parserConfig,
         importFromURL: true,
@@ -321,15 +313,13 @@ function getAdapter(val: any) {
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {
       return new ExcelTemplateAdapter(val, importState.parserConfig)
-    }
-    else {
+    } else {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
     }
   } else if (isImportTypeJson.value) {
     if (isPreImportFileFilled.value) {
       return new JSONTemplateAdapter(val, importState.parserConfig)
-    }
-    else {
+    } else {
       return new JSONTemplateAdapter(val, importState.parserConfig)
     }
   }
@@ -556,29 +546,28 @@ onMounted(() => {
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
 
-const collapseKey = ref('');
-const temporaryJson = ref('{}');
-const jsonErrorText = ref('');
+const collapseKey = ref('')
+const temporaryJson = ref('{}')
+const jsonErrorText = ref('')
 
 function handleJsonChange(newValue: string) {
   try {
-    temporaryJson.value = newValue;
-    importState.jsonEditor = JSON.parse(newValue);
-    jsonErrorText.value = '';
+    temporaryJson.value = newValue
+    importState.jsonEditor = JSON.parse(newValue)
+    jsonErrorText.value = ''
   } catch (e: any) {
-    jsonErrorText.value = e.message || 'Invalid JSON';
+    jsonErrorText.value = e.message || 'Invalid JSON'
   }
 }
 
 async function pasteJsonContent() {
   try {
-    const clipboardContent = await navigator.clipboard.readText();
-    importState.jsonEditor = JSON.parse(clipboardContent);
-    temporaryJson.value = clipboardContent;
-    jsonErrorText.value = '';
-  }
-  catch (error) {
-    message.error('Failed to paste JSON content');
+    const clipboardContent = await navigator.clipboard.readText()
+    importState.jsonEditor = JSON.parse(clipboardContent)
+    temporaryJson.value = clipboardContent
+    jsonErrorText.value = ''
+  } catch (error) {
+    message.error('Failed to paste JSON content')
   }
 }
 </script>
@@ -595,7 +584,6 @@ async function pasteJsonContent() {
     @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
-        
       <div class="text-base font-weight-700 m-0 flex items-center gap-3">
         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
         {{ importMeta.header }}
@@ -603,7 +591,8 @@ async function pasteJsonContent() {
           href="https://docs.nocodb.com/tables/create-table-via-import/"
           class="!text-gray-500 prose-sm ml-auto"
           target="_blank"
-          rel="noopener">
+          rel="noopener"
+        >
           Docs
         </a>
       </div>
@@ -628,7 +617,6 @@ async function pasteJsonContent() {
           @change="onChange"
         />
         <div v-else>
-
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
@@ -650,16 +638,14 @@ async function pasteJsonContent() {
               <span class="text-nc-content-brand hover:underline">browse file</span>
             </p>
 
-            <p class="!mt-3 text-[13px] text-gray-500">
-              Supported: {{ importMeta.acceptTypes }}
-            </p>
+            <p class="!mt-3 text-[13px] text-gray-500">Supported: {{ importMeta.acceptTypes }}</p>
 
             <p class="ant-upload-hint">
               {{ importMeta.uploadHint }}
             </p>
 
             <template #itemRender="{ fileList, actions }">
-               <div class="mb-4 space-y-2">
+              <div class="mb-4 space-y-2">
                 <div v-for="file of fileList" :key="file.uid" class="flex items-center gap-3">
                   <div class="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-lg">
                     <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-12 h-12" />
@@ -676,18 +662,14 @@ async function pasteJsonContent() {
                     <GeneralIcon icon="deleteListItem" />
                   </nc-button>
                 </div>
-               </div>
+              </div>
             </template>
           </a-upload-dragger>
 
           <div v-if="isImportTypeJson" class="mt-4 mb-4">
             <div class="flex items-end justify-between">
-              <label>
-                Enter Json
-              </label>
-              <NcButton type="text" size="xsmall" class="!text-primary !px-2" @click="pasteJsonContent()">
-                Paste Json
-              </NcButton>
+              <label> Enter Json </label>
+              <NcButton type="text" size="xsmall" class="!text-primary !px-2" @click="pasteJsonContent()"> Paste Json </NcButton>
             </div>
             <a-textarea
               :rows="5"
@@ -713,22 +695,29 @@ async function pasteJsonContent() {
 
           <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-4">
             <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
-              <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." :required="false" />
+              <a-input
+                v-model:value="importState.url"
+                class="!rounded-md"
+                placeholder="Paste file link here..."
+                :required="false"
+              />
             </a-form-item>
           </a-form>
-
         </div>
       </div>
 
       <div v-if="!templateEditorModal">
         <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
-          <GeneralIcon icon="chevronDown" class="ml-2 !transition-all !transform" :class="{ '!rotate-180': collapseKey === 'advanced-settings' }" />
+          <GeneralIcon
+            icon="chevronDown"
+            class="ml-2 !transition-all !transform"
+            :class="{ '!rotate-180': collapseKey === 'advanced-settings' }"
+          />
         </nc-button>
 
-        <a-collapse ghost class="nc-import-collapse" v-model:active-key="collapseKey">
+        <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
-
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
@@ -744,12 +733,15 @@ async function pasteJsonContent() {
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
-
           </a-collapse-panel>
         </a-collapse>
       </div>
 
-      <a-alert v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)" type="error" class="!rounded-lg !mt-2">
+      <a-alert
+        v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)"
+        type="error"
+        class="!rounded-lg !mt-2"
+      >
         <template #message>
           <div class="flex flex-row items-center gap-3">
             <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
@@ -758,31 +750,34 @@ async function pasteJsonContent() {
         </template>
         <template #description>
           <div class="text-gray-500 ml-9">
-            You need to use only one method to import files, URLs or JSON. You cannot use multiple methods at the same time. Please choose one method and try again.
+            You need to use only one method to import files, URLs or JSON. You cannot use multiple methods at the same time.
+            Please choose one method and try again.
           </div>
         </template>
       </a-alert>
-
     </a-spin>
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
-
         <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
           {{ $t('general.back') }}
         </nc-button>
 
-        <nc-button v-else key="cancel" type="text" size="small" @click="dialogShow = false; emit('back');">
+        <nc-button
+          v-else
+          key="cancel"
+          type="text"
+          size="small"
+          @click="() => {
+            dialogShow = false
+            emit('back')
+          }"
+        >
           {{ $t('general.back') }}
         </nc-button>
 
         <div class="flex-1" />
 
-        <nc-button
-          v-if="isImportTypeJson && !templateEditorModal"
-          key="format"
-          size="small"
-          @click="formatJson"
-        >
+        <nc-button v-if="isImportTypeJson && !templateEditorModal" key="format" size="small" @click="formatJson">
           {{ $t('labels.formatJson') }}
         </nc-button>
 
@@ -808,7 +803,6 @@ async function pasteJsonContent() {
         >
           {{ $t('activity.import') }}
         </nc-button>
-
       </div>
     </template>
   </a-modal>

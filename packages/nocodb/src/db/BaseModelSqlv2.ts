@@ -9995,8 +9995,78 @@ class BaseModelSqlv2 {
       }
       return newOrders;
     } catch (error) {
-      console.error('Error in getUniqueOrdersBeforeItem:', error);
+      if (error instanceof CannotCalculateIntermediateOrderError) {
+        console.error('Error in getUniqueOrdersBeforeItem:', error);
+        await this.recalculateFullOrder();
+        return await this.getUniqueOrdersBeforeItem(before, amount);
+      }
       throw error;
+    }
+  }
+
+  async recalculateFullOrder() {
+    const sql = {
+      mysql2: {
+        modern: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`, // 8.0+
+        legacy: {
+          // 5.x and below
+          init: 'SET @row_number = 0;',
+          update:
+            'UPDATE ?? SET ?? = (@row_number:=@row_number+1) ORDER BY ?? ASC',
+        },
+      },
+      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
+      sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
+    };
+
+    const orderColumn = this.model.columns.find((c) => isOrderCol(c));
+    if (!orderColumn) {
+      NcError.badRequest('Order column not found to recalculateOrder');
+    }
+
+    const client = this.dbDriver.client.config.client;
+    if (!sql[client]) {
+      NcError.notImplemented(
+        'Recalculate order not implemented for this database',
+      );
+    }
+
+    const params = {
+      mysql2: [this.tnPath, orderColumn.column_name, orderColumn.column_name],
+      pg: [
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+      ],
+      sqlite3: [
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        orderColumn.column_name,
+      ],
+    };
+
+    // For MySQL, check version and use appropriate query
+    if (client === 'mysql2') {
+      const version = await this.dbDriver.raw('SELECT VERSION()');
+      const isMySql8Plus = parseFloat(version[0][0]['VERSION()']) >= 8.0;
+
+      if (isMySql8Plus) {
+        await this.dbDriver.raw(sql[client].modern, params[client]);
+      } else {
+        await this.dbDriver.raw(sql[client].legacy.init);
+        await this.dbDriver.raw(sql[client].legacy.update, params[client]);
+      }
+    } else {
+      await this.dbDriver.raw(sql[client], params[client]);
     }
   }
 

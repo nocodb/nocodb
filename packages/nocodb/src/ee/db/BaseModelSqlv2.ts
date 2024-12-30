@@ -9,6 +9,7 @@ import {
   isLinksOrLTAR,
   isOrderCol,
   isVirtualCol,
+  NcErrorType,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -51,10 +52,7 @@ import {
   UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
-import {
-  CannotCalculateIntermediateOrderError,
-  NcError,
-} from '~/helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
@@ -63,6 +61,7 @@ import { extractMentions } from '~/utils/richTextHelper';
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const ORDER_STEP_INCREMENT = 1;
+const MAX_RECURSION_DEPTH = 2;
 
 export function replaceDynamicFieldWithValue(
   row: any,
@@ -690,8 +689,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return order + ORDER_STEP_INCREMENT;
   }
 
-  async getUniqueOrdersBeforeItem(before: unknown, amount = 1) {
+  async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
     try {
+      if (depth > MAX_RECURSION_DEPTH) {
+        NcError.reorderFailed();
+      }
+
       const orderColumn = this.model.columns.find((c) => isOrderCol(c));
       if (!orderColumn) {
         return;
@@ -750,16 +753,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         newOrder = Number(intermediateOrder.toFixed(20));
 
         if (newOrder === adjacentOrder || newOrder === row[orderColumn.title]) {
-          throw new CannotCalculateIntermediateOrderError();
+          NcError.cannotCalculateIntermediateOrderError();
         }
         newOrders.push(newOrder);
       }
       return newOrders;
     } catch (error) {
-      if (error instanceof CannotCalculateIntermediateOrderError) {
+      if ((error.error = NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER)) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
-        return await this.getUniqueOrdersBeforeItem(before, amount);
+        return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
       }
       throw error;
     }

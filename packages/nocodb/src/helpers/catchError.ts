@@ -479,13 +479,6 @@ export class MetaError extends NcBaseError {
   }
 }
 
-export class CannotCalculateIntermediateOrderError extends NcBaseError {
-  constructor() {
-    super('Cannot calculate intermediate order');
-    this.name = 'CannotCalculateIntermediateOrder';
-  }
-}
-
 export class ExternalError extends NcBaseError {
   constructor(error: Error) {
     super(error.message);
@@ -1003,6 +996,17 @@ export class NcError {
       params: id,
       ...(args || {}),
     });
+  }
+
+  static cannotCalculateIntermediateOrderError() {
+    throw new NcBaseErrorv2(
+      NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
+      {},
+    );
+  }
+
+  static reorderFailed() {
+    throw new NcBaseErrorv2(NcErrorType.REORDER_FAILED, {});
   }
 
   static integrationLinkedWithMultiple(

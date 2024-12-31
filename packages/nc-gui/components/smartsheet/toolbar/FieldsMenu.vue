@@ -743,7 +743,16 @@ const onAddColumnDropdownVisibilityChange = () => {
                       <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" @click.stop />
 
                       <div class="inline-flex items-center w-full">
-                        <NcTooltip class="pl-1 max-w-[180px] truncate" show-on-truncate-only :disabled="isDragging">
+                        <NcTooltip
+                          class="pl-1 truncate"
+                          :class="{
+                            'max-w-[110px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'),
+                            'max-w-[130px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt !== 'Links'),
+                            'max-w-[180px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'),
+                            'max-w-[210px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt !== 'Links'),
+                          }"
+                          show-on-truncate-only
+                          :disabled="isDragging">
                           <template #title>
                             {{ field.title }}
                           </template>
@@ -762,8 +771,9 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcButton
                           :class="{
                             '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
+                            '!rounded-r-none': field.italic,
                           }"
-                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-r-none"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                           size="xsmall"
                           type="text"
                           :disabled="isLocked"
@@ -778,8 +788,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcButton
                           :class="{
                             '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
+                            '!rounded-l-none': field.bold,
+                            '!rounded-r-none': field.underline,
                           }"
-                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-none"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                           size="xsmall"
                           type="text"
                           :disabled="isLocked"
@@ -794,8 +806,9 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcButton
                           :class="{
                             '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
+                            '!rounded-l-none': field.italic,
                           }"
-                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-l-none"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                           size="xsmall"
                           type="text"
                           :disabled="isLocked"

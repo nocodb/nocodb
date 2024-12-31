@@ -197,12 +197,12 @@ watch(isOpened, (val) => {
                   placeholder="Search field to add as lookup"
                 >
                   <template #prefix>
-                    <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1" />
+                    <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1 ml-1" />
                   </template>
                 </a-input>
               </template>
               <template v-else>
-                <div class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full">
+                <div class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full overflow-auto" style="scrollbar-gutter: stable;">
                   <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
                     <component :is="iconMap.search" class="w-4 h-4" />
@@ -211,12 +211,12 @@ watch(isOpened, (val) => {
               </template>
             </transition>
           </div>
-          <div class="border-y-1 h-[300px] border-gray-200 py-2 nc-scrollbar-thin">
+          <div class="border-y-1 h-[310px] border-gray-200 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable;">
             <div v-for="field of filteredColumns" :key="field.id">
               <div
                 :key="field.id"
                 :data-testid="`nc-lookup-add-menu-${field.title}`"
-                class="px-1 py-0.75 mx-2 flex flex-row items-center rounded-md hover:bg-gray-100"
+                class="px-1 py-0.75 mx-1 flex flex-row items-center rounded-md hover:bg-gray-100"
                 @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
               >
                 <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">

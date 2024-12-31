@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -65,6 +65,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isPg = computed(() => isPgFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
+
+    const isSystem = computed(() => isSystemColumn(column.value))
 
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
@@ -482,6 +484,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isWebhookCreateModalOpen,
       isAiButtonConfigModalOpen,
       isMysql,
+      isSystem,
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,

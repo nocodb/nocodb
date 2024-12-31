@@ -428,10 +428,6 @@ watch(
 
 const addColumnDropdown = ref(false)
 
-function getColumnOfField(field: Field) {
-  return meta.value?.columns?.find((it) => it.id === field.fk_column_id)
-}
-
 const openSubmenusCount = ref(0);
 const lookupDropdownsTickle = ref(0);
 
@@ -441,8 +437,17 @@ function scrollToLatestField() {
   }, 500);
 }
 
+function conditionalToggleFieldVisibility(field: Field) {
+  if (isLocked.value || (meta.value?.columnsById?.[field.fk_column_id!]?.uidt === 'Links' && !isLocalMode.value)) {
+    return
+  }
+
+  field.show = !field.show
+  toggleFieldVisibility(field.show, field)
+}
+
 function handleFieldVisibilityClick(field: Field) {
-  if (getColumnOfField(field)?.uidt === 'Links') {
+  if (meta.value?.columnsById?.[field.fk_column_id!]?.uidt === 'Links') {
     field.show = !field.show
     toggleFieldVisibility(field.show, field)
   }
@@ -621,14 +626,14 @@ function onColumnSubmitted() {
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
               <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important;">
-                <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
+                <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1 nc-fields-toggle-show-all-fields" />
               </div>
             </template>
           </a-input>
         </div>
 
         <div
-          class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
+          class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
           style="scrollbar-gutter: stable !important;"
         >
           <div class="nc-fields-list">
@@ -682,76 +687,67 @@ function onColumnSubmitted() {
                     :class="{
                       'cursor-pointer': !isLocked,
                     }"
-                    @click="
-                      () => {
-                        if (isLocked || (getColumnOfField(field)?.uidt === 'Links' && !isLocalMode)) return
-
-                        field.show = !field.show
-                        toggleFieldVisibility(field.show, field)
-                      }
-                    "
+                    @click="conditionalToggleFieldVisibility(field)"
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" />
                     <SmartsheetToolbarAddLookupsDropdown
                       v-if="metas"
                       :key="lookupDropdownsTickle"
-                      :column="getColumnOfField(field)!"
+                      :column="meta?.columnsById?.[field.fk_column_id!]!"
                       :disabled="isLocalMode"
                       @created="lookupDropdownsTickle++"
                       @update:is-opened="openSubmenusCount += $event === true ? 1 : -1">
                       <div class="inline-flex items-center w-full">
-                        <NcTooltip class="w-0 flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
+                        <NcTooltip class="pl-1 max-w-[180px] truncate" show-on-truncate-only :disabled="isDragging">
                           <template #title>
                             {{ field.title }}
                           </template>
                           <template #default>
-                            <span class="truncate">
-                              {{ field.title }}
-                              <GeneralIcon v-if="!isLocalMode && getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-1 relative top-1" />
-                            </span>
+                            {{ field.title }}
                           </template>
                         </NcTooltip>
+                        <GeneralIcon v-if="!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'" icon="chevronRight" class="ml-1" />
                       </div>
                     </SmartsheetToolbarAddLookupsDropdown>
                     <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                       <NcButton
                         :class="{
-                          '!text-primary': field.bold,
+                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
                         }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-r-none"
                         size="xsmall"
                         type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
                         <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.bold" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
+                        <div v-if="field.bold" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
                       </NcButton>
                       <NcButton
                         :class="{
-                          '!text-primary': field.italic,
+                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
                         }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-none"
                         size="xsmall"
                         type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
                         <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.italic" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
+                        <div v-if="field.italic" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
                       </NcButton>
                       <NcButton
                         :class="{
-                          '!text-primary': field.underline,
+                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
                         }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-l-none"
                         size="xsmall"
                         type="text"
                         :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
                         <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.underline" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
+                        <div v-if="field.underline" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
                       </NcButton>
                     </div>
                     <NcSwitch
@@ -770,32 +766,28 @@ function onColumnSubmitted() {
           </div>
         </div>
 
-        <div v-if="!filterQuery && !isLocalMode" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-gray-100">
+        <div v-if="!isLocalMode" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium">
           <NcButton
             class="nc-fields-show-system-fields !px-2"
-            size="xsmall"
+            size="small"
             type="text"
             :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
-            <template v-if="showSystemField">
-              <GeneralIcon icon="eyeSlash" class="!w-3 !h-3 mr-2" />
+            <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
+            <span class="text-sm font-weight-600">
               System fields
-            </template>
-            <template v-else>
-              <GeneralIcon icon="eye" class="!w-3 !h-3 mr-2" />
-              System fields
-            </template>
+            </span>
           </NcButton>
           <NcDropdown
             v-model:visible="addColumnDropdown"
             :trigger="['click']"
-            overlay-class-name="nc-dropdown-grid-add-column !bg-transparent !border-none !shadow-none"
+            overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
           >
-            <NcButton class="nc-fields-add-new-field !px-2" size="xsmall" type="text">
-              <GeneralIcon icon="plus" class="!w-3 !h-3 mr-2 mb-1 text-primary" />
-              <span class="text-primary">{{ t('general.new') }} {{ t('objects.field') }}</span>
+            <NcButton class="nc-fields-add-new-field !px-2" size="small" type="text">
+              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1 text-primary" />
+              <span class="text-primary text-sm font-weight-600">{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">

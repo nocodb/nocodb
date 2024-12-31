@@ -76,12 +76,12 @@ const { isSystem } = useColumnCreateStoreOrThrow()
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(filteredOptions[activeFieldIndex].name)"
   >
-    <div class="w-full pb-2" @click.stop>
+    <div class="w-full mb-2 !border-b-1" @click.stop>
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
         placeholder="Search field type"
-        class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input !border-x-0 !border-t-0 !py-2 !rounded-t-lg"
+        class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input !border-none !shadow-none !py-2 !rounded-t-lg"
         :disabled="isSystem"
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"

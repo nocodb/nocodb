@@ -176,7 +176,12 @@ watch(isOpened, (val) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpened" :disabled="column.uidt !== 'Links' || props.disabled" placement="right">
+  <NcDropdown
+    v-model:visible="isOpened"
+    :disabled="column.uidt !== 'Links' || props.disabled"
+    placement="right"
+    overlay-class-name="!min-w-[256px]"
+  >
     <slot />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">

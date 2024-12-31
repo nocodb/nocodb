@@ -724,23 +724,24 @@ const onAddColumnDropdownVisibilityChange = () => {
                       'cursor-move': !isLocked,
                     }"
                   />
-                  <div
-                    v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
-                    :class="{
-                      'cursor-pointer': !isLocked,
-                    }"
-                    @click="conditionalToggleFieldVisibility(field)"
+                  <SmartsheetToolbarAddLookupsDropdown
+                    v-if="metas"
+                    :key="lookupDropdownsTickle"
+                    :column="meta?.columnsById?.[field.fk_column_id!]!"
+                    :disabled="isLocalMode"
+                    @created="lookupDropdownsTickle++"
+                    @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
                   >
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" />
-                    <SmartsheetToolbarAddLookupsDropdown
-                      v-if="metas"
-                      :key="lookupDropdownsTickle"
-                      :column="meta?.columnsById?.[field.fk_column_id!]!"
-                      :disabled="isLocalMode"
-                      @created="lookupDropdownsTickle++"
-                      @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
+                    <div
+                      v-e="['a:fields:show-hide']"
+                      class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
+                      :class="{
+                        'cursor-pointer': !isLocked,
+                      }"
+                      @click="conditionalToggleFieldVisibility(field)"
                     >
+                      <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" @click.stop />
+
                       <div class="inline-flex items-center w-full">
                         <NcTooltip class="pl-1 max-w-[180px] truncate" show-on-truncate-only :disabled="isDragging">
                           <template #title>
@@ -756,65 +757,68 @@ const onAddColumnDropdownVisibilityChange = () => {
                           class="ml-1"
                         />
                       </div>
-                    </SmartsheetToolbarAddLookupsDropdown>
-                    <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
-                      <NcButton
-                        :class="{
-                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
-                        }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-r-none"
-                        size="xsmall"
-                        type="text"
-                        :disabled="isLocked"
-                        @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
-                      >
-                        <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.bold"
-                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+
+                      <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-r-none"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
+                        >
+                          <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.bold"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-none"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
+                        >
+                          <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.italic"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-l-none"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
+                        >
+                          <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.underline"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                      </div>
+                      <span @click.stop="conditionalToggleFieldVisibility(field)">
+                        <NcSwitch
+                          :checked="field.show"
+                          :disabled="field.isViewEssentialField || isLocked"
+                          size="xxsmall"
+                          @change="$e('a:fields:show-hide')"
+                          @click="handleFieldVisibilityClick(field)"
                         />
-                      </NcButton>
-                      <NcButton
-                        :class="{
-                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
-                        }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-none"
-                        size="xsmall"
-                        type="text"
-                        :disabled="isLocked"
-                        @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
-                      >
-                        <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.italic"
-                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
-                        />
-                      </NcButton>
-                      <NcButton
-                        :class="{
-                          '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
-                        }"
-                        class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative !rounded-l-none"
-                        size="xsmall"
-                        type="text"
-                        :disabled="isLocked"
-                        @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
-                      >
-                        <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.underline"
-                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
-                        />
-                      </NcButton>
+                      </span>
                     </div>
-                    <NcSwitch
-                      :checked="field.show"
-                      :disabled="field.isViewEssentialField || isLocked"
-                      size="xxsmall"
-                      @change="$e('a:fields:show-hide')"
-                      @click="handleFieldVisibilityClick(field)"
-                    />
-                  </div>
+                  </SmartsheetToolbarAddLookupsDropdown>
 
                   <div class="flex-1" />
                 </div>

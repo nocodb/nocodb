@@ -185,7 +185,7 @@ const fields = computed<TableExplorerColumn[]>({
 const previousToggleAction = ref<boolean>(!fields.value?.some((vf) => vf.visible))
 const showOrHideAllFields = () => {
   previousToggleAction.value = !previousToggleAction.value
-  visibilityOps.value = [];
+  visibilityOps.value = []
   fields.value.forEach((f) => toggleVisibility(previousToggleAction.value, viewFieldsMap.value[f.id]))
 }
 
@@ -1697,7 +1697,7 @@ watch(activeAiTab, (newValue) => {
                       :class="{
                         'selected': compareCols(field, activeField),
                         'cursor-not-allowed': !isColumnUpdateAllowed(field),
-                        'hover:bg-gray-100': !isSystemColumn(field)
+                        'hover:bg-gray-100': !isSystemColumn(field),
                       }"
                       :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                       @click="!isSystemColumn(field) && changeField(field, $event)"
@@ -1874,7 +1874,9 @@ watch(activeAiTab, (newValue) => {
                                   @click="duplicateField(field)"
                                 >
                                   <GeneralIcon icon="duplicate" class="text-gray-800" />
-                                  <span class="text-gray-800">{{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}</span>
+                                  <span class="text-gray-800">
+                                    {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}
+                                  </span>
                                 </NcMenuItem>
                                 <NcMenuItem
                                   v-if="!field.pv"
@@ -1899,7 +1901,7 @@ watch(activeAiTab, (newValue) => {
                                 <NcMenuItem
                                   key="table-explorer-delete"
                                   :class="{
-                                    '!hover:bg-red-50': !isSystemColumn(field)
+                                    '!hover:bg-red-50': !isSystemColumn(field),
                                   }"
                                   data-testid="nc-field-item-action-delete"
                                   :disabled="isSystemColumn(field)"

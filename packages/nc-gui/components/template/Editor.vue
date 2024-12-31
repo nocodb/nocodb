@@ -914,11 +914,7 @@ function toggleTableSelecteds(table: any) {
               :class="{ '!transform !rotate-180': isActive }"
             />
           </template>
-          <a-collapse-panel
-            v-for="(table, tableIdx) of data.tables"
-            :key="tableIdx"
-            class="nc-import-table-box !overflow-hidden"
-          >
+          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !overflow-hidden">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
@@ -1045,7 +1041,7 @@ function toggleTableSelecteds(table: any) {
 }
 :deep(.nc-import-table-box:last-child) {
   // border-bottom: 0 !important;
-  @apply !rounded-b-lg
+  @apply !rounded-b-lg;
 }
 :deep(.nc-import-table-box .ant-collapse-content) {
   @apply !border-t-0;

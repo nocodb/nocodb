@@ -14,12 +14,15 @@ vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Date],
   ...(vModel.value.meta || {}),
 }
+
+const { isSystem } = useColumnCreateStoreOrThrow()
 </script>
 
 <template>
   <a-form-item>
     <a-select
       v-model:value="vModel.meta.date_format"
+      :disabled="isSystem"
       show-search
       class="nc-date-select"
       dropdown-class-name="nc-dropdown-date-format"

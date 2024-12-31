@@ -666,11 +666,8 @@ export class ColumnsService {
               });
             }
           }
-          // handle reorder column for Links and LinkToAnotherRecord
+          // handle reorder column
           if (
-            [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
-              column.uidt,
-            ) &&
             colBody?.column_order &&
             colBody.column_order?.order &&
             colBody.column_order?.view_id

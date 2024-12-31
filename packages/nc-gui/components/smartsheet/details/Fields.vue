@@ -106,7 +106,13 @@ const visibilityOps = ref<fieldsVisibilityOps[]>([])
 
 const fieldsListWrapperDomRef = ref<HTMLElement>()
 
-const { fields: viewFields, toggleFieldVisibility, loadViewColumns, isViewColumnsLoading } = useViewColumnsOrThrow()
+const {
+  fields: viewFields,
+  toggleFieldVisibility,
+  loadViewColumns,
+  isViewColumnsLoading,
+  showSystemFields,
+} = useViewColumnsOrThrow()
 
 const loading = ref(false)
 
@@ -152,7 +158,11 @@ const fields = computed<TableExplorerColumn[]>({
     const x = ((localMetaColumns.value as ColumnType[]) ?? [])
       .filter((field) => {
         const isAllowToShowCol = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
-        return !field.fk_column_id && !isSystemColumn(field) && isAllowToShowCol
+        return (
+          !field.fk_column_id &&
+          (showOrHideSystemFields.value ? !!viewFieldsMap.value[field.id] : !isSystemColumn(field)) &&
+          isAllowToShowCol
+        )
       })
       .concat(newFields.value)
       .map((field) => updateDefaultColumnValues(field))
@@ -171,6 +181,14 @@ const fields = computed<TableExplorerColumn[]>({
     })
   },
 })
+
+const previousToggleAction = ref<boolean>(!!fields.value?.some((vf) => !vf.pv && vf.visible))
+const showOrHideAllFields = () => {
+  previousToggleAction.value = !previousToggleAction.value
+  fields.value.forEach((f) => toggleVisibility(previousToggleAction.value, viewFieldsMap.value[f.id]))
+}
+
+const showOrHideSystemFields = ref(showSystemFields.value)
 
 // Current Selected Field
 const activeField = ref()
@@ -817,6 +835,7 @@ const clearChanges = () => {
   newFields.value = []
   visibilityOps.value = []
   localPredictions.value = []
+  showOrHideSystemFields.value = showSystemFields.value
   changeField()
   onInit()
 }
@@ -842,7 +861,13 @@ const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
     return
-  } else if (!loading.value && ops.value.length < 1 && moveOps.value.length < 1 && visibilityOps.value.length < 1) {
+  } else if (
+    !loading.value &&
+    ops.value.length < 1 &&
+    moveOps.value.length < 1 &&
+    visibilityOps.value.length < 1 &&
+    showSystemFields.value === showOrHideSystemFields.value
+  ) {
     return
   }
   try {
@@ -957,6 +982,7 @@ const saveChanges = async () => {
 
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
+    showSystemFields.value = showOrHideSystemFields.value
     visibilityOps.value = []
   } catch (e) {
     message.error(t('msg.error.somethingWentWrong'))
@@ -1333,11 +1359,29 @@ watch(activeAiTab, (newValue) => {
                 </NcTooltip>
               </div>
             </template>
+            <NcDropdown :trigger="['hover']" placement="bottomRight">
+              <NcButton size="small" type="secondary" icon-only :shadow="false">
+                <template #icon>
+                  <GeneralIcon :icon="'threeDotVertical'" class="text-xs !text-current w-4 h-4" />
+                </template>
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItem class="!children:w-full" @click="showOrHideAllFields">
+                    {{ previousToggleAction ? $t('general.hideAll') : $t('general.showAll') }}
+                    {{ $t('objects.fields').toLowerCase() }}
+                  </NcMenuItem>
+                  <NcMenuItem class="!children:w-full" @click="showOrHideSystemFields = !showOrHideSystemFields">
+                    {{ showOrHideSystemFields ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
             <NcButton
               data-testid="nc-field-reset"
               type="secondary"
               size="small"
-              :disabled="(!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1) || isLocked"
+              :disabled="(!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 && showOrHideSystemFields == showSystemFields) || isLocked"
               @click="clearChanges()"
             >
               {{ $t('general.reset') }}
@@ -1351,8 +1395,13 @@ watch(activeAiTab, (newValue) => {
                 size="small"
                 :loading="loading"
                 :disabled="
-                  (isColumnsValid ? !loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1 : true) ||
-                  isLocked
+                  (isColumnsValid
+                    ? !loading &&
+                      showOrHideSystemFields == showSystemFields &&
+                      ops.length < 1 &&
+                      moveOps.length < 1 &&
+                      visibilityOps.length < 1
+                    : true) || isLocked
                 "
                 @click="saveChanges()"
               >

@@ -457,6 +457,15 @@ function onColumnSubmitted() {
   addColumnDropdown.value = false
   scrollToLatestField()
 }
+
+const editOrAddProviderRef = ref();
+
+function updateAddColumnVisibleTo(newValue: boolean) {
+  addColumnDropdown.value = newValue
+  if (newValue === false && editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
+    addColumnDropdown.value = true
+  }
+}
 </script>
 
 <template>
@@ -780,10 +789,11 @@ function onColumnSubmitted() {
             </span>
           </NcButton>
           <NcDropdown
-            v-model:visible="addColumnDropdown"
+            :visible="addColumnDropdown"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
+            @update:visible="updateAddColumnVisibleTo($event)"
           >
             <NcButton class="nc-fields-add-new-field !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1 text-primary" />

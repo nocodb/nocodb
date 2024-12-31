@@ -917,7 +917,7 @@ function toggleTableSelecteds(table: any) {
           <a-collapse-panel
             v-for="(table, tableIdx) of data.tables"
             :key="tableIdx"
-            class="nc-import-table-box !border-b-1 !rounded-b-lg !overflow-hidden"
+            class="nc-import-table-box !overflow-hidden"
           >
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
@@ -1042,6 +1042,13 @@ function toggleTableSelecteds(table: any) {
   :deep(.ant-form-item-explain) {
     @apply hidden;
   }
+}
+:deep(.nc-import-table-box:last-child) {
+  // border-bottom: 0 !important;
+  @apply !rounded-b-lg
+}
+:deep(.nc-import-table-box .ant-collapse-content) {
+  @apply !border-t-0;
 }
 :deep(.nc-import-table-box .ant-collapse-content-box) {
   @apply p-0;

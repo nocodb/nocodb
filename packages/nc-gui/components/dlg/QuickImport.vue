@@ -651,7 +651,14 @@ async function pasteJsonContent() {
                 </div>
                 <div>
                   <div class="text-[14px] text-[#15171A] font-weight-500">
-                    {{ file.name }}
+                    <NcTooltip>
+                      <template #title>
+                        {{ file.name }}
+                      </template>
+                      <span class="inline-block truncate max-w-[280px]">
+                        {{ file.name }}
+                      </span>
+                    </NcTooltip>
                   </div>
                   <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
                     {{ getReadableFileSize(file.size) }}
@@ -836,7 +843,7 @@ span:has(> .nc-modern-drag-import) {
   flex-direction: column-reverse;
   :deep(& > .ant-upload-list) {
     @apply mb-4 space-y-2 transition-all;
-    &:has(.ant-upload-list-picture-container + .ant-upload-list-picture-container) {
+    &:has(.ant-upload-list-picture-container + .ant-upload-list-picture-container + .ant-upload-list-picture-container) {
       @apply border-1 rounded-lg p-2 max-h-[200px] overflow-y-auto nc-scrollbar-thin;
       scrollbar-gutter: stable;
     }

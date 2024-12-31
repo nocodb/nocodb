@@ -64,6 +64,8 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
+
+const { isSystem } = useColumnCreateStoreOrThrow()
 </script>
 
 <template>
@@ -80,6 +82,7 @@ onMounted(() => {
         v-model:value="searchQuery"
         placeholder="Search field type"
         class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input"
+        :disabled="isSystem"
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"
       >

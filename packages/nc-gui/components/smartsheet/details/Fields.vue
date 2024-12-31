@@ -1422,13 +1422,13 @@ watch(activeAiTab, (newValue) => {
         </div>
         <!-- Ai field wizard  -->
         <div
-          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200"
+          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200 max-w-full"
           :style="{
             height: `calc(100vh - (var(--topbar-height) * 3.6) - 24px)`,
           }"
         >
-          <div class="flex-1 h-full flex flex-col">
-            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium">
+          <div class="flex-1 h-full flex flex-col w-3/5 max-w-3/5">
+            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium overflow-x-scroll">
               <!-- Ai field wizard  -->
               <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
                 <template #AutoSuggestedContent>

@@ -266,6 +266,7 @@ export default defineNuxtConfig({
         'youtube-vue3',
         'vuedraggable',
         'jsbarcode',
+        'tiptap-markdown',
       ],
       esbuildOptions: {
         define: {

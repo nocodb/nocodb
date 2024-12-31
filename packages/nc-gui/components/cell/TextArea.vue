@@ -387,7 +387,7 @@ watch(textAreaRef, (el) => {
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
+        <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content />
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div

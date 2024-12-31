@@ -610,7 +610,7 @@ const promptAI = async () => {
 
   calledFun.value = 'promptAI'
 
-  $e(`a:column:ai:${UITypes.Formula}:predict-from-prompt`, {
+  $e(`a:column:ai:formula:predict-from-prompt`, {
     prompt: aiPrompt.value,
   })
 
@@ -625,7 +625,7 @@ const promptAI = async () => {
 const repairFormulaAI = async () => {
   calledFun.value = 'repairFormulaAI'
 
-  $e(`a:column:ai:${UITypes.Formula}:repair`)
+  $e(`a:column:ai:formula:repair`)
 
   const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
 
@@ -635,7 +635,7 @@ const repairFormulaAI = async () => {
 }
 
 const enableAI = async () => {
-  $e(`c:column:ai:${UITypes.Formula}:enable`)
+  $e(`c:column:ai:formula:enable`)
 
   if (validateInfos?.formula_raw?.validateStatus === 'error') {
     await repairFormulaAI()

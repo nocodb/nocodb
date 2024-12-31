@@ -245,7 +245,11 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
           </NcBadge>
         </template>
         <template v-if="column.key === 'action'">
-          <div v-if="!snapshot?.isNew" :data-testid="`snapshot-${snapshot.title}`" class="flex row-action items-center shadow-nc-sm rounded-lg">
+          <div
+            v-if="!snapshot?.isNew"
+            :data-testid="`snapshot-${snapshot.title}`"
+            class="flex row-action items-center shadow-nc-sm rounded-lg"
+          >
             <NcButton
               size="small"
               :disabled="snapshot.status !== 'success'"

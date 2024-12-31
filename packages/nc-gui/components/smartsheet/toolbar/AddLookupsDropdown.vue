@@ -8,15 +8,13 @@ interface Props {
   disabled?: boolean
 }
 
-const emit = defineEmits([
-  'created',
-]);
+const props = defineProps<Props>()
+
+const emit = defineEmits(['created'])
 
 const isOpened = defineModel<boolean>('isOpened', {
-  default: false
+  default: false,
 })
-
-const props = defineProps<Props>()
 
 const { $api } = useNuxtApp()
 
@@ -59,7 +57,7 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-const initiatedTableLoad = ref(false);
+const initiatedTableLoad = ref(false)
 
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
@@ -144,7 +142,6 @@ const createLookups = async () => {
   } finally {
     isLoading.value = false
   }
-
 }
 
 watch([relatedModel, searchField], async () => {
@@ -160,8 +157,8 @@ onMounted(async () => {
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 
-const refSearchField = useTemplateRef<HTMLInputElement>('refSearchField');
-const isInSearchMode = ref(false);
+const refSearchField = useTemplateRef<HTMLInputElement>('refSearchField')
+const isInSearchMode = ref(false)
 
 function switchToSearchMode() {
   isInSearchMode.value = true
@@ -188,8 +185,8 @@ watch(isOpened, (val) => {
             <transition name="slide-out" :duration="{ enter: 500, leave: 0 }">
               <template v-if="isInSearchMode">
                 <a-input
-                  v-model:value="searchField"
                   ref="refSearchField"
+                  v-model:value="searchField"
                   :bordered="false"
                   class="w-full !shadow-none !py-3 a-input-without-effect absolute !bg-transparent"
                   placeholder="Search field to add as lookup"
@@ -201,9 +198,7 @@ watch(isOpened, (val) => {
               </template>
               <template v-else>
                 <div class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full">
-                  <div class="font-weight-600">
-                    {{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}
-                  </div>
+                  <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
                     <component :is="iconMap.search" class="w-4 h-4" />
                   </NcButton>
@@ -236,13 +231,7 @@ watch(isOpened, (val) => {
             </div>
           </div>
           <div class="flex w-full p-1">
-            <NcButton
-              :loading="isLoading"
-              size="small"
-              class="w-full"
-              :disabled="!hasSelectedFields"
-              @click="createLookups"
-            >
+            <NcButton :loading="isLoading" size="small" class="w-full" :disabled="!hasSelectedFields" @click="createLookups">
               {{
                 $t('general.addLookupField', {
                   count: Object.values(selectedFields).filter(Boolean).length || '',

@@ -428,13 +428,13 @@ watch(
 
 const addColumnDropdown = ref(false)
 
-const openSubmenusCount = ref(0);
-const lookupDropdownsTickle = ref(0);
+const openSubmenusCount = ref(0)
+const lookupDropdownsTickle = ref(0)
 
 function scrollToLatestField() {
   setTimeout(() => {
     document.querySelector('.nc-fields-menu-item:last-child')?.scrollIntoView({ behavior: 'smooth' })
-  }, 500);
+  }, 500)
 }
 
 function conditionalToggleFieldVisibility(field: Field) {
@@ -458,7 +458,7 @@ function onColumnSubmitted() {
   scrollToLatestField()
 }
 
-const editOrAddProviderRef = ref();
+const editOrAddProviderRef = ref()
 
 function updateAddColumnVisibleTo(newValue: boolean) {
   addColumnDropdown.value = newValue
@@ -519,11 +519,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
     </NcTooltip>
 
     <template #overlay>
-      <div
-        class="pt-1 bg-white w-[320px] rounded-lg nc-table-toolbar-menu"
-        data-testid="nc-fields-menu"
-        @click.stop
-      >
+      <div class="pt-1 bg-white w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex items-center gap-2 px-2 mb-2 w-80 border-b-1 border-gray-100 pb-2"
@@ -634,7 +630,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important;">
+              <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important">
                 <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1 nc-fields-toggle-show-all-fields" />
               </div>
             </template>
@@ -643,7 +639,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
 
         <div
           class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
-          style="scrollbar-gutter: stable !important;"
+          style="scrollbar-gutter: stable !important"
         >
           <div class="nc-fields-list">
             <div
@@ -705,7 +701,8 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                       :column="meta?.columnsById?.[field.fk_column_id!]!"
                       :disabled="isLocalMode"
                       @created="lookupDropdownsTickle++"
-                      @update:is-opened="openSubmenusCount += $event === true ? 1 : -1">
+                      @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
+                    >
                       <div class="inline-flex items-center w-full">
                         <NcTooltip class="pl-1 max-w-[180px] truncate" show-on-truncate-only :disabled="isDragging">
                           <template #title>
@@ -715,7 +712,11 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                             {{ field.title }}
                           </template>
                         </NcTooltip>
-                        <GeneralIcon v-if="!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'" icon="chevronRight" class="ml-1" />
+                        <GeneralIcon
+                          v-if="!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'"
+                          icon="chevronRight"
+                          class="ml-1"
+                        />
                       </div>
                     </SmartsheetToolbarAddLookupsDropdown>
                     <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
@@ -730,7 +731,10 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
                         <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.bold" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
+                        <div
+                          v-if="field.bold"
+                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                        />
                       </NcButton>
                       <NcButton
                         :class="{
@@ -743,7 +747,10 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
                         <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.italic" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
+                        <div
+                          v-if="field.italic"
+                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                        />
                       </NcButton>
                       <NcButton
                         :class="{
@@ -756,7 +763,10 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
                         <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
-                        <div v-if="field.underline" class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white" />
+                        <div
+                          v-if="field.underline"
+                          class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                        />
                       </NcButton>
                     </div>
                     <NcSwitch
@@ -784,9 +794,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
-            <span class="text-sm font-weight-600">
-              System fields
-            </span>
+            <span class="text-sm font-weight-600"> System fields </span>
           </NcButton>
           <NcDropdown
             :visible="addColumnDropdown"
@@ -805,7 +813,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
                   v-if="addColumnDropdown"
                   ref="editOrAddProviderRef"
                   @submit="onColumnSubmitted()"
-                  @cancel="addColumnDropdown = false;"
+                  @cancel="addColumnDropdown = false"
                   @click.stop
                   @keydown.stop
                 />

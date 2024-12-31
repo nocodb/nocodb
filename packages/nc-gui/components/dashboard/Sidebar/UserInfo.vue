@@ -130,29 +130,27 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
-            <template v-if="!appInfo.ee">
-              <NcDivider />
-              <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
-                <NcMenuItem>
-                  <div v-e="['c:translate:open']" class="flex gap-2 items-center">
-                    <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
-                    {{ $t('labels.language') }}
-                    <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
-                    <div class="flex-1" />
+            <NcDivider />
+            <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
+              <NcMenuItem>
+                <div v-e="['c:translate:open']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  {{ $t('labels.language') }}
+                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
-                  </div>
-                </NcMenuItem>
+                  <MaterialSymbolsChevronRightRounded
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                  />
+                </div>
+              </NcMenuItem>
 
-                <template #content>
-                  <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
-                    <LazyGeneralLanguageMenu />
-                  </div>
-                </template>
-              </a-popover>
-            </template>
+              <template #content>
+                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
+                  <LazyGeneralLanguageMenu />
+                </div>
+              </template>
+            </a-popover>
 
             <template v-if="!isMobileMode">
               <NcDivider />

@@ -189,7 +189,7 @@ const logout = async () => {
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip v-if="!appInfo.ee" :mouse-enter-delay="1" placement="bottom">
+              <a-tooltip :mouse-enter-delay="1" placement="bottom">
                 <template #title> Switch language</template>
 
                 <div class="flex pr-4 items-center">

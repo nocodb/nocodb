@@ -440,6 +440,18 @@ function scrollToLatestField() {
     document.querySelector('.nc-fields-menu-item:last-child')?.scrollIntoView({ behavior: 'smooth' })
   }, 500);
 }
+
+function handleFieldVisibilityClick(field: Field) {
+  if (getColumnOfField(field)?.uidt === 'Links') {
+    field.show = !field.show
+    toggleFieldVisibility(field.show, field)
+  }
+}
+
+function onColumnSubmitted() {
+  addColumnDropdown.value = false
+  scrollToLatestField()
+}
 </script>
 
 <template>
@@ -747,14 +759,7 @@ function scrollToLatestField() {
                       :disabled="field.isViewEssentialField || isLocked"
                       size="xxsmall"
                       @change="$e('a:fields:show-hide')"
-                      @click="
-                        () => {
-                          if (getColumnOfField(field)?.uidt === 'Links') {
-                            field.show = !field.show
-                            toggleFieldVisibility(field.show, field)
-                          }
-                        }
-                      "
+                      @click="handleFieldVisibilityClick(field)"
                     />
                   </div>
 
@@ -782,29 +787,29 @@ function scrollToLatestField() {
               System fields
             </template>
           </NcButton>
-          <a-dropdown
+          <NcDropdown
             v-model:visible="addColumnDropdown"
             :trigger="['click']"
-            overlay-class-name="nc-dropdown-grid-add-column"
+            overlay-class-name="nc-dropdown-grid-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
           >
-            <NcButton class="nc-fields-show-all-fields !px-2" size="xsmall" type="ghost" :shadow="false">
+            <NcButton class="nc-fields-add-new-field !px-2" size="xsmall" type="text">
               <GeneralIcon icon="plus" class="!w-3 !h-3 mr-2 mb-1 text-primary" />
-              <span class="text-primary">New Field</span>
+              <span class="text-primary">{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">
                 <LazySmartsheetColumnEditOrAddProvider
                   v-if="addColumnDropdown"
                   ref="editOrAddProviderRef"
-                  @submit="addColumnDropdown = false; scrollToLatestField();"
-                  @cancel="addColumnDropdown = false"
+                  @submit="onColumnSubmitted()"
+                  @cancel="addColumnDropdown = false;"
                   @click.stop
                   @keydown.stop
                 />
               </div>
             </template>
-          </a-dropdown>
+          </NcDropdown>
         </div>
 
         <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
@@ -822,7 +827,7 @@ function scrollToLatestField() {
   @apply bg-gray-50;
 }
 
-.nc-fields-show-all-fields,
+.nc-fields-add-new-field,
 .nc-fields-show-system-fields {
   @apply !text-xs !text-gray-700 !border-none bg-transparent;
 

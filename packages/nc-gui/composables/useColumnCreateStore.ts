@@ -66,7 +66,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
-    const isSystem = computed(() => isSystemColumn(column.value));
+    const isSystem = computed(() => isSystemColumn(column.value))
 
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),

@@ -1341,7 +1341,7 @@ watch(activeAiTab, (newValue) => {
               '!pb-4': embedMode,
             }"
           >
-            <NcButton size="small" type="text" @click.stop="triggerDescriptionEnable" v-if="!isSystem">
+            <NcButton v-if="!isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 

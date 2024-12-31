@@ -71,8 +71,8 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       type="text"
       class="!text-gray-700"
       data-testid="nc-show-default-value-btn"
-      @click.stop="isVisibleDefaultValueInput = true"
       :disabled="isSystem"
+      @click.stop="isVisibleDefaultValueInput = true"
     >
       <div class="flex items-center gap-2">
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />

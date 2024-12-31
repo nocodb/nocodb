@@ -752,7 +752,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                             'max-w-[210px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt !== 'Links'),
                           }"
                           show-on-truncate-only
-                          :disabled="isDragging">
+                          :disabled="isDragging"
+                        >
                           <template #title>
                             {{ field.title }}
                           </template>

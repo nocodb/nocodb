@@ -26,7 +26,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           v-model:value="vModel.meta.date_format"
           class="nc-date-select"
           dropdown-class-name="nc-dropdown-date-format"
-          :disabled="!!isSystem"
+          :disabled="isSystem"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
@@ -50,7 +50,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           v-model:value="vModel.meta.time_format"
           class="nc-time-select"
           dropdown-class-name="nc-dropdown-time-format"
-          :disabled="!!isSystem"
+          :disabled="isSystem"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />

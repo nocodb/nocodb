@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -304,9 +304,29 @@ const onHideAll = () => {
   hideAll()
 }
 
+const visibleFields = computed(
+  () =>
+    fields.value?.filter((field: Field) => {
+      if (!field.initialShow && isLocalMode.value) {
+        return false
+      }
+
+      if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+        return false
+      }
+
+      // hide system columns if not enabled
+      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+        return false
+      }
+
+      return true
+    }) || [],
+)
+
 const showAllColumns = computed({
   get: () => {
-    return filteredFieldList.value?.every((field) => field.show)
+    return visibleFields.value?.every((field) => field?.show)
   },
   set: async (val) => {
     if (val) {
@@ -460,10 +480,17 @@ function onColumnSubmitted() {
 
 const editOrAddProviderRef = ref()
 
-function updateAddColumnVisibleTo(newValue: boolean) {
-  addColumnDropdown.value = newValue
-  if (newValue === false && editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
-    addColumnDropdown.value = true
+const onFieldsMenuDropdownVisibilityChange = (value: boolean) => {
+  if (!value && addColumnDropdown.value) {
+    open.value = true
+  }
+}
+
+const onAddColumnDropdownVisibilityChange = () => {
+  addColumnDropdown.value = true
+
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    addColumnDropdown.value = false
   }
 }
 </script>
@@ -475,6 +502,7 @@ function updateAddColumnVisibleTo(newValue: boolean) {
     class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
     :auto-close="openSubmenusCount === 0"
+    @visible-change="onFieldsMenuDropdownVisibilityChange"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <template #title>
@@ -631,7 +659,17 @@ function updateAddColumnVisibleTo(newValue: boolean) {
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
               <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important">
-                <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1 nc-fields-toggle-show-all-fields" />
+                <NcSwitch
+                  v-model:checked="showAllColumns"
+                  :disabled="
+                    !searchCompare(
+                      fields?.map((f) => f.title),
+                      filterQuery,
+                    )
+                  "
+                  size="xsmall"
+                  class="!mr-1 nc-fields-toggle-show-all-fields"
+                />
               </div>
             </template>
           </a-input>
@@ -785,7 +823,10 @@ function updateAddColumnVisibleTo(newValue: boolean) {
           </div>
         </div>
 
-        <div v-if="!isLocalMode" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium">
+        <div
+          v-if="!isLocalMode && !filterQuery"
+          class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
+        >
           <NcButton
             class="nc-fields-show-system-fields !px-2"
             size="small"
@@ -797,11 +838,11 @@ function updateAddColumnVisibleTo(newValue: boolean) {
             <span class="text-sm font-weight-600"> System fields </span>
           </NcButton>
           <NcDropdown
-            :visible="addColumnDropdown"
+            v-model:visible="addColumnDropdown"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
-            @update:visible="updateAddColumnVisibleTo($event)"
+            @visible-change="onAddColumnDropdownVisibilityChange"
           >
             <NcButton class="nc-fields-add-new-field !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1 text-primary" />

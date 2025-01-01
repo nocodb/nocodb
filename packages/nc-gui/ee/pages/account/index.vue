@@ -189,10 +189,10 @@ const logout = async () => {
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip :mouse-enter-delay="1" placement="bottom">
+              <a-tooltip :mouse-enter-delay="1" placement="bottom" class="mr-4">
                 <template #title> Switch language</template>
 
-                <div class="flex pr-4 items-center">
+                <div class="flex items-center">
                   <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </a-tooltip>

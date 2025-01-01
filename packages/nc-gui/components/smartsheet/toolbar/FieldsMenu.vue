@@ -614,7 +614,8 @@ function scrollToLatestField() {
         </div>
 
         <div
-          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
+          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
+          style="scrollbar-gutter: stable;"
         >
           <div class="nc-fields-list">
             <div

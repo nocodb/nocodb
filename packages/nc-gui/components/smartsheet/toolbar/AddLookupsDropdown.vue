@@ -28,13 +28,9 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { loadTables } = baseStore
-
 const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')
-
-const value = useVModel(props, 'value')
 
 const columnsHash = ref()
 
@@ -62,7 +58,7 @@ const initiatedTableLoad = ref(false)
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
 
-  if (fkRelatedModelId) {
+  if (fkRelatedModelId && !props.disabled) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
     if (!table?.columns && !initiatedTableLoad.value) {
@@ -139,6 +135,7 @@ const createLookups = async () => {
     emit('created')
   } catch (e) {
     console.error(e)
+    message.error('Failed to create lookup columns')
   } finally {
     isLoading.value = false
   }
@@ -147,14 +144,10 @@ const createLookups = async () => {
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
     const columns = metas.value[relatedModel.value?.id]?.columns || []
-    filteredColumns.value = columns
-      .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
-      .filter((c) => searchCompare([c?.title], searchField.value))
+    filteredColumns.value = columns.filter(
+      (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
+    )
   }
-})
-
-onMounted(async () => {
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 
 const refSearchField = useTemplateRef<HTMLInputElement>('refSearchField')
@@ -173,15 +166,16 @@ watch(isOpened, (val) => {
     searchField.value = ''
   }
 })
+
+onMounted(async () => {
+  if (props.disabled) return
+
+  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+})
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isOpened"
-    :disabled="!isLinksOrLTAR(column) || props.disabled"
-    placement="right"
-    overlay-class-name="!min-w-[256px]"
-  >
+  <NcDropdown v-model:visible="isOpened" :disabled="props.disabled" placement="right" overlay-class-name="!min-w-[256px]">
     <slot />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">

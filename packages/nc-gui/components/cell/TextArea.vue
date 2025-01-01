@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { marked } from 'marked'
 import type { AIRecordType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -10,6 +11,13 @@ const props = defineProps<{
   isAiEdited?: boolean
   isFieldAiIntegrationAvailable?: boolean
 }>()
+
+// Set options for how Markdown is parsed
+marked.setOptions({
+  breaks: true, // Converts single line breaks to <br> tags
+  gfm: true, // Enable GitHub Flavored Markdown (GFM)
+  sanitize: false, // Allow HTML tags within Markdown
+})
 
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
@@ -147,6 +155,14 @@ const isRichMode = computed(() => {
   }
 
   return meta?.richMode
+})
+
+const richTextContent = computed(() => {
+  if (isRichMode.value && vModel.value) {
+    return marked.parse(vModel.value)
+  }
+
+  return ''
 })
 
 const onExpand = () => {
@@ -387,7 +403,8 @@ watch(textAreaRef, (el) => {
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content />
+        <div class="grid-field-rich-text__cell-content" v-html="richTextContent"></div>
+        <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content /> -->
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div

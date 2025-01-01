@@ -131,7 +131,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
             </a>
             <NcDivider />
-            <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
+            <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom" overlay-class-name="nc-lang-menu-overlay">
               <NcMenuItem>
                 <div v-e="['c:translate:open']" class="flex gap-2 items-center">
                   <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
@@ -146,7 +146,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
+                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>
@@ -215,10 +215,6 @@ const accountUrl = computed(() => {
   font-size: 1rem;
 }
 
-:deep(.ant-popover-inner-content) {
-  @apply !p-0 !rounded-md;
-}
-
 .social-icon {
   @apply my-0.5 w-4 h-4 stroke-transparent;
   // Make icon black and white
@@ -239,6 +235,18 @@ const accountUrl = computed(() => {
     .social-icon {
       filter: none !important;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-lang-menu-overlay {
+  .ant-popover-inner {
+    @apply !rounded-lg;
+  }
+
+  .ant-popover-inner-content {
+    @apply !bg-transparent;
   }
 }
 </style>

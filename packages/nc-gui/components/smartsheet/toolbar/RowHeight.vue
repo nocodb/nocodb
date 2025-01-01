@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { OrgUserRoles, ProjectRoles, extractRolesObj } from 'nocodb-sdk'
 
 const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
   {

@@ -45,6 +45,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
       {
         'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,
         'nc-display-value-cell': isPrimary(column) && !isForm,
+        '!px-0': isRollup(column),
       },
     ]"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"

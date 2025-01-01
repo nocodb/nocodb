@@ -7,7 +7,9 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isOrderCol,
   isVirtualCol,
+  NcErrorType,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -59,6 +61,7 @@ import { extractMentions } from '~/utils/richTextHelper';
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const ORDER_STEP_INCREMENT = 1;
+const MAX_RECURSION_DEPTH = 2;
 
 export function replaceDynamicFieldWithValue(
   row: any,
@@ -686,12 +689,223 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return order + ORDER_STEP_INCREMENT;
   }
 
+  async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
+    try {
+      if (depth > MAX_RECURSION_DEPTH) {
+        NcError.reorderFailed();
+      }
+
+      const orderColumn = this.model.columns.find((c) => isOrderCol(c));
+      if (!orderColumn) {
+        return;
+      }
+
+      let row = null;
+
+      if (before) {
+        row = await this.readByPk(
+          before,
+          false,
+          {},
+          { extractOrderColumn: true },
+        );
+      }
+      if (!row) {
+        const highestOrder = await this.getHighestOrderInTable();
+
+        const newOrders: number[] = [];
+        let currentOrder = highestOrder;
+
+        for (let i = 0; i < amount; i++) {
+          currentOrder += 1;
+          newOrders.push(currentOrder);
+        }
+
+        return newOrders;
+      }
+
+      const resultQuery = this.dbDriver(this.tnPath)
+        .where(orderColumn.column_name, '<', row[orderColumn.title])
+        .max(orderColumn.column_name + ' as maxOrder')
+        .first();
+
+      let result;
+
+      if ((this.dbDriver as any).isExternal) {
+        result = await runExternal(
+          this.sanitizeQuery(resultQuery.toQuery()),
+          (this.dbDriver as any).extDb,
+        );
+      } else {
+        result = await resultQuery;
+      }
+
+      const adjacentOrder = result.maxOrder || 0;
+      const newOrders = [];
+      let newOrder = adjacentOrder;
+
+      for (let i = 0; i < amount; i++) {
+        const intermediateOrder = this.findIntermediateOrder(
+          newOrder,
+          row[orderColumn.title],
+        );
+
+        newOrder = Number(intermediateOrder.toFixed(20));
+
+        if (newOrder === adjacentOrder || newOrder === row[orderColumn.title]) {
+          NcError.cannotCalculateIntermediateOrderError();
+        }
+        newOrders.push(newOrder);
+      }
+      return newOrders;
+    } catch (error) {
+      if ((error.error = NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER)) {
+        console.error('Error in getUniqueOrdersBeforeItem:', error);
+        await this.recalculateFullOrder();
+        return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
+      }
+      throw error;
+    }
+  }
+
+  async recalculateFullOrder() {
+    const sql = {
+      mysql2: {
+        modern: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`, // 8.0+
+        legacy: {
+          // 5.x and below
+          init: 'SET @row_number = 0;',
+          update:
+            'UPDATE ?? SET ?? = (@row_number:=@row_number+1) ORDER BY ?? ASC',
+        },
+      },
+      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
+      sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
+    };
+
+    const orderColumn = this.model.columns.find((c) => isOrderCol(c));
+    if (!orderColumn) {
+      NcError.badRequest('Order column not found to recalculateOrder');
+    }
+
+    const client = this.dbDriver.client.config.client;
+    if (!sql[client]) {
+      NcError.notImplemented(
+        'Recalculate order not implemented for this database',
+      );
+    }
+
+    const params = {
+      mysql2: [this.tnPath, orderColumn.column_name, orderColumn.column_name],
+      pg: [
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+      ],
+      sqlite3: [
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        this.tnPath,
+        orderColumn.column_name,
+        orderColumn.column_name,
+        this.tnPath,
+        orderColumn.column_name,
+      ],
+    };
+
+    const executeQuery = async (query, parameters = []) => {
+      let response;
+      const formattedQuery = this.dbDriver.raw(query, parameters).toQuery();
+
+      if ((this.dbDriver as any).isExternal) {
+        response = await runExternal(
+          this.sanitizeQuery(formattedQuery),
+          (this.dbDriver as any).extDb,
+        );
+      } else {
+        response = await this.execAndGetRows(formattedQuery);
+      }
+      return response;
+    };
+
+    if (client === 'mysql2') {
+      const version = await executeQuery('SELECT VERSION()');
+      const isMySql8Plus = parseFloat(version[0]?.[0]?.['VERSION()']) >= 8.0;
+
+      if (isMySql8Plus) {
+        await executeQuery(sql[client].modern, params[client]);
+      } else {
+        await executeQuery(sql[client].legacy.init);
+        await executeQuery(sql[client].legacy.update, params[client]);
+      }
+    } else {
+      await executeQuery(sql[client], params[client]);
+    }
+  }
+
+  async moveRecord({
+    rowId,
+    beforeRowId,
+  }: {
+    rowId: string;
+    beforeRowId: string;
+    cookie?: { user?: any };
+  }) {
+    const columns = await this.model.getColumns(this.context);
+
+    const row = await this.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
+    if (!row) {
+      NcError.recordNotFound(rowId);
+    }
+
+    const newRecordOrder = (
+      await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
+    )[0];
+
+    const query = this.dbDriver(this.tnPath)
+      .update({
+        [columns.find((c) => c.uidt === UITypes.Order).column_name]:
+          newRecordOrder,
+      })
+      .where(await this._wherePk(rowId, true))
+      .toQuery();
+
+    let response;
+
+    if ((this.dbDriver as any).isExternal) {
+      response = await runExternal(
+        this.sanitizeQuery(query),
+        (this.dbDriver as any).extDb,
+      );
+    } else {
+      response = await this.dbDriver.raw(query);
+    }
+
+    return response;
+  }
+
   async prepareNocoData(
     data,
     isInsertData = false,
     cookie?: { user?: any },
     oldData?,
-    extra?: { raw?: boolean; ncOrder?: number },
+    extra?: {
+      ncOrder?: number;
+      before?: string;
+      undo?: boolean;
+      raw?: boolean;
+    },
   ) {
     if (this.isDatabricks) {
       for (const column of this.model.columns) {
@@ -1173,6 +1387,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
       allowSystemColumn = false,
+      undo = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -1182,6 +1397,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
+      undo?: boolean;
     } = {},
   ) {
     const queries: string[] = [];
@@ -1222,7 +1438,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (
                 col.system &&
                 !allowSystemColumn &&
-                [UITypes.ForeignKey, UITypes.Order].includes(col.uidt)
+                UITypes.ForeignKey === col.uidt
+              ) {
+                NcError.badRequest(
+                  `Column "${col.title}" is system column and cannot be updated`,
+                );
+              }
+
+              if (
+                col.system &&
+                !allowSystemColumn &&
+                col.uidt !== UITypes.Order &&
+                !undo
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
@@ -1352,6 +1579,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
             ncOrder: order + index,
+            undo: undo,
           });
 
           // prepare nested link data for insert only if it is single record insertion
@@ -1383,6 +1611,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               await this.prepareNocoData(d, true, cookie, null, {
                 raw,
                 ncOrder: order + i,
+                undo: undo,
               }),
           ),
         );
@@ -1571,12 +1800,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       foreign_key_checks = true,
       insertOneByOneAsFallback = false,
+      undo = false,
     }: {
       _chunkSize?: number;
       cookie?: any;
       raw?: boolean;
       foreign_key_checks?: boolean;
       insertOneByOneAsFallback?: boolean;
+      undo?: boolean;
     } = {},
   ) {
     const insertQueries: string[] = [];
@@ -1616,6 +1847,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           await this.prepareNocoData(data, true, cookie, null, {
             ncOrder: order,
+            undo,
           });
           order++;
           dataWithoutPks.push(data);
@@ -1647,6 +1879,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } else {
           await this.prepareNocoData(data, true, cookie, null, {
             ncOrder: order,
+            undo,
           });
           order++;
           // const insertObj = this.handleValidateBulkInsert(data, columns);

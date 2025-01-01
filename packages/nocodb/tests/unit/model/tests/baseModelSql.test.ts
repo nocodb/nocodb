@@ -66,7 +66,7 @@ function baseModelSqlTests() {
     const insertedRow = (await baseModelSql.list())[0];
 
     expect(insertedRow).to.deep.include(inputData);
-    expect(insertedRow).to.deep.include(response);
+    expect(response).to.include(insertedRow);
 
     const rowInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'INSERT',

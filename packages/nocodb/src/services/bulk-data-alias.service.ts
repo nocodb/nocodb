@@ -50,6 +50,7 @@ export class BulkDataAliasService {
       skip_hooks?: boolean;
       raw?: boolean;
       allowSystemColumn?: boolean;
+      undo?: boolean;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -63,6 +64,7 @@ export class BulkDataAliasService {
           skip_hooks: param.skip_hooks,
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
+          undo: param.undo,
         },
       ],
     });
@@ -133,12 +135,13 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: any;
+      undo: boolean;
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpsert',
-      options: [param.body, { cookie: param.cookie }],
+      options: [param.body, { cookie: param.cookie, undo: param.undo }],
     });
   }
 }

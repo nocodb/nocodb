@@ -665,6 +665,14 @@ const errorHelpers: {
     message: 'Invalid attachment upload scope',
     code: 400,
   },
+  [NcErrorType.REORDER_FAILED]: {
+    message: 'Reorder failed',
+    code: 400,
+  },
+  [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
+    message: 'Cannot calculate intermediate order',
+    code: 400,
+  },
 };
 
 function generateError(
@@ -996,6 +1004,17 @@ export class NcError {
       params: id,
       ...(args || {}),
     });
+  }
+
+  static cannotCalculateIntermediateOrderError() {
+    throw new NcBaseErrorv2(
+      NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
+      {},
+    );
+  }
+
+  static reorderFailed() {
+    throw new NcBaseErrorv2(NcErrorType.REORDER_FAILED, {});
   }
 
   static integrationLinkedWithMultiple(

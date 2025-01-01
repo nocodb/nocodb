@@ -1,4 +1,4 @@
-name: "Release : Docker"
+name: "Release : Timely Docker"
 
 on:
   # Triggered manually

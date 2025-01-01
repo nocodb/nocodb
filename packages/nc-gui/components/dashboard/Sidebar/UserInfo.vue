@@ -3,6 +3,8 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
@@ -130,27 +132,34 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
-            <NcDivider />
-            <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom" overlay-class-name="nc-lang-menu-overlay">
-              <NcMenuItem>
-                <div v-e="['c:translate:open']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
-                  {{ $t('labels.language') }}
-                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
-                  <div class="flex-1" />
+            <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)">
+              <NcDivider />
+              <a-popover
+                key="language"
+                class="lang-menu !py-1.5"
+                placement="rightBottom"
+                overlay-class-name="nc-lang-menu-overlay"
+              >
+                <NcMenuItem>
+                  <div v-e="['c:translate:open']" class="flex gap-2 items-center">
+                    <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                    {{ $t('labels.language') }}
+                    <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                    <div class="flex-1" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
-                </div>
-              </NcMenuItem>
+                    <MaterialSymbolsChevronRightRounded
+                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                    />
+                  </div>
+                </NcMenuItem>
 
-              <template #content>
-                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
-                  <LazyGeneralLanguageMenu />
-                </div>
-              </template>
-            </a-popover>
+                <template #content>
+                  <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                    <LazyGeneralLanguageMenu />
+                  </div>
+                </template>
+              </a-popover>
+            </template>
 
             <template v-if="!isMobileMode">
               <NcDivider />

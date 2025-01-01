@@ -9,6 +9,8 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')
@@ -215,7 +217,12 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
+              <a-tooltip
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)"
+                placement="bottom"
+                :mouse-enter-delay="1"
+                class="mr-4"
+              >
                 <template #title>{{ $t('title.switchLanguage') }}</template>
 
                 <div class="flex items-center">

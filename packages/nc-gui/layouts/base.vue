@@ -5,6 +5,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const email = computed(() => user.value?.email ?? '---')
 
 const hasSider = ref(false)
@@ -125,7 +127,7 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip placement="bottom">
+      <a-tooltip v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)" placement="bottom">
         <template #title>{{ $t('title.switchLanguage') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />

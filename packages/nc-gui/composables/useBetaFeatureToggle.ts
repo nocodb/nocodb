@@ -65,6 +65,14 @@ const FEATURES = [
     enabled: false,
     isEngineering: true,
   },
+  {
+    id: 'language',
+    title: 'Language',
+    description: 'Community/AI Translated',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

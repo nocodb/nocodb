@@ -74,23 +74,9 @@ const selectAll = () => {
   filteredColumns.value.forEach((c) => (selectedFields.value[c.id] = true))
 }
 
-const updateColumnsHash = async () => {
-  try {
-    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
-    return true
-  } catch {
-    return false
-  }
-}
-
 const createLookups = async () => {
   try {
     isLoading.value = true
-
-    const columnHash = await updateColumnsHash()
-    if (!columnHash) {
-      throw new Error('Error while updating columns hash')
-    }
 
     const bulkOpsCols: {
       op: 'add'
@@ -157,6 +143,10 @@ watch([relatedModel, searchField], async () => {
       (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
     )
   }
+})
+
+onMounted(async () => {
+  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

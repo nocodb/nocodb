@@ -43,10 +43,7 @@ onMounted(async () => {
         </span>
         <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-5">
           <div class="flex items-center gap-5">
-            <GeneralWorkspaceIcon
-              :workspace="org"
-              size="xlarge"
-            />
+            <GeneralWorkspaceIcon :workspace="org" size="xlarge" />
             <span class="text-gray-900 text-2xl font-semibold"> {{ org.title }} </span>
           </div>
           <div class="flex border-1 rounded-lg border-gray-200">

@@ -728,7 +728,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     v-if="metas"
                     :key="lookupDropdownsTickle"
                     :column="meta?.columnsById?.[field.fk_column_id!]!"
-                    :disabled="isLocalMode"
+                    :disabled="!!(isLocked || isLocalMode || !(isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value))"
                     @created="lookupDropdownsTickle++"
                     @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
                   >

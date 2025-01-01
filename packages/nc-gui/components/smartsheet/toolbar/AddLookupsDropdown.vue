@@ -28,13 +28,9 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { loadTables } = baseStore
-
 const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')
-
-const value = useVModel(props, 'value')
 
 const columnsHash = ref()
 
@@ -62,7 +58,7 @@ const initiatedTableLoad = ref(false)
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
 
-  if (fkRelatedModelId) {
+  if (fkRelatedModelId && !props.disabled) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
     if (!table?.columns && !initiatedTableLoad.value) {
@@ -77,6 +73,15 @@ const relatedModel = computedAsync(async () => {
 
 const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
 
+const updateColumnsHash = async () => {
+  try {
+    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+    return true
+  } catch {
+    return false
+  }
+}
+
 const createLookups = async () => {
   if (!hasSelectedFields.value) {
     return
@@ -84,6 +89,11 @@ const createLookups = async () => {
 
   try {
     isLoading.value = true
+
+    const columnHash = await updateColumnsHash()
+    if (!columnHash) {
+      throw new Error('Error while updating columns hash')
+    }
 
     const bulkOpsCols: {
       op: 'add'
@@ -139,6 +149,7 @@ const createLookups = async () => {
     emit('created')
   } catch (e) {
     console.error(e)
+    message.error('Failed to create lookup columns')
   } finally {
     isLoading.value = false
   }
@@ -151,10 +162,6 @@ watch([relatedModel, searchField], async () => {
       .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
       .filter((c) => searchCompare([c?.title], searchField.value))
   }
-})
-
-onMounted(async () => {
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 
 const refSearchField = useTemplateRef<HTMLInputElement>('refSearchField')
@@ -176,12 +183,7 @@ watch(isOpened, (val) => {
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isOpened"
-    :disabled="!isLinksOrLTAR(column) || props.disabled"
-    placement="right"
-    overlay-class-name="!min-w-[256px]"
-  >
+  <NcDropdown v-model:visible="isOpened" :disabled="props.disabled" placement="right" overlay-class-name="!min-w-[256px]">
     <slot />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">

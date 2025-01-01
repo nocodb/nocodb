@@ -215,10 +215,10 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip placement="bottom" :mouse-enter-delay="1">
+              <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
                 <template #title>{{ $t('title.switchLanguage') }}</template>
 
-                <div class="flex pr-4 items-center">
+                <div class="flex items-center">
                   <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </a-tooltip>

@@ -65,8 +65,8 @@ const relatedModel = computedAsync(async () => {
   if (fkRelatedModelId) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
-    if (!table && !initiatedTableLoad.value) {
-      await loadTables()
+    if (!table?.columns && !initiatedTableLoad.value) {
+      await getMeta(fkRelatedModelId, true)
       table = tables.value.find((t) => t.id === fkRelatedModelId)
       initiatedTableLoad.value = true
     }
@@ -178,7 +178,7 @@ watch(isOpened, (val) => {
 <template>
   <NcDropdown
     v-model:visible="isOpened"
-    :disabled="column.uidt !== 'Links' || props.disabled"
+    :disabled="!isLinksOrLTAR(column) || props.disabled"
     placement="right"
     overlay-class-name="!min-w-[256px]"
   >

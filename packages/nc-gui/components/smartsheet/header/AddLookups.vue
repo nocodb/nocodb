@@ -20,8 +20,6 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { loadTables } = baseStore
-
 const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')

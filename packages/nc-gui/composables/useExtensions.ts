@@ -293,8 +293,6 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const getExtensionAssetsUrl = (pathOrUrl: string) => {
-    console.log(import.meta.url)
-
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
     } else {

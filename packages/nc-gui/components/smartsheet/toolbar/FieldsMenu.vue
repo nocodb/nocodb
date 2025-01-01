@@ -740,7 +740,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                       }"
                       @click="conditionalToggleFieldVisibility(field)"
                     >
-                      <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" @click.stop />
+                      <component
+                        :is="getIcon(metaColumnById[field.fk_column_id])"
+                        class="!w-3.5 !h-3.5 !text-gray-600"
+                        @click.stop
+                      />
 
                       <div class="inline-flex items-center w-full">
                         <NcTooltip
@@ -888,6 +892,9 @@ const onAddColumnDropdownVisibilityChange = () => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.nc-toolbar-dropdown-search-field-input .ant-input::placeholder) {
+  @apply text-gray-500;
+}
 :deep(.xxsmall) {
   @apply !min-w-0;
 }

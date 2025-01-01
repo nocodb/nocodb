@@ -73,15 +73,6 @@ const relatedModel = computedAsync(async () => {
 
 const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
 
-const updateColumnsHash = async () => {
-  try {
-    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
-    return true
-  } catch {
-    return false
-  }
-}
-
 const createLookups = async () => {
   if (!hasSelectedFields.value) {
     return
@@ -89,11 +80,6 @@ const createLookups = async () => {
 
   try {
     isLoading.value = true
-
-    const columnHash = await updateColumnsHash()
-    if (!columnHash) {
-      throw new Error('Error while updating columns hash')
-    }
 
     const bulkOpsCols: {
       op: 'add'
@@ -179,6 +165,12 @@ watch(isOpened, (val) => {
     isInSearchMode.value = false
     searchField.value = ''
   }
+})
+
+onMounted(async () => {
+  if (props.disabled) return
+
+  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

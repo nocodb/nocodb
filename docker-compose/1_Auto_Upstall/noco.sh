@@ -610,6 +610,8 @@ EOF
     print_empty_line
   fi
 
+  set_default_options
+
   # Advanced Configuration
   if [ "$(prompt_oneof "Show Advanced Options?" "N" "Y")" = "Y" ]; then
     print_empty_line
@@ -622,7 +624,6 @@ EOF
     get_advanced_options
   else
     print_empty_line
-    set_default_options
   fi
 
   # Configuration Summary

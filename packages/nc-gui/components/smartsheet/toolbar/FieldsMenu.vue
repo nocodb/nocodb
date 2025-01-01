@@ -749,8 +749,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                       <NcTooltip
                         class="pl-1 truncate"
                         :class="{
-                        'mr-3 flex-1': !(!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt))
-                      }"
+                          'mr-3 flex-1': !(!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt))
+                        }"
                         show-on-truncate-only
                         :disabled="isDragging"
                       >
@@ -762,7 +762,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         </template>
                       </NcTooltip>
                       <div
-                        v-if="!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
+                        v-if="!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
                         class="flex-1 flex mr-3"
                       >
                         <GeneralIcon icon="chevronRight" class="flex-none" />

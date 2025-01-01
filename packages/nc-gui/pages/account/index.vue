@@ -215,7 +215,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
+              <a-tooltip placement="bottom" :mouse-enter-delay="1">
                 <template #title>{{ $t('title.switchLanguage') }}</template>
 
                 <div class="flex pr-4 items-center">

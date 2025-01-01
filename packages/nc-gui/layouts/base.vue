@@ -67,7 +67,7 @@ hooks.hook('page:finish', () => {
 
         <LazyGeneralReleaseInfo />
 
-        <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
+        <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title>{{ $t('title.switchLanguage') }}</template>
 
           <div class="flex pr-4 items-center">
@@ -125,7 +125,7 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip v-if="!appInfo.ee" placement="bottom">
+      <a-tooltip placement="bottom">
         <template #title>{{ $t('title.switchLanguage') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />

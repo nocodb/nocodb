@@ -74,9 +74,23 @@ const selectAll = () => {
   filteredColumns.value.forEach((c) => (selectedFields.value[c.id] = true))
 }
 
+const updateColumnsHash = async () => {
+  try {
+    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+    return true
+  } catch {
+    return false
+  }
+}
+
 const createLookups = async () => {
   try {
     isLoading.value = true
+
+    const columnHash = await updateColumnsHash()
+    if (!columnHash) {
+      throw new Error('Error while updating columns hash')
+    }
 
     const bulkOpsCols: {
       op: 'add'
@@ -130,6 +144,7 @@ const createLookups = async () => {
     value.value = false
   } catch (e) {
     console.error(e)
+    message.error('Failed to create lookup columns')
   } finally {
     isLoading.value = false
   }
@@ -137,15 +152,11 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value.id].columns
+    const columns = metas.value[relatedModel.value.id]?.columns || []
     filteredColumns.value = columns
       .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
       .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
   }
-})
-
-onMounted(async () => {
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

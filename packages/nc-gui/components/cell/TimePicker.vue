@@ -339,7 +339,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
         :value="cellValue"
         :placeholder="placeholder"
         class="nc-time-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly || !!isMobileMode"
+        :readonly="readOnly"
         @blur="onBlur"
         @focus="onFocus"
         @keydown="handleKeydown($event, isOpen)"

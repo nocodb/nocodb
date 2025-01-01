@@ -427,6 +427,9 @@ watch(
 )
 
 useMenuCloseOnEsc(open)
+
+const addColumnDropdown = ref(false)
+
 </script>
 
 <template>
@@ -585,18 +588,18 @@ useMenuCloseOnEsc(open)
           </div>
         </div>
 
-        <div class="px-2" @click.stop>
+        <div @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
             :placeholder="$t('placeholder.searchFields')"
-            class="nc-toolbar-dropdown-search-field-input"
+            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none"
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
           ></a-input>
         </div>
 
-        <div class="flex flex-col mt-2 pb-2 nc-scrollbar-thin max-h-[47vh] px-2">
+        <div class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -719,26 +722,53 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
-          <NcButton
-            class="nc-fields-show-all-fields"
-            size="small"
-            type="ghost"
-            :disabled="isLocked"
-            @click="showAllColumns = !showAllColumns"
-          >
-            {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
-          </NcButton>
+
+        <div v-if="!filterQuery" class="flex px-1 gap-1 py-1 border-t-1 justify-between border-gray-100">
           <NcButton
             v-if="!isLocalMode"
             class="nc-fields-show-system-fields"
             size="small"
-            type="ghost"
+            type="text"
             :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
-            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
+            <template v-if="!showSystemField">
+              <GeneralIcon icon="eyeSlash" class="!w-3 !h-3 mr-2" />
+              System fields
+            </template>
+            <template v-else>
+              <GeneralIcon icon="eye" class="!w-3 !h-3 mr-2" />
+              System fields
+            </template>
           </NcButton>
+          <a-dropdown
+            v-model:visible="addColumnDropdown"
+            :trigger="['click']"
+            overlay-class-name="nc-dropdown-grid-add-column"
+            placement="right"
+          >
+            <NcButton
+              class="nc-fields-show-all-fields"
+              size="small"
+              type="ghost"
+            >
+              <GeneralIcon icon="plus" class="!w-3 !h-3 mr-2 mb-1 text-primary" />
+              <span class="text-primary">New Field</span>
+            </NcButton>
+            <template #overlay>
+              <div class="nc-edit-or-add-provider-wrapper">
+                <!-- :column-position="columnOrder" -->
+                <LazySmartsheetColumnEditOrAddProvider
+                  v-if="addColumnDropdown"
+                  ref="editOrAddProviderRef"
+                  @submit="addColumnDropdown = false"
+                  @cancel="addColumnDropdown = false"
+                  @click.stop
+                  @keydown.stop
+                />
+              </div>
+            </template>
+          </a-dropdown>
         </div>
 
         <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
@@ -758,10 +788,10 @@ useMenuCloseOnEsc(open)
 
 .nc-fields-show-all-fields,
 .nc-fields-show-system-fields {
-  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100;
+  @apply !text-xs !text-gray-700 !border-none bg-transparent;
 
   &:not(:disabled) {
-    @apply hover:(!text-gray-600 bg-gray-200);
+    @apply hover:(!text-gray-800 bg-gray-200);
   }
 }
 

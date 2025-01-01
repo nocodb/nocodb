@@ -117,9 +117,8 @@ const createLookups = async () => {
 
     await getMeta(meta?.value?.id as string, true)
 
-    isOpened.value = false;
-    selectedFields.value = {};
-
+    isOpened.value = false
+    selectedFields.value = {}
   } catch (e) {
     console.error(e)
   } finally {
@@ -144,12 +143,16 @@ const isOpened = ref(false)
 </script>
 
 <template>
-  <NcDropdown :disabled="column.uidt !== 'Links'" placement="right" :trigger="['click']" v-model:visible="isOpened">
+  <NcDropdown v-model:visible="isOpened" :disabled="column.uidt !== 'Links'" placement="right" :trigger="['click']">
     <slot />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">
         <div @click.stop>
-          <a-input v-model:value="searchField" class="w-full !border-0 !ring-0 !outline-0 a-input-without-effect" placeholder="Search field to add as lookup">
+          <a-input
+            v-model:value="searchField"
+            class="w-full !border-0 !ring-0 !outline-0 a-input-without-effect"
+            placeholder="Search field to add as lookup"
+          >
             <template #prefix>
               <component :is="iconMap.search" class="w-3 text-gray-500 h-3 mr-2" />
             </template>
@@ -172,10 +175,10 @@ const isOpened = ref(false)
                       </template>
                       <template #default>{{ field.title }}</template>
                     </NcTooltip>
-    
+
                     <NcCheckbox v-model:checked="selectedFields[field.id]" size="default" />
                   </div>
-    
+
                   <div class="flex-1" />
                 </div>
               </template>
@@ -196,7 +199,6 @@ const isOpened = ref(false)
               }}
             </NcButton>
           </div>
-
         </div>
       </div>
     </template>
@@ -204,10 +206,10 @@ const isOpened = ref(false)
 </template>
 
 <style scoped>
-  .a-input-without-effect {
-    border: none !important
-  }
-  :deep(.a-input-without-effect .ant-input) {
-    font-size: 0.75rem !important;
-  }
+.a-input-without-effect {
+  border: none !important;
+}
+:deep(.a-input-without-effect .ant-input) {
+  font-size: 0.75rem !important;
+}
 </style>

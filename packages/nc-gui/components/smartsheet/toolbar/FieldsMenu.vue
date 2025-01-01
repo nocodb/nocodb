@@ -431,9 +431,8 @@ useMenuCloseOnEsc(open)
 const addColumnDropdown = ref(false)
 
 function getColumnOfField(field: Field) {
-  return meta.value?.columns?.find(it => it.id === field.fk_column_id)
+  return meta.value?.columns?.find((it) => it.id === field.fk_column_id)
 }
-
 </script>
 
 <template>
@@ -601,16 +600,14 @@ function getColumnOfField(field: Field) {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
             <template #suffix>
-              <NcSwitch
-                v-model:checked="showAllColumns"
-                size="xsmall"
-                class="!mr-1"
-              />
+              <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
             </template>
           </a-input>
         </div>
 
-        <div class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin">
+        <div
+          class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
+        >
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -680,11 +677,7 @@ function getColumnOfField(field: Field) {
                         <template #default>
                           <div class="inline-flex items-center">
                             {{ field.title }}
-                            <GeneralIcon
-                              v-if="getColumnOfField(field)?.uidt === 'Links'"
-                              icon="chevronRight"
-                              class="ml-2"
-                            />
+                            <GeneralIcon v-if="getColumnOfField(field)?.uidt === 'Links'" icon="chevronRight" class="ml-2" />
                           </div>
                         </template>
                       </NcTooltip>
@@ -701,10 +694,7 @@ function getColumnOfField(field: Field) {
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
                         <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.bold"
-                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
-                        />
+                        <div v-if="field.bold" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
                       </NcButton>
                       <NcButton
                         :class="{
@@ -717,10 +707,7 @@ function getColumnOfField(field: Field) {
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
                         <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.italic"
-                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
-                        />
+                        <div v-if="field.italic" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
                       </NcButton>
                       <NcButton
                         :class="{
@@ -733,10 +720,7 @@ function getColumnOfField(field: Field) {
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
                         <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
-                        <div
-                          v-if="field.underline"
-                          class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0"
-                        />
+                        <div v-if="field.underline" class="bg-primary w-1 h-1 rounded-full absolute top-0 right-0" />
                       </NcButton>
                     </div>
                     <NcSwitch
@@ -744,12 +728,14 @@ function getColumnOfField(field: Field) {
                       :disabled="field.isViewEssentialField || isLocked"
                       size="xsmall"
                       @change="$e('a:fields:show-hide')"
-                      @click="() => {
-                        if (getColumnOfField(field)?.uidt === 'Links') {
-                          field.show = !field.show
-                          toggleFieldVisibility(field.show, field)
+                      @click="
+                        () => {
+                          if (getColumnOfField(field)?.uidt === 'Links') {
+                            field.show = !field.show
+                            toggleFieldVisibility(field.show, field)
+                          }
                         }
-                      }"
+                      "
                     />
                   </div>
 
@@ -784,11 +770,7 @@ function getColumnOfField(field: Field) {
             overlay-class-name="nc-dropdown-grid-add-column"
             placement="right"
           >
-            <NcButton
-              class="nc-fields-show-all-fields"
-              size="small"
-              type="ghost"
-            >
+            <NcButton class="nc-fields-show-all-fields" size="small" type="ghost">
               <GeneralIcon icon="plus" class="!w-3 !h-3 mr-2 mb-1 text-primary" />
               <span class="text-primary">New Field</span>
             </NcButton>

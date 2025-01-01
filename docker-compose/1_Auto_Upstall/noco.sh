@@ -753,7 +753,6 @@ EOF
     env_file: docker.env
     environment:
       - NC_WORKER_CONTAINER=true
-    restart: unless-stopped
     networks:
       - nocodb-network
 EOF

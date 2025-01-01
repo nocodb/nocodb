@@ -49,15 +49,19 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
+const isLoadingModel = ref(false)
+
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
 
   if (fkRelatedModelId) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
-    if (!table) {
-      await loadTables()
+    if (!table?.columns) {
+      isLoadingModel.value = true
+      await getMeta(fkRelatedModelId, true)
       table = tables.value.find((t) => t.id === fkRelatedModelId)
+      isLoadingModel.value = false
     }
     return table
   }
@@ -176,8 +180,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200">
-        <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
+      <div
+        :class="{
+          'flex items-center justify-center': isLoadingModel,
+        }"
+        class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
+      >
+        <Draggable v-if="!isLoadingModel" v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
           <template #item="{ element: field }">
             <div
               :key="field.id"
@@ -202,6 +211,10 @@ onMounted(async () => {
             </div>
           </template>
         </Draggable>
+
+        <div v-else>
+          <GeneralLoader size="xlarge" />
+        </div>
       </div>
 
       <div class="flex w-full gap-2 justify-end">

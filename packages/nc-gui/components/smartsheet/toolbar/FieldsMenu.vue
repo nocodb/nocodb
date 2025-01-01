@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { CalendarType, ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
+import { type CalendarType, type ColumnType, type GalleryType, type KanbanType, type LookupType, isLinksOrLTAR } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
@@ -458,7 +458,7 @@ function scrollToLatestField() {
 }
 
 function conditionalToggleFieldVisibility(field: Field) {
-  if (isLocked.value || (meta.value?.columnsById?.[field.fk_column_id!]?.uidt === 'Links' && !isLocalMode.value)) {
+  if (isLocked.value || (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value)) {
     return
   }
 
@@ -467,7 +467,7 @@ function conditionalToggleFieldVisibility(field: Field) {
 }
 
 function handleFieldVisibilityClick(field: Field) {
-  if (meta.value?.columnsById?.[field.fk_column_id!]?.uidt === 'Links') {
+  if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
     field.show = !field.show
     toggleFieldVisibility(field.show, field)
   }
@@ -750,10 +750,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcTooltip
                           class="pl-1 truncate"
                           :class="{
-                            'max-w-[110px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'),
-                            'max-w-[130px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt !== 'Links'),
-                            'max-w-[180px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'),
-                            'max-w-[210px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt !== 'Links'),
+                            'max-w-[110px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
+                            'max-w-[130px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && !isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
+                            'max-w-[180px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
+                            'max-w-[210px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && !isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
                           }"
                           show-on-truncate-only
                           :disabled="isDragging"
@@ -766,7 +766,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </template>
                         </NcTooltip>
                         <GeneralIcon
-                          v-if="!isLocalMode && meta?.columnsById?.[field.fk_column_id!]?.uidt === 'Links'"
+                          v-if="!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
                           icon="chevronRight"
                           class="ml-1"
                         />

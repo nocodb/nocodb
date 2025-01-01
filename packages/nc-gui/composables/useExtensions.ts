@@ -297,18 +297,9 @@ export const useExtensions = createSharedComposable(() => {
 
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
+    } else {
+      return new URL(`../extensions/${pathOrUrl}`, import.meta.url).href
     }
-
-    const cleanPath = pathOrUrl.replace(/^\/+|\/+$/g, '')
-    const baseUrl = import.meta.url.includes('?') ? (import.meta.url.split('?')[0] as string) : import.meta.url
-
-    // If running in development mode
-    if (baseUrl.includes('/@fs/')) {
-      const projectRoot = baseUrl.split('/packages/')[0]
-      return `${projectRoot}/packages/nc-gui/extensions/${cleanPath}`
-    }
-
-    return new URL(`../extensions/${cleanPath}`, baseUrl).href
   }
 
   class KvStore<T extends Record<string, any> = any> implements IKvStore<T> {

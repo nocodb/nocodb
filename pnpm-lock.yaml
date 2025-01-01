@@ -461,7 +461,7 @@ importers:
         specifier: ^1.8.1
         version: 1.8.1(ioredis@5.4.1)(magicast@0.3.5)(rollup@4.28.0)
       '@nuxt/kit':
-        specifier: ^3.15.0
+        specifier: ^3.14.1592
         version: 3.15.0(magicast@0.3.5)(rollup@4.28.0)
       '@sentry/vite-plugin':
         specifier: ^2.10.2
@@ -551,7 +551,7 @@ importers:
         specifier: ^6.0.4
         version: 6.0.4(encoding@0.1.13)
       nuxt:
-        specifier: ^3.15.0
+        specifier: ^3.14.1592
         version: 3.15.0(@parcel/watcher@2.4.1)(@types/node@22.10.2)(db0@0.2.1(mysql2@3.9.7))(encoding@0.1.13)(eslint@8.56.0)(ioredis@5.4.1)(magicast@0.3.5)(mysql2@3.9.7)(optionator@0.9.3)(rollup@4.28.0)(sass@1.71.1)(terser@5.28.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.10.2)(sass@1.71.1)(terser@5.28.1))(xml2js@0.6.2)(yaml@2.6.1)
       nuxt-windicss:
         specifier: ^3.0.1
@@ -1258,7 +1258,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.6.8
-        version: 1.6.8(debug@3.2.7)
+        version: 1.6.8(debug@4.3.4)
       dayjs:
         specifier: ^1.11.11
         version: 1.11.12
@@ -6091,21 +6091,25 @@ packages:
     resolution: {integrity: sha512-4atnoknJx/c3KaQElsMIxHMpPf2jcRRdWsH/SdqJIRSrkWWakMK9Yv4TFwH680I4HDTMf1XLboMVScHzW8e+Mg==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rspack/binding-linux-arm64-musl@1.1.6':
     resolution: {integrity: sha512-7QMtwUtgFpt3/Y3/X18fSyN+kk4H8ZnZ8tDzQskVWc/j2AQYShZq56XQYqrhClzwujcCVAHauIQ2eiuJ2ASGag==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rspack/binding-linux-x64-gnu@1.1.6':
     resolution: {integrity: sha512-MTjDEfPn4TwHoqs5d5Fck06kmXiTHZctGIcRVfrpg0RK0r1NLEHN+oosavRZ9c9H70f34+NmcHk+/qvV4c8lWg==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rspack/binding-linux-x64-musl@1.1.6':
     resolution: {integrity: sha512-LqDw7PTVr/4ZuGA0izgDQfamfr72USFHltR1Qhy2YVC3JmDmhG/pQi13LHcOLVaGH1xoeyCmEPNJpVizzDxSjg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rspack/binding-win32-arm64-msvc@1.1.6':
     resolution: {integrity: sha512-RHApLM93YN0WdHpS35u2cm7VCqZ8Yg3CrNRL16VJtyT9e6MBqeScoe4XIgIWKPm7edFyedYAjLX0wQOApwfjkg==}
@@ -19379,7 +19383,7 @@ snapshots:
   '@aws-amplify/api-rest@3.5.5(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.0)(@babel/preset-env@7.24.0(@babel/core@7.26.0))(encoding@0.1.13)(react@18.2.0))':
     dependencies:
       '@aws-amplify/core': 5.8.5(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.0)(@babel/preset-env@7.24.0(@babel/core@7.26.0))(encoding@0.1.13)(react@18.2.0))
-      axios: 1.6.8(debug@3.2.7)
+      axios: 1.6.8(debug@4.3.4)
       tslib: 1.14.1
       url: 0.11.0
     transitivePeerDependencies:
@@ -29918,7 +29922,7 @@ snapshots:
       vue-demi: 0.14.7(vue@3.5.13)
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.6.8(debug@3.2.7)
+      axios: 1.6.8(debug@4.3.4)
       change-case: 5.4.4
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -38244,7 +38248,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.6.8(debug@3.2.7)
+      axios: 1.6.8(debug@4.3.4)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -41274,7 +41278,7 @@ snapshots:
       estree-walker: 3.0.3
       is-reference: 3.0.2
       locate-character: 3.0.0
-      magic-string: 0.30.14
+      magic-string: 0.30.17
       periscopic: 3.1.0
 
   svg-tags@1.0.0: {}

@@ -158,9 +158,9 @@ const createLookups = async () => {
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
     const columns = metas.value[relatedModel.value?.id]?.columns || []
-    filteredColumns.value = columns
-      .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
-      .filter((c) => searchCompare([c?.title], searchField.value))
+    filteredColumns.value = columns.filter(
+      (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
+    )
   }
 })
 

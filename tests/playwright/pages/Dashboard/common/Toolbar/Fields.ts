@@ -90,7 +90,7 @@ export class ToolbarFieldsPage extends BasePage {
   async toggleShowAllFields({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
     await this.waitForResponse({
-      uiAction: () => this.get().locator(`.nc-fields-show-all-fields`).click(),
+      uiAction: () => this.get().locator(`.nc-fields-toggle-show-all-fields`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       timeout: 30000, // for Kanban, show all fields can take a long time

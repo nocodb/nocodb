@@ -3,7 +3,7 @@ const props = withDefaults(
   defineProps<{
     checked: boolean
     disabled?: boolean
-    size?: 'default' | 'small' | 'xsmall'
+    size?: 'default' | 'small' | 'xsmall' | 'xxsmall'
     placement?: 'left' | 'right'
     loading?: boolean
     contentWrapperClass?: string
@@ -56,6 +56,7 @@ const onChange = (e: boolean, updateValue = false) => {
     class="nc-switch"
     :class="{
       'size-xsmall': size === 'xsmall',
+      'size-xxsmall': size === 'xxsmall',
     }"
     :loading="loading"
     v-bind="$attrs"
@@ -98,6 +99,27 @@ const onChange = (e: boolean, updateValue = false) => {
 
     :deep(.ant-switch-inner) {
       @apply !mr-[18px] !ml-[5px];
+    }
+  }
+}
+.size-xxsmall {
+  @apply h-2.5 min-w-[18px] leading-[12px];
+
+  :deep(.ant-switch-handle) {
+    @apply h-[6px] w-[6px] top-[2px] left-[calc(100%_-_16px)];
+  }
+
+  :deep(.ant-switch-inner) {
+    @apply !mr-[4px] !ml-[8px] !my-0;
+  }
+
+  &.ant-switch-checked {
+    :deep(.ant-switch-handle) {
+      @apply left-[calc(100%_-_8px)];
+    }
+
+    :deep(.ant-switch-inner) {
+      @apply !mr-[12px] !ml-[4px];
     }
   }
 }

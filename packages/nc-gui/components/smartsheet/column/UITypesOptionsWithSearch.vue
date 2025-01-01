@@ -70,18 +70,18 @@ const { isSystem } = useColumnCreateStoreOrThrow()
 
 <template>
   <div
-    class="flex-1 border-1 border-gray-200 rounded-lg flex flex-col py-2"
+    class="flex-1 border-1 border-gray-200 rounded-lg flex flex-col pb-2"
     data-testid="nc-column-uitypes-options-list-wrapper"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(filteredOptions[activeFieldIndex].name)"
   >
-    <div class="w-full pb-2 px-2" @click.stop>
+    <div class="w-full mb-2 !border-b-1" @click.stop>
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
         placeholder="Search field type"
-        class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input"
+        class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input !border-none !shadow-none !py-2 !rounded-t-lg"
         :disabled="isSystem"
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"

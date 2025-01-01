@@ -1423,6 +1423,7 @@
     "filterQuery": "പ്രവൃത്തി നിർത്തലാക്കൽ",
     "selectField": "ഫീൽഡ് തിരഞ്ഞെടുക്കുക",
     "precision": "കാരണശുദ്ധി",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",

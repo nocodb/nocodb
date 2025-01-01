@@ -1423,6 +1423,7 @@
     "filterQuery": "ការស្វែងរកត្រង់",
     "selectField": "ជ្រើសរើសវាល",
     "precision": "ភាពត្រឹមត្រូវ",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",

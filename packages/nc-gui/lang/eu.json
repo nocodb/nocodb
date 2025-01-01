@@ -1423,6 +1423,7 @@
     "filterQuery": "Filtro kontsulta",
     "selectField": "Hautatu eremua",
     "precision": "Doitasuna",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",

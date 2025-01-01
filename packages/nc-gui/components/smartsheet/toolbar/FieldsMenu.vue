@@ -608,7 +608,7 @@ function scrollToLatestField() {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div class="nc-scrollbar-thin" style="scrollbar-gutter: stable;">
+              <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important;">
                 <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
               </div>
             </template>
@@ -616,8 +616,8 @@ function scrollToLatestField() {
         </div>
 
         <div
-          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
-          style="scrollbar-gutter: stable;"
+          class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100"
+          style="scrollbar-gutter: stable !important;"
         >
           <div class="nc-fields-list">
             <div

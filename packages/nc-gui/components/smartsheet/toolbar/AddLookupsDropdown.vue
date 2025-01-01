@@ -202,7 +202,10 @@ watch(isOpened, (val) => {
                 </a-input>
               </template>
               <template v-else>
-                <div class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full overflow-auto" style="scrollbar-gutter: stable;">
+                <div
+                  class="flex justify-between items-center pl-4 pr-2 py-1.5 absolute w-full overflow-auto"
+                  style="scrollbar-gutter: stable"
+                >
                   <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
                     <component :is="iconMap.search" class="w-4 h-4" />
@@ -211,7 +214,7 @@ watch(isOpened, (val) => {
               </template>
             </transition>
           </div>
-          <div class="border-y-1 h-[310px] border-gray-200 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable;">
+          <div class="border-y-1 h-[310px] border-gray-200 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
             <div v-for="field of filteredColumns" :key="field.id">
               <div
                 :key="field.id"

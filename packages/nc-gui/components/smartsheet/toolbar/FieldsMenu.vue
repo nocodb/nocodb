@@ -728,7 +728,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     v-if="metas"
                     :key="lookupDropdownsTickle"
                     :column="meta?.columnsById?.[field.fk_column_id!]!"
-                    :disabled="isLocalMode"
+                    :disabled="!!(isLocked || isLocalMode || !(isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value))"
                     @created="lookupDropdownsTickle++"
                     @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
                   >
@@ -746,30 +746,26 @@ const onAddColumnDropdownVisibilityChange = () => {
                         @click.stop
                       />
 
-                      <div class="inline-flex items-center w-full">
-                        <NcTooltip
-                          class="pl-1 truncate"
-                          :class="{
-                            'max-w-[110px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
-                            'max-w-[130px]': activeView?.type === ViewTypes.CALENDAR && (!isLocalMode && !isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
-                            'max-w-[180px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
-                            'max-w-[210px]': activeView?.type !== ViewTypes.CALENDAR && (!isLocalMode && !isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!])),
-                          }"
-                          show-on-truncate-only
-                          :disabled="isDragging"
-                        >
-                          <template #title>
-                            {{ field.title }}
-                          </template>
-                          <template #default>
-                            {{ field.title }}
-                          </template>
-                        </NcTooltip>
-                        <GeneralIcon
-                          v-if="!isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
-                          icon="chevronRight"
-                          class="ml-1"
-                        />
+                      <NcTooltip
+                        class="pl-1 truncate"
+                        :class="{
+                          'mr-3 flex-1': !(!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt))
+                        }"
+                        show-on-truncate-only
+                        :disabled="isDragging"
+                      >
+                        <template #title>
+                          {{ field.title }}
+                        </template>
+                        <template #default>
+                          {{ field.title }}
+                        </template>
+                      </NcTooltip>
+                      <div
+                        v-if="!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
+                        class="flex-1 flex mr-3"
+                      >
+                        <GeneralIcon icon="chevronRight" class="flex-none" />
                       </div>
 
                       <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">

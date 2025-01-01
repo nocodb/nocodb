@@ -191,7 +191,7 @@ const logout = async () => {
               <LazyGeneralReleaseInfo />
 
               <a-tooltip
-                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)"
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || true"
                 :mouse-enter-delay="1"
                 placement="bottom"
                 class="mr-4"

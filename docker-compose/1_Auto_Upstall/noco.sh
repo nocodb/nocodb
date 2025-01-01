@@ -753,11 +753,26 @@ EOF
     env_file: docker.env
     environment:
       - NC_WORKER_CONTAINER=true
-    depends_on:
-      - nocodb
     restart: unless-stopped
     networks:
       - nocodb-network
+EOF
+
+	  if [ -n "$gen_postgres" ] || [ -n "$gen_redis" ] || [ "$gen_redis" ]; then
+		  cat >>"$compose_file" <<EOF
+    depends_on:
+      ${gen_postgres:+- db}
+      ${gen_redis:+- redis}
+      ${gen_minio:+- minio}
+EOF
+  	fi
+
+    cat >>"$compose_file" <<EOF
+    restart: unless-stopped
+    volumes:
+      - ./nocodb:/usr/app/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 EOF
 	fi
 

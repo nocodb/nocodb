@@ -433,6 +433,9 @@ const addColumnDropdown = ref(false)
 function getColumnOfField(field: Field) {
   return meta.value?.columns?.find((it) => it.id === field.fk_column_id)
 }
+
+const columnedKeys = reactive<Record<string, number>>({});
+
 </script>
 
 <template>
@@ -669,7 +672,11 @@ function getColumnOfField(field: Field) {
                     "
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5" />
-                    <SmartsheetToolbarAddLookupsDropdown v-if="metas" :column="getColumnOfField(field)!">
+                    <SmartsheetToolbarAddLookupsDropdown
+                      v-if="metas"
+                      :key="columnedKeys[getColumnOfField(field)?.id || '0']"
+                      :column="getColumnOfField(field)!"
+                      @created="columnedKeys[getColumnOfField(field)?.id || '0'] = (columnedKeys[getColumnOfField(field)?.id || '0'] || 0) + 1">
                       <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
                         <template #title>
                           {{ field.title }}

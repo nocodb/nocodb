@@ -744,6 +744,22 @@ EOF
       - nocodb-network
 EOF
 
+  # If the edition is EE, add worker service to the compose file
+	if [ "$CONFIG_EDITION" = "EE" ]; then
+		cat >>"$compose_file" <<EOF
+  worker:
+    image: ${image}
+    env_file: docker.env
+    environment:
+      - NC_WORKER_CONTAINER=true
+    depends_on:
+      - nocodb
+    restart: unless-stopped
+    networks:
+      - nocodb-network
+EOF
+	fi
+
 	if [ "$CONFIG_POSTGRES_SQLITE" = "P" ]; then
 		cat >>"$compose_file" <<EOF
   db:
@@ -917,6 +933,14 @@ EOF
 REDIS_PASSWORD=${CONFIG_REDIS_PASSWORD}
 NC_REDIS_URL=redis://:${ENCODED_REDIS_PASSWORD}@redis:6379/0
 EOF
+
+		# If the edition is EE, configure the redis job URL and throttler redis
+		if [ "${CONFIG_EDITION}" = "EE" ]; then
+			cat >>"$env_file" <<EOF
+NC_REDIS_JOB_URL=redis://:${ENCODED_REDIS_PASSWORD}@redis:6379/1
+NC_THROTTLER_REDIS=redis://:${ENCODED_REDIS_PASSWORD}@redis:6379/2
+EOF
+		fi
 	fi
 
 	if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then

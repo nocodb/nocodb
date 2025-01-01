@@ -6,6 +6,7 @@ import type { AddMarkStep, Step } from 'prosemirror-transform'
 export const Link = TiptapLink.extend({
   addOptions() {
     return {
+      ...this.parent?.(),
       openOnClick: true,
       linkOnPaste: true,
       autolink: true,
@@ -15,11 +16,10 @@ export const Link = TiptapLink.extend({
         rel: 'noopener noreferrer nofollow',
         class: null,
       },
-      validate: undefined,
+      validate: (_url) => true,
       internal: false,
     }
   },
-
   addAttributes() {
     return {
       href: {
@@ -138,5 +138,7 @@ export const Link = TiptapLink.extend({
     ]
   },
 }).configure({
+  protocols: [{ scheme: 'ftp' }, { scheme: 'mailto', optionalSlashes: true }, { scheme: 'tel', optionalSlashes: true }],
+  autolink: false,
   openOnClick: false,
 })

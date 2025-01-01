@@ -486,7 +486,7 @@ function getColumnOfField(field: Field) {
 
     <template #overlay>
       <div
-        class="pt-2 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu"
+        class="pt-1 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu"
         data-testid="nc-fields-menu"
         @click.stop
       >
@@ -598,7 +598,7 @@ function getColumnOfField(field: Field) {
             :placeholder="$t('placeholder.searchFields')"
             class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none"
           >
-            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
+            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
               <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
             </template>
@@ -606,7 +606,7 @@ function getColumnOfField(field: Field) {
         </div>
 
         <div
-          class="flex flex-col mt-2 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
+          class="flex flex-col mt-1 nc-scrollbar-thin max-h-[300px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-gray-100 nc-scrollbar-thin"
         >
           <div class="nc-fields-list">
             <div
@@ -748,7 +748,7 @@ function getColumnOfField(field: Field) {
           </div>
         </div>
 
-        <div v-if="!filterQuery" class="flex px-1 gap-1 py-1 border-t-1 justify-between border-gray-100">
+        <div v-if="!filterQuery" class="flex px-2 gap-1 py-2 border-t-1 justify-between border-gray-100">
           <NcButton
             v-if="!isLocalMode"
             class="nc-fields-show-system-fields !px-2"

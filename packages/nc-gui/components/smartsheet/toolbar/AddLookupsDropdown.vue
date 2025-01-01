@@ -12,7 +12,9 @@ const emit = defineEmits([
   'created',
 ]);
 
-const isOpened = ref(false)
+const isOpened = defineModel<boolean>('isOpened', {
+  default: false
+})
 
 const props = defineProps<Props>()
 
@@ -153,12 +155,21 @@ onMounted(async () => {
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 
+const refSearchField = useTemplateRef<HTMLInputElement>('refSearchField');
 const isInSearchMode = ref(false);
 
 watch(isOpened, (val) => {
   if (val) {
     isInSearchMode.value = false
     searchField.value = ''
+  }
+})
+
+watch(isInSearchMode, (val) => {
+  if (val) {
+    setTimeout(() => {
+      refSearchField.value?.focus()
+    }, 500)
   }
 })
 
@@ -175,6 +186,7 @@ watch(isOpened, (val) => {
               <template v-if="isInSearchMode">
                 <a-input
                   v-model:value="searchField"
+                  ref="refSearchField"
                   class="w-full !border-0 !ring-0 !outline-0 !py-3 a-input-without-effect absolute !bg-transparent"
                   placeholder="Search field to add as lookup"
                 >
@@ -195,7 +207,7 @@ watch(isOpened, (val) => {
               </template>
             </transition>
           </div>
-          <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200 py-2">
+          <div class="border-y-1 h-[300px] nc-scrollbar-md border-gray-200 py-2 nc-scrollbar-thin">
             <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
               <template #item="{ element: field }">
                 <div

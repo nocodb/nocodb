@@ -426,14 +426,13 @@ watch(
   },
 )
 
-useMenuCloseOnEsc(open)
-
 const addColumnDropdown = ref(false)
 
 function getColumnOfField(field: Field) {
   return meta.value?.columns?.find((it) => it.id === field.fk_column_id)
 }
 
+const openSubmenusCount = ref(0);
 const lookupDropdownsTickle = ref(0);
 
 function scrollToLatestField() {
@@ -449,6 +448,7 @@ function scrollToLatestField() {
     :trigger="['click']"
     class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
+    :auto-close="openSubmenusCount === 0"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <template #title>
@@ -608,7 +608,7 @@ function scrollToLatestField() {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div style="scrollbar-gutter: stable;">
+              <div class="nc-scrollbar-thin" style="scrollbar-gutter: stable;">
                 <NcSwitch v-model:checked="showAllColumns" size="xsmall" class="!mr-1" />
               </div>
             </template>
@@ -684,7 +684,8 @@ function scrollToLatestField() {
                       v-if="metas"
                       :key="lookupDropdownsTickle"
                       :column="getColumnOfField(field)!"
-                      @created="lookupDropdownsTickle++">
+                      @created="lookupDropdownsTickle++"
+                      @update:is-opened="openSubmenusCount += $event === true ? 1 : -1">
                       <div class="inline-flex items-center w-full">
                         <NcTooltip class="w-0 flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
                           <template #title>

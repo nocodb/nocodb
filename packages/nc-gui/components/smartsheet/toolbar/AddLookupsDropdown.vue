@@ -6,6 +6,7 @@ import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 interface Props {
   column: ColumnType
   value?: boolean
+  disabled?: boolean
 }
 
 const emit = defineEmits([
@@ -57,15 +58,18 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
+const initiatedTableLoad = ref(false);
+
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
 
   if (fkRelatedModelId) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
-    if (!table) {
+    if (!table && !initiatedTableLoad.value) {
       await loadTables()
       table = tables.value.find((t) => t.id === fkRelatedModelId)
+      initiatedTableLoad.value = true
     }
     return table
   }
@@ -176,7 +180,7 @@ watch(isInSearchMode, (val) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpened" :disabled="column.uidt !== 'Links'" placement="right" :trigger="['click']">
+  <NcDropdown v-model:visible="isOpened" :disabled="column.uidt !== 'Links' || props.disabled" placement="right" :trigger="['click']">
     <slot />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">

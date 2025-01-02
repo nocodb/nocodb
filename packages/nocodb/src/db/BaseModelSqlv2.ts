@@ -35,7 +35,6 @@ import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
-import type CustomKnex from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,

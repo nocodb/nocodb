@@ -24174,6 +24174,35 @@
           "id": "2x65v3n9xo8q3"
         }
       },
+      "PaginatedV3": {
+        "description": "Model for Paginated",
+        "examples": [
+          {
+            "next": "http://api.nocodd.com/api/v3/tables/id?page=3",
+            "prev": "http://api.nocodd.com/api/v3/tables/id?page=1"
+          }
+        ],
+        "properties": {
+          "next": {
+            "description": "URL to access next page",
+            "type": "string"
+          },
+          "prev": {
+            "description": "URL to access previous page",
+            "type": "string"
+          },
+          "nestedNext": {
+            "description": "URL to access current page data with next set of nested fields data",
+            "type": "string"
+          },
+          "nestedPrev": {
+            "description": "URL to access current page data with previous set of nested fields data",
+            "type": "string"
+          }
+        },
+        "title": "Paginated Model",
+        "type": "object"
+      },
       "Password": {
         "description": "Model for Password",
         "example": "password123456789",

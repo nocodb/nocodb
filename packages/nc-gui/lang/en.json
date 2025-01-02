@@ -1012,7 +1012,7 @@
     "importing": "Importing",
     "formatJson": "Format JSON",
     "autoSelectFieldTypes": "Auto-Select Field Types",
-    "firstRowAsHeaders": "Use First Record as Headers",
+    "firstRowAsHeaders": "Use first record as header",
     "flattenNested": "Flatten Nested",
     "downloadAllowed": "Download allowed",
     "weAreHiring": "We are Hiring!",

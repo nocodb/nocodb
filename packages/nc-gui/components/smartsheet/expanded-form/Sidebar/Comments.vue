@@ -395,11 +395,11 @@ const getUserRole = (email: string) => {
                       <GeneralIcon class="text-md" icon="checkCircle" />
                     </NcButton>
 
-                    <template #title>Click to resolve </template>
+                    <template #title>{{ $t('activity.clickToResolve') }}</template>
                   </NcTooltip>
 
                   <NcTooltip v-else-if="commentItem.resolved_by">
-                    <template #title>{{ `Resolved by ${commentItem.resolved_display_name}` }}</template>
+                    <template #title>{{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name}` }}</template>
                     <NcButton
                       class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
                       size="xsmall"

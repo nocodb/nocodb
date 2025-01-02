@@ -81,6 +81,8 @@ const focusOnDiv = () => {
   isDivFocused.value = true
 }
 
+const { t } = useI18n()
+
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
@@ -274,7 +276,7 @@ const inviteCollaborator = async () => {
       }
     }
 
-    message.success('Invitation sent successfully')
+    message.success(t('msg.info.inviteSent'))
     inviteData.email = ''
     emailBadges.value = []
     dialogShow.value = false

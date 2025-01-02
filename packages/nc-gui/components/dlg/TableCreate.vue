@@ -142,12 +142,8 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
     })
 }
 
-const predictMore = async (triggerTele = false) => {
+const predictMore = async () => {
   calledFunction.value = 'predictMore'
-
-  if (triggerTele) {
-    $e('a:table:ai:predict-more')
-  }
 
   const predictions = await predictNextTables()
 
@@ -159,12 +155,8 @@ const predictMore = async (triggerTele = false) => {
   }
 }
 
-const predictRefresh = async (triggerTele = false) => {
+const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
-
-  if (triggerTele) {
-    $e('a:table:ai:predict-refresh')
-  }
 
   const predictions = await predictNextTables()
 
@@ -177,14 +169,8 @@ const predictRefresh = async (triggerTele = false) => {
   aiModeStep.value = AiStep.pick
 }
 
-const predictFromPrompt = async (triggerTele = false) => {
+const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
-
-  if (triggerTele) {
-    $e('a:table:ai:predict-from-prompt', {
-      prompt: prompt.value,
-    })
-  }
 
   const predictions = await predictNextTables()
 
@@ -236,7 +222,7 @@ const onSelectAll = () => {
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
-  $e(`c:table:ai:toggle:${true}`)
+  $e('c:table:ai:toggle:true')
 
   aiError.value = ''
 
@@ -254,7 +240,7 @@ const toggleAiMode = async () => {
 }
 
 const disableAiMode = () => {
-  $e(`c:table:ai:toggle:${false}`)
+  $e('c:table:ai:toggle:false')
 
   aiMode.value = false
   aiModeStep.value = null
@@ -582,6 +568,7 @@ const handleRefreshOnError = () => {
                         placement="top"
                       >
                         <NcButton
+                          v-e="['a:table:ai:predict-more']"
                           size="xs"
                           class="!px-1"
                           type="text"
@@ -589,7 +576,7 @@ const handleRefreshOnError = () => {
                           :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictMore'"
                           icon-only
-                          @click="predictMore(true)"
+                          @click="predictMore"
                         >
                           <template #icon>
                             <GeneralIcon icon="ncPlusAi" class="!text-current" />
@@ -598,13 +585,14 @@ const handleRefreshOnError = () => {
                       </NcTooltip>
                       <NcTooltip title="Clear all and Re-suggest" placement="top">
                         <NcButton
+                          v-e="['a:table:ai:predict-refresh']"
                           size="xs"
                           class="!px-1"
                           type="text"
                           theme="ai"
                           :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictRefresh'"
-                          @click="predictRefresh(true)"
+                          @click="predictRefresh"
                         >
                           <template #loadingIcon>
                             <!-- eslint-disable vue/no-lone-template -->
@@ -649,7 +637,12 @@ const handleRefreshOnError = () => {
                       "
                       :loading="isPredictFromPromptLoading"
                       icon-only
-                      @click="predictFromPrompt(true)"
+                      @click="
+                        () => {
+                          $e('a:table:ai:predict-from-prompt', { prompt })
+                          predictFromPrompt()
+                        }
+                      "
                     >
                       <template #loadingIcon>
                         <GeneralLoader class="!text-purple-700" size="medium" />

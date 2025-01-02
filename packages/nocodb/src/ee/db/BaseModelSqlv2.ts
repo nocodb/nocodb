@@ -14,6 +14,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import BigNumber from 'bignumber.js';
 import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
@@ -660,7 +661,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async getHighestOrderInTable(): Promise<number> {
+  public async getHighestOrderInTable(): Promise<BigNumber> {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );
@@ -684,9 +685,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       res = await orderQuery;
     }
 
-    const order = res ? +res['max_order'] || 0 : 0;
+    const order = new BigNumber(res ? res['max_order'] || 0 : 0);
 
-    return order + ORDER_STEP_INCREMENT;
+    return order.plus(ORDER_STEP_INCREMENT);
   }
 
   async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
@@ -700,32 +701,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         return;
       }
 
-      let row = null;
-
-      if (before) {
-        row = await this.readByPk(
-          before,
-          false,
-          {},
-          { extractOrderColumn: true },
-        );
-      }
-      if (!row) {
+      if (!before) {
         const highestOrder = await this.getHighestOrderInTable();
 
-        const newOrders: number[] = [];
-        let currentOrder = highestOrder;
-
-        for (let i = 0; i < amount; i++) {
-          currentOrder += 1;
-          newOrders.push(currentOrder);
-        }
-
-        return newOrders;
+        return Array.from({ length: amount }).map((_, i) => {
+          return highestOrder.plus(i + 1);
+        });
       }
 
+      const row = await this.readByPk(
+        before,
+        false,
+        {},
+        { extractOrderColumn: true },
+      );
+
+      if (!row) {
+        return await this.getUniqueOrdersBeforeItem(null, amount, depth);
+      }
+
+      const currentRowOrder = new BigNumber(row[orderColumn.title] ?? 0);
+
       const resultQuery = this.dbDriver(this.tnPath)
-        .where(orderColumn.column_name, '<', row[orderColumn.title])
+        .where(orderColumn.column_name, '<', currentRowOrder.toString())
         .max(orderColumn.column_name + ' as maxOrder')
         .first();
 
@@ -740,26 +738,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         result = await resultQuery;
       }
 
-      const adjacentOrder = result.maxOrder || 0;
-      const newOrders = [];
-      let newOrder = adjacentOrder;
+      const adjacentOrder = new BigNumber(result.maxOrder || 0);
+
+      const orders = [];
 
       for (let i = 0; i < amount; i++) {
         const intermediateOrder = this.findIntermediateOrder(
-          newOrder,
-          row[orderColumn.title],
+          adjacentOrder.plus(i),
+          currentRowOrder,
         );
 
-        newOrder = Number(intermediateOrder.toFixed(20));
-
-        if (newOrder === adjacentOrder || newOrder === row[orderColumn.title]) {
-          NcError.cannotCalculateIntermediateOrderError();
+        if (
+          intermediateOrder.eq(adjacentOrder) ||
+          intermediateOrder.eq(currentRowOrder)
+        ) {
+          throw NcError.cannotCalculateIntermediateOrderError();
         }
-        newOrders.push(newOrder);
+
+        orders.push(intermediateOrder);
       }
-      return newOrders;
+
+      return orders;
     } catch (error) {
-      if ((error.error = NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER)) {
+      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
@@ -876,7 +877,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const query = this.dbDriver(this.tnPath)
       .update({
         [columns.find((c) => c.uidt === UITypes.Order).column_name]:
-          newRecordOrder,
+          newRecordOrder.toString(),
       })
       .where(await this._wherePk(rowId, true))
       .toQuery();
@@ -901,7 +902,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     cookie?: { user?: any },
     oldData?,
     extra?: {
-      ncOrder?: number;
+      ncOrder?: BigNumber;
       before?: string;
       undo?: boolean;
       raw?: boolean;
@@ -1578,7 +1579,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
-            ncOrder: order + index,
+            ncOrder: order.plus(index),
             undo: undo,
           });
 
@@ -1610,7 +1611,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             async (d, i) =>
               await this.prepareNocoData(d, true, cookie, null, {
                 raw,
-                ncOrder: order + i,
+                ncOrder: order.plus(i),
                 undo: undo,
               }),
           ),
@@ -1849,7 +1850,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ncOrder: order,
             undo,
           });
-          order++;
+          order = order.plus(1);
           dataWithoutPks.push(data);
         }
       }
@@ -1881,7 +1882,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ncOrder: order,
             undo,
           });
-          order++;
+          order = order.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

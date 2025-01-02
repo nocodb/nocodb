@@ -203,10 +203,15 @@ const handleFileRename = async () => {
 
           <div class="relative px-1 pb-1 items-center flex" :title="item.title">
             <div
-              class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5 truncate"
+              class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
+              :class="{ truncate: !isRenamingFile }"
               @dblclick.stop="handleFileRenameStart(i)"
             >
-              <NcTooltip v-if="!isRenamingFile || renameFileIdx !== i" class="truncate h-5 flex items-center" show-on-truncate-only>
+              <NcTooltip
+                v-if="!isRenamingFile || renameFileIdx !== i"
+                class="truncate h-5 flex items-center"
+                show-on-truncate-only
+              >
                 {{ item.title }}
 
                 <template #title>
@@ -217,7 +222,7 @@ const handleFileRename = async () => {
                 v-else
                 ref="inputBox"
                 v-model:value="newTitle"
-                class="!text-[12px] !h-5 !p-0 !bg-transparent !rounded-md"
+                class="!text-[12px] !h-5 !p-0 !px-0.5 !mr-1 !bg-transparent !rounded-md"
                 type="text"
                 @keydown.enter="handleFileRename"
                 @keydown.escape.stop="handleResetFileRename"
@@ -231,7 +236,7 @@ const handleFileRename = async () => {
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton
-                  class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
+                  class="!p-0 !w-5 !h-5 !text-gray-500 !min-w-[fit-content]"
                   size="xsmall"
                   type="text"
                   @click="downloadAttachment(item)"
@@ -255,7 +260,7 @@ const handleFileRename = async () => {
               <NcTooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
                 <template #title> {{ $t('title.removeFile') }} </template>
                 <NcButton
-                  class="!p-0 !h-4 !w-4 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
+                  class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
                   size="xsmall"
                   type="text"
                   @click="removeFile(i)"

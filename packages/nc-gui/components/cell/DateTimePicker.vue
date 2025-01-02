@@ -21,7 +21,7 @@ const timeFormatsObj = {
 
 const { isMssql, isXcdbBase } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -521,7 +521,7 @@ const currentDate = ($event) => {
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="!!isMobileMode || isColDisabled"
+            :readonly="isColDisabled"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
             @keydown="handleKeydown($event, open)"

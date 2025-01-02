@@ -322,13 +322,15 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
-            <component
-              :is="iconMap.delete"
-              v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-              class="!hover:text-gray-400"
-            />
-          </NcButton>
+          <NcTooltip v-if="!isReadonly && (isSharedForm || (isUIAllowed('dataEdit') && !isPublic))" color="light" placement="bottomRight">
+            <template #title> {{ $t('title.removeFile') }} </template>
+            <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
+              <component
+                :is="iconMap.delete"
+                class="!hover:text-gray-400"
+              />
+            </NcButton>
+          </NcTooltip>
         </div>
         <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
           <template #entity-preview>

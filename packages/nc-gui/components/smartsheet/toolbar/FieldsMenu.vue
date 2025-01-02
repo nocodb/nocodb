@@ -853,7 +853,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
-            <span class="text-sm font-weight-600"> System fields </span>
+            <span class="text-sm font-weight-600"> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
             v-model:visible="addColumnDropdown"

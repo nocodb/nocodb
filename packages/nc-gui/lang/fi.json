@@ -93,6 +93,7 @@
     "none": "Ei mitään"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Asia selvä",
     "slack": "Slack",
     "comment": "Kommentti",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Päivitetään",
     "rename": "Nimeä uudelleen",
     "renameEntity": "Nimeä {entity} Uudelleen",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Lataa uudelleen",
     "refresh": "Lataa uudelleen",
     "reset": "Nollata",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "tiedostot",
@@ -313,6 +318,8 @@
     "year": "Vuosi",
     "workspace": "Työtila",
     "workspaces": "Työtilat",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Hanke",
     "projects": "Hankkeet",
     "table": "Pöytä",
@@ -530,6 +537,7 @@
     "displayValue": "Näyttöarvo",
     "expand": "Laajentaa",
     "hideAll": "Piilota kaikki",
+    "systemFields": "System fields",
     "hideSystemFields": "Piilota järjestelmäkentät",
     "removeFile": "Poista tiedosto",
     "hasMany": "Has Many",
@@ -575,6 +583,7 @@
     "uiACL": "UI: n kulunvalvonta",
     "metaOperations": "Metatietotoiminta",
     "audit": "Tarkastaa",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Mricrations",
     "dbCredentials": "Tietokannan valtakirjat",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Poista Käyttäjä ja hänen tietonsa",
     "userOptions": "Käyttäjäasetukset",
     "deleteThisOrganization": "Poista tämä Organisaatio",
-    "dangerZone": "Vaaravyöhyke",
+    "dangerZone": "Danger Zone",
     "childView": "Lapsen näkymä",
     "selectYear": "Valitse vuosi",
     "save": "Tallentaa",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhotokin tiedot",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Ota käyttöön, jotta tämä yhteys on yksityinen ja piilotettu muilta tekijöiltä tässä työtilassa.",
     "optionalDatabaseName": "Valinnainen. Käyttää oletustietokantaa \"{database}\", jos jätetään tyhjäksi",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Virheellinen painikkeen konfigurointi",
     "invalidColumnConfiguration": "Virheellinen kentän konfigurointi",
     "invalidTheme": "Valitse kelvollinen teema",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Et voi vetää tietueita päivämäärien välillä, kun käytetään laskettuja tai järjestelmäkenttiä.",
       "schemaReadOnly": "Skeeman muutokset on poistettu käytöstä tälle lähteelle",
       "enterWorkspaceName": "Anna työtilan nimi",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Rooli päivitetty onnistuneesti",
       "connectionAdded": "Integraatio yhdistetty onnistuneesti",
       "connectionAddedDesc": "Tietolähteitä voivat lisätä perusomistajat ja -luojat ilman uudelleenkirjautumista."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

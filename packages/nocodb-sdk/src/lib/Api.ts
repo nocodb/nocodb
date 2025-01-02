@@ -8213,6 +8213,8 @@ export class Api<
         filterArrJson?: string;
         /** Comma separated list of pks */
         pks?: string;
+        /** Get hidden columns on List Api */
+        getHiddenColumns?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -8254,6 +8256,10 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8265,6 +8271,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -8597,6 +8604,9 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object[],
+      query?: {
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8610,6 +8620,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -9076,6 +9087,7 @@ export class Api<
         /** Query params for nested data */
         nested?: any;
         offset?: number;
+        getHiddenColumns?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -9118,6 +9130,10 @@ export class Api<
       tableName: string,
       viewName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -9129,6 +9145,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -12150,6 +12167,8 @@ export class Api<
       query?: {
         /** View ID */
         viewId?: string;
+        before?: string;
+        undo?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -12286,6 +12305,43 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records/${rowId}`,
         method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Move the table row to new position
+ * 
+ * @tags DB Data Table Row
+ * @name Move
+ * @summary Move Table Row
+ * @request POST:/api/v2/tables/{tableId}/records/{rowId}/move
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    move: (
+      tableId: string,
+      rowId: string,
+      query?: {
+        /** The row ID before which the row should be moved */
+        before?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/records/${rowId}/move`,
+        method: 'POST',
         query: query,
         format: 'json',
         ...params,

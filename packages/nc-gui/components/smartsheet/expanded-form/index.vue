@@ -733,7 +733,7 @@ export default {
               size="xsmall"
               @click="save"
             >
-              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}</div>
             </NcButton>
           </NcTooltip>
           <NcTooltip>

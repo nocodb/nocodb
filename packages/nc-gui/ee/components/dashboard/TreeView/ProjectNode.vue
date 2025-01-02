@@ -750,7 +750,7 @@ const shouldOpenContextMenu = computed(() => {
                       <GeneralIcon v-if="base.starred" icon="unStar" />
                       <GeneralIcon v-else icon="star" />
                       <div class="ml-0.25">
-                        {{ base.starred ? 'Remove from starred' : 'Add to starred' }}
+                        {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
                       </div>
                     </NcMenuItem>
 
@@ -776,7 +776,7 @@ const shouldOpenContextMenu = computed(() => {
                       @click="openErdView(base?.sources?.[0])"
                     >
                       <GeneralIcon icon="ncErd" />
-                      Relations
+                      {{ $t('title.relations') }}
                     </NcMenuItem>
 
                     <!-- Audit -->

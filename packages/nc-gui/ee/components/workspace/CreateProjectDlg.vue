@@ -44,6 +44,8 @@ const formState = ref({
 
 const creating = ref(false)
 
+const { t } = useI18n()
+
 const createProject = async () => {
   if (formState.value.title) {
     formState.value.title = formState.value.title.trim()
@@ -88,7 +90,7 @@ const onInit = () => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Base',
+      title: t('objects.project'),
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -118,7 +120,7 @@ const typeLabel = computed(() => {
     case NcProjectType.DOCS:
       return 'Book'
     case NcProjectType.DB:
-      return 'Base'
+      return t('objects.project')
     default:
       return ''
   }
@@ -140,7 +142,7 @@ const typeLabel = computed(() => {
       <!-- Create A New Table -->
       <div class="flex flex-row items-center text-base text-gray-800">
         <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
-        Create {{ typeLabel }}
+        {{ $t('general.create') }} {{ typeLabel }}
       </div>
     </template>
     <template v-if="aiMode === null">
@@ -170,7 +172,9 @@ const typeLabel = computed(() => {
         </a-form>
 
         <div class="flex flex-row justify-end mt-5 gap-x-2">
-          <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">Cancel</NcButton>
+          <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
+            $t('labels.cancel')
+          }}</NcButton>
           <NcButton
             v-e="['a:base:create']"
             data-testid="docs-create-proj-dlg-create-btn"
@@ -182,9 +186,9 @@ const typeLabel = computed(() => {
             :loading-label="`Creating ${typeLabel}`"
             @click="createProject"
           >
-            {{ `Create ${typeLabel}` }}
+            {{ $t('general.createEntity', { entity: typeLabel }) }}
             <template #loading>
-              {{ `Creating ${typeLabel}` }}
+              {{ $t('general.creatingEntity', { entity: typeLabel }) }}
             </template>
           </NcButton>
         </div>

@@ -18,6 +18,8 @@ const isCreating = ref(false)
 
 const useForm = Form.useForm
 
+const { t } = useI18n()
+
 const validators = computed(() => {
   // todo: validation
   return {
@@ -79,7 +81,7 @@ watch(
   (val) => {
     if (!val) {
       workspace.value = {
-        title: 'Untitled Workspace',
+        title: t('general.untitledEntity', { entity: t('objects.workspace') }),
       }
     } else {
       nextTick(() => {

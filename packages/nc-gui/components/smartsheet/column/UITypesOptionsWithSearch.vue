@@ -80,7 +80,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
-        placeholder="Search field type"
+        :placeholder="`${$t('general.search')} ${$t('labels.columnType').toLowerCase()}`"
         class="nc-column-type-search-input nc-toolbar-dropdown-search-field-input !border-none !shadow-none !py-2 !rounded-t-lg"
         :disabled="isSystem"
         @keydown.enter.stop="handleKeydownEnter"

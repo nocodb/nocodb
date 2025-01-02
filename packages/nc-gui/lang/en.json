@@ -301,7 +301,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "files",
@@ -653,6 +655,7 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -1070,6 +1073,8 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
@@ -1931,6 +1936,11 @@
       "roleUpdated": "Role updated successfully",
       "connectionAdded": "Integration connected successfully",
       "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

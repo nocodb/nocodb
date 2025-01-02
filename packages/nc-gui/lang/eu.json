@@ -93,6 +93,7 @@
     "none": "Ezer ez"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Garbitu",
     "slack": "Slack",
     "comment": "Iruzkina",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Eguneratzen",
     "rename": "Berrizendatu",
     "renameEntity": "Berrizendatu {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Birkargatu",
     "refresh": "Freskatu",
     "reset": "Berrezarri",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "fitxategiak",
@@ -313,6 +318,8 @@
     "year": "Urtea",
     "workspace": "Lan-espazioa",
     "workspaces": "Lan-esparruak",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Proiektua",
     "projects": "Proiektuak",
     "table": "Taula",
@@ -530,6 +537,7 @@
     "displayValue": "Bistaratzeko Balioa",
     "expand": "Hedatu",
     "hideAll": "Ezkutatu dena",
+    "systemFields": "System fields",
     "hideSystemFields": "Sistema eremuak ezkutatu",
     "removeFile": "Kendu Fitxategia",
     "hasMany": "Hainbat ditu",
@@ -575,6 +583,7 @@
     "uiACL": "UI Sarbide Kontrola",
     "metaOperations": "Metadatuen Operazioak",
     "audit": "Ikuskaritza",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL migrazioak",
     "dbCredentials": "Datubasearen Kredentzialak",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Ezabatu Erabiltzailea eta haren datuak",
     "userOptions": "Erabiltzailearen Aukerak",
     "deleteThisOrganization": "Ezabatu Erakunde Hau",
-    "dangerZone": "Arriskuzona",
+    "dangerZone": "Danger Zone",
     "childView": "Ikuspegi Subi",
     "selectYear": "Aukeratu urtea",
     "save": "Gorde",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook xehetasunak",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Gaitu konexio hau pribatu eta lan-espazio honetako beste sortzaileetatik ezkutatuta uzteko.",
     "optionalDatabaseName": "Aukerakoa. \"{database}\" datubase lehenetsia erabiliko da hutsik uzten bada",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Baliogabeko botoi konfigurazioa",
     "invalidColumnConfiguration": "Baliogabeko zutabe konfigurazioa",
     "invalidTheme": "Hautatu gai baliozko bat",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Ezin izango duzu erregistroak datetan zehar arrastatu, kalkulatutako edo sistemako eremuak erabiltzen direnean.",
       "schemaReadOnly": "Eskema aldaketak ez daude gaituta iturri honetarako",
       "enterWorkspaceName": "Sartu lan-eremuaren izena",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Rola arrakastaz eguneratu da",
       "connectionAdded": "Integrazioa ongi konektatu da",
       "connectionAddedDesc": "Oinarri jabeek eta sortzaileek jada datu iturri bat gehi dezakete kredentzialak berriro sartu beharrik gabe."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

@@ -201,28 +201,32 @@ const handleFileRename = async () => {
             />
           </div>
 
-          <div class="relative px-1 pb-1 items-center flex" @dblclick.stop="handleFileRenameStart(i)" :title="item.title">
-            <NcTooltip
-              show-on-truncate-only
-              class="flex truncate h-4 w-full text-[12px] items-center text-gray-700 text-sm"
-              v-if="!isRenamingFile || renameFileIdx !== i"
-            >
-              {{ item.title }}
-
-              <template #title>
+          <div class="relative px-1 pb-1 items-center flex" :title="item.title">
+            <div class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5 truncate" @dblclick.stop="handleFileRenameStart(i)">
+              <NcTooltip
+                class="truncate"
+                show-on-truncate-only
+                v-if="!isRenamingFile || renameFileIdx !== i"
+              >
                 {{ item.title }}
-              </template>
-            </NcTooltip>
-            <input
-              class="border-none text-[12px] h-4 p-0"
-              type="text"
-              @keydown.enter="handleFileRename"
-              @keydown.escape.stop="handleResetFileRename"
-              v-model="newTitle"
-              ref="inputBox"
-              v-else
-            />
-            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white">
+
+                <template #title>
+                  {{ item.title }}
+                </template>
+              </NcTooltip>
+              <input
+                class="border-none text-[12px] h-5 p-0"
+                type="text"
+                @keydown.enter="handleFileRename"
+                @keydown.escape.stop="handleResetFileRename"
+                @blur.stop="handleResetFileRename"
+                v-model="newTitle"
+                ref="inputBox"
+                v-else
+              />
+            </div>
+            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white"
+            :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile && renameFileIdx === i  }">
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton

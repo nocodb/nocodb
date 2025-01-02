@@ -299,20 +299,9 @@ async function savePreFilledMode() {
   await updateSharedView()
 }
 
-const dashboardBaseUrl = computed(() => {
-  // get base url for workspace
-  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
-
-  if (baseUrl) {
-    return `${baseUrl}${appInfo.value?.dashboardPath}`
-  }
-
-  return dashboardUrl.value
-})
-
 const copyCustomUrl = async (custUrl = '') => {
   return await copy(
-    `${dashboardBaseUrl.value}#/p/${encodeURIComponent(custUrl)}${
+    `${dashboardUrl.value}#/p/${encodeURIComponent(custUrl)}${
       preFillFormSearchParams.value && activeView.value?.type === ViewTypes.FORM ? `?${preFillFormSearchParams.value}` : ''
     }`,
   )
@@ -344,7 +333,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <DlgShareAndCollaborateCustomUrl
           v-if="activeView"
           :id="activeView.fk_custom_url_id"
-          :dashboard-url="dashboardBaseUrl"
+          :dashboard-url="dashboardUrl"
           :copy-custom-url="copyCustomUrl"
           :search-query="preFillFormSearchParams && activeView?.type === ViewTypes.FORM ? `?${preFillFormSearchParams}` : ''"
           @update-custom-url="updateSharedView"

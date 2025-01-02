@@ -131,7 +131,7 @@ const onRoleToggle = async () => {
 }
 
 const copyCustomUrl = async (custUrl = '') => {
-  return await copy(`${dashboardUrl.value}#/p/${encodeURIComponent(custUrl)}`)
+  return await copy(`${appInfo.value.ncSiteUrl}/p/${encodeURIComponent(custUrl)}`)
 }
 </script>
 
@@ -153,7 +153,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <DlgShareAndCollaborateCustomUrl
           v-if="sharedBase?.uuid"
           :id="sharedBase.fk_custom_url_id"
-          :dashboard-url="dashboardUrl"
+          :dashboard-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
           @update-custom-url="createShareBase(undefined, $event)"
         />

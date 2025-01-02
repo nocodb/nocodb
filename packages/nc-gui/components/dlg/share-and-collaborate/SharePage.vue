@@ -5,6 +5,8 @@ import { ViewTypes } from 'nocodb-sdk'
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
@@ -301,7 +303,7 @@ async function savePreFilledMode() {
 
 const copyCustomUrl = async (custUrl = '') => {
   return await copy(
-    `${dashboardUrl.value}#/p/${encodeURIComponent(custUrl)}${
+    `${appInfo.value.ncSiteUrl}/p/${encodeURIComponent(custUrl)}${
       preFillFormSearchParams.value && activeView.value?.type === ViewTypes.FORM ? `?${preFillFormSearchParams.value}` : ''
     }`,
   )
@@ -333,7 +335,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <DlgShareAndCollaborateCustomUrl
           v-if="activeView"
           :id="activeView.fk_custom_url_id"
-          :dashboard-url="dashboardUrl"
+          :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
           :search-query="preFillFormSearchParams && activeView?.type === ViewTypes.FORM ? `?${preFillFormSearchParams}` : ''"
           @update-custom-url="updateSharedView"

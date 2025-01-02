@@ -210,7 +210,7 @@ const handleFileRename = async () => {
               {{ item.title }}
 
               <template #title>
-                <span>{{ item.title }}</span>
+                {{ item.title }}
               </template>
             </NcTooltip>
             <input

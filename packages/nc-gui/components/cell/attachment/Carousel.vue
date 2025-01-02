@@ -18,25 +18,6 @@ const emblaMainApi: CarouselApi = ref()
 const emblaThumbnailApi: CarouselApi = ref()
 const selectedIndex = ref()
 
-const filetoDelete = reactive({
-  title: '',
-  i: 0,
-})
-const isModalOpen = ref(false)
-
-function onRemoveFileClick(title: any, i: number) {
-  isModalOpen.value = true
-  filetoDelete.title = title
-  filetoDelete.i = i
-}
-
-const handleFileDelete = (i: number) => {
-  removeFile(i)
-  isModalOpen.value = false
-  filetoDelete.i = 0
-  filetoDelete.title = ''
-}
-
 const { getPossibleAttachmentSrc } = useAttachment()
 
 useEventListener(container, 'click', (e) => {
@@ -341,21 +322,18 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
-            <template #title> {{ $t('title.removeFile') }} </template>
-            <NcButton
-              class="!hover:bg-transparent !text-white"
-              size="xsmall"
-              type="text"
-              @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
-            >
-              <component
-                :is="iconMap.delete"
-                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-                class="!hover:text-gray-400"
-              />
-            </NcButton>
-          </NcTooltip>
+          <NcButton
+            class="!hover:bg-transparent !text-white"
+            size="xsmall"
+            type="text"
+            @click="removeFile(selectedIndex)"
+          >
+            <component
+              :is="iconMap.delete"
+              v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+              class="!hover:text-gray-400"
+            />
+          </NcButton>
         </div>
         <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
           <template #entity-preview>

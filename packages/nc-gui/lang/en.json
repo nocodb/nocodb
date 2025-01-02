@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -657,6 +658,9 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
     "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
@@ -1075,6 +1079,8 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",
     "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
@@ -1451,6 +1457,9 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Invalid button configuration",
     "invalidColumnConfiguration": "Invalid field configuration",
     "invalidTheme": "Select a valid theme",

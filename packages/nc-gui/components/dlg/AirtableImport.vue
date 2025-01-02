@@ -403,7 +403,7 @@ const collapseKey = ref('')
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
-            class="!rounded-lg !mt-2"
+            class="!rounded-lg !mt-2 nc-input-shared-base"
           />
         </a-form-item>
 

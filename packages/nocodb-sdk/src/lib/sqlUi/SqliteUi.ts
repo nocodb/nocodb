@@ -949,9 +949,6 @@ export class SqliteUi {
       'COUNTA',
       'COUNT',
       'DATESTR',
-      'DAY',
-      'MONTH',
-      'HOUR',
     ];
   }
 

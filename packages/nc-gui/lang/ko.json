@@ -93,6 +93,7 @@
     "none": "없음"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "스냅샷",
     "snapshots": "스냅샷",
     "baseSnapshots": "프로젝트 스냅샷",
@@ -140,6 +141,7 @@
     "clear": "지우기",
     "slack": "Slack",
     "comment": "댓글",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "업데이트 중",
     "rename": "이름 변경",
     "renameEntity": "이름 변경 {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "다시 불러오기",
     "refresh": "새로고침",
     "reset": "초기화",
@@ -301,7 +304,9 @@
     "enable": "활성",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "당신"
+    "you": "당신",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "파일",
@@ -313,6 +318,8 @@
     "year": "년",
     "workspace": "작업 공간",
     "workspaces": "작업 공간",
+    "document": "Document",
+    "documents": "Documents",
     "project": "프로젝트",
     "projects": "프로젝트",
     "table": "테이블",
@@ -530,6 +537,7 @@
     "displayValue": "값 표시",
     "expand": "펼쳐보기",
     "hideAll": "모두 숨기기",
+    "systemFields": "System fields",
     "hideSystemFields": "시스템 필드 숨기기",
     "removeFile": "파일삭제",
     "hasMany": "많이",
@@ -575,7 +583,8 @@
     "uiACL": "UI 액세스 제어",
     "metaOperations": "메타 데이터 작업",
     "audit": "감사",
-    "auditLogs": "활동 기록",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL 마이그레이션",
     "dbCredentials": "데이터베이스 자격 증명",
     "advancedParameters": "SSL 및 고급 매개 변수",
@@ -653,6 +662,13 @@
     "lockedByUser": "{user}에 의해 잠김"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "눈 내림 효과 활성화",
     "disableSnowFall": "눈 내림 효과 비활성화",
     "snapshotCreationFailed": "스냅샷 생성 실패",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "사용자 및 사용자 데이터 삭제",
     "userOptions": "사용자 옵션",
     "deleteThisOrganization": "이 조직 삭제",
-    "dangerZone": "위험구역",
+    "dangerZone": "Danger Zone",
     "childView": "자식 보기",
     "selectYear": "년도 선택",
     "save": "저장",
@@ -1070,6 +1086,14 @@
     "viewHide": "뷰 보임 여부 "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "모든 레코드 삭제",
     "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
@@ -1336,6 +1360,7 @@
     "pending": "보류 중"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "데이터 소스 또는 데이터 유형에 대해 현재 날짜 옵션을 사용할 수 없습니다.",
     "privateConnection": "이 연결을 비공개로 설정하고 이 워크스페이스의 다른 작성자에게 숨기도록 설정합니다.",
     "optionalDatabaseName": "선택 사항. 비워두면 기본 데이터베이스 \"{database}\"를 사용합니다.",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)"
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "잘못된 버튼 구성",
     "invalidColumnConfiguration": "잘못된 필드 구성",
     "invalidTheme": "유효한 테마 선택",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "계산되거나 시스템 필드가 사용될 경우 날짜 간 레코드를 드래그할 수 없습니다.",
       "schemaReadOnly": "이 소스에 대한 스키마 변경이 비활성화되어 있습니다",
       "enterWorkspaceName": "워크스페이스 이름 입력",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "역할이 성공적으로 업데이트되었습니다",
       "connectionAdded": "연동이 성공적으로 완료되었습니다",
       "connectionAddedDesc": "이제 베이스 소유자와 생성자는 자격 증명을 다시 입력하지 않고도 데이터 소스를 추가할 수 있습니다."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

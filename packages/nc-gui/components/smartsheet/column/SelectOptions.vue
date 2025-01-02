@@ -714,7 +714,7 @@ if (!isKanbanStack.value) {
           <component :is="iconMap.plus" />
         </template>
 
-        Add option
+        {{ $t('labels.addOption') }}
       </NcButton>
       <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-1/2">
         <template #title>

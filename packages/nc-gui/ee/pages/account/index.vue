@@ -9,6 +9,8 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const selectedKeys = computed(() => {
   if (/^\/account\/users\/?$/.test($route.fullPath)) {
     if (isUIAllowed('superAdminUserManagement')) return ['list']
@@ -189,10 +191,15 @@ const logout = async () => {
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip v-if="!appInfo.ee" :mouse-enter-delay="1" placement="bottom">
+              <a-tooltip
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)"
+                :mouse-enter-delay="1"
+                placement="bottom"
+                class="mr-4"
+              >
                 <template #title> Switch language</template>
 
-                <div class="flex pr-4 items-center">
+                <div class="flex items-center">
                   <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </a-tooltip>

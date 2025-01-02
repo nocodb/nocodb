@@ -255,9 +255,9 @@ onKeyStroke('ArrowDown', onDown)
     <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Manage connections for your integrations.
+          {{ $t('msg.manageConnections') }}
           <a target="_blank" href="https://docs.nocodb.com/integrations/actions-on-connection" rel="noopener noreferrer">
-            Learn more
+            {{ $t('msg.learnMore') }}
           </a>
         </div>
       </div>
@@ -296,7 +296,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('title')"
               >
                 <div ref="titleHeaderCellRef" class="flex items-center gap-3">
-                  <div>Name</div>
+                  <div>{{ $t('general.name') }}</div>
                   <GeneralIcon
                     v-if="orderBy.title"
                     icon="chevronDown"
@@ -317,7 +317,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('sub_type')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Type</div>
+                  <div>{{ $t('general.type') }}</div>
                   <GeneralIcon
                     v-if="orderBy.sub_type"
                     icon="chevronDown"
@@ -339,7 +339,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('created_at')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Date added</div>
+                  <div>{{ $t('labels.dateAdded') }}</div>
                   <GeneralIcon
                     v-if="orderBy.created_at"
                     icon="chevronDown"
@@ -360,7 +360,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('created_by')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Added by</div>
+                  <div>{{ $t('labels.addedBy') }}</div>
                   <GeneralIcon
                     v-if="orderBy.created_by"
                     icon="chevronDown"
@@ -380,7 +380,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('source_count')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Usage</div>
+                  <div>{{ $t('general.usage') }}</div>
                   <GeneralIcon
                     v-if="orderBy?.source_count"
                     icon="chevronDown"
@@ -393,7 +393,7 @@ onKeyStroke('ArrowDown', onDown)
                 </div>
               </th>
               <th class="cell-actions">
-                <div>Actions</div>
+                <div>{{ $t('labels.actions') }}</div>
               </th>
             </tr>
           </thead>

@@ -330,7 +330,7 @@ const onFilterLabelClick = () => {
           class="text-s"
           data-testid="nc-limit-record-view"
           @click="onViewLabelClick"
-          >Limit record selection to a view</span
+          >{{ $t('labels.limitRecordSelectionToView') }}</span
         >
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
@@ -371,7 +371,7 @@ const onFilterLabelClick = () => {
             data-testid="nc-limit-record-filters"
             @click="onFilterLabelClick"
           >
-            Limit record selection to filters
+            {{ $t('labels.limitRecordSelectionToFilters') }}
           </span>
         </div>
         <div v-if="limitRecToCond" class="overflow-auto">

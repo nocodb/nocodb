@@ -114,6 +114,42 @@ const mysql2 = {
       ),
     };
   },
+  DAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT(DAY FROM ((${
+          (await fn(pt?.arguments[0])).builder
+        }) + 0)) ${colAlias}`,
+      ),
+    };
+  },
+  MONTH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT(MONTH FROM ((${
+          (await fn(pt?.arguments[0])).builder
+        }) + 0)) ${colAlias}`,
+      ),
+    };
+  },
+  YEAR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT(YEAR FROM ((${
+          (await fn(pt?.arguments[0])).builder
+        }) + 0)) ${colAlias}`,
+      ),
+    };
+  },
+  HOUR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT(HOUR FROM ((${
+          (await fn(pt?.arguments[0])).builder
+        }) + 0)) ${colAlias}`,
+      ),
+    };
+  },
   REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;

@@ -81,7 +81,6 @@ export class SharedBasesService {
       siteUrl: string;
       req: NcRequest;
       custom_url_path?: string;
-      original_url?: string;
     },
   ): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
@@ -109,16 +108,16 @@ export class SharedBasesService {
 
     // Update an existing custom URL if it exists
     if (customUrl?.id) {
-      if (param.custom_url_path || param.original_url) {
+      const original_path = `/base/${base.uuid}`;
+
+      if (param.custom_url_path) {
         // Prepare updated fields conditionally
-        const updates: Partial<CustomUrl> = {};
+        const updates: Partial<CustomUrl> = {
+          original_path,
+        };
 
         if (param.custom_url_path !== undefined) {
           updates.custom_path = param.custom_url_path;
-        }
-
-        if (customUrl.original_path !== param.original_url) {
-          updates.original_path = param.original_url;
         }
 
         // Perform the update if there are changes
@@ -133,10 +132,12 @@ export class SharedBasesService {
     } else if (param.custom_url_path) {
       // Insert a new custom URL if it doesn't exist
 
+      const original_path = `/base/${base.uuid}`;
+
       customUrl = await CustomUrl.insert({
         fk_workspace_id: base.fk_workspace_id,
         base_id: base.id,
-        original_path: param.original_url,
+        original_path,
         custom_path: param.custom_url_path,
       });
     }

@@ -150,9 +150,9 @@ export class ViewsController {
   async shareViewUpdate(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
-    @Body() body: ViewUpdateReqType & {
+    @Body()
+    body: ViewUpdateReqType & {
       custom_url_path?: string;
-      original_url?: string;
     },
     @Req() req: NcRequest,
   ) {

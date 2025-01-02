@@ -153,7 +153,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <DlgShareAndCollaborateCustomUrl
           v-if="sharedBase?.uuid"
           :id="sharedBase.fk_custom_url_id"
-          :dashboard-url="appInfo.ncSiteUrl"
+          :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
           @update-custom-url="createShareBase(undefined, $event)"
         />

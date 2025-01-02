@@ -68,7 +68,6 @@ export class SharedBasesController {
         siteUrl: req.ncSiteUrl,
         req,
         custom_url_path: body.custom_url_path,
-        original_url: body.original_url,
       },
     );
 

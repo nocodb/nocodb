@@ -2805,10 +2805,6 @@
                   {
                     "type": "object",
                     "properties": {
-                      "original_url": {
-                        "$ref": "#/components/schemas/StringOrNull",
-                        "description": "Original url to redirect from custom url path"
-                      },
                       "custom_url_path": {
                         "$ref": "#/components/schemas/StringOrNull",
                         "description": "Custom url path"
@@ -5329,10 +5325,6 @@
                   {
                     "type": "object",
                     "properties": {
-                      "original_url": {
-                        "$ref": "#/components/schemas/StringOrNull",
-                        "description": "Original url to redirect from custom url path"
-                      },
                       "custom_url_path": {
                         "$ref": "#/components/schemas/StringOrNull",
                         "description": "Custom url path"

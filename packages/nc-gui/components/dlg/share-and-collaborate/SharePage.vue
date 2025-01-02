@@ -283,7 +283,6 @@ async function updateSharedView(custUrl = undefined) {
     const res = await $api.dbViewShare.update(activeView.value.id!, {
       meta,
       password: activeView.value.password,
-      original_url: sharedViewUrl(false),
       ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
     })
 

@@ -2,6 +2,7 @@ import {
   CommonAggregations,
   ExpandedFormMode,
   isSystemColumn,
+  parseProp,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -1610,6 +1611,42 @@ export default class View implements ViewType {
           }
         : null,
     );
+  }
+
+  static async getSharedViewPath(
+    context: NcContext,
+    viewId,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await this.get(context, viewId, ncMeta);
+    if (!view.uuid) return null;
+
+    let viewType;
+    switch (view.type) {
+      case ViewTypes.FORM:
+        viewType = 'form';
+        break;
+      case ViewTypes.KANBAN:
+        viewType = 'kanban';
+        break;
+      case ViewTypes.GALLERY:
+        viewType = 'gallery';
+        break;
+      case ViewTypes.MAP:
+        viewType = 'map';
+        break;
+      case ViewTypes.CALENDAR:
+        viewType = 'calendar';
+        break;
+      default:
+        viewType = 'view';
+    }
+
+    return `${encodeURI(
+      `/nc/${viewType}/${view.uuid}${
+        parseProp(view.meta)?.surveyMode ? '/survey' : ''
+      }`,
+    )}`;
   }
 
   static async shareViewList(

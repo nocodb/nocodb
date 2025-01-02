@@ -264,7 +264,6 @@ export class ViewsService {
       viewId: string;
       sharedView: SharedViewReqType & {
         custom_url_path?: string;
-        original_url?: string;
       };
       user: UserType;
       req: NcRequest;
@@ -288,16 +287,16 @@ export class ViewsService {
 
     // Update an existing custom URL if it exists
     if (customUrl?.id) {
-      if (param.sharedView.custom_url_path || param.sharedView.original_url) {
+      const original_path = await View.getSharedViewPath(context, view.id);
+
+      if (param.sharedView.custom_url_path) {
         // Prepare updated fields conditionally
-        const updates: Partial<CustomUrl> = {};
+        const updates: Partial<CustomUrl> = {
+          original_path,
+        };
 
         if (param.sharedView.custom_url_path !== undefined) {
           updates.custom_path = param.sharedView.custom_url_path;
-        }
-
-        if (customUrl.original_path !== param.sharedView.original_url) {
-          updates.original_path = param.sharedView.original_url;
         }
 
         // Perform the update if there are changes
@@ -312,12 +311,14 @@ export class ViewsService {
     } else if (param.sharedView.custom_url_path) {
       // Insert a new custom URL if it doesn't exist
 
+      const original_path = await View.getSharedViewPath(context, view.id);
+
       customUrl = await CustomUrl.insert({
         fk_workspace_id: view.fk_workspace_id,
         base_id: view.base_id,
         fk_model_id: view.fk_model_id,
         view_id: view.id,
-        original_path: param.sharedView.original_url,
+        original_path,
         custom_path: param.sharedView.custom_url_path,
       });
     }

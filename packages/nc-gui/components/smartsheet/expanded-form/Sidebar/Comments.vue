@@ -454,7 +454,7 @@ const getUserRole = (email: string) => {
           ref="commentInputRef"
           v-model:value="comment"
           :hide-options="false"
-          placeholder="Comment..."
+          :placeholder="`${$t('general.comment')}...`"
           class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-gray-800 !text-small !leading-18px !max-h-[240px]"
           :autofocus="isExpandedFormCommentMode"
           data-testid="expanded-form-comment-input"

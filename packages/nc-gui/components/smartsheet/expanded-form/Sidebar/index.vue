@@ -16,7 +16,7 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
         <template #tab>
           <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
             <GeneralIcon icon="fields" class="w-4 h-4" />
-            <span class="<lg:hidden"> Fields </span>
+            <span class="<lg:hidden"> {{ $t('objects.fields') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :store="props.store" />
@@ -26,7 +26,7 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
         <template #tab>
           <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
             <GeneralIcon icon="messageCircle" class="w-4 h-4" />
-            <span class="<lg:hidden"> Comments </span>
+            <span class="<lg:hidden"> {{ $t('general.comments') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarComments />
@@ -39,13 +39,13 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
               <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span class="<lg:hidden"> Audits </span>
+              <span class="<lg:hidden"> {{ $t('title.audit') }} </span>
             </div>
           </NcTooltip>
 
           <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> Audits </span>
+            <span class="<lg:hidden"> {{ $t('title.audit') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />

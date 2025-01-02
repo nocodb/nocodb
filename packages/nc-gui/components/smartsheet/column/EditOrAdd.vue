@@ -686,7 +686,7 @@ watch(activeAiTab, (newValue) => {
           }"
         >
           <div class="flex items-center gap-3">
-            <div class="flex-1 text-base font-bold text-nc-content-gray">New Field</div>
+            <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
             <div
               :class="{
                 'cursor-wait': aiLoading,
@@ -718,7 +718,9 @@ watch(activeAiTab, (newValue) => {
           <template v-if="aiAutoSuggestMode">
             <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
               <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-              <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+              <div class="text-sm text-nc-content-gray-subtle flex-1">
+                {{ $t('title.noAiIntegrationAvailable') }} {{ $t('objects.field') }}
+              </div>
             </div>
 
             <AiWizardTabs v-else v-model:active-tab="activeAiTab" class="!-mx-5">

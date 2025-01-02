@@ -192,7 +192,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   )
 
   const generateUniqueTitle = () => {
-    table.title = generateTitle('Table', tables.value, 'title')
+    table.title = generateTitle(t('objects.table'), tables.value, 'title')
   }
 
   const deleteTable = (table: TableType) => {

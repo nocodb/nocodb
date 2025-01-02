@@ -20,7 +20,7 @@ const renderCmdOrCtrlKey = () => {
         @click.stop="activeCmd !== 'cmd-j' ? setActiveCmdView('cmd-j') : () => undefined"
       >
         <GeneralIcon icon="ncFileSearch" class="h-4 w-4" />
-        Document
+        {{ $t('objects.document') }}
         <span
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="activeCmd === 'cmd-j' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
@@ -34,7 +34,7 @@ const renderCmdOrCtrlKey = () => {
         @click.stop="activeCmd !== 'cmd-k' ? setActiveCmdView('cmd-k') : () => undefined"
       >
         <GeneralIcon icon="ncCornerUpRight" class="h-4 w-4" />
-        Quick Navigation
+        {{ $t('labels.quickNavigation') }}
         <span
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="activeCmd === 'cmd-k' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
@@ -48,7 +48,7 @@ const renderCmdOrCtrlKey = () => {
         @click.stop="activeCmd !== 'cmd-l' ? setActiveCmdView('cmd-l') : () => undefined"
       >
         <MdiClockOutline class="h-4 w-4" />
-        Recent
+        {{ $t('labels.recent') }}
         <span
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="activeCmd === 'cmd-l' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"

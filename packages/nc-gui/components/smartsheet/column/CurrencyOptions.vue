@@ -47,7 +47,6 @@ setAdditionalValidations({
 const currencyList = currencyCodes || []
 
 const currencyLocaleList = ref<{ text: string; value: string }[]>([])
-const currencyLocaleMap = shallowRef<Map<string, string>>(new Map())
 
 const isMoney = computed(() => vModel.value.dt === 'money')
 
@@ -68,9 +67,6 @@ vModel.value.meta = {
 
 currencyLocales().then((locales) => {
   currencyLocaleList.value.push(...locales)
-  currencyLocaleList.value.forEach((l) => {
-    currencyLocaleMap.value.set(l.value, l.text)
-  })
 })
 </script>
 

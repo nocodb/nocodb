@@ -9,7 +9,13 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { BaseUser, Model, ModelRoleVisibility, View } from '~/models';
+import {
+  BaseUser,
+  CustomUrl,
+  Model,
+  ModelRoleVisibility,
+  View,
+} from '~/models';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -256,7 +262,10 @@ export class ViewsService {
     context: NcContext,
     param: {
       viewId: string;
-      sharedView: SharedViewReqType;
+      sharedView: SharedViewReqType & {
+        custom_url_path?: string;
+        original_url?: string;
+      };
       user: UserType;
       req: NcRequest;
     },
@@ -272,7 +281,51 @@ export class ViewsService {
       NcError.viewNotFound(param.viewId);
     }
 
-    const result = await View.update(context, param.viewId, param.sharedView);
+    let customUrl: CustomUrl | undefined = await CustomUrl.get({
+      view_id: view.id,
+      id: view.fk_custom_url_id,
+    });
+
+    // Update an existing custom URL if it exists
+    if (customUrl?.id) {
+      if (param.sharedView.custom_url_path || param.sharedView.original_url) {
+        // Prepare updated fields conditionally
+        const updates: Partial<CustomUrl> = {};
+
+        if (param.sharedView.custom_url_path !== undefined) {
+          updates.custom_path = param.sharedView.custom_url_path;
+        }
+
+        if (customUrl.original_path !== param.sharedView.original_url) {
+          updates.original_path = param.sharedView.original_url;
+        }
+
+        // Perform the update if there are changes
+        if (Object.keys(updates).length > 0) {
+          await CustomUrl.update(view.fk_custom_url_id, updates);
+        }
+      } else if (param.sharedView.custom_url_path !== undefined) {
+        // Delete the custom URL if only the custom path is undefined
+        await CustomUrl.delete({ id: view.fk_custom_url_id as string });
+        customUrl = undefined;
+      }
+    } else if (param.sharedView.custom_url_path) {
+      // Insert a new custom URL if it doesn't exist
+
+      customUrl = await CustomUrl.insert({
+        fk_workspace_id: view.fk_workspace_id,
+        base_id: view.base_id,
+        fk_model_id: view.fk_model_id,
+        view_id: view.id,
+        original_path: param.sharedView.original_url,
+        custom_path: param.sharedView.custom_url_path,
+      });
+    }
+
+    const result = await View.update(context, param.viewId, {
+      ...param.sharedView,
+      fk_custom_url_id: customUrl?.id ?? null,
+    });
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
@@ -296,6 +349,7 @@ export class ViewsService {
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
+
     await View.sharedViewDelete(context, param.viewId);
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {

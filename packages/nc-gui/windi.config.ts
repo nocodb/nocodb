@@ -106,6 +106,7 @@ export default defineConfig({
       borderColor: {
         primary: 'rgba(51, 102, 255, 1)',
         accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
+        error: 'var(--ant-error-color)',
       },
       backgroundColor: {
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',

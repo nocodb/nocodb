@@ -662,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1805,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",
       "yourCurrentRoleIs": "Your current role is",
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
-      "preventHideAllOptions": "You cannot hide all options if field is required"
+      "preventHideAllOptions": "You cannot hide all options if field is required",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manual hooks can't be disabled",
@@ -1907,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
       "fieldToParseImageData": "Field to parse image data",
       "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

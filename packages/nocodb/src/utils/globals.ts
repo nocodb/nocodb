@@ -59,6 +59,7 @@ export enum MetaTable {
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
   DATA_REFLECTION = 'nc_data_reflection',
+  CUSTOM_URLS = 'nc_custom_urls_v2',
 }
 
 export enum MetaTableOldV2 {
@@ -194,6 +195,7 @@ export enum CacheScope {
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
   DATA_REFLECTION = 'dataReflection',
+  CUSTOM_URLS = 'customUrls',
 }
 
 export enum CacheGetType {
@@ -240,6 +242,7 @@ export const RootScopeTables = {
     MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
+    MetaTable.CUSTOM_URLS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss

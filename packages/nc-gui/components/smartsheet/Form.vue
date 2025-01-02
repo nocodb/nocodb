@@ -746,8 +746,8 @@ watch(submitted, (v) => {
   }
 })
 
-watch(view, (nextView) => {
-  if (nextView?.type === ViewTypes.FORM) {
+watch(view, (nextView, oldView) => {
+  if (nextView?.type === ViewTypes.FORM && nextView?.id !== oldView?.id) {
     reloadEventHook.trigger()
   }
 })

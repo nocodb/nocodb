@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
+import data from 'emoji-mart-vue-fast/data/apple.json'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { IconType } from 'nocodb-sdk'
 

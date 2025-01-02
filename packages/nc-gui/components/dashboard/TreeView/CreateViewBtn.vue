@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { viewTypeAlias, type ViewType } from 'nocodb-sdk'
+import { type ViewType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{

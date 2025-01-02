@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType, viewTypeAlias, ViewTypes } from 'nocodb-sdk'
+import { type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 

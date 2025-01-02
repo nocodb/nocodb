@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { WorkspacePlan, WorkspaceStatus, WorkspaceType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -16,7 +17,9 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base, Integration } from '~/models';
+import { Base, Integration, CustomUrl } from '~/models';
+
+const logger = new Logger('Workspace');
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -281,6 +284,10 @@ export default class Workspace implements WorkspaceType {
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 
+    CustomUrl.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
+    });
+
     return await ncMeta.metaDelete(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
@@ -297,6 +304,10 @@ export default class Workspace implements WorkspaceType {
     if (!workspace) NcError.workspaceNotFound(id);
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
+
+    CustomUrl.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
+    });
 
     return await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,

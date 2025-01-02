@@ -13,9 +13,19 @@ onMounted(() => {
 
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
-    if (!to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}/survey`)
+    if (!to.includes('survey')) {
+      navigateTo({
+        path: `/nc/form/${route.params.viewId}/survey`,
+        query: route.query,
+      })
+    }
   } else {
-    if (to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}`)
+    if (to.includes('survey')) {
+      navigateTo({
+        path: `/nc/form/${route.params.viewId}`,
+        query: route.query,
+      })
+    }
   }
 }
 

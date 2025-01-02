@@ -5,6 +5,8 @@ import { Module } from '@nestjs/common';
 import { Producer } from '~/services/producer/producer';
 import { ProducerProvider } from '~/services/producer';
 import { ActionsController } from '~/controllers/actions.controller';
+import { CustomUrlsController } from '~/controllers/custom-urls.controller';
+import { CustomUrlsService } from '~/services/custom-urls.service';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
@@ -60,6 +62,7 @@ export const nocoModuleEeMetadata = {
 
     /* Generic */
     ProducerProvider,
+    CustomUrlsService,
 
     /* Datas */
     DataOptService,
@@ -99,6 +102,9 @@ export const nocoModuleEeMetadata = {
 
     ActionsController,
 
+    /* Generic */
+    CustomUrlsController,
+
     /* Metas */
     // DocsPagesHistoryController,
     // DocsPagesController,
@@ -120,7 +126,16 @@ export const nocoModuleEeMetadata = {
     /* Snapshot */
     SnapshotController,
   ],
-  exports: [...nocoModuleMetadata.exports, Producer, WorkspacesService],
+  exports: [
+    ...nocoModuleMetadata.exports,
+
+    /* Generic */
+    Producer,
+    CustomUrlsService,
+
+    /* Workspaces */
+    WorkspacesService,
+  ],
 };
 
 @Module(nocoModuleEeMetadata)

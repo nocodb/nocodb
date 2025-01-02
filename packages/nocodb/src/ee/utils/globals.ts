@@ -79,6 +79,7 @@ export enum MetaTable {
   FILE_REFERENCES = 'nc_file_references',
   SNAPSHOT = 'nc_snapshots',
   DATA_REFLECTION = 'nc_data_reflection',
+  CUSTOM_URLS = 'nc_custom_urls_v2',
 }
 
 export const orderedMetaTables = [
@@ -210,6 +211,7 @@ export enum CacheScope {
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
   DATA_REFLECTION = 'dataReflection',
+  CUSTOM_URLS = 'customUrls',
 }
 
 export const RootScopeTables = {
@@ -227,6 +229,7 @@ export const RootScopeTables = {
     MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
+    MetaTable.CUSTOM_URLS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

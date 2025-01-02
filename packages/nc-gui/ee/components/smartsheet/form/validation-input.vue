@@ -95,7 +95,7 @@ const validationInput = computed({
         : validator.value.value
 
     if (value && column.value.uidt === UITypes.Attachment && validator.value?.unit === 'MB') {
-      return value / 1024 ?? value
+      return value / 1024
     }
 
     return value

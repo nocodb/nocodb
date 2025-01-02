@@ -3950,6 +3950,137 @@
           }
         }
       }
+    },
+    "/api/v2/meta/custom-url/get-by-id/{id}": {
+      "get": {
+        "summary": "Get custom url object from id",
+        "operationId": "get-by-id",
+        "description": "Get custom url object from id",
+        "tags": [
+          "CustomUrl", "Internal"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/CustomUrl"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Custom url"
+        },
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ]
+    },
+    "/api/v2/meta/custom-url/{customPath}": {
+      "get": {
+        "summary": "Get original path from custom url path",
+        "operationId": "get-original-path",
+        "description": "Get original path from custom url path",
+        "tags": [
+          "CustomUrl", "Internal"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": "nc/form/957b3e5b-c7fe-4805-bdb2-e4048e974f62"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "customPath",
+          "in": "path",
+          "required": true,
+          "description": "Custom url path"
+        },
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ]
+    },
+    "/api/v2/meta/custom-url/check-path": {
+      "post": {
+        "summary": "Check custom url path availability",
+        "operationId": "check-availability",
+        "description": "Check custom url path availability",
+        "tags": [
+          "CustomUrl", "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "custom_path": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -6675,6 +6806,40 @@
           "list",
           "pageInfo"
         ]
+      },
+      "CustomUrl": {
+        "description": "Model for Custom Url",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id associated to the Custom url"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "View ID"
+          },
+          "original_path": {
+            "type": "string",
+            "description": "Original url used for redirection purpose"
+          },
+          "custom_path": {
+            "type": "string",
+            "description": "Custom url path"
+          }
+        }
       }
     },
     "responses": {

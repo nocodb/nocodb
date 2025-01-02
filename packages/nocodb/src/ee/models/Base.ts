@@ -14,7 +14,7 @@ import {
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
-import { BaseUser, Source } from '~/models';
+import { BaseUser, CustomUrl, Source } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
@@ -190,6 +190,7 @@ export default class Base extends BaseCE {
       'roles',
       'fk_workspace_id',
       'is_snapshot',
+      'fk_custom_url_id',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
@@ -342,6 +343,10 @@ export default class Base extends BaseCE {
       base_id: baseId,
     });
 
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
+
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
@@ -380,6 +385,10 @@ export default class Base extends BaseCE {
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');

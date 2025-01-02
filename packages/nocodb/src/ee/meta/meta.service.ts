@@ -77,6 +77,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
+      [MetaTable.CUSTOM_URLS]: 'cu',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -289,7 +289,7 @@ const handleFileRename = async () => {
 }
 .nc-attachment-modal {
   .nc-attachment-item {
-    @apply h-[200px] max-h-[200px] flex relative;
+    @apply h-[200px] max-h-[200px] flex relative overflow-hidden;
   }
 
   .dragging {

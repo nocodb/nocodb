@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 

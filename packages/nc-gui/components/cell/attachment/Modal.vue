@@ -202,12 +202,11 @@ const handleFileRename = async () => {
           </div>
 
           <div class="relative px-1 pb-1 items-center flex" :title="item.title">
-            <div class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5 truncate" @dblclick.stop="handleFileRenameStart(i)">
-              <NcTooltip
-                class="truncate"
-                show-on-truncate-only
-                v-if="!isRenamingFile || renameFileIdx !== i"
-              >
+            <div
+              class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5 truncate"
+              @dblclick.stop="handleFileRenameStart(i)"
+            >
+              <NcTooltip v-if="!isRenamingFile || renameFileIdx !== i" class="truncate" show-on-truncate-only>
                 {{ item.title }}
 
                 <template #title>
@@ -215,18 +214,20 @@ const handleFileRename = async () => {
                 </template>
               </NcTooltip>
               <input
+                v-else
+                ref="inputBox"
+                v-model="newTitle"
                 class="border-none text-[12px] h-5 p-0"
                 type="text"
                 @keydown.enter="handleFileRename"
                 @keydown.escape.stop="handleResetFileRename"
                 @blur.stop="handleResetFileRename"
-                v-model="newTitle"
-                ref="inputBox"
-                v-else
               />
             </div>
-            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white"
-            :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile && renameFileIdx === i  }">
+            <div
+              class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white"
+              :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile && renameFileIdx === i }"
+            >
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton

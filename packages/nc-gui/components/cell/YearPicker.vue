@@ -11,7 +11,7 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 

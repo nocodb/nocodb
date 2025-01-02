@@ -322,12 +322,7 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton
-            class="!hover:bg-transparent !text-white"
-            size="xsmall"
-            type="text"
-            @click="removeFile(selectedIndex)"
-          >
+          <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
             <component
               :is="iconMap.delete"
               v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"

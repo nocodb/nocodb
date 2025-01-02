@@ -5,7 +5,7 @@ const props = defineProps<{
   value: boolean
 }>()
 
-const { isMobileMode } = useGlobal();
+const { isMobileMode } = useGlobal()
 
 const dialogShow = useVModel(props, 'value')
 
@@ -50,7 +50,7 @@ watch(activeMenu, (newVal, oldValue) => {
   >
     <div class="flex h-full flex-row" :class="{ 'flex-col': isMobileMode }">
       <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-50">
-        <NcMenu class="!h-full !bg-gray-50 flex flex-col" :class="{ '!flex-row overflow-x-scroll': isMobileMode  }">
+        <NcMenu class="!h-full !bg-gray-50 flex flex-col" :class="{ '!flex-row overflow-x-scroll': isMobileMode }">
           <NcMenuItem
             key="local"
             class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"

@@ -213,11 +213,11 @@ const handleFileRename = async () => {
                   {{ item.title }}
                 </template>
               </NcTooltip>
-              <input
+              <a-input
                 v-else
                 ref="inputBox"
-                v-model="newTitle"
-                class="border-none text-[12px] h-5 p-0"
+                v-model:value="newTitle"
+                class="!text-[12px] !h-5 !p-0 !bg-transparent !rounded-md"
                 type="text"
                 @keydown.enter="handleFileRename"
                 @keydown.escape.stop="handleResetFileRename"

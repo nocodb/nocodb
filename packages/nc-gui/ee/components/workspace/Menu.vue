@@ -159,7 +159,8 @@ const onWorkspaceCreateClick = () => {
                   <template v-if="workspaceUserCount !== undefined">
                     <div class="nc-workspace-dropdown-active-workspace-info">-</div>
                     <div class="nc-workspace-dropdown-active-workspace-info">
-                      {{ workspaceUserCount }} {{ workspaceUserCount > 1 ? 'members' : 'member' }}
+                      {{ workspaceUserCount }}
+                      {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
                     </div>
                   </template>
                 </div>
@@ -218,7 +219,7 @@ const onWorkspaceCreateClick = () => {
               <div v-e="['c:workspace:create']" class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 
-                <div class="">Create New Workspace</div>
+                <div class="">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.workspace') }}</div>
               </div>
             </NcMenuItem>
           </a-menu-item-group>

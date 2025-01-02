@@ -44,6 +44,8 @@ const formState = ref({
 
 const creating = ref(false)
 
+const { t } = useI18n()
+
 const createProject = async () => {
   if (formState.value.title) {
     formState.value.title = formState.value.title.trim()
@@ -118,7 +120,7 @@ const typeLabel = computed(() => {
     case NcProjectType.DOCS:
       return 'Book'
     case NcProjectType.DB:
-      return 'Base'
+      return $t('objects.project')
     default:
       return ''
   }
@@ -140,7 +142,7 @@ const typeLabel = computed(() => {
       <!-- Create A New Table -->
       <div class="flex flex-row items-center text-base text-gray-800">
         <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
-        Create {{ typeLabel }}
+        {{ $t('general.create') }} {{ typeLabel }}
       </div>
     </template>
     <template v-if="aiMode === null">

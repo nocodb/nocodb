@@ -130,7 +130,7 @@ const onCreateBaseClick = () => {
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
-          <div class="subtext">Start from scratch.</div>
+          <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ const onCreateBaseClick = () => {
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
 
-          <div class="subtext">From files & external sources</div>
+          <div class="subtext">{{ $t('msg.subText.importData') }}</div>
         </div>
       </div>
       <NcTooltip
@@ -175,7 +175,7 @@ const onCreateBaseClick = () => {
           </div>
           <div class="flex flex-col gap-1">
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
-            <div class="subtext">In realtime to external databases.</div>
+            <div class="subtext">{{ $t('msg.subText.connectExternalData') }}</div>
           </div>
         </div>
       </NcTooltip>

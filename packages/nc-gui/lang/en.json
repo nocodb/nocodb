@@ -318,6 +318,8 @@
     "year": "Year",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Base",
     "projects": "Bases",
     "table": "Table",
@@ -581,6 +583,7 @@
     "uiACL": "UI Access Control",
     "metaOperations": "Metadata Operations",
     "audit": "Audit",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrations",
     "dbCredentials": "Database Credentials",
@@ -659,6 +662,9 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
     "limitRecordSelectionToView": "Limit record selection to a view",
     "limitRecordSelectionToFilters": "Limit record selection to filters",
     "addedBy": "Added by",
@@ -765,7 +771,7 @@
     "deleteUserAndData": "Delete User and their data",
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
-    "dangerZone": "Dangerzone",
+    "dangerZone": "Danger Zone",
     "childView": "Child View",
     "selectYear": "Select Year",
     "save": "Save",
@@ -1080,6 +1086,10 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
     "filterByThisField": "Filter by this field",
     "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",
@@ -1350,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
@@ -1458,6 +1469,7 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",
     "manageConnections": "Manage connections for your integrations.",
@@ -1604,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",

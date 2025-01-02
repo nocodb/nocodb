@@ -397,7 +397,7 @@ watch(
           }
         }) ?? []
 
-    coverOptions.value = [{ value: null, label: 'No Image' }, ...filterFields]
+    coverOptions.value = [{ value: null, label: t('labels.noImage') }, ...filterFields]
 
     const lookupColumns = newValue
       .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)

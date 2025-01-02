@@ -39,13 +39,13 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
               <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span class="<lg:hidden"> {{ $t('title.audit') }} </span>
+              <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
             </div>
           </NcTooltip>
 
           <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('title.audit') }} </span>
+            <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />

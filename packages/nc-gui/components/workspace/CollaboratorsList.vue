@@ -82,7 +82,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
 
   const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
   if (!res) return
-  message.success('Successfully updated user role')
+  message.success(t('msg.info.userRoleUpdated'))
 
   collaborators.value?.forEach((collaborator) => {
     if (collaborator.id === collab.id) {
@@ -291,8 +291,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                   </template>
                   <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                     <template #title>
-                      Each workspace must have at least one owner. Please assign another user as the Owner before leaving the
-                      workspace. If you are the last member, consider deleting the workspace instead.
+                      {{ $t('tooltip.leaveWorkspace') }}
                     </template>
                     <NcMenuItem
                       :disabled="!isDeleteOrUpdateAllowed(record)"
@@ -300,7 +299,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                       @click="removeCollaborator(record.id, currentWorkspace?.id)"
                     >
                       <MaterialSymbolsDeleteOutlineRounded />
-                      {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
+                      {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
                     </NcMenuItem>
                   </NcTooltip>
                 </NcMenu>

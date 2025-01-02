@@ -189,7 +189,9 @@ watch(
     }"
   >
     <div class="item-card flex flex-col w-full">
-      <div class="font-bold text-base text-nc-content-gray-emphasis">Workspace Appearance</div>
+      <div class="font-bold text-base text-nc-content-gray-emphasis">
+        {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
+      </div>
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
         <div class="flex gap-4 mt-6">
           <div>
@@ -222,7 +224,7 @@ watch(
             </GeneralIconSelector>
           </div>
           <div class="flex-1">
-            <div class="text-sm text-nc-content-gray-subtle2">Name</div>
+            <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
             <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
               <a-input
                 v-model:value="form.title"
@@ -238,15 +240,15 @@ watch(
       </a-form>
     </div>
     <div class="item-card flex flex-col border-1 border-red-500">
-      <div class="text-base font-bold text-nc-content-red-dark">Danger Zone</div>
-      <div class="text-sm text-nc-content-gray-muted mt-2">Delete this workspace and all it’s contents.</div>
+      <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
+      <div class="text-sm text-nc-content-gray-muted mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
       <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
         <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
-        <div class="text-base font-bold ml-3">This action is irreversible</div>
+        <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
       </div>
       <div class="flex flex-row w-full justify-end mt-8">
         <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">
-          Delete Workspace
+          {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
         </NcButton>
       </div>
     </div>

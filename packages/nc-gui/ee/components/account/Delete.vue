@@ -138,16 +138,15 @@ const onDeleteConfirm = async () => {
 
 <template>
   <div ref="deleteAccountRef" class="mt-10 flex flex-col border-1 rounded-2xl border-red-500 p-6">
-    <div class="text-base font-bold text-nc-content-red-dark" data-rec="true">Danger Zone</div>
-    <div class="text-sm text-nc-content-gray-muted mt-2" data-rec="true">Delete your account permanently</div>
+    <div class="text-base font-bold text-nc-content-red-dark" data-rec="true">{{ $t('labels.dangerZone') }}</div>
+    <div class="text-sm text-nc-content-gray-muted mt-2" data-rec="true">{{ $t('msg.deleteAccountPermanently') }}</div>
 
     <div class="flex p-4 border-1 rounded-lg mt-6 items-center" data-rec="true">
       <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
-      <div class="text-base font-bold ml-3">This action is irreversible</div>
+      <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
     </div>
     <div class="mt-5">
-      Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases,
-      your access permissions will be revoked.
+      {{ $t('msg.info.deleteAccount') }}
     </div>
 
     <div class="flex flex-row gap-x-2 w-full justify-end mt-8">
@@ -158,12 +157,14 @@ const onDeleteConfirm = async () => {
         size="small"
         @click="onInitDelete"
       >
-        Delete Account
+        {{ $t('general.deleteEntity', { entity: $t('labels.account') }) }}
       </NcButton>
     </div>
     <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-user-delete-modal" size="small" centered>
       <div class="flex flex-col gap-2 justify-center h-full !p-6">
-        <div class="text-lg font-semibold self-start mb-3 sticky top-0 bg-white">Delete Account</div>
+        <div class="text-lg font-semibold self-start mb-3 sticky top-0 bg-white">
+          {{ $t('general.deleteEntity', { entity: $t('labels.account') }) }}
+        </div>
 
         <div v-if="toBeDeleted" class="flex flex-col">
           <div class="flex flex-col gap-2">
@@ -244,7 +245,7 @@ const onDeleteConfirm = async () => {
               data-testid="nc-account-settings-delete-confirm"
               @click="onDeleteConfirm"
             >
-              Delete Account
+              {{ $t('general.deleteEntity', { entity: $t('labels.account') }) }}
             </NcButton>
           </div>
         </div>

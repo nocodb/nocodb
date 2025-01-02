@@ -612,6 +612,9 @@ const addRecord = (date: dayjs.Dayjs) => {
     z-index: 1;
     box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 2px 0 #3366ff !important;
   }
+  &:first-of-type::after {
+    @apply left-0.5 w-[calc(100%_-_2px)];
+  }
 }
 
 .selected-date-header {
@@ -621,6 +624,9 @@ const addRecord = (date: dayjs.Dayjs) => {
     content: '';
     z-index: 10;
     box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 -2px 0 #3366ff !important;
+  }
+  &:first-of-type::after {
+    @apply left-0.25;
   }
 }
 </style>

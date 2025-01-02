@@ -705,7 +705,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const highestOrder = await this.getHighestOrderInTable();
 
         return Array.from({ length: amount }).map((_, i) => {
-          return highestOrder.plus(i + 1);
+          return highestOrder?.plus(i + 1);
         });
       }
 
@@ -1579,7 +1579,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
-            ncOrder: order.plus(index),
+            ncOrder: order?.plus(index),
             undo: undo,
           });
 
@@ -1611,7 +1611,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             async (d, i) =>
               await this.prepareNocoData(d, true, cookie, null, {
                 raw,
-                ncOrder: order.plus(i),
+                ncOrder: order?.plus(i),
                 undo: undo,
               }),
           ),
@@ -1850,7 +1850,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ncOrder: order,
             undo,
           });
-          order = order.plus(1);
+          order = order?.plus(1);
           dataWithoutPks.push(data);
         }
       }
@@ -1882,7 +1882,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ncOrder: order,
             undo,
           });
-          order = order.plus(1);
+          order = order?.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

@@ -394,8 +394,11 @@ const collapseKey = ref('')
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2 nc-input-api-key"
-          />
+            class="!rounded-lg mt-2 nc-input-api-key">
+            <template #iconRender="isVisible">
+              <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
+            </template>
+          </a-input-password>
         </a-form-item>
 
         <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
@@ -522,9 +525,9 @@ const collapseKey = ref('')
           </a-alert>
         </template>
         <div v-else class="flex items-start gap-3">
-          <GeneralIcon icon="circleCheck" class="text-green-600 w-4 h-4 mt-0.75" />
+          <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
           <span>
-            {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+            Successfully imported from Airtable Base.
           </span>
         </div>
       </div>
@@ -548,6 +551,7 @@ const collapseKey = ref('')
             }
           "
         >
+          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 

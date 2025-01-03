@@ -327,7 +327,7 @@ const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col
 
 const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
 
-const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value)
+const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPkAvail.value)
 
 const addColumnDropdown = ref(false)
 
@@ -2571,7 +2571,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
-            <template v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly">
+            <template v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPkAvail">
               <NcMenuItem
                 v-if="contextMenuTarget"
                 class="nc-base-menu-item"

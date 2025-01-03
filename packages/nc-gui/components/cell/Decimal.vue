@@ -111,7 +111,7 @@ watch(isExpandedFormOpen, () => {
     class="nc-cell-field outline-none py-1 border-none rounded-md w-full h-full"
     type="number"
     :step="precision"
-    pattern="\d*"
+    pattern="[\d.]*"
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"

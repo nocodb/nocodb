@@ -327,7 +327,7 @@ const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col
 
 const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
 
-const isRowReorderDisabled = computed(() => sorts.value?.length)
+const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value)
 
 const addColumnDropdown = ref(false)
 
@@ -1835,6 +1835,7 @@ const {
 })
 
 const startDragging = (row: Row, event: MouseEvent) => {
+  if (isPublicView.value) return
   row.rowMeta.isDragging = true
   cachedRows.value.set(row.rowMeta.rowIndex!, row)
   _startDragging(row, event)

@@ -52,6 +52,7 @@ setAdditionalValidations({
 const currencyList = currencyCodes || []
 
 const currencyLocaleList = ref<{ text: string; value: string }[]>([])
+const currencyLocaleMap = shallowRef<Map<string, string>>(new Map())
 
 const isMoney = computed(() => vModel.value.dt === 'money')
 
@@ -61,7 +62,10 @@ const message = computed(() => {
 })
 
 function filterOption(input: string, option: Option) {
-  return option.value.toUpperCase().includes(input.toUpperCase())
+  return (
+    option.value.toUpperCase().includes(input.toUpperCase()) ||
+    currencyLocaleMap.value.get(option.value)?.toUpperCase().includes(input.toUpperCase())
+  )
 }
 
 // set default value
@@ -72,6 +76,9 @@ vModel.value.meta = {
 
 currencyLocales().then((locales) => {
   currencyLocaleList.value.push(...locales)
+  currencyLocaleList.value.forEach((l) => {
+    currencyLocaleMap.value.set(l.value, l.text)
+  })
 })
 </script>
 

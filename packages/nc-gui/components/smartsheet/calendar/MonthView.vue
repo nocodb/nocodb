@@ -968,5 +968,9 @@ const addRecord = (date: dayjs.Dayjs) => {
     z-index: 2;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
+
+  &:first-of-type::after {
+    @apply left-0.5 w-[calc(100%_-_2px)];
+  }
 }
 </style>

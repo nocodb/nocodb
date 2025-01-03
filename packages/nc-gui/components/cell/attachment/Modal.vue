@@ -93,7 +93,7 @@ const handleFileDelete = (i: number) => {
       <div class="font-semibold text-xl">{{ column?.title }}</div>
 
       <div class="flex items-center gap-2">
-        <NcButton v-if="selectedVisibleItems.length > 0" size="small" @click="bulkDownloadAttachments">
+        <NcButton :disabled="!selectedVisibleItems.some(v => !!v)" type="secondary" size="small" @click="bulkDownloadAttachments">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="download" />
             {{ $t('activity.bulkDownload') }}

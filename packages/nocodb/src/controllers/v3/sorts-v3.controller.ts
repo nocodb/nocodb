@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { SortReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -54,7 +53,7 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Get('/api/v3/meta/sorts/:sortId')
+  @Get('/api/v3/meta/views/:viewId/sorts')
   @Acl('sortGet')
   async sortGet(
     @TenantContext() context: NcContext,
@@ -66,31 +65,34 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Patch('/api/v3/meta/sorts/:sortId')
+  @Patch('/api/v3/meta/views/:viewId/sorts')
   @Acl('sortUpdate')
   async sortUpdate(
     @TenantContext() context: NcContext,
-    @Param('sortId') sortId: string,
-    @Body() body: SortReqType,
+    @Body() body: SortReqType & { id: string },
+    @Param('viewId') viewId: string,
     @Req() req: NcRequest,
   ) {
     const sort = await this.sortsV3Service.sortUpdate(context, {
-      sortId,
+      sortId: body.id,
       sort: body,
       req,
+      viewId
     });
     return sort;
   }
 
-  @Delete('/api/v3/meta/sorts/:sortId')
+  @Delete('/api/v3/meta/views/:viewId/sorts')
   @Acl('sortDelete')
   async sortDelete(
     @TenantContext() context: NcContext,
-    @Param('sortId') sortId: string,
+    @Body() body: { id: string },
     @Req() req: NcRequest,
+    @Param('viewId') viewId: string,
   ) {
     const sort = await this.sortsV3Service.sortDelete(context, {
-      sortId,
+      viewId,
+      sortId: body.id,
       req,
     });
     return { list: sort };

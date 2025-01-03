@@ -7,6 +7,7 @@ import {
   builderGenerator,
   sortBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class SortsV3Service {
@@ -27,16 +28,28 @@ export class SortsV3Service {
 
   async sortDelete(
     context: NcContext,
-    param: { sortId: string; req: NcRequest },
+    param: { viewId: string; sortId: string; req: NcRequest },
   ) {
+    const sort = await Sort.get(context, param.sortId);
+
+    if (!sort || sort.fk_view_id !== param.viewId) {
+      NcError.notFound('Sort not found');
+    }
+
     await this.sortsService.sortDelete(context, param);
     return {};
   }
 
   async sortUpdate(
     context: NcContext,
-    param: { sortId: any; sort: SortReqType; req: NcRequest },
+    param: { sortId: any; sort: SortReqType; req: NcRequest; viewId: string },
   ) {
+    const sort = await Sort.get(context, param.sortId);
+
+    if (!sort || sort.fk_view_id !== param.viewId) {
+      NcError.notFound('Sort not found');
+    }
+
     const updateObj = this.revBuilder().build(param.sort);
     await this.sortsService.sortUpdate(context, {
       ...param,

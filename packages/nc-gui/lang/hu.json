@@ -93,6 +93,7 @@
     "none": "Nincs"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Törlés",
     "slack": "Slack",
     "comment": "Megjegyzés",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Frissítés",
     "rename": "Átnevezés",
     "renameEntity": "{entity} átnevezése",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Újratöltés",
     "refresh": "Frissítés",
     "reset": "Visszaállítás",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "Te"
+    "you": "Te",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "fájlok",
@@ -313,6 +318,8 @@
     "year": "Év",
     "workspace": "Munkaterület",
     "workspaces": "Munkaterületek",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Bázis",
     "projects": "Bázisok",
     "table": "Tábla",
@@ -530,6 +537,7 @@
     "displayValue": "Megjelenítési érték",
     "expand": "Kiterjesztés",
     "hideAll": "Összes elrejtése",
+    "systemFields": "System fields",
     "hideSystemFields": "Rendszermezők elrejtése",
     "removeFile": "Fájl eltávolítása",
     "hasMany": "Többszörös kapcsolat",
@@ -575,6 +583,7 @@
     "uiACL": "UI Hozzáférés-ellenőrzés",
     "metaOperations": "Metaadat Műveletek",
     "audit": "Audit",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrációk",
     "dbCredentials": "Adatbázis hitelesítési adatok",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Felhasználó és adatainak törlése",
     "userOptions": "Felhasználó beállításai",
     "deleteThisOrganization": "A szervezet törlése",
-    "dangerZone": "Veszélyzóna",
+    "dangerZone": "Danger Zone",
     "childView": "Gyermek Nézet",
     "selectYear": "Év kiválasztása",
     "save": "Mentés",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Részletek",
@@ -1336,6 +1360,7 @@
     "pending": "Függőben"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Engedélyezze, hogy ez a kapcsolat privát maradjon és rejtve legyen a többi készítő elől ezen a munkaterületen belül.",
     "optionalDatabaseName": "Nem kötelező. Alapértelmezett adatbázis \"{database}\" használata, ha üresen hagyja",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Érvénytelen gomb konfiguráció",
     "invalidColumnConfiguration": "Érvénytelen mező konfiguráció",
     "invalidTheme": "Válasszon érvényes témát",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Nem fog tudni rekordokat áthúzni dátumok között, ha számított vagy rendszermezők kerülnek használatra.",
       "schemaReadOnly": "Séma módosítások tiltva vannak ezen forrás esetében",
       "enterWorkspaceName": "Munkaterület nevének megadása",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Szerepkör sikeresen frissítve",
       "connectionAdded": "Az integráció sikeresen csatlakoztatva",
       "connectionAddedDesc": "Mostantól az alap tulajdonosok és készítők hozzáadhatnak adatforrást anélkül, hogy újra beírnák a hitelesítő adatokat."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

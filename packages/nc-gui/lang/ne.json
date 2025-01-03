@@ -93,6 +93,7 @@
     "none": "कुनै पनि छैन"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "स्पष्ट गर्नुहोस्",
     "slack": "Slack",
     "comment": "टिप्पणी",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "अपडेट गर्दै",
     "rename": "नाम परिवर्तन गर्नुहोस्",
     "renameEntity": "{entity} नाममा परिवर्तन गर्नुहोस्",
+    "untitledEntity": "Untitled {entity}",
     "reload": "पुनः लोड गर्नुहोस्",
     "refresh": "पुन: ताजा गर्नुहोस्",
     "reset": "रिसेट गर्नुहोस्",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "फाइलहरू",
@@ -313,6 +318,8 @@
     "year": "वर्ष",
     "workspace": "कार्य क्षेत्र",
     "workspaces": "कार्य क्षेत्रहरू",
+    "document": "Document",
+    "documents": "Documents",
     "project": "आधार",
     "projects": "आधारहरू",
     "table": "तालिका",
@@ -530,6 +537,7 @@
     "displayValue": "प्रदर्शन मान",
     "expand": "विस्तार गर्नुहोस्",
     "hideAll": "सबै लुकाउनुहोस्",
+    "systemFields": "System fields",
     "hideSystemFields": "प्रणाली क्षेत्रहरू लुकाउनुहोस्",
     "removeFile": "फाइल हटाउनुहोस्",
     "hasMany": "धेरै छ",
@@ -575,7 +583,8 @@
     "uiACL": "UI पहुँच नियन्त्रण",
     "metaOperations": "मेटाडाटा अपरेसनहरू",
     "audit": "अडिट",
-    "auditLogs": "लेखा परीक्षा लग",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL माइग्रेशनहरू",
     "dbCredentials": "डाटाबेस प्रमाणहरू",
     "advancedParameters": "एसएसएल र उन्नत प्यारामिटरहरू",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "प्रयोगकर्ता र तिनको डाटा मेटाउनुहोस्",
     "userOptions": "प्रयोगकर्ता विकल्पहरू",
     "deleteThisOrganization": "यो संगठन मेटाउनुहोस्",
-    "dangerZone": "डेंजरजोन",
+    "dangerZone": "Danger Zone",
     "childView": "बाल दृश्य",
     "selectYear": "वर्ष चयन गर्नुहोस्",
     "save": "सुरक्षित गर्नुहोस्",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "वेबहुक विवरणहरू",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "वर्तमान मिति विकल्प डाटा स्रोत वा डाटा प्रकारका लागि उपलब्ध छैन",
     "privateConnection": "यस कनेक्शनलाई निजी बनाउन र यो कार्यक्षेत्रमा अन्य सर्जकहरूबाट लुकाउन सक्रिय पार्नुहोस्।",
     "optionalDatabaseName": "वैकल्पिक। खाली छाडिएको खण्डमा \"{database}\" डिफल्ट डाटाबेस प्रयोग गर्छ",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "अवैध बटन कन्फिगरेसन",
     "invalidColumnConfiguration": "अवैध फील्ड कन्फिगरेसन",
     "invalidTheme": "वैध थिम चयन गर्नुहोस्",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "जब गणना गरिएको वा प्रणाली क्षेत्रहरू प्रयोग गरिन्छ, तपाईले मिति बीच अभिलेखहरू तान्न सक्षम हुनुहुने छैन।",
       "schemaReadOnly": "यो स्रोतको लागि योजना परिवर्तन निष्क्रिय गरिएको छ",
       "enterWorkspaceName": "वर्कस्पेसको नाम प्रविष्ट गर्नुहोस्",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "भूमिका सफलतापूर्वक अद्यावधिक गरियो",
       "connectionAdded": "एकीकरण सफलतापूर्वक जडान भयो",
       "connectionAddedDesc": "आधार मालिकहरू र सिर्जनाकर्ताहरूले अब प्रमाणहरू पुनः प्रविष्ट नगरी डाटा स्रोत थप्न सक्छन्।"
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

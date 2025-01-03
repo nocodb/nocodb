@@ -116,9 +116,6 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(col)"
               v-model="_row.row[col.title]"
-              :class="{
-                'px-1': isReadOnlyVirtualCell(col),
-              }"
               :column="col"
               :read-only="readOnly"
               :row="_row"

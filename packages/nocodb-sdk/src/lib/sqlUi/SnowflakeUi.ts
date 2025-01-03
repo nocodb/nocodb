@@ -202,6 +202,7 @@ export class SnowflakeUi {
         uidt: UITypes.Order,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }

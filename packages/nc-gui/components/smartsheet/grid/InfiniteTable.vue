@@ -325,9 +325,9 @@ const { allFilters, sorts } = useSmartsheetStoreOrThrow()
 
 const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
-const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length)
+const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
 
-const isRowReorderDisabled = computed(() => sorts.value?.length)
+const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPkAvail.value)
 
 const addColumnDropdown = ref(false)
 
@@ -1835,6 +1835,7 @@ const {
 })
 
 const startDragging = (row: Row, event: MouseEvent) => {
+  if (isPublicView.value) return
   row.rowMeta.isDragging = true
   cachedRows.value.set(row.rowMeta.rowIndex!, row)
   _startDragging(row, event)
@@ -2570,7 +2571,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
-            <template v-if="isOrderColumnExists">
+            <template v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPkAvail">
               <NcMenuItem
                 v-if="contextMenuTarget"
                 class="nc-base-menu-item"
@@ -2584,7 +2585,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && !isInsertBelowDisabled"
+                v-if="contextMenuTarget && !isInsertBelowDisabled"
                 class="nc-base-menu-item"
                 data-testid="context-menu-item-add-below"
                 @click="callAddNewRow(contextMenuTarget, 'below')"

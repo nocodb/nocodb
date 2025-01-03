@@ -162,7 +162,11 @@ export const useRowDragging = ({
       event.preventDefault()
       cancel()
 
-      if (row.value && row.value.rowMeta.rowIndex !== undefined) {
+      const isSamePosition =
+        row.value?.rowMeta?.rowIndex === targetRow.value?.rowMeta?.rowIndex ||
+        targetRow.value?.rowMeta?.rowIndex === row.value?.rowMeta?.rowIndex + 1
+
+      if (row.value && row.value.rowMeta.rowIndex !== undefined && !isSamePosition) {
         await updateRecordOrder(row.value.rowMeta.rowIndex, targetRow.value ? targetRow.value.rowMeta.rowIndex : null)
       }
 

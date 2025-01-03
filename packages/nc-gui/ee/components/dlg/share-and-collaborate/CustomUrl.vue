@@ -166,8 +166,6 @@ const checkAvailability = async () => {
   const CancelToken = axios.CancelToken // Axios CancelToken utility.
   controller.value = CancelToken.source() // Create a new token source for the current request.
 
-  isLoading.value.checkAvailability = true // Set the loading state for this operation.
-
   try {
     // Make the API call to check the custom URL's availability
 
@@ -208,6 +206,7 @@ const checkAvailabilityWithDebounce = useDebounceFn(
 
 const onChangeCustomUrl = (value: string) => {
   customUrl.value = value
+  isLoading.value.checkAvailability = true // Set the loading state for this operation.
 
   checkAvailabilityWithDebounce()
 }

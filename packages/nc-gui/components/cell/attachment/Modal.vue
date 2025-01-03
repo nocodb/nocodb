@@ -20,7 +20,7 @@ const {
   selectedFile,
   selectedVisibleItems,
   bulkDownloadAttachments,
-  renameFile,
+  renameFileInline,
 } = useAttachmentCell()!
 
 const dropZoneRef = ref<HTMLDivElement>()
@@ -62,6 +62,42 @@ useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
 })
 
 const isNewAttachmentModalOpen = ref(false)
+
+const isRenamingFile = ref(false)
+const renameFileIdx = ref(0)
+const newTitle = ref('')
+
+const inputBox = ref()
+
+const handleFileRenameStart = (idx: number) => {
+  isRenamingFile.value = true
+  renameFileIdx.value = idx
+  newTitle.value = visibleItems.value[idx]!.title
+  nextTick().then(() => {
+    inputBox.value[0].focus()
+    inputBox.value[0].select()
+  })
+}
+
+const handleResetFileRename = () => {
+  renameFileIdx.value = 0
+  newTitle.value = ''
+  isRenamingFile.value = false
+}
+
+const handleFileRename = async () => {
+  if (!isRenamingFile.value) return
+
+  if (newTitle.value) {
+    try {
+      await renameFileInline(renameFileIdx.value, newTitle.value)
+      handleResetFileRename()
+    } catch (e) {
+      message.error('Error while renaming file')
+      throw e
+    }
+  }
+}
 </script>
 
 <template>
@@ -76,7 +112,12 @@ const isNewAttachmentModalOpen = ref(false)
       <div class="font-semibold text-xl">{{ column?.title }}</div>
 
       <div class="flex items-center gap-2">
-        <NcButton :disabled="!selectedVisibleItems.some(v => !!v)" type="secondary" size="small" @click="bulkDownloadAttachments">
+        <NcButton
+          :disabled="!selectedVisibleItems.some((v) => !!v)"
+          type="secondary"
+          size="small"
+          @click="bulkDownloadAttachments"
+        >
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="download" />
             {{ $t('activity.bulkDownload') }}
@@ -160,17 +201,27 @@ const isNewAttachmentModalOpen = ref(false)
             />
           </div>
 
-          <div class="relative px-1 pb-1 items-center flex" :title="item.title">
+          <div class="relative px-1 pb-1 items-center flex" @dblclick.stop="handleFileRenameStart(i)" :title="item.title">
             <NcTooltip
               show-on-truncate-only
-              class="flex-auto truncate w-full text-[12px] items-center text-gray-700 text-sm line-height-4"
+              class="flex truncate h-4 w-full text-[12px] items-center text-gray-700 text-sm"
+              v-if="!isRenamingFile || renameFileIdx !== i"
             >
               {{ item.title }}
 
               <template #title>
-                {{ item.title }}
+                <span>{{ item.title }}</span>
               </template>
             </NcTooltip>
+            <input
+              class="border-none text-[12px] h-4 p-0"
+              type="text"
+              @keydown.enter="handleFileRename"
+              @keydown.escape.stop="handleResetFileRename"
+              v-model="newTitle"
+              ref="inputBox"
+              v-else
+            />
             <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white">
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
@@ -190,7 +241,7 @@ const isNewAttachmentModalOpen = ref(false)
                   size="xsmall"
                   class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content] gap-2"
                   type="text"
-                  @click="renameFile(item, i)"
+                  @click="handleFileRenameStart(i)"
                 >
                   <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
                 </NcButton>
@@ -219,7 +270,7 @@ const isNewAttachmentModalOpen = ref(false)
           </a-card>
         </div>
 
-        <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen"/>
+        <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
       </div>
     </div>
   </NcModal>

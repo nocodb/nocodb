@@ -268,7 +268,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     function updateAttachmentTitle(idx: number, title: string) {
-      attachments.value[idx].title = title
+      attachments.value[idx]!.title = title
       updateModelValue(attachments.value)
     }
 
@@ -282,7 +282,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             close()
 
             if (updateSelectedFile) {
-              selectedFile.value = { ...attachment, title: newTitle }
+              selectedFile.value = { ...attachment }
             }
 
             isRenameModalOpen.value = false
@@ -295,6 +295,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           },
         })
       })
+    }
+
+    async function renameFileInline(idx: number, newTitle: string, updateSelectedFile?: boolean) {
+      updateAttachmentTitle(idx, newTitle)
+
+      if (updateSelectedFile) {
+        selectedFile.value = { ...attachments.value[idx] }
+      }
+
+      isRenameModalOpen.value = false
     }
 
     /** save files on drop */
@@ -485,6 +495,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       FileIcon,
       removeFile,
       renameFile,
+      renameFileInline,
       downloadAttachment,
       updateModelValue,
       selectedFile,

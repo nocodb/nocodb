@@ -5439,7 +5439,7 @@ class BaseModelSqlv2 {
           toUpdate.push(data);
         } else {
           await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order?.plus(i),
+            ncOrder: order,
             undo,
           });
           order = order?.plus(1);

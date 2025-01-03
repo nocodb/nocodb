@@ -27,10 +27,10 @@ export default class CustomUrl extends CustomUrlCE {
     return customUrl && new CustomUrl(customUrl);
   }
 
-  public static async getOriginUrlByCustomPath(
+  public static async getCustomUrlByCustomPath(
     customPath: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<CustomUrl | undefined> {
     let customUrl;
 
     customUrl = await NocoCache.get(
@@ -54,10 +54,10 @@ export default class CustomUrl extends CustomUrlCE {
     }
 
     if (!customUrl) {
-      NcError.notFound();
+      return;
     }
 
-    return customUrl?.original_path;
+    return customUrl;
   }
 
   public static async insert(
@@ -75,6 +75,15 @@ export default class CustomUrl extends CustomUrlCE {
 
     if (insertData.custom_path?.length > 128) {
       NcError.badRequest('CustomUrl path must be at most 128 characters long');
+    }
+
+    const existingCustomUrl = await CustomUrl.getCustomUrlByCustomPath(
+      insertData.custom_path,
+      ncMeta,
+    );
+
+    if (existingCustomUrl) {
+      NcError.badRequest('CustomUrl path already taken');
     }
 
     const insertedCustomUrl = await ncMeta.metaInsert2(
@@ -134,6 +143,15 @@ export default class CustomUrl extends CustomUrlCE {
 
     if (updateData.custom_path?.length > 128) {
       NcError.badRequest('CustomUrl path must be at most 128 characters long');
+    }
+
+    const existingCustomUrl = await CustomUrl.getCustomUrlByCustomPath(
+      updateData.custom_path,
+      ncMeta,
+    );
+
+    if (existingCustomUrl) {
+      NcError.badRequest('CustomUrl path already taken');
     }
 
     await NocoCache.del(

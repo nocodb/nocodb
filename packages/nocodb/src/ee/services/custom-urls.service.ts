@@ -16,6 +16,12 @@ export class CustomUrlsService {
   }
 
   async getOriginalPath(custom_path: string) {
-    return await CustomUrl.getOriginUrlByCustomPath(custom_path);
+    const customUrl = await CustomUrl.getCustomUrlByCustomPath(custom_path);
+
+    if (!customUrl) {
+      return;
+    }
+
+    return customUrl.original_path;
   }
 }

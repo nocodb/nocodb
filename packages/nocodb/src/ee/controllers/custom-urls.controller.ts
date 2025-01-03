@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -27,20 +28,40 @@ export class CustomUrlsController {
   async getOriginalPath(
     @Param('customPath') customPath: string,
     @Res() res: Response,
+    @Query() queryParams: Record<string, any>,
   ) {
     const originalPath = await this.customUrlsService.getOriginalPath(
       customPath,
     );
 
-    if (originalPath) {
-      const urlParams = new URLSearchParams();
+    const urlParams = new URLSearchParams();
 
-      // add query params to the original path
+    if (originalPath) {
+      // Append the original path as 'hash-redirect'
       urlParams.append('hash-redirect', originalPath);
 
-      // add redirect query param with the original path
-      res.redirect(`${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`);
+      // Add query params only if it is nocodb form
+      // URL encode the queryParams to ensure they are passed correctly as a string
+      if (originalPath.includes('/form/')) {
+        const encodedQueryParams = encodeURIComponent(
+          new URLSearchParams(queryParams).toString(),
+        );
+
+        urlParams.append('hash-query-params', encodedQueryParams);
+      }
+
+      // Redirect with the combined query parameters
+      return res.redirect(
+        `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
+      );
     }
+
+    // Redirect to not found page
+    urlParams.append('hash-redirect', '/error/404');
+
+    return res.redirect(
+      `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
+    );
   }
 
   @Post(['/api/v2/meta/custom-url/check-path'])

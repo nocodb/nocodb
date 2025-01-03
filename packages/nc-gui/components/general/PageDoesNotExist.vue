@@ -10,6 +10,7 @@
           {{ $t('title.thisPageDoesNotExist') }}
         </slot>
       </div>
+      <NcButton @click="navigateTo('/')"> Home</NcButton>
     </div>
   </div>
 </template>

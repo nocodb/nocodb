@@ -21,11 +21,11 @@ export default class CustomUrl implements CustomUrlType {
     return {} as CustomUrl;
   }
 
-  public static async getOriginUrlByCustomPath(
+  public static async getCustomUrlByCustomPath(
     _customPath: string,
     _ncMeta = Noco.ncMeta,
-  ) {
-    return '';
+  ): Promise<CustomUrl | undefined> {
+    return;
   }
 
   public static async insert(

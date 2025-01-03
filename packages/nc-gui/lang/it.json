@@ -93,6 +93,7 @@
     "none": "Nulla"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Pulisci",
     "slack": "Slack",
     "comment": "Commento",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Aggiornamento",
     "rename": "Rinomina",
     "renameEntity": "Rinomina {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Ricarica",
     "refresh": "Aggiorna",
     "reset": "Ripristina",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "file",
@@ -313,6 +318,8 @@
     "year": "Anno",
     "workspace": "Spazio di lavoro",
     "workspaces": "Spazi di lavoro",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Progetto",
     "projects": "Progetti",
     "table": "Tabella",
@@ -530,6 +537,7 @@
     "displayValue": "Valore visualizzato",
     "expand": "Espandi",
     "hideAll": "Nascondi tutto",
+    "systemFields": "System fields",
     "hideSystemFields": "Nascondere campi di sistema",
     "removeFile": "Rimuovi File",
     "hasMany": "Ha Molti",
@@ -575,6 +583,7 @@
     "uiACL": "Controllo degli accessi interfaccia grafica (ACL)",
     "metaOperations": "Operazioni sui metadati",
     "audit": "Audit",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "Migrazioni SQL",
     "dbCredentials": "Credenziali del database",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Eliminare l'utente e i suoi dati",
     "userOptions": "Opzioni utente",
     "deleteThisOrganization": "Cancellare questa Organizzazione",
-    "dangerZone": "Dangerzone",
+    "dangerZone": "Danger Zone",
     "childView": "Campo figlio",
     "selectYear": "Seleziona l'Anno",
     "save": "Salva",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Dettagli webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Attiva per rendere questa connessione privata e nascosta agli altri creatori in questo spazio di lavoro.",
     "optionalDatabaseName": "Opzionale. Utilizza il database predefinito \"{database}\" se lasciato vuoto",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Configurazione pulsante non valida",
     "invalidColumnConfiguration": "Configurazione del campo non valida",
     "invalidTheme": "Selezioni un tema valido",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Non sarà possibile trascinare i record tra le date quando vengono utilizzati campi computati o di sistema.",
       "schemaReadOnly": "Le modifiche dello schema sono disabilitate per questa sorgente",
       "enterWorkspaceName": "Inserisca il nome dell'area di lavoro",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Ruolo aggiornato con successo",
       "connectionAdded": "L'integrazione è stata collegata con successo",
       "connectionAddedDesc": "I proprietari e i creatori di basi possono ora aggiungere una fonte di dati senza dover reinserire le credenziali."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

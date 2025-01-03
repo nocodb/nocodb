@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
               style="height: 140px"
               class="flex items-center justify-center rounded-md bg-gray-300"
             >
-              <component :is="iconMap.file" class="w-16 h-16" :class="{ '!w-12 !h-12': isMobileMode }" />
+              <component :is="iconMap.file" :class="isMobileMode ? 'w-12 h-12' : 'w-16 h-16'" />
             </div>
             <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 

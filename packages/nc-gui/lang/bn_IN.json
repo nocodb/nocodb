@@ -93,6 +93,7 @@
     "none": "কোনটিই নয়"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "স্পষ্ট",
     "slack": "স্ল্যাক",
     "comment": "মন্তব্য",
+    "comments": "Comments",
     "microsoftTeams": "মাইক্রোসফট টিমস",
     "discord": "ডিসকর্ড",
     "matterMost": "ম্যাটারমোস্ট",
@@ -171,6 +173,7 @@
     "updating": "হালনাগাদ",
     "rename": "নাম পরিবর্তন",
     "renameEntity": "{entity} পুনঃনামকরণ",
+    "untitledEntity": "Untitled {entity}",
     "reload": "পুনরায় লোড",
     "refresh": "রিফ্রেশ",
     "reset": "রিসেট",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ফাইলগুলি",
@@ -313,6 +318,8 @@
     "year": "বছর",
     "workspace": "ওয়ার্কস্পেস",
     "workspaces": "ওয়ার্কস্পেসগুলি",
+    "document": "Document",
+    "documents": "Documents",
     "project": "প্রকল্প",
     "projects": "প্রকল্প",
     "table": "টেবিল",
@@ -530,6 +537,7 @@
     "displayValue": "ডিসপ্লে মান",
     "expand": "সম্প্রসারণ",
     "hideAll": "সব লুকাও",
+    "systemFields": "System fields",
     "hideSystemFields": "সিস্টেম ক্ষেত্রগুলি লুকান",
     "removeFile": "ফাইল সরান",
     "hasMany": "অনেক আছে",
@@ -575,6 +583,7 @@
     "uiACL": "UI অ্যাক্সেস কন্ট্রোল",
     "metaOperations": "মেটাডেটা অপারেশনস",
     "audit": "নিরীক্ষা",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "এসকিউএল মাইগ্রেশন",
     "dbCredentials": "ডাটাবেস শংসাপত্র",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "ব্যবহারকারী এবং তাদের ডেটা মুছুন",
     "userOptions": "ব্যবহারকারীর বিকল্প",
     "deleteThisOrganization": "এই সংগঠনটি মুছে দিন",
-    "dangerZone": "বিপদ অঞ্চল",
+    "dangerZone": "Danger Zone",
     "childView": "শিশু দৃশ্য",
     "selectYear": "বছর নির্বাচন করুন",
     "save": "সংরক্ষণ",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ওয়েবহুকের বিবরণ",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "এটি ব্যক্তিগত এবং এই ওয়ার্কস্পেসের অন্যান্য নির্মাতাদের থেকে লুকিয়ে রাখতে এই সংযোগ সক্ষম করুন।",
     "optionalDatabaseName": "ঐচ্ছিক। ফাঁকা রাখলে \"{database}\" ডিফল্ট ডেটাবেস হিসাবে ব্যবহৃত হবে",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "অবৈধ বোতাম কনফিগারেশন",
     "invalidColumnConfiguration": "অবৈধ ক্ষেত্র কনফিগারেশন",
     "invalidTheme": "একটি বৈধ থিম নির্বাচন করুন",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "যখন গণনা করা বা সিস্টেম ফিল্ড ব্যবহার করা হয়, আপনি তারিখগুলির মধ্যে রেকর্ড টেনে আনতে সক্ষম হবেন না।",
       "schemaReadOnly": "এই উৎসের জন্য স্কিমা পরিবর্তন নিষ্ক্রিয়",
       "enterWorkspaceName": "ওয়ার্কস্পেসের নাম লিখুন",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "ভূমিকা সফলভাবে আপডেট হয়েছে",
       "connectionAdded": "ইন্টিগ্রেশন সফলভাবে সংযুক্ত হয়েছে",
       "connectionAddedDesc": "বেস মালিক এবং নির্মাতারা এখন ক্রেডেনশিয়াল পুনঃপ্রবেশ ছাড়াই একটি ডেটা উত্স যোগ করতে পারেন।"
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

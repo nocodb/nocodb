@@ -40,12 +40,15 @@ export class CustomUrlsController {
       // Append the original path as 'hash-redirect'
       urlParams.append('hash-redirect', originalPath);
 
+      // Add query params only if it is nocodb form
       // URL encode the queryParams to ensure they are passed correctly as a string
-      const encodedQueryParams = encodeURIComponent(
-        new URLSearchParams(queryParams).toString(),
-      );
+      if (originalPath.includes('/form/')) {
+        const encodedQueryParams = encodeURIComponent(
+          new URLSearchParams(queryParams).toString(),
+        );
 
-      urlParams.append('hash-queryParams', encodedQueryParams);
+        urlParams.append('hash-query-params', encodedQueryParams);
+      }
 
       // Redirect with the combined query parameters
       res.redirect(`${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`);

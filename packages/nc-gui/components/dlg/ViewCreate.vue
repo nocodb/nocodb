@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import {
   type CalendarType,

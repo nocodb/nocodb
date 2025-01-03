@@ -196,7 +196,7 @@ const initEmblaApi = (val: any) => {
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
                 <LazyCellAttachmentPreviewImage
-                  v-if="isImage(item.title, item.mimeType)"
+                  v-if="isImage(item.title, item.mimetype)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
                   controls
@@ -206,21 +206,21 @@ const initEmblaApi = (val: any) => {
                 />
 
                 <LazyCellAttachmentPreviewVideo
-                  v-else-if="isVideo(item.title, item.mimeType)"
+                  v-else-if="isVideo(item.title, item.mimetype)"
                   class="flex items-center w-full"
-                  :mime-type="item.mimeType"
+                  :mime-type="item.mimetype"
                   :title="item.title"
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
                 <LazyCellAttachmentPreviewPdf
-                  v-else-if="isPdf(item.title, item.mimeType)"
+                  v-else-if="isPdf(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
                 <LazyCellAttachmentPreviewMiscOffice
-                  v-else-if="isOffice(item.title, item.mimeType)"
+                  v-else-if="isOffice(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"

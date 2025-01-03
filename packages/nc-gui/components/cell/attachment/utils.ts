@@ -346,15 +346,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** bulk download selected files */
-    async function bulkDownloadAttachmentsLegacy() {
-      await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadAttachment(visibleItems.value[i]))))
-      selectedVisibleItems.value = Array.from({ length: visibleItems.value.length }, () => false)
-    }
-
     async function bulkDownloadAttachments() {
       const items: AttachmentType[] = selectedVisibleItems.value
         .map((v, i) => (v ? visibleItems.value[i] : undefined))
-        .filter((v) => !!v)
+        .filter(Boolean)
 
       if (items.length === 0) return
       if (items.length === 1) {
@@ -402,11 +397,18 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
         return file
       })
-      const files = (await Promise.all(filePromises)).filter((f) => !!f)
+      const files = (await Promise.all(filePromises)).filter(Boolean) as Response[]
       const zipBlob = await downloadZip(files).blob()
       const zipURL = URL.createObjectURL(zipBlob)
-      window.open(zipURL, '_self')
-      setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
+      try {
+        window.open(zipURL, '_self')
+      } catch (e) {
+        console.error('Error opening blob window', e)
+        message.error('Failed to download file')
+        return undefined
+      } finally {
+        setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
+      }
     }
 
     /** download a file */

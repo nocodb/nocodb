@@ -6,7 +6,7 @@ const emits = defineEmits<{
   'upload': [fileList: File[]]
 }>()
 
-const { isMobileMode } = useGlobal();
+const { isMobileMode } = useGlobal()
 
 const dropZoneRef = ref<HTMLDivElement>()
 

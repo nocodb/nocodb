@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const { t } = useI18n()
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
 

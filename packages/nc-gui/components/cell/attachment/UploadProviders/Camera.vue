@@ -8,7 +8,7 @@ const emits = defineEmits<{
 
 const { isLoading, startCamera: _startCamera, stopCamera: _stopCamera, videoStream, permissionGranted } = useAttachmentCell()!
 
-const { isMobileMode } = useGlobal();
+const { isMobileMode } = useGlobal()
 
 const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()

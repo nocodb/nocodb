@@ -1,4 +1,5 @@
 import autoBind from 'auto-bind';
+import BigNumber from 'bignumber.js';
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
@@ -4836,7 +4837,7 @@ class BaseModelSqlv2 {
     return await this.dbDriver(this.tnPath)
       .update({
         [columns.find((c) => c.uidt === UITypes.Order).column_name]:
-          newRecordOrder,
+          newRecordOrder.toString(),
       })
       .where(await this._wherePk(rowId));
   }
@@ -5414,7 +5415,7 @@ class BaseModelSqlv2 {
             ncOrder: order,
             undo,
           });
-          order++;
+          order = order?.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
@@ -5441,7 +5442,7 @@ class BaseModelSqlv2 {
             ncOrder: order,
             undo,
           });
-          order++;
+          order = order?.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }
@@ -5784,7 +5785,6 @@ class BaseModelSqlv2 {
         const columns = await this.model.getColumns(this.context);
 
         const order = await this.getHighestOrderInTable();
-
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
 
         for (const [index, d] of datas.entries()) {
@@ -5794,7 +5794,7 @@ class BaseModelSqlv2 {
           });
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
-            ncOrder: order + index,
+            ncOrder: order?.plus(index),
             undo,
           });
 
@@ -5826,7 +5826,7 @@ class BaseModelSqlv2 {
               await this.prepareNocoData(d, true, cookie, null, {
                 raw,
                 undo: undo,
-                ncOrder: order + i,
+                ncOrder: order?.plus(i),
               }),
           ),
         );
@@ -6976,7 +6976,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async getHighestOrderInTable(): Promise<number> {
+  public async getHighestOrderInTable(): Promise<BigNumber> {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );
@@ -6989,9 +6989,9 @@ class BaseModelSqlv2 {
       .max(`${orderColumn.column_name} as max_order`)
       .first();
 
-    const order = orderQuery ? +orderQuery['max_order'] || 0 : 0;
+    const order = new BigNumber(orderQuery ? orderQuery['max_order'] || 0 : 0);
 
-    return order + ORDER_STEP_INCREMENT;
+    return order.plus(ORDER_STEP_INCREMENT);
   }
 
   // method for validating otpions if column is single/multi select
@@ -9931,11 +9931,11 @@ class BaseModelSqlv2 {
     await this.execAndParse(qb, null, { raw: true });
   }
 
-  findIntermediateOrder(before: number, after: number) {
-    if (after <= before) {
+  findIntermediateOrder(before: BigNumber, after: BigNumber): BigNumber {
+    if (after.lte(before)) {
       NcError.cannotCalculateIntermediateOrderError();
     }
-    return before + (after - before) / 2;
+    return before.plus(after.minus(before).div(2));
   }
 
   async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
@@ -9949,57 +9949,57 @@ class BaseModelSqlv2 {
         return;
       }
 
-      let row = null;
-
-      if (before) {
-        row = await this.readByPk(
-          before,
-          false,
-          {},
-          { extractOrderColumn: true },
-        );
-      }
-      if (!row) {
+      if (!before) {
         const highestOrder = await this.getHighestOrderInTable();
 
-        const newOrders: number[] = [];
-        let currentOrder = highestOrder;
-
-        for (let i = 0; i < amount; i++) {
-          currentOrder += 1;
-          newOrders.push(currentOrder);
-        }
-
-        return newOrders;
+        return Array.from({ length: amount }).map((_, i) => {
+          return highestOrder.plus(i + 1);
+        });
       }
 
+      const row = await this.readByPk(
+        before,
+        false,
+        {},
+        { extractOrderColumn: true },
+      );
+
+      if (!row) {
+        return await this.getUniqueOrdersBeforeItem(null, amount, depth);
+      }
+
+      const currentRowOrder = new BigNumber(row[orderColumn.title] ?? 0);
+
       const resultQuery = this.dbDriver(this.tnPath)
-        .where(orderColumn.column_name, '<', row[orderColumn.title])
+        .where(orderColumn.column_name, '<', currentRowOrder.toString())
         .max(orderColumn.column_name + ' as maxOrder')
         .first();
 
       const result = await resultQuery;
 
-      const adjacentOrder = result.maxOrder || 0;
-      const newOrders = [];
-      let newOrder = adjacentOrder;
+      const adjacentOrder = new BigNumber(result.maxOrder || 0);
+
+      const orders = [];
 
       for (let i = 0; i < amount; i++) {
         const intermediateOrder = this.findIntermediateOrder(
-          newOrder,
-          row[orderColumn.title],
+          adjacentOrder.plus(i),
+          currentRowOrder,
         );
 
-        newOrder = Number(intermediateOrder.toFixed(20));
-
-        if (newOrder === adjacentOrder || newOrder === row[orderColumn.title]) {
-          NcError.cannotCalculateIntermediateOrderError();
+        if (
+          intermediateOrder.eq(adjacentOrder) ||
+          intermediateOrder.eq(currentRowOrder)
+        ) {
+          throw NcError.cannotCalculateIntermediateOrderError();
         }
-        newOrders.push(newOrder);
+
+        orders.push(intermediateOrder);
       }
-      return newOrders;
+
+      return orders;
     } catch (error) {
-      if ((error.error = NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER)) {
+      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
@@ -10009,6 +10009,8 @@ class BaseModelSqlv2 {
   }
 
   async recalculateFullOrder() {
+    const primaryKeys = this.model.primaryKeys.map((pk) => pk.column_name);
+
     const sql = {
       mysql2: {
         modern: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`, // 8.0+
@@ -10019,8 +10021,20 @@ class BaseModelSqlv2 {
             'UPDATE ?? SET ?? = (@row_number:=@row_number+1) ORDER BY ?? ASC',
         },
       },
-      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
-      sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
+      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ${primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE ${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}`,
+      sqlite3: `WITH rn AS (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
+        .map((_pk) => `rn.?? = ??.??`)
+        .join(' AND ')})`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -10041,20 +10055,18 @@ class BaseModelSqlv2 {
         this.tnPath,
         orderColumn.column_name,
         orderColumn.column_name,
+        ...primaryKeys,
         orderColumn.column_name,
         this.tnPath,
-        orderColumn.column_name,
-        orderColumn.column_name,
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // Flatten pk array for binding
       ],
       sqlite3: [
-        orderColumn.column_name,
-        orderColumn.column_name,
-        this.tnPath,
-        this.tnPath,
-        orderColumn.column_name,
+        ...primaryKeys,
         orderColumn.column_name,
         this.tnPath,
+        this.tnPath,
         orderColumn.column_name,
+        ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
       ],
     };
 
@@ -10076,9 +10088,8 @@ class BaseModelSqlv2 {
         );
       }
     } else {
-      await this.execAndGetRows(
-        this.dbDriver.raw(sql[client], params[client]).toQuery(),
-      );
+      const query = this.dbDriver.raw(sql[client], params[client]).toQuery();
+      await this.execAndGetRows(query);
     }
   }
 
@@ -10086,11 +10097,11 @@ class BaseModelSqlv2 {
     data,
     isInsertData = false,
     cookie?: { user?: any; system?: boolean },
-    // oldData uses title as key where as data uses column_name as key
+    // oldData uses title as key whereas data uses column_name as key
     oldData?,
     extra?: {
       raw?: boolean;
-      ncOrder?: number;
+      ncOrder?: BigNumber;
       before?: string;
       undo?: boolean;
     },
@@ -10123,10 +10134,11 @@ class BaseModelSqlv2 {
             if (extra?.before) {
               data[column.column_name] = (
                 await this.getUniqueOrdersBeforeItem(extra?.before, 1)
-              )[0];
+              )[0].toString();
             } else {
-              data[column.column_name] =
-                extra?.ncOrder ?? (await this.getHighestOrderInTable());
+              data[column.column_name] = (
+                extra?.ncOrder ?? (await this.getHighestOrderInTable())
+              ).toString();
             }
           }
         }

@@ -183,6 +183,7 @@ export class DatabricksUi {
         uidt: UITypes.Order,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }

@@ -64,15 +64,12 @@ const isFocused = ref(false)
 
 const isCustomUrlAvailable = ref(true)
 
-const showAvailableStatusLocal = ref(false)
-
 const isOpenCustomUrl = computed(() => {
   return !!customUrl.value || !!customUrlLocal.value || isOpenCustomUrlLocal.value
 })
 
 const showAvailableStatus = computed(() => {
   return (
-    showAvailableStatusLocal.value &&
     customUrl.value &&
     customUrl.value !== customUrlLocal.value &&
     !isLoading.value.checkAvailability &&
@@ -100,7 +97,6 @@ const toggleCustomUrl = async () => {
   if (isLoading.value.customUrl) return
 
   isCustomUrlAvailable.value = true
-  showAvailableStatusLocal.value = false
 
   isLoading.value.customUrl = true
   try {
@@ -171,11 +167,6 @@ const checkAvailability = async () => {
   controller.value = CancelToken.source() // Create a new token source for the current request.
 
   isLoading.value.checkAvailability = true // Set the loading state for this operation.
-
-  // Ensure the availability status visibility is enabled for the user
-  if (!showAvailableStatusLocal.value) {
-    showAvailableStatusLocal.value = true
-  }
 
   try {
     // Make the API call to check the custom URL's availability

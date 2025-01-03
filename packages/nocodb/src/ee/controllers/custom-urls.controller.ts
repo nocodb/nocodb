@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -27,6 +28,7 @@ export class CustomUrlsController {
   async getOriginalPath(
     @Param('customPath') customPath: string,
     @Res() res: Response,
+    @Query() queryParams: Record<string, any>,
   ) {
     const originalPath = await this.customUrlsService.getOriginalPath(
       customPath,
@@ -35,10 +37,17 @@ export class CustomUrlsController {
     if (originalPath) {
       const urlParams = new URLSearchParams();
 
-      // add query params to the original path
+      // Append the original path as 'hash-redirect'
       urlParams.append('hash-redirect', originalPath);
 
-      // add redirect query param with the original path
+      // URL encode the queryParams to ensure they are passed correctly as a string
+      const encodedQueryParams = encodeURIComponent(
+        new URLSearchParams(queryParams).toString(),
+      );
+
+      urlParams.append('hash-queryParams', encodedQueryParams);
+
+      // Redirect with the combined query parameters
       res.redirect(`${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`);
     }
   }

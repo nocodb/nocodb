@@ -1,7 +1,7 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
 import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
-import { downloadZip } from 'client-zip'
+import { zip as fflateZip } from 'fflate'
 import RenameFile from './RenameFile.vue'
 import MdiPdfBox from '~icons/nc-icons-v2/file-type-pdf'
 import MdiFileWordOutline from '~icons/nc-icons-v2/file-type-word'
@@ -366,48 +366,91 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         message.error('Failed to download file')
       }
 
-      const filePromises = items.map(async (item) => {
+      const filesData: { name: string; data: Uint8Array }[] = []
+
+      for (const item of items) {
         const src = item.url || item.path
         if (!src) {
           console.error('Missing src')
           message.error('Failed to download file')
-          return undefined
+          continue
         }
+
         const apiPromise = isPublic.value
           ? () => fetchSharedViewAttachment(columnId!, rowId!, src)
           : () =>
               $api.dbDataTableRow.attachmentDownload(modelId!, columnId!, rowId!, {
                 urlOrPath: src,
               })
+
         const res = await apiPromise()
         if (!res) {
           console.error('Invalid response')
           message.error('Failed to download file')
-          return undefined
+          continue
         }
-        let file: Response
+
+        let response: Response
         if (res.path) {
-          file = await fetch(`${baseURL}/${res.path}`)
+          response = await fetch(`${baseURL}/${res.path}`)
         } else if (res.url) {
-          file = await fetch(`${res.url}`)
+          response = await fetch(`${res.url}`)
         } else {
           console.error('Invalid blob response')
           message.error('Failed to download file')
-          return undefined
+          continue
         }
-        return file
+
+        const arrayBuffer = await response.arrayBuffer()
+        const fileName = item.title || src.split('/').pop() || 'file'
+
+        filesData.push({
+          name: fileName,
+          data: new Uint8Array(arrayBuffer),
+        })
+      }
+
+      if (filesData.length === 0) {
+        message.error('No files to download')
+        return
+      }
+
+      // Create a zip object
+      const zip: Record<string, Uint8Array> = {}
+
+      // Add files to zip object
+      filesData.forEach(({ name, data }) => {
+        zip[name] = data
       })
-      const files = (await Promise.all(filePromises)).filter(Boolean) as Response[]
-      const zipBlob = await downloadZip(files).blob()
-      const zipURL = URL.createObjectURL(zipBlob)
+
       try {
-        window.open(zipURL, '_self')
+        // Use fflate to create zip
+        const zipData = await new Promise<Uint8Array>((resolve, reject) => {
+          fflateZip(zip, (err, data) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(data)
+            }
+          })
+        })
+
+        // Create blob and download
+        const blob = new Blob([zipData], { type: 'application/zip' })
+        const zipURL = URL.createObjectURL(blob)
+
+        try {
+          window.open(zipURL, '_self')
+        } catch (e) {
+          console.error('Error opening blob window', e)
+          message.error('Failed to download file')
+          return undefined
+        } finally {
+          setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
+        }
       } catch (e) {
-        console.error('Error opening blob window', e)
-        message.error('Failed to download file')
-        return undefined
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(zipURL), 1000)
+        console.error('Error creating zip file', e)
+        message.error('Failed to create zip file')
       }
     }
 

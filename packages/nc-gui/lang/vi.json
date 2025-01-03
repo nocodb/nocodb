@@ -93,6 +93,7 @@
     "none": "Không có"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Sạch",
     "slack": "Slack",
     "comment": "Bình luận",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Đang cập nhật",
     "rename": "Đổi tên",
     "renameEntity": "Đổi tên {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Tải lại",
     "refresh": "Làm mới",
     "reset": "Cài lại",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "tập tin",
@@ -313,6 +318,8 @@
     "year": "Năm",
     "workspace": "Không gian làm việc",
     "workspaces": "Các không gian làm việc",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Dự định",
     "projects": "Dự án.",
     "table": "Bảng",
@@ -530,6 +537,7 @@
     "displayValue": "Hiển thị giá trị",
     "expand": "Mở rộng",
     "hideAll": "Ẩn tất cả",
+    "systemFields": "System fields",
     "hideSystemFields": "Ẩn các trường hệ thống",
     "removeFile": "Xóa tệp",
     "hasMany": "Có nhiều",
@@ -575,6 +583,7 @@
     "uiACL": "Kiểm soát truy cập UI",
     "metaOperations": "Hoạt động siêu dữ liệu",
     "audit": "Kiểm toán",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "Di chuyển SQL.",
     "dbCredentials": "Thông tin cơ sở dữ liệu",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Xóa Người dùng và dữ liệu của họ",
     "userOptions": "Tùy chọn Người dùng",
     "deleteThisOrganization": "Xóa Tổ chức này",
-    "dangerZone": "Khu vực nguy hiểm",
+    "dangerZone": "Danger Zone",
     "childView": "Chế độ xem con",
     "selectYear": "Chọn Năm",
     "save": "Cứu",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Chi tiết Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Bật để làm cho kết nối này riêng tư và ẩn khỏi các nhà sáng tạo khác trong không gian làm việc này.",
     "optionalDatabaseName": "Tùy chọn. Sử dụng cơ sở dữ liệu mặc định \"{database}\" nếu để trống",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Cấu hình nút không hợp lệ",
     "invalidColumnConfiguration": "Cấu hình trường không hợp lệ",
     "invalidTheme": "Chọn một chủ đề hợp lệ",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Bạn sẽ không thể kéo các bản ghi giữa các ngày khi trường được tính toán hoặc hệ thống được sử dụng.",
       "schemaReadOnly": "Việc thay đổi lược đồ bị vô hiệu hóa cho nguồn này",
       "enterWorkspaceName": "Nhập tên không gian làm việc",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Vai trò đã được cập nhật thành công",
       "connectionAdded": "Tích hợp kết nối thành công",
       "connectionAddedDesc": "Chủ sở hữu và người tạo cơ sở có thể thêm một nguồn dữ liệu mà không cần nhập lại thông tin xác thực."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

@@ -644,6 +644,9 @@
     "categories": "Kategoriler",
     "fieldInaccessible": "Alan erişilemez",
     "noConditionsAdded": "Koşul eklenmedi",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Bu özellik yalnızca enterprise edition'da mevcuttur",
       "yourCurrentRoleIs": "Mevcut rolünüz",
       "pleaseRequestAccessForView": "Bu {viewName} erişimi sağlamak için Yönetici / Veri Tabanı Sahibi / Çalışma Alanı Sahibi'nden daha yüksek izin talebinde bulunun",
-      "preventHideAllOptions": "Alan zorunlu ise tüm seçenekler gizlenemez"
+      "preventHideAllOptions": "Alan zorunlu ise tüm seçenekler gizlenemez",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Elle tetiklenen bağlantılar devre dışı bırakılamaz",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Sürüklenen içerik resim türünde değil",
       "fieldToParseImageData": "Resim verilerini işlemek için sütun",
       "someOfTheRequiredFieldsAreEmpty": "Gerekli alanların bazıları boş",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

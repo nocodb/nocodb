@@ -11,7 +11,7 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
@@ -298,7 +298,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"
         class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly || !!isMobileMode"
+        :readonly="readOnly"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop

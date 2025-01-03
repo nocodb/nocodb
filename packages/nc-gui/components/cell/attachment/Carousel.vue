@@ -282,7 +282,7 @@ const initEmblaApi = (val: any) => {
               >
                 <div class="flex items-center justify-center">
                   <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimeType)"
+                    v-if="isImage(item.title, item.mimetype)"
                     class="nc-attachment-img-wrapper h-12"
                     object-fit="contain"
                     :alt="item.title"
@@ -290,14 +290,14 @@ const initEmblaApi = (val: any) => {
                     @error="triggerReload"
                   />
                   <div
-                    v-else-if="isVideo(item.title, item.mimeType)"
+                    v-else-if="isVideo(item.title, item.mimetype)"
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="play" />
                   </div>
 
                   <div
-                    v-else-if="isPdf(item.title, item.mimeType)"
+                    v-else-if="isPdf(item.title, item.mimetype)"
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="pdfFile" />

@@ -108,8 +108,8 @@ onBeforeUnmount(() => {
         </NcButton>
       </div>
 
-      <div v-show="capturedImage" class="flex group flex-col gap-2">
-        <canvas ref="canvasRef" class="rounded-md w-[400px]" :class="{ '!w-[350px]': isMobileMode }"></canvas>
+      <div v-show="capturedImage" class="flex group flex-col">
+        <canvas ref="canvasRef" class="rounded-md w-[400px] mb-2" :class="{ '!w-[350px]': isMobileMode }"></canvas>
 
         <div class="relative text-[12px] font-semibold text-gray-800 flex">
           <div class="flex-auto truncate line-height-4">

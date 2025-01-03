@@ -241,6 +241,8 @@ watch(
 
         isOpenCustomUrlLocal.value = false
       }
+      isCustomUrlAvailable.value = true
+
       return
     }
 

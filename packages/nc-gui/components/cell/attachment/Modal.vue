@@ -55,30 +55,12 @@ function onClick(item: Record<string, any>) {
   })
 }
 
-const isModalOpen = ref(false)
-const filetoDelete = reactive({
-  title: '',
-  i: 0,
-})
-
-function onRemoveFileClick(title: any, i: number) {
-  isModalOpen.value = true
-  filetoDelete.i = i
-  filetoDelete.title = title
-}
-
 // when user paste on modal
 useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
   if (event.clipboardData?.files) {
     onDrop(event.clipboardData.files)
   }
 })
-const handleFileDelete = (i: number) => {
-  removeFile(i)
-  isModalOpen.value = false
-  filetoDelete.i = 0
-  filetoDelete.title = ''
-}
 </script>
 
 <template>
@@ -219,7 +201,7 @@ const handleFileDelete = (i: number) => {
                   class="!p-0 !h-4 !w-4 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
                   size="xsmall"
                   type="text"
-                  @click="onRemoveFileClick(item.title, i)"
+                  @click="removeFile(i)"
                 >
                   <component :is="iconMap.delete" class="text-xs h-13px w-13px" />
                 </NcButton>
@@ -237,22 +219,6 @@ const handleFileDelete = (i: number) => {
         </div>
       </div>
     </div>
-
-    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
-      <template #entity-preview>
-        <span>
-          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-            <div
-              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ filetoDelete.title }}
-            </div>
-          </div>
-        </span>
-      </template>
-    </GeneralDeleteModal>
   </NcModal>
 </template>
 

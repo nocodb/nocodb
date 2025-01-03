@@ -100,7 +100,6 @@ function onKeyDown(e: any) {
     v-model="vModel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
-    :pattern="inputType === 'number' ? '\d*' : undefined"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
     @keydown="onKeyDown"

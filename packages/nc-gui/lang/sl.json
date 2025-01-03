@@ -93,6 +93,7 @@
     "none": "Noben"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Počisti",
     "slack": "Slack",
     "comment": "Komentar",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Posodabljanje",
     "rename": "Preimenovanje",
     "renameEntity": "Preimenuj {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Ponovno nalaganje",
     "refresh": "Osveži",
     "reset": "Ponastavi",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "datoteke",
@@ -313,6 +318,8 @@
     "year": "Leto",
     "workspace": "Delovni prostor",
     "workspaces": "Delovni prostori",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Project.",
     "projects": "Projekti",
     "table": "Tabela",
@@ -530,6 +537,7 @@
     "displayValue": "Prikaži vrednost",
     "expand": "Razširi",
     "hideAll": "Skrij vse",
+    "systemFields": "System fields",
     "hideSystemFields": "Skrij sistemska polja",
     "removeFile": "Odstrani datoteko",
     "hasMany": "Ima veliko",
@@ -575,6 +583,7 @@
     "uiACL": "UI nadzor dostopa",
     "metaOperations": "Operacije metapodatkov",
     "audit": "Revizija",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL migracije",
     "dbCredentials": "Poverilnice baze podatkov",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Izbriši uporabnika in njegove podatke",
     "userOptions": "Možnosti uporabnika",
     "deleteThisOrganization": "Izbriši to organizacijo",
-    "dangerZone": "Nevarno območje",
+    "dangerZone": "Danger Zone",
     "childView": "Podpogled",
     "selectYear": "Izberi leto",
     "save": "Shrani",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Podrobnosti Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Omogočite, da bo ta povezava zasebna in skrita pred drugimi ustvarjalci v tem delovnem prostoru.",
     "optionalDatabaseName": "Neobvezno. Če pustite prazno, se uporabi privzeta baza podatkov \"{database}\"",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Neveljavna konfiguracija gumba",
     "invalidColumnConfiguration": "Neveljavna konfiguracija polja",
     "invalidTheme": "Izberite veljavno temo",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Ne boste mogli vleči zapisov med datumi, ko so uporabljena izračunana ali sistemska polja.",
       "schemaReadOnly": "Spremembe sheme so onemogočene za ta vir",
       "enterWorkspaceName": "Vnesite ime delovnega prostora",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Vloga je bila uspešno posodobljena",
       "connectionAdded": "Integracija uspešno povezana",
       "connectionAddedDesc": "Lastniki in ustvarjalci baze lahko zdaj dodajo vir podatkov brez ponovnega vnosa poverilnic."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

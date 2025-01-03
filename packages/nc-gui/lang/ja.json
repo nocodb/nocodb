@@ -93,6 +93,7 @@
     "none": "なし"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "クリア",
     "slack": "スラック",
     "comment": "コメント",
+    "comments": "Comments",
     "microsoftTeams": "マイクロソフトチーム",
     "discord": "ディスコード",
     "matterMost": "マターモスト",
@@ -171,6 +173,7 @@
     "updating": "更新中",
     "rename": "リネーム",
     "renameEntity": "{entity}を名前変更",
+    "untitledEntity": "Untitled {entity}",
     "reload": "リロード",
     "refresh": "更新",
     "reset": "リセット",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ファイル",
@@ -313,6 +318,8 @@
     "year": "年",
     "workspace": "ワークスペース",
     "workspaces": "ワークスペース",
+    "document": "Document",
+    "documents": "Documents",
     "project": "プロジェクト",
     "projects": "プロジェクト",
     "table": "テーブル",
@@ -530,6 +537,7 @@
     "displayValue": "表示値",
     "expand": "拡大",
     "hideAll": "すべて隠す",
+    "systemFields": "System fields",
     "hideSystemFields": "システムフィールドを隠す",
     "removeFile": "ファイルを削除",
     "hasMany": "複数あり",
@@ -575,7 +583,8 @@
     "uiACL": "UIアクセス制御",
     "metaOperations": "メタデータ操作",
     "audit": "監査",
-    "auditLogs": "監査ログ",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL移行",
     "dbCredentials": "データベース認証情報",
     "advancedParameters": "SSL＆高度なパラメータ",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "ユーザーとそのデータを削除",
     "userOptions": "ユーザーオプション",
     "deleteThisOrganization": "この組織を削除",
-    "dangerZone": "危険ゾーン",
+    "dangerZone": "Danger Zone",
     "childView": "子ビュー",
     "selectYear": "年を選択",
     "save": "保存",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Invalid button configuration",
     "invalidColumnConfiguration": "Invalid field configuration",
     "invalidTheme": "Select a valid theme",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "このソースではスキーマの変更が無効になっています",
       "enterWorkspaceName": "作業スペース名を入力",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "ロールを更新しました",
       "connectionAdded": "Integration connected successfully",
       "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

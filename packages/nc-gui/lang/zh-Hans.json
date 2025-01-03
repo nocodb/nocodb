@@ -93,6 +93,7 @@
     "none": "空"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "快照",
     "snapshots": "快照",
     "baseSnapshots": "项目快照",
@@ -140,6 +141,7 @@
     "clear": "清空",
     "slack": "Slack",
     "comment": "评论",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "最重要的事项",
@@ -171,6 +173,7 @@
     "updating": "更新",
     "rename": "重命名",
     "renameEntity": "重命名{entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "重新加载",
     "refresh": "刷新",
     "reset": "重置",
@@ -301,7 +304,9 @@
     "enable": "启用",
     "poweredBy": "技术支持",
     "nocoAI": "Noco AI",
-    "you": "您"
+    "you": "您",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "文件",
@@ -313,6 +318,8 @@
     "year": "年",
     "workspace": "工作区",
     "workspaces": "工作区",
+    "document": "Document",
+    "documents": "Documents",
     "project": "项目",
     "projects": "项目",
     "table": "表格",
@@ -530,6 +537,7 @@
     "displayValue": "显示值",
     "expand": "展开",
     "hideAll": "隐藏全部",
+    "systemFields": "System fields",
     "hideSystemFields": "隐藏系统字段",
     "removeFile": "删除文件",
     "hasMany": "单对多",
@@ -575,7 +583,8 @@
     "uiACL": "UI 访问控制",
     "metaOperations": "元数据操作",
     "audit": "审计",
-    "auditLogs": "审计日志",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL 迁移",
     "dbCredentials": "数据库链接凭证",
     "advancedParameters": "SSL 和高级参数",
@@ -653,6 +662,13 @@
     "lockedByUser": "被{user} 锁定"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "快照创建失败",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "删除用户及其数据",
     "userOptions": "用户选项",
     "deleteThisOrganization": "删除该组织",
-    "dangerZone": "危险区",
+    "dangerZone": "Danger Zone",
     "childView": "子视图",
     "selectYear": "选择年份",
     "save": "保存",
@@ -1070,6 +1086,14 @@
     "viewHide": "查看可见性 "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "删除所有记录",
     "assignView": "指定视图",
     "webhookDetails": "Webhook 详情",
@@ -1336,6 +1360,7 @@
     "pending": "待处理"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "启用后，此工作区中的其他创建者无法看到此连接。",
     "optionalDatabaseName": "可选。如果留空，则使用默认数据库 \"{database}\"。",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。"
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "按钮配置无效",
     "invalidColumnConfiguration": "字段配置无效",
     "invalidTheme": "选择有效的主题",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "使用计算字段或系统字段时，无法在日期之间拖动记录。",
       "schemaReadOnly": "此源的模式更改已禁用",
       "enterWorkspaceName": "输入工作区名称",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "权限已更新",
       "connectionAdded": "集成连接成功",
       "connectionAddedDesc": "数据库的所有者和创建者现在可以添加数据源，而无需重新输入凭据。"
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

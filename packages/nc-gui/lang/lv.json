@@ -93,6 +93,7 @@
     "none": "Neviens"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Notīrīt",
     "slack": "Slack",
     "comment": "Komentârs",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Atjaunināšana",
     "rename": "Pārsaukt",
     "renameEntity": "Pārsaukt {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Pātlādēt",
     "refresh": "Atsvaidzināt",
     "reset": "Atiestatīt",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "faili",
@@ -313,6 +318,8 @@
     "year": "Gads",
     "workspace": "Darbtelpa",
     "workspaces": "Darbtelpas",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Projekts",
     "projects": "Projekti",
     "table": "Tabula",
@@ -530,6 +537,7 @@
     "displayValue": "Displeja vērtība",
     "expand": "Izvērst",
     "hideAll": "Paslēpt visu",
+    "systemFields": "System fields",
     "hideSystemFields": "Slēpt sistēmas laukus",
     "removeFile": "Dzēst failu",
     "hasMany": "Ir daudz",
@@ -575,6 +583,7 @@
     "uiACL": "UI Pieejas kontrole",
     "metaOperations": "Metadatu operācijas",
     "audit": "Auditācija",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrācijas",
     "dbCredentials": "Datubāzes pieslēguma parametri",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Dzēst lietotāju un viņa datus",
     "userOptions": "Lietotāju opcijas",
     "deleteThisOrganization": "Dzēst šo organizāciju",
-    "dangerZone": "Bīstamā zona",
+    "dangerZone": "Danger Zone",
     "childView": "Apakšskats",
     "selectYear": "Izvēlieties gadu",
     "save": "Saglabāt",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook detaļas",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Iespējojiet, lai padarītu šo savienojumu privātu un paslēptu no citiem veidotājiem šajā darbvietā.",
     "optionalDatabaseName": "Pēc izvēles. Ja atstāts tukšs, tiks izmantots noklusētā datu bāze \"{database}\"",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Nederīga pogas konfigurācija",
     "invalidColumnConfiguration": "Nederīga lauka konfigurācija",
     "invalidTheme": "Izvēlieties derīgu motīvu",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Jūs nevarēsiet vilkt ierakstus starp datumiem, ja tiek izmantoti aprēķinātie vai sistēmas lauki.",
       "schemaReadOnly": "Šim avotam shēmas izmaiņas ir atspējotas",
       "enterWorkspaceName": "Ievadiet darbavietas nosaukumu",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Loma veiksmīgi atjaunināta",
       "connectionAdded": "Integrācija veiksmīgi izveidota",
       "connectionAddedDesc": "Bāzes īpašnieki un veidotāji tagad var pievienot datu avotu, nepārievadot akreditācijas datus."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

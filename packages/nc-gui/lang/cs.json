@@ -93,6 +93,7 @@
     "none": "Žádný"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Vyprázdnit",
     "slack": "Slack",
     "comment": "Komentář",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Aktualizace",
     "rename": "Přejmenovat",
     "renameEntity": "Přejmenovat {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Znovu načíst",
     "refresh": "Obnovit",
     "reset": "Obnovit",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "soubory",
@@ -313,6 +318,8 @@
     "year": "Rok",
     "workspace": "Pracovní prostor",
     "workspaces": "Pracovní prostory",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Projekt",
     "projects": "Projekty",
     "table": "Tabulka",
@@ -530,6 +537,7 @@
     "displayValue": "Zobrazovaná hodnota",
     "expand": "Rozšířit",
     "hideAll": "Skrýt vše",
+    "systemFields": "System fields",
     "hideSystemFields": "Skrýt systémová pole",
     "removeFile": "Odstranit soubor",
     "hasMany": "Má mnoho",
@@ -575,6 +583,7 @@
     "uiACL": "Řízení přístupu k uživatelskému rozhraní",
     "metaOperations": "Operace s metadaty",
     "audit": "Audit",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL migrace",
     "dbCredentials": "Pověření k databázi",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Smazat uživatele a jeho data",
     "userOptions": "Možnosti uživatele",
     "deleteThisOrganization": "Smazat tuto organizaci",
-    "dangerZone": "Nebezpečná zóna",
+    "dangerZone": "Danger Zone",
     "childView": "Podřízené zobrazení",
     "selectYear": "Vyberte rok",
     "save": "Uložit",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Podrobnosti o webhooku",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Povolte, aby bylo toto připojení soukromé a skryté od jiných tvůrců v tomto pracovním prostoru.",
     "optionalDatabaseName": "Volitelné. Používá výchozí databázi \"{database}\", pokud zůstane prázdné",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Neplatná konfigurace tlačítka",
     "invalidColumnConfiguration": "Neplatná konfigurace pole",
     "invalidTheme": "Vyberte platné téma",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Nebude možné přetahovat záznamy mezi daty, pokud jsou použita vypočítaná nebo systémová pole.",
       "schemaReadOnly": "Změny schématu jsou pro tento zdroj zakázány",
       "enterWorkspaceName": "Zadejte název pracovního prostoru",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Role byla úspěšně aktualizována",
       "connectionAdded": "Integrace úspěšně připojena",
       "connectionAddedDesc": "Vlastníci základy a tvůrci mohou nyní přidat zdroj dat bez znovu zadávání údajů."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

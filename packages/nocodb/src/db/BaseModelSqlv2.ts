@@ -10009,6 +10009,8 @@ class BaseModelSqlv2 {
   }
 
   async recalculateFullOrder() {
+    const primaryKeys = this.model.primaryKeys.map((pk) => pk.column_name);
+
     const sql = {
       mysql2: {
         modern: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`, // 8.0+
@@ -10019,8 +10021,20 @@ class BaseModelSqlv2 {
             'UPDATE ?? SET ?? = (@row_number:=@row_number+1) ORDER BY ?? ASC',
         },
       },
-      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
-      sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
+      pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ${primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE ${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}`,
+      sqlite3: `WITH rn AS (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
+        .map((_pk) => `rn.?? = ??.??`)
+        .join(' AND ')})`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -10041,20 +10055,18 @@ class BaseModelSqlv2 {
         this.tnPath,
         orderColumn.column_name,
         orderColumn.column_name,
+        ...primaryKeys,
         orderColumn.column_name,
         this.tnPath,
-        orderColumn.column_name,
-        orderColumn.column_name,
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // Flatten pk array for binding
       ],
       sqlite3: [
-        orderColumn.column_name,
-        orderColumn.column_name,
-        this.tnPath,
-        this.tnPath,
-        orderColumn.column_name,
+        ...primaryKeys,
         orderColumn.column_name,
         this.tnPath,
+        this.tnPath,
         orderColumn.column_name,
+        ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
       ],
     };
 
@@ -10076,9 +10088,8 @@ class BaseModelSqlv2 {
         );
       }
     } else {
-      await this.execAndGetRows(
-        this.dbDriver.raw(sql[client], params[client]).toQuery(),
-      );
+      const query = this.dbDriver.raw(sql[client], params[client]).toQuery();
+      await this.execAndGetRows(query);
     }
   }
 

@@ -397,7 +397,7 @@ watch(
           }
         }) ?? []
 
-    coverOptions.value = [{ value: null, label: 'No Image' }, ...filterFields]
+    coverOptions.value = [{ value: null, label: t('labels.noImage') }, ...filterFields]
 
     const lookupColumns = newValue
       .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
@@ -853,7 +853,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
-            <span class="text-sm font-weight-600"> System fields </span>
+            <span class="text-sm font-weight-600"> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
             v-model:visible="addColumnDropdown"

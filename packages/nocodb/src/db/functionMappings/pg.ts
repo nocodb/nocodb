@@ -162,6 +162,15 @@ const pg = {
       ),
     };
   },
+  YEAR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `EXTRACT('Year' FROM ((${
+          (await fn(pt?.arguments[0])).builder
+        })::TIMESTAMP)) ${colAlias}`,
+      ),
+    };
+  },
   HOUR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(

@@ -2579,7 +2579,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
               >
                 <div v-e="['a:row:insert:above']" class="flex gap-2 items-center">
                   <GeneralIcon icon="ncChevronUp" />
-                  Insert above
+                  {{ $t('general.insertAbove') }}
                 </div>
               </NcMenuItem>
 
@@ -2591,7 +2591,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
               >
                 <div v-e="['a:row:insert:below']" class="flex gap-2 items-center">
                   <GeneralIcon icon="ncChevronDown" />
-                  Insert below
+                  {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
               <NcDivider />

@@ -980,11 +980,13 @@ export function useInfiniteData(args: {
       }
 
       cachedRows.value.set(insertIndex, {
-        ...currentRow,
+        row: { ...insertedData, ...currentRow.row },
+        oldRow: { ...insertedData },
         rowMeta: {
           ...currentRow.rowMeta,
-          saving: false,
+          rowIndex: insertIndex,
           new: false,
+          saving: false,
         },
       })
 
@@ -1124,8 +1126,10 @@ export function useInfiniteData(args: {
 
     row.rowMeta.changed = false
 
+    let cachedRow: Row
+
     await until(() => {
-      const cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+      cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
       if (!cachedRow) return true
       return !cachedRow.rowMeta?.new || !cachedRow.rowMeta?.saving
     }).toMatch((v) => v)
@@ -1135,7 +1139,17 @@ export function useInfiniteData(args: {
     if (row.rowMeta.new) {
       data = await insertRow(row, ltarState, args, false, true, beforeRowID)
     } else if (property) {
-      data = await updateRowProperty(row, property, args)
+      data = await updateRowProperty(
+        {
+          ...(cachedRow || row),
+          row: {
+            ...(cachedRow?.row ? cachedRow.row : row.row),
+            [property]: row.row[property],
+          },
+        },
+        property,
+        args,
+      )
     }
 
     row.rowMeta.isValidationFailed = !validateRowFilters(

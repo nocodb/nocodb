@@ -91,7 +91,7 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     PORT=8080
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl wget ca-certificates \
     && update-ca-certificates \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \

@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
-import { BaseUser, Source } from '~/models';
+import { BaseUser, CustomUrl, Source } from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -39,6 +39,7 @@ export default class Base implements BaseType {
   uuid?: string;
   password?: string;
   roles?: string;
+  fk_custom_url_id?: string;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -307,6 +308,10 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
+
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
@@ -458,6 +463,10 @@ export default class Base implements BaseType {
         base_id: baseId,
       },
     );
+
+    CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
+      logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
+    });
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');

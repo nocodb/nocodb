@@ -2651,6 +2651,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 },
@@ -2794,7 +2798,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedBaseReq"
+                "allOf":[
+                  { 
+                    "$ref": "#/components/schemas/SharedBaseReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               },
               "examples": {
                 "Example 1": {
@@ -5301,7 +5318,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedViewReq"
+                "allOf":[
+                  { 
+                    "$ref": "#/components/schemas/SharedViewReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -19240,6 +19270,10 @@
             "description": "Base Title",
             "example": "my-base",
             "type": "string"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "x-stoplight": {
@@ -19841,7 +19875,8 @@
         "examples": [
           {
             "meta": {},
-            "password": "123456789"
+            "password": "123456789",
+            "custom_url_path": "feedback-form"
           }
         ],
         "title": "Shared View Request Model",
@@ -21210,6 +21245,14 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "required": [
@@ -22120,6 +22163,40 @@
           }
         },
         "type": "object"
+      },
+      "CustomUrl": {
+        "description": "Model for Custom Url",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id associated to the Custom url"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "View ID"
+          },
+          "original_path": {
+            "type": "string",
+            "description": "Original url used for redirection purpose"
+          },
+          "custom_path": {
+            "type": "string",
+            "description": "Custom url path"
+          }
+        }
       }
     },
     "responses": {

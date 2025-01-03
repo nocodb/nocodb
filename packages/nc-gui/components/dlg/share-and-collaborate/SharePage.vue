@@ -5,6 +5,8 @@ import { ViewTypes } from 'nocodb-sdk'
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
@@ -13,10 +15,13 @@ const { metas } = useMetas()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const { copy } = useCopy()
+
 const isUpdating = ref({
   public: false,
   password: false,
   download: false,
+  customUrl: false,
 })
 
 const activeView = computed<(ViewType & { meta: object & Record<string, any> }) | undefined>({
@@ -59,7 +64,10 @@ const password = computed({
   set: async (value) => {
     if (!activeView.value) return
 
-    activeView.value = { ...(activeView.value as any), password: passwordProtected.value ? value : null }
+    activeView.value = {
+      ...(activeView.value as any),
+      password: passwordProtected.value ? value : null,
+    }
 
     updateSharedView()
   },
@@ -169,6 +177,10 @@ const formPreFill = computed({
   },
 })
 
+const preFillFormSearchParams = computed(() => {
+  return viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? viewStore.preFillFormSearchParams : ''
+})
+
 const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMode?: PreFilledMode }) => {
   formPreFill.value = {
     ...formPreFill.value,
@@ -176,7 +188,7 @@ const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMod
   }
 }
 
-function sharedViewUrl() {
+function sharedViewUrl(withPrefill = true) {
   if (!activeView.value) return
 
   let viewType
@@ -201,7 +213,7 @@ function sharedViewUrl() {
   }
 
   return `${encodeURI(`${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
-    viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
+    withPrefill && preFillFormSearchParams.value ? `?${preFillFormSearchParams.value}` : ''
   }`
 }
 
@@ -263,15 +275,20 @@ async function saveTheme() {
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
 }
 
-async function updateSharedView() {
+async function updateSharedView(custUrl = undefined) {
   try {
     if (!activeView.value?.meta) return
     const meta = activeView.value.meta
 
-    await $api.dbViewShare.update(activeView.value.id!, {
+    const res = await $api.dbViewShare.update(activeView.value.id!, {
       meta,
       password: activeView.value.password,
+      ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
     })
+
+    if (custUrl !== undefined) {
+      activeView.value.fk_custom_url_id = res.fk_custom_url_id
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -283,14 +300,22 @@ async function savePreFilledMode() {
   await updateSharedView()
 }
 
-watchEffect(() => {})
+const copyCustomUrl = async (custUrl = '') => {
+  return await copy(
+    `${appInfo.value.ncSiteUrl}/p/${encodeURIComponent(custUrl)}${
+      preFillFormSearchParams.value && activeView.value?.type === ViewTypes.FORM ? `?${preFillFormSearchParams.value}` : ''
+    }`,
+  )
+}
 </script>
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
     <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</div>
+        <div class="text-gray-900 font-medium">
+          {{ $t('activity.enabledPublicViewing') }}
+        </div>
         <a-switch
           v-e="['c:share:view:enable:toggle']"
           :checked="isPublicShared"
@@ -305,9 +330,20 @@ watchEffect(() => {})
         <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>
+
+        <DlgShareAndCollaborateCustomUrl
+          v-if="activeView"
+          :id="activeView.fk_custom_url_id"
+          :backend-url="appInfo.ncSiteUrl"
+          :copy-custom-url="copyCustomUrl"
+          :search-query="preFillFormSearchParams && activeView?.type === ViewTypes.FORM ? `?${preFillFormSearchParams}` : ''"
+          @update-custom-url="updateSharedView"
+        />
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
+            <div class="flex text-black">
+              {{ $t('activity.restrictAccessWithPassword') }}
+            </div>
             <a-switch
               v-e="['c:share:view:password:toggle']"
               :checked="passwordProtected"
@@ -358,7 +394,7 @@ watchEffect(() => {})
                 </div>
                 <NcTooltip class="flex items-center">
                   <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                  <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
+                  <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
                 </NcTooltip>
               </div>
               <a-switch
@@ -397,7 +433,7 @@ watchEffect(() => {})
                     {{ $t('tooltip.preFillFormInfo') }}
                   </div>
                 </template>
-                <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>
             <a-switch

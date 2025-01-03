@@ -206,7 +206,7 @@ const handleFileRename = async () => {
               class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5 truncate"
               @dblclick.stop="handleFileRenameStart(i)"
             >
-              <NcTooltip v-if="!isRenamingFile || renameFileIdx !== i" class="truncate" show-on-truncate-only>
+              <NcTooltip v-if="!isRenamingFile || renameFileIdx !== i" class="truncate h-5 flex items-center" show-on-truncate-only>
                 {{ item.title }}
 
                 <template #title>

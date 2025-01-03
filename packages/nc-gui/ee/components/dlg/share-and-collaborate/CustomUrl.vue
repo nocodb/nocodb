@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import axios from 'axios'
 import type { CustomUrlType, StringOrNullType } from 'nocodb-sdk'
 
 interface Props {
@@ -61,8 +62,22 @@ const isCopied = ref(false)
 
 const isFocused = ref(false)
 
+const isCustomUrlAvailable = ref(true)
+
+const showAvailableStatusLocal = ref(false)
+
 const isOpenCustomUrl = computed(() => {
   return !!customUrl.value || !!customUrlLocal.value || isOpenCustomUrlLocal.value
+})
+
+const showAvailableStatus = computed(() => {
+  return (
+    showAvailableStatusLocal.value &&
+    customUrl.value &&
+    customUrl.value !== customUrlLocal.value &&
+    !isLoading.value.checkAvailability &&
+    isCustomUrlAvailable.value
+  )
 })
 
 const copyCustomUrl = async () => {
@@ -84,6 +99,9 @@ const toggleCustomUrl = async () => {
 
   if (isLoading.value.customUrl) return
 
+  isCustomUrlAvailable.value = true
+  showAvailableStatusLocal.value = false
+
   isLoading.value.customUrl = true
   try {
     if (!isOpenCustomUrlLocal.value) {
@@ -101,8 +119,6 @@ const toggleCustomUrl = async () => {
     }
   }
 }
-
-const isCustomUrlAvailable = ref(true)
 
 const validation = computed(() => {
   if (!customUrl.value) {
@@ -133,36 +149,62 @@ const validation = computed(() => {
   }
 })
 
-const checkAvailability = async () => {
-  isLoading.value.checkAvailability = true
-  isCustomUrlAvailable.value = true
-
-  try {
-    const res = await api.customUrl.checkAvailability({
-      id: id.value || undefined,
-      custom_path: customUrl.value?.trim(),
-    })
-
-    if (res === true) {
-      isCustomUrlAvailable.value = true
-    } else {
-      isCustomUrlAvailable.value = false
-    }
-  } catch (e: any) {
-    isCustomUrlAvailable.value = false
-    console.error(e)
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading.value.checkAvailability = false
-  }
-}
-
 const handleUpdateCustomUrl = () => {
+  if (isLoading.value.checkAvailability) return
+
   emits('updateCustomUrl', customUrl.value?.trim() || null)
 
   isCopied.value = false
 
   customUrlLocal.value = customUrl.value?.trim() || null
+}
+
+const controller = ref() // A ref to manage the CancelToken source for Axios requests.
+
+const checkAvailability = async () => {
+  // Cancel any ongoing request before starting a new one
+  if (controller.value) {
+    controller.value.cancel() // Cancels the previous request to prevent overlapping calls.
+  }
+
+  const CancelToken = axios.CancelToken // Axios CancelToken utility.
+  controller.value = CancelToken.source() // Create a new token source for the current request.
+
+  isLoading.value.checkAvailability = true // Set the loading state for this operation.
+
+  // Ensure the availability status visibility is enabled for the user
+  if (!showAvailableStatusLocal.value) {
+    showAvailableStatusLocal.value = true
+  }
+
+  try {
+    // Make the API call to check the custom URL's availability
+
+    const res = await api.customUrl.checkAvailability(
+      {
+        id: id.value || undefined,
+        custom_path: customUrl.value?.trim(),
+      },
+      {
+        cancelToken: controller.value.token,
+      },
+    )
+
+    // Update the availability status based on the response
+    isCustomUrlAvailable.value = res === true
+
+    isLoading.value.checkAvailability = false
+  } catch (e: any) {
+    // Ignore errors caused by request cancellation
+    if (e?.code === 'ERR_CANCELED') return
+
+    isCustomUrlAvailable.value = false
+
+    isLoading.value.checkAvailability = false
+
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const checkAvailabilityWithDebounce = useDebounceFn(
@@ -291,20 +333,36 @@ watch(
             <NcButton
               v-else
               size="xs"
-              :disabled="!customUrl || isLoading.checkAvailability || !isCustomUrlAvailable || !!validation?.hasError"
+              :disabled="!customUrl || (!isLoading.checkAvailability && !isCustomUrlAvailable) || !!validation?.hasError"
               class="!rounded-md !h-7.5"
+              :class="{
+                '!cursor-wait': isLoading.checkAvailability,
+              }"
               @click.stop="handleUpdateCustomUrl"
             >
               {{ $t('general.save') }}
             </NcButton>
           </div>
         </div>
+        <div v-if="isLoading.checkAvailability" class="text-small mt-2 flex items-center gap-1.5 text-nc-content-gray-subtle">
+          <div class="h-4 w-4 flex items-center justify-center">
+            <GeneralLoader size="small" class="!bg-inherit !text-inherit" />
+          </div>
+          {{ $t('title.checkingUrlAvailability') }}..
+        </div>
         <div
-          v-if="!isCustomUrlAvailable || validation?.hasError"
+          v-else-if="!isCustomUrlAvailable || validation?.hasError"
           class="text-small mt-2 text-nc-content-red-medium flex items-center gap-1.5"
         >
-          <GeneralIcon icon="info" />
+          <GeneralIcon icon="info" class="h-4 w-4" />
           {{ validation?.hasError ? validation.msg : $t('title.thisUrlIsUnavailable') }}
+        </div>
+
+        <div v-else-if="showAvailableStatus" class="text-small mt-2 flex items-center gap-1.5 text-nc-content-green-dark">
+          <div class="h-4 w-4 flex items-center justify-center">
+            <GeneralIcon icon="ncCheckCircle" class="flex-none w-3.5 h-3.5" />
+          </div>
+          {{ $t('title.thisUrlIsAvailable') }}
         </div>
       </div>
     </Transition>

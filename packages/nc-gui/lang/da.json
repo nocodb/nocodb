@@ -93,6 +93,7 @@
     "none": "Ingen"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Ryd",
     "slack": "Slack",
     "comment": "Kommentar",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Opdaterer",
     "rename": "Omdøb",
     "renameEntity": "Omdøb {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Genindlæs",
     "refresh": "Opdater",
     "reset": "Nulstil",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "filer",
@@ -313,6 +318,8 @@
     "year": "År",
     "workspace": "Arbejdsområde",
     "workspaces": "Arbejdsområder",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Projekt",
     "projects": "Projekter",
     "table": "Bord",
@@ -530,6 +537,7 @@
     "displayValue": "Vis Værdi",
     "expand": "Udvid",
     "hideAll": "Gem alt",
+    "systemFields": "System fields",
     "hideSystemFields": "Skjul systemfelter",
     "removeFile": "Fjern fil",
     "hasMany": "Har mange",
@@ -575,6 +583,7 @@
     "uiACL": "Adgangskontrol af brugergrænsefladen",
     "metaOperations": "Metadata-operationer",
     "audit": "Revidere",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrations.",
     "dbCredentials": "Database legitimationsoplysninger.",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Slet bruger og deres data",
     "userOptions": "Brugerindstillinger",
     "deleteThisOrganization": "Slet denne organisation",
-    "dangerZone": "Farezone",
+    "dangerZone": "Danger Zone",
     "childView": "Underordnet visning",
     "selectYear": "Vælg År",
     "save": "Gem",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Detaljer",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktiver for at gøre denne forbindelse privat og skjult for andre skabere i dette arbejdsområde.",
     "optionalDatabaseName": "Valgfrit. Bruger standarddatabasen \"{database}\" hvis ufyldt",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Ugyldig knapkonfiguration",
     "invalidColumnConfiguration": "Ugyldig kolonnekonfiguration",
     "invalidTheme": "Vælg et gyldigt tema",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Du vil ikke kunne trække poster mellem datoer, når beregnede eller systemfelter bruges.",
       "schemaReadOnly": "Skemavariationer er deaktiveret for denne kilde",
       "enterWorkspaceName": "Indtast arbejdsområdets navn",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "Rolle opdateret med succes",
       "connectionAdded": "Integration forbundet med succes",
       "connectionAddedDesc": "Base ejere og skabere kan nu tilføje en datakilde uden at genindtaste legitimationsoplysninger."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

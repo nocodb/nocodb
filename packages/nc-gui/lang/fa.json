@@ -644,6 +644,9 @@
     "categories": "دسته‌بندی‌ها",
     "fieldInaccessible": "فیلد غیرقابل دسترس",
     "noConditionsAdded": "هیچ شرطی اضافه نشده است",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "این ویژگی فقط در نسخه سازمانی موجود است",
       "yourCurrentRoleIs": "نقش فعلی شما است",
       "pleaseRequestAccessForView": "لطفاً از مدیر / مالک پایگاه / مالک فضاهای کاری برای دسترسی به این {viewName} درخواست مجوز بیشتر کنید",
-      "preventHideAllOptions": "نمی‌توانید تمامی گزینه‌ها را پنهان کنید اگر فیلد مورد نیاز باشد"
+      "preventHideAllOptions": "نمی‌توانید تمامی گزینه‌ها را پنهان کنید اگر فیلد مورد نیاز باشد",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "قلاب‌های دستی نمی‌توانند غیرفعال شوند",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "محتوای کشیده شده از نوع تصویر نیست",
       "fieldToParseImageData": "فیلدی برای تجزیه داده‌های تصویر",
       "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

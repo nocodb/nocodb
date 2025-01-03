@@ -34,9 +34,9 @@ export class CustomUrlsController {
       customPath,
     );
 
-    if (originalPath) {
-      const urlParams = new URLSearchParams();
+    const urlParams = new URLSearchParams();
 
+    if (originalPath) {
       // Append the original path as 'hash-redirect'
       urlParams.append('hash-redirect', originalPath);
 
@@ -51,8 +51,17 @@ export class CustomUrlsController {
       }
 
       // Redirect with the combined query parameters
-      res.redirect(`${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`);
+      return res.redirect(
+        `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
+      );
     }
+
+    // Redirect to not found page
+    urlParams.append('hash-redirect', '/error/404');
+
+    return res.redirect(
+      `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
+    );
   }
 
   @Post(['/api/v2/meta/custom-url/check-path'])

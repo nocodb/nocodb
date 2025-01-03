@@ -93,6 +93,7 @@
     "none": "គ្មាន"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "ជម្រះ",
     "slack": "Slack",
     "comment": "មតិយោបល់",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "កំពុង​ធ្វើ​ឱ្យ​ទាន់សម័យ",
     "rename": "ប្ដូរឈ្មោះ",
     "renameEntity": "ប្ដូរឈ្មោះ {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "ផ្ទុកឡើងវិញ",
     "refresh": "ធ្វើឱ្យស្រស់ឡើងវិញ",
     "reset": "កំណត់ឡើងវិញ",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ឯកសារ",
@@ -313,6 +318,8 @@
     "year": "ឆ្នាំ",
     "workspace": "កន្លែងធ្វើការ",
     "workspaces": "កន្លែងធ្វើការជាច្រើន",
+    "document": "Document",
+    "documents": "Documents",
     "project": "មូលដ្ឋាន",
     "projects": "មូលដ្ឋានជាច្រើន",
     "table": "តារាង",
@@ -530,6 +537,7 @@
     "displayValue": "តម្លៃបង្ហាញ",
     "expand": "ពង្រីក",
     "hideAll": "លាក់ទាំងអស់",
+    "systemFields": "System fields",
     "hideSystemFields": "លាក់វាលប្រព័ន្ធ",
     "removeFile": "លុបទិន្នន័យ",
     "hasMany": "មានច្រើន",
@@ -575,7 +583,8 @@
     "uiACL": "UI Access Control",
     "metaOperations": "សកម្មភាព Metadata",
     "audit": "ត្រួតពិនិត្យ",
-    "auditLogs": "កំណត់ហេតុនៃការត្រួតពិនិត្យ",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "ការធ្វើដំណើរការវិវត្តន៍ SQL",
     "dbCredentials": "សុពលភាពទិន្នន័យមូលដ្ឋាន",
     "advancedParameters": "SSL & ប៉ារ៉ាម៉ែត្រមូកែគ្នា",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "លុបអ្នកប្រើ និងទិន្នន័យរបស់ពួកគេ",
     "userOptions": "​ជម្រើសអ្នកប្រើ",
     "deleteThisOrganization": "លុបអង្គការនេះ",
-    "dangerZone": "តំបន់គ្រោះថ្នាក់",
+    "dangerZone": "Danger Zone",
     "childView": "ការមើល​កូន",
     "selectYear": "ជ្រើសរើសឆ្នាំ",
     "save": "រក្សាទុក",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ព័ត៌មានលម្អិតរបស់ Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "ជម្រើសកាលបរិច្ឆេទបច្ចុប្បន្នមិនមានសម្រាប់ប្រភពទិន្នន័យ ឬប្រភេទទិន្នន័យ",
     "privateConnection": "បើកដើម្បីធ្វើឱ្យការតភ្ជាប់នេះមានការឯកជន និងលាក់ពីអ្នកបង្កើតផ្សេងទៀតនៅក្នុងកន្លែងធ្វើការនេះ។",
     "optionalDatabaseName": "ជាជម្រើស។ ប្រើមូលដ្ឋានទិន្នន័យលំនាំដើម \"{database}\" ប្រសិនបើស្ទេរ ទុក។",
@@ -1444,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "កំណត់រចនាសម្ព័ន្ធប៊ូតុងមិនត្រឹមត្រូវ",
     "invalidColumnConfiguration": "ការកំណត់រចនាសម្ព័ន្ធវាលមិនត្រឹមត្រូវ",
     "invalidTheme": "ជ្រើសរើសស្បែកអចិន្ត្រៃយ៍ត្រឹមត្រូវ",
@@ -1587,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "អ្នកមិនអាចអូសកំណត់ត្រាជែងៗគ្នារវាងកាលបរិច្ឆេទបាននៅពេលវាលគណនាត្រូវបានប្រើ។",
       "schemaReadOnly": "កំណែ​ទំរង់​ស្ថិតិ​ត្រូវបាន​បិទ​សម្រាប់ប្រភព​នេះ",
       "enterWorkspaceName": "បញ្ចូលឈ្មោះកន្លែងធ្វើការ",
@@ -1931,6 +1964,11 @@
       "roleUpdated": "តួនាទី បានធ្វើឱ្យទាន់សម័យដោយជោគជ័យ",
       "connectionAdded": "ការរួមបញ្ចូលបានតភ្ជាប់ដោយជោគជ័យ",
       "connectionAddedDesc": "ម្ចាស់មូលដ្ឋាន និងអ្នកបង្កើតឥឡូវនេះអាចបន្ថែមប្រភពទិន្នន័យ ដោយមិនចាំបាច់បញ្ចូលសក្ខីប័ត្រឡើងវិញទេ។"
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

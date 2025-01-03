@@ -649,7 +649,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
-        <div @click.stop class="py-2">
+        <div class="py-2" @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
@@ -860,8 +860,8 @@ const onAddColumnDropdownVisibilityChange = () => {
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
-            @visible-change="onAddColumnDropdownVisibilityChange"
             :disabled="isLocked"
+            @visible-change="onAddColumnDropdownVisibilityChange"
           >
             <NcButton :disabled="isLocked" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />

@@ -602,6 +602,97 @@ import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
 
+import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
+import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
+import NcLogoBitbucketColored from '~icons/nc-icons-v2/bitbucket-colored.svg'
+import NcLogoBitbucket from '~icons/nc-icons-v2/bitbucket.svg'
+import NcLogoBoxLogoColored from '~icons/nc-icons-v2/box-logo-colored.svg'
+import NcLogoBoxLogo from '~icons/nc-icons-v2/box-logo.svg'
+import NcLogoChromeColored from '~icons/nc-icons-v2/chrome-colored.svg'
+import NcLogoClaudeAiColored from '~icons/nc-icons-v2/claude-ai-colored.svg'
+import NcLogoClaudeAi from '~icons/nc-icons-v2/claude-ai.svg'
+import NcLogoDiscordColored from '~icons/nc-icons-v2/discord-colored.svg'
+import NcLogoDiscord from '~icons/nc-icons-v2/discord.svg'
+import NcLogoDropboxColored from '~icons/nc-icons-v2/dropbox-colored.svg'
+import NcLogoDropbox from '~icons/nc-icons-v2/dropbox.svg'
+import NcLogoFacebookColored from '~icons/nc-icons-v2/facebook-colored.svg'
+import NcLogoFacebook from '~icons/nc-icons-v2/facebook.svg'
+import NcLogoFigmaColored from '~icons/nc-icons-v2/figma-colored.svg'
+import NcLogoFigma from '~icons/nc-icons-v2/figma.svg'
+import NcLogoFramerColored from '~icons/nc-icons-v2/framer-colored.svg'
+import NcLogoFramer from '~icons/nc-icons-v2/framer.svg'
+import NcLogoFreshdeskColored from '~icons/nc-icons-v2/freshdesk-colored.svg'
+import NcLogoFreshdesk from '~icons/nc-icons-v2/freshdesk.svg'
+import NcLogoGeminiAiColored from '~icons/nc-icons-v2/gemini-ai-colored.svg'
+import NcLogoGeminiAi from '~icons/nc-icons-v2/gemini-ai.svg'
+import NcLogoGithubColored from '~icons/nc-icons-v2/github-colored.svg'
+import NcLogoGitlabColored from '~icons/nc-icons-v2/gitlab-colored.svg'
+import NcLogoGmailColored from '~icons/nc-icons-v2/gmail-colored.svg'
+import NcLogoGmail from '~icons/nc-icons-v2/gmail.svg'
+import NcLogoGoogleDriveColored from '~icons/nc-icons-v2/google-drive-colored.svg'
+import NcLogoGoogleDrive from '~icons/nc-icons-v2/google-drive.svg'
+import NcLogoGreenhouseColored from '~icons/nc-icons-v2/greenhouse-colored.svg'
+import NcLogoGreenhouse from '~icons/nc-icons-v2/greenhouse.svg'
+import NcLogoGroqAiColored from '~icons/nc-icons-v2/groq-ai-colored.svg'
+import NcLogoGroqAi from '~icons/nc-icons-v2/groq-ai.svg'
+import NcLogoHubspotColored from '~icons/nc-icons-v2/hubspot-colored.svg'
+import NcLogoHubspot from '~icons/nc-icons-v2/hubspot.svg'
+import NcLogoInstagramColored from '~icons/nc-icons-v2/instagram-colored.svg'
+import NcLogoIntercomColored from '~icons/nc-icons-v2/intercom-colored.svg'
+import NcLogoIntercom from '~icons/nc-icons-v2/intercom.svg'
+import NcLogoJiraColored from '~icons/nc-icons-v2/jira-colored.svg'
+import NcLogoJira from '~icons/nc-icons-v2/jira.svg'
+import NcLogoLeverColored from '~icons/nc-icons-v2/lever-colored.svg'
+import NcLogoLever from '~icons/nc-icons-v2/lever.svg'
+import NcLogoLinkedinColored from '~icons/nc-icons-v2/linkedin-colored.svg'
+import NcLogoMailchimpColored from '~icons/nc-icons-v2/mailchimp-colored.svg'
+import NcLogoMailchimp from '~icons/nc-icons-v2/mailchimp.svg'
+import NcLogoMiroColored from '~icons/nc-icons-v2/miro-colored.svg'
+import NcLogoMiro from '~icons/nc-icons-v2/miro.svg'
+import NcLogoMondayColored from '~icons/nc-icons-v2/monday-colored.svg'
+import NcLogoMsDynamicsColored from '~icons/nc-icons-v2/ms-dynamics-colored.svg'
+import NcLogoMsDynamics from '~icons/nc-icons-v2/ms-dynamics.svg'
+import NcLogoOllamaColored from '~icons/nc-icons-v2/ollama-colored.svg'
+import NcLogoOllama from '~icons/nc-icons-v2/ollama.svg'
+import NcLogoOpenAiColored from '~icons/nc-icons-v2/open-ai-colored.svg'
+import NcLogoOpenAi from '~icons/nc-icons-v2/open-ai.svg'
+import NcLogoOutlookColored from '~icons/nc-icons-v2/outlook-colored.svg'
+import NcLogoOutlook from '~icons/nc-icons-v2/outlook.svg'
+import NcLogoPipedriveColored from '~icons/nc-icons-v2/pipedrive-colored.svg'
+import NcLogoPipedrive from '~icons/nc-icons-v2/pipedrive.svg'
+import NcLogoQuickbooksColored from '~icons/nc-icons-v2/quickbooks-colored.svg'
+import NcLogoQuickbooks from '~icons/nc-icons-v2/quickbooks.svg'
+import NcLogoSalesforceColored from '~icons/nc-icons-v2/salesforce-colored.svg'
+import NcLogoSalesforce from '~icons/nc-icons-v2/salesforce.svg'
+import NcLogoSlackColored from '~icons/nc-icons-v2/slack-colored.svg'
+import NcLogoSlack from '~icons/nc-icons-v2/slack.svg'
+import NcLogoStripeColored from '~icons/nc-icons-v2/stripe-colored.svg'
+import NcLogoStripe from '~icons/nc-icons-v2/stripe.svg'
+import NcLogoSurveyMonkeyColored from '~icons/nc-icons-v2/survey-monkey-colored.svg'
+import NcLogoSurveyMonkey from '~icons/nc-icons-v2/survey-monkey.svg'
+import NcLogoTeamsColored from '~icons/nc-icons-v2/teams-colored.svg'
+import NcLogoTeams from '~icons/nc-icons-v2/teams.svg'
+import NcLogoTelegramColored from '~icons/nc-icons-v2/telegram-colored.svg'
+import NcLogoTelegram from '~icons/nc-icons-v2/telegram.svg'
+import NcLogoTrelloColored from '~icons/nc-icons-v2/trello-colored.svg'
+import NcLogoTrello from '~icons/nc-icons-v2/trello.svg'
+import NcLogoTwilioColored from '~icons/nc-icons-v2/twilio-colored.svg'
+import NcLogoTwilio from '~icons/nc-icons-v2/twilio.svg'
+import NcLogoTwitchColored from '~icons/nc-icons-v2/twitch-colored.svg'
+import NcLogoTwitch from '~icons/nc-icons-v2/twitch.svg'
+import NcLogoTwitterColored from '~icons/nc-icons-v2/twitter-colored.svg'
+import NcLogoTwitter from '~icons/nc-icons-v2/twitter.svg'
+import NcLogoTypeformColored from '~icons/nc-icons-v2/typeform-colored.svg'
+import NcLogoTypeform from '~icons/nc-icons-v2/typeform.svg'
+import NcLogoWhatsappColored from '~icons/nc-icons-v2/whatsapp-colored.svg'
+import NcLogoWhatsapp from '~icons/nc-icons-v2/whatsapp.svg'
+import NcLogoWorkdayColored from '~icons/nc-icons-v2/workday-colored.svg'
+import NcLogoWorkday from '~icons/nc-icons-v2/workday.svg'
+import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
+import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
+import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
+import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -1415,6 +1506,94 @@ export const iconMap = {
   ncHeading3: NcHeading3,
   ncQuote: NcQuote,
   ncWebhook: NcWebhook,
+  ncLogoAsanaColored: NcLogoAsanaColored,
+  ncLogoAsana: NcLogoAsana,
+  ncLogoBitbucketColored: NcLogoBitbucketColored,
+  ncLogoBitbucket: NcLogoBitbucket,
+  ncLogoBoxLogoColored: NcLogoBoxLogoColored,
+  ncLogoBoxLogo: NcLogoBoxLogo,
+  ncLogoChromeColored: NcLogoChromeColored,
+  ncLogoClaudeAiColored: NcLogoClaudeAiColored,
+  ncLogoClaudeAi: NcLogoClaudeAi,
+  ncLogoDiscordColored: NcLogoDiscordColored,
+  ncLogoDropboxColored: NcLogoDropboxColored,
+  ncLogoDropbox: NcLogoDropbox,
+  ncLogoFacebookColored: NcLogoFacebookColored,
+  ncLogoFacebook: NcLogoFacebook,
+  ncLogoFigmaColored: NcLogoFigmaColored,
+  ncLogoFigma: NcLogoFigma,
+  ncLogoFramerColored: NcLogoFramerColored,
+  ncLogoFramer: NcLogoFramer,
+  ncLogoFreshdeskColored: NcLogoFreshdeskColored,
+  ncLogoFreshdesk: NcLogoFreshdesk,
+  ncLogoGeminiAiColored: NcLogoGeminiAiColored,
+  ncLogoGeminiAi: NcLogoGeminiAi,
+  ncLogoGithubColored: NcLogoGithubColored,
+  ncLogoGitlabColored: NcLogoGitlabColored,
+  ncLogoGmailColored: NcLogoGmailColored,
+  ncLogoGmail: NcLogoGmail,
+  ncLogoGoogleDriveColored: NcLogoGoogleDriveColored,
+  ncLogoGoogleDrive: NcLogoGoogleDrive,
+  ncLogoGreenhouseColored: NcLogoGreenhouseColored,
+  ncLogoGreenhouse: NcLogoGreenhouse,
+  ncLogoGroqAiColored: NcLogoGroqAiColored,
+  ncLogoGroqAi: NcLogoGroqAi,
+  ncLogoHubspotColored: NcLogoHubspotColored,
+  ncLogoHubspot: NcLogoHubspot,
+  ncLogoInstagramColored: NcLogoInstagramColored,
+  ncLogoIntercomColored: NcLogoIntercomColored,
+  ncLogoIntercom: NcLogoIntercom,
+  ncLogoJiraColored: NcLogoJiraColored,
+  ncLogoJira: NcLogoJira,
+  ncLogoLeverColored: NcLogoLeverColored,
+  ncLogoLever: NcLogoLever,
+  ncLogoLinkedinColored: NcLogoLinkedinColored,
+  ncLogoMailchimpColored: NcLogoMailchimpColored,
+  ncLogoMailchimp: NcLogoMailchimp,
+  ncLogoMiroColored: NcLogoMiroColored,
+  ncLogoMiro: NcLogoMiro,
+  ncLogoMondayColored: NcLogoMondayColored,
+  ncLogoMsDynamicsColored: NcLogoMsDynamicsColored,
+  ncLogoMsDynamics: NcLogoMsDynamics,
+  ncLogoOllamaColored: NcLogoOllamaColored,
+  ncLogoOllama: NcLogoOllama,
+  ncLogoOpenAiColored: NcLogoOpenAiColored,
+  ncLogoOpenAi: NcLogoOpenAi,
+  ncLogoOutlookColored: NcLogoOutlookColored,
+  ncLogoOutlook: NcLogoOutlook,
+  ncLogoPipedriveColored: NcLogoPipedriveColored,
+  ncLogoPipedrive: NcLogoPipedrive,
+  ncLogoQuickbooksColored: NcLogoQuickbooksColored,
+  ncLogoQuickbooks: NcLogoQuickbooks,
+  ncLogoSalesforceColored: NcLogoSalesforceColored,
+  ncLogoSalesforce: NcLogoSalesforce,
+  ncLogoSlackColored: NcLogoSlackColored,
+  ncLogoSlack: NcLogoSlack,
+  ncLogoStripeColored: NcLogoStripeColored,
+  ncLogoStripe: NcLogoStripe,
+  ncLogoSurveyMonkeyColored: NcLogoSurveyMonkeyColored,
+  ncLogoSurveyMonkey: NcLogoSurveyMonkey,
+  ncLogoTeamsColored: NcLogoTeamsColored,
+  ncLogoTeams: NcLogoTeams,
+  ncLogoTelegramColored: NcLogoTelegramColored,
+  ncLogoTelegram: NcLogoTelegram,
+  ncLogoTrelloColored: NcLogoTrelloColored,
+  ncLogoTrello: NcLogoTrello,
+  ncLogoTwilioColored: NcLogoTwilioColored,
+  ncLogoTwilio: NcLogoTwilio,
+  ncLogoTwitchColored: NcLogoTwitchColored,
+  ncLogoTwitch: NcLogoTwitch,
+  ncLogoTwitterColored: NcLogoTwitterColored,
+  ncLogoTypeformColored: NcLogoTypeformColored,
+  ncLogoTypeform: NcLogoTypeform,
+  ncLogoWhatsappColored: NcLogoWhatsappColored,
+  ncLogoWhatsapp: NcLogoWhatsapp,
+  ncLogoWorkdayColored: NcLogoWorkdayColored,
+  ncLogoWorkday: NcLogoWorkday,
+  ncLogoZendeskColored: NcLogoZendeskColored,
+  ncLogoZendesk: NcLogoZendesk,
+  ncLogoZohoColored: NcLogoZohoColored,
+  ncLogoZoho: NcLogoZoho,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3795,6 +3974,174 @@ export const searchableMap = {
   ncWebhook: {
     icon: NcWebhook,
     keywords: ['webhook'],
+  },
+  ncLogoAsana: {
+    icon: NcLogoAsana,
+    keywords: ['project management', 'task tracking', 'collaboration', 'productivity', 'workflows'],
+  },
+  ncLogoBitbucket: {
+    icon: NcLogoBitbucket,
+    keywords: ['git', 'version control', 'code repository', 'devops', 'collaboration'],
+  },
+  ncLogoBoxLogo: {
+    icon: NcLogoBoxLogo,
+    keywords: ['cloud storage', 'file sharing', 'collaboration', 'document management', 'storage'],
+  },
+  ncLogoClaudeAi: {
+    icon: NcLogoClaudeAi,
+    keywords: ['ai assistant', 'natural language', 'chatbot', 'anthropic', 'artificial intelligence'],
+  },
+  ncLogoDiscord: {
+    icon: NcLogoDiscord,
+    keywords: ['chat', 'communication', 'community', 'voice chat', 'messaging'],
+  },
+  ncLogoDropbox: {
+    icon: NcLogoDropbox,
+    keywords: ['cloud storage', 'file sharing', 'backup', 'sync', 'collaboration'],
+  },
+  ncLogoFacebook: {
+    icon: NcLogoFacebook,
+    keywords: ['social media', 'networking', 'communication', 'marketing', 'meta'],
+  },
+  ncLogoFigma: {
+    icon: NcLogoFigma,
+    keywords: ['design', 'ui/ux', 'collaboration', 'prototyping', 'interface'],
+  },
+  ncLogoFramer: {
+    icon: NcLogoFramer,
+    keywords: ['prototyping', 'animation', 'design', 'interface', 'web design'],
+  },
+  ncLogoFreshdesk: {
+    icon: NcLogoFreshdesk,
+    keywords: ['customer support', 'helpdesk', 'ticketing', 'service desk', 'support'],
+  },
+  ncLogoGeminiAi: {
+    icon: NcLogoGeminiAi,
+    keywords: ['ai', 'machine learning', 'google ai', 'artificial intelligence', 'language model'],
+  },
+  ncLogoGmail: {
+    icon: NcLogoGmail,
+    keywords: ['email', 'communication', 'google', 'messaging', 'mail'],
+  },
+  ncLogoGoogleDrive: {
+    icon: NcLogoGoogleDrive,
+    keywords: ['cloud storage', 'file sharing', 'collaboration', 'google', 'documents'],
+  },
+  ncLogoGreenhouse: {
+    icon: NcLogoGreenhouse,
+    keywords: ['recruiting', 'hiring', 'ats', 'talent', 'hr'],
+  },
+  ncLogoGroqAi: {
+    icon: NcLogoGroqAi,
+    keywords: ['ai', 'machine learning', 'inference', 'artificial intelligence', 'compute'],
+  },
+  ncLogoHubspot: {
+    icon: NcLogoHubspot,
+    keywords: ['crm', 'marketing', 'sales', 'customer service', 'automation'],
+  },
+  ncLogoIntercom: {
+    icon: NcLogoIntercom,
+    keywords: ['customer messaging', 'support', 'chat', 'engagement', 'communication'],
+  },
+  ncLogoJira: {
+    icon: NcLogoJira,
+    keywords: ['project management', 'agile', 'issue tracking', 'workflow', 'atlassian'],
+  },
+  ncLogoLever: {
+    icon: NcLogoLever,
+    keywords: ['recruiting', 'hiring', 'talent acquisition', 'ats', 'hr'],
+  },
+  ncLogoMailchimp: {
+    icon: NcLogoMailchimp,
+    keywords: ['email marketing', 'automation', 'campaigns', 'newsletters', 'crm'],
+  },
+  ncLogoMiro: {
+    icon: NcLogoMiro,
+    keywords: ['whiteboard', 'collaboration', 'brainstorming', 'visual', 'planning'],
+  },
+  ncLogoMsDynamics: {
+    icon: NcLogoMsDynamics,
+    keywords: ['crm', 'erp', 'business software', 'microsoft', 'enterprise'],
+  },
+  ncLogoOllama: {
+    icon: NcLogoOllama,
+    keywords: ['ai', 'local models', 'machine learning', 'llm', 'artificial intelligence'],
+  },
+  ncLogoOpenAi: {
+    icon: NcLogoOpenAi,
+    keywords: ['ai', 'gpt', 'machine learning', 'chatgpt', 'artificial intelligence'],
+  },
+  ncLogoOutlook: {
+    icon: NcLogoOutlook,
+    keywords: ['email', 'calendar', 'microsoft', 'communication', 'scheduling'],
+  },
+  ncLogoPipedrive: {
+    icon: NcLogoPipedrive,
+    keywords: ['crm', 'sales', 'pipeline', 'lead management', 'deals'],
+  },
+  ncLogoQuickbooks: {
+    icon: NcLogoQuickbooks,
+    keywords: ['accounting', 'bookkeeping', 'finance', 'invoicing', 'payroll'],
+  },
+  ncLogoSalesforce: {
+    icon: NcLogoSalesforce,
+    keywords: ['crm', 'sales', 'customer service', 'cloud', 'enterprise'],
+  },
+  ncLogoSlack: {
+    icon: NcLogoSlack,
+    keywords: ['chat', 'communication', 'collaboration', 'messaging', 'teams'],
+  },
+  ncLogoStripe: {
+    icon: NcLogoStripe,
+    keywords: ['payments', 'billing', 'ecommerce', 'financial', 'processing'],
+  },
+  ncLogoSurveyMonkey: {
+    icon: NcLogoSurveyMonkey,
+    keywords: ['surveys', 'feedback', 'forms', 'research', 'data collection'],
+  },
+  ncLogoTeams: {
+    icon: NcLogoTeams,
+    keywords: ['communication', 'collaboration', 'microsoft', 'chat', 'video conferencing'],
+  },
+  ncLogoTelegram: {
+    icon: NcLogoTelegram,
+    keywords: ['messaging', 'chat', 'communication', 'social', 'instant messaging'],
+  },
+  ncLogoTrello: {
+    icon: NcLogoTrello,
+    keywords: ['project management', 'kanban', 'tasks', 'collaboration', 'organization'],
+  },
+  ncLogoTwilio: {
+    icon: NcLogoTwilio,
+    keywords: ['communications', 'sms', 'voice', 'api', 'messaging'],
+  },
+  ncLogoTwitch: {
+    icon: NcLogoTwitch,
+    keywords: ['streaming', 'gaming', 'live content', 'entertainment', 'video'],
+  },
+  ncLogoTwitter: {
+    icon: NcLogoTwitter,
+    keywords: ['social media', 'microblogging', 'news', 'communication', 'x'],
+  },
+  ncLogoTypeform: {
+    icon: NcLogoTypeform,
+    keywords: ['forms', 'surveys', 'feedback', 'data collection', 'questionnaire'],
+  },
+  ncLogoWhatsapp: {
+    icon: NcLogoWhatsapp,
+    keywords: ['messaging', 'chat', 'communication', 'social', 'mobile'],
+  },
+  ncLogoWorkday: {
+    icon: NcLogoWorkday,
+    keywords: ['hr', 'finance', 'enterprise', 'hcm', 'management'],
+  },
+  ncLogoZendesk: {
+    icon: NcLogoZendesk,
+    keywords: ['customer service', 'support', 'helpdesk', 'ticketing', 'crm'],
+  },
+  ncLogoZoho: {
+    icon: NcLogoZoho,
+    keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
   },
 }
 

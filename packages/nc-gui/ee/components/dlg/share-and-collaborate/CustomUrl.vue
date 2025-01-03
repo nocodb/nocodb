@@ -202,8 +202,8 @@ const checkAvailabilityWithDebounce = useDebounceFn(
   async () => {
     await checkAvailability()
   },
-  250,
-  { maxWait: 2000 },
+  1000,
+  { maxWait: 5000 },
 )
 
 const onChangeCustomUrl = (value: string) => {

@@ -45,18 +45,14 @@ const renderAsTextFun = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field" @dblclick="activateShowEditNonEditableFieldWarning">
-    <div v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)">
-      <LazyCellDecimal :model-value="value" />
+  <div @dblclick="activateShowEditNonEditableFieldWarning">
+    <LazyCellDecimal :model-value="value" v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" />
+    <LazySmartsheetCell v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" v-else />
+    <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      {{ $t('msg.info.computedFieldEditWarning') }}
     </div>
-    <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
-    <div>
-      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        {{ $t('msg.info.computedFieldEditWarning') }}
-      </div>
-      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        {{ $t('msg.info.computedFieldDeleteWarning') }}
-      </div>
+    <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      {{ $t('msg.info.computedFieldDeleteWarning') }}
     </div>
   </div>
 </template>

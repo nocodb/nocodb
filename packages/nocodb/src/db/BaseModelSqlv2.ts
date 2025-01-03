@@ -5415,7 +5415,7 @@ class BaseModelSqlv2 {
             ncOrder: order,
             undo,
           });
-          order = order.plus(1);
+          order = order?.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
@@ -5439,10 +5439,10 @@ class BaseModelSqlv2 {
           toUpdate.push(data);
         } else {
           await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
+            ncOrder: order?.plus(i),
             undo,
           });
-          order = order.plus(1);
+          order = order?.plus(1);
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }
@@ -5785,7 +5785,6 @@ class BaseModelSqlv2 {
         const columns = await this.model.getColumns(this.context);
 
         const order = await this.getHighestOrderInTable();
-
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
 
         for (const [index, d] of datas.entries()) {
@@ -5795,7 +5794,7 @@ class BaseModelSqlv2 {
           });
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
-            ncOrder: order.plus(index),
+            ncOrder: order?.plus(index),
             undo,
           });
 
@@ -5827,7 +5826,7 @@ class BaseModelSqlv2 {
               await this.prepareNocoData(d, true, cookie, null, {
                 raw,
                 undo: undo,
-                ncOrder: order.plus(i),
+                ncOrder: order?.plus(i),
               }),
           ),
         );

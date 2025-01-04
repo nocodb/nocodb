@@ -644,6 +644,9 @@
     "categories": "Kategóriák",
     "fieldInaccessible": "Mező elérhetetlen",
     "noConditionsAdded": "Nincsenek hozzáadott feltételek",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "Nincs elérhető MI integráció.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Ez a funkció csak az üzleti kiadásban elérhető",
       "yourCurrentRoleIs": "Jelenlegi szerepköröd",
       "pleaseRequestAccessForView": "Kérj magasabb jogosultságot az adminisztrátortól / Bázis tulajdonostól / Munkaterület tulajdonostól, hogy hozzáférhess ehhez a {viewName}",
-      "preventHideAllOptions": "Nem rejtheted el az összes opciót, ha a mező kötelező"
+      "preventHideAllOptions": "Nem rejtheted el az összes opciót, ha a mező kötelező",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "A kézi horgokat nem lehet letiltani",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "A húzott tartalom nem kép típusú",
       "fieldToParseImageData": "Mező kép adatok elemzésére",
       "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

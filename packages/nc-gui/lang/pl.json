@@ -644,6 +644,9 @@
     "categories": "Kategorie",
     "fieldInaccessible": "Pole niedostępne",
     "noConditionsAdded": "Brak dodanych warunków",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Ta funkcja jest dostępna tylko w wersji Enterprise",
       "yourCurrentRoleIs": "Twoja obecna rola to",
       "pleaseRequestAccessForView": "Proszę o żądanie wyższych uprawnień od Admina / Właściciela bazy / Właściciela przestrzeni roboczej, aby uzyskać dostęp do tego {viewName}",
-      "preventHideAllOptions": "Nie możesz ukryć wszystkich opcji, jeśli pole jest wymagane"
+      "preventHideAllOptions": "Nie możesz ukryć wszystkich opcji, jeśli pole jest wymagane",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Ręczne haki nie mogą być dezaktywowane",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Przeciągnięta zawartość nie jest typem obrazu",
       "fieldToParseImageData": "Pole do analizy danych obrazu",
       "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

@@ -547,10 +547,10 @@ const onAddColumnDropdownVisibilityChange = () => {
     </NcTooltip>
 
     <template #overlay>
-      <div class="pt-1 bg-white w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div class="bg-white w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex items-center gap-2 px-2 mb-2 w-80 border-b-1 border-gray-100 pb-2"
+          class="flex items-center gap-2 p-2 w-80 border-b-1 border-gray-100"
         >
           <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
@@ -649,23 +649,23 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
-        <div @click.stop>
+        <div class="py-2" @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
             :placeholder="$t('placeholder.searchFields')"
-            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none !pb-1.5 !pt-2.5"
+            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none !h-8"
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div class="nc-scrollbar-thin pl-2 pb-1 overflow-auto" style="scrollbar-gutter: stable !important">
+              <div class="pl-2 flex">
                 <NcSwitch
                   v-model:checked="showAllColumns"
                   :disabled="
                     !searchCompare(
                       fields?.map((f) => f.title),
                       filterQuery,
-                    )
+                    ) || isLocked
                   "
                   size="xsmall"
                   class="!mr-1 nc-fields-toggle-show-all-fields"
@@ -846,25 +846,26 @@ const onAddColumnDropdownVisibilityChange = () => {
           class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
         >
           <NcButton
-            class="nc-fields-show-system-fields !px-2"
+            class="nc-fields-show-system-fields !px-2 !font-semibold"
             size="small"
             type="text"
             :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
-            <span class="text-sm font-weight-600"> {{ $t('title.systemFields') }} </span>
+            <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
             v-model:visible="addColumnDropdown"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
+            :disabled="isLocked"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton class="nc-fields-add-new-field !px-2" size="small" type="text">
-              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1 text-primary" />
-              <span class="text-primary text-sm font-weight-600">{{ t('general.new') }} {{ t('objects.field') }}</span>
+            <NcButton :disabled="isLocked" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
+              <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">
@@ -899,12 +900,9 @@ const onAddColumnDropdownVisibilityChange = () => {
   @apply bg-gray-50;
 }
 
-.nc-fields-add-new-field,
-.nc-fields-show-system-fields {
-  @apply !text-xs !text-gray-700 !border-none bg-transparent;
-
+.nc-fields-add-new-field {
   &:not(:disabled) {
-    @apply hover:(!text-gray-800 bg-gray-200);
+    @apply text-primary hover:text-primary;
   }
 }
 

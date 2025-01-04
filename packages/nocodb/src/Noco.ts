@@ -17,6 +17,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
 import { Integration } from '~/models';
+import { getAppUrl } from '~/utils/appUrl';
 
 dotenv.config();
 
@@ -28,9 +29,7 @@ export default class Noco {
   protected static _server: Express;
 
   public static get dashboardUrl(): string {
-    const siteUrl = `http://localhost:${process.env.PORT || 8080}`;
-
-    return `${siteUrl}${this._this?.config?.dashboardPath}`;
+    return getAppUrl();
   }
 
   public static config: any;

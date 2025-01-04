@@ -212,6 +212,7 @@ useEventListener(tableWrapper, 'scroll', () => {
           }"
         >
           <tbody>
+            <slot name="body-prepend" />
             <tr
               v-for="(record, recordIndex) of data"
               :key="recordIndex"

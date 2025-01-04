@@ -470,6 +470,7 @@ import NcCloudOffIcon from '~icons/nc-icons-v2/cloud-off.svg'
 import NcMessageSquareIcon from '~icons/nc-icons-v2/message-square.svg'
 import NcEditIcon from '~icons/nc-icons-v2/edit.svg'
 import NcAlertCircleIcon from '~icons/nc-icons-v2/alert-circle.svg'
+import NcAlertCircleFilledIcon from '~icons/nc-icons-v2/alert-circle-filled.svg'
 import NcChevronsUpIcon from '~icons/nc-icons-v2/chevrons-up.svg'
 import NcUploadCloudIcon from '~icons/nc-icons-v2/upload-cloud.svg'
 import NcYoutubeIcon from '~icons/nc-icons-v2/youtube.svg'
@@ -591,6 +592,16 @@ import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 import NcFileSearch from '~icons/nc-icons-v2/file-search'
 import NcFileTypeJson from '~icons/nc-icons-v2/file-type-json'
+
+/* imports */
+
+import NcImportAirtable from '~icons/nc-icons-v2/import-airtable'
+import NcImportCsv from '~icons/nc-icons-v2/import-csv'
+import NcImportJson from '~icons/nc-icons-v2/import-json'
+import NcImportExcel from '~icons/nc-icons-v2/import-excel'
+import NcImportSheets from '~icons/nc-icons-v2/import-sheets'
+import NcImportSalesforce from '~icons/nc-icons-v2/import-salesforce'
+import NcImportMonday from '~icons/nc-icons-v2/import-monday'
 
 import NcHeading1 from '~icons/nc-icons-v2/heading-1'
 import NcHeading2 from '~icons/nc-icons-v2/heading-2'
@@ -1397,6 +1408,7 @@ export const iconMap = {
   ncMessageSquare: NcMessageSquareIcon,
   ncEDit2: NcEditIcon,
   ncAlertCircle: NcAlertCircleIcon,
+  ncAlertCircleFilled: NcAlertCircleFilledIcon,
   ncChevronsUp: NcChevronsUpIcon,
   ncUploadCloud: NcUploadCloudIcon,
   ncYoutube: NcYoutubeIcon,
@@ -1501,6 +1513,13 @@ export const iconMap = {
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
+  importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
+  importCsv: h(NcImportCsv, { stroke: 'transparent' }),
+  importJson: h(NcImportJson, { stroke: 'transparent' }),
+  importExcel: h(NcImportExcel, { stroke: 'transparent' }),
+  importSheets: h(NcImportSheets, { stroke: 'transparent' }),
+  importSalesforce: h(NcImportSalesforce, { stroke: 'transparent' }),
+  importMonday: h(NcImportMonday, { stroke: 'transparent' }),
   ncHeading1: NcHeading1,
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,
@@ -3673,6 +3692,10 @@ export const searchableMap = {
   },
   ncAlertCircle: {
     icon: NcAlertCircleIcon,
+    keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Alert'],
+  },
+  ncAlertCircleFilled: {
+    icon: NcAlertCircleFilledIcon,
     keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Alert'],
   },
   ncChevronsUp: {

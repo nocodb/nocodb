@@ -40,6 +40,32 @@
   font-display: swap;
 }
 
+/* dm mono */
+
+@font-face {
+  font-family: DMMono;
+  src: url('./dm-mono/DMMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: DMMono;
+  src: url('./dm-mono/DMMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: DMMono;
+  src: url('./dm-mono/DMMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 /*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
 */

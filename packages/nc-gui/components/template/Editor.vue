@@ -926,12 +926,7 @@ const currentColumnToEdit = ref('');
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
                   <div class="flex items-center">
-                    <div
-                      v-if="tableIcon"
-                      class="w-8 h-8 flex items-center justify-center bg-gray-100 mr-2 rounded-lg flex-shrink-0"
-                    >
-                      <GeneralIcon :icon="tableIcon as any" class="w-5 h-5" />
-                    </div>
+                    <GeneralIcon icon="table" class="w-4 h-4 mr-3" />
                     <a-input
                       v-model:value="table.table_name"
                       class="!rounded-md !w-70"

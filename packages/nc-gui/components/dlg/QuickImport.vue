@@ -677,7 +677,7 @@ watch(() => importState.fileList, () => {
             </template>
           </a-upload-dragger>
 
-          <div v-if="isImportTypeJson" class="mt-4 mb-4">
+          <div v-if="isImportTypeJson" class="my-5">
             <div class="flex items-end gap-2">
               <label> Enter Json </label>
               <div class="flex-1" />
@@ -710,7 +710,7 @@ watch(() => importState.fileList, () => {
             </a-alert>
           </div>
 
-          <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-4">
+          <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-5">
             <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
               <a-input
                 v-model:value="importState.url"
@@ -735,19 +735,19 @@ watch(() => importState.fileList, () => {
 
         <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
-            <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
+            <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
               </a-checkbox>
             </a-form-item>
 
-            <a-form-item v-if="isImportTypeJson" class="!my-2">
+            <a-form-item v-if="isImportTypeJson" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
               </a-checkbox>
             </a-form-item>
 
-            <a-form-item v-if="!importDataOnly" class="!my-2">
+            <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
           </a-collapse-panel>
@@ -757,6 +757,7 @@ watch(() => importState.fileList, () => {
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
         <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 
@@ -772,6 +773,7 @@ watch(() => importState.fileList, () => {
             }
           "
         >
+          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 
@@ -838,11 +840,14 @@ watch(() => importState.fileList, () => {
 span:has(> .nc-modern-drag-import) {
   display: flex;
   flex-direction: column-reverse;
-  :deep(& > .ant-upload-list) {
+  :deep(& > .ant-upload-list:has(.ant-upload-list-picture-container)) {
     @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
   }
 }
 :deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
   @apply bg-white hover:bg-gray-50;
+}
+:deep(.nc-dense-checkbox-container .ant-form-item-control-input) {
+  min-height: unset !important;
 }
 </style>

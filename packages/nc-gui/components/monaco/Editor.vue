@@ -183,6 +183,9 @@ watch(
 :deep(.monaco-editor) {
   background-color: transparent !important;
   border-radius: 8px !important;
+  .view-line * {
+    font-family: DMMono !important;
+  }
 }
 
 :deep(.overflow-guard) {

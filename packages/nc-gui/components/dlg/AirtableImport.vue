@@ -394,7 +394,7 @@ const collapseKey = ref('')
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2"
+            class="!rounded-lg mt-2 nc-input-api-key"
           />
         </a-form-item>
 

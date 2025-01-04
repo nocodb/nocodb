@@ -644,6 +644,9 @@
     "categories": "ವರ್ಗಗಳು",
     "fieldInaccessible": "ಕ್ಷೇತ್ರವನ್ನು ಪ್ರವೇಶಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ",
     "noConditionsAdded": "ಯಾವುದೇ ಶರತ್ತುಗಳನ್ನು ಸೇರಿಸಲಾಗಿಲ್ಲ",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "ಈ ವೈಶಿಷ್ಟ್ಯವು ಕೇವಲ ಎಂಟರ್ಪ್ರೈಸ್ ಆವೃತ್ತಿಯಲ್ಲಿ ಲಭ್ಯವಿದೆ",
       "yourCurrentRoleIs": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಪಾತ್ರ ಇದೇ",
       "pleaseRequestAccessForView": "ಈ {viewName} ಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು ಆಡಳಿತಕರಿಂದ / ಬೇಸ್ ಮಾಲಕರಿಂದ / ವರ್ಕ್‌ಸ್ಪೇಸ್ ಮಾಲಕರಿಂದ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಕೋರಿ",
-      "preventHideAllOptions": "ಕ್ಷೇತ್ರವು ಅಗತ್ಯವಿದ್ದರೆ ಎಲ್ಲಾ ಆಯ್ಕೆಗಳ ಹೋಲಿಕೆ ಅನ್ನು ನೈವ್ಯಾಧಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ"
+      "preventHideAllOptions": "ಕ್ಷೇತ್ರವು ಅಗತ್ಯವಿದ್ದರೆ ಎಲ್ಲಾ ಆಯ್ಕೆಗಳ ಹೋಲಿಕೆ ಅನ್ನು ನೈವ್ಯಾಧಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "ಮ್ಯಾನುಯಲ್ ಹೂಕ್‌ಗಳು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "ಇಳಕಿ ತಂದ ವಿಷಯ ಚಿತ್ರ ಪ್ರಕಾರವಲ್ಲ",
       "fieldToParseImageData": "ಚಿತ್ರದ ಡೇಟಾವನ್ನು ವಿಶ್ಲೇಷಿಸಲು ಕ್ಷೇತ್ರ",
       "someOfTheRequiredFieldsAreEmpty": "ಕೋಷ್ಟಕವನ್ನು ಅಗತ್ಯವಲ್ಲದ ರೂಪದಲ್ಲಿ ಖಾಲಿ ಮಾಡಲಾಗಿದೆ",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

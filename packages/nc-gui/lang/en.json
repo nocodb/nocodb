@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "supported": "Supported",
     "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
@@ -719,7 +720,7 @@
     "addNewLookupHelperText1": "Lookup fields show data from linked records. Select specific fields from ",
     "addNewLookupHelperText2": " table to add them as Lookup fields in this table.",
     "formatting": "Formatting",
-    "selectAFormatType": "- -Select a formt type (optional)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Format type",
     "toUpload": "to upload",
     "dragFilesHere": "drag files here",
@@ -1478,6 +1479,7 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",

@@ -394,7 +394,8 @@ const collapseKey = ref('')
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2 nc-input-api-key">
+            class="!rounded-lg mt-2 nc-input-api-key"
+          >
             <template #iconRender="isVisible">
               <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
             </template>
@@ -465,29 +466,28 @@ const collapseKey = ref('')
         ref="logRef"
         class="nc-import-logs-container"
         :body-style="{
-          backgroundColor: '#101015',
-          height: '200px',
-          overflow: 'auto',
-          borderRadius: '0.5rem',
-          padding: '16px !important',
+          'backgroundColor': '#101015',
+          'height': '200px',
+          'overflow': 'auto',
+          'borderRadius': '0.5rem',
+          'padding': '16px !important',
           'scrollbar-color': 'var(--scrollbar-thumb) var(--scrollbar-track)',
           'scrollbar-width': 'thin',
           '--scrollbar-thumb': '#E7E7E9',
           '--scrollbar-track': 'transparent',
         }"
       >
-
-      <a-button
-        v-if="showGoToDashboardButton || goBack"
-        class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
-        size="small"
-        @click="downloadLogs('at-import-logs.txt')"
-      >
-        <nc-tooltip>
-          <template #title>Download Logs</template>
-          <component :is="iconMap.download" />
-        </nc-tooltip>
-      </a-button>
+        <a-button
+          v-if="showGoToDashboardButton || goBack"
+          class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
+          size="small"
+          @click="downloadLogs('at-import-logs.txt')"
+        >
+          <nc-tooltip>
+            <template #title>Download Logs</template>
+            <component :is="iconMap.download" />
+          </nc-tooltip>
+        </a-button>
 
         <div v-for="({ msg, status }, i) in progress" :key="i" class="my-1">
           <div v-if="status === JobStatus.FAILED" class="flex items-start">
@@ -497,7 +497,6 @@ const collapseKey = ref('')
             <span class="text-green-400 ml-2 log-message">{{ msg }}</span>
           </div>
         </div>
-
       </a-card>
       <div v-else class="flex items-start gap-2">
         <template v-if="isInProgress">
@@ -507,9 +506,7 @@ const collapseKey = ref('')
           </span>
         </template>
         <template v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED">
-          <a-alert
-            class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full"
-          >
+          <a-alert class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full">
             >
             <template #message>
               <div class="flex flex-row items-center gap-2 mb-2">
@@ -526,14 +523,14 @@ const collapseKey = ref('')
         </template>
         <div v-else class="flex items-start gap-3">
           <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
-          <span>
-            Successfully imported from Airtable Base.
-          </span>
+          <span> Successfully imported from Airtable Base. </span>
         </div>
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <nc-button v-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
+        <nc-button v-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" size="small" @click="step = 1">
+          Retry import
+        </nc-button>
         <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
       </div>
     </div>
@@ -551,7 +548,6 @@ const collapseKey = ref('')
             }
           "
         >
-          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 

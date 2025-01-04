@@ -793,6 +793,9 @@ function toggleTableSelecteds(table: any) {
     }
   }
 }
+
+const currentColumnToEdit = ref('');
+
 </script>
 
 <template>
@@ -977,7 +980,7 @@ function toggleTableSelecteds(table: any) {
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
                       <a-checkbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
-                      <span class="ml-4 font-bold text-[13px]"> Select CSV Fields to import </span>
+                      <span class="ml-4 font-weight-700 text-[13px]"> {{ table.columns.every((it) => it.selected) ? 'Deselect' : 'Select' }} all fields </span>
                     </td>
                   </tr>
                 </template>
@@ -986,25 +989,42 @@ function toggleTableSelecteds(table: any) {
                     <a-checkbox v-model:checked="record.selected" />
                   </template>
                   <template v-if="column.key === 'column_name'">
-                    <a-form-item
-                      v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
-                      class="nc-table-field-name !mb-0 w-full"
-                    >
-                      <a-input
-                        :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
-                        v-model:value="record.title"
-                        class="!rounded-md"
+                    <template v-if="`${tableIdx}-${record.column_name}` === currentColumnToEdit">
+                      <a-form-item
+                        v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
+                        class="nc-table-field-name !mb-0 w-full"
                       >
-                        <template #suffix>
-                          <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
-                            <template #title
-                              >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
-                            </template>
-                            <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
-                          </NcTooltip>
-                        </template>
-                      </a-input>
-                    </a-form-item>
+                        <a-input
+                          :ref="(el: HTMLInputElement) => {inputRefs[record.key] = el; el?.focus?.(); return el;}"
+                          v-model:value="record.title"
+                          class="!rounded-md"
+                          :autofocus="true"
+                          @keydown.enter.prevent.stop="currentColumnToEdit = ''"
+                          @keydown.esc.prevent.stop="currentColumnToEdit = ''"
+                          @blur.esc.prevent.stop="currentColumnToEdit = ''"
+                        >
+                          <template #suffix>
+                            <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
+                              <template #title
+                                >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                              </template>
+                              <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                            </NcTooltip>
+                          </template>
+                        </a-input>
+                      </a-form-item>
+                    </template>
+                    <template v-else>
+                      <div class="relative group w-full flex items-center">
+                        <span class="font-weight-500 max-w-[300px] inline-block truncate">
+                          {{ record.title }}
+                        </span>
+                        <NcButton @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`" type="text" size="small" class="!absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
+                          <GeneralIcon icon="pencil" />
+                        </NcButton>
+                      </div>
+                    </template>
+                    <div class="absolute h-1 border-t top-0 left-3 right-3" />
                   </template>
                 </template>
               </NcTable>
@@ -1069,6 +1089,7 @@ function toggleTableSelecteds(table: any) {
   .nc-table-row {
     border: none !important;
     height: 40px !important;
+    position: relative;
   }
 }
 </style>

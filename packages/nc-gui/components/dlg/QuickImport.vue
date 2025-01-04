@@ -83,7 +83,7 @@ const isImportTypeCsv = computed(() => importType === 'csv')
 const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
-  url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
+  url: [importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)
@@ -140,7 +140,7 @@ const isPreImportFileFilled = computed(() => {
 })
 
 const isPreImportUrlFilled = computed(() => {
-  return validateInfos?.url?.validateStatus === 'success'
+  return validateInfos?.url?.validateStatus === 'success' && !!importState.url
 })
 
 const isPreImportJsonFilled = computed(() => {
@@ -559,17 +559,6 @@ function handleJsonChange(newValue: string) {
     jsonErrorText.value = e.message || 'Invalid JSON'
   }
 }
-
-async function pasteJsonContent() {
-  try {
-    const clipboardContent = await navigator.clipboard.readText()
-    importState.jsonEditor = JSON.parse(clipboardContent)
-    temporaryJson.value = clipboardContent
-    jsonErrorText.value = ''
-  } catch (error) {
-    message.error('Failed to paste JSON content')
-  }
-}
 </script>
 
 <template>
@@ -620,13 +609,14 @@ async function pasteJsonContent() {
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
-            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !bg-white !border-gray-200 hover:!bg-gray-100"
+            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
             list-type="picture"
             :accept="importMeta.acceptTypes"
-            :max-count="isImportTypeCsv ? 5 : 1"
+            :max-count="isImportTypeCsv ? 3 : 1"
             :multiple="true"
             :custom-request="customReqCbk"
             :before-upload="beforeUpload"
+            :disabled="isImportTypeJson ? isPreImportJsonFilled : isPreImportUrlFilled"
             @change="handleChange"
             @reject="rejectDrop"
           >
@@ -646,7 +636,7 @@ async function pasteJsonContent() {
             <template #itemRender="{ file, actions }">
               <div class="flex items-center gap-3">
                 <div class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-lg">
-                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-10 h-10" />
+                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
                 </div>
                 <div>
                   <div class="text-[14px] text-[#15171A] font-weight-500">
@@ -680,6 +670,7 @@ async function pasteJsonContent() {
               :rows="5"
               class="!rounded-lg !p-2 !mt-2 !font-mono"
               placeholder="Paste JSON here..."
+              :disabled="isPreImportFileFilled"
               :value="temporaryJson"
               @update:value="handleJsonChange($event)"
             />
@@ -704,14 +695,14 @@ async function pasteJsonContent() {
                 v-model:value="importState.url"
                 class="!rounded-md"
                 placeholder="Paste file link here..."
-                :required="false"
+                :disabled="isPreImportFileFilled"
               />
             </a-form-item>
           </a-form>
         </div>
       </div>
 
-      <div v-if="!templateEditorModal">
+      <div v-if="!templateEditorModal" class="mt-5">
         <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -842,5 +833,8 @@ span:has(> .nc-modern-drag-import) {
   :deep(& > .ant-upload-list) {
     @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
   }
+}
+:deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
+  @apply bg-white hover:bg-gray-50;
 }
 </style>

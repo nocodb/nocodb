@@ -29,6 +29,10 @@ const columnKeys = computed(() => {
   return Object.keys(newData.value)
 })
 
+/* provides */
+
+provide(RawReadonlyInj, ref(true));
+
 /* attachment */
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -225,6 +229,17 @@ function shouldShowRaw(key: string) {
     }
     .ant-progress-inner {
       transform: translateY(-9px) !important;
+    }
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-datetime) {
+  .nc-date-picker {
+    @apply !inline;
+    & > div {
+      @apply !inline;
+    }
+    & > div + div {
+      @apply !ml-1;
     }
   }
 }

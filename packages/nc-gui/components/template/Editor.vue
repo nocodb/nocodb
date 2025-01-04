@@ -170,10 +170,14 @@ const isAnyColumnSelectedInEachTable = computed(() => {
   return data.tables.every((table) => table.columns.some((column) => (column as any).selected))
 })
 
+const doesAnyColumnNameHaveTrailingWhitespace = computed(() => {
+  return data.tables.some((table) => table.table_name !== table.table_name?.trim())
+})
+
 const formRef = ref()
 
 watch(
-  [() => srcDestMapping.value, isAnyColumnSelectedInEachTable],
+  [() => srcDestMapping.value, isAnyColumnSelectedInEachTable, doesAnyColumnNameHaveTrailingWhitespace],
   () => {
     let res = true
     if (importDataOnly) {
@@ -202,7 +206,7 @@ watch(
         }
       }
     }
-    isValid.value = res && isAnyColumnSelectedInEachTable.value
+    isValid.value = res && isAnyColumnSelectedInEachTable.value && !doesAnyColumnNameHaveTrailingWhitespace.value
   },
   { deep: true },
 )
@@ -1012,11 +1016,22 @@ function toggleTableSelecteds(table: any) {
         <template #message>
           <div class="flex flex-row items-center gap-2 mb-3">
             <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-            <span class="font-weight-700 text-[14px]">Column Selection Issue</span>
+            <span class="font-weight-700 text-[14px]">Required</span>
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 text-[13px] leading-5 ml-6">There must be at least one column selected in each table.</div>
+          <div class="text-gray-500 text-[13px] leading-5 ml-6">Select at least one field to continue</div>
+        </template>
+      </a-alert>
+      <a-alert v-if="doesAnyColumnNameHaveTrailingWhitespace" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
+        <template #message>
+          <div class="flex flex-row items-center gap-2 mb-3">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+            <span class="font-weight-700 text-[14px]">Trailing Whitespace</span>
+          </div>
+        </template>
+        <template #description>
+          <div class="text-gray-500 text-[13px] leading-5 ml-6">Table names should not have whitespace in the beginning or their end.</div>
         </template>
       </a-alert>
     </a-card>

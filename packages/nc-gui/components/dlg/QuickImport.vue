@@ -632,7 +632,6 @@ async function pasteJsonContent() {
           >
             <component :is="iconMap.upload" class="w-6 h-6" />
 
-            <!-- Click or drag file to this area to upload -->
             <p class="!mt-2 text-[13px]">
               Drop your document here or
               <span class="text-nc-content-brand hover:underline">browse file</span>
@@ -646,8 +645,8 @@ async function pasteJsonContent() {
 
             <template #itemRender="{ file, actions }">
               <div class="flex items-center gap-3">
-                <div class="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-lg">
-                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-12 h-12" />
+                <div class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-lg">
+                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-10 h-10" />
                 </div>
                 <div>
                   <div class="text-[14px] text-[#15171A] font-weight-500">
@@ -676,7 +675,6 @@ async function pasteJsonContent() {
               <label> Enter Json </label>
               <div class="flex-1" />
               <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
-              <NcButton type="text" size="xsmall" class="!text-primary !px-2" @click="pasteJsonContent()"> Paste Json </NcButton>
             </div>
             <a-textarea
               :rows="5"
@@ -685,7 +683,7 @@ async function pasteJsonContent() {
               :value="temporaryJson"
               @update:value="handleJsonChange($event)"
             />
-            <a-alert v-if="jsonErrorText" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
+            <a-alert v-if="jsonErrorText && !isPreImportFileFilled" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
               <template #message>
                 <div class="flex flex-row items-center gap-2 mb-2">
                   <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
@@ -842,11 +840,7 @@ span:has(> .nc-modern-drag-import) {
   display: flex;
   flex-direction: column-reverse;
   :deep(& > .ant-upload-list) {
-    @apply mb-4 space-y-2 transition-all;
-    &:has(.ant-upload-list-picture-container + .ant-upload-list-picture-container + .ant-upload-list-picture-container) {
-      @apply border-1 rounded-lg p-2 max-h-[200px] overflow-y-auto nc-scrollbar-thin;
-      scrollbar-gutter: stable;
-    }
+    @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
   }
 }
 </style>

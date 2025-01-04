@@ -644,6 +644,9 @@
     "categories": "類別",
     "fieldInaccessible": "欄位不可訪問",
     "noConditionsAdded": "未添加條件",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "此功能僅在企業版中可用",
       "yourCurrentRoleIs": "您目前的角色是",
       "pleaseRequestAccessForView": "請向管理員 / 基地所有者 / 工作區所有者申請更高的權限以訪問此 {viewName}",
-      "preventHideAllOptions": "如果字段是必需的，您不能隱藏所有選項"
+      "preventHideAllOptions": "如果字段是必需的，您不能隱藏所有選項",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "手動鉤子無法禁用",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "拖曳的內容不是圖片類型",
       "fieldToParseImageData": "解析圖片數據的欄位",
       "someOfTheRequiredFieldsAreEmpty": "部分必填欄位為空",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

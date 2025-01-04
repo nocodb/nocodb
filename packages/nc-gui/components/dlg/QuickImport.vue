@@ -95,7 +95,7 @@ const importMeta = computed(() => {
     return {
       header: `${t('title.quickImportExcel')}`,
       icon: 'importExcel',
-      uploadHint: t('msg.info.excelSupport'),
+      uploadHint: '',
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
       acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
@@ -178,7 +178,7 @@ async function handlePreImport() {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
-  } else if (activeKey.value === 'jsonEditorTab') {
+  } else if (isImportTypeJson.value) {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
@@ -579,7 +579,7 @@ const collapseKey = ref('');
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
-            class="nc-input-import !scrollbar-thin-dull !py-4"
+            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !bg-white !border-gray-200 hover:!bg-gray-50"
             list-type="picture"
             :accept="importMeta.acceptTypes"
             :max-count="isImportTypeCsv ? 5 : 1"
@@ -594,7 +594,7 @@ const collapseKey = ref('');
             <!-- Click or drag file to this area to upload -->
             <p class="!mt-2 text-[13px]">
               Drop your document here or
-              <span class="text-primary">browse file</span>
+              <span class="text-nc-content-brand hover:underline">browse file</span>
             </p>
 
             <p class="!mt-3 text-[13px] text-gray-500">
@@ -605,8 +605,25 @@ const collapseKey = ref('');
               {{ importMeta.uploadHint }}
             </p>
 
-            <template #removeIcon>
-              <component :is="iconMap.deleteListItem" />
+            <template #itemRender="{ fileList, actions }">
+               <div class="mb-4 space-y-2">
+                <div v-for="file of fileList" :key="file.uid" class="flex items-center gap-3">
+                  <div class="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-lg">
+                    <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-12 h-12" />
+                  </div>
+                  <div>
+                    <div class="text-[14px] text-[#15171A] font-weight-500">
+                      {{ file.name }}
+                    </div>
+                    <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
+                      {{ getReadableFileSize(file.size) }}
+                    </div>
+                  </div>
+                  <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
+                    <GeneralIcon icon="deleteListItem" />
+                  </nc-button>
+                </div>
+               </div>
             </template>
           </a-upload-dragger>
 
@@ -725,5 +742,9 @@ const collapseKey = ref('');
 }
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+span:has(> .nc-modern-drag-import) {
+  display: flex;
+  flex-direction: column-reverse;
 }
 </style>

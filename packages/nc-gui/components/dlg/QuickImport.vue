@@ -642,11 +642,11 @@ watch(
             <component :is="iconMap.upload" class="w-6 h-6" />
 
             <p class="!mt-2 text-[13px]">
-              Drop your document here or
-              <span class="text-nc-content-brand hover:underline">browse file</span>
+              {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
+              <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
             </p>
 
-            <p class="!mt-3 text-[13px] text-gray-500">Supported: {{ importMeta.acceptTypes }}</p>
+            <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
 
             <p class="ant-upload-hint">
               {{ importMeta.uploadHint }}

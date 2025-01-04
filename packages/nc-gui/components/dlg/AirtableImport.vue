@@ -360,7 +360,7 @@ const collapseKey = ref('')
         {{ $t('title.quickImportAirtable') }}
       </span>
       <span v-else-if="isInProgress"> Importing from Airtable... </span>
-      <span v-else> Airtable Base Imported. </span>
+      <span v-else> Airtable Base Imported </span>
 
       <a
         v-if="step === 1"
@@ -371,7 +371,7 @@ const collapseKey = ref('')
       >
         Docs
       </a>
-      <nc-button v-else-if="isInProgress" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
+      <nc-button v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
         <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
       </nc-button>
@@ -380,19 +380,29 @@ const collapseKey = ref('')
     <div v-if="step === 1">
       <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
         <a-form-item v-bind="validateInfos['details.apiKey']">
-          <label> Personal Access Token </label>
+          <div class="flex items-end">
+            <label> Personal Access Token </label>
+            <a
+              href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+              class="!text-brand prose-sm ml-auto"
+              target="_blank"
+              rel="noopener"
+            >
+              Where to find?
+            </a>
+          </div>
           <a-input-password
             v-model:value="syncSource.details.apiKey"
-            :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
+            placeholder="Enter your Airtable Personal Access Token"
             class="!rounded-lg mt-2"
           />
         </a-form-item>
 
-        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
+        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
           <label> Shared Base ID/URL </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
-            :placeholder="`${$t('labels.sharedBaseUrl')}`"
+            placeholder="Paste the Base URL or Base ID from Airtable"
             class="!rounded-lg !mt-2"
           />
         </a-form-item>
@@ -424,13 +434,11 @@ const collapseKey = ref('')
               </a-checkbox>
             </div>
 
-            <!--
             <div class="my-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
                 {{ $t('labels.importLookupColumns') }}
               </a-checkbox>
             </div>
-            -->
 
             <div class="my-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
@@ -452,52 +460,78 @@ const collapseKey = ref('')
       <a-card
         v-if="detailsIsShown"
         ref="logRef"
+        class="nc-import-logs-container"
         :body-style="{
           backgroundColor: '#101015',
           height: '200px',
           overflow: 'auto',
           borderRadius: '0.5rem',
           padding: '16px !important',
+          'scrollbar-color': 'var(--scrollbar-thumb) var(--scrollbar-track)',
+          'scrollbar-width': 'thin',
+          '--scrollbar-thumb': '#E7E7E9',
+          '--scrollbar-track': 'transparent',
         }"
       >
-        <a-button
-          v-if="showGoToDashboardButton || goBack"
-          class="!absolute mr-1 mb-1 z-1 right-0 bottom-0 opacity-40 hover:opacity-100 !rounded-md"
-          size="small"
-          @click="downloadLogs('at-import-logs.txt')"
-        >
-          <component :is="iconMap.download" class="text-green-400" />
-        </a-button>
 
-        <div v-for="({ msg, status }, i) in progress" :key="i">
+      <a-button
+        v-if="showGoToDashboardButton || goBack"
+        class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
+        size="small"
+        @click="downloadLogs('at-import-logs.txt')"
+      >
+        <nc-tooltip>
+          <template #title>Download Logs</template>
+          <component :is="iconMap.download" />
+        </nc-tooltip>
+      </a-button>
+
+        <div v-for="({ msg, status }, i) in progress" :key="i" class="my-1">
           <div v-if="status === JobStatus.FAILED" class="flex items-start">
-            <component :is="iconMap.closeCircle" class="text-red-400 mt-1" />
-
             <span class="text-red-400 ml-2 log-message">{{ msg }}</span>
           </div>
-
           <div v-else class="flex items-start">
-            <MdiCurrencyUsd class="text-green-400 mt-1" />
-
             <span class="text-green-400 ml-2 log-message">{{ msg }}</span>
           </div>
         </div>
+
       </a-card>
       <div v-else class="flex items-start gap-2">
-        <component :is="iconMap.loading" v-if="isInProgress" class="text-primary animate-spin mt-1" />
-        <component
-          :is="iconMap.closeCircle"
-          v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED"
-          class="text-red-400 mt-1"
-        />
-        <MdiCurrencyUsd v-else class="text-green-400 mt-1" />
-        <span>
-          {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
-        </span>
+        <template v-if="isInProgress">
+          <component :is="iconMap.loading" class="text-primary animate-spin mt-1" />
+          <span>
+            {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+          </span>
+        </template>
+        <template v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED">
+          <a-alert
+            class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full"
+          >
+            >
+            <template #message>
+              <div class="flex flex-row items-center gap-2 mb-2">
+                <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+                <span class="font-weight-700 text-[14px]">Import error</span>
+              </div>
+            </template>
+            <template #description>
+              <div class="text-gray-500 text-[13px] leading-5 ml-6">
+                {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+              </div>
+            </template>
+          </a-alert>
+        </template>
+        <div v-else class="flex items-start gap-3">
+          <GeneralIcon icon="circleCheck" class="text-green-600 w-4 h-4 mt-0.75" />
+          <span>
+            {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+          </span>
+        </div>
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <nc-button @click="dialogShow = false"> Go to base </nc-button>
+        <nc-button v-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
+        <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
       </div>
     </div>
 

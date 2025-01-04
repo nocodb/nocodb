@@ -87,55 +87,62 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
       <NcMenu class="border-1 divide-y-1 nc-import-items-menu">
         <NcMenuItem @click="onClick('airtable')">
           <GeneralIcon icon="importAirtable" class="w-5 h-5" />
-          <span class="ml-1 text-[12px] font-weight-700">
+          <span class="ml-1 text-[13px] font-weight-700">
             Airtable
           </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('csv')">
           <GeneralIcon icon="importCsv" class="w-5 h-5" />
-          <span class="ml-1 text-[12px] font-weight-700">
-            CSV / Json
+          <span class="ml-1 text-[13px] font-weight-700">
+            CSV
+          </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('json')">
+          <GeneralIcon icon="cellJson" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700">
+            Json
           </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('excel')">
           <GeneralIcon icon="importExcel" class="w-5 h-5" />
-          <span class="ml-1 text-[12px] font-weight-700">
+          <span class="ml-1 text-[13px] font-weight-700">
             Excel
           </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
-        <NcMenuItem disabled>
+        <!-- <NcMenuItem disabled>
           <GeneralIcon icon="importSheets" class="w-5 h-5 opacity-50" />
-          <span class="ml-1 text-[12px] font-weight-700 text-[#6A7184]">
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
             Sheet
           </span>
-          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500">
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
             Coming soon
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
-        </NcMenuItem>
-        <NcMenuItem disabled>
+        </NcMenuItem> -->
+        <!-- <NcMenuItem disabled>
           <GeneralIcon icon="importSalesforce" class="w-5 h-5 text-white" />
-          <span class="ml-1 text-[12px] font-weight-700 text-[#6A7184]">
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
             Salesforce
           </span>
-          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500">
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
             Coming soon
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
-        </NcMenuItem>
-        <NcMenuItem disabled>
+        </NcMenuItem> -->
+        <!-- <NcMenuItem disabled>
           <GeneralIcon icon="importMonday" class="w-5 h-5" />
-          <span class="ml-1 text-[12px] font-weight-700 text-[#6A7184]">
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
             Monday.com
           </span>
-          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500">
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
             Coming soon
           </span>
           <GeneralIcon icon="chevronRight" class="text-lg" />
-        </NcMenuItem>
+        </NcMenuItem> -->
       </NcMenu>
     </div>
   </GeneralModal>
@@ -146,6 +153,9 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
   padding: 0 !important;
   border-radius: 8px !important;
   & :deep(.nc-menu-item) {
+    &:hover {
+      @apply bg-gray-50 text-black;
+    }
     margin: 0 !important;
     &.ant-menu-item-disabled {
       @apply bg-gray-50;

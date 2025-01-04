@@ -218,7 +218,7 @@ async function loadSyncSrc() {
         options: {
           syncViews: true,
           syncData: true,
-          syncRollup: true,
+          syncRollup: false,
           syncLookup: true,
           syncFormula: false,
           syncAttachment: true,
@@ -448,7 +448,7 @@ const collapseKey = ref('')
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncFormula">
+              <a-checkbox disabled v-model:checked="syncSource.details.options.syncFormula">
                 {{ $t('labels.importFormulaColumns') }}
               </a-checkbox>
             </div>
@@ -508,7 +508,7 @@ const collapseKey = ref('')
     <template #footer>
       <div v-if="step === 1" class="flex justify-between mt-2">
 
-        <nc-button type="text" key="back" @click="dialogShow = false; emit('back');">
+        <nc-button type="text" size="small" key="back" @click="dialogShow = false; emit('back');">
           {{ $t('general.back') }}
         </nc-button>
 
@@ -517,6 +517,7 @@ const collapseKey = ref('')
           v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
+          size="small"
           :loading="isLoading"
           :disabled="disableImportButton"
           @click="saveAndSync">
@@ -538,5 +539,8 @@ const collapseKey = ref('')
 <style>
   .nc-modal-airtable-import .ant-modal-footer {
     @apply !border-none p-0;
+  }
+  .nc-modal-airtable-import .ant-collapse-content-box {
+    padding-left: 6px;
   }
 </style>

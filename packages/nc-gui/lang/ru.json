@@ -644,6 +644,9 @@
     "categories": "Категории",
     "fieldInaccessible": "Поле недоступно",
     "noConditionsAdded": "Условия не добавлены",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Эта функция доступна только в корпоративной версии",
       "yourCurrentRoleIs": "Ваша текущая роль:",
       "pleaseRequestAccessForView": "Пожалуйста, запросите более высокий уровень доступа у администратора / владельца базы / владельца рабочего пространства для доступа к этому {viewName}",
-      "preventHideAllOptions": "Вы не можете скрыть все опции, если поле обязательно"
+      "preventHideAllOptions": "Вы не можете скрыть все опции, если поле обязательно",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Ручные хуки не могут быть отключены",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Перетаскиваемый контент не является изображением",
       "fieldToParseImageData": "Ошибка при анализе данных изображения",
       "someOfTheRequiredFieldsAreEmpty": "Некоторые из обязательных полей пусты",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

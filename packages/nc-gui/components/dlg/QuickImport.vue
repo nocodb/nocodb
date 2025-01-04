@@ -12,11 +12,12 @@ interface Props {
   baseId: string
   sourceId: string
   importDataOnly?: boolean
+  transition?: string
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, transition, ...rest } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
@@ -533,6 +534,7 @@ const collapseKey = ref('');
     width="448px"
     class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
+    :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
@@ -655,13 +657,13 @@ const collapseKey = ref('');
         <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
           {{ $t('general.back') }}
         </nc-button>
-  
-        <nc-button v-else key="cancel" type="text" size="small" @click="dialogShow = false">
+
+        <nc-button v-else key="cancel" type="text" size="small" @click="dialogShow = false; emit('back');">
           {{ $t('general.back') }}
         </nc-button>
-  
+
         <div class="flex-1" />
-  
+
         <nc-button
           v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
           key="format"
@@ -671,7 +673,7 @@ const collapseKey = ref('');
         >
           {{ $t('labels.formatJson') }}
         </nc-button>
-  
+
         <nc-button
           v-if="!templateEditorModal"
           key="pre-import"
@@ -683,7 +685,7 @@ const collapseKey = ref('');
         >
           {{ $t('activity.import') }}
         </nc-button>
-  
+
         <nc-button
           v-else
           key="import"

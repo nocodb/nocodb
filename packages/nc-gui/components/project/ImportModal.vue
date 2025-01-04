@@ -45,12 +45,16 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   }
 }
 
-function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
+async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   if (!source.value.id || !source.value.base_id) return
 
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
+  transitionName.value = 'dissolve';
+
+  await nextTick();
+  visible.value = false;
 
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
@@ -58,6 +62,10 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
+    'transition': 'dissolve',
+    'onBack': () => {
+      visible.value = true;
+    }
   })
 
   function closeDialog() {
@@ -72,7 +80,6 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else {
-    visible.value = false
     openQuickImportDialog(type)
   }
 }
@@ -84,7 +91,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
       <div class="flex items-center gap-3 mb-6">
         <div class="text-base font-weight-700">Import data from</div>
       </div>
-      <NcMenu class="border-1 divide-y-1 nc-import-items-menu">
+      <NcMenu class="border-1 divide-y-1 nc-import-items-menu overflow-clip">
         <NcMenuItem @click="onClick('airtable')">
           <GeneralIcon icon="importAirtable" class="w-5 h-5" />
           <span class="ml-1 text-[13px] font-weight-700">

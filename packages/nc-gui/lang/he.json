@@ -644,6 +644,9 @@
     "categories": "קטגוריות",
     "fieldInaccessible": "שדה אינו נגיש",
     "noConditionsAdded": "לא נוספו תנאים",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "אין אינטגרציות AI זמינות.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "נעול על ידי {user}"
+    "lockedByUser": "נעול על ידי {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "תכונה זו זמינה רק במהדורה העסקית",
       "yourCurrentRoleIs": "התפקיד הנוכחי שלך הוא",
       "pleaseRequestAccessForView": "אנא בקש הרשאה גבוהה יותר ממנהל / בעל הבסיס / בעל המרחב עבודה כדי לקבל גישה ל-{viewName} הזה",
-      "preventHideAllOptions": "לא ניתן להסתיר את כל האפשרויות אם השדה נדרש"
+      "preventHideAllOptions": "לא ניתן להסתיר את כל האפשרויות אם השדה נדרש",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "לא ניתן להשבית ווים ידניים",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "התוכן שגורר אינו סוג תמונה",
       "fieldToParseImageData": "שדה לניתוח נתוני התמונה",
       "someOfTheRequiredFieldsAreEmpty": "חלק מהשדות הדרושים ריקים",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

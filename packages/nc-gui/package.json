@@ -115,6 +115,8 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "locale-codes": "^1.3.1",
+    "markdown-it": "^14.1.0",
+    "markdown-it-task-lists": "^2.1.1",
     "marked": "^4.3.0",
     "mime-lite": "^1.0.3",
     "monaco-editor": "^0.50.0",

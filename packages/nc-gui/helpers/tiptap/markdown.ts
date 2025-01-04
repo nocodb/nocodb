@@ -20,13 +20,16 @@ export interface NcMarkdownParserConstructorType {
   linkify?: boolean
   breaks?: boolean
   extensions?: NcMarkdownExtension[]
+  maxBlockTokens?: number // Add this to limit block tokens
 }
 
 export class NcMarkdownParser {
-  public md: MarkdownIt
-  public openLinkOnClick: boolean = false
+  private static instance: NcMarkdownParser | null = null
+  private md: MarkdownIt
+  private openLinkOnClick: boolean = false
+  private maxBlockTokens?: number
 
-  constructor({
+  private constructor({
     openLinkOnClick = false,
     enableMention = false,
     users = [],
@@ -35,8 +38,10 @@ export class NcMarkdownParser {
     linkify = false,
     breaks = false,
     extensions = [],
+    maxBlockTokens,
   }: NcMarkdownParserConstructorType = {}) {
     this.openLinkOnClick = openLinkOnClick
+    this.maxBlockTokens = maxBlockTokens
 
     this.md = this.withPatchedRenderer(new MarkdownIt({ html, linkify, breaks }))
 
@@ -52,10 +57,45 @@ export class NcMarkdownParser {
     this.applyCustomExtensions(extensions)
   }
 
-  public parse<T extends any>(content: T): string | T {
+  /**
+   * Gets the singleton instance of NcMarkdownParser.
+   * If no instance exists, it creates and returns a new instance.
+   * @param options - The options to initialize the parser.
+   * @returns The singleton instance of the parser.
+   */
+  public static getInstance(options: NcMarkdownParserConstructorType = {}): NcMarkdownParser {
+    if (!NcMarkdownParser.instance) {
+      NcMarkdownParser.instance = new NcMarkdownParser(options)
+    }
+
+    return NcMarkdownParser.instance
+  }
+
+  /**
+   * Parses the content and optionally accepts options to initialize a new NcMarkdownParser instance.
+   * @param content - The markdown content to parse.
+   * @param options - Optional options to initialize the parser instance dynamically.
+   */
+  public static parse<T extends any>(
+    content: T,
+    options: NcMarkdownParserConstructorType = {},
+    useSingleton: boolean = false,
+  ): string | T {
+    if (!ncIsString(content)) return content
+
+    let parser: NcMarkdownParser
+
+    if (useSingleton) {
+      // Use the singleton instance
+      parser = NcMarkdownParser.getInstance(options)
+    } else {
+      // Create a new instance for each parse call
+      parser = new NcMarkdownParser(options)
+    }
+
+    // If content is a string, parse it
     if (ncIsString(content)) {
-      // Render Markdown to HTML
-      return this.md.render(content)
+      return parser.md.render(content)
     }
 
     return content
@@ -116,7 +156,63 @@ export class NcMarkdownParser {
     })
   }
 
-  public withPatchedRenderer(md: MarkdownIt): MarkdownIt {
+  private patchedRender(
+    tokens: MarkdownIt.Token[], // Array of tokens to render
+    options: MarkdownIt.Options,
+    env: any,
+  ): string {
+    const maxBlockTokens = this.maxBlockTokens
+
+    let result = ''
+    const rules = this.md.renderer.rules
+    let blockCount = 0
+    const blockStack: string[] = [] // Stack to manage block-level tokens
+    let inBlockMode = false // Flag to handle when blocks exceed maxBlockTokens
+
+    for (let i = 0, len = tokens.length; i < len; i++) {
+      const { type, block, nesting } = tokens[i] as MarkdownIt.Token
+
+      // Count block-level tokens
+      if (maxBlockTokens && block) {
+        if (nesting === 1) {
+          // Push opening tag to the stack
+          blockStack.push(type)
+          blockCount++
+        } else if (nesting === -1 && blockStack.length > 0) {
+          // Match closing tag with stack
+          blockStack.pop()
+        }
+
+        // If block count exceeds the limit, we enter block mode
+        if (blockCount > maxBlockTokens) {
+          inBlockMode = true
+        }
+
+        // Only break if blockStack is empty and maxBlock limit is exceeded
+        if (inBlockMode && blockStack.length === 0) {
+          break // Stop processing further tokens once max block limit is reached and stack is empty
+        }
+      }
+
+      if (type === 'inline') {
+        result += this.md.renderer.renderInline(tokens[i].children, options, env)
+      } else if (typeof rules[type] !== 'undefined') {
+        result += rules[type](tokens, i, options, env, this.md.renderer)
+      } else {
+        result += this.md.renderer.renderToken(tokens, i, options)
+      }
+
+      // Exit block mode if the stack is empty
+      if (inBlockMode && blockStack.length === 0) {
+        inBlockMode = false
+      }
+    }
+
+    return result
+  }
+
+  private withPatchedRenderer(md: MarkdownIt): MarkdownIt {
+    // Apply withoutNewLine adjustments
     const withoutNewLine =
       (renderer: any) =>
       (...args: any[]) => {
@@ -135,6 +231,9 @@ export class NcMarkdownParser {
     md.renderer.rules.fence = withoutNewLine(md.renderer.rules.fence)
     md.renderer.rules.code_block = withoutNewLine(md.renderer.rules.code_block)
     md.renderer.renderToken = withoutNewLine(md.renderer.renderToken.bind(md.renderer))
+
+    // Replace the render method with the patched version
+    md.renderer.render = (tokens, options, env) => this.patchedRender(tokens, options, env)
 
     return md
   }

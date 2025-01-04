@@ -286,6 +286,8 @@ export default defineNuxtConfig({
         'vuedraggable',
         'jsbarcode',
         'tiptap-markdown',
+        'markdown-it',
+        'markdown-it-task-lists',
       ],
       esbuildOptions: {
         define: {

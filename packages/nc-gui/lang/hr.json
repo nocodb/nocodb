@@ -644,6 +644,9 @@
     "categories": "Kategorije",
     "fieldInaccessible": "Polje nedostupno",
     "noConditionsAdded": "Nema dodanih uvjeta",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Ova značajka dostupna je samo u enterprise izdanju",
       "yourCurrentRoleIs": "Vaša trenutna uloga je",
       "pleaseRequestAccessForView": "Molimo zatražite veća dopuštenja od administratora / vlasnika baze / vlasnika radnog prostora kako biste dobili pristup ovom {viewName}",
-      "preventHideAllOptions": "Ne možete sakriti sve opcije ako je polje obavezno"
+      "preventHideAllOptions": "Ne možete sakriti sve opcije ako je polje obavezno",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Ručno okidače za hookse nije moguće onemogućiti",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Povučeni sadržaj nije tip slike",
       "fieldToParseImageData": "Polje za parsiranje podataka o slici",
       "someOfTheRequiredFieldsAreEmpty": "Neka od obaveznih polja su prazna",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

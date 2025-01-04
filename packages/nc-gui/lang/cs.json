@@ -644,6 +644,9 @@
     "categories": "Kategorie",
     "fieldInaccessible": "Pole nepřístupné",
     "noConditionsAdded": "Žádné podmínky přidány",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Tato funkce je dostupná pouze v podnikové edici",
       "yourCurrentRoleIs": "Vaše aktuální role je",
       "pleaseRequestAccessForView": "Požádejte o vyšší oprávnění od správce / vlastníka základny / vlastníka pracovního prostoru, abyste získali přístup k tomuto {viewName}",
-      "preventHideAllOptions": "Pokud je pole povinné, nemůžete skrýt všechny možnosti"
+      "preventHideAllOptions": "Pokud je pole povinné, nemůžete skrýt všechny možnosti",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Ruční háčky nelze zakázat",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Přetažený obsah není obrazového typu",
       "fieldToParseImageData": "Pole pro analýzu obrazových dat",
       "someOfTheRequiredFieldsAreEmpty": "Některá z povinných polí jsou prázdná",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat projektu",

@@ -644,6 +644,9 @@
     "categories": "Kategorier",
     "fieldInaccessible": "Felt utilgjengelig",
     "noConditionsAdded": "Ingen betingelser lagt til",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Denne funksjonen er kun tilgjengelig i enterprise edition",
       "yourCurrentRoleIs": "Din nåværende rolle er",
       "pleaseRequestAccessForView": "Vennligst be om høyere tillatelser fra Admin/Basiseier/Arbeidsroms-eier for å få tilgang til denne {viewName}",
-      "preventHideAllOptions": "Du kan ikke skjule alle alternativer hvis feltet er obligatorisk"
+      "preventHideAllOptions": "Du kan ikke skjule alle alternativer hvis feltet er obligatorisk",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manuelle kroker kan ikke deaktiveres",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Dratt innhold er ikke av bilde type",
       "fieldToParseImageData": "Felt for å analysere bilde data",
       "someOfTheRequiredFieldsAreEmpty": "Noen av de nødvendige feltene er tomme",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",

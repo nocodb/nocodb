@@ -644,6 +644,9 @@
     "categories": "Категорії",
     "fieldInaccessible": "Поле недоступне",
     "noConditionsAdded": "Умови не додані",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "Інтеграції з ІІ недоступні.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Ваша базова роль",
-    "lockedByUser": "Заблоковано {user}"
+    "lockedByUser": "Заблоковано {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Ця функція доступна лише у версії Enterprise",
       "yourCurrentRoleIs": "Ваша поточна роль -",
       "pleaseRequestAccessForView": "Будь ласка, зверніться до адміністратора / власника бази / власника робочої області для доступу до цієї {viewName}",
-      "preventHideAllOptions": "Не можна приховати всі опції, якщо поле обов’язкове"
+      "preventHideAllOptions": "Не можна приховати всі опції, якщо поле обов’язкове",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Ручні хуки не можуть бути вимкнуті",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Перетягнутий вміст не є типом зображення",
       "fieldToParseImageData": "Поле для розбору даних зображення",
       "someOfTheRequiredFieldsAreEmpty": "Деякі обов’язкові поля залишились порожніми",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

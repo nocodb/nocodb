@@ -644,6 +644,9 @@
     "categories": "বিভাগসমূহ",
     "fieldInaccessible": "ফিল্ড অপ্রাপ্য",
     "noConditionsAdded": "কোন শর্ত যোগ করা হয়নি",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "এই ফিচারটি শুধুমাত্র এন্টারপ্রাইজ সংস্করণে উপলব্ধ",
       "yourCurrentRoleIs": "আপনার বর্তমান ভূমিকা হল",
       "pleaseRequestAccessForView": "এই {viewName} অ্যাক্সেস করতে অ্যাডমিন / বেস মালিক / ওয়ার্কস্পেস মালিক থেকে উচ্চতর অনুমতি অনুরোধ করুন",
-      "preventHideAllOptions": "ক্ষেত্র প্রয়োজন হলে আপনি সমস্ত বিকল্প লুকাতে পারবেন না"
+      "preventHideAllOptions": "ক্ষেত্র প্রয়োজন হলে আপনি সমস্ত বিকল্প লুকাতে পারবেন না",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "ম্যানুয়াল হুকগুলি নিষ্ক্রিয় করা যায় না",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "টানা সামগ্রী ছবি টাইপ নয়",
       "fieldToParseImageData": "ছবি ডেটা বিশ্লেষণের জন্য ক্ষেত্র",
       "someOfTheRequiredFieldsAreEmpty": "কিছু প্রয়োজনীয় ক্ষেত্র খালি",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

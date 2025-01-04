@@ -644,6 +644,9 @@
     "categories": "Categorías",
     "fieldInaccessible": "Campo inaccesible",
     "noConditionsAdded": "No se han añadido condiciones",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Esta función solo está disponible en la edición Enterprise",
       "yourCurrentRoleIs": "Tu rol actual es",
       "pleaseRequestAccessForView": "Por favor solicite un permiso superior al Administrador / Propietario de la Base / Propietario del Espacio de trabajo para obtener acceso a este {viewName}",
-      "preventHideAllOptions": "No puede ocultar todas las opciones si el campo es obligatorio"
+      "preventHideAllOptions": "No puede ocultar todas las opciones si el campo es obligatorio",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Los hooks manuales no se pueden desactivar",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "El contenido arrastrado no es del tipo de imagen",
       "fieldToParseImageData": "Campo para analizar datos de imagen",
       "someOfTheRequiredFieldsAreEmpty": "Algunos de los campos requeridos están vacíos",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",

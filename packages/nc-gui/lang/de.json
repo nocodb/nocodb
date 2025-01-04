@@ -644,6 +644,9 @@
     "categories": "Kategorien",
     "fieldInaccessible": "Feld nicht zugänglich",
     "noConditionsAdded": "Keine Bedingungen hinzugefügt",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "Keine KI-Integrationen verfügbar.",
     "nocoAiBaseBuilder": "Noco AI Projekt-Builder",
     "additionalDetails": "Weitere Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "Dieses Formular ist derzeit gesperrt",
     "unlockThisVieToMakeChanges": "Diese Ansicht entsperren, um Änderungen vorzunehmen",
     "yourBaseRole": "Ihre Projektrolle",
-    "lockedByUser": "Gesperrt durch {user}"
+    "lockedByUser": "Gesperrt durch {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Diese Funktion ist nur in der Enterprise Edition verfügbar",
       "yourCurrentRoleIs": "Ihre aktuelle Rolle ist",
       "pleaseRequestAccessForView": "Bitte fordern Sie höhere Berechtigungen vom Admin / Projekt-Besitzer / Arbeitsbereichs-Besitzer an, um auf diese {viewName} zuzugreifen",
-      "preventHideAllOptions": "Sie können nicht alle Optionen verbergen, wenn das Feld erforderlich ist"
+      "preventHideAllOptions": "Sie können nicht alle Optionen verbergen, wenn das Feld erforderlich ist",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manuelle Hooks können nicht deaktiviert werden",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Diese Inhalte sind keine Bilder",
       "fieldToParseImageData": "Feld zum Parsen von Bilddaten",
       "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",

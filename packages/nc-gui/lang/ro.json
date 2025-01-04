@@ -644,6 +644,9 @@
     "categories": "Categorii",
     "fieldInaccessible": "Câmp inaccesibil",
     "noConditionsAdded": "Nicio condiție adăugată",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Această funcționalitate este disponibilă doar în ediția enterprise",
       "yourCurrentRoleIs": "Rolul tău actual este",
       "pleaseRequestAccessForView": "Solicită permisiuni mai mari de la Administrator / Proprietarul bazei / Proprietarul spațiului de lucru pentru a obține acces la acest {viewName}",
-      "preventHideAllOptions": "Nu poți ascunde toate opțiunile dacă câmpul este obligatoriu"
+      "preventHideAllOptions": "Nu poți ascunde toate opțiunile dacă câmpul este obligatoriu",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Hook-urile manuale nu pot fi dezactivate",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Conținutul tras nu este de tip imagine",
       "fieldToParseImageData": "Câmp pentru a analiza datele imaginii",
       "someOfTheRequiredFieldsAreEmpty": "Unele câmpuri obligatorii sunt necompletate",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

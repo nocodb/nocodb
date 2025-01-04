@@ -644,6 +644,9 @@
     "categories": "Kategorijas",
     "fieldInaccessible": "Lauks nav pieejams",
     "noConditionsAdded": "Nav pievienoti nosacījumi",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Šī funkcija ir pieejama tikai uzņēmuma versijā",
       "yourCurrentRoleIs": "Jūsu pašreizējā loma ir",
       "pleaseRequestAccessForView": "Lūdzu, pieprasiet lielākas atļaujas no administratora / bāzes īpašnieka / darbavirsmas īpašnieka, lai iegūtu piekļuvi šim {viewName}",
-      "preventHideAllOptions": "Jūs nevarat paslēpt visas opcijas, ja lauks ir nepieciešams"
+      "preventHideAllOptions": "Jūs nevarat paslēpt visas opcijas, ja lauks ir nepieciešams",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manuālie āķi nevar tikt atspējoti",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Pievilktais saturs nav attēla tips",
       "fieldToParseImageData": "Lauks attēla datu parsēšanai",
       "someOfTheRequiredFieldsAreEmpty": "Daži no nepieciešamajiem laukiem ir tukši",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

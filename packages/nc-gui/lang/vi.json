@@ -644,6 +644,9 @@
     "categories": "Danh mục",
     "fieldInaccessible": "Trường không thể truy cập",
     "noConditionsAdded": "Không có điều kiện nào được thêm",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Tính năng này chỉ có sẵn trong phiên bản doanh nghiệp",
       "yourCurrentRoleIs": "Vai diễn hiện tại của bạn là",
       "pleaseRequestAccessForView": "Vui lòng yêu cầu quyền cao hơn từ Admin / Chủ sở hữu Cơ sở / Chủ sở hữu Workspace để truy cập vào {viewName} này",
-      "preventHideAllOptions": "Bạn không thể ẩn tất cả tùy chọn nếu trường là bắt buộc"
+      "preventHideAllOptions": "Bạn không thể ẩn tất cả tùy chọn nếu trường là bắt buộc",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Không thể vô hiệu hóa hook thủ công",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Nội dung kéo không phải là loại hình ảnh",
       "fieldToParseImageData": "Trường để phân tích dữ liệu hình ảnh",
       "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

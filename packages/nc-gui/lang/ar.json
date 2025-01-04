@@ -644,6 +644,9 @@
     "categories": "الفئات",
     "fieldInaccessible": "الحقل غير قابل للوصول",
     "noConditionsAdded": "لم تتم إضافة أي شروط",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "هذه الميزة متاحة فقط في الإصدار المؤسسي",
       "yourCurrentRoleIs": "دورك الحالي هو",
       "pleaseRequestAccessForView": "يرجى الطلب من المسؤول / مالك القاعدة / مالك مساحة العمل للحصول على إذن أعلى للوصول إلى هذا {viewName}",
-      "preventHideAllOptions": "لا يمكنك إخفاء جميع الخيارات إذا كان الحقل مطلوبًا"
+      "preventHideAllOptions": "لا يمكنك إخفاء جميع الخيارات إذا كان الحقل مطلوبًا",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "لا يمكن تعطيل الخطافات اليدوية",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "المحتوى المسحوب ليس من نوع الصورة",
       "fieldToParseImageData": "حقل لتحليل بيانات الصور",
       "someOfTheRequiredFieldsAreEmpty": "بعض الحقول المطلوبة فارغة",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

@@ -644,6 +644,9 @@
     "categories": "카테고리",
     "fieldInaccessible": "필드에 액세스할 수 없음",
     "noConditionsAdded": "조건이 추가되지 않았습니다",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "사용할 수 있는 AI 연동이 없습니다.",
     "nocoAiBaseBuilder": "Noco AI 프로젝트 빌더",
     "additionalDetails": "추가 세부정보",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "이 양식은 현재 잠겨 있습니다",
     "unlockThisVieToMakeChanges": "이 뷰의 잠금을 해제하여 변경합니다",
     "yourBaseRole": "당신의 프로젝트 규칙",
-    "lockedByUser": "{user}에 의해 잠김"
+    "lockedByUser": "{user}에 의해 잠김",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "이 기능은 엔터프라이즈 에디션에서만 사용할 수 있습니다",
       "yourCurrentRoleIs": "현재 귀하의 역할은",
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/베이스 소유자/워크스페이스 소유자에게 상위 권한을 요청하세요.",
-      "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다"
+      "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "드래그된 콘텐츠가 이미지 유형이 아닙니다",
       "fieldToParseImageData": "이미지 데이터를 구문 분석할 필드",
       "someOfTheRequiredFieldsAreEmpty": "필수 필드 중 일부가 비어 있습니다",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

@@ -644,6 +644,9 @@
     "categories": "വിഭാഗങ്ങൾ",
     "fieldInaccessible": "ഫീൽഡ് ലഭ്യമല്ല",
     "noConditionsAdded": "ആവശ്യങ്ങൾ ഒന്നും ചേർക്കാത്തത്",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "ഈ സവിശേഷത എന്റർപ്രൈസ് എഡിഷനിൽ മാത്രമെ ലഭ്യമാവുകയുള്ളു",
       "yourCurrentRoleIs": "താങ്കളുടെ നിലവിലെ പങ്ക്",
       "pleaseRequestAccessForView": "ബഹുദയാളിത്വത്തിനുള്ള അനുമതി നേടാൻ അഡ്മിന്നിൽ നിന്ന് / അടിസ്ഥാന ഉടമയിൽ നിന്ന് / വർക്ക്‌സ്പെയ്സ് ഉടമയിൽ നിന്ന് ആവശ്യം ചെയ്യുക {viewName}",
-      "preventHideAllOptions": "ഫീൽഡ് ആവശ്യമാണ് എങ്കിൽ എല്ലാ ഓപ്ഷനുകളും ഒളിപ്പിക്കാൻ കഴിയില്ല"
+      "preventHideAllOptions": "ഫീൽഡ് ആവശ്യമാണ് എങ്കിൽ എല്ലാ ഓപ്ഷനുകളും ഒളിപ്പിക്കാൻ കഴിയില്ല",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "മാനുവൽ ഹുക്കുകൾ അപ്രാപ്തമാക്കാനാവില്ല",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "വലിച്ചിടൽ ഉള്ളടക്കം ചിത്രമല്ലാത്ത തരത്തിൽ ഉണ്ട്",
       "fieldToParseImageData": "ചിത്ര ഡാറ്റ പാഴ്സ് ചെയ്യാൻ ഫീൽഡ് ആവശ്യമാണ്",
       "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

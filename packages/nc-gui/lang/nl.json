@@ -644,6 +644,9 @@
     "categories": "Categorieën",
     "fieldInaccessible": "Veld niet toegankelijk",
     "noConditionsAdded": "Geen voorwaarden toegevoegd",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Aanvullende details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "Dit formulier is momenteel vergrendeld",
     "unlockThisVieToMakeChanges": "Ontgrendel deze weergave om wijzigingen aan te brengen",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Geblokkeerd door {user}"
+    "lockedByUser": "Geblokkeerd door {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Deze functie is alleen beschikbaar in enterprise editie",
       "yourCurrentRoleIs": "Uw huidige rol is",
       "pleaseRequestAccessForView": "Vraag om hogere rechten van de Admin / Base eigenaar / Werkruimte eigenaar om toegang te krijgen tot deze {viewName}",
-      "preventHideAllOptions": "U kunt niet alle opties verbergen als een veld verplicht is"
+      "preventHideAllOptions": "U kunt niet alle opties verbergen als een veld verplicht is",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Handmatige hooks kunnen niet worden uitgeschakeld",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Gesleepte inhoud is niet van het type afbeelding",
       "fieldToParseImageData": "Veld om afbeeldingsgegevens te parseren",
       "someOfTheRequiredFieldsAreEmpty": "Enkele verplichte velden zijn leeg",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

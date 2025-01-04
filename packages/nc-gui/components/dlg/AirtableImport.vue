@@ -507,10 +507,12 @@ const collapseKey = ref('')
           key="back"
           type="text"
           size="small"
-          @click="() => {
-            dialogShow = false
-            emit('back')
-          }"
+          @click="
+            () => {
+              dialogShow = false
+              emit('back')
+            }
+          "
         >
           {{ $t('general.back') }}
         </nc-button>

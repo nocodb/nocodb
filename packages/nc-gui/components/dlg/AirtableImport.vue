@@ -61,6 +61,8 @@ const syncSource = ref({
   },
 })
 
+const optionsRowScan = ref(500)
+
 const pushProgress = async (message: string, status: JobStatus | 'progress') => {
   progress.value.push({ msg: message, status })
 
@@ -217,7 +219,7 @@ async function loadSyncSrc() {
         options: {
           syncViews: true,
           syncData: true,
-          syncRollup: false,
+          syncRollup: true,
           syncLookup: true,
           syncFormula: false,
           syncAttachment: true,
@@ -325,220 +327,224 @@ function downloadLogs(filename: string) {
 
   document.body.removeChild(element)
 }
+
+const isInProgress = computed(() => {
+  return (
+    !progress.value ||
+    !progress.value.length ||
+    ![JobStatus.COMPLETED, JobStatus.FAILED].includes(progress.value[progress.value.length - 1]?.status)
+  );
+})
+
+const detailsIsShown = ref(false)
 </script>
 
 <template>
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    :closable="step !== 2"
+    :closable="false"
     :keyboard="step !== 2"
     :mask-closable="step !== 2"
-    width="max(30vw, 600px)"
-    class="p-2"
+    width="max(30vw, 448px)"
     wrap-class-name="nc-modal-airtable-import"
-    @keydown.esc="dialogShow = false"
-  >
-    <div class="px-5">
-      <!--      Quick Import -->
-      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImportAirtable') }}</div>
+    hide
+    @keydown.esc="dialogShow = false">
 
-      <div v-if="step === 1">
-        <div class="mb-4">
-          <!--          Credentials -->
-          <span class="mr-3 pt-2 text-gray-500 text-xs">{{ $t('general.credentials') }}</span>
-          <!--          Where to find this? -->
-          <a
-            href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-            class="prose-sm underline text-grey text-xs"
-            target="_blank"
-            rel="noopener"
-          >
-            {{ $t('msg.info.airtable.credentials') }}
-          </a>
-        </div>
+    <div class="text-base font-weight-bold flex items-center gap-4 mb-6" @dblclick="enableAbort = true">
 
-        <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
-          <a-form-item v-bind="validateInfos['details.apiKey']">
-            <a-input-password
-              v-model:value="syncSource.details.apiKey"
-              class="nc-input-api-key"
-              :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
-              size="large"
-            />
-          </a-form-item>
+      <GeneralIcon icon="airtable" class="w-6 h-6" />
 
-          <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
-            <a-input
-              v-model:value="syncSource.details.syncSourceUrlOrId"
-              class="nc-input-shared-base"
-              :placeholder="`${$t('labels.sharedBaseUrl')}`"
-              size="large"
-            />
-          </a-form-item>
+      <span v-if="step === 1">
+        {{ $t('title.quickImportAirtable') }}
+      </span>
+      <span v-else-if="isInProgress">
+        Importing from Airtable...
+      </span>
+      <span v-else>
+        Airtable Base Imported.
+      </span>
 
-          <!--          Advanced Settings -->
-          <div class="prose-lg self-center my-4 text-gray-500">{{ $t('title.advancedSettings') }}</div>
+      <a
+        v-if="step === 1"
+        href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+        class="!text-gray-500 prose-sm ml-auto !no-underline"
+        target="_blank"
+        rel="noopener"
+      >
+        Docs
+      </a>
+      <nc-button v-else-if="isInProgress" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
+        {{ detailsIsShown ? 'Hide' : 'Show' }} Details
+        <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
+      </nc-button>
 
-          <a-divider class="mt-2 mb-5" />
+    </div>
 
-          <!--          Import Data -->
-          <div class="mt-0 my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
-          </div>
+    <div v-if="step === 1">
 
-          <!--          Import Secondary Views -->
-          <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncViews">
-              {{ $t('labels.importSecondaryViews') }}
-            </a-checkbox>
-          </div>
+      <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
 
-          <!--          Import Rollup Columns -->
-          <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">
-              {{ $t('labels.importRollupColumns') }}
-            </a-checkbox>
-          </div>
+        <a-form-item v-bind="validateInfos['details.apiKey']">
+          <label>
+            API Key
+          </label>
+          <a-input-password
+            v-model:value="syncSource.details.apiKey"
+            :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
+            class="!rounded-lg mt-2"
+          />
+        </a-form-item>
 
-          <!--          Import Lookup Columns -->
-          <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
-              {{ $t('labels.importLookupColumns') }}
-            </a-checkbox>
-          </div>
+        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
+          <label>
+            Shared Base ID/URL
+          </label>
+          <a-input
+            v-model:value="syncSource.details.syncSourceUrlOrId"
+            :placeholder="`${$t('labels.sharedBaseUrl')}`"
+            class="!rounded-lg !mt-2"
+          />
+        </a-form-item>
 
-          <!--          Import Attachment Columns -->
-          <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
-              {{ $t('labels.importAttachmentColumns') }}
-            </a-checkbox>
-          </div>
+        <a-collapse ghost expand-icon-position="right" class="nc-import-collapse">
 
-          <!--          Import Formula Columns -->
-          <div class="my-2">
-            <a-tooltip placement="top">
-              <template #title>
-                <span>{{ $t('title.comingSoon') }}</span>
-              </template>
-              <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
+          <template #expandIcon="{ isActive }">
+            <GeneralIcon icon="chevronDown" class="!transition-all !transform !-translate-y-1/2" :class="{ '!rotate-180': isActive }" />
+          </template>
+
+          <a-collapse-panel :header="$t('title.advancedSettings')">
+
+            <div class="mt-0 my-2 flex items-center">
+              <span>
+                Number of rows to parse to infer datatype:
+              </span>
+              <a-input
+                class="!w-[64px] !rounded-lg !ml-2"
+                v-model:value="optionsRowScan"
+              />
+            </div>
+
+            <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
+            </div>
+
+            <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncViews">
+                {{ $t('labels.importSecondaryViews') }}
+              </a-checkbox>
+            </div>
+
+            <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncRollup">
+                {{ $t('labels.importRollupColumns') }}
+              </a-checkbox>
+            </div>
+
+            <!-- <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
+                {{ $t('labels.importLookupColumns') }}
+              </a-checkbox>
+            </div> -->
+
+            <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
+                {{ $t('labels.importAttachmentColumns') }}
+              </a-checkbox>
+            </div>
+
+            <div class="my-2">
+              <a-checkbox v-model:checked="syncSource.details.options.syncFormula">
                 {{ $t('labels.importFormulaColumns') }}
               </a-checkbox>
-            </a-tooltip>
-          </div>
-
-          <!--          Invite Users 
-          <div class="my-2">
-            <a-tooltip placement="top">
-              <template #title>
-                <span>{{ $t('title.comingSoon') }}</span>
-              </template>
-              <a-checkbox v-model:checked="syncSource.details.options.syncUsers" disabled>
-                {{ $t('labels.importUsers') }}
-              </a-checkbox>
-            </a-tooltip>
-          </div>
-          -->
-        </a-form>
-
-        <a-divider />
-
-        <!--        Questions / Help - Reach out here -->
-        <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" rel="noopener noreferrer">
-            {{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
-          >
-
-          <br />
-          <!--          This feature is currently in beta and more information can be found here -->
-          <div>
-            {{ $t('general.betaNote') }}
-            <a
-              class="prose-sm"
-              href="https://github.com/nocodb/nocodb/discussions/2122"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ $t('general.moreInfo') }}
-            </a>
-            .
-          </div>
-        </div>
-      </div>
-
-      <div v-if="step === 2">
-        <!--        Logs -->
-        <div class="mb-4 prose-xl font-bold">{{ $t('general.logs') }}</div>
-
-        <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
-          <a-button
-            v-if="showGoToDashboardButton || goBack"
-            class="!absolute mr-1 mb-1 z-1 right-0 bottom-0 opacity-40 hover:opacity-100"
-            size="small"
-            @click="downloadLogs('at-import-logs.txt')"
-          >
-            <component :is="iconMap.download" class="text-green-500" />
-          </a-button>
-          <div v-for="({ msg, status }, i) in progress" :key="i">
-            <div v-if="status === JobStatus.FAILED" class="flex items-center">
-              <component :is="iconMap.closeCircle" class="text-red-500" />
-
-              <span class="text-red-500 ml-2 log-message">{{ msg }}</span>
             </div>
 
-            <div v-else class="flex items-center">
-              <MdiCurrencyUsd class="text-green-500" />
+          </a-collapse-panel>
 
-              <span class="text-green-500 ml-2 log-message">{{ msg }}</span>
-            </div>
+        </a-collapse>
+
+      </a-form>
+
+    </div>
+
+    <div v-if="step === 2">
+
+      <a-card v-if="detailsIsShown" ref="logRef" :body-style="{ backgroundColor: '#101015', height: '200px', overflow: 'auto', borderRadius: '0.5rem', padding: '16px !important' }">
+
+        <a-button
+          v-if="showGoToDashboardButton || goBack"
+          class="!absolute mr-1 mb-1 z-1 right-0 bottom-0 opacity-40 hover:opacity-100 !rounded-md"
+          size="small"
+          @click="downloadLogs('at-import-logs.txt')"
+        >
+          <component :is="iconMap.download" class="text-green-400" />
+        </a-button>
+
+        <div v-for="({ msg, status }, i) in progress" :key="i">
+          <div v-if="status === JobStatus.FAILED" class="flex items-start">
+            <component :is="iconMap.closeCircle" class="text-red-400 mt-1" />
+
+            <span class="text-red-400 ml-2 log-message">{{ msg }}</span>
           </div>
 
-          <div
-            v-if="
-              !progress ||
-              !progress.length ||
-              (progress[progress.length - 1].status !== JobStatus.COMPLETED &&
-                progress[progress.length - 1].status !== JobStatus.FAILED)
-            "
-            class="flex items-center"
-          >
-            <!--            Importing -->
-            <component :is="iconMap.loading" class="text-green-500 animate-spin" />
-            <span class="text-green-500 ml-2"> {{ $t('labels.importing') }}</span>
-          </div>
-        </a-card>
+          <div v-else class="flex items-start">
+            <MdiCurrencyUsd class="text-green-400 mt-1" />
 
-        <!--        Go to Dashboard -->
-        <div class="flex justify-center items-center">
-          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
-            {{ $t('labels.goToDashboard') }}
-          </a-button>
-          <a-button v-else-if="goBack" class="mt-4 uppercase" size="large" danger @click="cancel()">{{
-            $t('general.cancel')
-          }}</a-button>
-          <a-button v-else-if="enableAbort" class="mt-4 uppercase" size="large" danger @click="abort()">{{
-            $t('general.abort')
-          }}</a-button>
+            <span class="text-green-400 ml-2 log-message">{{ msg }}</span>
+          </div>
         </div>
+
+      </a-card>
+      <div v-else class="flex items-start gap-2">
+        <component v-if="isInProgress" :is="iconMap.loading" class="text-primary animate-spin mt-1" />
+        <component v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" :is="iconMap.closeCircle" class="text-red-400 mt-1" />
+        <MdiCurrencyUsd v-else class="text-green-400 mt-1" />
+        <span>
+          {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+        </span>
       </div>
+
+      <div v-if="!isInProgress" class="text-right mt-4">
+        <nc-button @click="dialogShow = false;">
+          Go to base
+        </nc-button>
+      </div>
+
     </div>
 
     <template #footer>
-      <div v-if="step === 1">
-        <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-        <!--        Import -->
-        <a-button
+      <div v-if="step === 1" class="flex justify-between mt-2">
+
+        <nc-button type="text" key="back" @click="dialogShow = false">
+          {{ $t('general.back') }}
+        </nc-button>
+
+        <nc-button
           key="submit"
           v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
           :loading="isLoading"
           :disabled="disableImportButton"
-          @click="saveAndSync"
-        >
-          {{ $t('activity.import') }}
-        </a-button>
+          @click="saveAndSync">
+          {{ $t('activity.import') }} Base
+        </nc-button>
+
       </div>
     </template>
+
   </a-modal>
 </template>
+
+<style lang="scss" scoped>
+  .nc-import-collapse :deep(.ant-collapse-header .nc-icon) {
+    right: unset;
+    left: 148px
+  }
+</style>
+
+<style>
+  .nc-modal-airtable-import .ant-modal-footer {
+    @apply !border-none p-0;
+  }
+</style>

@@ -72,47 +72,78 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
   <GeneralModal v-model:visible="visible" width="35rem">
     <div class="flex flex-col px-8 pt-6 pb-9">
       <div class="flex items-center gap-3 mb-6">
-        <GeneralIcon icon="download" class="flex-none !text-orange-700 !w-4 !h-4" />
-
-        <div class="text-base font-weight-700">{{ $t('general.import') }}</div>
+        <div class="text-base font-weight-700">{{ $t('general.import') }} table</div>
       </div>
-      <div class="row mb-10">
-        <div class="nc-base-view-import-sub-btn" @click="onClick('airtable')">
-          <GeneralIcon icon="airtable" />
-          <div class="label">{{ $t('labels.airtable') }}</div>
-        </div>
-        <div class="nc-base-view-import-sub-btn" @click="onClick('csv')">
-          <GeneralIcon icon="ncFileTypeCsvSmall" />
-          <div class="label">{{ $t('labels.csv') }}</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="nc-base-view-import-sub-btn" @click="onClick('excel')">
-          <GeneralIcon icon="ncFileTypeExcel" />
-          <div class="label">{{ $t('labels.excel') }}</div>
-        </div>
-        <div class="nc-base-view-import-sub-btn" @click="onClick('json')">
-          <GeneralIcon icon="ncFileTypeJson" />
-          <div class="label">{{ $t('labels.json') }}</div>
-        </div>
-      </div>
+      <NcMenu class="border-1 divide-y-1 nc-import-items-menu">
+        <NcMenuItem @click="onClick('airtable')">
+          <GeneralIcon icon="airtable" class="w-5 h-5" />
+          <span class="ml-1">
+            Airtable
+          </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('csv')">
+          <GeneralIcon class="text-white w-5 h-5" icon="ncFileTypeExcel" />
+          <span class="ml-1">
+            CSV / Json
+          </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('excel')">
+          <GeneralIcon icon="excelColored" class="w-5 h-5" />
+          <span class="ml-1">
+            Excel
+          </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem>
+          <GeneralIcon icon="code" class="w-5 h-5" />
+          <span class="ml-1">
+            Sheet
+          </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem disabled>
+          <GeneralIcon icon="salesforce" class="w-5 h-5 text-white" />
+          <span class="ml-1">
+            Salesforce
+          </span>
+          <span class="ml-auto text-primary opacity-75 mr-2">
+            Coming soon
+          </span>
+          <GeneralIcon icon="chevronRight" class="text-lg" />
+        </NcMenuItem>
+        <NcMenuItem disabled>
+          <GeneralIcon icon="csv" class="w-5 h-5" />
+          <span class="ml-1">
+            Monday.com
+          </span>
+          <span class="ml-auto text-primary opacity-75 mr-2">
+            Coming soon
+          </span>
+          <GeneralIcon icon="chevronRight" class="text-lg" />
+        </NcMenuItem>
+      </NcMenu>
     </div>
   </GeneralModal>
 </template>
 
 <style lang="scss" scoped>
-.row {
-  @apply flex flex-row gap-x-10;
-}
-.nc-base-view-import-sub-btn {
-  @apply flex flex-col gap-y-6 p-16 bg-gray-50 items-center justify-center rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
-
-  .nc-icon {
-    @apply h-12 w-12;
-  }
-
-  .label {
-    @apply text-lg font-medium;
+.nc-import-items-menu {
+  padding: 0 !important;
+  & :deep(.nc-menu-item) {
+    margin: 0 !important;
+    &.ant-menu-item-disabled {
+      @apply bg-gray-50;
+    }
+    & .ant-menu-title-content {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      & .nc-menu-item-inner {
+        width: 100%;
+      }
+    }
   }
 }
 </style>

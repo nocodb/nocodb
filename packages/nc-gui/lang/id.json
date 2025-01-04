@@ -644,6 +644,9 @@
     "categories": "Kategori",
     "fieldInaccessible": "Bidang tidak dapat diakses",
     "noConditionsAdded": "Tidak ada kondisi yang ditambahkan",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "Fitur ini hanya tersedia di edisi perusahaan",
       "yourCurrentRoleIs": "Peran Anda saat ini adalah",
       "pleaseRequestAccessForView": "Silakan minta izin lebih tinggi dari Admin/Pemilik Dasar/Pemilik Ruang Kerja untuk mendapatkan akses ke {viewName} ini",
-      "preventHideAllOptions": "Anda tidak dapat menyembunyikan semua opsi jika kolom wajib diisi"
+      "preventHideAllOptions": "Anda tidak dapat menyembunyikan semua opsi jika kolom wajib diisi",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Hook manual tidak dapat dinonaktifkan",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Konten yang diseret bukan tipe gambar",
       "fieldToParseImageData": "Kesalahan memparse data gambar",
       "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

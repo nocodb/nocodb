@@ -644,6 +644,9 @@
     "categories": "श्रेणिहरू",
     "fieldInaccessible": "क्षेत्र पहुंच योग्य छैन",
     "noConditionsAdded": "कुनै अवस्था थपिएको छैन",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -659,7 +662,9 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
     "noImage": "No Image",
@@ -1802,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "यो सुविधा केवल Enterprise Edition मा उपलब्ध छ",
       "yourCurrentRoleIs": "तपाईंको वर्तमान भूमिका छ",
       "pleaseRequestAccessForView": "कृपया यस {viewName} पहुँचको लागि एडमिन / बेस मालिक / वर्कस्पेस मालिकसँग उच्च अनुमति अनुरोध गर्नुहोस्",
-      "preventHideAllOptions": "यदि फिल्ड आवश्यक छ भने तपाईं सबै विकल्पहरू लुकाउन सक्नुहुन्न"
+      "preventHideAllOptions": "यदि फिल्ड आवश्यक छ भने तपाईं सबै विकल्पहरू लुकाउन सक्नुहुन्न",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "म्यानुअल हुकहरू डिसेबल गर्न सकिँदैन",
@@ -1904,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "तानेको सामग्री छवि प्रकारको छैन",
       "fieldToParseImageData": "छवि डेटा पार्स गर्न क्षेत्र",
       "someOfTheRequiredFieldsAreEmpty": "केही आवश्यक फिल्डहरू खाली छन्",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",

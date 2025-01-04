@@ -773,6 +773,18 @@ watch(modelRef, async () => {
     setErrorState(e.errorFields)
   }
 })
+
+function toggleTableSelecteds(table: any) {
+  if (table.columns.every((it: any) => it.selected)) {
+    for (const column of table.columns) {
+      column.selected = false
+    }
+  } else {
+    for (const column of table.columns) {
+      column.selected = true
+    }
+  }
+}
 </script>
 
 <template>
@@ -884,11 +896,6 @@ watch(modelRef, async () => {
 
     <a-card v-else class="!border-none !px-0 !mx-0" :body-style="{ padding: '0 !important' }">
       <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
-        <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
-          {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
-          available for import
-        </p>
-
         <a-collapse
           v-if="data.tables && data.tables.length"
           v-model:activeKey="expansionPanel"
@@ -936,7 +943,7 @@ watch(modelRef, async () => {
                 />
               </NcTooltip>
             </template>
-            <div v-if="table.columns && table.columns.length" class="bg-gray-50 max-h-[200px] overflow-y-auto nc-scrollbar-thin">
+            <div v-if="table.columns && table.columns.length" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !border-b-1 !rounded-b-lg !py-1">
               <NcTable
                 class="template-form flex-1"
                 body-row-class-name="template-form-row"
@@ -945,6 +952,19 @@ watch(modelRef, async () => {
                 :bordered="false"
                 :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
               >
+                <template #body-prepend>
+                  <tr class="nc-table-row">
+                    <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
+                      <a-checkbox
+                        :checked="table.columns.every(it => it.selected)"
+                        @click="toggleTableSelecteds(table)"
+                      />
+                      <span class="ml-4 font-bold text-[13px]">
+                        Select CSV Fields to import
+                      </span>
+                    </td>
+                  </tr>
+                </template>
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.key === 'enabled'">
                     <a-checkbox
@@ -988,7 +1008,7 @@ watch(modelRef, async () => {
 }
 
 :deep(.ant-collapse-header) {
-  @apply !items-center;
+  @apply !items-center !py-2;
   & > div {
     @apply flex;
   }
@@ -1002,6 +1022,10 @@ watch(modelRef, async () => {
   @apply p-0;
   .nc-table-header-row {
     @apply hidden;
+  }
+  .nc-table-row {
+    border: none !important;
+    height: 40px !important;
   }
 }
 </style>

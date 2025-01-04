@@ -107,7 +107,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('json')">
-          <GeneralIcon icon="cellJson" class="w-5 h-5" />
+          <GeneralIcon icon="importJson" class="w-5 h-5" />
           <span class="ml-1 text-[13px] font-weight-700">
             Json
           </span>

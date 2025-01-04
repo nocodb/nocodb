@@ -934,7 +934,7 @@ const currentColumnToEdit = ref('');
                     </div>
                     <a-input
                       v-model:value="table.table_name"
-                      class="!rounded-md"
+                      class="!rounded-md !w-70"
                       hide-details
                       :bordered="true"
                       @click.stop
@@ -951,19 +951,6 @@ const currentColumnToEdit = ref('');
               </a-form-item>
             </template>
 
-            <template #extra>
-              <NcTooltip bottom class="inline-block mr-8">
-                <template #title>
-                  <span>{{ $t('activity.deleteTable') }}</span>
-                </template>
-                <component
-                  :is="iconMap.deleteListItem"
-                  v-if="data.tables.length > 1"
-                  class="text-lg"
-                  @click.stop="deleteTable(tableIdx)"
-                />
-              </NcTooltip>
-            </template>
             <div
               v-if="table.columns && table.columns.length"
               class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1"
@@ -1064,7 +1051,7 @@ const currentColumnToEdit = ref('');
 }
 
 :deep(.ant-collapse-header) {
-  @apply !items-center !py-2;
+  @apply !items-center !p-2;
   & > div {
     @apply flex;
   }

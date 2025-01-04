@@ -153,7 +153,7 @@ const disablePreImportButton = computed(() => {
   } else if (IsImportTypeExcel.value) {
     return isPreImportFileFilled.value === isPreImportUrlFilled.value
   } else if (isImportTypeJson.value) {
-    return isPreImportFileFilled.value === isPreImportJsonFilled.value
+    return !isPreImportFileFilled.value && !isPreImportJsonFilled.value
   }
 })
 
@@ -559,6 +559,23 @@ function handleJsonChange(newValue: any) {
     jsonErrorText.value = e.message || 'Invalid JSON'
   }
 }
+
+watch(() => importState.fileList, () => {
+  if (isImportTypeJson.value) {
+    setTimeout(() => {
+      const data = importState.fileList?.[0]?.data;
+      if (data && 'TextDecoder' in window) {
+        try {
+          temporaryJson.value = JSON.parse(new TextDecoder().decode(data));
+          importState.jsonEditor = JSON.parse(new TextDecoder().decode(data));
+        }
+        catch (e) {
+          console.log(e);
+        }
+      }
+    }, 500);
+  }
+})
 </script>
 
 <template>
@@ -616,7 +633,7 @@ function handleJsonChange(newValue: any) {
             :multiple="true"
             :custom-request="customReqCbk"
             :before-upload="beforeUpload"
-            :disabled="isImportTypeJson ? isPreImportJsonFilled : isPreImportUrlFilled"
+            :disabled="isImportTypeJson ? (isPreImportJsonFilled && !isPreImportFileFilled) : isPreImportUrlFilled"
             @change="handleChange"
             @reject="rejectDrop"
           >
@@ -736,26 +753,6 @@ function handleJsonChange(newValue: any) {
           </a-collapse-panel>
         </a-collapse>
       </div>
-
-      <a-alert
-        v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)"
-        type="error"
-        class="!rounded-lg !mt-2 !border-none !p-3"
-      >
-        >
-        <template #message>
-          <div class="flex flex-row items-center gap-2 mb-2">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-            <span class="font-weight-700 text-[14px]">Import options invalid</span>
-          </div>
-        </template>
-        <template #description>
-          <div class="text-gray-500 text-[13px] leading-5 ml-6">
-            You need to use only one method to import files, URLs or JSON. You cannot use multiple methods at the same time.
-            Please choose one method and try again.
-          </div>
-        </template>
-      </a-alert>
     </a-spin>
     <template #footer>
       <div class="flex items-center gap-2 pt-3">

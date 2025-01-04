@@ -592,6 +592,15 @@ import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 import NcFileSearch from '~icons/nc-icons-v2/file-search'
 import NcFileTypeJson from '~icons/nc-icons-v2/file-type-json'
 
+/* imports */
+
+import NcImportAirtable from '~icons/nc-icons-v2/import-airtable'
+import NcImportCsv from '~icons/nc-icons-v2/import-csv'
+import NcImportExcel from '~icons/nc-icons-v2/import-excel'
+import NcImportSheets from '~icons/nc-icons-v2/import-sheets'
+import NcImportSalesforce from '~icons/nc-icons-v2/import-salesforce'
+import NcImportMonday from '~icons/nc-icons-v2/import-monday'
+
 import NcHeading1 from '~icons/nc-icons-v2/heading-1'
 import NcHeading2 from '~icons/nc-icons-v2/heading-2'
 import NcHeading3 from '~icons/nc-icons-v2/heading-3'
@@ -1501,6 +1510,12 @@ export const iconMap = {
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
+  importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
+  importCsv: h(NcImportCsv, { stroke: 'transparent' }),
+  importExcel: h(NcImportExcel, { stroke: 'transparent' }),
+  importSheets: h(NcImportSheets, { stroke: 'transparent' }),
+  importSalesforce: h(NcImportSalesforce, { stroke: 'transparent' }),
+  importMonday: h(NcImportMonday, { stroke: 'transparent' }),
   ncHeading1: NcHeading1,
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,

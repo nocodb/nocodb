@@ -8,7 +8,7 @@ const { modelValue, baseId, sourceId } = defineProps<{
   sourceId: string
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
@@ -60,8 +60,6 @@ const syncSource = ref({
     },
   },
 })
-
-const optionsRowScan = ref(500)
 
 const pushProgress = async (message: string, status: JobStatus | 'progress') => {
   progress.value.push({ msg: message, status })
@@ -337,16 +335,18 @@ const isInProgress = computed(() => {
 })
 
 const detailsIsShown = ref(false)
+const collapseKey = ref('')
 </script>
 
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    class="!top-[25vh]"
     :class="{ active: dialogShow }"
     :closable="false"
     :keyboard="step !== 2"
     :mask-closable="step !== 2"
-    width="max(30vw, 448px)"
+    width="448px"
     wrap-class-name="nc-modal-airtable-import"
     hide
     @keydown.esc="dialogShow = false">
@@ -387,7 +387,7 @@ const detailsIsShown = ref(false)
 
         <a-form-item v-bind="validateInfos['details.apiKey']">
           <label>
-            API Key
+            Personal Access Token
           </label>
           <a-input-password
             v-model:value="syncSource.details.apiKey"
@@ -407,25 +407,15 @@ const detailsIsShown = ref(false)
           />
         </a-form-item>
 
-        <a-collapse ghost expand-icon-position="right" class="nc-import-collapse">
+        <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
+          {{ $t('title.advancedSettings') }}
+          <GeneralIcon icon="chevronDown" class="ml-2 !transition-all !transform" :class="{ '!rotate-180': collapseKey === 'advanced-settings' }" />
+        </nc-button>
 
-          <template #expandIcon="{ isActive }">
-            <GeneralIcon icon="chevronDown" class="!transition-all !transform !-translate-y-1/2" :class="{ '!rotate-180': isActive }" />
-          </template>
+        <a-collapse ghost class="nc-import-collapse" v-model:active-key="collapseKey">
+          <a-collapse-panel key="advanced-settings">
 
-          <a-collapse-panel :header="$t('title.advancedSettings')">
-
-            <div class="mt-0 my-2 flex items-center">
-              <span>
-                Number of rows to parse to infer datatype:
-              </span>
-              <a-input
-                class="!w-[64px] !rounded-lg !ml-2"
-                v-model:value="optionsRowScan"
-              />
-            </div>
-
-            <div class="my-2">
+            <div class="mb-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
             </div>
 
@@ -441,11 +431,13 @@ const detailsIsShown = ref(false)
               </a-checkbox>
             </div>
 
-            <!-- <div class="my-2">
+            <!--
+            <div class="my-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
                 {{ $t('labels.importLookupColumns') }}
               </a-checkbox>
-            </div> -->
+            </div>
+            -->
 
             <div class="my-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
@@ -460,7 +452,6 @@ const detailsIsShown = ref(false)
             </div>
 
           </a-collapse-panel>
-
         </a-collapse>
 
       </a-form>
@@ -515,7 +506,7 @@ const detailsIsShown = ref(false)
     <template #footer>
       <div v-if="step === 1" class="flex justify-between mt-2">
 
-        <nc-button type="text" key="back" @click="dialogShow = false">
+        <nc-button type="text" key="back" @click="dialogShow = false; emit('back');">
           {{ $t('general.back') }}
         </nc-button>
 
@@ -537,9 +528,8 @@ const detailsIsShown = ref(false)
 </template>
 
 <style lang="scss" scoped>
-  .nc-import-collapse :deep(.ant-collapse-header .nc-icon) {
-    right: unset;
-    left: 148px
+  .nc-import-collapse :deep(.ant-collapse-header) {
+    display: none !important;
   }
 </style>
 

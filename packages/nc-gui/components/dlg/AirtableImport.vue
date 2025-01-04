@@ -332,7 +332,7 @@ const isInProgress = computed(() => {
     !progress.value ||
     !progress.value.length ||
     ![JobStatus.COMPLETED, JobStatus.FAILED].includes(progress.value[progress.value.length - 1]?.status)
-  );
+  )
 })
 
 const detailsIsShown = ref(false)
@@ -351,21 +351,16 @@ const collapseKey = ref('')
     width="448px"
     wrap-class-name="nc-modal-airtable-import"
     hide
-    @keydown.esc="dialogShow = false">
-
+    @keydown.esc="dialogShow = false"
+  >
     <div class="text-base font-weight-bold flex items-center gap-4 mb-6" @dblclick="enableAbort = true">
-
       <GeneralIcon icon="airtable" class="w-6 h-6" />
 
       <span v-if="step === 1">
         {{ $t('title.quickImportAirtable') }}
       </span>
-      <span v-else-if="isInProgress">
-        Importing from Airtable...
-      </span>
-      <span v-else>
-        Airtable Base Imported.
-      </span>
+      <span v-else-if="isInProgress"> Importing from Airtable... </span>
+      <span v-else> Airtable Base Imported. </span>
 
       <a
         v-if="step === 1"
@@ -380,17 +375,12 @@ const collapseKey = ref('')
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
         <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
       </nc-button>
-
     </div>
 
     <div v-if="step === 1">
-
       <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
-
         <a-form-item v-bind="validateInfos['details.apiKey']">
-          <label>
-            Personal Access Token
-          </label>
+          <label> Personal Access Token </label>
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             :placeholder="`${$t('labels.apiKey')} / ${$t('labels.personalAccessToken')}`"
@@ -399,9 +389,7 @@ const collapseKey = ref('')
         </a-form-item>
 
         <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
-          <label>
-            Shared Base ID/URL
-          </label>
+          <label> Shared Base ID/URL </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             :placeholder="`${$t('labels.sharedBaseUrl')}`"
@@ -411,12 +399,15 @@ const collapseKey = ref('')
 
         <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
-          <GeneralIcon icon="chevronDown" class="ml-2 !transition-all !transform" :class="{ '!rotate-180': collapseKey === 'advanced-settings' }" />
+          <GeneralIcon
+            icon="chevronDown"
+            class="ml-2 !transition-all !transform"
+            :class="{ '!rotate-180': collapseKey === 'advanced-settings' }"
+          />
         </nc-button>
 
-        <a-collapse ghost class="nc-import-collapse" v-model:active-key="collapseKey">
+        <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
-
             <div class="mb-2">
               <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
             </div>
@@ -448,22 +439,27 @@ const collapseKey = ref('')
             </div>
 
             <div class="my-2">
-              <a-checkbox disabled v-model:checked="syncSource.details.options.syncFormula">
+              <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
                 {{ $t('labels.importFormulaColumns') }}
               </a-checkbox>
             </div>
-
           </a-collapse-panel>
         </a-collapse>
-
       </a-form>
-
     </div>
 
     <div v-if="step === 2">
-
-      <a-card v-if="detailsIsShown" ref="logRef" :body-style="{ backgroundColor: '#101015', height: '200px', overflow: 'auto', borderRadius: '0.5rem', padding: '16px !important' }">
-
+      <a-card
+        v-if="detailsIsShown"
+        ref="logRef"
+        :body-style="{
+          backgroundColor: '#101015',
+          height: '200px',
+          overflow: 'auto',
+          borderRadius: '0.5rem',
+          padding: '16px !important',
+        }"
+      >
         <a-button
           v-if="showGoToDashboardButton || goBack"
           class="!absolute mr-1 mb-1 z-1 right-0 bottom-0 opacity-40 hover:opacity-100 !rounded-md"
@@ -486,11 +482,14 @@ const collapseKey = ref('')
             <span class="text-green-400 ml-2 log-message">{{ msg }}</span>
           </div>
         </div>
-
       </a-card>
       <div v-else class="flex items-start gap-2">
-        <component v-if="isInProgress" :is="iconMap.loading" class="text-primary animate-spin mt-1" />
-        <component v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" :is="iconMap.closeCircle" class="text-red-400 mt-1" />
+        <component :is="iconMap.loading" v-if="isInProgress" class="text-primary animate-spin mt-1" />
+        <component
+          :is="iconMap.closeCircle"
+          v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED"
+          class="text-red-400 mt-1"
+        />
         <MdiCurrencyUsd v-else class="text-green-400 mt-1" />
         <span>
           {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
@@ -498,17 +497,21 @@ const collapseKey = ref('')
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <nc-button @click="dialogShow = false;">
-          Go to base
-        </nc-button>
+        <nc-button @click="dialogShow = false"> Go to base </nc-button>
       </div>
-
     </div>
 
     <template #footer>
       <div v-if="step === 1" class="flex justify-between mt-2">
-
-        <nc-button type="text" size="small" key="back" @click="dialogShow = false; emit('back');">
+        <nc-button
+          key="back"
+          type="text"
+          size="small"
+          @click="() => {
+            dialogShow = false
+            emit('back')
+          }"
+        >
           {{ $t('general.back') }}
         </nc-button>
 
@@ -520,27 +523,26 @@ const collapseKey = ref('')
           size="small"
           :loading="isLoading"
           :disabled="disableImportButton"
-          @click="saveAndSync">
+          @click="saveAndSync"
+        >
           {{ $t('activity.import') }} Base
         </nc-button>
-
       </div>
     </template>
-
   </a-modal>
 </template>
 
 <style lang="scss" scoped>
-  .nc-import-collapse :deep(.ant-collapse-header) {
-    display: none !important;
-  }
+.nc-import-collapse :deep(.ant-collapse-header) {
+  display: none !important;
+}
 </style>
 
 <style>
-  .nc-modal-airtable-import .ant-modal-footer {
-    @apply !border-none p-0;
-  }
-  .nc-modal-airtable-import .ant-collapse-content-box {
-    padding-left: 6px;
-  }
+.nc-modal-airtable-import .ant-modal-footer {
+  @apply !border-none p-0;
+}
+.nc-modal-airtable-import .ant-collapse-content-box {
+  padding-left: 6px;
+}
 </style>

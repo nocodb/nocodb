@@ -42,7 +42,7 @@ const {
   baseId,
   sourceId,
   importWorker,
-  tableIcon
+  tableIcon,
 } = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
@@ -248,7 +248,7 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
             c.column_name = cn
           }
           c.key = idx
-          c.selected = true;
+          c.selected = true
           return c
         }),
         ...v.map((v: any) => ({
@@ -908,7 +908,10 @@ function toggleTableSelecteds(table: any) {
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
                   <div class="flex items-center">
-                    <div v-if="tableIcon" class="w-8 h-8 flex items-center justify-center bg-gray-100 mr-2 rounded-lg flex-shrink-0">
+                    <div
+                      v-if="tableIcon"
+                      class="w-8 h-8 flex items-center justify-center bg-gray-100 mr-2 rounded-lg flex-shrink-0"
+                    >
                       <GeneralIcon :icon="tableIcon as any" class="w-5 h-5" />
                     </div>
                     <a-input
@@ -943,7 +946,10 @@ function toggleTableSelecteds(table: any) {
                 />
               </NcTooltip>
             </template>
-            <div v-if="table.columns && table.columns.length" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !border-b-1 !rounded-b-lg !py-1">
+            <div
+              v-if="table.columns && table.columns.length"
+              class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !border-b-1 !rounded-b-lg !py-1"
+            >
               <NcTable
                 class="template-form flex-1"
                 body-row-class-name="template-form-row"
@@ -955,21 +961,14 @@ function toggleTableSelecteds(table: any) {
                 <template #body-prepend>
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
-                      <a-checkbox
-                        :checked="table.columns.every(it => it.selected)"
-                        @click="toggleTableSelecteds(table)"
-                      />
-                      <span class="ml-4 font-bold text-[13px]">
-                        Select CSV Fields to import
-                      </span>
+                      <a-checkbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
+                      <span class="ml-4 font-bold text-[13px]"> Select CSV Fields to import </span>
                     </td>
                   </tr>
                 </template>
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.key === 'enabled'">
-                    <a-checkbox
-                      v-model:checked="record.selected"
-                    />
+                    <a-checkbox v-model:checked="record.selected" />
                   </template>
                   <template v-if="column.key === 'column_name'">
                     <a-form-item

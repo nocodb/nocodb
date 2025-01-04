@@ -1,30 +1,17 @@
 export const tableColumns: NcTableColumnProps[] = [
   {
+    title: 'Enabled',
+    key: 'enabled',
+    padding: '0px 0px 0px 12px',
+    minWidth: 0,
+    width: 64,
+  },
+  {
     title: 'Column Name',
     name: 'Column Name',
     dataIndex: 'column_name',
     key: 'column_name',
     minWidth: 200,
-    padding: '0px 12px',
-  },
-  {
-    title: 'Column Type',
-    name: 'Column Type',
-    dataIndex: 'column_type',
-    key: 'uidt',
-    minWidth: 200,
-    padding: '0px 12px',
-  },
-  // {
-  //   name: 'Select Option',
-  //   key: 'dtxp',
-  // },
-  {
-    title: '',
-    name: 'Action',
-    key: 'action',
-    width: 60,
-    minWidth: 60,
     padding: '0px 12px',
   },
 ]

@@ -66,6 +66,7 @@ const onAddExtension = (ext: any) => {
           <div
             class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
             @click="onExtensionClick(ext.id)"
+            :data-testid="`nc-extension-${ext.id}`"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
               <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />

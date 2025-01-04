@@ -100,7 +100,7 @@ export class ExpandedFormPage extends BasePage {
     columnTitle: string;
     value: string;
     type?: string;
-    ltarCount?: number;
+    ltarCount?: number | string;
   }) {
     const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
@@ -119,7 +119,7 @@ export class ExpandedFormPage extends BasePage {
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
         if (ltarCount !== undefined && ltarCount !== null) {
-          await this.dashboard.linkRecord.verifyCount(ltarCount);
+          await this.dashboard.linkRecord.verifyCount(`${ltarCount}`);
         }
         await this.dashboard.linkRecord.select(value, false);
         break;
@@ -128,7 +128,7 @@ export class ExpandedFormPage extends BasePage {
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
         if (ltarCount !== undefined && ltarCount !== null) {
-          await this.dashboard.linkRecord.verifyCount(ltarCount);
+          await this.dashboard.linkRecord.verifyCount(`${ltarCount}`);
         }
         await this.dashboard.linkRecord.select(value);
         break;

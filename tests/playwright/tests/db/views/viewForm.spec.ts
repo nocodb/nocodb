@@ -28,8 +28,6 @@ test.describe('Form view', () => {
   });
 
   test('Field re-order operations', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
@@ -77,8 +75,6 @@ test.describe('Form view', () => {
   });
 
   test('Form elements validation', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });

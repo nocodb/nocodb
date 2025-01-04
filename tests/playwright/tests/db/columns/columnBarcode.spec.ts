@@ -77,7 +77,6 @@ test.describe('Virtual Columns', () => {
        * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates
        */
       // close 'Team & Auth' tab
-      await dashboard.closeTab({ title: 'Team & Auth' });
 
       await dashboard.treeView.openTable({ title: 'City' });
 
@@ -117,13 +116,9 @@ test.describe('Virtual Columns', () => {
       await grid.column.changeReferencedColumnForBarcode({ titleOfReferencedColumn: 'New City Column' });
 
       await barcodeColumnVerify('Barcode1 Renamed', [barcodeCellValuesForIstanbul]);
-
-      await dashboard.closeTab({ title: 'City' });
     });
 
     test('deletion of the barcode column: a) directly and b) indirectly when the reference value column is deleted', async () => {
-      await dashboard.closeTab({ title: 'Team & Auth' });
-
       await dashboard.treeView.openTable({ title: 'City' });
 
       await grid.column.create({ title: 'column_name_a' });
@@ -145,13 +140,9 @@ test.describe('Virtual Columns', () => {
       await grid.column.verify({ title: 'Barcode2', isVisible: true });
       await grid.column.delete({ title: 'column_name_a' });
       await grid.column.verify({ title: 'Barcode2', isVisible: false });
-
-      await dashboard.closeTab({ title: 'City' });
     });
 
     test('a) showing an error message for non-compatible barcode input and b) changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {
-      await dashboard.closeTab({ title: 'Team & Auth' });
-
       await dashboard.treeView.openTable({ title: 'City' });
 
       await grid.column.create({

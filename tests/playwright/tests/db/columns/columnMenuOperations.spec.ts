@@ -73,7 +73,6 @@ test.describe('Column menu operations', () => {
         expectedTitle: `${title} copy_1`,
       });
     }
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Insert after', async () => {
@@ -90,8 +89,6 @@ test.describe('Column menu operations', () => {
       type: 'SingleLineText',
       insertAfterColumnTitle: 'Title',
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Insert before', async () => {
@@ -110,8 +107,6 @@ test.describe('Column menu operations', () => {
       type: 'SingleLineText',
       insertBeforeColumnTitle: 'ReleaseYear',
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Hide column', async () => {
@@ -126,8 +121,6 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.hideColumn({
       title: 'RentalDuration',
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Sort column', async () => {
@@ -142,7 +135,5 @@ test.describe('Column menu operations', () => {
       title: 'ReleaseYear',
       direction: 'desc',
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 });

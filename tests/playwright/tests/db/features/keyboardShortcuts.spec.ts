@@ -230,8 +230,6 @@ test.describe('Clipboard support', () => {
 
     // reload page
     await dashboard.rootPage.reload();
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // ########################################

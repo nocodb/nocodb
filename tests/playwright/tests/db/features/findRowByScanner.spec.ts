@@ -17,7 +17,6 @@ test.describe.skip('Find row by scanner', () => {
 
   test.describe('clicking on the toolbars scanner button', async () => {
     test.beforeEach(async () => {
-      await dashboard.closeTab({ title: 'Team & Auth' });
       await dashboard.treeView.openTable({ title: 'Country' });
       await toolbar.clickFindRowByScanButton();
     });

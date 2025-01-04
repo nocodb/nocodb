@@ -130,7 +130,6 @@ test.describe('Undo Redo', () => {
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // Row.Create
@@ -178,7 +177,6 @@ test.describe('Undo Redo', () => {
       expect(fieldTitles).toEqual(fields);
     }
 
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // hack: wait for grid to load
@@ -229,7 +227,6 @@ test.describe('Undo Redo', () => {
   });
 
   test('Fields: Sort', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     async function verifyRecords({ sorted }: { sorted: boolean }) {
@@ -259,7 +256,6 @@ test.describe('Undo Redo', () => {
   });
 
   test('Fields: Filter', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     async function verifyRecords({ filtered }: { filtered: boolean }) {
@@ -305,8 +301,6 @@ test.describe('Undo Redo', () => {
       );
     }
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     const timeOut = 200;
@@ -428,8 +422,6 @@ test.describe('Undo Redo - Table & view rename operations', () => {
   });
 
   test('Table & View rename', async ({ page }) => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectBased' });
 
     // table rename
@@ -612,7 +604,6 @@ test.describe('Undo Redo - LTAR', () => {
   }
 
   test('Row: Link, Unlink', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
@@ -635,7 +626,6 @@ test.describe('Undo Redo - LTAR', () => {
     // will work even for ext DB
     if (!isSqlite(context)) test.skip();
 
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
@@ -717,7 +707,6 @@ test.describe('Undo Redo - Select based', () => {
   });
 
   test.skip('Kanban', async ({ page }) => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectSample' });
 
     await dashboard.viewSidebar.createKanbanView({

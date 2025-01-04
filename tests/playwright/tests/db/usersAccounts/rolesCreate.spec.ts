@@ -112,11 +112,10 @@ test.describe.skip('User roles', () => {
       password: getDefaultPwd(),
     });
 
-    await workspacePage.baseOpen({ title: context.base.title });
+    // await workspacePage.baseOpen({ title: context.base.title }); //??
 
     // close 'Team & Auth' tab
     if (roleDb[roleIdx].role === 'creator') {
-      await dashboard.closeTab({ title: 'Team & Auth' });
     }
   }
 });

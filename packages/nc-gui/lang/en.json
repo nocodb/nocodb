@@ -999,8 +999,10 @@
     "requestDataSource": "Request a data source you need?",
     "apiKey": "API Key",
     "personalAccessToken": "Personal Access Token",
+    "whereToFind": "Where to find?",
     "sharedBaseUrl": "Shared Base URL",
     "importData": "Import data",
+    "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
     "importRollupColumns": "Import rollup fields",
     "importLookupColumns": "Import lookup fields",
@@ -1010,6 +1012,8 @@
     "noData": "No Data",
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
+    "importingFromAirtable": "Importing from Airtable",
+    "airtableBaseImported": "Airtable Base Imported",
     "formatJson": "Format JSON",
     "autoSelectFieldTypes": "Auto-Select Field Types",
     "firstRowAsHeaders": "Use first record as header",
@@ -1474,6 +1478,7 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

@@ -33,7 +33,7 @@ const gotoFeed = () => navigateToFeed()
     >
       <div class="flex flex-1 w-full items-center gap-2">
         <GeneralIcon icon="megaPhone" class="!h-4" />
-        <span class="">What’s New!</span>
+        <span class="">{{ $t('labels.whatsNew') }}</span>
       </div>
       <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-4">
         <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>

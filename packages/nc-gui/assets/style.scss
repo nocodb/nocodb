@@ -14,6 +14,14 @@
       scrollbar-width: none; /* Firefox */
     }
   }
+
+  .nc-h-screen {
+    height: 100vh;
+
+    @supports (height: 100dvh) {
+      height: 100dvh;
+    }
+  }
 }
 
 * {
@@ -951,15 +959,13 @@ svg.nc-virtual-cell-icon {
   }
 }
 .nc-toolbar-dropdown-search-field-input {
-  @apply !rounded-lg;
-
   .nc-search-icon {
-    @apply text-gray-400;
+    @apply text-gray-500;
   }
 
   &:hover .nc-search-icon,
   &.ant-input-affix-wrapper-focused .nc-search-icon {
-    @apply text-gray-800;
+    @apply text-primary;
   }
 }
 
@@ -1129,3 +1135,20 @@ svg.nc-virtual-cell-icon {
   transform: scale(0.5); /* Scale down and fade out */
 }
 
+@keyframes dragStart {
+  0% {
+    transform: scale(1.3) rotate(0deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0.5deg);
+    opacity: 1;
+  }
+}
+
+.nc-form-logo,
+.nc-shared-form-logo {
+  img {
+    @apply m-0;
+  }
+}

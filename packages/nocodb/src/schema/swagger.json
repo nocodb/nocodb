@@ -3120,6 +3120,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 },
@@ -3245,6 +3249,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 }
@@ -3259,7 +3267,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedBaseReq"
+                "allOf":[
+                  { 
+                    "$ref": "#/components/schemas/SharedBaseReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               },
               "examples": {
                 "Example 1": {
@@ -5908,7 +5929,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedViewReq"
+                "allOf":[
+                  { 
+                    "$ref": "#/components/schemas/SharedViewReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -8841,6 +8875,14 @@
             "description": "Comma separated list of pks"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "getHiddenColumns",
+            "description": "Get hidden columns on List Api"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -8979,6 +9021,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       }
@@ -10153,6 +10209,13 @@
             "name": "offset"
           },
           {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "getHiddenColumns"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -10281,6 +10344,22 @@
           }
         },
         "tags": ["DB View Row"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -11445,6 +11524,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       },
@@ -17126,6 +17212,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       },
@@ -17286,6 +17386,83 @@
             "in": "query",
             "name": "offset",
             "description": "Offset in rows"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "baz",
+                      "SingleSelect": null,
+                      "Sheet-1 List": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ],
+                      "LTAR": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/records/{rowId}/move": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Move Table Row",
+        "operationId": "db-data-table-row-move",
+        "description": "Move the table row to new position",
+        "tags": ["DB Data Table Row"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "description": "The row ID before which the row should be moved"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -24372,6 +24549,10 @@
             "description": "Base Title",
             "example": "my-base",
             "type": "string"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "x-stoplight": {
@@ -25002,7 +25183,8 @@
         "examples": [
           {
             "meta": {},
-            "password": "123456789"
+            "password": "123456789",
+            "custom_url_path": "feedback-form"
           }
         ],
         "title": "Shared View Request Model",
@@ -26405,6 +26587,10 @@
           "owned_by": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "required": ["fk_model_id", "show", "title", "type"],
@@ -27477,6 +27663,40 @@
       "ButtonActions": {
         "type": "string",
         "enum": ["webhook", "url", "ai"]
+      },
+      "CustomUrl": {
+        "description": "Model for Custom Url",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id associated to the Custom url"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "View ID"
+          },
+          "original_path": {
+            "type": "string",
+            "description": "Original url used for redirection purpose"
+          },
+          "custom_path": {
+            "type": "string",
+            "description": "Custom url path"
+          }
+        }
       }
     },
     "responses": {

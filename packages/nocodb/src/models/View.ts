@@ -2,6 +2,7 @@ import {
   CommonAggregations,
   ExpandedFormMode,
   isSystemColumn,
+  parseProp,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -45,7 +46,7 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { LinkToAnotherRecordColumn } from '~/models';
+import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 
@@ -108,6 +109,7 @@ export default class View implements ViewType {
   source_id?: string;
   show_system_fields?: boolean;
   meta?: any;
+  fk_custom_url_id?: string;
 
   constructor(data: View) {
     Object.assign(this, data);
@@ -133,6 +135,7 @@ export default class View implements ViewType {
       );
       if (view) {
         view.meta = parseMetaProp(view);
+
         await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
       }
     }
@@ -215,6 +218,7 @@ export default class View implements ViewType {
       );
       if (view) {
         view.meta = parseMetaProp(view);
+
         await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
       }
     }
@@ -1253,12 +1257,16 @@ export default class View implements ViewType {
       MetaTable.VIEWS,
       {
         uuid: null,
+        ...(isEE ? { fk_custom_url_id: null } : {}),
       },
       viewId,
     );
 
+    await CustomUrl.delete({ view_id: viewId });
+
     await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
       uuid: null,
+      ...(isEE ? { fk_custom_url_id: null } : {}),
     });
   }
 
@@ -1277,6 +1285,7 @@ export default class View implements ViewType {
       created_by?: string;
       expanded_record_mode?: ExpandedFormModeType;
       attachment_mode_column_id?: string;
+      fk_custom_url_id?: string;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1290,6 +1299,7 @@ export default class View implements ViewType {
       'password',
       'meta',
       'uuid',
+      ...(isEE ? ['fk_custom_url_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
@@ -1427,8 +1437,15 @@ export default class View implements ViewType {
         });
       }
     }
+
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
+
+    if (isEE && view.fk_custom_url_id) {
+      CustomUrl.delete({ id: view.fk_custom_url_id as string }).catch(() => {
+        logger.error(`Failed to delete custom urls of viewId: ${view.id}`);
+      });
+    }
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
@@ -1594,6 +1611,42 @@ export default class View implements ViewType {
           }
         : null,
     );
+  }
+
+  static async getSharedViewPath(
+    context: NcContext,
+    viewId,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const view = await this.get(context, viewId, ncMeta);
+    if (!view.uuid) return null;
+
+    let viewType;
+    switch (view.type) {
+      case ViewTypes.FORM:
+        viewType = 'form';
+        break;
+      case ViewTypes.KANBAN:
+        viewType = 'kanban';
+        break;
+      case ViewTypes.GALLERY:
+        viewType = 'gallery';
+        break;
+      case ViewTypes.MAP:
+        viewType = 'map';
+        break;
+      case ViewTypes.CALENDAR:
+        viewType = 'calendar';
+        break;
+      default:
+        viewType = 'view';
+    }
+
+    return `${encodeURI(
+      `/nc/${viewType}/${view.uuid}${
+        parseProp(view.meta)?.surveyMode ? '/survey' : ''
+      }`,
+    )}`;
   }
 
   static async shareViewList(

@@ -414,6 +414,19 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['MONTH({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
+  YEAR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#year',
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    syntax: 'YEAR(date | datetime)',
+    description: 'Extract year from a date field',
+    examples: ['YEAR({column1})'],
+    returnType: FormulaDataTypes.STRING,
+  },
   HOUR: {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/date-functions#hour',

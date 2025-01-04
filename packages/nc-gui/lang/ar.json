@@ -93,6 +93,7 @@
     "none": "لا شيء"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "واضح",
     "slack": "سلاك",
     "comment": "تعليق",
+    "comments": "Comments",
     "microsoftTeams": "فرق مايكروسوفت",
     "discord": "ديسكورد",
     "matterMost": "ماترموس",
@@ -171,6 +173,7 @@
     "updating": "جارٍ التحديث",
     "rename": "إعادة تسمية",
     "renameEntity": "إعادة تسمية {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "تحديث",
     "refresh": "تحديث",
     "reset": "إعادة تعيين",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ملفات",
@@ -313,6 +318,8 @@
     "year": "سنة",
     "workspace": "مساحة العمل",
     "workspaces": "مساحات العمل",
+    "document": "Document",
+    "documents": "Documents",
     "project": "مشروع",
     "projects": "مشاريعي",
     "table": "جدول",
@@ -530,6 +537,7 @@
     "displayValue": "عرض القيمة",
     "expand": "توسيع",
     "hideAll": "إخفاء الكل",
+    "systemFields": "System fields",
     "hideSystemFields": "إخفاء حقول النظام",
     "removeFile": "إزالة الملف",
     "hasMany": "لديه العديد",
@@ -575,6 +583,7 @@
     "uiACL": "إدارة الوصل لـ UI",
     "metaOperations": "عمليات البيانات الوصفية",
     "audit": "تدقيق",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "مهاجر SQL",
     "dbCredentials": "بيانات اعتماد قاعدة البيانات",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "حذف المستخدم وبياناته",
     "userOptions": "خيارات المستخدم",
     "deleteThisOrganization": "حذف هذه المنظمة",
-    "dangerZone": "المنطقة الخطرة",
+    "dangerZone": "Danger Zone",
     "childView": "عرض الفرع",
     "selectYear": "اختر السنة",
     "save": "حفظ",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "تفاصيل Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "تمكين لجعل هذا الاتصال خاصًا ومخفيًا عن المبدعين الآخرين في هذه مساحة العمل.",
     "optionalDatabaseName": "اختياري. يستخدم قاعدة البيانات الافتراضية \"{database}\" إذا تُركت فارغة",
@@ -1423,6 +1448,7 @@
     "filterQuery": "إستعلام الفلتر",
     "selectField": "حدد حقل",
     "precision": "الدقة",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "تكوين الزر غير صالح",
     "invalidColumnConfiguration": "تكوين العمود غير صالح",
     "invalidTheme": "اختر سمة صالحة",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "لن تتمكن من سحب السجلات بين التواريخ عند استخدام الحقول المحسوبة أو النظامية.",
       "schemaReadOnly": "تم تعطيل تغييرات الهيكل لهذا المصدر",
       "enterWorkspaceName": "أدخل اسم مساحة العمل",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "تم تحديث الدور بنجاح",
       "connectionAdded": "تم الاتصال بالتكامل بنجاح",
       "connectionAddedDesc": "يمكن لمالكي ومبدعي القاعدة الآن إضافة مصدر بيانات دون إعادة إدخال بيانات الاعتماد."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

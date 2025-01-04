@@ -93,6 +93,7 @@
     "none": "Niciunul"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Șterge",
     "slack": "Slack",
     "comment": "Comentariu",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Se actualizează",
     "rename": "Redenumește",
     "renameEntity": "Redenumește {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Reîncărcare",
     "refresh": "Reîmprospătare",
     "reset": "Resetează",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "fișiere",
@@ -313,6 +318,8 @@
     "year": "An",
     "workspace": "Spațiu de lucru",
     "workspaces": "Spații de lucru",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Bază",
     "projects": "Baze",
     "table": "Tabel",
@@ -530,6 +537,7 @@
     "displayValue": "Afișează Valoarea",
     "expand": "Extinde",
     "hideAll": "Ascunde tot",
+    "systemFields": "System fields",
     "hideSystemFields": "Ascunde câmpurile de sistem",
     "removeFile": "Șterge Fișier",
     "hasMany": "Are multe",
@@ -575,7 +583,8 @@
     "uiACL": "Control Acces UI",
     "metaOperations": "Operațiuni Metadate",
     "audit": "Audit",
-    "auditLogs": "Jurnal de Audit",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "Migrații SQL",
     "dbCredentials": "Credențiale Bază de Date",
     "advancedParameters": "SSL & Parametri Avansați",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Șterge Utilizatorul și datele acestuia",
     "userOptions": "Opțiuni Utilizator",
     "deleteThisOrganization": "Șterge această Organizație",
-    "dangerZone": "Zonă de Pericol",
+    "dangerZone": "Danger Zone",
     "childView": "Vizualizare copil",
     "selectYear": "Selectează anul",
     "save": "Salvează",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Detalii Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Opțiunea de dată curentă nu este disponibilă pentru sursa de date sau tipul de date",
     "privateConnection": "Activează pentru a face această conexiune privată și ascunsă de alți creatori în acest spațiu de lucru.",
     "optionalDatabaseName": "Opțional. Utilizează baza de date implicită \"{database}\" dacă este lăsată necompletată",
@@ -1423,6 +1448,7 @@
     "filterQuery": "Interogare filtru",
     "selectField": "Selectează câmpul",
     "precision": "Precizie",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Configurație buton invalidă",
     "invalidColumnConfiguration": "Configurație câmp invalidă",
     "invalidTheme": "Selectează o temă validă",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Nu vei putea trage înregistrări între date atunci când se folosesc câmpuri calculate sau de sistem.",
       "schemaReadOnly": "Modificările schemelor sunt dezactivate pentru această sursă",
       "enterWorkspaceName": "Introdu numele spațiului de lucru",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "Rol actualizat cu succes",
       "connectionAdded": "Integrare conectată cu succes",
       "connectionAddedDesc": "Proprietarii și creatorii de baze pot acum adăuga o sursă de date fără a reintroduce acreditivele."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

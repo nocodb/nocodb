@@ -5,7 +5,7 @@ const props = withDefaults(
     visible?: boolean | undefined
     overlayClassName?: string | undefined
     disabled?: boolean
-    placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter'
+    placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter' | 'right'
     autoClose?: boolean
   }>(),
   {
@@ -65,7 +65,7 @@ const onVisibleUpdate = (event: any) => {
   <a-dropdown
     :disabled="disabled"
     :visible="visible"
-    :placement="placement"
+    :placement="placement as any"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
     @update:visible="onVisibleUpdate"

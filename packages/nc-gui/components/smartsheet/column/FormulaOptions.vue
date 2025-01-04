@@ -225,13 +225,12 @@ watch(
               v-model:value="vModel.meta.display_type"
               class="w-full nc-select-shadow"
               :placeholder="$t('labels.selectAFormatType')"
+              allow-clear
               @change="
                 (v) => {
-
                   savedDisplayType = v
                 }
               "
-              allow-clear
             >
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
                 <div class="flex w-full items-center gap-2 justify-between">

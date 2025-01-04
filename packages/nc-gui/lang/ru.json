@@ -93,6 +93,7 @@
     "none": "Нет"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Очистить",
     "slack": "Slack",
     "comment": "Комментарий",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Обновление",
     "rename": "Переименовать",
     "renameEntity": "Переименовать {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Перезагрузить",
     "refresh": "Обновить",
     "reset": "Сброс настроек",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "файлы",
@@ -313,6 +318,8 @@
     "year": "Год",
     "workspace": "Рабочее пространство",
     "workspaces": "Рабочие пространства",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Проект",
     "projects": "Проекты",
     "table": "Таблица",
@@ -530,6 +537,7 @@
     "displayValue": "Отображаемое значение",
     "expand": "Развернуть",
     "hideAll": "Скрыть все",
+    "systemFields": "System fields",
     "hideSystemFields": "Скрыть системные поля",
     "removeFile": "Удалить файл",
     "hasMany": "Имеет много",
@@ -575,6 +583,7 @@
     "uiACL": "Контроль доступа к интерфейсу",
     "metaOperations": "Операции с метаданными",
     "audit": "Ревизия",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "Миграция SQL",
     "dbCredentials": "Учетные данные базы данных",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Удалить пользователя и его данные",
     "userOptions": "Настройки пользователя",
     "deleteThisOrganization": "Удалить эту организацию",
-    "dangerZone": "Опасная зона",
+    "dangerZone": "Danger Zone",
     "childView": "Дочернее представление",
     "selectYear": "Выберите год",
     "save": "Сохранить",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Детали вебхука",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Включите, чтобы сделать это соединение приватным и скрытым от других создателей в этом рабочем пространстве.",
     "optionalDatabaseName": "Необязательно. Использует базу данных по умолчанию \"{database}\", если оставить поле пустым",
@@ -1423,6 +1448,7 @@
     "filterQuery": "Фильтр запроса",
     "selectField": "Выбрать поле",
     "precision": "Точность",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Неправильная конфигурация кнопки",
     "invalidColumnConfiguration": "Неправильная конфигурация поля",
     "invalidTheme": "Выберите корректную тему",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Вы не сможете перемещать записи между датами, когда используются вычисляемые или системные поля.",
       "schemaReadOnly": "Изменение схемы отключено для этого источника",
       "enterWorkspaceName": "Введите имя рабочего пространства",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "Роль успешно обновлена",
       "connectionAdded": "Интеграция успешно подключена",
       "connectionAddedDesc": "Владельцы баз данных и создатели теперь могут добавлять источник данных без повторного ввода учетных данных."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

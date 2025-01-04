@@ -207,6 +207,7 @@ export class MysqlUi {
         uidt: UITypes.Order,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }

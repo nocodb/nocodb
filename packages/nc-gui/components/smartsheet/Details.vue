@@ -57,7 +57,7 @@ watch(openedSubTab, () => {
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
-            <div>Fields</div>
+            <div>{{ $t('objects.fields') }}</div>
           </div>
         </template>
         <LazySmartsheetDetailsFields />

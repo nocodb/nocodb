@@ -93,6 +93,7 @@
     "none": "ไม่มี"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "ชัดเจน",
     "slack": "Slack",
     "comment": "ความคิดเห็น",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "กำลังอัปเดต",
     "rename": "เปลี่ยนชื่อ",
     "renameEntity": "เปลี่ยนชื่อ {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "โหลดใหม่",
     "refresh": "รีเฟรช",
     "reset": "รีเซ็ต",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ไฟล์",
@@ -313,6 +318,8 @@
     "year": "ปี",
     "workspace": "พื้นที่ทำงาน",
     "workspaces": "พื้นที่ทำงาน",
+    "document": "Document",
+    "documents": "Documents",
     "project": "โครงการ",
     "projects": "โครงการ",
     "table": "ตาราง",
@@ -530,6 +537,7 @@
     "displayValue": "ค่าแสดง",
     "expand": "ขยาย",
     "hideAll": "ซ่อนทั้งหมด",
+    "systemFields": "System fields",
     "hideSystemFields": "ซ่อนฟิลด์ระบบ",
     "removeFile": "ลบไฟล์",
     "hasMany": "มีหลายรายการ",
@@ -575,6 +583,7 @@
     "uiACL": "การควบคุมการเข้าถึง UI",
     "metaOperations": "การดำเนินงานของเมตาดาต้า",
     "audit": "การตรวจสอบ",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "การโยกย้าย SQL",
     "dbCredentials": "ข้อมูลรับรองฐานข้อมูล",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "ลบผู้ใช้และข้อมูลของพวกเขา",
     "userOptions": "ตัวเลือกผู้ใช้",
     "deleteThisOrganization": "ลบองค์กรนี้",
-    "dangerZone": "พื้นที่อันตราย",
+    "dangerZone": "Danger Zone",
     "childView": "มุมมองลูก",
     "selectYear": "เลือกปี",
     "save": "บันทึก",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "รายละเอียด Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "เปิดใช้งานเพื่อทำให้การเชื่อมต่อนี้เป็นส่วนตัวและซ่อนจากผู้สร้างอื่น ๆ ในพื้นที่ทำงานนี้",
     "optionalDatabaseName": "ไม่บังคับ ใช้ฐานข้อมูลค่าเริ่มต้น \"{database}\" หากเว้นว่างไว้",
@@ -1423,6 +1448,7 @@
     "filterQuery": "Filter query",
     "selectField": "Select field",
     "precision": "ความละเอียด",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "การกำหนดค่าปุ่มไม่ถูกต้อง",
     "invalidColumnConfiguration": "การกำหนดค่าฟิลด์ไม่ถูกต้อง",
     "invalidTheme": "เลือกธีมที่ถูกต้อง",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "คุณจะไม่สามารถลากบันทึกระหว่างวันที่ได้เมื่อใช้ฟิลด์ที่คำนวณหรือระบบ.",
       "schemaReadOnly": "การเปลี่ยนแปลงสคีมาถูกปิดใช้งานสำหรับแหล่งนี้",
       "enterWorkspaceName": "ป้อนชื่อพื้นที่ทำงาน",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "อัปเดตบทบาทสำเร็จแล้ว",
       "connectionAdded": "เชื่อมต่อการผสานสำเร็จแล้ว",
       "connectionAddedDesc": "เจ้าของฐานและผู้สร้างสามารถเพิ่มแหล่งข้อมูลโดยไม่ต้องป้อนข้อมูลประจำตัวอีกครั้งแล้ว."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

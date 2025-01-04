@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import {
   type CalendarType,
@@ -383,7 +382,7 @@ onMounted(async () => {
       // preset the cover image field
       if (props.type === ViewTypes.GALLERY) {
         viewSelectFieldOptions.value = [
-          { value: null, label: 'No Image' },
+          { value: null, label: t('labels.noImage') },
           ...(meta.value.columns || [])
             .filter((el) => el.uidt === UITypes.Attachment)
             .map((field) => {
@@ -749,7 +748,7 @@ function init() {
   if (props.type === 'AI') {
     toggleAiMode()
   } else {
-    form.title = `${capitalize(typeAlias.value)}`
+    form.title = t(`objects.viewType.${typeAlias.value}`)
 
     if (selectedViewId.value) {
       form.copy_from_id = selectedViewId?.value

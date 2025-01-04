@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Clear",
     "slack": "Slack",
     "comment": "Comment",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Updating",
     "rename": "Rename",
     "renameEntity": "Rename {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Reload",
     "refresh": "Refresh",
     "reset": "Reset",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "files",
@@ -313,6 +318,8 @@
     "year": "Year",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Base",
     "projects": "Bases",
     "table": "Table",
@@ -530,6 +537,7 @@
     "displayValue": "Display Value",
     "expand": "Expand",
     "hideAll": "Hide all",
+    "systemFields": "System fields",
     "hideSystemFields": "Hide system fields",
     "removeFile": "Remove File",
     "hasMany": "Has Many",
@@ -575,7 +583,8 @@
     "uiACL": "UI Access Control",
     "metaOperations": "Metadata Operations",
     "audit": "Audit",
-    "auditLogs": "Audit Log",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL Migrations",
     "dbCredentials": "Database Credentials",
     "advancedParameters": "SSL & Advanced parameters",
@@ -635,6 +644,9 @@
     "categories": "Categories",
     "fieldInaccessible": "Field inaccessible",
     "noConditionsAdded": "No conditions added",
+    "thisUrlIsAvailable": "This URL is available",
+    "thisUrlIsUnavailable": "This URL is unavailable",
+    "checkingUrlAvailability": "Checking URL availability",
     "noAiIntegrationAvailable": "No AI Integrations available.",
     "nocoAiBaseBuilder": "Noco AI Base Builder",
     "additionalDetails": "Additional Details",
@@ -650,9 +662,18 @@
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
     "yourBaseRole": "Your base role",
-    "lockedByUser": "Locked by {user}"
+    "lockedByUser": "Locked by {user}",
+    "thisPageDoesNotExist": "This page doesn’t exist",
+    "customUrl": "Custom URL"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +776,7 @@
     "deleteUserAndData": "Delete User and their data",
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
-    "dangerZone": "Dangerzone",
+    "dangerZone": "Danger Zone",
     "childView": "Child View",
     "selectYear": "Select Year",
     "save": "Save",
@@ -1070,6 +1091,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
@@ -1336,6 +1365,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
@@ -1444,6 +1474,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Invalid button configuration",
     "invalidColumnConfiguration": "Invalid field configuration",
     "invalidTheme": "Select a valid theme",
@@ -1587,6 +1621,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
@@ -1769,7 +1807,8 @@
       "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",
       "yourCurrentRoleIs": "Your current role is",
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
-      "preventHideAllOptions": "You cannot hide all options if field is required"
+      "preventHideAllOptions": "You cannot hide all options if field is required",
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manual hooks can't be disabled",
@@ -1871,7 +1910,9 @@
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
       "fieldToParseImageData": "Field to parse image data",
       "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty",
-      "columnVisibilityUpdateFailed": "Failed to update field visibility"
+      "columnVisibilityUpdateFailed": "Failed to update field visibility",
+      "unsupportedCharacter": "Unsupported character: {char}",
+      "unsupportedCharacters": "Unsupported characters: {char}"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -1931,6 +1972,11 @@
       "roleUpdated": "Role updated successfully",
       "connectionAdded": "Integration connected successfully",
       "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

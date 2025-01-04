@@ -670,7 +670,7 @@ const onDeleteColumn = () => {
               <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
                 <component :is="iconMap.filter" class="opacity-80" />
                 <!-- Filter by this field -->
-                Filter by this field
+                {{ $t('activity.filterByThisField') }}
               </div>
             </NcMenuItem>
           </NcTooltip>
@@ -698,7 +698,7 @@ const onDeleteColumn = () => {
               <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
                 <component :is="iconMap.group" class="opacity-80" />
                 <!-- Group by this field -->
-                {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
+                {{ isGroupedByThisField ? "Don't group by this field" : $t('activity.groupByThisField') }}
               </div>
             </NcMenuItem>
           </NcTooltip>

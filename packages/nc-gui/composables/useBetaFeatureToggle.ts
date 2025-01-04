@@ -56,6 +56,7 @@ const FEATURES = [
     title: 'Allow configuring Date Time Field as End Date for Calendar View',
     description: 'Enables the calendar to display items as date ranges by allowing configuration of both start and end dates. ',
     enabled: false,
+    isEE: true,
     isEngineering: true,
   },
   {
@@ -63,7 +64,16 @@ const FEATURES = [
     title: 'Expanded form file preview mode',
     description: 'Preview mode allow you to see attachments inline',
     enabled: false,
+    isEE: true,
     isEngineering: true,
+  },
+  {
+    id: 'language',
+    title: 'Language',
+    description: 'Community/AI Translated',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
   },
 ] as const
 

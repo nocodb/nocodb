@@ -47,7 +47,7 @@ const renderAsTextFun = computed(() => {
 <template>
   <div class="nc-cell-field" @dblclick="activateShowEditNonEditableFieldWarning">
     <div v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)">
-      <LazyCellDecimal :model-value="value"/>
+      <LazyCellDecimal :model-value="value" />
     </div>
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div>

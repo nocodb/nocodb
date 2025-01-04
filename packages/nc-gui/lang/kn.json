@@ -93,6 +93,7 @@
     "none": "ಯಾವುದೂ ಇಲ್ಲ"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "ಂತರಾಳ",
     "slack": "Slack",
     "comment": "ಕಾಮೆಂಟ್",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "ನವೀಕರಿಸುತ್ತಿದೆ",
     "rename": "ಮರೆಯಿರಿ",
     "renameEntity": "ಮರುಹೆಸರಿಸಿ {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "ಮರುಲೋಡ್",
     "refresh": "ಪುನಃ ಸಿಕ್ಕಿಸಿದ್ದೇನೆ",
     "reset": "ಮರುಹೊಂದಿಸಿ",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "ಹೆಡರ್‌ಗಳು",
@@ -313,6 +318,8 @@
     "year": "ವರ್ಷ",
     "workspace": "ಕಾರ್ಯದ್ವಾರ",
     "workspaces": "ಕಾರ್ಯದ್ವಾರಗಳು",
+    "document": "Document",
+    "documents": "Documents",
     "project": "ಆಧಾರ",
     "projects": "ಆಧಾರಗಳು",
     "table": "ಕೋಷ್ಟಕ",
@@ -530,6 +537,7 @@
     "displayValue": "ಪ್ರದರ್ಶನ ಚಿಲುಮೆ",
     "expand": "ವಿಸ್ತರಿಸು",
     "hideAll": "ಎಲ್ಲವನ್ನೂ ಮರೆಮಾಡಿ",
+    "systemFields": "System fields",
     "hideSystemFields": "ಸಿಸ್ಟಮ್ ಕ್ಷೇತ್ರಗಳನ್ನು ಮರೆಮಾಡಿ",
     "removeFile": "ಫೈಲ್ ತೆಗೆದುಹಾಕು",
     "hasMany": "ಅನೇಕರಿವೆ",
@@ -575,7 +583,8 @@
     "uiACL": "UI ಪ್ರಾಂಶುಪಾಲ ಹಕ್ಕು ನಿಯಂತ್ರಣ",
     "metaOperations": "ಮೆಟಾಡೇಟಾ ಕಾರ್ಯಾಚರಣೆಗಳು",
     "audit": "ತಪಾಸಣೆ",
-    "auditLogs": "ದಿನನೀತಿ ಪಥ",
+    "audits": "Audits",
+    "auditLogs": "Audit Logs",
     "sqlMigrations": "SQL ವರ್ಗಾವಣೆಗಳು",
     "dbCredentials": "ಡೇಟಾಬೇಸ್ ದೃಢಪಡಿಕೆಗಳು",
     "advancedParameters": "SSL ಮತ್ತು ಮುಂದುವರಿದ ನಿರ್ವಾಹಕರು",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "ಬಳಕೆದಾರರನ್ನು ಮತ್ತು ಅವರ ಡೇಟಾವನ್ನು ಅಳಿಸಿ",
     "userOptions": "ಬಳಕೆದಾರ ಆಯ್ಕೆಗಳು",
     "deleteThisOrganization": "ಈ ಸಂಘಟನೆಯನ್ನು ಅಳಿಸಿ",
-    "dangerZone": "ಆಪತ್‌ಜೋನ್",
+    "dangerZone": "Danger Zone",
     "childView": "ಮಕ್ಕಳ ವೀಕ್ಷಣೆ",
     "selectYear": "ವರ್ಷ ಆಯ್ಕೆಮಾಡಿ",
     "save": "ಉಳಿಸಿ",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ವೆಬ್‌ಹುಕ್ ವಿವರಣೆಗಳು",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "ಡೇಟಾ ಮೂಲ ಅಥವಾ ಡೇಟಾ ಪ್ರಕಾರಕ್ಕೆ ಪ್ರಸ್ತುತ ದಿನಾಂಕ ಆಯ್ಕೆ ಲಭ್ಯವಿಲ್ಲ",
     "privateConnection": "ಈ ಹಿಂದೆ ಎಲ್ಲ ಲೋಕಪಾಲರಿಗೆ ಮುಚ್ಚಿಕೊಡುವುದಾಕುವಿರಿಯಾಗಿ ಈ ಸಂಪರ್ಕವನ್ನು ಖಾಸಗಿ ಮತ್ತು ಅಡಗಿಸಿಡಲು ಸಕ್ರಿಯಗೊಳಿಸಿ.",
     "optionalDatabaseName": "ಐಚ್ಛಿಕ. ಖಾಲಿ ಉಳಿದರೆ ಪೂರ್ವನಿಯೋಜಿತ ಡೇಟಾಬೇಸ್ \"{database}\" ಅನ್ನು ಬಳಸಿದೆ",
@@ -1423,6 +1448,7 @@
     "filterQuery": "ವಿಚಲನ ಪ್ರಶ್ನೆ",
     "selectField": "ಕ್ಷೇತ್ರವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
     "precision": "ನಿಖರತೆ",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "ಅಮಾನ್ಯ ಬಟನ್ ಸಂರಚನೆ",
     "invalidColumnConfiguration": "ಅಮಾನ್ಯ ಫೀಲ್ಡ್ ಸಂರಚನೆ",
     "invalidTheme": "ಮಾನ್ಯವಾದ ಥೀಮ್ ಆಯ್ಕೆಮಾಡಿ",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "ಗಣಿಸಲ್ಪಟ್ಟ ಅಥವಾ ಸಿಸ್ಟಮ್ ಕ್ಷೇತ್ರಗಳನ್ನು ಬಳಸಿದಾಗ, ದಿನಾಂಕಗಳ ನಡುವೆ ದಾಖლეಗಳನ್ನು ಎಳೆಯಲು ನಿಮಗೆ ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ.",
       "schemaReadOnly": "ಈ ಮೂಲಕ್ಕೆ ಯೋಜನೆಯ ವೈಳ್ಯ ತರಲು ಅಸ್ಪಷ್ಟ",
       "enterWorkspaceName": "ಕಾರ್ಯದಳದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "ಪಾತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
       "connectionAdded": "ಸಂಪರ್ಕವು ಯಶಸ್ವಿಯಾಗಿಯೇ ಸಂಪರ್ಕಿಸಲಾಯಿತು",
       "connectionAddedDesc": "ಬೇಸ್ ಮಾಲೀಕರು ಮತ್ತು ಸೃಷ್ಟಿಕರ್ತರು ಇದೀಗ ಡೇಟಾ ಮೂಲವನ್ನು ಪುನಃ ಪ್ರವೇಶಿಸುವ credentials ಇಲ್ಲದೆ ಸೇರಿಸಬಹುದು."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

@@ -20,8 +20,6 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { loadTables } = baseStore
-
 const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')
@@ -49,15 +47,19 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
+const isLoadingModel = ref(false)
+
 const relatedModel = computedAsync(async () => {
   const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
 
   if (fkRelatedModelId) {
     let table = tables.value.find((t) => t.id === fkRelatedModelId)
 
-    if (!table) {
-      await loadTables()
+    if (!table?.columns) {
+      isLoadingModel.value = true
+      await getMeta(fkRelatedModelId, true)
       table = tables.value.find((t) => t.id === fkRelatedModelId)
+      isLoadingModel.value = false
     }
     return table
   }
@@ -128,6 +130,7 @@ const createLookups = async () => {
     value.value = false
   } catch (e) {
     console.error(e)
+    message.error('Failed to create lookup columns')
   } finally {
     isLoading.value = false
   }
@@ -135,10 +138,10 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value.id].columns
-    filteredColumns.value = columns
-      .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
-      .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
+    const columns = metas.value[relatedModel.value.id]?.columns || []
+    filteredColumns.value = columns.filter(
+      (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
+    )
   }
 })
 
@@ -176,8 +179,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200">
-        <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
+      <div
+        :class="{
+          'flex items-center justify-center': isLoadingModel,
+        }"
+        class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
+      >
+        <Draggable v-if="!isLoadingModel" v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
           <template #item="{ element: field }">
             <div
               :key="field.id"
@@ -202,6 +210,10 @@ onMounted(async () => {
             </div>
           </template>
         </Draggable>
+
+        <div v-else>
+          <GeneralLoader size="xlarge" />
+        </div>
       </div>
 
       <div class="flex w-full gap-2 justify-end">

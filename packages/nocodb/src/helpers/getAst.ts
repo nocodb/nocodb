@@ -219,7 +219,7 @@ const getAst = async (
     if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
-      isRequested = extractOrderColumn;
+      isRequested = extractOrderColumn || getHiddenColumn;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||

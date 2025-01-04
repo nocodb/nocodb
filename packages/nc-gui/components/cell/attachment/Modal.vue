@@ -6,7 +6,6 @@ import { useSortable } from './sort'
 const { isUIAllowed } = useRoles()
 
 const {
-  open,
   isLoading,
   isPublic,
   isReadonly: readOnly,
@@ -21,7 +20,7 @@ const {
   selectedFile,
   selectedVisibleItems,
   bulkDownloadAttachments,
-  renameFile,
+  renameFileInline,
 } = useAttachmentCell()!
 
 const dropZoneRef = ref<HTMLDivElement>()
@@ -55,29 +54,49 @@ function onClick(item: Record<string, any>) {
   })
 }
 
-const isModalOpen = ref(false)
-const filetoDelete = reactive({
-  title: '',
-  i: 0,
-})
-
-function onRemoveFileClick(title: any, i: number) {
-  isModalOpen.value = true
-  filetoDelete.i = i
-  filetoDelete.title = title
-}
-
 // when user paste on modal
 useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
   if (event.clipboardData?.files) {
     onDrop(event.clipboardData.files)
   }
 })
-const handleFileDelete = (i: number) => {
-  removeFile(i)
-  isModalOpen.value = false
-  filetoDelete.i = 0
-  filetoDelete.title = ''
+
+const isNewAttachmentModalOpen = ref(false)
+
+const isRenamingFile = ref(false)
+const renameFileIdx = ref(0)
+const newTitle = ref('')
+
+const inputBox = ref()
+
+const handleFileRenameStart = (idx: number) => {
+  isRenamingFile.value = true
+  renameFileIdx.value = idx
+  newTitle.value = visibleItems.value[idx]!.title
+  nextTick().then(() => {
+    inputBox.value[0].focus()
+    inputBox.value[0].select()
+  })
+}
+
+const handleResetFileRename = () => {
+  renameFileIdx.value = 0
+  newTitle.value = ''
+  isRenamingFile.value = false
+}
+
+const handleFileRename = async () => {
+  if (!isRenamingFile.value) return
+
+  if (newTitle.value) {
+    try {
+      await renameFileInline(renameFileIdx.value, newTitle.value)
+      handleResetFileRename()
+    } catch (e) {
+      message.error('Error while renaming file')
+      throw e
+    }
+  }
 }
 </script>
 
@@ -89,11 +108,16 @@ const handleFileDelete = (i: number) => {
     :class="{ active: modalVisible }"
     width="80%"
   >
-    <div class="flex justify-between pb-6 gap-4">
+    <div class="flex justify-between pb-6 gap-4 items-center">
       <div class="font-semibold text-xl">{{ column?.title }}</div>
 
       <div class="flex items-center gap-2">
-        <NcButton v-if="selectedVisibleItems.length > 0" size="small" @click="bulkDownloadAttachments">
+        <NcButton
+          :disabled="!selectedVisibleItems.some((v) => !!v)"
+          type="secondary"
+          size="small"
+          @click="bulkDownloadAttachments"
+        >
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="download" />
             {{ $t('activity.bulkDownload') }}
@@ -105,7 +129,7 @@ const handleFileDelete = (i: number) => {
           class="nc-attach-file group"
           size="small"
           data-testid="attachment-expand-file-picker-button"
-          @click="open"
+          @click="isNewAttachmentModalOpen = true"
         >
           <div class="flex gap-2 items-center">
             <component :is="iconMap.cellAttachment" class="w-4 h-4" />
@@ -140,7 +164,7 @@ const handleFileDelete = (i: number) => {
         >
           <NcCheckbox
             v-model:checked="selectedVisibleItems[i]"
-            class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100)"
+            class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100) opacity-0 z-50"
             :class="{ '!opacity-100': selectedVisibleItems[i] }"
           />
           <div
@@ -178,21 +202,41 @@ const handleFileDelete = (i: number) => {
           </div>
 
           <div class="relative px-1 pb-1 items-center flex" :title="item.title">
-            <NcTooltip
-              show-on-truncate-only
-              class="flex-auto truncate w-full text-[12px] items-center text-gray-700 text-sm line-height-4"
+            <div
+              class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
+              :class="{ truncate: !isRenamingFile }"
+              @dblclick.stop="handleFileRenameStart(i)"
             >
-              {{ item.title }}
-
-              <template #title>
+              <NcTooltip
+                v-if="!isRenamingFile || renameFileIdx !== i"
+                class="truncate h-5 flex items-center"
+                show-on-truncate-only
+              >
                 {{ item.title }}
-              </template>
-            </NcTooltip>
-            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white">
+
+                <template #title>
+                  {{ item.title }}
+                </template>
+              </NcTooltip>
+              <a-input
+                v-else
+                ref="inputBox"
+                v-model:value="newTitle"
+                class="!text-[12px] !h-5 !p-0 !px-0.5 !mr-1 !bg-transparent !rounded-md"
+                type="text"
+                @keydown.enter="handleFileRename"
+                @keydown.escape.stop="handleResetFileRename"
+                @blur.stop="handleResetFileRename"
+              />
+            </div>
+            <div
+              class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white"
+              :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile && renameFileIdx === i }"
+            >
               <NcTooltip placement="bottom">
                 <template #title> {{ $t('title.downloadFile') }} </template>
                 <NcButton
-                  class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
+                  class="!p-0 !w-5 !h-5 !text-gray-500 !min-w-[fit-content]"
                   size="xsmall"
                   type="text"
                   @click="downloadAttachment(item)"
@@ -207,7 +251,7 @@ const handleFileDelete = (i: number) => {
                   size="xsmall"
                   class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content] gap-2"
                   type="text"
-                  @click="renameFile(item, i)"
+                  @click="handleFileRenameStart(i)"
                 >
                   <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
                 </NcButton>
@@ -216,10 +260,10 @@ const handleFileDelete = (i: number) => {
               <NcTooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
                 <template #title> {{ $t('title.removeFile') }} </template>
                 <NcButton
-                  class="!p-0 !h-4 !w-4 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
+                  class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
                   size="xsmall"
                   type="text"
-                  @click="onRemoveFileClick(item.title, i)"
+                  @click="removeFile(i)"
                 >
                   <component :is="iconMap.delete" class="text-xs h-13px w-13px" />
                 </NcButton>
@@ -235,24 +279,10 @@ const handleFileDelete = (i: number) => {
             </div>
           </a-card>
         </div>
+
+        <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
       </div>
     </div>
-
-    <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
-      <template #entity-preview>
-        <span>
-          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-            <div
-              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ filetoDelete.title }}
-            </div>
-          </div>
-        </span>
-      </template>
-    </GeneralDeleteModal>
   </NcModal>
 </template>
 
@@ -265,7 +295,7 @@ const handleFileDelete = (i: number) => {
 }
 .nc-attachment-modal {
   .nc-attachment-item {
-    @apply h-[200px] max-h-[200px] flex relative;
+    @apply h-[200px] max-h-[200px] flex relative overflow-hidden;
   }
 
   .dragging {

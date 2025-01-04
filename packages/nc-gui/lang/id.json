@@ -93,6 +93,7 @@
     "none": "Tidak Ada"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Bersihkan",
     "slack": "Slack",
     "comment": "Komentar",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Memperbarui",
     "rename": "Ganti nama",
     "renameEntity": "Ganti nama {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Reload.",
     "refresh": "Segarkan",
     "reset": "Mengatur ulang",
@@ -301,7 +304,9 @@
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "file",
@@ -313,6 +318,8 @@
     "year": "Tahun",
     "workspace": "Ruang Kerja",
     "workspaces": "Ruang kerja",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Proyek",
     "projects": "Proyek",
     "table": "Meja",
@@ -530,6 +537,7 @@
     "displayValue": "Tampilkan Nilai",
     "expand": "Perluas",
     "hideAll": "Sembunyikan Semua",
+    "systemFields": "System fields",
     "hideSystemFields": "Sembunyikan bidang sistem",
     "removeFile": "Hapus File",
     "hasMany": "Memiliki Banyak",
@@ -575,6 +583,7 @@
     "uiACL": "UI Access Control.",
     "metaOperations": "Operasi metadata",
     "audit": "Audit",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "Migrasi SQL.",
     "dbCredentials": "Kredensial basis data",
@@ -653,6 +662,13 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Hapus Pengguna dan datanya",
     "userOptions": "Opsi Pengguna",
     "deleteThisOrganization": "Hapus Organisasi ini",
-    "dangerZone": "Zona Bahaya",
+    "dangerZone": "Danger Zone",
     "childView": "Tampilan Anak",
     "selectYear": "Pilih Tahun",
     "save": "Simpan",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Detail Webhook",
@@ -1336,6 +1360,7 @@
     "pending": "Pending"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktifkan untuk menjadikan koneksi ini pribadi dan tersembunyi dari pembuat lain di ruang kerja ini.",
     "optionalDatabaseName": "Opsional. Menggunakan database default \"{database}\" jika dibiarkan kosong",
@@ -1423,6 +1448,7 @@
     "filterQuery": "Kueri filter",
     "selectField": "Pilih bidang",
     "precision": "Presisi",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Konfigurasi tombol tidak valid",
     "invalidColumnConfiguration": "Konfigurasi bidang tidak valid",
     "invalidTheme": "Pilih tema yang valid",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Anda tidak dapat menyeret catatan antar tanggal ketika bidang terhitung atau sistem digunakan.",
       "schemaReadOnly": "Perubahan skema dinonaktifkan untuk sumber ini",
       "enterWorkspaceName": "Masukkan nama Ruang Kerja",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "Peran berhasil diperbarui",
       "connectionAdded": "Integrasi berhasil terhubung",
       "connectionAddedDesc": "Pemilik basis dan kreator sekarang dapat menambahkan sumber data tanpa memasukkan kembali kredensial."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

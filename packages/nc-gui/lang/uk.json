@@ -93,6 +93,7 @@
     "none": "Нічого"
   },
   "general": {
+    "usage": "Usage",
     "snapshot": "Знімок",
     "snapshots": "Знімки",
     "baseSnapshots": "Base Snapshots",
@@ -140,6 +141,7 @@
     "clear": "Очистити",
     "slack": "Slack",
     "comment": "Коментар",
+    "comments": "Comments",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",
@@ -171,6 +173,7 @@
     "updating": "Оновлення",
     "rename": "Перейменувати",
     "renameEntity": "Перейменувати {entity}",
+    "untitledEntity": "Untitled {entity}",
     "reload": "Перезавантажити",
     "refresh": "Оновити",
     "reset": "Відновити",
@@ -301,7 +304,9 @@
     "enable": "Увімкнути",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
-    "you": "You"
+    "you": "You",
+    "read": "Read",
+    "unread": "Unread"
   },
   "objects": {
     "files": "файли",
@@ -313,6 +318,8 @@
     "year": "Рік",
     "workspace": "Робоча область",
     "workspaces": "Робочі області",
+    "document": "Document",
+    "documents": "Documents",
     "project": "Проєкт",
     "projects": "Проєкти",
     "table": "Таблиця",
@@ -530,6 +537,7 @@
     "displayValue": "Показане значення",
     "expand": "Розгорнути",
     "hideAll": "Сховати все",
+    "systemFields": "System fields",
     "hideSystemFields": "Приховати системні поля",
     "removeFile": "Видалити файл",
     "hasMany": "Має багато",
@@ -575,6 +583,7 @@
     "uiACL": "Контроль доступу до інтерфейсу",
     "metaOperations": "Операції з метаданими",
     "audit": "Аудит",
+    "audits": "Audits",
     "auditLogs": "Audit Logs",
     "sqlMigrations": "Міграція SQL",
     "dbCredentials": "Облікові дані бази даних",
@@ -653,6 +662,13 @@
     "lockedByUser": "Заблоковано {user}"
   },
   "labels": {
+    "noImage": "No Image",
+    "quickNavigation": "Quick Navigation",
+    "recent": "Recent",
+    "limitRecordSelectionToView": "Limit record selection to a view",
+    "limitRecordSelectionToFilters": "Limit record selection to filters",
+    "addedBy": "Added by",
+    "whatsNew": "What's New!",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Не вдалося створити знімок",
@@ -755,7 +771,7 @@
     "deleteUserAndData": "Видалити користувача та його дані",
     "userOptions": "Налаштування користувача",
     "deleteThisOrganization": "Видалити цю організацію",
-    "dangerZone": "Небезпечна зона",
+    "dangerZone": "Danger Zone",
     "childView": "Дочірній перегляд",
     "selectYear": "Вибрати рік",
     "save": "Зберегти",
@@ -1070,6 +1086,14 @@
     "viewHide": "View visibility "
   },
   "activity": {
+    "clickToResolve": "Click to resolve",
+    "resolvedBy": "Resolved by",
+    "leaveWorkspace": "Leave workspace",
+    "removeUser": "Remove user",
+    "filterByThisField": "Filter by this field",
+    "groupByThisField": "Group by this field",
+    "addToStarred": "Add to starred",
+    "removeFromStarred": "Remove from starred",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Деталі вебхука",
@@ -1336,6 +1360,7 @@
     "pending": "Очікування"
   },
   "tooltip": {
+    "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Увімкніть, щоб зробити це підключення приватним і прихованим від інших творців у цьому робочому просторі.",
     "optionalDatabaseName": "Необов'язково. Використовується база даних \"{database}\" за замовчуванням, якщо залишити поле порожнім",
@@ -1423,6 +1448,7 @@
     "filterQuery": "Фільтр запитів",
     "selectField": "Виберіть поле",
     "precision": "Точність",
+    "decimal0": "1",
     "decimal1": "1.0",
     "decimal2": "1.00",
     "decimal3": "1.000",
@@ -1443,6 +1469,10 @@
     "lockViewDescription": "Поясніть, чому ви блокуєте цей вигляд. Це повідомлення буде показано, коли хтось спробує розблокувати цей вигляд (необов'язково)."
   },
   "msg": {
+    "deleteAccountPermanently": "Delete your account permanently",
+    "learnMore": "Learn more",
+    "connectIntegrations": "Connect integrations with NocoDB.",
+    "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Неправильна конфігурація кнопки",
     "invalidColumnConfiguration": "Неправильна конфігурація поля",
     "invalidTheme": "Виберіть дійсну тему",
@@ -1586,6 +1616,10 @@
       }
     },
     "info": {
+      "inviteSent": "Invitation sent successfully",
+      "userRoleUpdated": "User role updated successfully",
+      "actionIrreversible": "This action is irreversible",
+      "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "Ви не зможете перетягувати записи між датами, коли використовуються обчислювані або системні поля.",
       "schemaReadOnly": "Зміни схеми для цього джерела заборонені",
       "enterWorkspaceName": "Введіть назву робочого простору",
@@ -1930,6 +1964,11 @@
       "roleUpdated": "Роль успішно оновлено",
       "connectionAdded": "Інтеграцію підключено успішно",
       "connectionAddedDesc": "Власники та творці бази можуть зараз додати джерело даних без повторного введення облікових даних."
+    },
+    "subText": {
+      "createNewTable": "Start from scratch.",
+      "importData": "From files & external sources.",
+      "connectExternalData": "In realtime to external databases."
     }
   }
 }

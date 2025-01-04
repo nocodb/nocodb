@@ -108,7 +108,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
             :class="{
               'w-full': props.forceVerticalMode,
-              '!select-text nc-system-field': isReadOnlyVirtualCell(col),
+              '!select-text nc-system-field bg-nc-bg-gray-light': isReadOnlyVirtualCell(col),
               '!select-text nc-readonly-div-data-cell': readOnly,
               'nc-mentioned-cell': col.id === mentionedCell,
             }"
@@ -116,9 +116,6 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(col)"
               v-model="_row.row[col.title]"
-              :class="{
-                'px-1': isReadOnlyVirtualCell(col),
-              }"
               :column="col"
               :read-only="readOnly"
               :row="_row"

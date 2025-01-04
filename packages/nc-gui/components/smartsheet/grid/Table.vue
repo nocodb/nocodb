@@ -2620,7 +2620,7 @@ onKeyStroke('ArrowDown', onDown)
             size="small"
             type="secondary"
             :shadow="false"
-            @click="onNewRecordToFormClick()"
+            @click.stop="onNewRecordToFormClick()"
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
@@ -2635,7 +2635,7 @@ onKeyStroke('ArrowDown', onDown)
             size="small"
             type="secondary"
             :shadow="false"
-            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />

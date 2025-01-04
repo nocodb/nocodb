@@ -644,31 +644,31 @@ async function pasteJsonContent() {
               {{ importMeta.uploadHint }}
             </p>
 
-            <template #itemRender="{ fileList, actions }">
-              <div class="mb-4 space-y-2">
-                <div v-for="file of fileList" :key="file.uid" class="flex items-center gap-3">
-                  <div class="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-lg">
-                    <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-12 h-12" />
-                  </div>
-                  <div>
-                    <div class="text-[14px] text-[#15171A] font-weight-500">
-                      {{ file.name }}
-                    </div>
-                    <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
-                      {{ getReadableFileSize(file.size) }}
-                    </div>
-                  </div>
-                  <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
-                    <GeneralIcon icon="deleteListItem" />
-                  </nc-button>
+            <template #itemRender="{ file, actions }">
+              <div class="flex items-center gap-3">
+                <div class="bg-gray-100 w-12 h-12 flex items-center justify-center rounded-lg">
+                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-12 h-12" />
                 </div>
+                <div>
+                  <div class="text-[14px] text-[#15171A] font-weight-500">
+                    {{ file.name }}
+                  </div>
+                  <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
+                    {{ getReadableFileSize(file.size) }}
+                  </div>
+                </div>
+                <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
+                  <GeneralIcon icon="deleteListItem" />
+                </nc-button>
               </div>
             </template>
           </a-upload-dragger>
 
           <div v-if="isImportTypeJson" class="mt-4 mb-4">
-            <div class="flex items-end justify-between">
+            <div class="flex items-end gap-2">
               <label> Enter Json </label>
+              <div class="flex-1" />
+              <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
               <NcButton type="text" size="xsmall" class="!text-primary !px-2" @click="pasteJsonContent()"> Paste Json </NcButton>
             </div>
             <a-textarea
@@ -780,10 +780,6 @@ async function pasteJsonContent() {
 
         <div class="flex-1" />
 
-        <nc-button v-if="isImportTypeJson && !templateEditorModal" key="format" size="small" @click="formatJson">
-          {{ $t('labels.formatJson') }}
-        </nc-button>
-
         <nc-button
           v-if="!templateEditorModal"
           key="pre-import"
@@ -838,5 +834,12 @@ async function pasteJsonContent() {
 span:has(> .nc-modern-drag-import) {
   display: flex;
   flex-direction: column-reverse;
+  :deep(& > .ant-upload-list) {
+    @apply mb-4 space-y-2 transition-all;
+    &:has(.ant-upload-list-picture-container + .ant-upload-list-picture-container) {
+      @apply border-1 rounded-lg p-2 max-h-[200px] overflow-y-auto nc-scrollbar-thin;
+      scrollbar-gutter: stable;
+    }
+  }
 }
 </style>

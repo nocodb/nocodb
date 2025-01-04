@@ -560,22 +560,24 @@ function handleJsonChange(newValue: any) {
   }
 }
 
-watch(() => importState.fileList, () => {
-  if (isImportTypeJson.value) {
-    setTimeout(() => {
-      const data = importState.fileList?.[0]?.data;
-      if (data && 'TextDecoder' in window) {
-        try {
-          temporaryJson.value = JSON.parse(new TextDecoder().decode(data));
-          importState.jsonEditor = JSON.parse(new TextDecoder().decode(data));
+watch(
+  () => importState.fileList,
+  () => {
+    if (isImportTypeJson.value) {
+      setTimeout(() => {
+        const data = importState.fileList?.[0]?.data
+        if (data && 'TextDecoder' in window) {
+          try {
+            temporaryJson.value = JSON.parse(new TextDecoder().decode(data))
+            importState.jsonEditor = JSON.parse(new TextDecoder().decode(data))
+          } catch (e) {
+            console.log(e)
+          }
         }
-        catch (e) {
-          console.log(e);
-        }
-      }
-    }, 500);
-  }
-})
+      }, 500)
+    }
+  },
+)
 </script>
 
 <template>
@@ -633,7 +635,7 @@ watch(() => importState.fileList, () => {
             :multiple="true"
             :custom-request="customReqCbk"
             :before-upload="beforeUpload"
-            :disabled="isImportTypeJson ? (isPreImportJsonFilled && !isPreImportFileFilled) : isPreImportUrlFilled"
+            :disabled="isImportTypeJson ? isPreImportJsonFilled && !isPreImportFileFilled : isPreImportUrlFilled"
             @change="handleChange"
             @reject="rejectDrop"
           >
@@ -757,7 +759,6 @@ watch(() => importState.fileList, () => {
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
         <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
-          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 
@@ -773,7 +774,6 @@ watch(() => importState.fileList, () => {
             }
           "
         >
-          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </nc-button>
 

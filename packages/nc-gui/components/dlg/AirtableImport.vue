@@ -359,8 +359,8 @@ const collapseKey = ref('')
       <span v-if="step === 1">
         {{ $t('title.quickImportAirtable') }}
       </span>
-      <span v-else-if="isInProgress"> Importing from Airtable... </span>
-      <span v-else> Airtable Base Imported </span>
+      <span v-else-if="isInProgress"> {{ `${$t('labels.importingFromAirtable')}...` }} </span>
+      <span v-else> {{ $t('labels.airtableBaseImported') }} </span>
 
       <a
         v-if="step === 1"
@@ -381,14 +381,14 @@ const collapseKey = ref('')
       <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
         <a-form-item v-bind="validateInfos['details.apiKey']">
           <div class="flex items-end">
-            <label> Personal Access Token </label>
+            <label> {{ $t('labels.personalAccessToken') }} </label>
             <a
               href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
               class="!text-brand prose-sm ml-auto"
               target="_blank"
               rel="noopener"
             >
-              Where to find?
+              {{ $t('labels.whereToFind') }}
             </a>
           </div>
           <a-input-password
@@ -403,7 +403,7 @@ const collapseKey = ref('')
         </a-form-item>
 
         <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
-          <label> Shared Base ID/URL </label>
+          <label> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
@@ -523,7 +523,7 @@ const collapseKey = ref('')
         </template>
         <div v-else class="flex items-start gap-3">
           <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
-          <span> Successfully imported from Airtable Base. </span>
+          <span> {{ $t('msg.airtableImportSuccess') }} </span>
         </div>
       </div>
 

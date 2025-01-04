@@ -1015,7 +1015,7 @@ const currentColumnToEdit = ref('');
                       </a-form-item>
                     </template>
                     <template v-else>
-                      <div class="relative group w-full flex items-center">
+                      <div class="relative group w-full flex items-center" @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`">
                         <span class="font-weight-500 max-w-[300px] inline-block truncate">
                           {{ record.title }}
                         </span>

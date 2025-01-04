@@ -158,6 +158,7 @@ const disablePreImportButton = computed(() => {
 })
 
 const isError = ref(false)
+const refMonacoEditor = ref()
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
@@ -277,8 +278,7 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
-  temporaryJson.value = JSON.stringify(importState.jsonEditor, null, 2)
-  jsonErrorText.value = ''
+  refMonacoEditor.value?.format()
 }
 
 function populateUniqueTableName(tn: string, draftTn: string[] = []) {
@@ -547,13 +547,13 @@ onMounted(() => {
 })
 
 const collapseKey = ref('')
-const temporaryJson = ref('{}')
+const temporaryJson = ref({})
 const jsonErrorText = ref('')
 
-function handleJsonChange(newValue: string) {
+function handleJsonChange(newValue: any) {
   try {
     temporaryJson.value = newValue
-    importState.jsonEditor = JSON.parse(newValue)
+    importState.jsonEditor = JSON.parse(JSON.stringify(newValue))
     jsonErrorText.value = ''
   } catch (e: any) {
     jsonErrorText.value = e.message || 'Invalid JSON'
@@ -666,13 +666,17 @@ function handleJsonChange(newValue: string) {
               <div class="flex-1" />
               <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
             </div>
-            <a-textarea
-              :rows="5"
-              class="!rounded-lg !p-2 !mt-2 !font-mono"
-              placeholder="Paste JSON here..."
-              :disabled="isPreImportFileFilled"
-              :value="temporaryJson"
-              @update:value="handleJsonChange($event)"
+            <LazyMonacoEditor
+              ref="refMonacoEditor"
+              class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
+              :auto-focus="false"
+              hide-minimap
+              :read-only="isPreImportFileFilled"
+              :monaco-config="{
+                lineNumbers: 'on',
+              }"
+              :model-value="temporaryJson"
+              @update:model-value="handleJsonChange($event)"
             />
             <a-alert v-if="jsonErrorText && !isPreImportFileFilled" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
               <template #message>
@@ -811,6 +815,13 @@ function handleJsonChange(newValue: string) {
 .nc-modal-quick-import .ant-collapse-content-box {
   padding-top: 0 !important;
   padding-left: 6px;
+}
+.nc-import-monaco-editor .monaco-editor {
+  outline-width: 0 !important;
+  & * {
+    outline-width: 0 !important;
+    border-width: 0 !important;
+  }
 }
 </style>
 

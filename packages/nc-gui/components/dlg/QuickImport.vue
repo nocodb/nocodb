@@ -740,8 +740,9 @@ async function pasteJsonContent() {
       <a-alert
         v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)"
         type="error"
-        class="!rounded-lg !mt-2 !border-none !p-3">
+        class="!rounded-lg !mt-2 !border-none !p-3"
       >
+        >
         <template #message>
           <div class="flex flex-row items-center gap-2 mb-2">
             <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />

@@ -93,6 +93,7 @@ const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
       header: `${t('title.quickImportExcel')}`,
+      icon: 'importExcel',
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
@@ -101,6 +102,7 @@ const importMeta = computed(() => {
   } else if (isImportTypeCsv.value) {
     return {
       header: `${t('title.quickImportCSV')}`,
+      icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -109,6 +111,7 @@ const importMeta = computed(() => {
   } else if (isImportTypeJson.value) {
     return {
       header: `${t('title.quickImportJSON')}`,
+      icon: 'cellJson',
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -150,10 +153,6 @@ const isError = ref(false)
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
-
-const modalWidth = computed(() => {
-  return 'max(60vw, 600px)'
-})
 
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
 
@@ -522,121 +521,112 @@ onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
+
+const collapseKey = ref('');
 </script>
 
 <template>
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    :width="modalWidth"
+    :closable="false"
+    width="448px"
+    class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
     @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
-      <div class="px-5">
-        <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
+        
+      <div class="text-base font-weight-700 m-0 flex items-center gap-3">
+        <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
+        {{ importMeta.header }}
+        <a
+          href="https://docs.nocodb.com/tables/create-table-via-import/"
+          class="!text-gray-500 prose-sm ml-auto"
+          target="_blank"
+          rel="noopener">
+          Docs
+        </a>
+      </div>
 
-        <div
-          class="mt-5"
-          :class="{
-            'mb-4': templateEditorModal,
-          }"
-        >
-          <LazyTemplateEditor
-            v-if="templateEditorModal"
-            ref="templateEditorRef"
-            :base-template="templateData"
-            :import-data="importData"
-            :import-columns="importColumns"
-            :import-data-only="importDataOnly"
-            :quick-import-type="importType"
-            :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
-            :source-id="sourceId"
-            :import-worker="importWorker"
-            class="nc-quick-import-template-editor"
-            @import="handleImport"
-            @error="onError"
-            @change="onChange"
-          />
+      <div
+        class="mt-5"
+        :class="{
+          'mb-4': templateEditorModal,
+        }"
+      >
+        <LazyTemplateEditor
+          v-if="templateEditorModal"
+          ref="templateEditorRef"
+          :base-template="templateData"
+          :import-data="importData"
+          :import-columns="importColumns"
+          :import-data-only="importDataOnly"
+          :quick-import-type="importType"
+          :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+          :base-id="baseId"
+          :source-id="sourceId"
+          :import-worker="importWorker"
+          class="nc-quick-import-template-editor"
+          @import="handleImport"
+          @error="onError"
+          @change="onChange"
+        />
+        <div v-else>
 
-          <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
-            <a-tab-pane key="uploadTab" :closable="false">
-              <template #tab>
-                <!--              Upload -->
-                <div class="flex items-center gap-2">
-                  <component :is="iconMap.fileUpload" />
-                  {{ $t('general.upload') }}
-                </div>
-              </template>
+          <a-upload-dragger
+            v-model:fileList="importState.fileList"
+            name="file"
+            class="nc-input-import !scrollbar-thin-dull !py-4"
+            list-type="picture"
+            :accept="importMeta.acceptTypes"
+            :max-count="isImportTypeCsv ? 5 : 1"
+            :multiple="true"
+            :custom-request="customReqCbk"
+            :before-upload="beforeUpload"
+            @change="handleChange"
+            @reject="rejectDrop"
+          >
+            <component :is="iconMap.upload" class="w-6 h-6" />
 
-              <div class="py-6">
-                <a-upload-dragger
-                  v-model:fileList="importState.fileList"
-                  name="file"
-                  class="nc-input-import !scrollbar-thin-dull"
-                  list-type="picture"
-                  :accept="importMeta.acceptTypes"
-                  :max-count="isImportTypeCsv ? 5 : 1"
-                  :multiple="true"
-                  :custom-request="customReqCbk"
-                  :before-upload="beforeUpload"
-                  @change="handleChange"
-                  @reject="rejectDrop"
-                >
-                  <component :is="iconMap.plusCircle" size="large" />
+            <!-- Click or drag file to this area to upload -->
+            <p class="!mt-2 text-[13px]">
+              Drop your document here or
+              <span class="text-primary">browse file</span>
+            </p>
 
-                  <!-- Click or drag file to this area to upload -->
-                  <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
+            <p class="!mt-3 text-[13px] text-gray-500">
+              Supported: {{ importMeta.acceptTypes }}
+            </p>
 
-                  <p class="ant-upload-hint">
-                    {{ importMeta.uploadHint }}
-                  </p>
-                  <template #removeIcon>
-                    <component :is="iconMap.deleteListItem" />
-                  </template>
-                </a-upload-dragger>
-              </div>
-            </a-tab-pane>
+            <p class="ant-upload-hint">
+              {{ importMeta.uploadHint }}
+            </p>
 
-            <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
-              <template #tab>
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.json" />
-                  {{ $t('title.jsonEditor') }}
-                </span>
-              </template>
+            <template #removeIcon>
+              <component :is="iconMap.deleteListItem" />
+            </template>
+          </a-upload-dragger>
 
-              <div class="pb-3 pt-3">
-                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
-              </div>
-            </a-tab-pane>
+          <LazyMonacoEditor v-if="isImportTypeJson" ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80 mt-4" />
 
-            <a-tab-pane v-else key="urlTab" :closable="false">
-              <template #tab>
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.link" />
-                  {{ $t('datatype.URL') }}
-                </span>
-              </template>
+          <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-4">
+            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
+              <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." />
+            </a-form-item>
+          </a-form>
 
-              <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !ml-0.5">
-                  <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large" class="!rounded-md" />
-                  </a-form-item>
-                </a-form>
-              </div>
-            </a-tab-pane>
-          </a-tabs>
         </div>
+      </div>
 
-        <div v-if="!templateEditorModal">
-          <a-divider />
+      <div v-if="!templateEditorModal">
+        <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
+          {{ $t('title.advancedSettings') }}
+          <GeneralIcon icon="chevronDown" class="ml-2 !transition-all !transform" :class="{ '!rotate-180': collapseKey === 'advanced-settings' }" />
+        </nc-button>
 
-          <div class="mb-4">
-            <!-- Advanced Settings -->
-            <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
+        <a-collapse ghost class="nc-import-collapse" v-model:active-key="collapseKey">
+          <a-collapse-panel key="advanced-settings">
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
@@ -644,70 +634,94 @@ onMounted(() => {
               </a-checkbox>
             </a-form-item>
 
-            <!-- Flatten nested -->
             <a-form-item v-if="isImportTypeJson" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
               </a-checkbox>
             </a-form-item>
 
-            <!-- Import Data -->
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
-          </div>
-        </div>
+
+          </a-collapse-panel>
+        </a-collapse>
       </div>
+
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false"
-        >{{ $t('general.back') }}
-      </a-button>
+      <div class="flex items-center gap-2 pt-3">
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
+        <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+          {{ $t('general.back') }}
+        </nc-button>
+  
+        <nc-button v-else key="cancel" type="text" size="small" @click="dialogShow = false">
+          {{ $t('general.back') }}
+        </nc-button>
+  
+        <div class="flex-1" />
+  
+        <nc-button
+          v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+          key="format"
+          size="small"
+          :disabled="disableFormatJsonButton"
+          @click="formatJson"
+        >
+          {{ $t('labels.formatJson') }}
+        </nc-button>
+  
+        <nc-button
+          v-if="!templateEditorModal"
+          key="pre-import"
+          size="small"
+          class="nc-btn-import"
+          :loading="preImportLoading"
+          :disabled="disablePreImportButton"
+          @click="handlePreImport"
+        >
+          {{ $t('activity.import') }}
+        </nc-button>
+  
+        <nc-button
+          v-else
+          key="import"
+          size="small"
+          :loading="importLoading"
+          :disabled="disableImportButton"
+          @click="handleImport"
+        >
+          {{ $t('activity.import') }}
+        </nc-button>
 
-      <a-button
-        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
-        key="format"
-        class="!rounded-md"
-        :disabled="disableFormatJsonButton"
-        @click="formatJson"
-      >
-        {{ $t('labels.formatJson') }}
-      </a-button>
-
-      <a-button
-        v-if="!templateEditorModal"
-        key="pre-import"
-        type="primary"
-        class="nc-btn-import !rounded-md"
-        :loading="preImportLoading"
-        :disabled="disablePreImportButton"
-        @click="handlePreImport"
-      >
-        {{ $t('activity.import') }}
-      </a-button>
-
-      <a-button
-        v-else
-        key="import"
-        type="primary"
-        class="!rounded-md"
-        :loading="importLoading"
-        :disabled="disableImportButton"
-        @click="handleImport"
-      >
-        {{ $t('activity.import') }}
-      </a-button>
+      </div>
     </template>
   </a-modal>
 </template>
 
+<style lang="scss">
+.nc-modal-quick-import .ant-modal-footer {
+  border: none;
+  padding: 0 !important;
+}
+.nc-modal-quick-import .ant-collapse-content-box {
+  padding-top: 0 !important;
+  padding-left: 6px;
+}
+</style>
+
 <style lang="scss" scoped>
+.nc-modal-quick-import :deep(.ant-modal-footer) {
+  @apply !px-0 !pb-0;
+}
 :deep(.ant-upload-list-item-thumbnail) {
   line-height: 48px;
 }
 :deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only) {
   @apply !h-6;
+}
+.nc-import-collapse :deep(.ant-collapse-header) {
+  display: none !important;
 }
 </style>

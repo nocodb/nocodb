@@ -370,7 +370,7 @@ const collapseKey = ref('')
       <a
         v-if="step === 1"
         href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-        class="!text-gray-500 prose-sm ml-auto !no-underline"
+        class="!text-gray-500 prose-sm ml-auto"
         target="_blank"
         rel="noopener"
       >

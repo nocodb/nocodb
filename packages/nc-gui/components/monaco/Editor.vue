@@ -31,8 +31,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const { modelValue, readOnly } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } =
-  props
+const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
 
 const vModel = computed<string>({
   get: () => {
@@ -165,14 +164,11 @@ watch(vModel, (v) => {
   }
 })
 
-watch(
-  readOnly,
-  (v) => {
-    if (!editor) return
+watch(readOnly, (v) => {
+  if (!editor) return
 
-    editor.updateOptions({ readOnly: v })
-  },
-)
+  editor.updateOptions({ readOnly: v })
+})
 </script>
 
 <template>

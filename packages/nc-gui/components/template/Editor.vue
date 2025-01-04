@@ -794,8 +794,7 @@ function toggleTableSelecteds(table: any) {
   }
 }
 
-const currentColumnToEdit = ref('');
-
+const currentColumnToEdit = ref('')
 </script>
 
 <template>
@@ -962,7 +961,9 @@ const currentColumnToEdit = ref('');
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
                       <a-checkbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
-                      <span class="ml-4 font-weight-700 text-[13px]"> {{ table.columns.every((it) => it.selected) ? 'Deselect' : 'Select' }} all fields </span>
+                      <span class="ml-4 font-weight-700 text-[13px]">
+                        {{ table.columns.every((it) => it.selected) ? 'Deselect' : 'Select' }} all fields
+                      </span>
                     </td>
                   </tr>
                 </template>
@@ -997,11 +998,19 @@ const currentColumnToEdit = ref('');
                       </a-form-item>
                     </template>
                     <template v-else>
-                      <div class="relative group w-full flex items-center" @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`">
+                      <div
+                        class="relative group w-full flex items-center"
+                        @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`"
+                      >
                         <span class="font-weight-500 max-w-[300px] inline-block truncate nc-import-table-field-name">
                           {{ record.title }}
                         </span>
-                        <NcButton @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`" type="text" size="small" class="!absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
+                        <NcButton
+                          type="text"
+                          size="small"
+                          class="!absolute right-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+                          @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`"
+                        >
                           <GeneralIcon icon="pencil" />
                         </NcButton>
                       </div>
@@ -1033,7 +1042,9 @@ const currentColumnToEdit = ref('');
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 text-[13px] leading-5 ml-6">Table names should not have whitespace in the beginning or their end.</div>
+          <div class="text-gray-500 text-[13px] leading-5 ml-6">
+            Table names should not have whitespace in the beginning or their end.
+          </div>
         </template>
       </a-alert>
     </a-card>
@@ -1046,7 +1057,7 @@ const currentColumnToEdit = ref('');
 }
 
 :deep(.ant-collapse-header) {
-  @apply !items-center !p-2;
+  @apply !items-center !py-2 !px-3;
   & > div {
     @apply flex;
   }

@@ -25,7 +25,7 @@ export class ImportAirtablePage extends BasePage {
     await this.get().locator(`.nc-input-shared-base`).fill(sourceId);
     await this.importButton.click();
 
-    await this.get().locator(`button:has-text("Go to Dashboard")`).waitFor();
-    await this.get().locator(`button:has-text("Go to Dashboard")`).click();
+    await this.get().locator(`button:has-text("Go to base")`).waitFor();
+    await this.get().locator(`button:has-text("Go to base")`).click();
   }
 }

@@ -166,10 +166,14 @@ const { validate, validateInfos, modelRef } = useForm(data, validators)
 
 const isValid = ref(!importDataOnly)
 
+const isAnyColumnSelectedInEachTable = computed(() => {
+  return data.tables.every((table) => table.columns.some((column) => (column as any).selected))
+})
+
 const formRef = ref()
 
 watch(
-  () => srcDestMapping.value,
+  [() => srcDestMapping.value, isAnyColumnSelectedInEachTable],
   () => {
     let res = true
     if (importDataOnly) {
@@ -198,7 +202,7 @@ watch(
         }
       }
     }
-    isValid.value = res
+    isValid.value = res && isAnyColumnSelectedInEachTable.value
   },
   { deep: true },
 )
@@ -903,7 +907,7 @@ function toggleTableSelecteds(table: any) {
           accordion
           expand-icon-position="right"
         >
-          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !border-none">
+          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !border-b-1 !rounded-b-lg !overflow-hidden">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <div class="flex flex-col w-full mr-2">
@@ -948,7 +952,7 @@ function toggleTableSelecteds(table: any) {
             </template>
             <div
               v-if="table.columns && table.columns.length"
-              class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !border-b-1 !rounded-b-lg !py-1"
+              class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1"
             >
               <NcTable
                 class="template-form flex-1"
@@ -997,6 +1001,19 @@ function toggleTableSelecteds(table: any) {
           </a-collapse-panel>
         </a-collapse>
       </a-form>
+      <a-alert v-if="!isAnyColumnSelectedInEachTable" type="error" class="!rounded-lg !mt-2">
+        <template #message>
+          <div class="flex flex-row items-center gap-3">
+            <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
+            <span class="font-weight-bold">Column Selection Issue</span>
+          </div>
+        </template>
+        <template #description>
+          <div class="text-gray-500 ml-9">
+            There must be at least one column selected in each table.
+          </div>
+        </template>
+      </a-alert>
     </a-card>
   </a-spin>
 </template>

@@ -2,10 +2,11 @@
 import type { Card as AntCard } from 'ant-design-vue'
 import { JobStatus } from '#imports'
 
-const { modelValue, baseId, sourceId } = defineProps<{
+const { modelValue, baseId, sourceId, transition } = defineProps<{
   modelValue: boolean
   baseId: string
   sourceId: string
+  transition?: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -344,6 +345,7 @@ const collapseKey = ref('')
     class="!top-[25vh]"
     :class="{ active: dialogShow }"
     :closable="false"
+    :transition-name="transition"
     :keyboard="step !== 2"
     :mask-closable="step !== 2"
     width="448px"

@@ -12,20 +12,27 @@ const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
+const transitionName = ref<string | undefined>(undefined);
+
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
+  transitionName.value = 'dissolve';
+
+  await nextTick();
+  visible.value = false;
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
+    'transition': 'dissolve',
     'onBack': () => {
       visible.value = true;
     }
@@ -61,21 +68,21 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
 }
 
 const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
-  visible.value = false
-
+  
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else {
+    visible.value = false
     openQuickImportDialog(type)
   }
 }
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]">
+  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]" :transition-name="transitionName">
     <div class="flex flex-col px-6 pt-6 pb-9">
       <div class="flex items-center gap-3 mb-6">
-        <div class="text-base font-weight-700">{{ $t('general.import') }} table</div>
+        <div class="text-base font-weight-700">Import data from</div>
       </div>
       <NcMenu class="border-1 divide-y-1 nc-import-items-menu">
         <NcMenuItem @click="onClick('airtable')">
@@ -100,7 +107,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem disabled>
-          <GeneralIcon icon="importSheets" class="w-5 h-5" />
+          <GeneralIcon icon="importSheets" class="w-5 h-5 opacity-50" />
           <span class="ml-1 text-[12px] font-weight-700 text-[#6A7184]">
             Sheet
           </span>

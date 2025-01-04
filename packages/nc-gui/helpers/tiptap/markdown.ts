@@ -66,9 +66,19 @@ export class NcMarkdownParser {
   public static getInstance(options: NcMarkdownParserConstructorType = {}): NcMarkdownParser {
     if (!NcMarkdownParser.instance) {
       NcMarkdownParser.instance = new NcMarkdownParser(options)
+    } else {
+      // Reconfigure the instance based on new options
+      NcMarkdownParser.instance.updateConfiguration(options)
     }
 
     return NcMarkdownParser.instance
+  }
+
+  private updateConfiguration(options: NcMarkdownParserConstructorType) {
+    // Update properties that may change
+    this.openLinkOnClick = options.openLinkOnClick || false
+
+    this.maxBlockTokens = options.maxBlockTokens
   }
 
   /**

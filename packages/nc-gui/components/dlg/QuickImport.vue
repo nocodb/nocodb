@@ -137,23 +137,33 @@ if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   )
 }
 
-const disablePreImportButton = computed(() => {
-  if (activeKey.value === 'uploadTab') {
-    return !(importState.fileList.length > 0)
-  } else if (activeKey.value === 'urlTab') {
-    if (!validateInfos.url.validateStatus) return true
+const isPreImportFileFilled = computed(() => {
+  return importState.fileList?.length > 0
+})
 
-    return validateInfos.url.validateStatus === 'error'
-  } else if (activeKey.value === 'jsonEditorTab') {
-    return !jsonEditorRef.value?.isValid
+const isPreImportUrlFilled = computed(() => {
+  return validateInfos?.url?.validateStatus === 'success'
+})
+
+const isPreImportJsonFilled = computed(() => {
+  return JSON.stringify(importState.jsonEditor).length > 2 && !jsonErrorText.value;
+})
+
+const disablePreImportButton = computed(() => {
+  if (isImportTypeCsv.value) {
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value;
+  }
+  else if (IsImportTypeExcel.value) {
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value;
+  }
+  else if (isImportTypeJson.value) {
+    return isPreImportFileFilled.value === isPreImportJsonFilled.value;
   }
 })
 
 const isError = ref(false)
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
-
-const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
 
@@ -165,21 +175,47 @@ async function handlePreImport() {
     await loadProjectTables(baseId)
   }
 
-  if (activeKey.value === 'uploadTab') {
-    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
+  if (isImportTypeCsv.value) {
+    if (isPreImportFileFilled.value) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
-    } else {
-      await parseAndExtractData((importState.fileList as importFileList)[0].data)
     }
-  } else if (activeKey.value === 'urlTab') {
-    try {
-      await validate()
-      await parseAndExtractData(importState.url)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+    else if (isPreImportUrlFilled.value) {
+      try {
+        await validate()
+        await parseAndExtractData(importState.url)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     }
-  } else if (isImportTypeJson.value) {
-    await parseAndExtractData(JSON.stringify(importState.jsonEditor))
+  }
+  else if (isImportTypeJson.value) {
+    if (isPreImportFileFilled.value) {
+      if (isWorkerSupport && importWorker) {
+        await parseAndExtractData(importState.fileList as streamImportFileList)
+      } else {
+        await parseAndExtractData((importState.fileList as importFileList)[0].data)
+      }
+    }
+    else {
+      await parseAndExtractData(JSON.stringify(importState.jsonEditor))
+    }
+  }
+  else if (IsImportTypeExcel) {
+    if (isPreImportFileFilled.value) {
+      if (isWorkerSupport && importWorker) {
+        await parseAndExtractData(importState.fileList as streamImportFileList)
+      } else {
+        await parseAndExtractData((importState.fileList as importFileList)[0].data)
+      }
+    }
+    else if (isPreImportUrlFilled.value) {
+      try {
+        await validate()
+        await parseAndExtractData(importState.url)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
   }
 
   isParsingData.value = false
@@ -250,7 +286,8 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
-  jsonEditorRef.value?.format()
+  temporaryJson.value = JSON.stringify(importState.jsonEditor, null, 2);
+  jsonErrorText.value = ''
 }
 
 function populateUniqueTableName(tn: string, draftTn: string[] = []) {
@@ -271,33 +308,31 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
 
 function getAdapter(val: any) {
   if (isImportTypeCsv.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new CSVTemplateAdapter(val, {
-          ...importState.parserConfig,
-          importFromURL: false,
-        })
-      case 'urlTab':
-        return new CSVTemplateAdapter(val, {
-          ...importState.parserConfig,
-          importFromURL: true,
-        })
+    if (isPreImportFileFilled.value) {
+      return new CSVTemplateAdapter(val, {
+        ...importState.parserConfig,
+        importFromURL: false,
+      })
+    }
+    else {
+      return new CSVTemplateAdapter(val, {
+        ...importState.parserConfig,
+        importFromURL: true,
+      })
     }
   } else if (IsImportTypeExcel.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new ExcelTemplateAdapter(val, importState.parserConfig)
-      case 'urlTab':
-        return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
+    if (isPreImportFileFilled.value) {
+      return new ExcelTemplateAdapter(val, importState.parserConfig)
+    }
+    else {
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
     }
   } else if (isImportTypeJson.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new JSONTemplateAdapter(val, importState.parserConfig)
-      case 'urlTab':
-        return new JSONUrlTemplateAdapter(val, importState.parserConfig, $api)
-      case 'jsonEditorTab':
-        return new JSONTemplateAdapter(val, importState.parserConfig)
+    if (isPreImportFileFilled.value) {
+      return new JSONTemplateAdapter(val, importState.parserConfig)
+    }
+    else {
+      return new JSONTemplateAdapter(val, importState.parserConfig)
     }
   }
 
@@ -524,6 +559,30 @@ onMounted(() => {
 })
 
 const collapseKey = ref('');
+const temporaryJson = ref('{}');
+const jsonErrorText = ref('');
+
+function handleJsonChange(newValue: string) {
+  try {
+    temporaryJson.value = newValue;
+    importState.jsonEditor = JSON.parse(newValue);
+    jsonErrorText.value = '';
+  } catch (e: any) {
+    jsonErrorText.value = e.message || 'Invalid JSON';
+  }
+}
+
+async function pasteJsonContent() {
+  try {
+    const clipboardContent = await navigator.clipboard.readText();
+    importState.jsonEditor = JSON.parse(clipboardContent);
+    temporaryJson.value = clipboardContent;
+    jsonErrorText.value = '';
+  }
+  catch (error) {
+    message.error('Failed to paste JSON content');
+  }
+}
 </script>
 
 <template>
@@ -579,7 +638,7 @@ const collapseKey = ref('');
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
-            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !bg-white !border-gray-200 hover:!bg-gray-50"
+            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !bg-white !border-gray-200 hover:!bg-gray-100"
             list-type="picture"
             :accept="importMeta.acceptTypes"
             :max-count="isImportTypeCsv ? 5 : 1"
@@ -627,11 +686,40 @@ const collapseKey = ref('');
             </template>
           </a-upload-dragger>
 
-          <LazyMonacoEditor v-if="isImportTypeJson" ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80 mt-4" />
+          <div v-if="isImportTypeJson" class="mt-4 mb-4">
+            <div class="flex items-end justify-between">
+              <label>
+                Enter Json
+              </label>
+              <NcButton type="text" size="xsmall" class="!text-primary !px-2" @click="pasteJsonContent()">
+                Paste Json
+              </NcButton>
+            </div>
+            <a-textarea
+              :rows="5"
+              class="!rounded-lg !p-2 !mt-2 !font-mono"
+              placeholder="Paste JSON here..."
+              :value="temporaryJson"
+              @update:value="handleJsonChange($event)"
+            />
+            <a-alert v-if="jsonErrorText" type="error" class="!rounded-lg !mt-2">
+              <template #message>
+                <div class="flex flex-row items-center gap-3">
+                  <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
+                  <span class="font-weight-bold">Json Error</span>
+                </div>
+              </template>
+              <template #description>
+                <div class="text-gray-500 ml-9">
+                  {{ jsonErrorText }}
+                </div>
+              </template>
+            </a-alert>
+          </div>
 
           <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-4">
             <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
-              <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." />
+              <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." :required="false" />
             </a-form-item>
           </a-form>
 
@@ -667,6 +755,20 @@ const collapseKey = ref('');
         </a-collapse>
       </div>
 
+      <a-alert v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)" type="error" class="!rounded-lg !mt-2">
+        <template #message>
+          <div class="flex flex-row items-center gap-3">
+            <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
+            <span class="font-weight-bold">Import options invalid</span>
+          </div>
+        </template>
+        <template #description>
+          <div class="text-gray-500 ml-9">
+            You need to use only one method to import files, URLs or JSON. You cannot use multiple methods at the same time. Please choose one method and try again.
+          </div>
+        </template>
+      </a-alert>
+
     </a-spin>
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
@@ -682,10 +784,9 @@ const collapseKey = ref('');
         <div class="flex-1" />
 
         <nc-button
-          v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+          v-if="isImportTypeJson && !templateEditorModal"
           key="format"
           size="small"
-          :disabled="disableFormatJsonButton"
           @click="formatJson"
         >
           {{ $t('labels.formatJson') }}

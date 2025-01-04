@@ -15,12 +15,12 @@
       "node_modules/**/*"
     ],
     "targets": [
-      "node22-linux-arm64",
-      "node22-macos-arm64",
-      "node22-win-arm64",
-      "node22-linux-x64",
-      "node22-macos-x64",
-      "node22-win-x64"
+      "node18-linux-arm64",
+      "node18-macos-arm64",
+      "node18-win-arm64",
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
     ]
   },
   "keywords": [],

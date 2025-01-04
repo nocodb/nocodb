@@ -22,6 +22,11 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
+    const timeout = setTimeout(() => {
+      this.logger.error('Failed to initialize JobsService');
+      process.exit(1);
+    }, 30 * 1000);
+
     await JobsRedis.initJobs();
 
     await this.jobsQueue.add(
@@ -75,7 +80,10 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     } else {
       JobsRedis.primaryCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
     }
-    super.onModuleInit();
+
+    await super.onModuleInit();
+
+    clearTimeout(timeout);
   }
 
   async add(name: string, data: any, options?: JobOptions) {

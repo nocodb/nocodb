@@ -470,6 +470,7 @@ import NcCloudOffIcon from '~icons/nc-icons-v2/cloud-off.svg'
 import NcMessageSquareIcon from '~icons/nc-icons-v2/message-square.svg'
 import NcEditIcon from '~icons/nc-icons-v2/edit.svg'
 import NcAlertCircleIcon from '~icons/nc-icons-v2/alert-circle.svg'
+import NcAlertCircleFilledIcon from '~icons/nc-icons-v2/alert-circle-filled.svg'
 import NcChevronsUpIcon from '~icons/nc-icons-v2/chevrons-up.svg'
 import NcUploadCloudIcon from '~icons/nc-icons-v2/upload-cloud.svg'
 import NcYoutubeIcon from '~icons/nc-icons-v2/youtube.svg'
@@ -1407,6 +1408,7 @@ export const iconMap = {
   ncMessageSquare: NcMessageSquareIcon,
   ncEDit2: NcEditIcon,
   ncAlertCircle: NcAlertCircleIcon,
+  ncAlertCircleFilled: NcAlertCircleFilledIcon,
   ncChevronsUp: NcChevronsUpIcon,
   ncUploadCloud: NcUploadCloudIcon,
   ncYoutube: NcYoutubeIcon,
@@ -3690,6 +3692,10 @@ export const searchableMap = {
   },
   ncAlertCircle: {
     icon: NcAlertCircleIcon,
+    keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Alert'],
+  },
+  ncAlertCircleFilled: {
+    icon: NcAlertCircleFilledIcon,
     keywords: ['Warning', 'Notification', 'Caution', 'Error', 'Alert'],
   },
   ncChevronsUp: {

@@ -678,15 +678,15 @@ async function pasteJsonContent() {
               :value="temporaryJson"
               @update:value="handleJsonChange($event)"
             />
-            <a-alert v-if="jsonErrorText" type="error" class="!rounded-lg !mt-2">
+            <a-alert v-if="jsonErrorText" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
               <template #message>
-                <div class="flex flex-row items-center gap-3">
-                  <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
-                  <span class="font-weight-bold">Json Error</span>
+                <div class="flex flex-row items-center gap-2 mb-2">
+                  <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+                  <span class="font-weight-700 text-[14px]">Json Error</span>
                 </div>
               </template>
               <template #description>
-                <div class="text-gray-500 ml-9">
+                <div class="text-gray-500 text-[13px] leading-5 ml-6">
                   {{ jsonErrorText }}
                 </div>
               </template>
@@ -740,16 +740,16 @@ async function pasteJsonContent() {
       <a-alert
         v-if="disablePreImportButton && (isPreImportFileFilled || isPreImportUrlFilled || isPreImportJsonFilled)"
         type="error"
-        class="!rounded-lg !mt-2"
+        class="!rounded-lg !mt-2 !border-none !p-3">
       >
         <template #message>
-          <div class="flex flex-row items-center gap-3">
-            <GeneralIcon icon="ncAlertCircle" class="text-red-500 w-6 h-6" />
-            <span class="font-weight-bold">Import options invalid</span>
+          <div class="flex flex-row items-center gap-2 mb-2">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+            <span class="font-weight-700 text-[14px]">Import options invalid</span>
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 ml-9">
+          <div class="text-gray-500 text-[13px] leading-5 ml-6">
             You need to use only one method to import files, URLs or JSON. You cannot use multiple methods at the same time.
             Please choose one method and try again.
           </div>

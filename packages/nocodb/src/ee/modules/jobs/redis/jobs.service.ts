@@ -2,6 +2,7 @@ import { JobsService as JobsServiceCE } from 'src/modules/jobs/redis/jobs.servic
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
+import { NcDebug } from 'nc-gui/utils/debug';
 import type { JobOptions } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { InstanceCommands, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
@@ -27,7 +28,9 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       process.exit(1);
     }, 30 * 1000);
 
+    NcDebug.log('JobsService init start');
     await JobsRedis.initJobs();
+    NcDebug.log('JobsService init complete');
 
     await this.jobsQueue.add(
       {

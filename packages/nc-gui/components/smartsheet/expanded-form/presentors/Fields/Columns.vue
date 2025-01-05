@@ -64,7 +64,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
 <template>
   <div
     ref="expandedFormScrollWrapper"
-    class="flex flex-col flex-grow gap-6 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
+    class="flex flex-col flex-grow gap-5 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
   >
     <div
       v-for="(col, i) of fields"
@@ -107,7 +107,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             class="bg-white flex-1 <lg:w-full px-1 min-h-8 flex items-center relative"
             :class="{
               'w-full': props.forceVerticalMode,
-              '!select-text nc-system-field bg-nc-bg-gray-light': isReadOnlyVirtualCell(col),
+              '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer': isReadOnlyVirtualCell(col),
               '!select-text nc-readonly-div-data-cell': readOnly,
               'nc-mentioned-cell': col.id === mentionedCell,
             }"

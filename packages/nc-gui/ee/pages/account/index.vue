@@ -146,7 +146,7 @@ const logout = async () => {
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement')"
+                  v-if="isUIAllowed('superAdminUserManagement') && (!isEeUI || appInfo.isOnPrem)"
                   key="list"
                   :class="{
                     active: $route.params.nestedPage === 'list',
@@ -167,7 +167,7 @@ const logout = async () => {
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings')"
+                  v-if="isUIAllowed('superAdminAppSettings') && (!isEeUI || appInfo.isOnPrem)"
                   key="settings"
                   :class="{
                     active: $route.params.nestedPage === 'settings',
@@ -191,7 +191,7 @@ const logout = async () => {
               <LazyGeneralReleaseInfo />
 
               <a-tooltip
-                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || true"
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem"
                 :mouse-enter-delay="1"
                 placement="bottom"
                 class="mr-4"

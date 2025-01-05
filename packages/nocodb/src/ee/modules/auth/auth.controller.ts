@@ -260,7 +260,6 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
   async signup(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
-    // todo: remove later, temporary workaround
     // check if any sso clients are present
     if (process.env.NC_CLOUD !== 'true') {
       const ssoClients = await SSOClient.getPublicList({

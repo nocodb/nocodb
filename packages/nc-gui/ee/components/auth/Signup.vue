@@ -132,7 +132,7 @@ const toggleLoginForm = ref(false)
           </h1>
 
           <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
-            <template v-if="!appInfo.disableEmailAuth && ((!appInfo.isCloud && !appInfo.ssoClients?.length) || toggleLoginForm)">
+            <template v-if="!appInfo.disableEmailAuth && ((appInfo.isOnPrem && !appInfo.ssoClients?.length) || toggleLoginForm)">
               <Transition name="layout">
                 <div
                   v-if="error"
@@ -170,7 +170,7 @@ const toggleLoginForm = ref(false)
             </template>
             <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
               <template
-                v-if="!appInfo.disableEmailAuth && ((!appInfo.isCloud && !appInfo.ssoClients?.length) || toggleLoginForm)"
+                v-if="!appInfo.disableEmailAuth && ((appInfo.isOnPrem && !appInfo.ssoClients?.length) || toggleLoginForm)"
               >
                 <button class="scaling-btn bg-opacity-100" type="submit">
                   <span class="flex items-center gap-2">
@@ -258,7 +258,7 @@ const toggleLoginForm = ref(false)
               </div>
 
               <div
-                v-if="!appInfo.disableEmailAuth && ((!appInfo.isCloud && !appInfo.ssoClients?.length) || toggleLoginForm)"
+                v-if="!appInfo.disableEmailAuth && ((appInfo.isOnPrem && !appInfo.ssoClients?.length) || toggleLoginForm)"
                 class="flex items-center gap-2"
               >
                 <a-switch

@@ -23,6 +23,8 @@ const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
 
+const { appInfo } = useGlobal()
+
 const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()

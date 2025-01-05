@@ -375,17 +375,20 @@ export class WorkspaceUsersService {
       let user = await User.getByEmail(email, ncMeta);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
-        user = await this.usersService.registerNewUserIfAllowed({
-          email,
-          password: '',
-          email_verification_token: null,
-          avatar: null,
-          user_name: null,
-          display_name: '',
-          salt,
-          req: param.req,
-          workspace_invite: true,
-        });
+        user = await this.usersService.registerNewUserIfAllowed(
+          {
+            email,
+            password: '',
+            email_verification_token: null,
+            avatar: null,
+            user_name: null,
+            display_name: '',
+            salt,
+            req: param.req,
+            workspace_invite: true,
+          },
+          ncMeta,
+        );
       }
 
       // check if this user has been added to this base

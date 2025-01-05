@@ -37,7 +37,6 @@ export class SortsV3Controller {
   }
 
   @Post('/api/v3/meta/views/:viewId/sorts/')
-  @HttpCode(200)
   @Acl('sortCreate')
   async sortCreate(
     @TenantContext() context: NcContext,

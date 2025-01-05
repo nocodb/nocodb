@@ -270,6 +270,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
         .send(isV2 ? createUserArgsList[0] : createUserArgsList)
         .expect(isV3 ? 201 : 200);
 
+      // todo: extract using api here
       const users: any[] = (await fetchUsersFromBase(base.id)).filter((u) =>
         (u.email as string).startsWith('test-crud'),
       );

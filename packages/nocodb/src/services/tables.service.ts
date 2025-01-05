@@ -720,10 +720,10 @@ export class TablesService {
         // exclude alias columns from column list
         ?.filter((c) => {
           const allowed =
-            ((!isCreatedOrLastModifiedTimeCol(c) &&
+            (!isCreatedOrLastModifiedTimeCol(c) &&
               !isCreatedOrLastModifiedByCol(c)) ||
-              (c as any).system) &&
-            !isOrderCol(c);
+            (c as any).system ||
+            isOrderCol(c);
 
           if (!allowed) {
             virtualColumns.push(c);

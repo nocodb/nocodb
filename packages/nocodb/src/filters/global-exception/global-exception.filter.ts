@@ -43,7 +43,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (
       exception.name === 'BadRequestException' &&
       exception.status === 400 &&
-      /^Unexpected token .*? in JSON/.test(exception.message)
+      /^Unexpected token .*? (?:in JSON|is not valid JSON)/.test(
+        exception.message,
+      )
     ) {
       exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
     }

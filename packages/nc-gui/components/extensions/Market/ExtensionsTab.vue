@@ -65,6 +65,7 @@ const onAddExtension = (ext: any) => {
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
             class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+            :data-testid="`nc-extension-${ext.id}`"
             @click="onExtensionClick(ext.id)"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">

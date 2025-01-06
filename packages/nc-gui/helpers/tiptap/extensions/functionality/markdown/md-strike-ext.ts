@@ -1,4 +1,4 @@
-import MarkdownIt from 'markdown-it'
+import type MarkdownIt from 'markdown-it'
 
 function mdStrikeExt(md: MarkdownIt) {
   // Extend the default Markdown-It strike-through parsing
@@ -47,11 +47,11 @@ function mdStrikeExt(md: MarkdownIt) {
     return true
   })
 
-  md.renderer.rules.strike_open = (tokens, idx, options, env, self) => {
+  md.renderer.rules.strike_open = () => {
     return `<s>`
   }
 
-  md.renderer.rules.strike_close = (tokens, idx, options, env, self) => {
+  md.renderer.rules.strike_close = () => {
     return `</s>`
   }
 

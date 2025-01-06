@@ -5,7 +5,7 @@ import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
-import { suggestion, FieldMentionList } from '~/helpers/tiptap/extensions'
+import { FieldMentionList, suggestion } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{

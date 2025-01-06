@@ -7,10 +7,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
-import { Mention } from '~/helpers/tiptapExtensions/mention'
-import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList'
-import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
+import { Strike, Link, UserMention, suggestion, UserMentionList } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -132,7 +129,7 @@ const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
-  Mention.configure({
+  UserMention.configure({
     suggestion: {
       ...suggestion(UserMentionList),
       items: ({ query }) =>
@@ -151,7 +148,9 @@ const tiptapExtensions = [
     heading: false,
     codeBlock: false,
     code: false,
+    strike: false,
   }),
+  Strike,
   Underline,
   Link,
   Placeholder.configure({
@@ -537,6 +536,14 @@ onMounted(() => {
 
     pre {
       height: fit-content;
+    }
+
+    em {
+      font-synthesis: initial !important;
+
+      & * {
+        font-synthesis: initial !important;
+      }
     }
   }
 }

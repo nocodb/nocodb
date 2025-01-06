@@ -3,9 +3,11 @@ import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
 
+// Todo: Update user mention to field mention
+
 const USER_ID_REGEXP = /@\(([^)]+)\)/
 
-export const parseMention = (
+export const parseFieldMention = (
   users: (Partial<UserType> | Partial<User>)[] = [],
   currentUser?: Partial<UserType> | Partial<User> | null,
   isReadonly = false,
@@ -36,7 +38,7 @@ export const parseMention = (
   })
 }
 
-export const Mention = TipTapMention.extend({
+export const FieldMention = TipTapMention.extend({
   addOptions() {
     return {
       ...this.parent?.(),
@@ -84,7 +86,7 @@ export const Mention = TipTapMention.extend({
         },
         parse: {
           setup(markdownit: MarkdownIt) {
-            markdownit.use(parseMention(this.options.users, this.options.currentUser))
+            markdownit.use(parseFieldMention(this.options.users, this.options.currentUser))
           },
         },
       },

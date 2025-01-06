@@ -49,16 +49,22 @@ function normalizeColOptions(key: string) {
 function normalizeMeta(key: string) {
   const mta = meta.value?.[key] ?? {};
   const opts = normalizeColOptions(key);
+  const icn = {
+    'thumbs-up': 'thumb-up',
+    'circle-filled': 'moon-full',
+  }[opts.icon as string] ?? opts.icon;
   return {
     ...opts,
     ...mta,
-    icon: !opts.icon ? undefined : {
-      full: 'mdi-' + opts.icon,
-      empty: 'mdi-' + opts.icon,
-      checked: 'mdi-' + opts.icon,
-      unchecked: 'mdi-' + opts.icon,
+    icon: !icn ? undefined : {
+      full: 'mdi-' + icn,
+      empty: 'mdi-' + icn,
+      checked: 'mdi-' + icn,
+      unchecked: 'mdi-' + icn,
     },
     duration: opts.duration_format ? durationOptions.find(it => it.title === opts.duration_format)?.id : undefined,
+    is12hrFormat: opts['12hr_format'],
+    isLocaleString: opts.locale_string,
   }
 }
 
@@ -77,21 +83,21 @@ function shouldShowRaw(key: string) {
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
     <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header">
-      <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.type }" class="!m-0" />
+      <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }" class="!m-0" />
       {{ columnKey }}
     </div>
-    <!-- <pre v-if="meta[columnKey]?.type !== 'Duration'">{{ [ normalizeColOptions(columnKey), normalizeMeta(columnKey) ] }}</pre> -->
+    <!-- <pre v-if="meta[columnKey]?.type === 'Number'">{{ [ normalizeColOptions(columnKey), normalizeMeta(columnKey) ] }}</pre> -->
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
         <div v-if="oldData[columnKey]?.length > 0" class="border-1 border-red-500 rounded-md bg-red-50 w-full p-0.5">
           <div class="flex flex-col items-start gap-0.5">
             <div v-for="(item, i) of oldData[columnKey]" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
               <div class="flex items-center gap-2 w-full">
-                <div class="aspect-square">
+                <div class="flex items-center justify-center w-8 aspect-square">
                   <LazyCellAttachmentPreviewImage
                     v-if="isImage(item.title, item.mimetype ?? item.type)"
                     :alt="item.title || `#${i}`"
-                    class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
+                    class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
                     :srcs="getPossibleAttachmentSrc(item, 'small')"
                   />
                   <div v-else class="nc-attachment flex items-center justify-center">
@@ -119,7 +125,7 @@ function shouldShowRaw(key: string) {
                     class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
                     :srcs="getPossibleAttachmentSrc(item, 'small')"
                   />
-                  <div v-else class="nc-attachment h-full w-full flex items-center justify-center">
+                  <div v-else class="nc-attachment flex items-center justify-center">
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
@@ -156,12 +162,12 @@ function shouldShowRaw(key: string) {
           class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
             'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
-            '!p-0.25': ['SingleSelect'].includes(meta[columnKey]?.type),
-            '!p-0.75 w-full': ['MultiSelect'].includes(meta[columnKey]?.type),
+            '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
           }">
           <SmartsheetCell
             :column="{
               uidt: meta[columnKey]?.type,
+              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
               meta: normalizeMeta(columnKey),
               colOptions: normalizeColOptions(columnKey),
             }"
@@ -179,12 +185,12 @@ function shouldShowRaw(key: string) {
           class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
           :class="{
             'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
-            '!p-0.25': ['SingleSelect'].includes(meta[columnKey]?.type),
-            '!p-0.75 w-full': ['MultiSelect'].includes(meta[columnKey]?.type),
+            '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
           }">
           <SmartsheetCell
             :column="{
               uidt: meta[columnKey]?.type,
+              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
               meta: normalizeMeta(columnKey),
               colOptions: normalizeColOptions(columnKey),
             }"
@@ -209,17 +215,17 @@ function shouldShowRaw(key: string) {
 .nc-audit-mini-item-cell :deep(.nc-cell-field.nc-multi-select > div) {
   @apply !gap-1 !flex;
   & > span {
-    @apply !m-0 h-[22px] flex items-center;
+    @apply !m-0 flex items-center h-[22px];
   }
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-field.nc-single-select > div) {
-  height: 19.4px;
+  height: 20px !important;
   & > span {
     @apply !m-0;
   }
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
-  @apply !p-0;
+  @apply !p-0 transform -translate-y-[2px];
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-percent) {
   & > div > div {
@@ -243,6 +249,11 @@ function shouldShowRaw(key: string) {
     }
   }
 }
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-time) {
+  .nc-time-picker span {
+    text-decoration: line-through;
+  }
+}
 .nc-audit-mini-item-cell :deep(.nc-cell-user) {
   .nc-cell-field > div {
     display: flex !important;
@@ -262,6 +273,11 @@ function shouldShowRaw(key: string) {
     }
   }
 }
+.nc-audit-mini-item-cell :deep(.nc-cell-user:has(.ant-tag + .ant-tag)) {
+  .ant-tag {
+    @apply !border-1 !border-gray-300 !py-0.5 !px-1 !bg-gray-100 !rounded-[6px];
+  }
+}
 .nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-user) {
   .ant-tag > span > div + div {
     @apply !text-red-700;
@@ -275,6 +291,15 @@ function shouldShowRaw(key: string) {
 :deep(.nc-audit-mini-item-header) {
   svg {
     height: 12px;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-audit-mini-item-cell:has(.nc-cell-user .ant-tag + .ant-tag) {
+  @apply !p-1;
+  .nc-cell-field > div {
+    @apply gap-1;
   }
 }
 </style>

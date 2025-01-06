@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuditType } from 'nocodb-sdk'
+import type { AttachmentType, AuditType } from 'nocodb-sdk'
 
 const props = defineProps<{
   audit: AuditType
@@ -68,6 +68,38 @@ function normalizeMeta(key: string) {
   }
 }
 
+function processOldDataFor(key: string) {
+
+  const odata = oldData.value[key];
+  const ndata = newData.value[key];
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    return odata?.filter((it: AttachmentType) => !ndata?.some((t: AttachmentType) => t.title === it.title));
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata;
+  }
+
+  return odata;
+
+}
+
+function processNewDataFor(key: string) {
+
+  const odata = oldData.value[key];
+  const ndata = newData.value[key];
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    return ndata?.filter((it: AttachmentType) => !odata?.some((t: AttachmentType) => t.title === it.title));
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata;
+  }
+
+  return ndata;
+
+}
+
 /* visibility */
 
 function isShowableValue(value: any) {
@@ -86,12 +118,11 @@ function shouldShowRaw(key: string) {
       <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }" class="!m-0" />
       {{ columnKey }}
     </div>
-    <!-- <pre v-if="meta[columnKey]?.type === 'Number'">{{ [ normalizeColOptions(columnKey), normalizeMeta(columnKey) ] }}</pre> -->
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
-        <div v-if="oldData[columnKey]?.length > 0" class="border-1 border-red-500 rounded-md bg-red-50 w-full p-0.5">
+        <div v-if="processOldDataFor(columnKey)?.length > 0" class="border-1 border-red-500 rounded-md bg-red-50 w-full p-0.5">
           <div class="flex flex-col items-start gap-0.5">
-            <div v-for="(item, i) of oldData[columnKey]" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
+            <div v-for="(item, i) of processOldDataFor(columnKey)" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
                   <LazyCellAttachmentPreviewImage
@@ -114,9 +145,9 @@ function shouldShowRaw(key: string) {
             </div>
           </div>
         </div>
-        <div v-if="newData[columnKey]?.length > 0" class="border-1 border-green-500 rounded-md bg-green-50 w-full p-0.5">
+        <div v-if="processNewDataFor(columnKey)?.length > 0" class="border-1 border-green-500 rounded-md bg-green-50 w-full p-0.5">
           <div class="flex flex-col items-start gap-0.5">
-            <div v-for="(item, i) of newData[columnKey]" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
+            <div v-for="(item, i) of processNewDataFor(columnKey)" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
                   <LazyCellAttachmentPreviewImage
@@ -158,7 +189,7 @@ function shouldShowRaw(key: string) {
       </template>
       <template v-else>
         <div
-          v-if="isShowableValue(oldData[columnKey])"
+          v-if="isShowableValue(processOldDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
             'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
@@ -171,7 +202,7 @@ function shouldShowRaw(key: string) {
               meta: normalizeMeta(columnKey),
               colOptions: normalizeColOptions(columnKey),
             }"
-            :model-value="oldData[columnKey]"
+            :model-value="processOldDataFor(columnKey)"
             :edit-enabled="false"
             :read-only="true"
             :class="{
@@ -181,7 +212,7 @@ function shouldShowRaw(key: string) {
           />
         </div>
         <div
-          v-if="isShowableValue(newData[columnKey])"
+          v-if="isShowableValue(processNewDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
           :class="{
             'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
@@ -194,7 +225,7 @@ function shouldShowRaw(key: string) {
               meta: normalizeMeta(columnKey),
               colOptions: normalizeColOptions(columnKey),
             }"
-            :model-value="newData[columnKey]"
+            :model-value="processNewDataFor(columnKey)"
             :edit-enabled="false"
             :read-only="true"
             :class="{
@@ -222,6 +253,16 @@ function shouldShowRaw(key: string) {
   height: 20px !important;
   & > span {
     @apply !m-0;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-field.nc-multi-select > div) {
+  span.ant-tag span.text-ellipsis {
+    @apply line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-field.nc-single-select > div) {
+  span.ant-tag span.text-ellipsis {
+    @apply line-through;
   }
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
@@ -300,6 +341,12 @@ function shouldShowRaw(key: string) {
   @apply !p-1;
   .nc-cell-field > div {
     @apply gap-1;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal:has(.nc-cell-user) {
+  text-decoration: none;
+  .ant-tag div + div {
+    text-decoration: line-through;
   }
 }
 </style>

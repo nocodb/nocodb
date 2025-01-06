@@ -76,6 +76,8 @@ type AiSuggestedViewType = SerializedAiViewType & {
   tab?: AiWizardTabsType
 }
 
+const { $e } = useNuxtApp()
+
 const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
@@ -199,6 +201,7 @@ const activeAiTab = computed({
         aiPromptInputRef.value?.focus()
       })
     }
+    $e(`c:view:ai:tab-change:${value}`)
   },
 })
 
@@ -225,6 +228,8 @@ watch(
 
 const onAiEnter = async () => {
   calledFunction.value = 'createViews'
+
+  $e('a:view:ai:create')
 
   if (activeTabSelectedViews.value.length) {
     try {
@@ -578,6 +583,8 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
+  $e('a:view:ai:predict-more')
+
   const predictions = await predictViews()
 
   if (predictions.length) {
@@ -590,6 +597,8 @@ const predictMore = async () => {
 
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
+
+  $e('a:view:ai:predict-refresh')
 
   const predictions = await predictViews()
 
@@ -604,6 +613,10 @@ const predictRefresh = async () => {
 
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
+
+  $e('a:view:ai:predict-from-prompt', {
+    prompt: prompt.value,
+  })
 
   const predictions = await predictViews()
 
@@ -655,6 +668,8 @@ const onSelectAll = () => {
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
+  $e(`c:view:ai:toggle:${true}`)
+
   formValidator.value?.clearValidate()
   aiError.value = ''
 
@@ -673,6 +688,8 @@ const toggleAiMode = async () => {
 
 const disableAiMode = () => {
   if (isAIViewCreateMode.value) return
+
+  $e(`c:view:ai:toggle:${false}`)
 
   aiMode.value = false
   aiModeStep.value = null
@@ -1450,7 +1467,6 @@ const getPluralName = (name: string) => {
           </NcButton>
           <NcButton
             v-else-if="aiIntegrationAvailable"
-            v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
             type="primary"
             size="small"
             theme="ai"

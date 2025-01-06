@@ -27,6 +27,8 @@ const { error, suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 
+const { $e } = useNuxtApp()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
@@ -608,6 +610,10 @@ const promptAI = async () => {
 
   calledFun.value = 'promptAI'
 
+  $e(`a:column:ai:formula:predict-from-prompt`, {
+    prompt: aiPrompt.value,
+  })
+
   const formula = await predictFormula(aiPrompt.value, value.value)
 
   if (formula) {
@@ -619,6 +625,8 @@ const promptAI = async () => {
 const repairFormulaAI = async () => {
   calledFun.value = 'repairFormulaAI'
 
+  $e(`a:column:ai:formula:repair`)
+
   const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
 
   if (formula) {
@@ -627,6 +635,8 @@ const repairFormulaAI = async () => {
 }
 
 const enableAI = async () => {
+  $e(`c:column:ai:formula:enable`)
+
   if (validateInfos?.formula_raw?.validateStatus === 'error') {
     await repairFormulaAI()
   } else {

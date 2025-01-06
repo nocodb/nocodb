@@ -20,6 +20,8 @@ const maxSelectionCount = 100
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { $e } = useNuxtApp()
+
 const isAdvanceOptVisible = ref(false)
 
 const inputEl = ref<HTMLInputElement>()
@@ -103,6 +105,9 @@ const activeAiTab = computed({
       nextTick(() => {
         aiPromptInputRef.value?.focus()
       })
+    }
+    if (aiMode.value) {
+      $e(`c:table:ai:tab-change:${value}`)
     }
   },
 })
@@ -217,6 +222,8 @@ const onSelectAll = () => {
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
+  $e('c:table:ai:toggle:true')
+
   aiError.value = ''
 
   aiMode.value = true
@@ -233,6 +240,8 @@ const toggleAiMode = async () => {
 }
 
 const disableAiMode = () => {
+  $e('c:table:ai:toggle:false')
+
   aiMode.value = false
   aiModeStep.value = null
   predictedTables.value = []
@@ -250,6 +259,8 @@ const disableAiMode = () => {
 
 const onAiEnter = async () => {
   calledFunction.value = 'generateTables'
+
+  $e('a:table:ai:create')
 
   if (activeTabSelectedTables.value.length) {
     await generateTables(
@@ -557,6 +568,7 @@ const handleRefreshOnError = () => {
                         placement="top"
                       >
                         <NcButton
+                          v-e="['a:table:ai:predict-more']"
                           size="xs"
                           class="!px-1"
                           type="text"
@@ -573,6 +585,7 @@ const handleRefreshOnError = () => {
                       </NcTooltip>
                       <NcTooltip title="Clear all and Re-suggest" placement="top">
                         <NcButton
+                          v-e="['a:table:ai:predict-refresh']"
                           size="xs"
                           class="!px-1"
                           type="text"
@@ -624,7 +637,12 @@ const handleRefreshOnError = () => {
                       "
                       :loading="isPredictFromPromptLoading"
                       icon-only
-                      @click="predictFromPrompt"
+                      @click="
+                        () => {
+                          $e('a:table:ai:predict-from-prompt', { prompt })
+                          predictFromPrompt()
+                        }
+                      "
                     >
                       <template #loadingIcon>
                         <GeneralLoader class="!text-purple-700" size="medium" />
@@ -780,7 +798,6 @@ const handleRefreshOnError = () => {
             </NcButton>
             <NcButton
               v-else-if="aiIntegrationAvailable"
-              v-e="['a:table:create']"
               type="primary"
               theme="ai"
               size="small"

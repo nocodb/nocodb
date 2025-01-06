@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType } from 'nocodb-sdk'
+import { type ViewType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -74,6 +74,8 @@ async function onOpenModal({
   coverImageColumnId?: string
 }) {
   if (isViewListLoading.value) return
+
+  $e('c:view:create:navdraw', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
   toBeCreateType.value = type
 

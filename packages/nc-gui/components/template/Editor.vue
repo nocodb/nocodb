@@ -2,15 +2,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
-import {
-  SqlUiFactory,
-  UITypes,
-  getDateFormat,
-  getDateTimeFormat,
-  isSystemColumn,
-  isVirtualCol,
-  parseStringDate,
-} from 'nocodb-sdk'
+import { SqlUiFactory, UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
@@ -32,18 +24,8 @@ interface Option {
   value: string
 }
 
-const {
-  quickImportType,
-  baseTemplate,
-  importData,
-  importColumns,
-  importDataOnly,
-  maxRowsToParse,
-  baseId,
-  sourceId,
-  importWorker,
-  tableIcon,
-} = defineProps<Props>()
+const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId } =
+  defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
 
@@ -106,28 +88,6 @@ const importingTips = ref<Record<string, string>>({})
 const checkAllRecord = ref<Record<string, boolean>>({})
 
 const formError = ref()
-
-const uiTypeOptions = ref<Option[]>(
-  (Object.keys(UITypes) as (keyof typeof UITypes)[])
-    .filter(
-      (uiType) =>
-        !isVirtualCol(UITypes[uiType]) &&
-        ![
-          UITypes.ForeignKey,
-          UITypes.ID,
-          UITypes.CreatedTime,
-          UITypes.LastModifiedTime,
-          UITypes.CreatedBy,
-          UITypes.LastModifiedBy,
-          UITypes.Barcode,
-          UITypes.Button,
-        ].includes(UITypes[uiType]),
-    )
-    .map<Option>((uiType) => ({
-      value: uiType,
-      label: uiType,
-    })),
-)
 
 const srcDestMapping = ref<Record<string, Record<string, any>[]>>({})
 
@@ -279,19 +239,6 @@ function isSelect(col: ColumnType) {
 
 function deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
-}
-
-function deleteTableColumn(tableIdx: number, columnKey: number) {
-  const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
-  data.tables[tableIdx].columns.splice(columnIdx, 1)
-  let key = 0
-
-  data.tables[tableIdx].columns.forEach((_c: ColumnType & { key: number }, i: number) => {
-    if (data.tables[tableIdx].columns[i].key !== undefined) {
-      data.tables[tableIdx].columns[i].key = key
-      key++
-    }
-  })
 }
 
 function setEditableTn(tableIdx: number, val: boolean) {
@@ -689,49 +636,10 @@ function handleEditableTnChange(idx: number) {
   setEditableTn(idx, false)
 }
 
-function isSelectDisabled(uidt: string, disableSelect = false) {
-  return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
-}
-
 function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   const isChecked = event.target.checked
   for (const record of srcDestMapping.value[tableName]) {
     record.enabled = isChecked
-  }
-}
-
-function handleUIDTChange(column, table) {
-  if (!importWorker) return
-
-  const handler = (e) => {
-    const [type, payload] = e.data
-    switch (type) {
-      case ImportWorkerResponse.SINGLE_SELECT_OPTIONS:
-      case ImportWorkerResponse.MULTI_SELECT_OPTIONS:
-        importWorker.removeEventListener('message', handler, false)
-        column.dtxp = payload
-        break
-    }
-  }
-
-  if (column.uidt === UITypes.SingleSelect) {
-    importWorker.addEventListener('message', handler, false)
-    importWorker.postMessage([
-      ImportWorkerOperations.GET_SINGLE_SELECT_OPTIONS,
-      {
-        tableName: table.ref_table_name,
-        columnName: column.ref_column_name,
-      },
-    ])
-  } else if (column.uidt === UITypes.MultiSelect) {
-    importWorker.addEventListener('message', handler, false)
-    importWorker.postMessage([
-      ImportWorkerOperations.GET_MULTI_SELECT_OPTIONS,
-      {
-        tableName: table.ref_table_name,
-        columnName: column.ref_column_name,
-      },
-    ])
   }
 }
 

@@ -57,6 +57,12 @@ const templateEditorModal = ref(false)
 
 const isParsingData = ref(false)
 
+const collapseKey = ref('')
+
+const temporaryJson = ref({})
+
+const jsonErrorText = ref('')
+
 const useForm = Form.useForm
 
 const defaultImportState = {
@@ -545,10 +551,6 @@ onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
-
-const collapseKey = ref('')
-const temporaryJson = ref({})
-const jsonErrorText = ref('')
 
 function handleJsonChange(newValue: any) {
   try {

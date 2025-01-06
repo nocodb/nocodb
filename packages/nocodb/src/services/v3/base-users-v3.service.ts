@@ -41,6 +41,12 @@ export class BaseUsersV3Service {
         workspace_roles: 'workspace_role',
         display_name: 'name',
       },
+      transformFn(data) {
+        if (!data.name) {
+          data.name = undefined;
+        }
+        return data;
+      },
     });
   }
 

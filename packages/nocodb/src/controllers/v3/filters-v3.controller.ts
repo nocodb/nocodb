@@ -80,8 +80,6 @@ export class FiltersV3Controller {
     const filter = await this.filtersV3Service.filterCreate(context, {
       filter: body,
       viewId: viewId,
-      hookId: hookId,
-      linkColumnId,
       user: req.user,
       req,
     });

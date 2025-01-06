@@ -28,6 +28,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
+const { $e } = useNuxtApp()
+
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
@@ -336,6 +338,11 @@ const loadListData = async ($state: any) => {
 
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
+
+  $e(`a:column:predict-options`, {
+    datatype: vModel.value.uidt,
+    title: vModel.value.title,
+  })
 
   isLoadingPredictOptions.value = true
 

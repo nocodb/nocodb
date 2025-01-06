@@ -66,7 +66,7 @@ export const usePredictFields = createSharedComposable(
         aiError.value = ''
 
         if (aiMode.value) {
-          $e(`c:field:ai:tab-change:${value}`)
+          $e(`c:column:ai:tab-change:${value}`)
         }
       },
     })
@@ -268,7 +268,7 @@ export const usePredictFields = createSharedComposable(
     }
 
     const disableAiMode = () => {
-      $e(`c:field:ai:toggle:${false}`, {
+      $e(`c:column:ai:toggle:${false}`, {
         mode: fieldPredictionMode.value,
       })
 
@@ -278,7 +278,7 @@ export const usePredictFields = createSharedComposable(
     const predictMore = async () => {
       calledFunction.value = 'predictMore'
 
-      $e('a:field:ai:predict-more')
+      $e('a:column:ai:predict-more')
 
       const predictions = await predictNextFields()
 
@@ -293,7 +293,7 @@ export const usePredictFields = createSharedComposable(
     const predictRefresh = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictRefresh'
 
-      $e('a:field:ai:predict-refresh')
+      $e('a:column:ai:predict-refresh')
 
       const predictions = await predictNextFields()
 
@@ -318,7 +318,7 @@ export const usePredictFields = createSharedComposable(
     const predictFromPrompt = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictFromPrompt'
 
-      $e('a:field:ai:predict-from-prompt', {
+      $e('a:column:ai:predict-from-prompt', {
         prompt: prompt.value,
       })
 
@@ -510,7 +510,7 @@ export const usePredictFields = createSharedComposable(
       }
     }
     const toggleAiMode = async (mode: 'field' | 'button' | 'formula' = 'field', fromFieldModal = false) => {
-      $e(`c:field:ai:toggle:${true}`, {
+      $e(`c:column:ai:toggle:${true}`, {
         mode,
       })
 

@@ -190,13 +190,6 @@ function onRemoveFileClick(title: any, i: number) {
   filetoDelete.title = title
 }
 
-const handleFileDelete = (i: number) => {
-  removeFile(i)
-  isConfirmModalOpen.value = false
-  filetoDelete.i = 0
-  filetoDelete.title = ''
-}
-
 const attachmentSize = computed(() => {
   if (isForm.value || isExpandedForm.value) {
     return 'small'
@@ -229,77 +222,20 @@ defineExpose({
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
     <div v-if="visibleItems.length > 0" class="flex items-center mb-2 gap-2">
-      <div
-        v-for="(item, i) in visibleItems.slice(0, 3)"
+      <CellAttachmentCard
+        v-for="(item, i) in visibleItems.slice(0,3)"
         :key="`${item?.title}-${i}`"
-        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-1/4"
-      >
-        <div
-          :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-          class="nc-attachment h-full flex justify-center items-center overflow-hidden"
-        >
-          <LazyCellAttachmentPreviewImage
-            v-if="isImage(item.title, item.mimetype)"
-            :srcs="getPossibleAttachmentSrc(item, 'small')"
-            object-fit="cover"
-            class="!w-full !h-20 object-cover !m-0 rounded-t-[5px] justify-center"
-            @click="onFileClick(item)"
-          />
-
-          <CellAttachmentIconView v-else :item="item" :height="45" :width="45" @click="selectedFile = item" />
-        </div>
-
-        <div class="relative px-1 flex" :title="item.title">
-          <NcTooltip show-on-truncate-only class="flex-auto truncate w-full text-[13px] items-center text-sm line-height-4">
-            {{ item.title }}
-
-            <template #title>
-              {{ item.title }}
-            </template>
-          </NcTooltip>
-          <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 pb-2 flex items-center bg-white">
-            <NcTooltip placement="bottom">
-              <template #title> {{ $t('title.downloadFile') }} </template>
-              <NcButton
-                class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
-                size="xsmall"
-                type="text"
-                @click="downloadAttachment(item)"
-              >
-                <component :is="iconMap.download" class="!text-xs h-13px w-13px" />
-              </NcButton>
-            </NcTooltip>
-
-            <NcTooltip v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
-              <template #title> {{ $t('title.renameFile') }} </template>
-              <NcButton
-                size="xsmall"
-                class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content]"
-                type="text"
-                @click="renameFile(item, i)"
-              >
-                <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
-              </NcButton>
-            </NcTooltip>
-
-            <NcTooltip v-if="!isReadonly" placement="bottom">
-              <template #title> {{ $t('title.removeFile') }} </template>
-              <NcButton
-                class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
-                size="xsmall"
-                type="text"
-                @click="onRemoveFileClick(item.title, i)"
-              >
-                <component
-                  :is="iconMap.delete"
-                  v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-                  class="text-xs h-13px w-13px"
-                />
-              </NcButton>
-            </NcTooltip>
-          </div>
-        </div>
-      </div>
+        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px]"
+        :attachment="item"
+        :index="i"
+        v-model:dragging="dragging"
+        :allow-selection="false"
+        :allow-editing="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)"
+        :preview-class-override="'!h-20'"
+        :rename-inline="false"
+        :confirm-to-delete="true"
+        @clicked="onFileClick(item)"
+      />
     </div>
     <div class="mb-2" v-if="visibleItems.length > 3">
       <NcButton class="!border-none !shadow-none" type="ghost" size="small" @click="onExpand">
@@ -451,26 +387,6 @@ defineExpose({
 
     <LazyCellAttachmentModal v-if="modalRendered" />
   </div>
-  <LazyGeneralDeleteModal
-    v-if="isForm || isExpandedForm"
-    v-model:visible="isConfirmModalOpen"
-    entity-name="File"
-    :on-delete="() => handleFileDelete(filetoDelete.i)"
-  >
-    <template #entity-preview>
-      <span>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-          <div
-            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          >
-            {{ filetoDelete.title }}
-          </div>
-        </div>
-      </span>
-    </template>
-  </LazyGeneralDeleteModal>
   <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
 </template>
 

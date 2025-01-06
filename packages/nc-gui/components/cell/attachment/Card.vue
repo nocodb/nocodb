@@ -9,12 +9,17 @@ const props = withDefaults(
     dragging?: boolean
     allowEditing?: boolean
     allowSelection?: boolean
+    previewClassOverride?: string
+    renameInline?: boolean
+    confirmToDelete?: boolean
   }>(),
   {
     selected: false,
     dragging: false,
     allowEditing: false,
     allowSelection: false,
+    renameInline: true,
+    confirmToDelete: false,
   },
 )
 
@@ -28,16 +33,23 @@ const isSelected = useVModel(props, 'selected', emits)
 const isDragging = useVModel(props, 'dragging', emits)
 
 const { getPossibleAttachmentSrc } = useAttachment()
-const { FileIcon, downloadAttachment, renameFileInline, removeFile } = useAttachmentCell()!
+const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile } = useAttachmentCell()!
+
+const isDeletingFile = ref(false)
+const deleteTitle = ref('')
 
 const isRenamingFile = ref(false)
-const newTitle = ref('')
+const renameTitle = ref('')
 
 const inputBox = ref()
 
 const handleFileRenameStart = () => {
+  if (!props.renameInline) {
+    renameFile(props.attachment, props.index)
+    return
+  }
   isRenamingFile.value = true
-  newTitle.value = props.attachment.title
+  renameTitle.value = props.attachment.title
   nextTick(() => {
     setTimeout(() => {
       inputBox.value.focus()
@@ -47,22 +59,42 @@ const handleFileRenameStart = () => {
 }
 
 const handleResetFileRename = () => {
-  newTitle.value = ''
+  renameTitle.value = ''
   isRenamingFile.value = false
 }
 
 const handleFileRename = async () => {
   if (!isRenamingFile.value) return
 
-  if (newTitle.value) {
+  if (renameTitle.value) {
     try {
-      await renameFileInline(props.index, newTitle.value)
+      await renameFileInline(props.index, renameTitle.value)
       handleResetFileRename()
     } catch (e) {
       message.error('Error while renaming file')
       throw e
     }
   }
+}
+
+const handleFileDeleteStart = () => {
+  if (!props.confirmToDelete) {
+    handleFileDelete()
+    return
+  }
+  isDeletingFile.value = true
+  deleteTitle.value = props.attachment.title
+}
+
+const handleResetFileDelete = () => {
+  isDeletingFile.value = false
+  deleteTitle.value = props.attachment.title
+}
+
+const handleFileDelete = () => {
+  removeFile(props.index)
+  handleResetFileDelete()
+  return Promise.resolve()
 }
 </script>
 
@@ -86,6 +118,7 @@ const handleFileRename = async () => {
         :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
         object-fit="cover"
         class="!w-full object-cover !m-0 rounded-t-[5px] justify-center"
+        :class="previewClassOverride ? `${previewClassOverride}` : ''"
         @click.stop="emits('clicked')"
       />
 
@@ -105,7 +138,7 @@ const handleFileRename = async () => {
       <div
         class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
-        @dblclick.stop="allowRename && handleFileRenameStart()"
+        @dblclick.stop="allowEditing && handleFileRenameStart()"
       >
         <NcTooltip v-if="!isRenamingFile" class="truncate h-5 flex items-center" show-on-truncate-only>
           {{ attachment.title }}
@@ -117,7 +150,7 @@ const handleFileRename = async () => {
         <a-input
           v-else
           ref="inputBox"
-          v-model:value="newTitle"
+          v-model:value="renameTitle"
           class="!text-[12px] !h-5 !p-0 !px-0.5 !mr-1 !bg-transparent !rounded-md"
           type="text"
           @keydown.enter="handleFileRename"
@@ -159,12 +192,32 @@ const handleFileRename = async () => {
             class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
             size="xsmall"
             type="text"
-            @click="removeFile(index)"
+            @click="handleFileDeleteStart"
           >
             <component :is="iconMap.delete" class="text-xs h-13px w-13px" />
           </NcButton>
         </NcTooltip>
       </div>
     </div>
+    <LazyGeneralDeleteModal
+      v-if="confirmToDelete"
+      v-model:visible="isDeletingFile"
+      entity-name="File"
+      :on-delete="handleFileDelete"
+    >
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ deleteTitle }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </LazyGeneralDeleteModal>
   </div>
 </template>

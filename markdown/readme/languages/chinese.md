@@ -47,6 +47,14 @@ npm install
 npm start
 ```
 
+## 宝塔面板Docker一键部署（推荐）
+
+1. 安装宝塔面板9.2.0及以上版本，前往 [宝塔面板](https://www.bt.cn/new/download.html?r=dk_nocodb) 官网，选择正式版的脚本下载安装
+
+2. 安装后登录宝塔面板，在左侧菜单栏中点击 `Docker`，首次进入会提示安装`Docker`服务，点击立即安装，按提示完成安装
+
+3. 安装完成后在应用商店中搜索`nocodb`，点击安装，配置域名等基本信息即可完成安装
+
 ## Docker 部署
 
 ```bash

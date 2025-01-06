@@ -1,6 +1,6 @@
 import TiptapStrike from '@tiptap/extension-strike'
 import type MarkdownIt from 'markdown-it'
-import { mcStrikeExt } from '../functionality/markdown/index'
+import { mdStrikeExt } from '../functionality/markdown'
 
 export const Strike = TiptapStrike.extend({
   addStorage() {
@@ -9,7 +9,7 @@ export const Strike = TiptapStrike.extend({
         serialize: { open: '~', close: '~', expelEnclosingWhitespace: true },
         parse: {
           setup(markdownit: MarkdownIt) {
-            markdownit.use(mcStrikeExt)
+            markdownit.use(mdStrikeExt)
           },
         },
       },

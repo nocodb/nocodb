@@ -4173,9 +4173,9 @@ class BaseModelSqlv2 {
     obj.limit = Math.max(
       Math.min(
         Math.max(+(args.limit || args.l), 0) ||
-          (nested && apiVersion === NcApiVersion.V3)
-          ? BaseModelSqlv2.config.ltarV3Limit
-          : BaseModelSqlv2.config.limitDefault,
+          (nested && apiVersion === NcApiVersion.V3
+            ? BaseModelSqlv2.config.ltarV3Limit
+            : BaseModelSqlv2.config.limitDefault),
         BaseModelSqlv2.config.limitMax,
       ),
       BaseModelSqlv2.config.limitMin,

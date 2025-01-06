@@ -322,13 +322,14 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly && (isSharedForm || (isUIAllowed('dataEdit') && !isPublic))" color="light" placement="bottomRight">
+          <NcTooltip
+            v-if="!isReadonly && (isSharedForm || (isUIAllowed('dataEdit') && !isPublic))"
+            color="light"
+            placement="bottomRight"
+          >
             <template #title> {{ $t('title.removeFile') }} </template>
             <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
-              <component
-                :is="iconMap.delete"
-                class="!hover:text-gray-400"
-              />
+              <component :is="iconMap.delete" class="!hover:text-gray-400" />
             </NcButton>
           </NcTooltip>
         </div>

@@ -106,8 +106,9 @@ const activeAiTab = computed({
         aiPromptInputRef.value?.focus()
       })
     }
-
-    $e(`c:table:ai:tab-change:${value}`)
+    if (aiMode.value) {
+      $e(`c:table:ai:tab-change:${value}`)
+    }
   },
 })
 
@@ -141,10 +142,12 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
     })
 }
 
-const predictMore = async () => {
+const predictMore = async (triggerTele = false) => {
   calledFunction.value = 'predictMore'
 
-  $e('a:table:ai:predict-more')
+  if (triggerTele) {
+    $e('a:table:ai:predict-more')
+  }
 
   const predictions = await predictNextTables()
 
@@ -156,10 +159,12 @@ const predictMore = async () => {
   }
 }
 
-const predictRefresh = async () => {
+const predictRefresh = async (triggerTele = false) => {
   calledFunction.value = 'predictRefresh'
 
-  $e('a:table:ai:predict-refresh')
+  if (triggerTele) {
+    $e('a:table:ai:predict-refresh')
+  }
 
   const predictions = await predictNextTables()
 
@@ -172,12 +177,14 @@ const predictRefresh = async () => {
   aiModeStep.value = AiStep.pick
 }
 
-const predictFromPrompt = async () => {
+const predictFromPrompt = async (triggerTele = false) => {
   calledFunction.value = 'predictFromPrompt'
 
-  $e('a:table:ai:predict-from-prompt', {
-    prompt: prompt.value,
-  })
+  if (triggerTele) {
+    $e('a:table:ai:predict-from-prompt', {
+      prompt: prompt.value,
+    })
+  }
 
   const predictions = await predictNextTables()
 
@@ -582,7 +589,7 @@ const handleRefreshOnError = () => {
                           :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictMore'"
                           icon-only
-                          @click="predictMore"
+                          @click="predictMore(true)"
                         >
                           <template #icon>
                             <GeneralIcon icon="ncPlusAi" class="!text-current" />
@@ -597,7 +604,7 @@ const handleRefreshOnError = () => {
                           theme="ai"
                           :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictRefresh'"
-                          @click="predictRefresh"
+                          @click="predictRefresh(true)"
                         >
                           <template #loadingIcon>
                             <!-- eslint-disable vue/no-lone-template -->
@@ -642,7 +649,7 @@ const handleRefreshOnError = () => {
                       "
                       :loading="isPredictFromPromptLoading"
                       icon-only
-                      @click="predictFromPrompt"
+                      @click="predictFromPrompt(true)"
                     >
                       <template #loadingIcon>
                         <GeneralLoader class="!text-purple-700" size="medium" />

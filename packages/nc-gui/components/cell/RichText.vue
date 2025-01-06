@@ -278,7 +278,7 @@ const tiptapExtensions = [
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
-  Markdown,
+  // Markdown,
 ]
 
 const editor = useEditor({

@@ -1152,7 +1152,6 @@ svg.nc-virtual-cell-icon {
   }
 }
 
-
 .nc-rich-text-content {
   p {
     @apply !mb-1;
@@ -1177,11 +1176,19 @@ svg.nc-virtual-cell-icon {
     @apply !my-0;
   }
 
-  ul[data-type='taskList'] {
-    @apply;
+  ul[data-type='taskList'],
+  ul.contains-task-list {
     li {
       @apply !ml-0 flex flex-row gap-x-2;
       list-style-type: none;
+
+      label {
+        @apply flex flex-row gap-x-2;
+
+        input {
+          z-index: initial;
+        }
+      }
 
       input {
         @apply mt-0.75 flex rounded-sm;

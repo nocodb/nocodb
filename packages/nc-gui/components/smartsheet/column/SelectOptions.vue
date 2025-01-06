@@ -339,7 +339,7 @@ const loadListData = async ($state: any) => {
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
 
-  $e('a:column:select:ai:predict-options')
+  $e('a:column:ai:select:predict-options')
 
   isLoadingPredictOptions.value = true
 

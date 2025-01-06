@@ -22,7 +22,7 @@ onMounted(() => {
 
 <template>
   <div v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="nc-create-base-wrapper">
-    <div v-e="['c:base:create-blank']" class="nc-create-base" @click="aiMode = false">
+    <div v-e="['c:base:create:scratch']" class="nc-create-base" @click="aiMode = false">
       <div class="nc-placeholder-icon-wrapper">
         <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
       </div>
@@ -34,7 +34,7 @@ onMounted(() => {
         <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
       </div>
     </div>
-    <div v-e="['c:base:build-with-ai']" class="nc-create-base-ai" @click="aiMode = true">
+    <div v-e="['c:base:ai:create']" class="nc-create-base-ai" @click="aiMode = true">
       <div class="nc-placeholder-icon-wrapper">
         <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
       </div>

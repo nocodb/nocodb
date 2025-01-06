@@ -243,37 +243,6 @@ async function sync() {
   }
 }
 
-async function abort() {
-  Modal.confirm({
-    title: 'Are you sure you want to abort this job?',
-    type: 'warn',
-    content:
-      "This is a highly experimental feature and only marks job as not started, please don't abort the job unless you are sure job is stuck.",
-    onOk: async () => {
-      try {
-        await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/abort`, {
-          baseURL,
-          method: 'POST',
-          headers: { 'xc-auth': $state.token.value as string },
-        })
-        step.value = 1
-        progress.value = []
-        goBack.value = false
-        enableAbort.value = false
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
-}
-
-function cancel() {
-  step.value = 1
-  progress.value = []
-  goBack.value = false
-  enableAbort.value = false
-}
-
 function migrateSync(src: any) {
   if (!src.details?.options) {
     src.details.options = {

@@ -1181,7 +1181,7 @@ svg.nc-virtual-cell-icon {
     &.contains-task-list li {
       @apply mb-1;
     }
-    
+
     li {
       @apply !ml-0 flex flex-row gap-x-2;
       list-style-type: none;
@@ -1269,8 +1269,15 @@ svg.nc-virtual-cell-icon {
   }
 
   .mention {
-    @apply inline-block my-2px;
+    @apply font-semibold rounded-md px-1 inline-block my-2px;
 
+    &.nc-current-user {
+      @apply bg-[#D4F7E0] text-[#17803D];
+    }
+
+    &:not(.nc-current-user) {
+      @apply bg-brand-50 text-brand-500;
+    }
     span {
       display: none;
     }

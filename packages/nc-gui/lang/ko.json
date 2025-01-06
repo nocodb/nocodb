@@ -790,7 +790,7 @@
     "newProvider": "새 공급자",
     "generalSettings": "일반 설정",
     "adminPanel": "관리자 패널",
-    "moveWorkspaceToOrg": "작업공간을 조직으로 이동",
+    "moveWorkspaceToOrg": "워크스페이스를 조직으로 이동",
     "ssoSettings": "SSO 설정",
     "addDomain": "도메인 추가",
     "domain": "도메인",

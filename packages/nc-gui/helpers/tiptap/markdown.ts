@@ -88,10 +88,10 @@ export class NcMarkdownParser {
   }
 
   private preprocessMarkdown(markdownText: string): string {
-    // Replace [ ] and [x] with GitHub-style checklist syntax only if it's not already in the desired format
-    markdownText = markdownText.replace(/\[ \](?!\s*[\[])/g, '- [ ]') // Replace unchecked tasks, ignoring those already in proper format
-    markdownText = markdownText.replace(/\[x\](?!\s*[\[])/g, '- [x]') // Replace checked tasks (lowercase 'x')
-    markdownText = markdownText.replace(/\[X\](?!\s*[\[])/g, '- [x]') // Replace checked tasks (uppercase 'X')
+    // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
+    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[ \]/gm, '$1- [ ]') // Replace unchecked tasks
+    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[x\]/gm, '$1- [x]') // Replace checked tasks (lowercase 'x')
+    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[X\]/gm, '$1- [x]') // Replace checked tasks (uppercase 'X')
 
     return markdownText
   }

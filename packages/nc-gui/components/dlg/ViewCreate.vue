@@ -583,12 +583,8 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
     })
 }
 
-const predictMore = async (triggerTele = false) => {
+const predictMore = async () => {
   calledFunction.value = 'predictMore'
-
-  if (triggerTele) {
-    $e('a:view:ai:predict-more')
-  }
 
   const predictions = await predictViews()
 
@@ -600,12 +596,8 @@ const predictMore = async (triggerTele = false) => {
   }
 }
 
-const predictRefresh = async (triggerTele = false) => {
+const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
-
-  if (triggerTele) {
-    $e('a:view:ai:predict-refresh')
-  }
 
   const predictions = await predictViews()
 
@@ -618,14 +610,8 @@ const predictRefresh = async (triggerTele = false) => {
   aiModeStep.value = AiStep.pick
 }
 
-const predictFromPrompt = async (triggerTele = false) => {
+const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
-
-  if (triggerTele) {
-    $e('a:view:ai:predict-from-prompt', {
-      prompt: prompt.value,
-    })
-  }
 
   const predictions = await predictViews()
 
@@ -674,11 +660,11 @@ const onSelectAll = () => {
   })
 }
 
-const toggleAiMode = async (triggerTele = false) => {
+const toggleAiMode = async (from = false) => {
   if (aiMode.value) return
 
-  if (triggerTele) {
-    $e(`c:view:ai:toggle:${true}`)
+  if (from) {
+    $e('c:view:ai:toggle:true')
   }
 
   formValidator.value?.clearValidate()
@@ -700,7 +686,7 @@ const toggleAiMode = async (triggerTele = false) => {
 const disableAiMode = () => {
   if (isAIViewCreateMode.value) return
 
-  $e(`c:view:ai:toggle:${false}`)
+  $e('c:view:ai:toggle:false')
 
   aiMode.value = false
   aiModeStep.value = null
@@ -1266,6 +1252,7 @@ const getPluralName = (name: string) => {
                       placement="top"
                     >
                       <NcButton
+                        v-e="['a:view:ai:predict-more']"
                         size="xs"
                         class="!px-1"
                         type="text"
@@ -1273,7 +1260,7 @@ const getPluralName = (name: string) => {
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictMore'"
                         icon-only
-                        @click="predictMore(true)"
+                        @click="predictMore"
                       >
                         <template #icon>
                           <GeneralIcon icon="ncPlusAi" class="!text-current" />
@@ -1282,13 +1269,14 @@ const getPluralName = (name: string) => {
                     </NcTooltip>
                     <NcTooltip title="Clear all and Re-suggest" placement="top">
                       <NcButton
+                        v-e="['a:view:ai:predict-refresh']"
                         size="xs"
                         class="!px-1"
                         type="text"
                         theme="ai"
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictRefresh'"
-                        @click="predictRefresh(true)"
+                        @click="predictRefresh"
                       >
                         <template #loadingIcon>
                           <!-- eslint-disable vue/no-lone-template -->
@@ -1333,7 +1321,12 @@ const getPluralName = (name: string) => {
                     "
                     :loading="isPredictFromPromptLoading"
                     icon-only
-                    @click="predictFromPrompt(true)"
+                    @click="
+                      () => {
+                        $e('a:view:ai:predict-from-prompt', { prompt })
+                        predictFromPrompt()
+                      }
+                    "
                   >
                     <template #loadingIcon>
                       <GeneralLoader class="!text-purple-700" size="medium" />

@@ -35,7 +35,7 @@ export class NcMarkdownParser {
     enableMention = false,
     users = [],
     currentUser = null,
-    html = true,
+    html = false,
     linkify = false,
     breaks = false,
     extensions = [],

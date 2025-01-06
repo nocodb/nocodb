@@ -2,9 +2,6 @@
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import TurndownService from 'turndown'
-import { marked } from 'marked'
-import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
@@ -36,13 +33,6 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
-
-// Set options for how Markdown is parsed
-marked.setOptions({
-  breaks: true, // Converts single line breaks to <br> tags
-  gfm: true, // Enable GitHub Flavored Markdown (GFM)
-  sanitize: false, // Allow HTML tags within Markdown
-})
 
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
@@ -90,142 +80,6 @@ const shouldShowLinkOption = computed(() => {
   return isFormField.value ? isFocused.value : true
 })
 
-const turndownService = new TurndownService({})
-
-turndownService.addRule('lineBreak', {
-  filter: (node) => {
-    return node.nodeName === 'BR'
-  },
-  replacement: () => {
-    return '<br />'
-  },
-})
-
-turndownService.addRule('taskList', {
-  filter: (node) => {
-    return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
-  },
-  replacement: (content, node: any) => {
-    // Remove the first \n\n and last \n\n
-    const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
-
-    const isChecked = node.getAttribute('data-checked') === 'true'
-
-    return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
-  },
-})
-
-turndownService.addRule('strikethrough', {
-  filter: ['s'],
-  replacement: (content) => {
-    return `~${content}~`
-  },
-})
-
-turndownService.keep(['u', 'del'])
-
-if (appInfo.value.ee && !props.hideMention) {
-  const renderer = new marked.Renderer()
-
-  renderer.paragraph = (text: string) => {
-    const regex = /@\(([^)]+)\)/g
-
-    const replacement = (match: string, content: string) => {
-      const id = content.split('|')[0]
-      let bUser = baseUsers.value.find((user) => user.id === id)
-
-      if (!bUser) {
-        bUser = {
-          id,
-          email: content.split('|')[1],
-          display_name: content.split('|')[2],
-        } as any
-      }
-      const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
-
-      const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
-
-      const span = document.createElement('span')
-      span.setAttribute('data-type', 'mention')
-      span.setAttribute(
-        'data-id',
-        JSON.stringify({
-          id: bUser?.id,
-          email: bUser?.email,
-          name: bUser?.display_name ?? '',
-          isSameUser: bUser?.id === user.value?.id,
-        }),
-      )
-      span.setAttribute('class', `${colorStyles} mention font-semibold m-0.5 rounded-md px-1 inline-block`)
-      span.textContent = `@${processedContent}`
-      return span.outerHTML
-    }
-
-    return text.replace(regex, replacement)
-  }
-
-  marked.use({ renderer })
-
-  turndownService.addRule('mention', {
-    filter: (node) => {
-      return node.nodeName === 'SPAN' && node.classList.contains('mention')
-    },
-    replacement: (content) => {
-      content = content.substring(1).split('|')[0]
-      const user = baseUsers.value
-        .map((user) => ({
-          id: user.id,
-          label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
-          name: user.display_name,
-          email: user.email,
-        }))
-        .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
-
-      if (!user) return ''
-
-      return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
-    },
-  })
-}
-
-const checkListItem = {
-  name: 'checkListItem',
-  level: 'block',
-  tokenizer(src: string) {
-    src = src.split('\n\n')[0]
-    const isMatched = src.startsWith('[ ]') || src.startsWith('[x]') || src.startsWith('[X]')
-
-    if (isMatched) {
-      const isNotChecked = src.startsWith('[ ]')
-      let text = src.slice(3)
-      if (text[0] === ' ') text = text.slice(1)
-
-      const token = {
-        // Token to generate
-        type: 'checkListItem',
-        raw: src,
-        text,
-        tokens: [],
-        checked: !isNotChecked,
-      }
-
-      ;(this as any).lexer.inline(token.text, token.tokens) // Queue this data to be processed for inline tokens
-      return token
-    }
-
-    return false
-  },
-  renderer(token: any) {
-    return `<ul data-type="taskList"><li data-checked="${
-      token.checked ? 'true' : 'false'
-    }" data-type="taskItem"><label><input type="checkbox" ${
-      token.checked ? 'checked="checked"' : ''
-    }><span></span></label><div>${(this as any).parser.parseInline(token.tokens)}</div></li></ul>` // parseInline to turn child tokens into HTML
-  },
-}
-
-marked.use({ extensions: [checkListItem] })
-
 const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
@@ -234,9 +88,7 @@ const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
 const vModel = computed({
   get: () => {
-    const contentHtml = props.value ? marked.parse(parseText(props.value)) : '<p></p>'
-
-    return generateJSON(contentHtml, tiptapExtensions)
+    return props.value
   },
   set: (v: any) => {
     emits('update:value', v)
@@ -278,17 +130,18 @@ const tiptapExtensions = [
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
-  // Markdown,
+  Markdown,
 ]
 
 const editor = useEditor({
   content: vModel.value,
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    const markdown = turndownService
-      .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-    vModel.value = markdown === '<br />' ? '' : markdown
+    // const markdown = turndownService
+    //   .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+    //   .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
+
+    vModel.value = editor.storage.markdown.getMarkdown()
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
@@ -327,31 +180,7 @@ function parseText(input: string): string {
   })
 }
 
-const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
-  if (!editor.value || true) return
-
-  const selection = editor.value.view.state.selection
-  // Replace double newlines with a single newline only if not surrounded by non-alphabetic characters
-  const contentHtml = contentMd ? marked.parse(parseText(contentMd)) : '<p></p>'
-
-  const content = generateJSON(contentHtml, tiptapExtensions)
-
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-
-  setTimeout(() => {
-    if (focusEndOfDoc) {
-      const docSize = editor.value!.state.doc.nodeSize
-
-      editor.value
-        ?.chain()
-        .setTextSelection(docSize - 1)
-        .run()
-    }
-
-    ;(editor.value!.state as any).history$.prevRanges = null
-    ;(editor.value!.state as any).history$.done.eventCount = 0
-  }, 100)
-}
+const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {}
 
 const onFocusWrapper = () => {
   if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {

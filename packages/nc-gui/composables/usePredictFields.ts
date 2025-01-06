@@ -268,7 +268,7 @@ export const usePredictFields = createSharedComposable(
     }
 
     const disableAiMode = () => {
-      $e(`c:column:ai:toggle:${false}`, {
+      $e('c:column:ai:toggle:false', {
         mode: fieldPredictionMode.value,
       })
 
@@ -510,7 +510,7 @@ export const usePredictFields = createSharedComposable(
       }
     }
     const toggleAiMode = async (mode: 'field' | 'button' | 'formula' = 'field', fromFieldModal = false) => {
-      $e(`c:column:ai:toggle:${true}`, {
+      $e('c:column:ai:toggle:true', {
         mode,
       })
 

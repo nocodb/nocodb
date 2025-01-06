@@ -982,8 +982,8 @@ watch(activeAiTab, (newValue) => {
 
               <!-- Save -->
               <NcButton
-                v-e="['a:column:ai:add']"
                 v-if="aiIntegrationAvailable"
+                v-e="['a:column:ai:add']"
                 html-type="submit"
                 type="primary"
                 theme="ai"

@@ -264,6 +264,9 @@ importers:
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
+      markdown-it-regexp:
+        specifier: ^0.4.0
+        version: 0.4.0
       markdown-it-task-lists:
         specifier: ^2.1.1
         version: 2.1.1
@@ -13645,6 +13648,9 @@ packages:
 
   map-stream@0.1.0:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
+
+  markdown-it-regexp@0.4.0:
+    resolution: {integrity: sha512-0XQmr46K/rMKnI93Y3CLXsHj4jIioRETTAiVnJnjrZCEkGaDOmUxTbZj/aZ17G5NlRcVpWBYjqpwSlQ9lj+Kxw==}
 
   markdown-it-task-lists@2.1.1:
     resolution: {integrity: sha512-TxFAc76Jnhb2OUu+n3yz9RMu4CwGfaT788br6HhEDlvWfdeJcLUsxk1Hgw2yJio0OXsxv7pyIPmvECY7bMbluA==}
@@ -36346,6 +36352,8 @@ snapshots:
   map-obj@4.3.0: {}
 
   map-stream@0.1.0: {}
+
+  markdown-it-regexp@0.4.0: {}
 
   markdown-it-task-lists@2.1.1: {}
 

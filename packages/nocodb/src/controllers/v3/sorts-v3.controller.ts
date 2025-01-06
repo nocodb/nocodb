@@ -52,7 +52,7 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Get('/api/v3/meta/views/:viewId/sorts')
+  @Get('/api/v3/meta/sorts/:sortId')
   @Acl('sortGet')
   async sortGet(
     @TenantContext() context: NcContext,
@@ -76,7 +76,7 @@ export class SortsV3Controller {
       sortId: body.id,
       sort: body,
       req,
-      viewId
+      viewId,
     });
     return sort;
   }

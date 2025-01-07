@@ -3101,11 +3101,11 @@
             "type": "string",
             "description": "Field ID to which the filter applies."
           },
-          "comparison_operator": {
+          "operator": {
             "type": "string",
             "description": "Primary comparison operator (e.g., eq, gt, lt)."
           },
-          "comparison_sub_operator": {
+          "sub_operator": {
             "type": ["string", "null"],
             "description": "Secondary comparison operator (if applicable)."
           },
@@ -3114,7 +3114,7 @@
             "description": "Value for comparison."
           }
         },
-        "required": ["filter_id", "parent_id", "field_id", "comparison_operator", "value"]
+        "required": ["filter_id", "parent_id", "field_id", "operator", "value"]
       },
       "FilterCreateUpdate": {
         "oneOf": [

@@ -93,8 +93,8 @@
     "none": "Ingen"
   },
   "general": {
-    "supported": "Supported",
-    "usage": "Usage",
+    "supported": "Understøttet",
+    "usage": "Brug",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
@@ -142,7 +142,7 @@
     "clear": "Ryd",
     "slack": "Slack",
     "comment": "Kommentar",
-    "comments": "Comments",
+    "comments": "Kommentarer",
     "microsoftTeams": "Microsoft Teams",
     "discord": "Discord",
     "matterMost": "Mattermost",

@@ -2,10 +2,18 @@
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
-import { HardBreak, Link, Strike, TaskItem, UserMention, UserMentionList, suggestion } from '~/helpers/tiptap/extensions'
+import {
+  HardBreak,
+  Link,
+  Strike,
+  Underline,
+  TaskItem,
+  UserMention,
+  UserMentionList,
+  suggestion,
+} from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{

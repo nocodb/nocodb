@@ -6,7 +6,7 @@ export const Strike = TiptapStrike.extend({
   addStorage() {
     return {
       markdown: {
-        serialize: { open: '~', close: '~', expelEnclosingWhitespace: true },
+        serialize: { open: '~', close: '~', mixable: true, expelEnclosingWhitespace: true },
         parse: {
           setup(markdownit: MarkdownIt) {
             markdownit.use(mdStrikeExt)

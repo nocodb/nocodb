@@ -78,7 +78,6 @@ const getTiptapExtensions = () => {
     Strike,
     Underline,
     Link,
-
     HardBreak,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',

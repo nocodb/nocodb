@@ -453,7 +453,7 @@ export default class User extends UserCE implements UserType {
         if (args.workspaceId) {
           // todo: cache
           // extract workspace role
-          WorkspaceUser.get(args.workspaceId, user.id)
+          WorkspaceUser.get(args.workspaceId, user.id, ncMeta)
             .then((workspaceUser) => {
               if (workspaceUser?.roles) {
                 resolve(extractRolesObj(workspaceUser.roles));
@@ -469,7 +469,7 @@ export default class User extends UserCE implements UserType {
       // extract base level roles
       new Promise((resolve) => {
         if (args.baseId) {
-          BaseUser.get(context, args.baseId, user.id)
+          BaseUser.get(context, args.baseId, user.id, ncMeta)
             .then(async (baseUser) => {
               const roles = baseUser?.roles;
               // + (user.roles ? `,${user.roles}` : '');
@@ -488,7 +488,7 @@ export default class User extends UserCE implements UserType {
       // extract org level roles
       new Promise((resolve) => {
         if (args.orgId) {
-          OrgUser.get(args.orgId, user.id)
+          OrgUser.get(args.orgId, user.id, ncMeta)
             .then(async (orgUser) => {
               const roles = orgUser?.roles;
               if (roles) {

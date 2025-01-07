@@ -254,6 +254,7 @@ export class BaseUsersService {
       req: NcRequest;
       baseId: string;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserUpdateReq',
@@ -264,7 +265,7 @@ export class BaseUsersService {
       NcError.badRequest('Missing base id');
     }
 
-    const base = await Base.get(context, param.baseId);
+    const base = await Base.get(context, param.baseId, ncMeta);
 
     if (!base) {
       return NcError.baseNotFound(param.baseId);
@@ -283,16 +284,21 @@ export class BaseUsersService {
       NcError.badRequest('Invalid role');
     }
 
-    const user = await User.get(param.userId);
+    const user = await User.get(param.userId, ncMeta);
 
     if (!user) {
       NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
     }
 
-    const targetUser = await User.getWithRoles(context, param.userId, {
-      user,
-      baseId: param.baseId,
-    });
+    const targetUser = await User.getWithRoles(
+      context,
+      param.userId,
+      {
+        user,
+        baseId: param.baseId,
+      },
+      ncMeta,
+    );
 
     if (!targetUser) {
       NcError.badRequest(
@@ -302,9 +308,13 @@ export class BaseUsersService {
 
     // if old role is owner and there is only one owner then restrict to update
     if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      });
+      const baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: param.baseId,
+        },
+        ncMeta,
+      );
       if (
         baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
           .length === 1
@@ -321,6 +331,7 @@ export class BaseUsersService {
       param.baseId,
       param.userId,
       param.baseUser.roles,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {

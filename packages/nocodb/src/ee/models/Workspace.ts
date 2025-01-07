@@ -17,7 +17,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base, Integration, CustomUrl } from '~/models';
+import { Base, CustomUrl, Integration } from '~/models';
 
 const logger = new Logger('Workspace');
 

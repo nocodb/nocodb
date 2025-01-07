@@ -111,8 +111,6 @@ export class FiltersV3Controller {
     @Body() body: FilterGroup,
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
-    @Param('linkColumnId') linkColumnId: string,
-    @Param('hookId') hookId: string,
   ) {
     const filter = await this.filtersV3Service.filterReplace(context, {
       filter: body,

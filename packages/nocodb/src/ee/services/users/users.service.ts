@@ -170,12 +170,14 @@ export class UsersService extends UsersServiceCE {
 
     let settings: { invite_only_signup?: boolean } = {};
     try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+      settings = JSON.parse(
+        (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
+      );
     } catch {}
 
     // allow super user signup(first user) in non cloud mode(on-prem)
     const isFirstUserAndSuperUserAllowed =
-      process.env.NC_CLOUD !== 'true' && (await User.isFirst());
+      process.env.NC_CLOUD !== 'true' && (await User.isFirst(ncMeta));
 
     if (isFirstUserAndSuperUserAllowed) {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;

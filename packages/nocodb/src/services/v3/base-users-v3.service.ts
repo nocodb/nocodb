@@ -3,14 +3,13 @@ import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
-import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { WorkspaceUsersService } from '~/services/workspace-users.service';
-import { WorkspaceUser } from '~/models';
+import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
+import { WorkspaceUser } from '~/ee/models';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -202,15 +201,21 @@ export class BaseUsersV3Service {
         //   );
         // }
 
-        await this.baseUsersService.baseUserUpdate(context, {
-          baseId: param.baseId,
-          baseUser: {
-            roles: baseUser.base_role as ProjectUserReqType['roles'],
+        await this.baseUsersService.baseUserUpdate(
+          context,
+          {
+            baseId: param.baseId,
+            baseUser: {
+              roles: baseUser.base_role as ProjectUserReqType['roles'],
+            },
+            userId,
+            req: param.req,
           },
-          userId,
-          req: param.req,
-        });
+          ncMeta,
+        );
       }
+
+      await ncMeta.commit();
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();

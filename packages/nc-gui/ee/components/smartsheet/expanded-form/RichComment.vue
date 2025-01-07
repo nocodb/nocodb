@@ -5,7 +5,16 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
 import { Markdown } from 'tiptap-markdown'
-import { HardBreak, Link, Strike, UserMention, UserMentionList, suggestion, NcMarkdownParser } from '~/helpers/tiptap/extensions'
+import {
+  HardBreak,
+  Link,
+  Strike,
+  Italic,
+  UserMention,
+  UserMentionList,
+  suggestion,
+  NcMarkdownParser,
+} from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -81,10 +90,12 @@ const getTiptapExtensions = () => {
       code: false,
       strike: false,
       hardBreak: false,
+      italic: false,
     }),
     Strike,
     Underline,
     Link,
+    Italic,
     HardBreak,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',

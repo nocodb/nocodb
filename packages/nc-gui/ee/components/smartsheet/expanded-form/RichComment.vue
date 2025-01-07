@@ -5,7 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
 import { Markdown } from 'tiptap-markdown'
-import { HardBreak, Link, Strike, UserMention, UserMentionList, suggestion } from '~/helpers/tiptap/extensions'
+import { HardBreak, Link, Strike, UserMention, UserMentionList, suggestion, NcMarkdownParser } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -44,7 +44,14 @@ const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+const vModel = computed({
+  get: () => {
+    return NcMarkdownParser.preprocessMarkdown(props.value, true)
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
 const mentionUsers = computed(() => {
   return baseUsers.value.filter((user) => user.deleted !== true)

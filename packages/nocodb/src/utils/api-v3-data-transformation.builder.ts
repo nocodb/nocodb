@@ -302,6 +302,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType>({
     mappings: {
       is12hrFormat: '12hr_format',
       isLocaleString: 'locale_string',
+      richMode: 'rich_text',
       // duration: 'duration_format',
     },
     excluded: [
@@ -436,10 +437,11 @@ export const columnV3ToV2Builder = builderGenerator<
   meta: {
     snakeCase: false,
     camelCase: true,
-    metaProps: ['options'],
+    metaProps: ['options', 'meta'],
     mappings: {
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
+      rich_text: 'richMode',
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
@@ -453,7 +455,7 @@ export const columnV3ToV2Builder = builderGenerator<
     ],
   },
   transformFn: (data) => {
-    let meta: Record<string, any> = data.meta || {};
+    const meta: Record<string, any> = data.meta || {};
     let colOptions: any;
 
     switch (data.uidt) {
@@ -519,7 +521,7 @@ export const columnV3ToV2Builder = builderGenerator<
     if (columnsWithOptions.includes(data.uidt) && data.meta) {
       additionalPayloadData =
         columnOptionsV3ToV2Builder().build(data.meta) || {};
-      meta = {};
+      // meta = {};
     }
     console.log(additionalPayloadData);
 

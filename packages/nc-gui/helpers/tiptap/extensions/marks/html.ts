@@ -1,5 +1,5 @@
 import { Fragment } from '@tiptap/pm/model'
-import { getHTMLFromFragment, Mark } from '@tiptap/core'
+import { Mark, getHTMLFromFragment } from '@tiptap/core'
 
 export const HTMLMark = Mark.create({
   name: 'markdownHTMLMark',

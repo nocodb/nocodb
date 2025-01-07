@@ -5,7 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
 import { Markdown } from 'tiptap-markdown'
-import { HardBreak, Link, Strike, Italic, NcMarkdownParser } from '~/helpers/tiptap/extensions'
+import { HardBreak, Italic, Link, NcMarkdownParser, Strike } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{

@@ -1,5 +1,5 @@
 import { Fragment } from '@tiptap/pm/model'
-import { getHTMLFromFragment, Node } from '@tiptap/core'
+import { Node, getHTMLFromFragment } from '@tiptap/core'
 import { elementFromString } from '../../utils/dom'
 
 export const HTMLNode = Node.create({

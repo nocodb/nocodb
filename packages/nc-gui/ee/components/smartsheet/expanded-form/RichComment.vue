@@ -7,13 +7,13 @@ import tippy from 'tippy.js'
 import { Markdown } from 'tiptap-markdown'
 import {
   HardBreak,
-  Link,
-  Strike,
   Italic,
+  Link,
+  NcMarkdownParser,
+  Strike,
   UserMention,
   UserMentionList,
   suggestion,
-  NcMarkdownParser,
 } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(

@@ -6,15 +6,15 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
 import {
   HardBreak,
-  Link,
-  Strike,
-  Underline,
   Italic,
+  Link,
+  NcMarkdownParser,
+  Strike,
   TaskItem,
+  Underline,
   UserMention,
   UserMentionList,
   suggestion,
-  NcMarkdownParser,
 } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(

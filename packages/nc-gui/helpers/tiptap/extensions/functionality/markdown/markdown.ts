@@ -28,11 +28,11 @@ export interface NcMarkdownParserConstructorType {
 export class NcMarkdownParser {
   private static instance: NcMarkdownParser | null = null
   private md: MarkdownIt
-  private openLinkOnClick: boolean = false
+  private openLinkOnClick: boolean = true
   private maxBlockTokens?: number
 
   private constructor({
-    openLinkOnClick = false,
+    openLinkOnClick = true,
     enableMention = false,
     users = [],
     currentUser = null,
@@ -145,7 +145,7 @@ export class NcMarkdownParser {
    */
   private setupLinkRules(
     md: MarkdownIt,
-    { openLinkOnClick = false }: Pick<NcMarkdownParserConstructorType, 'openLinkOnClick'> = {},
+    { openLinkOnClick = true }: Pick<NcMarkdownParserConstructorType, 'openLinkOnClick'> = {},
   ): void {
     md.use(mdLinkRuleSetupExt, { openLinkOnClick })
   }

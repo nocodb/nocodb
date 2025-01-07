@@ -165,9 +165,7 @@ const richTextContent = computedAsync(async () => {
           enableMention: true,
           users: unref(baseUsers.value),
           currentUser: unref(user.value),
-          ...(isExpandedFormOpen.value
-            ? { maxBlockTokens: undefined, openLinkOnClick: true }
-            : { maxBlockTokens: rowHeight.value, openLinkOnClick: false }),
+          ...(isExpandedFormOpen.value ? { maxBlockTokens: undefined } : { maxBlockTokens: rowHeight.value }),
         },
         true,
       ),

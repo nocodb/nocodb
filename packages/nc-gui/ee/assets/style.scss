@@ -1183,7 +1183,7 @@ svg.nc-virtual-cell-icon {
     }
 
     li {
-      @apply !ml-0 flex flex-row gap-x-2;
+      @apply !ml-0 flex flex-row;
       list-style-type: none;
 
       label {
@@ -1195,7 +1195,7 @@ svg.nc-virtual-cell-icon {
       }
 
       input {
-        @apply mt-0.75 flex rounded-sm;
+        @apply mt-1 flex rounded-sm !h-3.4 !w-3.5;
         z-index: -10;
       }
       // Unchecked

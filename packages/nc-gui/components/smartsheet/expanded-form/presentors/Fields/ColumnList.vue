@@ -11,9 +11,6 @@ const props = defineProps<{
 const { changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
 const isPublic = inject(IsPublicInj, ref(false))
 
-const cellWrapperEl = ref()
-const mentionedCell = ref('')
-
 const { isUIAllowed } = useRoles()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
@@ -54,20 +51,22 @@ const shouldApplyDataCell = (column: ColumnType) =>
         <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" />
       </div>
 
-      <template v-if="isLoading">
-        <a-skeleton-input active class="h-8 flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
-      </template>
-      <template v-else>
+      <a-skeleton-input
+        v-if="isLoading"
+        active
+        class="h-8 flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
+        size="small"
+      />
+      <NcTooltip v-else class="w-full" placement="right" :disabled="!isReadOnlyVirtualCell(col)">
+        <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
         <SmartsheetDivDataCell
           v-if="col.title"
-          :ref="(el: any) => { if (i) cellWrapperEl = el }"
           class="bg-white flex-1 <lg:w-full px-1 min-h-8 flex items-center relative"
           :class="{
             'w-full': props.forceVerticalMode,
             '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
               isReadOnlyVirtualCell(col),
             '!select-text nc-readonly-div-data-cell': readOnly,
-            'nc-mentioned-cell': col.id === mentionedCell,
           }"
           :is-data-cell="shouldApplyDataCell(col)"
         >
@@ -89,7 +88,7 @@ const shouldApplyDataCell = (column: ColumnType) =>
             @update:model-value="changedColumns.add(col.title)"
           />
         </SmartsheetDivDataCell>
-      </template>
+      </NcTooltip>
     </div>
   </div>
 </template>

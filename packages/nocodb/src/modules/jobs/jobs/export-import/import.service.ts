@@ -1231,6 +1231,8 @@ export class ImportService {
           column: withoutId({
             ...flatCol,
             ...{
+              formula: colOptions.formula,
+              parsed_tree: colOptions.parsed_tree,
               formula_raw: colOptions.formula_raw,
             },
           }) as any,
@@ -1257,6 +1259,8 @@ export class ImportService {
           column: withoutId({
             ...flatCol,
             ...{
+              formula: colOptions?.formula,
+              parsed_tree: colOptions?.parsed_tree,
               formula_raw: colOptions?.formula_raw,
               label: colOptions?.label,
               color: colOptions?.color,
@@ -1275,6 +1279,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          suppressFormulaError: true,
         });
 
         for (const nColumn of freshModelData.columns) {

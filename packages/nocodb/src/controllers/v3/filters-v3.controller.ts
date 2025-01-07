@@ -126,13 +126,13 @@ export class FiltersV3Controller {
   async filterDelete(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
-    @Body() body: { filterId: string },
+    @Body() body: { id: string },
     @Req() req: NcRequest,
   ) {
     const filter = await this.filtersV3Service.filterDelete(context, {
       req,
       viewId,
-      filterId: body.filterId,
+      filterId: body.id,
     });
     return filter;
   }

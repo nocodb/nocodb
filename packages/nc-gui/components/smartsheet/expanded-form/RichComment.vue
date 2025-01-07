@@ -282,7 +282,7 @@ onMounted(() => {
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
         }"
-        class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
@@ -363,73 +363,6 @@ onMounted(() => {
     .ProseMirror-focused {
       // remove all border
       outline: none;
-    }
-
-    ul {
-      li {
-        @apply ml-4;
-        list-style-type: disc;
-      }
-    }
-
-    ol {
-      @apply !pl-4;
-      li {
-        list-style-type: decimal;
-      }
-    }
-
-    ul,
-    ol {
-      @apply !my-0;
-    }
-
-    // Pre tag is the parent wrapper for Code block
-    pre {
-      border-color: #d0d5dd;
-      border: 1px;
-      color: black;
-      font-family: 'JetBrainsMono', monospace;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      @apply overflow-auto mt-3 bg-gray-100;
-
-      code {
-        @apply !px-0;
-      }
-    }
-
-    code {
-      @apply rounded-md px-2 py-1 bg-gray-100;
-      color: inherit;
-      font-size: 0.8rem;
-    }
-
-    blockquote {
-      border-left: 3px solid #d0d5dd;
-      padding: 0 1em;
-      color: #666;
-      margin: 1em 0;
-      font-style: italic;
-    }
-
-    hr {
-      @apply !border-gray-300;
-      border: 0;
-      border-top: 1px solid #ccc;
-      margin: 1.5em 0;
-    }
-
-    pre {
-      height: fit-content;
-    }
-
-    em {
-      font-synthesis: initial !important;
-
-      & * {
-        font-synthesis: initial !important;
-      }
     }
   }
 }

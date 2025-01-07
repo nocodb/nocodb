@@ -81,7 +81,7 @@ const cellIcon = (column: ColumnType) =>
     v-if="!tooManyCharsForBarcode"
     class="flex w-full items-center barcode-wrapper"
     :class="{
-      'justify-start ml-2': isExpandedFormOpen,
+      'justify-start': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
@@ -90,8 +90,10 @@ const cellIcon = (column: ColumnType) =>
       :barcode-value="barcodeValue"
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="{
+      :custom-style="!isExpandedFormOpen ? {
         height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      } : {
+        height: '44px',
       }"
       class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"

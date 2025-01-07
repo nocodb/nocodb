@@ -134,14 +134,21 @@ const copyAsPng = async () => {
     v-if="showQrCode"
     class="nc-qrcode-container w-full flex"
     :class="{
-      'flex-start pl-2': isExpandedFormOpen,
+      'flex-start h-20': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
     <img
       v-if="rowHeight"
-      :style="{
-        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      :style="
+        !isExpandedFormOpen
+          ? {
+              height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+            }
+          : {}
+      "
+      :class="{
+        'border-1': isExpandedFormOpen
       }"
       :src="qrCode"
       :alt="$t('title.qrCode')"

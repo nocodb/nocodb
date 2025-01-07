@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
@@ -8,8 +7,6 @@ import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
-import { WorkspaceUser } from '~/ee/models';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -19,10 +16,7 @@ export class BaseUsersV3Service {
     Partial<BaseUser>
   >;
 
-  constructor(
-    protected baseUsersService: BaseUsersService,
-    protected workspaceUsersService: WorkspaceUsersService,
-  ) {
+  constructor(protected baseUsersService: BaseUsersService) {
     this.builder = builderGenerator({
       allowed: [
         'id',
@@ -79,9 +73,6 @@ export class BaseUsersV3Service {
         //   baseUser,
         // );
 
-        // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
-        // if (!baseUser.workspace_role) {
-        // get the user from workspace
         let user: User;
         if (baseUser.id) {
           user = await User.get(baseUser.id, ncMeta);
@@ -93,37 +84,6 @@ export class BaseUsersV3Service {
           user = await User.getByEmail(baseUser.email, ncMeta);
         } else {
           NcError.badRequest('Either email or id is required');
-        }
-
-        if (user) {
-          const workspaceUser = await WorkspaceUser.get(
-            param.req.ncWorkspaceId,
-            user.id,
-            ncMeta,
-          );
-          if (!workspaceUser) {
-            baseUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
-          }
-        } else {
-          baseUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
-        }
-        // }
-
-        // invite at the workspace level if workspace role is provided
-        if (baseUser.workspace_role) {
-          await this.workspaceUsersService.invite(
-            {
-              body: {
-                roles: baseUser.workspace_role,
-                email: baseUser.email,
-              },
-              siteUrl: param.req.ncSiteUrl,
-              invitedBy: param.req.user,
-              req: param.req,
-              workspaceId: param.req.ncWorkspaceId,
-            },
-            ncMeta,
-          );
         }
 
         await this.baseUsersService.userInvite(
@@ -186,19 +146,6 @@ export class BaseUsersV3Service {
         }
 
         userIds.push(userId);
-
-        // if (baseUser.workspace_role) {
-        //   await this.workspaceUsersService.update(
-        //     {
-        //       userId,
-        //       req: param.req,
-        //       workspaceId: param.req.ncWorkspaceId,
-        //       roles: baseUser.workspace_role as WorkspaceUserRoles,
-        //       siteUrl: param.req.ncSiteUrl,
-        //     },
-        //     ncMeta,
-        //   );
-        // }
 
         await this.baseUsersService.baseUserUpdate(
           context,

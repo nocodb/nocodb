@@ -160,7 +160,6 @@ export class BaseUsersV3Service {
   async baseUserUpdate(
     context: NcContext,
     param: {
-      userId: string;
       baseUsers: ProjectUserV3ReqType[];
       req: any;
       baseId: string;

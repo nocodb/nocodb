@@ -56,7 +56,7 @@ export class UsersService extends UsersServiceEE {
       meta?: MetaType;
       req: NcRequest;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     if (this.licenseService.isTrial()) {
       const userCount = await User.count();

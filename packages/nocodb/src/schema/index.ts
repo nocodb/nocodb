@@ -1,9 +1,6 @@
 import * as swaggerV3 from './swagger-v3.json';
 import * as swagger from './swagger.json';
 
-console.log(swagger);
-console.log(swaggerV3);
-
 export default {
   ...swagger,
   components: {

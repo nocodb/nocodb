@@ -1,13 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import { BaseUsersV3Service as BaseUsersV3ServiceCE } from 'src/services/v3/base-users-v3.service';
-import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
+import type { ProjectUserReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
-import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUser } from '~/models';
@@ -25,7 +23,7 @@ export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: ProjectUserV3ReqType[];
+      baseUsers: any[];
       req: NcRequest;
     },
   ): Promise<any> {

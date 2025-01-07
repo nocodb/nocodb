@@ -74,7 +74,7 @@ export class TablesV3Controller {
     const table = await this.tablesV3Service.getTableWithAccessibleViews(
       context,
       {
-        tableId: req.params.tableId,
+        tableId,
         user: req.user,
       },
     );

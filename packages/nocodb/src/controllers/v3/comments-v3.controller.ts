@@ -42,7 +42,6 @@ export class CommentsV3Controller {
   }
 
   @Post('/api/v3/meta/tables/:tableId/records/:rowId/comments')
-  @HttpCode(200)
   @Acl('commentRow')
   async commentRow(
     @TenantContext() context: NcContext,

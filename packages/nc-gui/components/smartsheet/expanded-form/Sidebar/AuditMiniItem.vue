@@ -107,7 +107,7 @@ function isShowableValue(value: any) {
 }
 
 function shouldShowRaw(key: string) {
-  return [ 'SingleLineText', 'LongText', 'URL', 'PhoneNumber', 'Email' ].includes(meta.value?.[key]?.type);
+  return [ 'SingleLineText', 'URL', 'PhoneNumber', 'Email' ].includes(meta.value?.[key]?.type);
 }
 
 </script>
@@ -177,6 +177,21 @@ function shouldShowRaw(key: string) {
         </div>
         <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all">
           {{ newData[columnKey] }}
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'LongText'">
+        <div>
+          <template v-for="block of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')">
+            <span v-if="block.op === 'removed'" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone">
+              {{ block.text }}
+            </span>
+            <span v-else-if="block.op === 'added'" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone">
+              {{ block.text }}
+            </span>
+            <span v-else>
+              {{ block.text }}
+            </span>
+          </template>
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
@@ -292,6 +307,16 @@ function shouldShowRaw(key: string) {
 }
 .nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-time) {
   .nc-time-picker span {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-year) {
+  .nc-year-picker span {
+    text-decoration: line-through;
+  }
+}
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-date) {
+  .nc-date-picker span {
     text-decoration: line-through;
   }
 }

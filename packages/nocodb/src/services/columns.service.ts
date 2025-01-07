@@ -1940,6 +1940,7 @@ export class ColumnsService {
           );
         } catch (e) {
           colBody.error = e.message;
+          colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             throw e;
           }
@@ -1994,6 +1995,7 @@ export class ColumnsService {
             );
           } catch (e) {
             colBody.error = e.message;
+            colBody.parsed_tree = null;
             if (!param.suppressFormulaError) {
               NcError.badRequest('Invalid URL Formula');
             }

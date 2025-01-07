@@ -81,7 +81,7 @@ export class NcMarkdownParser {
 
     this.maxBlockTokens = options.maxBlockTokens
 
-    if (this.openLinkOnClick !== options.openLinkOnClick) {
+    if (!ncIsUndefined(options.openLinkOnClick) && this.openLinkOnClick !== options.openLinkOnClick) {
       this.openLinkOnClick = options.openLinkOnClick || false
 
       this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })

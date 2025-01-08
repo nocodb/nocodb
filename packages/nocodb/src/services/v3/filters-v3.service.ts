@@ -88,20 +88,20 @@ export class FiltersV3Service {
       context,
     );
 
+    // if logicalOp is not provided, extract based on the parent group
+    if (!logicalOp) {
+      logicalOp =
+        (
+          await this.extractGroup(context, {
+            viewId: viewId,
+            parentFilterId:
+              parentId || (groupOrFilter as any)?.parent_id || 'root',
+          })
+        )?.group_operator || 'AND';
+    }
+
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
-      // if logicalOp is not provided, extract based on the parent group
-      if (!logicalOp) {
-        logicalOp =
-          (
-            await this.extractGroup(context, {
-              viewId: viewId,
-              parentFilterId:
-                parentId || (groupOrFilter as any)?.parent_id || 'root',
-            })
-          )?.group_operator || 'AND';
-      }
-
       await Filter.insert(context, {
         ...filterRevBuilder().build(groupOrFilter as Filter),
         fk_parent_id: parentId === 'root' ? null : parentId,
@@ -115,9 +115,7 @@ export class FiltersV3Service {
     if (isRoot) {
       // Check if parentId exists within groupOrFilter
       const hasParentInGroup =
-        'parent_id' in groupOrFilter &&
-        groupOrFilter.parent_id &&
-        groupOrFilter.parent_id !== 'root';
+        'parent_id' in groupOrFilter && groupOrFilter.parent_id;
       if (!hasParentInGroup) {
         // Root group handling when parent_id is not provided in groupOrFilter
         const existingRootFilters = await Filter.rootFilterList(context, {
@@ -166,9 +164,9 @@ export class FiltersV3Service {
       currentParentId = rootGroupResponse.id;
     }
 
-    if ('group_operator' in groupOrFilter && groupOrFilter.filters) {
+    if ('group_operator' in groupOrFilter) {
       // Handle nested groups and filters recursively
-      for (const child of groupOrFilter.filters) {
+      for (const child of groupOrFilter.filters || []) {
         if ('field_id' in child) {
           // Insert individual filter
           await Filter.insert(context, {
@@ -525,6 +523,7 @@ export class FiltersV3Service {
       ...flattenedFilters,
     ];
   }
+
   async filterReplace(
     context: NcContext,
     param: {

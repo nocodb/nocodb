@@ -90,10 +90,23 @@ export class FiltersV3Service {
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
+      // if logicalOp is not provided, extract based on the parent group
+      if (!logicalOp) {
+        logicalOp =
+          (
+            await this.extractGroup(context, {
+              viewId: viewId,
+              parentFilterId:
+                parentId || (groupOrFilter as any)?.parent_id || 'root',
+            })
+          )?.group_operator || 'AND';
+      }
+
       await Filter.insert(context, {
         ...filterRevBuilder().build(groupOrFilter as Filter),
         fk_parent_id: parentId === 'root' ? null : parentId,
         ...additionalProps,
+        logical_op: extractLogicalOp(logicalOp),
         id: undefined,
       });
       return;
@@ -300,29 +313,46 @@ export class FiltersV3Service {
     }
 
     if (filter.is_group) {
-      // get nested list
-      const list = await this.filterList(context, {
+      return await this.extractGroup(context, {
         viewId: param.viewId,
+        parentFilterId: param.filterId,
       });
-
-      // iterate recursively and extract filter and return
-      const extractFilter = (list: any[]) => {
-        for (const item of list) {
-          if (item.id === param.filterId) {
-            return item;
-          }
-          if (item.filters) {
-            const filter = extractFilter(item.filters);
-            if (filter) {
-              return filter;
-            }
-          }
-        }
-      };
-      return extractFilter(list?.[0]?.filters);
     }
 
     return filterBuilder().build(await Filter.get(context, param.filterId));
+  }
+
+  private async extractGroup(
+    context: NcContext,
+    param: {
+      viewId: string;
+      parentFilterId: string;
+    },
+  ) {
+    // get nested list
+    const list = await this.filterList(context, {
+      viewId: param.viewId,
+    });
+
+    if (param.parentFilterId === 'root') {
+      return list[0];
+    }
+
+    // iterate recursively and extract filter and return
+    const extractFilter = (list: any[]) => {
+      for (const item of list) {
+        if (item.id === param.parentFilterId) {
+          return item;
+        }
+        if (item.filters) {
+          const filter = extractFilter(item.filters);
+          if (filter) {
+            return filter;
+          }
+        }
+      }
+    };
+    return extractFilter(list?.[0]?.filters);
   }
 
   async filterList(

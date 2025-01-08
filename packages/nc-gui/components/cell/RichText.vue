@@ -12,6 +12,7 @@ import { Link } from '~/helpers/dbTiptapExtensions/links'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
+import { Markdown } from 'tiptap-markdown'
 
 const props = withDefaults(
   defineProps<{
@@ -26,11 +27,13 @@ const props = withDefaults(
     renderAsText?: boolean
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
     hideMention?: boolean
+    showLimitedContent?: boolean
   }>(),
   {
     isFormField: false,
     hiddenBubbleMenuOptions: () => [],
     hideMention: false,
+    showLimitedContent: false,
   },
 )
 
@@ -227,7 +230,23 @@ const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+// const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+
+const vModel = computed({
+  get: () => {
+    const contentHtml = props.value ? marked.parse(parseText(props.value)) : '<p></p>'
+
+    const content = generateJSON(contentHtml, tiptapExtensions)
+
+    return {
+      type: content.type,
+      content: props.showLimitedContent ? content.content.slice(0, 1) : content.content, // Adjust slice size for testing
+    }
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
 const tiptapExtensions = [
   ...(appInfo.value.ee && !props.hideMention
@@ -262,9 +281,11 @@ const tiptapExtensions = [
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
+  Markdown,
 ]
 
 const editor = useEditor({
+  content: vModel.value,
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
     const markdown = turndownService
@@ -311,15 +332,29 @@ function parseText(input: string): string {
 }
 
 const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
-  if (!editor.value) return
+  if (!editor.value || true) return
 
   const selection = editor.value.view.state.selection
   // Replace double newlines with a single newline only if not surrounded by non-alphabetic characters
   const contentHtml = contentMd ? marked.parse(parseText(contentMd)) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
+  // console.log('set editor content')
+  // console.log('content', content)
+  // console.time()
+  // editor.value.commands.setContent(contentMd ?? '') // setContent supports markdown format
 
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
+  if (props.showLimitedContent) {
+    const limitedContent = {
+      type: content.type,
+      content: props.showLimitedContent ? content.content.slice(0, 1) : content.content, // Adjust slice size for testing
+    }
+
+    editor.value.chain().setContent(limitedContent).setTextSelection(selection.to).run()
+  } else {
+    editor.value.chain().setContent(content).setTextSelection(selection.to).run()
+  }
+  // console.timeEnd()
 
   setTimeout(() => {
     if (focusEndOfDoc) {
@@ -342,11 +377,11 @@ const onFocusWrapper = () => {
   }
 }
 
-if (props.syncValueChange) {
-  watch([vModel, editor], () => {
-    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
-  })
-}
+// if (props.syncValueChange) {
+//   watch([vModel, editor], () => {
+//     setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
+//   })
+// }
 
 if (isFormField.value) {
   watch([props, editor], () => {
@@ -360,7 +395,7 @@ if (isFormField.value) {
 
 onMounted(() => {
   if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
-    setEditorContent(vModel.value, true)
+    // setEditorContent(vModel.value, true)
 
     if (fullMode.value || isSurveyForm.value) {
       nextTick(() => {

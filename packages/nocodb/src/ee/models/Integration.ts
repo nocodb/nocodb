@@ -2,19 +2,9 @@ import { Integration as IntegrationCE } from 'src/models';
 import { integrationCategoryNeedDefault } from 'nocodb-sdk';
 import { IntegrationsType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import type {
-  BoolType,
-  ClientType,
-  IntegrationType,
-  SourceType,
-} from 'nocodb-sdk';
+import type { BoolType, IntegrationType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import {
-  CacheDelDirection,
-  CacheScope,
-  MetaTable,
-  RootScopes,
-} from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
@@ -26,7 +16,6 @@ import {
 import { decryptPropIfRequired, partialExtract } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Source } from '~/models';
-import NocoCache from '~/cache/NocoCache';
 
 const logger = new Logger('Integration');
 
@@ -226,7 +215,7 @@ export default class Integration extends IntegrationCE {
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
-      sub_type?: string | ClientType;
+      sub_type?: string | ClientTypes;
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;
@@ -494,18 +483,6 @@ export default class Integration extends IntegrationCE {
     });
 
     return config;
-  }
-
-  async delete(ncMeta = Noco.ncMeta) {
-    // delete global integration cache for the type
-    if (this.is_global) {
-      await NocoCache.deepDel(
-        `${CacheScope.INTEGRATION_GLOBAL}:${this.type}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    return await super.delete(ncMeta);
   }
 
   async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {

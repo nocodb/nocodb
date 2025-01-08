@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import papaparse from 'papaparse';
 import debug from 'debug';
 import {
+  isAIPromptCol,
   AppEvents,
   isLinksOrLTAR,
   isVirtualCol,
@@ -484,7 +485,7 @@ export class DuplicateProcessor {
       });
 
       // update cdf
-      if (!isVirtualCol(destColumn)) {
+      if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
         await this.columnsService.columnUpdate(context, {
           columnId: findWithIdentifier(idMap, sourceColumn.id),
           column: {

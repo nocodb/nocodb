@@ -2,16 +2,20 @@
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import TurndownService from 'turndown'
-import { marked } from 'marked'
-import { generateJSON } from '@tiptap/html'
-import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
-import { Mention } from '~/helpers/tiptapExtensions/mention'
-import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
-import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
+import { Markdown } from 'tiptap-markdown'
+import {
+  HardBreak,
+  Italic,
+  Link,
+  NcMarkdownParser,
+  Strike,
+  TaskItem,
+  Underline,
+  UserMention,
+  UserMentionList,
+  suggestion,
+} from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -36,13 +40,6 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
 
-// Set options for how Markdown is parsed
-marked.setOptions({
-  breaks: true, // Converts single line breaks to <br> tags
-  gfm: true, // Enable GitHub Flavored Markdown (GFM)
-  sanitize: false, // Allow HTML tags within Markdown
-})
-
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const { appInfo } = useGlobal()
@@ -52,8 +49,6 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -89,189 +84,79 @@ const shouldShowLinkOption = computed(() => {
   return isFormField.value ? isFocused.value : true
 })
 
-const turndownService = new TurndownService({})
-
-turndownService.addRule('lineBreak', {
-  filter: (node) => {
-    return node.nodeName === 'BR'
-  },
-  replacement: () => {
-    return '<br />'
-  },
-})
-
-turndownService.addRule('taskList', {
-  filter: (node) => {
-    return node.nodeName === 'LI' && !!node.getAttribute('data-checked')
-  },
-  replacement: (content, node: any) => {
-    // Remove the first \n\n and last \n\n
-    const processContent = content.replace(/^\n\n/, '').replace(/\n\n$/, '')
-
-    const isChecked = node.getAttribute('data-checked') === 'true'
-
-    return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
-  },
-})
-
-turndownService.addRule('strikethrough', {
-  filter: ['s'],
-  replacement: (content) => {
-    return `~${content}~`
-  },
-})
-
-turndownService.keep(['u', 'del'])
-
-if (appInfo.value.ee && !props.hideMention) {
-  const renderer = new marked.Renderer()
-
-  renderer.paragraph = (text: string) => {
-    const regex = /@\(([^)]+)\)/g
-
-    const replacement = (match: string, content: string) => {
-      const id = content.split('|')[0]
-      let bUser = baseUsers.value.find((user) => user.id === id)
-
-      if (!bUser) {
-        bUser = {
-          id,
-          email: content.split('|')[1],
-          display_name: content.split('|')[2],
-        } as any
-      }
-      const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
-
-      const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
-
-      const span = document.createElement('span')
-      span.setAttribute('data-type', 'mention')
-      span.setAttribute(
-        'data-id',
-        JSON.stringify({
-          id: bUser?.id,
-          email: bUser?.email,
-          name: bUser?.display_name ?? '',
-          isSameUser: bUser?.id === user.value?.id,
-        }),
-      )
-      span.setAttribute('class', `${colorStyles} mention font-semibold m-0.5 rounded-md px-1 inline-block`)
-      span.textContent = `@${processedContent}`
-      return span.outerHTML
-    }
-
-    return text.replace(regex, replacement)
-  }
-
-  marked.use({ renderer })
-
-  turndownService.addRule('mention', {
-    filter: (node) => {
-      return node.nodeName === 'SPAN' && node.classList.contains('mention')
-    },
-    replacement: (content) => {
-      content = content.substring(1).split('|')[0]
-      const user = baseUsers.value
-        .map((user) => ({
-          id: user.id,
-          label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
-          name: user.display_name,
-          email: user.email,
-        }))
-        .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
-
-      return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
-    },
-  })
-}
-
-const checkListItem = {
-  name: 'checkListItem',
-  level: 'block',
-  tokenizer(src: string) {
-    src = src.split('\n\n')[0]
-    const isMatched = src.startsWith('[ ]') || src.startsWith('[x]') || src.startsWith('[X]')
-
-    if (isMatched) {
-      const isNotChecked = src.startsWith('[ ]')
-      let text = src.slice(3)
-      if (text[0] === ' ') text = text.slice(1)
-
-      const token = {
-        // Token to generate
-        type: 'checkListItem',
-        raw: src,
-        text,
-        tokens: [],
-        checked: !isNotChecked,
-      }
-
-      ;(this as any).lexer.inline(token.text, token.tokens) // Queue this data to be processed for inline tokens
-      return token
-    }
-
-    return false
-  },
-  renderer(token: any) {
-    return `<ul data-type="taskList"><li data-checked="${
-      token.checked ? 'true' : 'false'
-    }" data-type="taskItem"><label><input type="checkbox" ${
-      token.checked ? 'checked="checked"' : ''
-    }><span></span></label><div>${(this as any).parser.parseInline(token.tokens)}</div></li></ul>` // parseInline to turn child tokens into HTML
-  },
-}
-
-marked.use({ extensions: [checkListItem] })
-
 const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+const vModel = computed({
+  get: () => {
+    return NcMarkdownParser.preprocessMarkdown(props.value, true)
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
-const tiptapExtensions = [
-  ...(appInfo.value.ee && !props.hideMention
-    ? [
-        Mention.configure({
-          suggestion: {
-            ...suggestion(UserMentionList),
-            items: ({ query }) =>
-              baseUsers.value
-                .filter((user) => user.deleted !== true)
-                .map((user) => ({
-                  id: user.id,
-                  name: user.display_name,
-                  email: user.email,
-                  meta: user.meta,
-                }))
-                .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
-          },
-        }),
-      ]
-    : []),
-  StarterKit.configure({
-    heading: isFormField.value ? false : undefined,
-  }),
-  TaskList,
-  TaskItem.configure({
-    nested: true,
-  }),
-  Underline,
-  Link,
-  Placeholder.configure({
-    emptyEditorClass: 'is-editor-empty',
-    placeholder: props.placeholder,
-  }),
-]
+const mentionUsers = computed(() => {
+  return baseUsers.value.filter((user) => user.deleted !== true)
+})
+
+const getTiptapExtensions = () => {
+  const extensions = [
+    StarterKit.configure({
+      heading: isFormField.value ? false : undefined,
+      strike: false,
+      hardBreak: false,
+      italic: false,
+    }),
+    // Marks
+    Strike,
+    Underline,
+    Link,
+    Italic,
+
+    // Nodes
+    HardBreak,
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+    Placeholder.configure({
+      emptyEditorClass: 'is-editor-empty',
+      placeholder: props.placeholder,
+    }),
+    Markdown.configure({ breaks: true, transformPastedText: false }),
+  ]
+
+  if (appInfo.value.ee && !props.hideMention) {
+    extensions.push(
+      UserMention.configure({
+        suggestion: {
+          ...suggestion(UserMentionList),
+          items: ({ query }) =>
+            mentionUsers.value
+              .map((user) => ({
+                id: user.id,
+                name: user.display_name,
+                email: user.email,
+                meta: user.meta,
+              }))
+              .filter((user) => searchCompare([user.name, user.email], query)),
+        },
+        users: unref(mentionUsers.value),
+        currentUser: unref(user.value),
+      }),
+    )
+  }
+
+  return extensions
+}
 
 const editor = useEditor({
-  extensions: tiptapExtensions,
+  content: vModel.value,
+  extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
-    const markdown = turndownService
-      .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-      .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-
-    vModel.value = markdown === '<br />' ? '' : markdown
+    vModel.value = editor.storage.markdown.getMarkdown()
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
@@ -291,55 +176,24 @@ const editor = useEditor({
   },
 })
 
-function parseText(input: string): string {
-  // Regex to check if a line starts with any non-alphabetic character
-  const nonAlphabetPattern = /^[^a-zA-Z]/
-
-  // Replace occurrences of two consecutive newlines "\n\n" with "\n" based on conditions
-  return input.replace(/\n\n+/g, (match, offset, string) => {
-    const nextLine = string.slice(offset + match.length).split('\n')[0] // Next line after \n\n
-    const prevLine = string.slice(0, offset).split('\n').pop() // Previous line before \n\n
-
-    // If next line or previous line starts with any non-alphabetic character, keep \n\n
-    if ((nextLine && nonAlphabetPattern.test(nextLine)) || (prevLine && nonAlphabetPattern.test(prevLine))) {
-      return '\n\n' // Keep the newline intact
-    }
-
-    // Otherwise, replace \n\n with \n
-    return '\n'
-  })
-}
-
-const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
+const setEditorContent = (contentMd: any) => {
   if (!editor.value) return
 
-  const selection = editor.value.view.state.selection
-  // Replace double newlines with a single newline only if not surrounded by non-alphabetic characters
-  const contentHtml = contentMd ? marked.parse(parseText(contentMd)) : '<p></p>'
-
-  const content = generateJSON(contentHtml, tiptapExtensions)
-
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-
-  setTimeout(() => {
-    if (focusEndOfDoc) {
-      const docSize = editor.value!.state.doc.nodeSize
-
-      editor.value
-        ?.chain()
-        .setTextSelection(docSize - 1)
-        .run()
-    }
-
-    ;(editor.value!.state as any).history$.prevRanges = null
-    ;(editor.value!.state as any).history$.done.eventCount = 0
-  }, 100)
+  editor.value.commands.setContent(contentMd, false)
 }
 
 const onFocusWrapper = () => {
   if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
-    editor.value?.chain().focus().run()
+    focusEditor()
   }
+}
+
+function focusEditor() {
+  if (!editor.value) return
+
+  nextTick(() => {
+    editor.value?.chain().focus().run()
+  })
 }
 
 if (props.syncValueChange) {
@@ -359,14 +213,10 @@ if (isFormField.value) {
 }
 
 onMounted(() => {
-  if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
-    setEditorContent(vModel.value, true)
-
-    if (fullMode.value || isSurveyForm.value) {
-      nextTick(() => {
-        editor.value?.chain().focus().run()
-      })
-    }
+  if (fullMode.value || isSurveyForm.value) {
+    nextTick(() => {
+      editor.value?.commands.focus('end')
+    })
   }
 })
 
@@ -485,7 +335,7 @@ onClickOutside(editorDom, (e) => {
       <EditorContent
         ref="editorDom"
         :editor="editor"
-        class="flex flex-col nc-textarea-rich-editor w-full"
+        class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
@@ -637,125 +487,6 @@ onClickOutside(editorDom, (e) => {
     // remove all border
     outline: none;
     @apply border-brand-500;
-  }
-
-  p {
-    @apply !mb-1;
-  }
-
-  ul {
-    li {
-      @apply ml-4;
-      list-style-type: disc;
-    }
-  }
-
-  ol {
-    @apply -ml-6 !pl-4;
-    li {
-      list-style-type: decimal;
-    }
-  }
-
-  ul,
-  ol {
-    @apply !my-0;
-  }
-
-  ul[data-type='taskList'] {
-    @apply;
-    li {
-      @apply !ml-0 flex flex-row gap-x-2;
-      list-style-type: none;
-
-      input {
-        @apply mt-0.75 flex rounded-sm;
-        z-index: -10;
-      }
-      // Unchecked
-      input:not(:checked) {
-        // Add border to checkbox
-        border-width: 1.5px;
-        @apply border-gray-700;
-      }
-    }
-  }
-
-  // Pre tag is the parent wrapper for Code block
-  pre {
-    border-color: #d0d5dd;
-    border: 1px;
-    color: black;
-    font-family: 'JetBrainsMono', monospace;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    @apply overflow-auto mt-3 bg-gray-100;
-
-    code {
-      @apply !px-0;
-    }
-  }
-
-  code {
-    @apply rounded-md px-2 py-1 bg-gray-100;
-    color: inherit;
-    font-size: 0.8rem;
-  }
-
-  h1 {
-    font-weight: 700;
-    font-size: 1.85rem;
-    margin-bottom: 0.1rem;
-    line-height: 36px;
-  }
-
-  h2 {
-    font-weight: 600;
-    font-size: 1.55rem;
-    margin-bottom: 0.1em;
-    line-height: 30px;
-  }
-
-  h3 {
-    font-weight: 600;
-    font-size: 1.15rem;
-    margin-bottom: 0.1em;
-    line-height: 24px;
-  }
-
-  blockquote {
-    border-left: 3px solid #d0d5dd;
-    padding: 0 1em;
-    color: #666;
-    margin: 1em 0;
-    font-style: italic;
-  }
-
-  hr {
-    @apply !border-gray-300;
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 1.5em 0;
-  }
-
-  pre {
-    height: fit-content;
-  }
-
-  .mention {
-    @apply inline-block my-2px;
-
-    span {
-      display: none;
-    }
-  }
-
-  em {
-    font-synthesis: initial !important;
-
-    & * {
-      font-synthesis: initial !important;
-    }
   }
 }
 .nc-form-field-bubble-menu-wrapper {

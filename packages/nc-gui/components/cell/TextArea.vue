@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AIRecordType } from 'nocodb-sdk'
+import { NcMarkdownParser } from '~/helpers/tiptap/extensions'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -42,6 +43,12 @@ const { aiLoading, aiIntegrations, generatingRows, generatingColumnRows } = useN
 const baseStore = useBase()
 
 const { idUserMap } = storeToRefs(baseStore)
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
 const vModel = useVModel(props, 'modelValue', emits, {
   shouldEmit: () => !readOnly.value,
@@ -147,6 +154,24 @@ const isRichMode = computed(() => {
   }
 
   return meta?.richMode
+})
+
+const richTextContent = computedAsync(async () => {
+  if (isRichMode.value && vModel.value) {
+    return Promise.resolve(
+      NcMarkdownParser.parse(
+        unref(vModel.value),
+        {
+          enableMention: true,
+          users: unref(baseUsers.value),
+          currentUser: unref(user.value),
+          ...(isExpandedFormOpen.value ? { maxBlockTokens: undefined } : { maxBlockTokens: rowHeight.value }),
+        },
+        true,
+      ),
+    )
+  }
+  return Promise.resolve('')
 })
 
 const onExpand = () => {
@@ -368,10 +393,13 @@ watch(textAreaRef, (el) => {
       <div
         v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
-        :class="{
-          'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-          'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
-        }"
+        :class="[
+          isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
+          {
+            'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
+            'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
+          },
+        ]"
         :style="{
           maxHeight: isForm
             ? undefined
@@ -387,7 +415,11 @@ watch(textAreaRef, (el) => {
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
+        <div
+          class="nc-cell-field nc-rich-text-content"
+          :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : 'py-2'"
+          v-html="richTextContent"
+        ></div>
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div
@@ -515,8 +547,8 @@ watch(textAreaRef, (el) => {
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
-          'top-0 right-1': isGrid && !isExpandedFormOpen && !isForm,
-          '!right-2 top-2': isGrid && !isExpandedFormOpen && !isForm && ((editEnabled && !isVisible) || isForm),
+          'top-0 right-0': isGrid && !isExpandedFormOpen && !isForm,
+          '!right-2 top-2': isGrid && !isExpandedFormOpen && !isForm && !isRichMode && ((editEnabled && !isVisible) || isForm),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
         }"
       >

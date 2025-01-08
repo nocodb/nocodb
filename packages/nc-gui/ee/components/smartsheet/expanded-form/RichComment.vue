@@ -1,16 +1,20 @@
 <script lang="ts" setup>
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import TurndownService from 'turndown'
-import { marked } from 'marked'
-import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
-import { Mention } from '~/helpers/tiptapExtensions/mention'
-import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList'
-import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
+import { Markdown } from 'tiptap-markdown'
+import {
+  HardBreak,
+  Italic,
+  Link,
+  NcMarkdownParser,
+  Strike,
+  UserMention,
+  UserMentionList,
+  suggestion,
+} from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -45,132 +49,74 @@ const isFocused = ref(false)
 
 const keys = useMagicKeys()
 
-const turndownService = new TurndownService({})
-
-turndownService.addRule('lineBreak', {
-  filter: (node) => {
-    return node.nodeName === 'BR'
-  },
-  replacement: () => {
-    return '<br />'
-  },
-})
-
-turndownService.addRule('strikethrough', {
-  filter: ['s'],
-  replacement: (content) => {
-    return `~${content}~`
-  },
-})
-
-turndownService.keep(['u', 'del'])
-
-const renderer = new marked.Renderer()
-
-renderer.paragraph = (text: string) => {
-  const regex = /@\(([^)]+)\)/g
-
-  const replacement = (match: string, content: string) => {
-    const id = content.split('|')[0]
-    let bUser = baseUsers.value.find((user) => user.id === id)
-
-    if (!bUser) {
-      bUser = {
-        id,
-        email: content.split('|')[1],
-        display_name: content.split('|')[2],
-      } as any
-    }
-    const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
-
-    const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
-
-    const span = document.createElement('span')
-    span.setAttribute('data-type', 'mention')
-    span.setAttribute(
-      'data-id',
-      JSON.stringify({
-        id: bUser?.id,
-        email: bUser?.email,
-        name: bUser?.display_name ?? '',
-        isSameUser: bUser?.id === user.value?.id,
-      }),
-    )
-    span.setAttribute('class', `${colorStyles} mention font-semibold  m-0.5 rounded-md px-1`)
-    span.textContent = `@${processedContent}`
-    return span.outerHTML
-  }
-
-  return text.replace(regex, replacement)
-}
-
-marked.use({ renderer })
-
-turndownService.addRule('mention', {
-  filter: (node) => {
-    return node.nodeName === 'SPAN' && node.classList.contains('mention')
-  },
-  replacement: (content) => {
-    content = content.substring(1).split('|')[0]
-    const user = baseUsers.value
-      .map((user) => ({
-        id: user.id,
-        label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
-        name: user.display_name,
-        email: user.email,
-      }))
-      .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
-
-    return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
-  },
-})
-
 const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+const vModel = computed({
+  get: () => {
+    return NcMarkdownParser.preprocessMarkdown(props.value, true)
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
-const tiptapExtensions = [
-  Mention.configure({
-    suggestion: {
-      ...suggestion(UserMentionList),
-      items: ({ query }) =>
-        baseUsers.value
-          .filter((user) => user.deleted !== true)
-          .map((user) => ({
-            id: user.id,
-            name: user.display_name,
-            email: user.email,
-            meta: user.meta,
-          }))
-          .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
-    },
-  }),
-  StarterKit.configure({
-    heading: false,
-    codeBlock: false,
-    code: false,
-  }),
-  Underline,
-  Link,
-  Placeholder.configure({
-    emptyEditorClass: 'is-editor-empty',
-    placeholder: props.placeholder,
-  }),
-]
+const mentionUsers = computed(() => {
+  return baseUsers.value.filter((user) => user.deleted !== true)
+})
+
+const getTiptapExtensions = () => {
+  const extensions = [
+    UserMention.configure({
+      suggestion: {
+        ...suggestion(UserMentionList),
+        items: ({ query }) =>
+          mentionUsers.value
+            .map((user) => ({
+              id: user.id,
+              name: user.display_name,
+              email: user.email,
+              meta: user.meta,
+            }))
+            .filter((user) => searchCompare([user.name, user.email], query)),
+      },
+      users: unref(mentionUsers.value),
+      currentUser: unref(user.value),
+    }),
+    StarterKit.configure({
+      heading: false,
+      codeBlock: false,
+      code: false,
+      strike: false,
+      hardBreak: false,
+      italic: false,
+    }),
+    Strike,
+    Underline,
+    Link,
+    Italic,
+    HardBreak,
+    Placeholder.configure({
+      emptyEditorClass: 'is-editor-empty',
+      placeholder: props.placeholder,
+    }),
+    Markdown.configure({ breaks: true, transformPastedText: false }),
+  ]
+
+  return extensions
+}
 
 const editor = useEditor({
-  extensions: tiptapExtensions,
+  content: vModel.value,
+  extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
-    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+    let markdown = editor.storage.markdown.getMarkdown()
 
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
       if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
     }
-
-    markdown = markdown.replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
     vModel.value = markdown === '<br />' ? '' : `${markdown}`
   },
@@ -179,7 +125,6 @@ const editor = useEditor({
   onFocus: () => {
     isFocused.value = true
     emits('focus')
-    onFocusWrapper()
   },
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
@@ -200,34 +145,26 @@ const editor = useEditor({
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
 
-  const selection = editor.value.view.state.selection
+  editor.value.commands.setContent(contentMd, false)
 
-  const contentHtml = contentMd ? marked.parse(contentMd) : '<p></p>'
-
-  const content = generateJSON(contentHtml, tiptapExtensions)
-
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-
-  setTimeout(() => {
-    if (focusEndOfDoc) {
-      const docSize = editor.value!.state.doc.nodeSize
-
-      editor.value
-        ?.chain()
-        .setTextSelection(docSize - 1)
-        .run()
-    }
-
-    ;(editor.value!.state as any).history$.prevRanges = null
-    ;(editor.value!.state as any).history$.done.eventCount = 0
-  }, 100)
+  if (focusEndOfDoc) {
+    focusEditor()
+  }
 }
 
 function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
-    editor.value?.chain().focus().run()
-    setEditorContent(vModel.value, true)
+    focusEditor()
+    // setEditorContent(vModel.value, true)
   }
+}
+
+function focusEditor() {
+  if (!editor.value) return
+
+  nextTick(() => {
+    editor.value?.chain().focus().run()
+  })
 }
 
 if (props.syncValueChange) {
@@ -253,6 +190,7 @@ useEventListener(
   },
   true,
 )
+
 useEventListener(
   richTextLinkOptionRef,
   'focusout',
@@ -278,6 +216,7 @@ useEventListener(
   },
   true,
 )
+
 onClickOutside(editorDom, (e) => {
   if (!isFocused.value) return
 
@@ -310,12 +249,19 @@ const emitSave = (event: KeyboardEvent) => {
   }
 }
 
+let timerId: any
+
 const handleEnterDown = (event: KeyboardEvent) => {
+  if (timerId) {
+    clearTimeout(timerId)
+  }
+
   const isListsActive =
     editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
+
   if (isListsActive) {
     triggerSaveFromList.value = true
-    setTimeout(() => {
+    timerId = setTimeout(() => {
       triggerSaveFromList.value = false
     }, 1000)
   } else emitSave(event)
@@ -394,7 +340,7 @@ onMounted(() => {
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
         }"
-        class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
+        class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
@@ -478,65 +424,6 @@ onMounted(() => {
     .ProseMirror-focused {
       // remove all border
       outline: none;
-    }
-
-    ul {
-      li {
-        @apply ml-4;
-        list-style-type: disc;
-      }
-    }
-
-    ol {
-      @apply !pl-4;
-      li {
-        list-style-type: decimal;
-      }
-    }
-
-    ul,
-    ol {
-      @apply !my-0;
-    }
-
-    // Pre tag is the parent wrapper for Code block
-    pre {
-      border-color: #d0d5dd;
-      border: 1px;
-      color: black;
-      font-family: 'JetBrainsMono', monospace;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      @apply overflow-auto mt-3 bg-gray-100;
-
-      code {
-        @apply !px-0;
-      }
-    }
-
-    code {
-      @apply rounded-md px-2 py-1 bg-gray-100;
-      color: inherit;
-      font-size: 0.8rem;
-    }
-
-    blockquote {
-      border-left: 3px solid #d0d5dd;
-      padding: 0 1em;
-      color: #666;
-      margin: 1em 0;
-      font-style: italic;
-    }
-
-    hr {
-      @apply !border-gray-300;
-      border: 0;
-      border-top: 1px solid #ccc;
-      margin: 1.5em 0;
-    }
-
-    pre {
-      height: fit-content;
     }
   }
 }

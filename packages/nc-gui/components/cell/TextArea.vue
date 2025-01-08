@@ -403,7 +403,11 @@ watch(textAreaRef, (el) => {
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <div class="grid-field-rich-text__cell-content" v-html="richTextContent"></div>
+        <div
+          class="grid-field-rich-text__cell-content"
+          :class="`line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`"
+          v-html="richTextContent"
+        ></div>
         <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content /> -->
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->

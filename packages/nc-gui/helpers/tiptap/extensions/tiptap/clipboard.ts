@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { DOMParser } from '@tiptap/pm/model'
-import { elementFromString } from '../../util'
+import { elementFromString } from '../../util/dom'
 
 export const MarkdownClipboard = Extension.create({
   name: 'markdownClipboard',

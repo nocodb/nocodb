@@ -1,0 +1,19 @@
+import { Node } from '@tiptap/core'
+import { defaultMarkdownSerializer } from 'prosemirror-markdown'
+import type { MarkdownNodeSpec } from '../tiptap'
+
+// TODO: Extend from tiptap extension
+export const ListItem = Node.create<any, { markdown: MarkdownNodeSpec }>({
+  name: 'listItem',
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize: defaultMarkdownSerializer.nodes.list_item!,
+        parse: {
+          // handled by markdown-it
+        },
+      },
+    }
+  },
+})

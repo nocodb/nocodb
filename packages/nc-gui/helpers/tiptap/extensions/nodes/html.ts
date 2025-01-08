@@ -1,7 +1,8 @@
 import { Fragment } from '@tiptap/pm/model'
 import { Node, getHTMLFromFragment } from '@tiptap/core'
-import { elementFromString } from '../../utils/dom'
+import { elementFromString } from '../../util/dom'
 
+// TODO: Extend from tiptap extension
 export const HTMLNode = Node.create({
   name: 'markdownHTMLNode',
   addStorage() {

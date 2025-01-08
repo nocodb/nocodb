@@ -1,5 +1,4 @@
 import TiptapStrike from '@tiptap/extension-strike'
-import type MarkdownIt from 'markdown-it'
 
 export const Strike = TiptapStrike.extend({
   addStorage() {

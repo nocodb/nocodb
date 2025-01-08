@@ -9,6 +9,7 @@ import {
   Link,
   Strike,
   Underline,
+  Italic,
   TaskItem,
   UserMention,
   UserMentionList,
@@ -106,11 +107,13 @@ const getTiptapExtensions = () => {
       heading: isFormField.value ? false : undefined,
       strike: false,
       hardBreak: false,
+      italic: false,
     }),
     // Marks
     Strike,
     Underline,
     Link,
+    Italic,
 
     // Nodes
     HardBreak,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { marked } from 'marked'
 import type { AIRecordType } from 'nocodb-sdk'
+import { NcMarkdownParser } from '../../helpers/tiptap/markdown'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -159,9 +160,8 @@ const isRichMode = computed(() => {
 
 const richTextContent = computed(() => {
   if (isRichMode.value && vModel.value) {
-    return marked.parse(vModel.value)
+    return NcMarkdownParser.parse(vModel.value, { maxBlockTokens: 10 }, true)
   }
-
   return ''
 })
 

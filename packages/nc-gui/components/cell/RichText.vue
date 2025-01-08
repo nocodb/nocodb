@@ -183,6 +183,8 @@ if (appInfo.value.ee && !props.hideMention) {
         }))
         .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
 
+      if (!user) return ''
+
       return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
     },
   })

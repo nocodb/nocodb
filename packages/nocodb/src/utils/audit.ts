@@ -351,10 +351,8 @@ export const extractRefColumnIfFound = async ({
     return {
       link_field_id: linkField?.id,
       link_field_title: linkField?.title,
-
       lookup_table_id: lookupTable?.id,
       lookup_table_title: lookupTable?.title,
-
       lookup_field_id: lookupColumn?.id,
       lookup_field_title: lookupColumn?.title,
     };

@@ -277,6 +277,10 @@ export class AppHooksListenerService
             next: param.user,
             prev: param.oldUser,
             exclude: ['password', 'salt'],
+            aliasMap: {
+              display_name: 'user_name',
+              email: 'user_email',
+            },
           });
 
           if (!updatePayload) break;
@@ -464,9 +468,9 @@ export class AppHooksListenerService
             next: param.baseUser,
             prev: param.oldBaseUser,
             aliasMap: {
-              roles: 'user_role',
+              roles: 'base_role',
             },
-            exclude: ['deleted'],
+            exclude: ['deleted', 'base_roles'],
           });
 
           if (!updatePayload) break;
@@ -480,7 +484,6 @@ export class AppHooksListenerService
                   user_email: param.user.email,
                   user_name: param.user.display_name ?? undefined,
                   base_title: param.base.title,
-                  user_role: param.baseUser.roles,
                   ...updatePayload,
                 },
                 context: param.context,
@@ -675,6 +678,7 @@ export class AppHooksListenerService
                   field_id: param.column.id,
                   field_title: param.column.title,
                   field_type: param.column.uidt as UITypes,
+                  uidt: undefined,
                   ...(await extractRefColumnIfFound({
                     column: param.column,
                     columns: param.columns,
@@ -688,7 +692,10 @@ export class AppHooksListenerService
                   //   ),
                   // ),
                   ...(column as Record<string, unknown>),
-                },
+                  type: undefined,
+                  id: undefined,
+                  title: undefined,
+                } as ColumnCreatePayload,
                 fk_model_id: param.column.fk_model_id,
                 context: param.context,
                 req: param.req,
@@ -760,6 +767,11 @@ export class AppHooksListenerService
                 context: param.context,
               })),
               ...column,
+            },
+            aliasMap: {
+              title: 'field_title',
+              id: 'field_id',
+              type: 'field_type',
             },
             parseMeta: true,
             exclude: additionalExcludePropsForCol(
@@ -2272,6 +2284,9 @@ export class AppHooksListenerService
             parseMeta: true,
             metaProps: ['notification'],
             exclude: ['eventOperation', 'condition'],
+            aliasMap: {
+              title: 'hook_title',
+            },
           });
 
           if (!updatePayload) break;
@@ -2675,6 +2690,8 @@ export class AppHooksListenerService
                 details: {
                   source_title: param.source.alias,
                   source_id: param.source.id,
+                  is_data_readonly: !!param.source.is_data_readonly,
+                  is_schema_readonly: !!param.source.is_schema_readonly,
                   source_integration_id: param.source.fk_integration_id,
                   source_integration_title: param.integration?.title,
                 },
@@ -2695,6 +2712,10 @@ export class AppHooksListenerService
             prev: param.oldSource,
             next: param.source,
             exclude: ['config'],
+            aliasMap: {
+              alias: 'source_title',
+            },
+            boolProps: ['is_data_readonly', 'is_schema_readonly'],
           });
 
           if (!updatePayload) {
@@ -2731,6 +2752,8 @@ export class AppHooksListenerService
                 details: {
                   source_title: param.source.alias,
                   source_id: param.source.id,
+                  is_data_readonly: param.source.is_data_readonly,
+                  is_schema_readonly: param.source.is_schema_readonly,
                   source_integration_id: param.source.fk_integration_id,
                   source_integration_title: param.integration?.title,
                 },
@@ -2870,7 +2893,7 @@ export class AppHooksListenerService
                   role: param.role,
                   disabled: param.disabled,
                 },
-                fk_model_id: param.view.id,
+                fk_model_id: param.view.fk_model_id,
                 source_id: param.view.source_id,
                 context: param.context,
                 req: param.req,

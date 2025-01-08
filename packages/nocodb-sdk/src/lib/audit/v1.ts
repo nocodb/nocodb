@@ -649,6 +649,8 @@ export interface SourceCreatePayload {
   source_id: string;
   source_integration_id: string;
   source_integration_title: string;
+  is_data_readonly: boolean;
+  is_schema_readonly: boolean;
 }
 
 export interface SourceUpdatePayload extends UpdatePayload {
@@ -656,6 +658,8 @@ export interface SourceUpdatePayload extends UpdatePayload {
   source_id: string;
   source_integration_id: string;
   source_integration_title: string;
+  is_data_readonly: boolean;
+  is_schema_readonly: boolean;
 }
 
 export interface SourceDeletePayload {

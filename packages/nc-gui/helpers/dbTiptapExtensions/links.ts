@@ -138,7 +138,5 @@ export const Link = TiptapLink.extend({
     ]
   },
 }).configure({
-  protocols: [{ scheme: 'ftp' }, { scheme: 'mailto', optionalSlashes: true }, { scheme: 'tel', optionalSlashes: true }],
-  autolink: false,
   openOnClick: false,
 })

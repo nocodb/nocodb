@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it'
-import taskList from 'markdown-it-task-lists'
+import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { parseMention } from '../tiptapExtensions/mention'
 
@@ -35,7 +35,7 @@ export class NcMarkdownParser {
     enableMention = false,
     users = [],
     currentUser = null,
-    html = false,
+    html = true,
     linkify = false,
     breaks = false,
     extensions = [],
@@ -87,6 +87,15 @@ export class NcMarkdownParser {
     }
   }
 
+  private preprocessMarkdown(markdownText: string): string {
+    // Replace [ ] and [x] with GitHub-style checklist syntax only if it's not already in the desired format
+    markdownText = markdownText.replace(/\[ \](?!\s*[\[])/g, '- [ ]') // Replace unchecked tasks, ignoring those already in proper format
+    markdownText = markdownText.replace(/\[x\](?!\s*[\[])/g, '- [x]') // Replace checked tasks (lowercase 'x')
+    markdownText = markdownText.replace(/\[X\](?!\s*[\[])/g, '- [x]') // Replace checked tasks (uppercase 'X')
+
+    return markdownText
+  }
+
   /**
    * Parses the content and optionally accepts options to initialize a new NcMarkdownParser instance.
    * @param content - The markdown content to parse.
@@ -111,21 +120,20 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it
     if (ncIsString(content)) {
-      return parser.md.render(content)
+      return parser.md.render(parser.preprocessMarkdown(content))
     }
 
     return content
   }
 
   public taskListExt(md: MarkdownIt): void {
-    md.use(taskList, { label: true, enabled: true })
+    md.use(mdTaskList, { label: true, enabled: true })
   }
 
   public mentionExt(
     md: MarkdownIt,
     { users, currentUser }: Pick<NcMarkdownParserConstructorType, 'users' | 'currentUser'>,
   ): void {
-    // Todo: mention logic add
     md.use(parseMention(users || [], currentUser, true))
   }
 
@@ -227,6 +235,8 @@ export class NcMarkdownParser {
         inBlockMode = false
       }
     }
+
+    console.log('tokens', tokens)
 
     return result
   }

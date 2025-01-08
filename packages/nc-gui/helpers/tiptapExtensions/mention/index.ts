@@ -10,7 +10,6 @@ export const parseMention = (
   isReadonly = false,
 ) => {
   return regexp(USER_ID_REGEXP, (match, utils) => {
-    console.log('mat', match, utils, users, currentUser)
     const id = match[1]?.split('|')?.[0]
     const bUser =
       users.find((user) => user?.id && user.id === id) ||
@@ -26,8 +25,6 @@ export const parseMention = (
     if (bUser.id === currentUser?.id) {
       className += ' bg-[#D4F7E0] text-[#17803D]'
     }
-
-    console.log('sbse', bUser)
 
     // NOTE: Keep this in sync with the @tiptap/extension-mention
     // https://github.com/ueberdosis/tiptap/blob/main/packages/extension-mention/src/mention.ts

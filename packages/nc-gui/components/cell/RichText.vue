@@ -7,12 +7,12 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Markdown } from 'tiptap-markdown'
 import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
-import { Markdown } from 'tiptap-markdown'
 
 const props = withDefaults(
   defineProps<{

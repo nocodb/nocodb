@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { marked } from 'marked'
 import type { AIRecordType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '../../helpers/tiptap/markdown'
 
@@ -12,13 +11,6 @@ const props = defineProps<{
   isAiEdited?: boolean
   isFieldAiIntegrationAvailable?: boolean
 }>()
-
-// Set options for how Markdown is parsed
-marked.setOptions({
-  breaks: true, // Converts single line breaks to <br> tags
-  gfm: true, // Enable GitHub Flavored Markdown (GFM)
-  sanitize: false, // Allow HTML tags within Markdown
-})
 
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 

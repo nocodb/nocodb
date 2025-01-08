@@ -1,6 +1,6 @@
-import * as TipTapMention from '@tiptap/extension-mention'
+import TipTapMention from '@tiptap/extension-mention'
 
-export const Mention = TipTapMention.Mention.extend({
+export const Mention = TipTapMention.extend({
   renderHTML({ HTMLAttributes }) {
     const attributes =
       typeof HTMLAttributes['data-id'] !== 'object' ? JSON.parse(HTMLAttributes['data-id']) : HTMLAttributes['data-id']
@@ -33,4 +33,18 @@ export const Mention = TipTapMention.Mention.extend({
     return `@${node.attrs.id.name || node.attrs.id.email || node.attrs.id.id}`
   },
   deleteTriggerWithBackspace: true,
+  addStorage() {
+    return {
+      markdon: {
+        serialize(state: any, node: any) {
+          state.write(`@${`@${node.attrs.id.name || node.attrs.id.email || node.attrs.id.id}`}`)
+        },
+        parse: {
+          setup(markdownit: any) {
+            // markdownit.use(parseMention(this.options.users, this.options.loggedUserId))
+          },
+        },
+      },
+    }
+  },
 })

@@ -160,7 +160,13 @@ const isRichMode = computed(() => {
 
 const richTextContent = computed(() => {
   if (isRichMode.value && vModel.value) {
-    return NcMarkdownParser.parse(vModel.value, { maxBlockTokens: isExpandedFormOpen.value ? undefined : rowHeight.value }, true)
+    return NcMarkdownParser.parse(
+      vModel.value,
+      isExpandedFormOpen.value
+        ? { maxBlockTokens: undefined, openLinkOnClick: true }
+        : { maxBlockTokens: rowHeight.value, openLinkOnClick: false },
+      true,
+    )
   }
   return ''
 })

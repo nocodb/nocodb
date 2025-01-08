@@ -47,7 +47,7 @@ export class NcMarkdownParser {
 
     // Use the task list plugin with options
     this.md.use(this.taskListExt)
-    this.md.use(this.setupLinkRules)
+    this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
 
     if (enableMention) {
       this.md.use(this.mentionExt, { users, currentUser })
@@ -76,9 +76,14 @@ export class NcMarkdownParser {
 
   private updateConfiguration(options: NcMarkdownParserConstructorType) {
     // Update properties that may change
-    this.openLinkOnClick = options.openLinkOnClick || false
 
     this.maxBlockTokens = options.maxBlockTokens
+
+    if (this.openLinkOnClick !== options.openLinkOnClick) {
+      this.openLinkOnClick = options.openLinkOnClick || false
+
+      this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
+    }
   }
 
   /**
@@ -126,8 +131,11 @@ export class NcMarkdownParser {
    * Configures link rules (whether links should open in a new tab)
    * @param openLinkOnClick
    */
-  private setupLinkRules(md: MarkdownIt): void {
-    if (!this.openLinkOnClick) {
+  private setupLinkRules(
+    md: MarkdownIt,
+    { openLinkOnClick = false }: Pick<NcMarkdownParserConstructorType, 'openLinkOnClick'> = {},
+  ): void {
+    if (!openLinkOnClick) {
       // Remove the href attribute from links
       md.renderer.rules.link_open = (tokens, idx, options, _env, self) => {
         const hrefIndex = tokens[idx]!.attrIndex('href')

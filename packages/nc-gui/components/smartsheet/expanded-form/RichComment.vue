@@ -62,7 +62,7 @@ const tiptapExtensions = [
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
-  Markdown.configure({ breaks: true, transformPastedText: true, transformCopiedText: true }),
+  Markdown.configure({ breaks: true, transformPastedText: true }),
 ]
 
 const editor = useEditor({

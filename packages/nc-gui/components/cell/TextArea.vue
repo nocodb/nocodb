@@ -160,7 +160,11 @@ const isRichMode = computed(() => {
 
 const richTextContent = computed(() => {
   if (isRichMode.value && vModel.value) {
-    return NcMarkdownParser.parse(vModel.value, { maxBlockTokens: 10 }, true)
+    return NcMarkdownParser.parse(
+      vModel.value,
+      { maxBlockTokens: isExpandedFormOpen.value ? undefined : 10 },
+      !isExpandedFormOpen.value,
+    )
   }
   return ''
 })
@@ -384,10 +388,13 @@ watch(textAreaRef, (el) => {
       <div
         v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
-        :class="{
-          'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-          'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
-        }"
+        :class="[
+          {
+            'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
+            'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
+            'nc-scrollbar-thin': isExpandedFormOpen,
+          },
+        ]"
         :style="{
           maxHeight: isForm
             ? undefined
@@ -404,8 +411,8 @@ watch(textAreaRef, (el) => {
         @keydown.enter="onExpand"
       >
         <div
-          class="grid-field-rich-text__cell-content"
-          :class="`line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`"
+          class="nc-cell-field nc-rich-text-cell-content"
+          :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : undefined"
           v-html="richTextContent"
         ></div>
         <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content /> -->

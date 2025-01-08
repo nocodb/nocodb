@@ -16,6 +16,32 @@
   src: url(./material.woff2) format('woff2');
 }
 
+/* dm mono */
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('./dm-mono/DMMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 .material-symbols {
   font-family: 'Material Symbols';
   font-weight: normal;

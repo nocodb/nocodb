@@ -80,16 +80,7 @@ const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-// const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
-
-const vModel = computed({
-  get: () => {
-    return props.value
-  },
-  set: (v: any) => {
-    emits('update:value', v)
-  },
-})
+const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const mentionUsers = computed(() => {
   return baseUsers.value.filter((user) => user.deleted !== true)
@@ -148,10 +139,6 @@ const editor = useEditor({
   content: vModel.value,
   extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
-    // const markdown = turndownService
-    //   .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
-    //   .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-
     vModel.value = editor.storage.markdown.getMarkdown()
   },
   editable: !props.readOnly,
@@ -172,12 +159,30 @@ const editor = useEditor({
   },
 })
 
-const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {}
+const setEditorContent = (contentMd: any) => {
+  if (!editor.value) return
+
+  editor.value.commands.setContent(contentMd, false)
+}
 
 const onFocusWrapper = () => {
   if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
-    editor.value?.chain().focus().run()
+    focusEditor()
   }
+}
+
+function focusEditor() {
+  if (!editor.value) return
+
+  nextTick(() => {
+    editor.value?.chain().focus().run()
+  })
+}
+
+if (props.syncValueChange) {
+  watch([vModel, editor], () => {
+    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
+  })
 }
 
 if (isFormField.value) {
@@ -191,14 +196,10 @@ if (isFormField.value) {
 }
 
 onMounted(() => {
-  if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
-    // setEditorContent(vModel.value, true)
-
-    if (fullMode.value || isSurveyForm.value) {
-      nextTick(() => {
-        editor.value?.chain().focus().run()
-      })
-    }
+  if (fullMode.value || isSurveyForm.value) {
+    nextTick(() => {
+      editor.value?.commands.focus('end')
+    })
   }
 })
 

@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import TurndownService from 'turndown'
-import { marked } from 'marked'
-import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
-import { Strike, Link } from '~/helpers/tiptap/extensions'
+import { Markdown } from 'tiptap-markdown'
+import { Strike, Link, HardBreak } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -32,26 +30,6 @@ const isFocused = ref(false)
 
 const keys = useMagicKeys()
 
-const turndownService = new TurndownService({})
-
-turndownService.addRule('lineBreak', {
-  filter: (node) => {
-    return node.nodeName === 'BR'
-  },
-  replacement: () => {
-    return '<br />'
-  },
-})
-
-turndownService.addRule('strikethrough', {
-  filter: ['s'],
-  replacement: (content) => {
-    return `~${content}~`
-  },
-})
-
-turndownService.keep(['u', 'del'])
-
 const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
@@ -64,27 +42,30 @@ const tiptapExtensions = [
     codeBlock: false,
     code: false,
     strike: false,
+    hardBreak: false,
   }),
   Strike,
   Underline,
   Link,
+
+  HardBreak,
   Placeholder.configure({
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
+  Markdown.configure({ breaks: true, transformPastedText: true, transformCopiedText: true }),
 ]
 
 const editor = useEditor({
+  content: vModel.value,
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+    let markdown = editor.storage.markdown.getMarkdown()
 
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
       if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
     }
-
-    markdown = markdown.replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
     vModel.value = markdown === '<br />' ? '' : `${markdown}`
   },
@@ -93,7 +74,6 @@ const editor = useEditor({
   onFocus: () => {
     isFocused.value = true
     emits('focus')
-    onFocusWrapper()
   },
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
@@ -113,35 +93,25 @@ const editor = useEditor({
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
+  editor.value.commands.setContent(contentMd, false)
 
-  const selection = editor.value.view.state.selection
-
-  const contentHtml = contentMd ? marked.parse(contentMd) : '<p></p>'
-
-  const content = generateJSON(contentHtml, tiptapExtensions)
-
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-
-  setTimeout(() => {
-    if (focusEndOfDoc) {
-      const docSize = editor.value!.state.doc.nodeSize
-
-      editor.value
-        ?.chain()
-        .setTextSelection(docSize - 1)
-        .run()
-    }
-
-    ;(editor.value!.state as any).history$.prevRanges = null
-    ;(editor.value!.state as any).history$.done.eventCount = 0
-  }, 100)
+  if (focusEndOfDoc) {
+    focusEditor()
+  }
 }
 
 function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
-    setEditorContent(vModel.value, true)
   }
+}
+
+function focusEditor() {
+  if (!editor.value) return
+
+  nextTick(() => {
+    editor.value?.chain().focus().run()
+  })
 }
 
 if (props.syncValueChange) {
@@ -167,6 +137,7 @@ useEventListener(
   },
   true,
 )
+
 useEventListener(
   richTextLinkOptionRef,
   'focusout',
@@ -192,6 +163,7 @@ useEventListener(
   },
   true,
 )
+
 onClickOutside(editorDom, (e) => {
   if (!isFocused.value) return
 

@@ -127,7 +127,7 @@ export class NcMarkdownParser {
   }
 
   public taskListExt(md: MarkdownIt): void {
-    md.use(mdTaskList, { label: true, enabled: true })
+    md.use(mdTaskList, { label: true, enabled: false })
   }
 
   public mentionExt(

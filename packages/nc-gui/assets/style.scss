@@ -1179,6 +1179,10 @@ svg.nc-virtual-cell-icon {
 
   ul[data-type='taskList'],
   ul.contains-task-list {
+    &.contains-task-list li{
+      @apply mb-1;
+    }
+    
     li {
       @apply !ml-0 flex flex-row gap-x-2;
       list-style-type: none;

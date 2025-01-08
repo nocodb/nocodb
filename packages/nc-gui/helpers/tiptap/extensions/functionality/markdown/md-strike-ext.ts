@@ -38,7 +38,7 @@ function mdStrikeExt(md: MarkdownIt) {
     }
 
     // Handle raw HTML content inside strike-through
-    let content = state.src.slice(contentStart, contentEnd)
+    const content = state.src.slice(contentStart, contentEnd)
     // Check if the content contains raw HTML tags and prevent escaping
     if (/<[^>]+>/g.test(content)) {
       state.push('text', '', 0).content = content // Leave HTML tags as is

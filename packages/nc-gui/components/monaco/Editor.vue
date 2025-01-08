@@ -180,7 +180,7 @@ watch(readOnly, (v) => {
   background-color: transparent !important;
   border-radius: 8px !important;
   .view-line * {
-    font-family: DMMono monospace !important;
+    font-family: 'DM Mono', monospace !important;
   }
 }
 

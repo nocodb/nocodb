@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it'
 import taskList from 'markdown-it-task-lists'
+import type { UserType } from 'nocodb-sdk'
 
 declare module 'markdown-it-task-lists' {
   import { PluginWithOptions } from 'markdown-it'
@@ -13,7 +14,8 @@ export type NcMarkdownExtension = MarkdownIt.PluginSimple | MarkdownIt.PluginWit
 export interface NcMarkdownParserConstructorType {
   openLinkOnClick?: boolean
   enableMention?: boolean
-  users?: null
+  users?: (Partial<UserType> | Partial<User>)[]
+  currentUser?: Partial<UserType> | Partial<User> | null
   html?: boolean
   linkify?: boolean
   breaks?: boolean
@@ -23,25 +25,28 @@ export interface NcMarkdownParserConstructorType {
 export class NcMarkdownParser {
   public md: MarkdownIt
   public openLinkOnClick: boolean = false
-  public enableMention: boolean = false
 
   constructor({
     openLinkOnClick = false,
     enableMention = false,
+    users = [],
+    currentUser = null,
     html = false,
     linkify = false,
     breaks = false,
     extensions = [],
   }: NcMarkdownParserConstructorType = {}) {
     this.openLinkOnClick = openLinkOnClick
-    this.enableMention = enableMention
 
     this.md = this.withPatchedRenderer(new MarkdownIt({ html, linkify, breaks }))
 
     // Use the task list plugin with options
-    this.md.use(this.taskListPlugin)
+    this.md.use(this.taskListExt)
     this.md.use(this.setupLinkRules)
-    this.md.use(this.mentionPlugin)
+
+    if (enableMention) {
+      this.md.use(this.mentionExt, { users, currentUser })
+    }
 
     // Apply custom extensions passed during instantiation
     this.applyCustomExtensions(extensions)
@@ -56,11 +61,14 @@ export class NcMarkdownParser {
     return content
   }
 
-  public taskListPlugin(md: MarkdownIt): void {
+  public taskListExt(md: MarkdownIt): void {
     md.use(taskList, { label: true, enabled: true })
   }
 
-  public mentionPlugin(md: MarkdownIt): void {
+  public mentionExt(
+    md: MarkdownIt,
+    { users, currentUser }: Pick<NcMarkdownParserConstructorType, 'users' | 'currentUser'>,
+  ): void {
     // Todo: mention logic add
   }
 

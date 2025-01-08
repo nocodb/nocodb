@@ -1,7 +1,8 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
-import { parseUserMention } from '../nodes/mention/user'
+import { parseUserMention } from '../../nodes/mention/user'
+import { mcStrikeExt } from './md-strike-ext'
 
 declare module 'markdown-it-task-lists' {
   import { PluginWithOptions } from 'markdown-it'
@@ -48,6 +49,7 @@ export class NcMarkdownParser {
 
     // Use the task list plugin with options
     this.md.use(this.taskListExt)
+    this.md.use(mcStrikeExt)
     this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
 
     if (enableMention) {

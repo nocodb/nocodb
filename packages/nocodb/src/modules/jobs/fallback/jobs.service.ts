@@ -75,6 +75,10 @@ export class JobsService implements OnModuleInit {
       }
     }
 
+    if (!data) {
+      data = {};
+    }
+
     data.jobName = name;
 
     if (JobVersions?.[name]) {

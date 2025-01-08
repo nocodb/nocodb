@@ -236,8 +236,6 @@ export class NcMarkdownParser {
       }
     }
 
-    console.log('tokens', tokens)
-
     return result
   }
 

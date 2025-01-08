@@ -2,7 +2,7 @@ import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { parseUserMention } from '../../nodes/mention/user'
-import { mdLinkRuleSetupExt, mdStrikeExt } from '.'
+import { mdLinkRuleSetupExt } from '.'
 
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
@@ -49,7 +49,6 @@ export class NcMarkdownParser {
 
     // Use the task list plugin with options
     this.md.use(this.taskListExt)
-    this.md.use(mdStrikeExt)
     this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
 
     if (enableMention) {
@@ -89,11 +88,17 @@ export class NcMarkdownParser {
     }
   }
 
-  private preprocessMarkdown(markdownText: string): string {
-    // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
-    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[ \]/gm, '$1- [ ]') // Replace unchecked tasks
-    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[x\]/gm, '$1- [x]') // Replace checked tasks (lowercase 'x')
-    markdownText = markdownText.replace(/^(?!.*- )(\s*)\[X\]/gm, '$1- [x]') // Replace checked tasks (uppercase 'X')
+  public static preprocessMarkdown(markdownText: string, isEditor = false): string {
+    if (!ncIsString(markdownText)) markdownText ?? ''
+
+    if (!isEditor) {
+      // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
+      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[ \]/gm, '$1- [ ]') // Replace unchecked tasks
+      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[x\]/gm, '$1- [x]') // Replace checked tasks (lowercase 'x')
+      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[X\]/gm, '$1- [x]') // Replace checked tasks (uppercase 'X')
+    }
+
+    markdownText = markdownText.replace(/(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g, '<s>$1</s>')
 
     return markdownText
   }
@@ -122,7 +127,7 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it
     if (ncIsString(content)) {
-      return parser.md.render(parser.preprocessMarkdown(content))
+      return parser.md.render(NcMarkdownParser.preprocessMarkdown(content))
     }
 
     return content

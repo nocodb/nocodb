@@ -13,6 +13,7 @@ import {
   UserMention,
   UserMentionList,
   suggestion,
+  NcMarkdownParser,
 } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
@@ -86,7 +87,14 @@ const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+const vModel = computed({
+  get: () => {
+    return NcMarkdownParser.preprocessMarkdown(props.value, true)
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
 const mentionUsers = computed(() => {
   return baseUsers.value.filter((user) => user.deleted !== true)

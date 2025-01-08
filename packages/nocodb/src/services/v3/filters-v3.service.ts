@@ -258,7 +258,7 @@ export class FiltersV3Service {
     }
 
     // confirm if filter belongs to view
-    const filter = await Filter.get(context, param.filterId);
+    const filter = await Filter.get(context, param.filterId ?? '');
 
     if (!filter || filter.fk_view_id !== param.viewId) {
       NcError.badRequest('Filter not found');
@@ -284,7 +284,7 @@ export class FiltersV3Service {
     //   param.filter,
     // );
 
-    const filter = await Filter.get(context, param.filterId);
+    const filter = await Filter.get(context, param.filterId ?? '');
 
     if (!filter) {
       NcError.badRequest('Filter not found');

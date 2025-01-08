@@ -30,7 +30,7 @@ export class SortsV3Service {
     context: NcContext,
     param: { viewId: string; sortId: string; req: NcRequest },
   ) {
-    const sort = await Sort.get(context, param.sortId);
+    const sort = await Sort.get(context, param.sortId ?? '');
 
     if (!sort || sort.fk_view_id !== param.viewId) {
       NcError.notFound('Sort not found');
@@ -44,7 +44,7 @@ export class SortsV3Service {
     context: NcContext,
     param: { sortId: any; sort: SortReqType; req: NcRequest; viewId: string },
   ) {
-    const sort = await Sort.get(context, param.sortId);
+    const sort = await Sort.get(context, param.sortId ?? '');
 
     if (!sort || sort.fk_view_id !== param.viewId) {
       NcError.notFound('Sort not found');

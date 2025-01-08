@@ -68,13 +68,13 @@ export const UserMention = TipTapMention.extend({
       innerText,
     ]
   },
-
   deleteTriggerWithBackspace: true,
   addStorage() {
     return {
       markdown: {
         serialize(state: any, node: any) {
-          const user = node.attrs.id
+          const user = parseProp(node.attrs.id)
+
           if (user?.id) {
             state.write(`@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`)
           }

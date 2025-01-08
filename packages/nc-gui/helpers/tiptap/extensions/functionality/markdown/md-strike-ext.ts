@@ -1,6 +1,6 @@
 import MarkdownIt from 'markdown-it'
 
-export function mcStrikeExt(md: MarkdownIt) {
+function mdStrikeExt(md: MarkdownIt) {
   // Extend the default Markdown-It strike-through parsing
   const originalStrike = md.renderer.rules.del_open
   const originalStrikeClose = md.renderer.rules.del_close
@@ -61,3 +61,5 @@ export function mcStrikeExt(md: MarkdownIt) {
     md.renderer.rules.del_close = originalStrikeClose
   }
 }
+
+export { mdStrikeExt }

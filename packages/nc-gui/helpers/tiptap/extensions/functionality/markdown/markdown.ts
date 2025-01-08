@@ -2,7 +2,7 @@ import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { parseUserMention } from '../../nodes/mention/user'
-import { mcStrikeExt } from './md-strike-ext'
+import { mdStrikeExt, mdLinkRuleSetupExt } from '.'
 
 declare module 'markdown-it-task-lists' {
   import { PluginWithOptions } from 'markdown-it'
@@ -49,7 +49,7 @@ export class NcMarkdownParser {
 
     // Use the task list plugin with options
     this.md.use(this.taskListExt)
-    this.md.use(mcStrikeExt)
+    this.md.use(mdStrikeExt)
     this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
 
     if (enableMention) {
@@ -147,33 +147,7 @@ export class NcMarkdownParser {
     md: MarkdownIt,
     { openLinkOnClick = false }: Pick<NcMarkdownParserConstructorType, 'openLinkOnClick'> = {},
   ): void {
-    if (!openLinkOnClick) {
-      // Remove the href attribute from links
-      md.renderer.rules.link_open = (tokens, idx, options, _env, self) => {
-        const hrefIndex = tokens[idx]!.attrIndex('href')
-        if (hrefIndex >= 0) {
-          tokens[idx]!.attrs!.splice(hrefIndex, 1)
-        }
-        return self.renderToken(tokens, idx, options)
-      }
-    } else {
-      // Add attributes to links
-      md.renderer.rules.link_open = (tokens, idx, options, _env, self) => {
-        const targetIndex = tokens[idx]!.attrIndex('target')
-        if (targetIndex < 0) {
-          tokens[idx]!.attrPush(['target', '_blank'])
-        }
-        const relIndex = tokens[idx]!.attrIndex('rel')
-        if (relIndex < 0) {
-          tokens[idx]!.attrPush(['rel', 'noopener noreferrer nofollow'])
-        }
-        const onClickIndex = tokens[idx]!.attrIndex('onmousedown')
-        if (onClickIndex < 0) {
-          tokens[idx]!.attrPush(['onmousedown', '(function(event) { event.stopImmediatePropagation(); })(event)'])
-        }
-        return self.renderToken(tokens, idx, options)
-      }
-    }
+    md.use(mdLinkRuleSetupExt, { openLinkOnClick })
   }
 
   /**

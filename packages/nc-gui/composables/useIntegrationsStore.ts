@@ -457,6 +457,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         icon?: string
         description?: string
         order?: number
+        hidden?: boolean
       }
     }[]
 
@@ -487,6 +488,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         type: di.type,
         isAvailable: true,
         dynamic: true,
+        hidden: di.meta?.hidden ?? false,
       }
 
       allIntegrations.push(integration)

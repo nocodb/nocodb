@@ -14,6 +14,7 @@ export interface IntegrationItemType {
   isOssOnly?: boolean
   subtitle?: string
   dynamic?: boolean
+  hidden?: boolean
   form?: FormDefinition
 }
 

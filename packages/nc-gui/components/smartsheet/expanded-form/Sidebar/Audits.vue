@@ -48,6 +48,14 @@ watch(
     immediate: true,
   }
 )
+
+function safeJsonParse(json: string) {
+  try {
+    return JSON.parse(json)
+  } catch (e) {
+    return {}
+  }
+}
 </script>
 
 <template>
@@ -91,16 +99,32 @@ watch(
             </div>
             <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
             <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
-              <span class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50">
-                {{ JSON.parse(audit.details)?.ref_display_value || 'Record' }}
-              </span>
-              was linked
+              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
+                  <SmartsheetHeaderVirtualCellIcon :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }" class="!m-0" />
+                  {{ safeJsonParse(audit.details).ref_table_title }}
+                </div>
+                <div class="!border-none">
+                  <span class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50">
+                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  </span>
+                  was linked
+                </div>
+              </div>
             </div>
             <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
-              <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
-                {{ JSON.parse(audit.details)?.ref_display_value || 'Record' }}
-              </span>
-              was unlinked
+              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
+                  <SmartsheetHeaderVirtualCellIcon :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }" class="!m-0" />
+                  {{ safeJsonParse(audit.details).ref_table_title }}
+                </div>
+                <div class="!border-none">
+                  <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
+                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  </span>
+                  was unlinked
+                </div>
+              </div>
             </div>
             <template v-else-if="audit?.op_type === 'DATA_UPDATE'">
               <div class="ml-9 rounded-lg border-1 border-gray-200 bg-gray-50 divide-y">

@@ -1,86 +1,71 @@
 import type MarkdownIt from 'markdown-it'
 
 function mdStrikeExt(md: MarkdownIt) {
-  // Extend the default Markdown-It strike-through parsing
-  const originalStrike = md.renderer.rules.del_open
-  const originalStrikeClose = md.renderer.rules.del_close
+  md.inline.ruler.before('emphasis', 'strikethrough', (state, silent) => {
+    const max = state.posMax
+    const start = state.pos
 
-  // Custom rule for handling ~ and ~~ strike-through with raw HTML
-  md.inline.ruler.before('emphasis', 'custom_strike', (state, silent) => {
-    const marker = state.src.charAt(state.pos)
-    if (marker !== '~') {
+    if (state.src.charCodeAt(start) !== 0x7e /* ~ */) {
       return false
     }
-
-    const match = state.src.slice(state.pos).match(/^~{1,2}/) // Match ~ or ~~
-    if (!match) {
-      return false
-    }
-
-    const markerCount = match[0].length
-
     if (silent) {
-      return true
-    }
-
-    // Handle opening tag based on single or double tilde
-    if (markerCount === 2) {
-      state.push('del_open', 's', 1)
-    } else if (markerCount === 1) {
-      state.push('strike_open', 's', 1)
-    }
-
-    const contentStart = state.pos + markerCount
-    const contentEnd = state.src.indexOf(marker.repeat(markerCount), contentStart)
-
-    if (contentEnd === -1) {
+      return false
+    } // don't run any pairs in validation mode
+    if (start + 2 >= max) {
       return false
     }
 
-    // Handle raw HTML content inside strike-through
-    const content = state.src.slice(contentStart, contentEnd)
-    // Check if the content contains raw HTML tags and prevent escaping
-    if (/<[^>]+>/g.test(content)) {
-      state.push('text', '', 0).content = content // Leave HTML tags as is
-    } else {
-      state.push('text', '', 0).content = state.src.slice(contentStart, contentEnd)
+    state.pos = start + 1
+    let found = false
+
+    while (state.pos < max) {
+      if (state.src.charCodeAt(state.pos) === 0x7e /* ~ */) {
+        found = true
+        break
+      }
+
+      state.md.inline.skipToken(state)
     }
 
-    // Handle closing tag based on single or double tilde
-    if (markerCount === 2) {
-      state.push('del_close', 's', -1)
-    } else if (markerCount === 1) {
-      state.push('strike_close', 's', -1)
+    if (!found || start + 1 === state.pos) {
+      state.pos = start
+      return false
     }
 
-    state.pos = contentEnd + markerCount
+    const content = state.src.slice(start + 1, state.pos)
+
+    // don't allow unescaped spaces/newlines inside
+    if (content.match(/(^|[^\\])(\\\\)*\s/)) {
+      state.pos = start
+      return false
+    }
+
+    // found!
+    state.posMax = state.pos
+    state.pos = start + 1
+
+    // Earlier we checked !silent, but this implementation does not need it
+    const token_so = state.push('ss_open', 's', 1)
+    token_so.markup = '~'
+
+    const token_t = state.push('text', '', 0)
+    token_t.content = content.replace(/\\([ \\!"#$%&'()*+,./:;<=>?@[\]^_`{|}~-])/g, '$1')
+
+    const token_sc = state.push('ss_close', 's', -1)
+    token_sc.markup = '~'
+
+    state.pos = state.posMax + 1
+    state.posMax = max
     return true
   })
 
-  // Modify the rendering to output <s> for both ~text~ and ~~text~~
-  md.renderer.rules.strike_open = () => {
-    return `<s>`
+  // Rendering rules for opening and closing <s> tags
+  md.renderer.rules.ss_open = function (tokens, idx) {
+    return '<s>'
   }
 
-  md.renderer.rules.strike_close = () => {
-    return `</s>`
-  }
-
-  // Custom serialize function to handle raw HTML inside strike-through
-  md.renderer.rules.text = (tokens, idx) => {
-    const token = tokens[idx]
-    // If the token contains HTML content (like <u> or other HTML tags), return it as raw HTML
-    if (/<[^>]+>/g.test(token.content)) {
-      return token.content // Preserve the raw HTML content
-    } else {
-      return md.utils.escapeHtml(token.content) // Escape non-HTML content
-    }
-  }
-
-  // Retain default behavior for `~~` strike-through if necessary
-  if (originalStrike) {
-    md.renderer.rules.del_open = originalStrike
-    md.renderer.rules.del_close = originalStrikeClose
+  md.renderer.rules.ss_close = function (tokens, idx) {
+    return '</s>'
   }
 }
 

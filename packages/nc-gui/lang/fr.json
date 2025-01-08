@@ -93,8 +93,8 @@
     "none": "Aucun"
   },
   "general": {
-    "supported": "Supported",
-    "usage": "Usage",
+    "supported": "Pris en charge",
+    "usage": "Utilisation",
     "snapshot": "Instantané",
     "snapshots": "Instantanés",
     "baseSnapshots": "Instantanés de base",
@@ -106,7 +106,7 @@
     "onMultiple": "Sur plusieurs",
     "manual": "Manuel",
     "trigger": "Déclencheur",
-    "addLookupField": "Add {count} lookup fields",
+    "addLookupField": "Ajouter {count} champ de recherche",
     "style": "Style",
     "label": "Étiquette",
     "role": "Rôle",
@@ -1628,7 +1628,7 @@
       }
     },
     "info": {
-      "inviteSent": "Invitation sent successfully",
+      "inviteSent": "Invitation envoyée avec succès",
       "userRoleUpdated": "User role updated successfully",
       "actionIrreversible": "This action is irreversible",
       "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
@@ -1983,7 +1983,7 @@
     "subText": {
       "createNewTable": "Start from scratch.",
       "importData": "From files & external sources.",
-      "connectExternalData": "In realtime to external databases."
+      "connectExternalData": "En temps réel vers des bases de données externes."
     }
   }
 }

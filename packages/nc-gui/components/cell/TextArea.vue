@@ -44,6 +44,12 @@ const baseStore = useBase()
 
 const { idUserMap } = storeToRefs(baseStore)
 
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
 const vModel = useVModel(props, 'modelValue', emits, {
   shouldEmit: () => !readOnly.value,
 })
@@ -155,9 +161,14 @@ const richTextContent = computedAsync(async () => {
     return Promise.resolve(
       NcMarkdownParser.parse(
         vModel.value,
-        isExpandedFormOpen.value
-          ? { maxBlockTokens: undefined, openLinkOnClick: true }
-          : { maxBlockTokens: rowHeight.value, openLinkOnClick: false },
+        {
+          enableMention: true,
+          users: unref(baseUsers.value),
+          currentUser: unref(user.value),
+          ...(isExpandedFormOpen.value
+            ? { maxBlockTokens: undefined, openLinkOnClick: true }
+            : { maxBlockTokens: rowHeight.value, openLinkOnClick: false }),
+        },
         true,
       ),
     )

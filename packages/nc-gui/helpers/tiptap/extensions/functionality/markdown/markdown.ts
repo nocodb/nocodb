@@ -89,7 +89,7 @@ export class NcMarkdownParser {
   }
 
   public static preprocessMarkdown(markdownText: string, isEditor = false): string {
-    if (!ncIsString(markdownText)) markdownText ?? ''
+    if (!ncIsString(markdownText)) return markdownText ?? ''
 
     if (!isEditor) {
       // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "

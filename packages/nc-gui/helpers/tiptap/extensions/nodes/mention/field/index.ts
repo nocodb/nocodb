@@ -24,9 +24,9 @@ export const parseFieldMention = (
 
     const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
 
-    let className = 'mention font-semibold rounded-md px-1 inline-block'
+    let className = 'mention'
     if (bUser.id === currentUser?.id) {
-      className += ' bg-[#D4F7E0] text-[#17803D]'
+      className += ' nc-current-user'
     }
 
     return `<span class="${className}" data-id='${JSON.stringify({
@@ -51,15 +51,12 @@ export const FieldMention = TipTapMention.extend({
 
     const innerText = attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email
 
-    const styles =
-      attributes.isSameUser === true || attributes.isSameUser === 'true'
-        ? 'bg-[#D4F7E0] text-[#17803D]'
-        : 'bg-brand-50 text-brand-500'
+    const styles = attributes.isSameUser === true || attributes.isSameUser === 'true' ? 'nc-current-user' : ''
 
     return [
       'span',
       {
-        'class': `mention font-semibold ${styles} rounded-md px-1`,
+        'class': `mention ${styles}`,
         'data-type': 'mention',
         'data-id': HTMLAttributes['data-id'],
       },

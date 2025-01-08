@@ -5,7 +5,7 @@ import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
-import { suggestion, FieldList } from '~/helpers/tiptap/extensions'
+import { suggestion, FieldMentionList } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -56,7 +56,7 @@ const editor = useEditor({
     }),
     Mention.configure({
       suggestion: {
-        ...suggestion(FieldList),
+        ...suggestion(FieldMentionList),
         items: ({ query }) => {
           if (query.length === 0) return props.options ?? []
           return (

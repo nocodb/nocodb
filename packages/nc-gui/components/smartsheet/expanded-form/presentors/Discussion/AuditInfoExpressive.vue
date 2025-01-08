@@ -42,10 +42,10 @@ function normalizeMeta(meta: Record<string, any> | undefined) {
     ...(meta ?? {}),
     icon: meta?.icon
       ? {
-          full: 'mdi-' + meta?.icon,
-          empty: 'mdi-' + meta?.icon,
-          checked: 'mdi-' + meta?.icon,
-          unchecked: 'mdi-' + meta?.icon,
+          full: `mdi-${meta?.icon}`,
+          empty: `mdi-${meta?.icon}`,
+          checked: `mdi-${meta?.icon}`,
+          unchecked: `mdi-${meta?.icon}`,
         }
       : undefined,
   }
@@ -54,16 +54,14 @@ function normalizeMeta(meta: Record<string, any> | undefined) {
 
 <template>
   <div v-for="columnKey in columnKeys" class="relative mb-2">
-    <GeneralIcon
-      icon="ncLink"
-      class="w-[12px] h-[12px] text-gray-500 absolute top-[6px] left-0 transform -translate-x-1/2"
-    />
+    <GeneralIcon icon="ncLink" class="w-[12px] h-[12px] text-gray-500 absolute top-[6px] left-0 transform -translate-x-1/2" />
     <div class="mb-1 ml-6.5">
       <div
         class="text-sm"
         :class="{
           'inline-flex items-center': meta[columnKey]?.field_type !== 'LongText',
-        }">
+        }"
+      >
         changed
         <span
           class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-2 mr-3"

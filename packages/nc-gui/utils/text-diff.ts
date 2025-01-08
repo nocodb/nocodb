@@ -1,4 +1,4 @@
-import * as Diff from 'diff';
+import * as Diff from 'diff'
 
 /**
  * Perform a diff algorithm on the source string based on the target string. Reports the differences between the two strings as the diff blocks.
@@ -17,8 +17,8 @@ import * as Diff from 'diff';
  * ```
  */
 export const diffTextBlocks = (sourceString: string, targetString: string) => {
-  return Diff.diffWords(sourceString, targetString).map(it => ({
+  return Diff.diffWords(sourceString, targetString).map((it) => ({
     text: it.value,
     op: it.added ? 'added' : it.removed ? 'removed' : 'unchanged',
-  }));
+  }))
 }

@@ -31,7 +31,7 @@ const columnKeys = computed(() => {
 
 /* provides */
 
-provide(RawReadonlyInj, ref(true));
+provide(RawReadonlyInj, ref(true))
 
 /* attachment */
 
@@ -43,99 +43,102 @@ function normalizeColOptions(key: string) {
   return {
     ...(meta.value?.[key]?.options ?? {}),
     options: meta.value?.[key]?.options?.choices,
-  };
+  }
 }
 
 function normalizeMeta(key: string) {
-  const mta = meta.value?.[key] ?? {};
-  const opts = normalizeColOptions(key);
-  const icn = {
-    'thumbs-up': 'thumb-up',
-    'circle-filled': 'moon-full',
-  }[opts.icon as string] ?? opts.icon;
+  const mta = meta.value?.[key] ?? {}
+  const opts = normalizeColOptions(key)
+  const icn =
+    {
+      'thumbs-up': 'thumb-up',
+      'circle-filled': 'moon-full',
+    }[opts.icon as string] ?? opts.icon
   return {
     ...opts,
     ...mta,
-    icon: !icn ? undefined : {
-      full: 'mdi-' + icn,
-      empty: 'mdi-' + icn,
-      checked: 'mdi-' + icn,
-      unchecked: 'mdi-' + icn,
-    },
-    duration: opts.duration_format ? durationOptions.find(it => it.title === opts.duration_format)?.id : undefined,
+    icon: !icn
+      ? undefined
+      : {
+          full: `mdi-${icn}`,
+          empty: `mdi-${icn}`,
+          checked: `mdi-${icn}`,
+          unchecked: `mdi-${icn}`,
+        },
+    duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
   }
 }
 
 function processOldDataFor(key: string) {
-
-  const odata = oldData.value[key];
-  const ndata = newData.value[key];
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
 
   if (meta.value?.[key]?.type === 'Attachment') {
-    return odata?.filter((it: AttachmentType) => !ndata?.some((t: AttachmentType) => t.title === it.title));
+    return odata?.filter((it: AttachmentType) => !ndata?.some((t: AttachmentType) => t.title === it.title))
   }
   if (meta.value?.[key]?.type === 'MultiSelect') {
-    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata;
+    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata
   }
 
-  return odata;
-
+  return odata
 }
 
 function processNewDataFor(key: string) {
-
-  const odata = oldData.value[key];
-  const ndata = newData.value[key];
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
 
   if (meta.value?.[key]?.type === 'Attachment') {
-    return ndata?.filter((it: AttachmentType) => !odata?.some((t: AttachmentType) => t.title === it.title));
+    return ndata?.filter((it: AttachmentType) => !odata?.some((t: AttachmentType) => t.title === it.title))
   }
   if (meta.value?.[key]?.type === 'MultiSelect') {
-    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata;
+    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata
   }
 
-  return ndata;
-
+  return ndata
 }
 
 function safeJsonDiff(key: string) {
-
-  let odata = oldData.value[key];
-  let ndata = newData.value[key];
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
 
   if (!odata && !ndata) {
-    return [];
+    return []
   }
 
-  return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2));
-
+  return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2))
 }
 
 /* visibility */
 
 function isShowableValue(value: any) {
-  return ![ undefined, null, '' ].includes(value);
+  return ![undefined, null, ''].includes(value)
 }
 
 function shouldShowRaw(key: string) {
-  return [ 'URL', 'PhoneNumber', 'Email' ].includes(meta.value?.[key]?.type);
+  return ['URL', 'PhoneNumber', 'Email'].includes(meta.value?.[key]?.type)
 }
-
 </script>
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
     <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header">
-      <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }" class="!m-0" />
+      <SmartsheetHeaderCellIcon
+        :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
+        class="!m-0"
+      />
       {{ columnKey }}
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
         <div v-if="processOldDataFor(columnKey)?.length > 0" class="border-1 border-red-500 rounded-md bg-red-50 w-full p-0.5">
           <div class="flex flex-col items-start gap-0.5">
-            <div v-for="(item, i) of processOldDataFor(columnKey)" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
+            <div
+              v-for="(item, i) of processOldDataFor(columnKey)"
+              :key="item.url || item.title"
+              class="border-1 border-gray-200 rounded-md bg-white w-full"
+            >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
                   <LazyCellAttachmentPreviewImage
@@ -158,9 +161,16 @@ function shouldShowRaw(key: string) {
             </div>
           </div>
         </div>
-        <div v-if="processNewDataFor(columnKey)?.length > 0" class="border-1 border-green-500 rounded-md bg-green-50 w-full p-0.5">
+        <div
+          v-if="processNewDataFor(columnKey)?.length > 0"
+          class="border-1 border-green-500 rounded-md bg-green-50 w-full p-0.5"
+        >
           <div class="flex flex-col items-start gap-0.5">
-            <div v-for="(item, i) of processNewDataFor(columnKey)" :key="item.url || item.title" class="border-1 border-gray-200 rounded-md bg-white w-full">
+            <div
+              v-for="(item, i) of processNewDataFor(columnKey)"
+              :key="item.url || item.title"
+              class="border-1 border-gray-200 rounded-md bg-white w-full"
+            >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
                   <LazyCellAttachmentPreviewImage
@@ -185,20 +195,32 @@ function shouldShowRaw(key: string) {
         </div>
       </template>
       <template v-else-if="shouldShowRaw(columnKey)">
-        <div v-if="isShowableValue(oldData[columnKey])" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all">
+        <div
+          v-if="isShowableValue(oldData[columnKey])"
+          class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
+        >
           {{ oldData[columnKey] }}
         </div>
-        <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all">
+        <div
+          v-if="isShowableValue(newData[columnKey])"
+          class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
+        >
           {{ newData[columnKey] }}
         </div>
       </template>
       <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
         <div>
           <template v-for="block of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')">
-            <span v-if="block.op === 'removed'" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone">
+            <span
+              v-if="block.op === 'removed'"
+              class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone"
+            >
               {{ block.text }}
             </span>
-            <span v-else-if="block.op === 'added'" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone">
+            <span
+              v-else-if="block.op === 'added'"
+              class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone"
+            >
               {{ block.text }}
             </span>
             <span v-else>
@@ -210,8 +232,16 @@ function shouldShowRaw(key: string) {
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
         <div class="overflow-x-auto nc-scrollbar-thin whitespace-nowrap">
           <template v-for="block of safeJsonDiff(columnKey)">
-            <pre v-if="block.op === 'removed'" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline">{{ block.text }}</pre>
-            <pre v-else-if="block.op === 'added'" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline">{{ block.text }}</pre>
+            <pre
+              v-if="block.op === 'removed'"
+              class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
+              >{{ block.text }}</pre
+            >
+            <pre
+              v-else-if="block.op === 'added'"
+              class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
+              >{{ block.text }}</pre
+            >
             <pre v-else class="inline">{{ block.text }}</pre>
           </template>
         </div>
@@ -221,9 +251,12 @@ function shouldShowRaw(key: string) {
           v-if="isShowableValue(processOldDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
-            'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
+            'px-1 py-0.25':
+              !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) &&
+              !normalizeMeta(columnKey).is_progress,
             '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
-          }">
+          }"
+        >
           <SmartsheetCell
             :column="{
               uidt: meta[columnKey]?.type,
@@ -244,9 +277,12 @@ function shouldShowRaw(key: string) {
           v-if="isShowableValue(processNewDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
           :class="{
-            'px-1 py-0.25': !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) && !normalizeMeta(columnKey).is_progress,
+            'px-1 py-0.25':
+              !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) &&
+              !normalizeMeta(columnKey).is_progress,
             '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
-          }">
+          }"
+        >
           <SmartsheetCell
             :column="{
               uidt: meta[columnKey]?.type,
@@ -300,7 +336,8 @@ function shouldShowRaw(key: string) {
 .nc-audit-mini-item-cell :deep(.nc-cell-percent) {
   & > div > div {
     @apply !p-0;
-    &, & * {
+    &,
+    & * {
       height: 6px !important;
     }
     .ant-progress-inner {

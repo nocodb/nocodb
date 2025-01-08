@@ -396,10 +396,10 @@ watch(textAreaRef, (el) => {
         v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="[
+          isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
           {
             'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
             'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
-            'nc-scrollbar-thin': isExpandedFormOpen,
           },
         ]"
         :style="{
@@ -422,7 +422,6 @@ watch(textAreaRef, (el) => {
           :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : undefined"
           v-html="richTextContent"
         ></div>
-        <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only /> -->
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div

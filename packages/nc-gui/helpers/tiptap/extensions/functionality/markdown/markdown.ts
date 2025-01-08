@@ -92,16 +92,16 @@ export class NcMarkdownParser {
     }
   }
 
-  public static preprocessMarkdown(markdownText: string, isEditor = false): string {
+  public static preprocessMarkdown(markdownText: string, _isEditor = false): string {
     if (!ncIsString(markdownText)) return markdownText ?? ''
     // Only process task lists if not in editor mode
-    if (!isEditor) {
-      // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
-      markdownText = markdownText.replace(taskRegex, (_match, spaces, state) => {
-        const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
-        return `${spaces}- ${checked}`
-      })
-    }
+    // if (!isEditor) {
+    // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
+    markdownText = markdownText.replace(taskRegex, (_match, spaces, state) => {
+      const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
+      return `${spaces}- ${checked}`
+    })
+    // }
 
     // Replace single tilde strikethrough syntax with <s> tags
     return markdownText.replace(strikeThroughRegex, '<s>$1</s>')

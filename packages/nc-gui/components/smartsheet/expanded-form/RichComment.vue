@@ -205,17 +205,22 @@ const emitSave = (event: KeyboardEvent) => {
   }
 }
 
+let timerId: any
+
 const handleEnterDown = (event: KeyboardEvent) => {
+  if (timerId) {
+    clearTimeout(timerId)
+  }
+
   const isListsActive =
     editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
+
   if (isListsActive) {
     triggerSaveFromList.value = true
-    setTimeout(() => {
+    timerId = setTimeout(() => {
       triggerSaveFromList.value = false
     }, 1000)
-  } else {
-    emitSave(event)
-  }
+  } else emitSave(event)
 }
 
 const handleKeyPress = (event: KeyboardEvent) => {

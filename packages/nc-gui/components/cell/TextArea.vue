@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AIRecordType } from 'nocodb-sdk'
-import { NcMarkdownParser } from '../../helpers/tiptap/markdown'
+import { NcMarkdownParser } from '~/helpers/tiptap/markdown'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -150,17 +150,19 @@ const isRichMode = computed(() => {
   return meta?.richMode
 })
 
-const richTextContent = computed(() => {
+const richTextContent = computedAsync(async () => {
   if (isRichMode.value && vModel.value) {
-    return NcMarkdownParser.parse(
-      vModel.value,
-      isExpandedFormOpen.value
-        ? { maxBlockTokens: undefined, openLinkOnClick: true }
-        : { maxBlockTokens: rowHeight.value, openLinkOnClick: false },
-      true,
+    return Promise.resolve(
+      NcMarkdownParser.parse(
+        vModel.value,
+        isExpandedFormOpen.value
+          ? { maxBlockTokens: undefined, openLinkOnClick: true }
+          : { maxBlockTokens: rowHeight.value, openLinkOnClick: false },
+        true,
+      ),
     )
   }
-  return ''
+  return Promise.resolve('')
 })
 
 const onExpand = () => {

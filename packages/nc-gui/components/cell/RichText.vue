@@ -95,47 +95,55 @@ const vModel = computed({
   },
 })
 
-const tiptapExtensions = [
-  ...(appInfo.value.ee && !props.hideMention
-    ? [
-        Mention.configure({
-          suggestion: {
-            ...suggestion(UserMentionList),
-            items: ({ query }) =>
-              baseUsers.value
-                .filter((user) => user.deleted !== true)
-                .map((user) => ({
-                  id: user.id,
-                  name: user.display_name,
-                  email: user.email,
-                  meta: user.meta,
-                }))
-                .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
-          },
-          users: baseUsers.value.filter((user) => user?.deleted !== true),
-          currentUser: unref(user.value),
-        }),
-      ]
-    : []),
-  StarterKit.configure({
-    heading: isFormField.value ? false : undefined,
-  }),
-  TaskList,
-  TaskItem.configure({
-    nested: true,
-  }),
-  Underline,
-  Link,
-  Placeholder.configure({
-    emptyEditorClass: 'is-editor-empty',
-    placeholder: props.placeholder,
-  }),
-  Markdown,
-]
+const mentionUsers = computed(() => {
+  return baseUsers.value.filter((user) => user.deleted !== true)
+})
+
+const getTiptapExtensions = () => {
+  const extensions = [
+    StarterKit.configure({
+      heading: isFormField.value ? false : undefined,
+    }),
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+    Underline,
+    Link,
+    Placeholder.configure({
+      emptyEditorClass: 'is-editor-empty',
+      placeholder: props.placeholder,
+    }),
+    Markdown.configure({ html: true, breaks: true }),
+  ]
+
+  if (appInfo.value.ee && !props.hideMention) {
+    extensions.push(
+      Mention.configure({
+        suggestion: {
+          ...suggestion(UserMentionList),
+          items: ({ query }) =>
+            mentionUsers.value
+              .map((user) => ({
+                id: user.id,
+                name: user.display_name,
+                email: user.email,
+                meta: user.meta,
+              }))
+              .filter((user) => searchCompare([user.name, user.email], query)),
+        },
+        users: unref(mentionUsers.value),
+        currentUser: unref(user.value),
+      }),
+    )
+  }
+
+  return extensions
+}
 
 const editor = useEditor({
   content: vModel.value,
-  extensions: tiptapExtensions,
+  extensions: getTiptapExtensions(),
   onUpdate: ({ editor }) => {
     // const markdown = turndownService
     //   .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))

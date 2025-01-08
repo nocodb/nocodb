@@ -1,4 +1,5 @@
 import TipTapMention from '@tiptap/extension-mention'
+import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
 
@@ -9,7 +10,7 @@ export const parseMention = (
   currentUser?: Partial<UserType> | Partial<User> | null,
   isReadonly = false,
 ) => {
-  return regexp(USER_ID_REGEXP, (match, utils) => {
+  return regexp(USER_ID_REGEXP, (match) => {
     const id = match[1]?.split('|')?.[0]
     const bUser =
       users.find((user) => user?.id && user.id === id) ||
@@ -21,19 +22,17 @@ export const parseMention = (
 
     const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
 
-    let className = 'mention font-semibold m-0.5 rounded-md px-1 inline-block'
+    let className = 'mention font-semibold rounded-md px-1 inline-block'
     if (bUser.id === currentUser?.id) {
       className += ' bg-[#D4F7E0] text-[#17803D]'
     }
 
-    // NOTE: Keep this in sync with the @tiptap/extension-mention
-    // https://github.com/ueberdosis/tiptap/blob/main/packages/extension-mention/src/mention.ts
-    return `<span class="${className}" data-id="${JSON.stringify({
+    return `<span class="${className}" data-id='${JSON.stringify({
       id: bUser?.id,
       email: bUser?.email,
       name: bUser?.display_name ?? '',
       isSameUser: bUser?.id === currentUser?.id,
-    })}"  data-type="mention">${isReadonly ? '<span>@</span>' : '@'}${processedContent}</span>`
+    })}'  data-type="mention">${isReadonly ? '<span>@</span>' : '@'}${processedContent}</span>`
   })
 }
 
@@ -46,8 +45,7 @@ export const Mention = TipTapMention.extend({
     }
   },
   renderHTML({ HTMLAttributes }) {
-    const attributes =
-      typeof HTMLAttributes['data-id'] !== 'object' ? JSON.parse(HTMLAttributes['data-id']) : HTMLAttributes['data-id']
+    const attributes = parseProp(HTMLAttributes['data-id'])
 
     const innerText = attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email
 
@@ -61,7 +59,7 @@ export const Mention = TipTapMention.extend({
       {
         'class': `mention font-semibold ${styles} rounded-md px-1`,
         'data-type': 'mention',
-        'data-id': JSON.stringify(HTMLAttributes['data-id']),
+        'data-id': HTMLAttributes['data-id'],
       },
       [
         'span',
@@ -73,20 +71,19 @@ export const Mention = TipTapMention.extend({
       innerText,
     ]
   },
-  renderText({ node }) {
-    return `@${node.attrs.id.name || node.attrs.id.email || node.attrs.id.id}`
-  },
+
   deleteTriggerWithBackspace: true,
   addStorage() {
     return {
-      markdon: {
+      markdown: {
         serialize(state: any, node: any) {
-          if (!node.attrs.id?.id) {
-            state.write(`@(${node.attrs.id.id}|${node.attrs.id.email}|${node.attrs.id.name})`)
+          const user = node.attrs.id
+          if (user?.id) {
+            state.write(`@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`)
           }
         },
         parse: {
-          setup(markdownit: any) {
+          setup(markdownit: MarkdownIt) {
             markdownit.use(parseMention(this.options.users, this.options.currentUser))
           },
         },

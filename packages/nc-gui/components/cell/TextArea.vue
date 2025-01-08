@@ -160,7 +160,7 @@ const richTextContent = computedAsync(async () => {
   if (isRichMode.value && vModel.value) {
     return Promise.resolve(
       NcMarkdownParser.parse(
-        vModel.value,
+        unref(vModel.value),
         {
           enableMention: true,
           users: unref(baseUsers.value),
@@ -422,7 +422,7 @@ watch(textAreaRef, (el) => {
           :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : undefined"
           v-html="richTextContent"
         ></div>
-        <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only show-limited-content /> -->
+        <!-- <LazyCellRichText v-model:value="vModel" sync-value-change read-only /> -->
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div

@@ -45,7 +45,7 @@ export const Mention = TipTapMention.extend({
     return {
       ...this.parent?.(),
       users: [],
-      loggedUserId: {},
+      currentUser: {},
     }
   },
   renderHTML({ HTMLAttributes }) {

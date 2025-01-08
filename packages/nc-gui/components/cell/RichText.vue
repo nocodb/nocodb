@@ -27,13 +27,11 @@ const props = withDefaults(
     renderAsText?: boolean
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
     hideMention?: boolean
-    showLimitedContent?: boolean
   }>(),
   {
     isFormField: false,
     hiddenBubbleMenuOptions: () => [],
     hideMention: false,
-    showLimitedContent: false,
   },
 )
 
@@ -238,12 +236,7 @@ const vModel = computed({
   get: () => {
     const contentHtml = props.value ? marked.parse(parseText(props.value)) : '<p></p>'
 
-    const content = generateJSON(contentHtml, tiptapExtensions)
-
-    return {
-      type: content.type,
-      content: props.showLimitedContent ? content.content.slice(0, 1) : content.content, // Adjust slice size for testing
-    }
+    return generateJSON(contentHtml, tiptapExtensions)
   },
   set: (v: any) => {
     emits('update:value', v)
@@ -267,6 +260,8 @@ const tiptapExtensions = [
                 }))
                 .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
           },
+          users: baseUsers.value.filter((user) => user?.deleted !== true),
+          currentUser: unref(user.value),
         }),
       ]
     : []),
@@ -293,7 +288,6 @@ const editor = useEditor({
     const markdown = turndownService
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-
     vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
@@ -341,22 +335,8 @@ const setEditorContent = (contentMd: string, focusEndOfDoc?: boolean) => {
   const contentHtml = contentMd ? marked.parse(parseText(contentMd)) : '<p></p>'
 
   const content = generateJSON(contentHtml, tiptapExtensions)
-  // console.log('set editor content')
-  // console.log('content', content)
-  // console.time()
-  // editor.value.commands.setContent(contentMd ?? '') // setContent supports markdown format
 
-  if (props.showLimitedContent) {
-    const limitedContent = {
-      type: content.type,
-      content: props.showLimitedContent ? content.content.slice(0, 1) : content.content, // Adjust slice size for testing
-    }
-
-    editor.value.chain().setContent(limitedContent).setTextSelection(selection.to).run()
-  } else {
-    editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-  }
-  // console.timeEnd()
+  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
 
   setTimeout(() => {
     if (focusEndOfDoc) {

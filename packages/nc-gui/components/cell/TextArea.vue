@@ -407,7 +407,7 @@ watch(textAreaRef, (el) => {
         @keydown.enter="onExpand"
       >
         <div
-          class="nc-cell-field nc-rich-text-cell-content"
+          class="nc-cell-field nc-rich-text-content"
           :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : undefined"
           v-html="richTextContent"
         ></div>

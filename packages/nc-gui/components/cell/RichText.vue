@@ -5,7 +5,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
-import { Strike, Link, TaskItem, HardBreak, UserMention, suggestion, UserMentionList } from '~/helpers/tiptap/extensions'
+import { HardBreak, Link, Strike, TaskItem, UserMention, UserMentionList, suggestion } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -39,8 +39,6 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 

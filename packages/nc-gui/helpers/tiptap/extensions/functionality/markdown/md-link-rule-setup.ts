@@ -1,4 +1,4 @@
-import MarkdownIt from 'markdown-it'
+import type MarkdownIt from 'markdown-it'
 
 function mdLinkRuleSetupExt(md: MarkdownIt, { openLinkOnClick = false }: { openLinkOnClick?: boolean }) {
   if (!openLinkOnClick) {

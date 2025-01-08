@@ -2,10 +2,10 @@ import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { parseUserMention } from '../../nodes/mention/user'
-import { mdStrikeExt, mdLinkRuleSetupExt } from '.'
+import { mdLinkRuleSetupExt, mdStrikeExt } from '.'
 
 declare module 'markdown-it-task-lists' {
-  import { PluginWithOptions } from 'markdown-it'
+  import type { PluginWithOptions } from 'markdown-it'
 
   const taskLists: PluginWithOptions
   export default taskLists
@@ -103,11 +103,11 @@ export class NcMarkdownParser {
    * @param content - The markdown content to parse.
    * @param options - Optional options to initialize the parser instance dynamically.
    */
-  public static parse<T extends any>(
+  public static parse<T extends string>(
     content: T,
     options: NcMarkdownParserConstructorType = {},
     useSingleton: boolean = false,
-  ): string | T {
+  ): string {
     if (!ncIsString(content)) return content
 
     let parser: NcMarkdownParser

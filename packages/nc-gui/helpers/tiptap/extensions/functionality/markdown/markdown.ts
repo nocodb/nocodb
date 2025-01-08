@@ -25,6 +25,10 @@ export interface NcMarkdownParserConstructorType {
   maxBlockTokens?: number // Add this to limit block tokens
 }
 
+// Precompiled regex patterns
+const taskRegex = /^(?!.*- )(\s*)\[( |x|X)\]/gm // Matches unchecked and checked tasks
+const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethrough syntax
+
 export class NcMarkdownParser {
   private static instance: NcMarkdownParser | null = null
   private md: MarkdownIt
@@ -90,17 +94,17 @@ export class NcMarkdownParser {
 
   public static preprocessMarkdown(markdownText: string, isEditor = false): string {
     if (!ncIsString(markdownText)) return markdownText ?? ''
-
+    // Only process task lists if not in editor mode
     if (!isEditor) {
       // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
-      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[ \]/gm, '$1- [ ]') // Replace unchecked tasks
-      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[x\]/gm, '$1- [x]') // Replace checked tasks (lowercase 'x')
-      markdownText = markdownText.replace(/^(?!.*- )(\s*)\[X\]/gm, '$1- [x]') // Replace checked tasks (uppercase 'X')
+      markdownText = markdownText.replace(taskRegex, (_match, spaces, state) => {
+        const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
+        return `${spaces}- ${checked}`
+      })
     }
 
-    markdownText = markdownText.replace(/(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g, '<s>$1</s>')
-
-    return markdownText
+    // Replace single tilde strikethrough syntax with <s> tags
+    return markdownText.replace(strikeThroughRegex, '<s>$1</s>')
   }
 
   /**

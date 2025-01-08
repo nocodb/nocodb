@@ -1987,14 +1987,14 @@ export class AppHooksListenerService
 
           if (param['hook'] || param.filter.fk_hook_id) {
             event = AuditV1OperationTypes.HOOK_FILTER_CREATE;
-            fk_model_id = param['hook']?.id;
+            fk_model_id = param['hook']?.fk_model_id;
             filterPayload = {
               hook_title: param['hook']?.title,
               hook_id: param['hook']?.id,
             };
           } else if (param['view'] || param.filter.fk_view_id) {
             event = AuditV1OperationTypes.VIEW_FILTER_CREATE;
-            fk_model_id = param['view']?.id;
+            fk_model_id = param['view']?.fk_model_id;
             filterPayload = {
               view_title: param['view']?.title,
               view_id: param['view']?.id,
@@ -2031,14 +2031,18 @@ export class AppHooksListenerService
                   ]),
                 ) as { filter_comparison_op: string }),
                 filter_id: param.filter.id,
-                filter_field_id: param.filter.fk_column_id,
-                filter_field_title:
-                  param.column?.title ||
-                  (
-                    await Column.get(param.context, {
-                      colId: param.filter.fk_column_id,
-                    })
-                  ).title,
+                ...(param.filter?.is_group
+                  ? {}
+                  : {
+                      filter_field_id: param.filter.fk_column_id,
+                      filter_field_title:
+                        param.column?.title ||
+                        (
+                          await Column.get(param.context, {
+                            colId: param.filter.fk_column_id,
+                          })
+                        ).title,
+                    }),
                 ...filterPayload,
               },
               context: param.context,
@@ -2106,14 +2110,18 @@ export class AppHooksListenerService
             await generateAuditV1Payload<FilterUpdatePayload>(event, {
               details: {
                 filter_id: param.filter.id,
-                filter_field_id: param.filter.fk_column_id,
-                filter_field_title:
-                  param.column?.title ||
-                  (
-                    await Column.get(param.context, {
-                      colId: param.filter.fk_column_id,
-                    })
-                  ).title,
+                ...(param.filter?.is_group
+                  ? {}
+                  : {
+                      filter_field_id: param.filter.fk_column_id,
+                      filter_field_title:
+                        param.column?.title ||
+                        (
+                          await Column.get(param.context, {
+                            colId: param.filter.fk_column_id,
+                          })
+                        ).title,
+                    }),
                 ...mapAlias(
                   extractNonSystemProps(param.filter, [
                     'status',
@@ -2125,7 +2133,8 @@ export class AppHooksListenerService
                 ),
                 ...payloadDiff,
                 ...filterPayload,
-              },
+                children: undefined,
+              } as unknown as FilterUpdatePayload,
               fk_model_id:
                 ('hook' in param && param.hook?.fk_model_id) ||
                 ('view' in param && param.view?.fk_model_id) ||

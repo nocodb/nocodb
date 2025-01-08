@@ -546,16 +546,21 @@ export type FilterPayload =
 
 export type FilterCreatePayload = FilterPayload & {
   filter_id: string;
-  filter_field_id: string;
-  filter_comparison_op: string;
-  filter_field_title: string;
+  filter_field_id?: string;
+  filter_comparison_op?: string;
+  filter_field_title?: string;
+  is_group?: boolean;
+  logical_operator?: string;
 };
 
 export type FilterUpdatePayload = UpdatePayload &
   FilterPayload & {
     filter_id: string;
-    filter_field_id: string;
-    filter_field_title: string;
+    filter_field_id?: string;
+    filter_comparison_op?: string;
+    filter_field_title?: string;
+    is_group?: boolean;
+    logical_operator?: string;
   };
 
 export type FilterDeletePayload = FilterPayload & {

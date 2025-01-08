@@ -2,7 +2,12 @@ import { Integration as IntegrationCE } from 'src/models';
 import { integrationCategoryNeedDefault } from 'nocodb-sdk';
 import { IntegrationsType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import type { BoolType, IntegrationType, SourceType } from 'nocodb-sdk';
+import type {
+  BoolType,
+  ClientType,
+  IntegrationType,
+  SourceType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -215,7 +220,7 @@ export default class Integration extends IntegrationCE {
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
-      sub_type?: string | ClientTypes;
+      sub_type?: string | ClientType;
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;

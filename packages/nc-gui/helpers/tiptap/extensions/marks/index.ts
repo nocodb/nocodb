@@ -1,2 +1,4 @@
 export * from './strike'
-export * from './links'
+export * from './link'
+export * from './underline'
+export * from './html'

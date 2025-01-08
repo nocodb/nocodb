@@ -7,7 +7,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
+import { Strike, Link } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -63,7 +63,9 @@ const tiptapExtensions = [
     heading: false,
     codeBlock: false,
     code: false,
+    strike: false,
   }),
+  Strike,
   Underline,
   Link,
   Placeholder.configure({
@@ -448,6 +450,14 @@ onMounted(() => {
 
     pre {
       height: fit-content;
+    }
+
+    em {
+      font-synthesis: initial !important;
+
+      & * {
+        font-synthesis: initial !important;
+      }
     }
   }
 }

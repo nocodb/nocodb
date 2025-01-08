@@ -5,11 +5,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Markdown } from 'tiptap-markdown'
-import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
-import { Mention } from '~/helpers/tiptapExtensions/mention'
-import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
-import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList.vue'
+import { Strike, Link, TaskItem, HardBreak, UserMention, suggestion, UserMentionList } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -103,23 +99,31 @@ const getTiptapExtensions = () => {
   const extensions = [
     StarterKit.configure({
       heading: isFormField.value ? false : undefined,
+      strike: false,
+      hardBreak: false,
     }),
+    // Marks
+    Strike,
+    Underline,
+    Link,
+
+    // Nodes
+    HardBreak,
     TaskList,
     TaskItem.configure({
       nested: true,
     }),
-    Underline,
-    Link,
+
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ html: true, breaks: true }),
+    Markdown.configure({ breaks: true, transformPastedText: true, transformCopiedText: true }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {
     extensions.push(
-      Mention.configure({
+      UserMention.configure({
         suggestion: {
           ...suggestion(UserMentionList),
           items: ({ query }) =>

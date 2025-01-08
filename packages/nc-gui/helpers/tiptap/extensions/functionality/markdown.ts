@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
-import { parseMention } from '../tiptapExtensions/mention'
+import { parseUserMention } from '../nodes/mention/user'
 
 declare module 'markdown-it-task-lists' {
   import { PluginWithOptions } from 'markdown-it'
@@ -134,7 +134,7 @@ export class NcMarkdownParser {
     md: MarkdownIt,
     { users, currentUser }: Pick<NcMarkdownParserConstructorType, 'users' | 'currentUser'>,
   ): void {
-    md.use(parseMention(users || [], currentUser, true))
+    md.use(parseUserMention(users || [], currentUser, true))
   }
 
   /**

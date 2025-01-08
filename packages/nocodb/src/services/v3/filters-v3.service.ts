@@ -169,6 +169,7 @@ export class FiltersV3Service {
           await Filter.insert(context, {
             ...filterRevBuilder().build(child),
             fk_parent_id: currentParentId, // Link to the parent group
+            logical_op: extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
             ...additionalProps,
             id: undefined,
           });

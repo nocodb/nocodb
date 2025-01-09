@@ -137,7 +137,7 @@ export class ColumnsV3Service {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    this.columnsService.columnDelete(context, param, ncMeta);
+    await this.columnsService.columnDelete(context, param, ncMeta);
 
     return {};
   }

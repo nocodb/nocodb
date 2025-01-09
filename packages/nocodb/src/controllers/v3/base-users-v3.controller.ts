@@ -10,10 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectRoles } from 'nocodb-sdk';
-import type {
-  ProjectUserDeleteV3ReqType,
-  ProjectUserV3ReqType,
-} from 'nocodb-sdk';
+import type { ProjectUserReqType } from 'nocodb-sdk';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -49,7 +46,7 @@ export class BaseUsersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: ProjectUserV3ReqType[],
+    @Body() baseUsers: ProjectUserReqType[],
   ): Promise<any> {
     return await this.baseUsersV3Service.userInvite(context, {
       baseId,
@@ -67,7 +64,7 @@ export class BaseUsersV3Controller {
     baseId: string,
     @Req()
     req: NcRequest,
-    @Body() baseUsers: ProjectUserV3ReqType[],
+    @Body() baseUsers: ProjectUserReqType[],
   ): Promise<any> {
     return await this.baseUsersV3Service.baseUserUpdate(context, {
       baseUsers,
@@ -82,7 +79,7 @@ export class BaseUsersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: ProjectUserDeleteV3ReqType[],
+    @Body() baseUsers: any[],
   ): Promise<any> {
     // if not array throw bad request error
     if (!Array.isArray(baseUsers)) {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
+import type { ProjectUserReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
@@ -10,8 +10,8 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 
 @Injectable()
 export class BaseUsersV3Service {
-  private readonly logger = new Logger(BaseUsersV3Service.name);
-  private builder: () => ApiV3DataTransformationBuilder<
+  protected readonly logger = new Logger(BaseUsersV3Service.name);
+  protected builder: () => ApiV3DataTransformationBuilder<
     BaseUser,
     Partial<BaseUser>
   >;
@@ -59,7 +59,7 @@ export class BaseUsersV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: ProjectUserV3ReqType[];
+      baseUsers: any[], //ProjectUserReqType[];
       req: NcRequest;
     },
   ): Promise<any> {
@@ -120,7 +120,7 @@ export class BaseUsersV3Service {
   async baseUserUpdate(
     context: NcContext,
     param: {
-      baseUsers: ProjectUserV3ReqType[];
+      baseUsers: any[], // ProjectUserReqType[];
       req: any;
       baseId: string;
     },
@@ -178,7 +178,7 @@ export class BaseUsersV3Service {
   /*  async baseUserDelete(
     context: NcContext,
     param: {
-      baseUsers: ProjectUserDeleteV3ReqType[];
+      baseUsers: any[];
       baseId: string;
       req: any;
     },

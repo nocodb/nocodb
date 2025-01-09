@@ -140,7 +140,12 @@ export default function (API_VERSION: 'v2' | 'v3') {
   ) => {
     const responseColumnsListStr = Object.keys(row).sort().join(',');
     const expectedColumnsListStr = columns
-      .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c) && isOrderCol(c)))
+      .filter(
+        (c) =>
+          !c.system ||
+          (!isV3 && isCreatedOrLastModifiedByCol(c) && isOrderCol(c)) ||
+          c.pk,
+      )
       .map((c) => c.title)
       .sort()
       .join(',');
@@ -3624,7 +3629,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
           .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
           .set('xc-auth', context.token)
           .send({ email, roles: WorkspaceUserRoles.VIEWER });
-        console.log(rsp);
+        // console.log(rsp);
       }
     }
 

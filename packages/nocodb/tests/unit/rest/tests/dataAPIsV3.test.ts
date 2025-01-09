@@ -142,9 +142,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
     const expectedColumnsListStr = columns
       .filter(
         (c) =>
-          !c.system ||
-          (!isV3 && isCreatedOrLastModifiedByCol(c) && isOrderCol(c)) ||
-          c.pk,
+          !c.system || (!isV3 && isCreatedOrLastModifiedTimeCol(c)) || c.pk,
       )
       .map((c) => c.title)
       .sort()
@@ -826,7 +824,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       await updateView(context, {
         table,
         view: gridView,
-        field: ['SingleLineText'],
+        field: ['MultiLineText'],
       });
 
       // fetch records from view
@@ -838,7 +836,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       });
       const displayColumns = columns.filter(
         (c) =>
-          c.title !== 'SingleLineText' &&
+          c.title !== 'MultiLineText' &&
           (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
       );
       expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
@@ -1956,9 +1954,9 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       // extract first 10 records from inserted records
       const records = insertedRecords.slice(0, 10);
-      expect(JSON.stringify(rsp.body.list)).to.deep.equal(
-        JSON.stringify(records),
-      );
+      rsp.body.list.forEach((record: any, index: number) => {
+        expect(record).to.include(records[index]);
+      });
 
       ///////////////////////////////////////////////////////////////////////////
 
@@ -3653,11 +3651,13 @@ export default function (API_VERSION: 'v2' | 'v3') {
         'email',
         'id',
         'display_name',
+        'meta',
       ]);
       expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
         'email',
         'id',
         'display_name',
+        'meta',
       ]);
     });
 

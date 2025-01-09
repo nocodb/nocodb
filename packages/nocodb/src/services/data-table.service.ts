@@ -138,6 +138,7 @@ export class DataTableService {
         insertOneByOneAsFallback: true,
         isSingleRecordInsertion: !Array.isArray(param.body),
         undo: param.undo,
+        apiVersion: param.apiVersion,
       },
     );
 

@@ -1,12 +1,13 @@
-import { NcApiVersion } from 'nc-gui/lib/enums';
-import { Injectable } from '@nestjs/common';
-import type { NcContext, NcRequest } from '~/interface/config';
-import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
-import { DataTableService } from '~/services/data-table.service';
+import {NcApiVersion} from 'nc-gui/lib/enums';
+import {Injectable} from '@nestjs/common';
+import type {NcContext, NcRequest} from '~/interface/config';
+import {PagedResponseV3Impl} from '~/helpers/PagedResponse';
+import {DataTableService} from '~/services/data-table.service';
 
 @Injectable()
 export class DataV3Service {
-  constructor(protected dataTableService: DataTableService) {}
+  constructor(protected dataTableService: DataTableService) {
+  }
 
   async dataList(
     context: NcContext,
@@ -39,11 +40,24 @@ export class DataV3Service {
       cookie: any;
     },
   ) {
+
+    // todo: refactor and do within a transaction
+    if (Array.isArray(param.body)) {
+      return Promise.all(param.body.map((data) => {
+        return this.dataTableService.dataInsert(context, {
+          ...param,
+          body: data,
+          apiVersion: NcApiVersion.V3,
+        })
+      }));
+    }
+
     return this.dataTableService.dataInsert(context, {
       ...param,
       apiVersion: NcApiVersion.V3,
     });
   }
+
   async dataDelete(
     context: NcContext,
     param: {

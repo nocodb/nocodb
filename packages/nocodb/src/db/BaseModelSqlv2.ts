@@ -5718,6 +5718,12 @@ class BaseModelSqlv2 {
           );
         }
 
+        if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
+          NcError.badRequest(
+            `Column "${col.title}" is virtual and cannot be updated`,
+          );
+        }
+
         if (
           col.system &&
           !allowSystemColumn &&

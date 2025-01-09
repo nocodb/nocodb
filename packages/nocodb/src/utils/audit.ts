@@ -196,8 +196,7 @@ export async function generateAuditV1Payload<T = any>(
 /**
  * Extracts metadata related to a specific column for audit logs.
  * Filters and transforms column options based on the column type and data.
- * @param column The column metadata.
- * @param datas Optional data array to filter column options.
+ * @param colOptions The column metadata.
  * @returns An object containing extracted column metadata and options.
  */
 const extractReqPropsFromColOpt = (colOptions: ColumnType['colOptions']) => {
@@ -356,7 +355,6 @@ export const extractRefColumnIfFound = async ({
       // lookup_field_id: lookupColumn?.id,
       // lookup_field_title: lookupColumn?.title,
 
-
       linked_table_lookup_field_title: lookupColumn?.title,
       linked_table_id: lookupTable?.id,
       linked_table_title: lookupTable?.title,
@@ -391,8 +389,6 @@ export const extractRefColumnIfFound = async ({
       linked_table_rollup_field_title: rollupColumn?.title,
       linked_table_id: rollupTable?.id,
       linked_table_title: rollupTable?.title,
-
-
     };
   }
 
@@ -629,6 +625,7 @@ export const mapAlias = (payload: any) => {
  * @param replaceAlias Whether to replace property names with aliases (default: false).
  * @param boolProps A list of boolean properties to normalize.
  * @param aliasMap A map of property aliases.
+ * @param keepUnderModified Whether to include the previous state under the 'modified' key.
  * @returns An UpdatePayload object or `false` if no modifications are found.
  */
 export const populateUpdatePayloadDiff = ({
@@ -824,7 +821,7 @@ export const filterAndMapAliasToColProps = (
         return !ignorePropsInCol.includes(key);
       })
       .map(([key, val]) => {
-        let aliasKey = key;
+        let aliasKey: string;
         let formattedVal = val;
 
         if (key in colAliasMap) {
@@ -929,8 +926,8 @@ export function remapWithAlias({ data, columns }) {
     if (col) {
       remapped[col.title] = v;
     }
-    return remapped;
   }
+  return remapped;
 }
 
 /**

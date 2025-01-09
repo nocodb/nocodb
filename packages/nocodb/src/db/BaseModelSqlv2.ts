@@ -28,6 +28,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -42,7 +43,6 @@ import type {
   NcRequest,
   SortType,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type CustomKnex from '~/db/CustomKnex';
@@ -467,8 +467,7 @@ class BaseModelSqlv2 {
     }
 
     if (data) {
-      const proto = await this.getProto();
-      data.__proto__ = proto;
+      data.__proto__ = await this.getProto();
     }
     return data;
   }
@@ -1119,12 +1118,10 @@ class BaseModelSqlv2 {
       const qb = this.dbDriver(this.tnPath);
       qb.select(...selectors).limit(1);
 
-      const data = await this.execAndParse(qb, null, {
+      return await this.execAndParse(qb, null, {
         raw: true,
         first: true,
       });
-
-      return data;
     } catch (e) {
       console.log(e);
     }
@@ -1507,11 +1504,10 @@ class BaseModelSqlv2 {
       const qb = this.dbDriver(this.tnPath);
       qb.select(...selectors).limit(1);
 
-      const data = await this.execAndParse(qb, null, {
+      return await this.execAndParse(qb, null, {
         raw: true,
         first: true,
       });
-      return data;
     } catch (err) {
       logger.log(err);
       return [];
@@ -1701,12 +1697,10 @@ class BaseModelSqlv2 {
 
       qb.limit(1);
 
-      const data = await this.execAndParse(qb, null, {
+      return await this.execAndParse(qb, null, {
         first: true,
         bulkAggregate: true,
       });
-
-      return data;
     } catch (err) {
       logger.log(err);
       return [];
@@ -6976,7 +6970,7 @@ class BaseModelSqlv2 {
                   }
                 }
               } catch (e) {
-                continue;
+                // ignore error
               }
             }
           }
@@ -8356,17 +8350,17 @@ class BaseModelSqlv2 {
   }
 
   public async afterAddChild({
-                               columnTitle,
-                               columnId,
-                               rowId,
-                               refRowId,
-                               req,
-                               model = this.model,
-                               refModel = this.model,
-                               displayValue,
-                               refDisplayValue,
-                               type,
-                             }: {
+    columnTitle,
+    columnId,
+    rowId,
+    refRowId,
+    req,
+    model = this.model,
+    refModel = this.model,
+    displayValue,
+    refDisplayValue,
+    type,
+  }: {
     columnTitle: string;
     columnId: string;
     refColumnTitle: string;
@@ -8932,12 +8926,10 @@ class BaseModelSqlv2 {
         new Map(),
       );
 
-      const r = [...groupingValues].map((key) => ({
+      return [...groupingValues].map((key) => ({
         key,
         value: groupedResult.get(key) ?? [],
       }));
-
-      return r;
     } catch (e) {
       throw e;
     }

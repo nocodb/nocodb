@@ -51,18 +51,6 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Get('/api/v3/meta/sorts/:sortId')
-  @Acl('sortGet')
-  async sortGet(
-    @TenantContext() context: NcContext,
-    @Param('sortId') sortId: string,
-  ) {
-    const sort = await this.sortsV3Service.sortGet(context, {
-      sortId,
-    });
-    return sort;
-  }
-
   @Patch('/api/v3/meta/views/:viewId/sorts')
   @Acl('sortUpdate')
   async sortUpdate(

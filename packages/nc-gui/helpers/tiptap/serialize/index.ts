@@ -1,2 +1,2 @@
-export * from './MarkdownSerializer'
+export * from './MarkdownSerializer.ts'
 export * from './state'

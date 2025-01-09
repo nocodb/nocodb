@@ -1,19 +1,28 @@
+import { Node, Mark } from 'prosemirror-model'
 import { MarkdownSerializerState as BaseMarkdownSerializerState } from 'prosemirror-markdown'
 import { trimInline } from '../util/markdown'
+
+interface InlineState {
+  delimiter?: string
+  start?: number
+  end?: number
+}
 
 /**
  * Override default MarkdownSerializerState to:
  * - handle commonmark delimiters (https://spec.commonmark.org/0.29/#left-flanking-delimiter-run)
  */
 export class MarkdownSerializerState extends BaseMarkdownSerializerState {
-  inTable = false
+  inTable: boolean = false
+  public inlines: InlineState[] = []
+  public out: string = ''
 
   constructor(nodes, marks, options) {
     super(nodes, marks, options ?? {})
     this.inlines = []
   }
 
-  render(node, parent, index) {
+  override render(node: Node, parent: Node, index: number): void {
     super.render(node, parent, index)
     const top = this.inlines[this.inlines.length - 1]
     if (top?.start && top?.end) {
@@ -23,7 +32,7 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     }
   }
 
-  markString(mark, open, parent, index) {
+  override markString(mark: Mark, open: boolean, parent: Node, index: number): string {
     const info = this.marks[mark.type.name]
     if (info.expelEnclosingWhitespace) {
       if (open) {
@@ -32,7 +41,7 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
           delimiter: info.open,
         })
       } else {
-        const top = this.inlines.pop()
+        const top = this.inlines.pop() || {}
         this.inlines.push({
           ...top,
           end: this.out.length,

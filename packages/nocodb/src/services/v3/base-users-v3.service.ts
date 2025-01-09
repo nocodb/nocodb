@@ -1,16 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
-import type { ProjectUserReqType, ProjectUserV3ReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
-import { validatePayload } from '~/helpers';
+import {Injectable, Logger} from '@nestjs/common';
+import {WorkspaceUserRoles} from 'nocodb-sdk';
+import type {ProjectUserReqType, ProjectUserV3ReqType} from 'nocodb-sdk';
+import type {NcContext, NcRequest} from '~/interface/config';
+import type {ApiV3DataTransformationBuilder} from '~/utils/api-v3-data-transformation.builder';
+import {validatePayload} from '~/helpers';
 import Noco from '~/Noco';
-import { NcError } from '~/helpers/catchError';
-import { BaseUser, User } from '~/models';
-import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
-import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
-import { WorkspaceUser } from '~/ee/models';
+import {NcError} from '~/helpers/catchError';
+import {BaseUser, User} from '~/models';
+import {builderGenerator} from '~/utils/api-v3-data-transformation.builder';
+import {BaseUsersService} from '~/services/base-users/base-users.service';
+import {WorkspaceUsersService} from '~/ee/services/workspace-users.service';
+import {WorkspaceUser} from '~/ee/models';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -28,8 +28,8 @@ export class BaseUsersV3Service {
         'name',
         'created_at',
         'updated_at',
-        'base_role',
-        'workspace_role',
+        'roles',
+        'workspace_roles',
         'workspace_id',
       ],
       mappings: {
@@ -49,7 +49,7 @@ export class BaseUsersV3Service {
       mode: param.mode,
     });
 
-    return { users: this.builder().build(baseUsers) };
+    return {users: this.builder().build(baseUsers)};
   }
 
   async userInvite(

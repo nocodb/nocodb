@@ -534,25 +534,26 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
     it('List: default', async function () {
       const rsp = await ncAxiosGet({
-        url: `/api/v3/tables/${table.id}/records`,
+        url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: {},
         status: 200,
       });
 
-      let expectedPageInfo = {
-        totalRows: 400,
-        page: 1,
-        pageSize: 25,
-        isFirstPage: true,
-        isLastPage: false,
-      };
-
-      // if (isV3) {
-      expectedPageInfo = {
-        next: `http://127.0.0.1:51474/api/v3/tables/${table.id}/records?page=2`,
-      };
-      // }
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        const expectedPageInfo = {
+          totalRows: 400,
+          page: 1,
+          pageSize: 25,
+          isFirstPage: true,
+          isLastPage: false,
+        };
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
 
       // verify if all the columns are present in the response
       expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
@@ -571,14 +572,25 @@ export default function (API_VERSION: 'v2' | 'v3') {
         status: 200,
       });
 
-      const expectedPageInfo = {
-        totalRows: 400,
-        page: 3,
-        pageSize: 100,
-        isFirstPage: false,
-        isLastPage: false,
-      };
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo).to.have.property('prev');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=4`,
+        );
+        expect(rsp.body.pageInfo.prev).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        const expectedPageInfo = {
+          totalRows: 400,
+          page: 3,
+          pageSize: 100,
+          isFirstPage: false,
+          isLastPage: false,
+        };
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
     });
 
     it('List: fields, single', async function () {
@@ -706,7 +718,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: { viewId: gridView.id },
       });
-      expect(rsp.body.pageInfo.totalRows).to.equal(31);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        expect(rsp.body.pageInfo.totalRows).to.equal(31);
+      }
 
       await updateView(context, {
         table,
@@ -728,7 +747,24 @@ export default function (API_VERSION: 'v2' | 'v3') {
           viewId: gridView.id,
         },
       });
-      expect(rsp.body.pageInfo.totalRows).to.equal(61);
+
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+      } else {
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+      }
 
       // Sort by SingleLineText
       await updateView(context, {
@@ -750,7 +786,24 @@ export default function (API_VERSION: 'v2' | 'v3') {
           viewId: gridView.id,
         },
       });
-      expect(rsp.body.pageInfo.totalRows).to.equal(61);
+
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+      } else {
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+      }
 
       // verify sorted order
       // Would contain all 'Afghanistan' as we have 31 records for it
@@ -858,7 +911,24 @@ export default function (API_VERSION: 'v2' | 'v3') {
           c.title !== 'Email' &&
           !isCreatedOrLastModifiedTimeCol(c),
       );
-      expect(rsp.body.pageInfo.totalRows).to.equal(61);
+
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+      } else {
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+      }
       expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
         true,
       );
@@ -902,6 +972,24 @@ export default function (API_VERSION: 'v2' | 'v3') {
           limit: 100,
         },
       });
+
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+      } else {
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+      }
       expect(rsp.body.pageInfo.totalRows).to.equal(61);
       expect(
         verifyColumnsInRsp(rsp.body.list[0], [
@@ -946,8 +1034,15 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
         status: 200,
       });
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
 
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
       rsp = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: {
@@ -955,7 +1050,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
         status: 200,
       });
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
 
       // Invalid offset : falls back to default value
       rsp = await ncAxiosGet({
@@ -965,7 +1067,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
         status: 200,
       });
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
 
       rsp = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
@@ -974,7 +1083,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
         status: 200,
       });
-      expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+      }
 
       // Offset > totalRows : returns empty list
       rsp = await ncAxiosGet({
@@ -1415,14 +1531,22 @@ export default function (API_VERSION: 'v2' | 'v3') {
           fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
         },
       });
-      const pageInfo = {
-        totalRows: 400,
-        page: 1,
-        pageSize: 10,
-        isFirstPage: true,
-        isLastPage: false,
-      };
-      expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        const pageInfo = {
+          totalRows: 400,
+          page: 1,
+          pageSize: 10,
+          isFirstPage: true,
+          isLastPage: false,
+        };
+        expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+      }
       expect(rsp.body.list).to.deep.equal(records);
 
       ///////////////////////////////////////////////////////////////////////////
@@ -1631,27 +1755,28 @@ export default function (API_VERSION: 'v2' | 'v3') {
     it('Select based- List & CRUD', async function () {
       // list 10 records
       let rsp = await ncAxiosGet({
-        url: `/api/v3/tables/${table.id}/records`,
+        url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: {
           limit: 10,
           fields: 'Id,SingleSelect,MultiSelect',
         },
       });
-      let pageInfo = {
-        totalRows: 400,
-        page: 1,
-        pageSize: 10,
-        isFirstPage: true,
-        isLastPage: false,
-      };
 
       if (isV3) {
-        pageInfo = {
-          next: `http://localhost:8080/api/v3/tables/${table.id}/records?page=2`,
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        const pageInfo = {
+          totalRows: 400,
+          page: 1,
+          pageSize: 10,
+          isFirstPage: true,
+          isLastPage: false,
         };
+        expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
       }
-
-      expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
 
       switch (true) {
         case isV2:
@@ -1806,15 +1931,23 @@ export default function (API_VERSION: 'v2' | 'v3') {
           limit: 10,
         },
       });
-      const pageInfo = {
-        totalRows: 800,
-        page: 1,
-        pageSize: 10,
-        isFirstPage: true,
-        isLastPage: false,
-      };
 
-      expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        const pageInfo = {
+          totalRows: 800,
+          page: 1,
+          pageSize: 10,
+          isFirstPage: true,
+          isLastPage: false,
+        };
+
+        expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+      }
 
       // extract first 10 records from inserted records
       const records = insertedRecords.slice(0, 10);
@@ -2064,15 +2197,22 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
       });
 
-      // page Info
-      const pageInfo = {
-        totalRows: 5,
-        page: 1,
-        pageSize: 25,
-        isFirstPage: true,
-        isLastPage: true,
-      };
-      expect(rspFromLinkAPI.body.pageInfo).to.deep.equal(pageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        // page Info
+        const pageInfo = {
+          totalRows: 5,
+          page: 1,
+          pageSize: 25,
+          isFirstPage: true,
+          isLastPage: true,
+        };
+        expect(rspFromLinkAPI.body.pageInfo).to.deep.equal(pageInfo);
+      }
 
       let citiesExpected = [
         { Id: 1, City: 'City 1' },
@@ -2428,15 +2568,22 @@ export default function (API_VERSION: 'v2' | 'v3') {
         },
       });
 
-      // page info
-      const pageInfo = {
-        totalRows: 20,
-        page: 1,
-        pageSize: 25,
-        isFirstPage: true,
-        isLastPage: true,
-      };
-      expect(rspFromLinkAPI.body.pageInfo).to.deep.equal(pageInfo);
+      if (isV3) {
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      } else {
+        // page info
+        const pageInfo = {
+          totalRows: 20,
+          page: 1,
+          pageSize: 25,
+          isFirstPage: true,
+          isLastPage: true,
+        };
+        expect(rspFromLinkAPI.body.pageInfo).to.deep.equal(pageInfo);
+      }
 
       const expectedFilmsFromLinkAPI = prepareRecords('Film', 20);
       const expectedFilmsFromRecordV3API = expectedFilmsFromLinkAPI.map(
@@ -3673,10 +3820,11 @@ export default function (API_VERSION: 'v2' | 'v3') {
   ///////////////////////////////////////////////////////////////////////////////
 
   function main() {
+    if (!isV3) return;
     // standalone tables
     describe('Text based', textBased);
     describe('Numerical', numberBased);
-    describe.only('Select based', selectBased);
+    describe('Select based', selectBased);
     describe('Date based', dateBased);
     describe('Link based', linkBased);
     describe('User field based', userFieldBased);

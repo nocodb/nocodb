@@ -174,7 +174,9 @@ export class TablesV3Service {
 
     const result = this.tableReadBuilder().build(tableCreateOutput);
 
-    result.display_field_id = table.columns.find((column) => column.pv)?.id;
+    result.display_field_id = tableCreateOutput.columns.find(
+      (column) => column.pv,
+    )?.id;
 
     result.fields = tableCreateOutput.columns.map((column) => {
       return columnBuilder().build(column);

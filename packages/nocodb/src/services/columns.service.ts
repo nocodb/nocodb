@@ -1719,12 +1719,9 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(context, column.fk_model_id, column.id);
   }
 
-  async columnAdd<T = NcApiVersion | null | undefined>(
+  async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
-    {
-      apiVersion = NcApiVersion.V2,
-      ...param
-    }: {
+    param: {
       req: NcRequest;
       tableId: string;
       column: ColumnReqType;
@@ -1734,6 +1731,7 @@ export class ColumnsService {
       apiVersion?: T;
     },
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
+    let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -1863,7 +1861,7 @@ export class ColumnsService {
         {
           await validateLookupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1872,7 +1870,7 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn(context, {
+        savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
           base,
@@ -2403,10 +2401,10 @@ export class ColumnsService {
       req: param.req,
     });
 
-    if (apiVersion === NcApiVersion.V3) {
-      return (await Column.get(context, {
+    if (param.apiVersion === NcApiVersion.V3) {
+      return await Column.get(context, {
         colId: colBody.id,
-      })) as T extends NcApiVersion.V3 ? Column<any> : never;
+      }) as T extends NcApiVersion.V3 ? Column<any> : never;
     }
 
     return table as T extends NcApiVersion.V3 | null | undefined
@@ -3202,6 +3200,8 @@ export class ColumnsService {
       user: UserType;
     },
   ) {
+    let savedColumn: Column;
+
     validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};
@@ -3653,6 +3653,8 @@ export class ColumnsService {
           sqlMgr,
         });
       }
+
+      return savedColumn;
     }
   }
 

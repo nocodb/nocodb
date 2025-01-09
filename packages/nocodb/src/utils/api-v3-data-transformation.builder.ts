@@ -7,6 +7,19 @@ const convertToCamelCase = (str: string) => {
   return str.replace(/_([a-z])/g, (_, letter) => `${letter.toUpperCase()}`);
 };
 
+const columnsWithOptions = [
+  UITypes.Lookup,
+  UITypes.Links,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Barcode,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Button,
+  UITypes.LongText,
+];
+
 export class ApiV3DataTransformationBuilder {
   private transformations: Array<(data: any) => any> = [];
 
@@ -42,6 +55,7 @@ export class ApiV3DataTransformationBuilder {
     mappings = {},
     metaProps = ['meta'],
     skipTransformFor,
+    skipfn,
     ...rest
   }: {
     snakeCase?: boolean;
@@ -49,6 +63,7 @@ export class ApiV3DataTransformationBuilder {
     mappings?: Record<string, string>;
     metaProps?: string[];
     skipTransformFor?: string[];
+    skipfn?: (data: any) => boolean;
   } & ({ allowed: string[] } | { excluded: string[] } | {}) = {}): this {
     this.transformations.push((data) => {
       const result = { ...data };
@@ -79,7 +94,10 @@ export class ApiV3DataTransformationBuilder {
             .reduce((result, [key, value]) => {
               let newKey = mappings[key] || key;
 
-              if (skipTransformFor && skipTransformFor.includes(newKey)) {
+              if (
+                (skipTransformFor && skipTransformFor.includes(newKey)) ||
+                (skipfn && skipfn(data))
+              ) {
                 result[newKey] = value;
                 return result;
               }
@@ -137,6 +155,7 @@ export const builderGenerator = ({
     mappings?: Record<string, string>;
     metaProps?: string[];
     skipTransformFor?: string[];
+    skipfn?: (data: any) => boolean;
   } & ({ allowed: string[] } | { excluded: string[] } | {});
 } & (
   | { allowed: string[] }
@@ -184,6 +203,7 @@ export const colOptionBuilder = builderGenerator({
     fk_relation_column_id: 'link_field_id',
     fk_rollup_column_id: 'linked_table_lookup_field_id',
     fk_lookup_column_id: 'linked_table_lookup_field_id',
+    linked_table_rollup_field_id: 'fk_rollup_column_id',
 
     // todo: extract this
     // inverse_link_field_id: 'inverse_link_field_id',
@@ -270,6 +290,34 @@ export const columnBuilder = builderGenerator({
   },
 });
 
+export const columnOptionsV3ToV2Builder = builderGenerator({
+  allowed: [
+    'formula',
+    'qr_value_field_id',
+    'barcode_value_field_id',
+    'relation_type',
+    'linked_table_id',
+    'link_field_id',
+    'linked_table_rollup_field_id',
+    'linked_table_lookup_field_id',
+    'rollup_function',
+  ],
+  mappings: {
+    formula: 'formula_raw',
+    qr_value_field_id: 'fk_qr_value_column_id',
+    barcode_value_field_id: 'fk_barcode_value_column_id',
+
+    relation_type: 'type',
+
+    // parent id we need to extract from the url
+    linked_table_id: 'childId',
+
+    link_field_id: 'fk_relation_column_id',
+    linked_table_rollup_field_id: 'fk_rollup_column_id',
+    linked_table_lookup_field_id: 'fk_lookup_column_id',
+  },
+});
+
 export const columnV3ToV2Builder = builderGenerator({
   allowed: ['id', 'title', 'type', 'default_value', 'options'],
   mappings: {
@@ -286,11 +334,12 @@ export const columnV3ToV2Builder = builderGenerator({
       locale_string: 'isLocaleString',
       duration_format: 'duration',
     },
+    skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
     skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx'],
   },
   transformFn: (data) => {
-    const meta: Record<string, any> = data.meta || {};
+    let meta: Record<string, any> = data.meta || {};
     let colOptions: any;
 
     switch (data.uidt) {
@@ -335,10 +384,20 @@ export const columnV3ToV2Builder = builderGenerator({
       }
     }
 
+    let additionalPayloadData = {};
+
+    if (columnsWithOptions.includes(data.uidt) && data.meta) {
+      additionalPayloadData =
+        columnOptionsV3ToV2Builder().build(data.meta) || {};
+      meta = {};
+    }
+    console.log(additionalPayloadData);
+
     return {
       ...data,
       colOptions,
       meta: meta || data.meta,
+      ...additionalPayloadData,
     };
   },
 });

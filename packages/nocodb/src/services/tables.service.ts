@@ -553,7 +553,7 @@ export class TablesService {
           columnTitle,
         );
 
-        if (!col || !col.system) {
+        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
           tableCreatePayLoad.columns.push({
             ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
             column_name: colName,
@@ -672,6 +672,8 @@ export class TablesService {
 
     mapDefaultDisplayValue(param.table.columns);
 
+    const virtualColumns = [];
+
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
@@ -717,12 +719,17 @@ export class TablesService {
       param.table.columns
         // exclude alias columns from column list
         ?.filter((c) => {
-          return (
-            !isCreatedOrLastModifiedTimeCol(c) ||
-            !isCreatedOrLastModifiedByCol(c) ||
-            !isOrderCol(c) ||
-            (c as any).system
-          );
+          const allowed =
+            ((!isCreatedOrLastModifiedTimeCol(c) &&
+              !isCreatedOrLastModifiedByCol(c)) ||
+              (c as any).system) &&
+            !isOrderCol(c);
+
+          if (!allowed) {
+            virtualColumns.push(c);
+          }
+
+          return allowed;
         })
         .map(async (c) => ({
           ...(await getColumnPropsFromUIDT(c as any, source)),
@@ -760,17 +767,25 @@ export class TablesService {
     // todo: type correction
     const result = await Model.insert(context, base.id, source.id, {
       ...tableCreatePayLoad,
-      columns: tableCreatePayLoad.columns.map((c, i) => {
-        const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
-        return {
+      columns: [
+        ...tableCreatePayLoad.columns.map((c, i) => {
+          const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
+          return {
+            ...c,
+            uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+            ...(colMetaFromDb || {}),
+            title: c.title || getColumnNameAlias(c.cn, source),
+            column_name: colMetaFromDb?.cn || c.cn || c.column_name,
+            order: i + 1,
+          } as NormalColumnRequestType;
+        }),
+        ...virtualColumns.map((c, i) => ({
           ...c,
           uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
-          ...(colMetaFromDb || {}),
           title: c.title || getColumnNameAlias(c.cn, source),
-          column_name: colMetaFromDb?.cn || c.cn || c.column_name,
-          order: i + 1,
-        } as NormalColumnRequestType;
-      }),
+          order: tableCreatePayLoad.columns.length + i + 1,
+        })),
+      ],
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
 

@@ -148,7 +148,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .set('xc-auth', context.token)
         .send({
           table_name: 'table2',
-          title: 'new_title_2',
+          title: 'table2',
           ...columnProps,
         })
         .expect(200);
@@ -166,8 +166,12 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         );
       }
 
-      expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
-      expect(response.body.table_name.endsWith('table2')).to.eq(true);
+      if (isV3) {
+        expect(response.body.title).to.eq('table2');
+      } else {
+        expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
+        expect(response.body.table_name.endsWith('table2')).to.eq(true);
+      }
     });
 
     it(`Update table ${API_VERSION}`, async function () {

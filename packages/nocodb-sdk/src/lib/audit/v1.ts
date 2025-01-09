@@ -152,7 +152,7 @@ export interface UserEmailVerifyPayload {}
 export interface BaseUserInvitePayload {
   user_email: string;
   user_id: string;
-  user_role: string;
+  base_role: string;
   user_name?: string;
   base_title: string;
 }
@@ -168,7 +168,7 @@ export interface BaseUserDeletePayload {
 export interface BaseUserInviteResendPayload {
   user_id: string;
   user_email: string;
-  user_role: string;
+  base_role: string;
   user_name?: string;
   base_title: string;
 }
@@ -176,7 +176,7 @@ export interface BaseUserInviteResendPayload {
 export interface BaseUserRoleUpdatePayload extends UpdatePayload {
   user_id: string;
   user_email: string;
-  user_role: string;
+  base_role: string;
   user_name?: string;
   base_title: string;
 }
@@ -199,11 +199,13 @@ export interface ColumnCreatePayload {
   field_title: string;
   field_type: UITypes;
   required?: boolean;
+  options?: any;
 }
 
 export interface ColumnUpdatePayload extends UpdatePayload {
   field_id: string;
   field_title: string;
+  options?: any;
 }
 
 export interface ColumnRenamePayload {
@@ -227,6 +229,7 @@ export interface ColumnDeletePayload {
   field_title: string;
   field_type: UITypes;
   required?: boolean;
+  options?: any;
 }
 
 export interface OrgUserInvitePayload {
@@ -667,6 +670,8 @@ export interface SourceDeletePayload {
   source_id: string;
   source_integration_id: string;
   source_integration_title: string;
+  is_data_readonly: boolean;
+  is_schema_readonly: boolean;
 }
 
 export interface AirtableImportPayload {

@@ -450,7 +450,7 @@ export class AppHooksListenerService
                   user_id: param.user.id,
                   user_email: param.user.email,
                   user_name: param.user.display_name ?? undefined,
-                  user_role: param.role,
+                  base_role: param.role,
                   base_title: param.base.title,
                 },
                 context: param.context,
@@ -484,6 +484,7 @@ export class AppHooksListenerService
                   user_email: param.user.email,
                   user_name: param.user.display_name ?? undefined,
                   base_title: param.base.title,
+                  base_role: param.baseUser.roles,
                   ...updatePayload,
                 },
                 context: param.context,
@@ -640,7 +641,7 @@ export class AppHooksListenerService
                   user_email: param.user.email,
                   user_name: param.user.display_name ?? undefined,
                   base_title: param.base.title,
-                  user_role: param.baseUser.roles,
+                  base_role: param.baseUser.roles,
                 },
                 context: param.context,
                 req: param.req,
@@ -672,7 +673,11 @@ export class AppHooksListenerService
 
           const options = Object.assign(
             {},
-            column.options,
+            (
+              column as unknown as {
+                options: Record<string, any>;
+              }
+            ).options,
             await extractRefColumnIfFound({
               column: param.column,
               columns: param.columns,
@@ -764,7 +769,11 @@ export class AppHooksListenerService
                   columns: param.columns,
                   context: param.context,
                 }),
-                oldColumn.options || {},
+                (
+                  oldColumn as unknown as {
+                    options: Record<string, any>;
+                  }
+                ).options || {},
               ),
             },
             next: {
@@ -779,7 +788,11 @@ export class AppHooksListenerService
                   columns: param.columns,
                   context: param.context,
                 }),
-                column.options || {},
+                (
+                  column as unknown as {
+                    options: Record<string, any>;
+                  }
+                ).options || {},
               ),
             },
             aliasMap: {
@@ -861,7 +874,11 @@ export class AppHooksListenerService
                       columns: param.columns,
                       context: param.context,
                     }),
-                    column.options || {},
+                    (
+                      column as unknown as {
+                        options: Record<string, any>;
+                      }
+                    ).options || {},
                   ),
                   ...updatePayload,
                 },
@@ -908,7 +925,11 @@ export class AppHooksListenerService
                       columns: param.columns,
                       context: param.context,
                     }),
-                    param.column.options || {},
+                    (
+                      param.column as unknown as {
+                        options: Record<string, any>;
+                      }
+                    ).options || {},
                   ),
                 },
                 fk_model_id: param.column.fk_model_id,
@@ -2269,6 +2290,30 @@ export class AppHooksListenerService
             payloads: [hook],
             metaProps: ['notification'],
           });
+
+          const notification = hook.notification as any;
+
+          // exclude empty headers and parameters
+          if (
+            notification?.payload?.headers &&
+            Array.isArray(notification.payload.headers)
+          ) {
+            notification.payload.headers = notification.payload.headers.filter(
+              (header: any) => {
+                return header.name || header.value;
+              },
+            );
+          }
+          if (
+            notification?.payload?.parameters &&
+            Array.isArray(notification.payload.parameters)
+          ) {
+            notification.payload.parameters =
+              notification.payload.parameters.filter((param: any) => {
+                return param.name || param.value;
+              });
+          }
+
           await this.auditInsert(
             await generateAuditV1Payload<HookCreatePayload>(
               AuditV1OperationTypes.HOOK_CREATE,
@@ -2758,6 +2803,8 @@ export class AppHooksListenerService
                   source_id: param.source.id,
                   source_integration_id: param.source.fk_integration_id,
                   source_integration_title: param.integration?.title,
+                  is_data_readonly: !!param.source.is_data_readonly,
+                  is_schema_readonly: !!param.source.is_schema_readonly,
                   ...updatePayload,
                 },
                 context: param.context,
@@ -2779,8 +2826,8 @@ export class AppHooksListenerService
                 details: {
                   source_title: param.source.alias,
                   source_id: param.source.id,
-                  is_data_readonly: param.source.is_data_readonly,
-                  is_schema_readonly: param.source.is_schema_readonly,
+                  is_data_readonly: !!param.source.is_data_readonly,
+                  is_schema_readonly: !!param.source.is_schema_readonly,
                   source_integration_id: param.source.fk_integration_id,
                   source_integration_title: param.integration?.title,
                 },

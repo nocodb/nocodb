@@ -4,8 +4,9 @@ import { expect } from 'chai';
 import init from '../../../init';
 import { createProject } from '../../../factory/base';
 import { createTable, getAllTables, updateTable } from '../../../factory/table';
-import { defaultColumns } from '../../../factory/column';
+import { customColumns, defaultColumns } from '../../../factory/column';
 import { Base, Model } from '../../../../../src/models';
+import { UITypes } from 'nocodb-sdk';
 
 export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';
@@ -34,7 +35,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       table = await createTable(context, base);
     });
 
-    it.only(`Create basic columns ${API_VERSION}`, async function () {
+    it(`Create default fields ${API_VERSION}`, async function () {
       const response = await request(context.app)
         .post(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
@@ -50,7 +51,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
 
       let columns: any[] = [];
       if (isV1 || isV2) {
-        columns = response.body.columns.filter((c) => !c.system);
+        columns = response.body.columns.filter((c: any) => !c.system);
       } else if (isV3) {
         columns = response.body.columns;
       }
@@ -60,8 +61,38 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
       expect(response.body.table_name.endsWith('table2')).to.eq(true);
 
-      columns.forEach(validateColumn);
+      columns.forEach((c) => validateColumn(c));
     });
+
+    async function testFields(fieldClass: string) {
+      const fields = customColumns(fieldClass, undefined, undefined, isV3)!;
+      const response = await request(context.app)
+        .post(`${META_API_BASE_ROUTE}/${base.id}/tables`)
+        .set('xc-auth', context.token)
+        .send({
+          table_name: `table2 ${fieldClass}`,
+          title: `new_title_2 ${fieldClass}`,
+          columns: fields,
+        })
+        .expect(200);
+
+      let columns: any[] = [];
+      if (isV1 || isV2) {
+        columns = response.body.columns.filter((c: any) => !c.system);
+      } else if (isV3) {
+        columns = response.body.columns;
+      }
+
+      expect(fields.length).to.be.greaterThan(0); // Added this so if spelling mistake in fieldClass, test fails.
+      expect(columns.length).to.eq(fields.length);
+      columns.forEach(c => validateColumn(c))
+    }
+
+    it(`Create text based fields ${API_VERSION}`, () => testFields('textBased'));
+    it(`Create number based fields ${API_VERSION}`, () => testFields('numberBased'));
+    it(`Create date based fields ${API_VERSION}`, () => testFields('dateBased'));
+    it(`Create select based fields ${API_VERSION}`, () => testFields('selectBased'));
+    it(`Create user based fields ${API_VERSION}`, () => testFields('userBased'));
   }
 
   function validateColumn(responseColumn: any) {
@@ -89,6 +120,119 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(responseColumn).to.haveOwnProperty('default_value');
       if (isEE) {
         expect(responseColumn).to.haveOwnProperty('workspace_id');
+      }
+    }
+    const uidt = responseColumn.uidt;
+    /**
+     * Indivisual field level testing.
+     */
+    if (uidt) {
+      if (isV3) {
+        switch (uidt) {
+          case UITypes.ID:
+          case UITypes.SingleLineText:
+          case UITypes.Geometry:
+          case UITypes.JSON:
+          case UITypes.CreatedBy:
+          case UITypes.LastModifiedBy:
+          case UITypes.CreatedTime:
+          case UITypes.LastModifiedTime:
+            expect(responseColumn.options).to.have.keys([]);
+            break;
+          case UITypes.LongText:
+            expect(responseColumn.options).to.have.keys([
+              'rich_text',
+              'generate_text_using_ai',
+            ]);
+            break;
+          case UITypes.PhoneNumber:
+          case UITypes.Email:
+          case UITypes.URL:
+            expect(responseColumn.options).to.have.keys(['validation']);
+            break;
+          case UITypes.Number:
+          case UITypes.Decimal:
+            expect(responseColumn.options).to.have.keys([
+              'precision',
+              'allow_negative',
+            ]);
+            break;
+          case UITypes.Currency:
+            expect(responseColumn.options).to.have.keys(['locale', 'code']);
+            break;
+          case UITypes.Percent:
+            expect(responseColumn.options).to.have.keys([
+              'precision',
+              'show_as_progress',
+            ]);
+            break;
+          case UITypes.Duration:
+            expect(responseColumn.options).to.have.keys(['duration_format']);
+            break;
+          case UITypes.Date:
+          case UITypes.DateTime:
+          case UITypes.Time:
+            expect(responseColumn.options).to.have.keys([
+              'date_format',
+              'time_format',
+              '12hr_format',
+            ]);
+            break;
+          case UITypes.SingleSelect:
+          case UITypes.MultiSelect:
+            expect(responseColumn.options).to.have.keys(['choices']);
+            expect(responseColumn.options.choices).to.be.instanceOf(Array);
+            responseColumn.options.choices.forEach((c: any) => {
+              expect(c).to.have.keys('id', 'title', 'color');
+            });
+            break;
+          case UITypes.Rating:
+          case UITypes.Checkbox:
+            expect(responseColumn.options).to.have.keys([
+              'icon',
+              'max_value',
+              'check',
+            ]);
+            break;
+          case UITypes.Barcode:
+            expect(responseColumn.options).to.have.keys([]);
+            break;
+          case UITypes.QrCode:
+            expect(responseColumn.options).to.have.keys([]);
+            break;
+          case UITypes.Formula:
+            expect(responseColumn.options).to.have.keys([
+              'type',
+              'formula',
+              'result',
+            ]);
+            break;
+          case UITypes.User:
+            expect(responseColumn.options).to.have.keys([
+              'allow_multiple_users',
+              'notify_user_when_added',
+            ]);
+            break;
+          case UITypes.LinkToAnotherRecord:
+            expect(responseColumn.options).to.have.keys([
+              'relation_type',
+              'linked_table_id',
+            ]);
+            break;
+          case UITypes.Lookup:
+            expect(responseColumn.options).to.have.keys([
+              'link_field_id',
+              'linked_table_lookup_field_id',
+            ]);
+            break;
+          case UITypes.Rollup:
+            expect(responseColumn.options).to.have.keys([
+              'link_field_id',
+              'linked_table_lookup_field_id',
+              'rollup_function',
+            ]);
+            break;
+        }
       }
     }
   }

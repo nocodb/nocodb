@@ -283,20 +283,28 @@ const totalMaxPlaceholderRows = computed(() => {
 })
 
 const placeholderStartRows = computed(() => {
-  const { start } = rowSlice
-
-  return start > 1 ? ncArrayFrom(Math.min(start - 1, totalMaxPlaceholderRows.value)) : []
+  const result = {
+    length: rowSlice.start > 1 ? Math.min(rowSlice.start - 1, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    totalRowHeight: 0,
+  }
+  result.totalRowHeight = result.length * result.rowHeight
+  return result
 })
 
 const placeholderEndRows = computed(() => {
-  const { end } = rowSlice
+  const result = {
+    length: rowSlice.end < totalRows.value - 1 ? Math.min(totalRows.value - 1 - rowSlice.end, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    totalRowHeight: 0,
+  }
+  result.totalRowHeight = result.length * result.rowHeight
 
-  return end < totalRows.value - 1 ? ncArrayFrom(Math.min(totalRows.value - 1 - end, totalMaxPlaceholderRows.value)) : []
+  return result
 })
 
-
 const topOffset = computed(() => {
-  return (rowHeight.value ?? 32) * (rowSlice.start - placeholderStartRows.value.length)
+  return (isMobileMode.value ? 56 : rowHeight.value!) * (rowSlice.start - placeholderStartRows.value.length)
 })
 
 const updateVisibleRows = async () => {
@@ -2241,19 +2249,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   transform: `translateY(${topOffset}px)`,
                 }"
               >
-                <tr
-                  v-for="(_row, index) of placeholderStartRows"
-                  :key="index"
-                  class="nc-grid-row !xs:h-14"
-                  :style="{
-                    height: `${rowHeight}px`,
-                  }"
-                >
-                  <td
-                    :colspan="totalRenderedColLength"
-                    class="nc-grid-cell"
-                  ></td>
-                </tr>
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderStartRows.length"
+                  :row-count="placeholderStartRows.length"
+                  :row-height="placeholderStartRows.rowHeight"
+                  :total-row-height="placeholderStartRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
                   :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
@@ -2545,19 +2547,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     </tr>
                   </template>
                 </LazySmartsheetRow>
-                <tr
-                  v-for="(_row, index) of placeholderEndRows"
-                  :key="index"
-                  class="nc-grid-row !xs:h-14"
-                  :style="{
-                    height: `${rowHeight}px`,
-                  }"
-                >
-                  <td
-                    :colspan="totalRenderedColLength"
-                    class="nc-grid-cell"
-                  ></td>
-                </tr>
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderEndRows.length"
+                  :row-count="placeholderEndRows.length"
+                  :row-height="placeholderEndRows.rowHeight"
+                  :total-row-height="placeholderEndRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"

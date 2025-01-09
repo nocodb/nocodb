@@ -30,7 +30,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
     let base: Base;
     let table: Model;
 
-    before(async function () {
+    beforeEach(async function () {
       context = await init();
 
       base = await createProject(context);
@@ -193,18 +193,6 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(updatedTable.table_name.endsWith('new_title')).to.eq(true);
     });
 
-    it(`Delete table ${API_VERSION}`, async function () {
-      let tables = await getAllTables({ base });
-      const initialLength = tables.length;
-      await request(context.app)
-        .delete(`${META_API_TABLE_ROUTE}/${table.id}`)
-        .set('xc-auth', context.token)
-        .send({})
-        .expect(200);
-      tables = await getAllTables({ base });
-      expect(tables.length).to.eq(initialLength - 1);
-    });
-
     // todo: Check the condtion where the table being deleted is being refered by multiple tables
     // todo: Check the if views are also deleted
 
@@ -314,6 +302,18 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .expect(200);
 
       expect(response.body.list[0].meta.hasNonDefaultViews).to.be.false;
+    });
+
+    it(`Delete table ${API_VERSION}`, async function () {
+      let tables = await getAllTables({ base });
+      const initialLength = tables.length;
+      await request(context.app)
+        .delete(`${META_API_TABLE_ROUTE}/${table.id}`)
+        .set('xc-auth', context.token)
+        .send({})
+        .expect(200);
+      tables = await getAllTables({ base });
+      expect(tables.length).to.eq(initialLength - 1);
     });
   }
 

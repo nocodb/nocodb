@@ -475,12 +475,7 @@ const customColumns = function (
               column_name: 'SingleSelect',
               title: 'SingleSelect',
               uidt: UITypes.SingleSelect,
-              colOptions: [
-                { title: 'Morning', color: '#122334' },
-                { title: 'Afternoon', color: '#1d2334' },
-                { title: 'Evening', color: '#122f34' },
-                ...(optionsOverride['SingleSelect-ColOptions'] || []),
-              ],
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
             },
         isV3
           ? {
@@ -501,13 +496,8 @@ const customColumns = function (
               column_name: 'MultiSelect',
               title: 'MultiSelect',
               uidt: UITypes.MultiSelect,
-              colOptions: [
-                { title: 'Morning', color: '#122334' },
-                { title: 'Afternoon', color: '#1d2334' },
-                { title: 'Evening', color: '#122f34' },
-                ...(optionsOverride['MultiSelect-ColOptions'] || []),
-              ],
-            },
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+          },
       ];
     case 'userBased':
       return [

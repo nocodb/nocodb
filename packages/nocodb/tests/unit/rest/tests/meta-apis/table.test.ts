@@ -10,7 +10,7 @@ import { defaultColumns } from '../../../factory/column';
 import { Model } from '../../../../../src/models';
 import type { Base } from '../../../../../src/models';
 
-export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
+export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';
   const isV2 = API_VERSION === 'v2';
   const isV3 = API_VERSION === 'v3';

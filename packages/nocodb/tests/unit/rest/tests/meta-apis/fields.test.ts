@@ -4,11 +4,11 @@ import { expect } from 'chai';
 import { UITypes } from 'nocodb-sdk';
 import init from '../../../init';
 import { createProject } from '../../../factory/base';
-import { createTable, getAllTables, updateTable } from '../../../factory/table';
+import { createTable, getAllTables } from '../../../factory/table';
 import { customColumns, defaultColumns } from '../../../factory/column';
 import type { Base, Model } from '../../../../../src/models';
 
-export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
+export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';
   const isV2 = API_VERSION === 'v2';
   const isV3 = API_VERSION === 'v3';

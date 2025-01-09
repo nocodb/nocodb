@@ -288,7 +288,9 @@ const placeholderStartRows = computed(() => {
     rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
     totalRowHeight: 0,
   }
+
   result.totalRowHeight = result.length * result.rowHeight
+  
   return result
 })
 

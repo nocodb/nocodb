@@ -680,8 +680,6 @@ export class TablesService {
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
         (isCreatedOrLastModifiedByCol(column) && (column as any).system)
       ) {
-        const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
-
         // set column name using title if not present
         if (!column.column_name && column.title) {
           column.column_name = column.title;

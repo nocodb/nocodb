@@ -434,7 +434,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
 export const columnV3ToV2Builder = builderGenerator<
   (Column | ColumnType) & { type?: UITypes | string }
 >({
-  allowed: ['id', 'title', 'type', 'default_value', 'options'],
+  allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
   mappings: {
     type: 'uidt',
     default_value: 'cdf',

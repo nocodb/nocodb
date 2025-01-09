@@ -20,7 +20,8 @@ export class ColumnsV3Service {
     param: {
       req?: any;
       columnId: string;
-      column: ColumnReqType & { colOptions?: any; type?: UITypes };
+      column: ColumnReqType &
+        ({ colOptions?: any; type?: UITypes } | { type?: any });
       cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
@@ -50,7 +51,9 @@ export class ColumnsV3Service {
       if (column.meta) {
         column.meta.choices = undefined;
       }
-      column.dtxp = (column.colOptions as unknown as { options: any[]})?.options
+      column.dtxp = (
+        column.colOptions as unknown as { options: any[] }
+      )?.options
         ?.map((o: any) => `'${o.value}'`)
         .join('');
     }

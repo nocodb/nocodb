@@ -94,11 +94,13 @@ export class FiltersV3Controller {
     @TenantContext() context: NcContext,
     @Body() body: FilterReqType & { id: string },
     @Req() req: NcRequest,
+    @Param('viewId') viewId: string,
   ) {
     const filter = await this.filtersV3Service.filterUpdate(context, {
       filterId: body.id,
       filter: body,
       user: req.user,
+      viewId,
       req,
     });
     return filter;
@@ -127,12 +129,14 @@ export class FiltersV3Controller {
   @Acl('filterDelete')
   async filterDelete(
     @TenantContext() context: NcContext,
-    @Param('filterId') filterId: string,
+    @Param('viewId') viewId: string,
+    @Body() body: { filterId: string },
     @Req() req: NcRequest,
   ) {
     const filter = await this.filtersV3Service.filterDelete(context, {
       req,
-      filterId,
+      viewId,
+      filterId: body.filterId,
     });
     return filter;
   }

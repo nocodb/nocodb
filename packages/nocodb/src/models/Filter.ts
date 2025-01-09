@@ -1014,4 +1014,29 @@ export default class Filter implements FilterType {
 
     return filterObjs?.map((f) => this.castType(f)) || [];
   }
+
+  static async updateAllChildrenLogicalOp(
+    context: NcContext,
+    {
+      parentFilterId,
+      logicalOp,
+      viewId,
+    }: { viewId: string; parentFilterId: string; logicalOp: 'and' | 'or' },
+    ncMeta = Noco.ncMeta,
+  ) {
+    let filters;
+    if (parentFilterId === 'root') {
+      filters = await Filter.rootFilterList(context, { viewId }, ncMeta);
+    } else {
+      const filter = await this.get(context, parentFilterId);
+      if (!filter.is_group) {
+        return;
+      }
+      filters = filter.getChildren(context, ncMeta);
+    }
+
+    for (const child of filters) {
+      await Filter.update(context, child.id, { logical_op: logicalOp }, ncMeta);
+    }
+  }
 }

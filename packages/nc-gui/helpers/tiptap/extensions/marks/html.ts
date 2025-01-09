@@ -1,7 +1,9 @@
 import { Fragment } from '@tiptap/pm/model'
 import { Mark, getHTMLFromFragment } from '@tiptap/core'
+import type { MarkdownMarkSpec } from '../tiptap'
 
-export const HTMLMark = Mark.create({
+// TODO: Extend from tiptap extension
+export const HTMLMark = Mark.create<any, { markdown: MarkdownMarkSpec }>({
   name: 'markdownHTMLMark',
   addStorage() {
     return {

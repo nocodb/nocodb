@@ -116,22 +116,6 @@ const defaultColumns = function (
           description: `UpdatedBy ${UITypes.LastModifiedBy}`,
           ...optionsOverride['UpdatedBy'],
         },
-    isV3
-      ? {
-          title: 'NcOrder',
-          type: UITypes.Number,
-          description: `NcOrder ${UITypes.Number}`,
-          options: {
-            ...optionsOverride['NcOrder'],
-          },
-        }
-      : {
-          column_name: 'nc_order',
-          title: 'NcOrder',
-          uidt: UITypes.Number,
-          description: `NcOrder ${UITypes.Number}`,
-          ...optionsOverride['NcOrder'],
-        },
   ];
 };
 

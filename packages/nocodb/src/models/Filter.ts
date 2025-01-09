@@ -705,9 +705,11 @@ export default class Filter implements FilterType {
         context.base_id,
         MetaTable.FILTER_EXP,
         {
+          // @ts-ignore
           condition: { fk_hook_id: viewId },
         },
       );
+      // @ts-ignore
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
     }
 
@@ -988,6 +990,7 @@ export default class Filter implements FilterType {
   static async allLinkFilterList(
     context: NcContext,
     { linkColumnId }: { linkColumnId: string },
+    ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
       linkColumnId,

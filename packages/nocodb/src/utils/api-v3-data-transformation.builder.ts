@@ -279,7 +279,7 @@ export const colOptionBuilder = builderGenerator({
     fk_related_model_id: 'linked_table_id',
 
     fk_relation_column_id: 'link_field_id',
-    fk_rollup_column_id: 'linked_table_lookup_field_id',
+    fk_rollup_column_id: 'linked_table_rollup_field_id',
     fk_lookup_column_id: 'linked_table_lookup_field_id',
     linked_table_rollup_field_id: 'fk_rollup_column_id',
 

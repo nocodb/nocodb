@@ -70,13 +70,13 @@ export class PagedResponseV3Impl<T> {
     this.list = pagedResponse.list;
     const pageInfo: PaginatedV3Type = {};
 
-    if (!pagedResponse.pageInfo.isFirstPage) {
+    if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
       pageInfo.prev = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
         pagedResponse.pageInfo.page - 1
       }`;
     }
 
-    if (!pagedResponse.pageInfo.isLastPage) {
+    if (!pagedResponse.pageInfo.isLastPage && pagedResponse.pageInfo.page) {
       pageInfo.next = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
         pagedResponse.pageInfo.page + 1
       }`;

@@ -28,6 +28,18 @@ export class MetaService extends MetaServiceCE {
     return true;
   }
 
+  async startTransaction(): Promise<MetaService> {
+    const trx = await this.connection.transaction();
+
+    // todo: Extend transaction class to add our custom properties
+    Object.assign(trx, {
+      clientType: this.connection.clientType,
+      searchPath: (this.connection as any).searchPath,
+    });
+
+    return new MetaService(this.config, trx);
+  }
+
   /***
    * Generate nanoid for the given target
    * @param target - Table name

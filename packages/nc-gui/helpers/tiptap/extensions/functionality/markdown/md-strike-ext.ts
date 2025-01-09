@@ -60,11 +60,11 @@ function mdStrikeExt(md: MarkdownIt) {
   })
 
   // Rendering rules for opening and closing <s> tags
-  md.renderer.rules.ss_open = function (tokens, idx) {
+  md.renderer.rules.ss_open = function (_tokens, _idx) {
     return '<s>'
   }
 
-  md.renderer.rules.ss_close = function (tokens, idx) {
+  md.renderer.rules.ss_close = function (_tokens, _idx) {
     return '</s>'
   }
 }

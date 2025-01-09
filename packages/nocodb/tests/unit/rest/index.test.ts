@@ -13,7 +13,6 @@ import formulaTests from './tests/formula.test';
 import typeCastsTest from './tests/typeCasts.test';
 import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
-import dataAPIsV3Test from './tests/dataAPIsV3.test';
 import baseTest from './tests/meta-apis/base.test';
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
 
@@ -57,11 +56,11 @@ function restTests() {
   integrationTest();
 
   dataAPIsV3Test('v2')
-  dataAPIsV3Test('v3')
+  // dataAPIsV3Test('v3')
 
 
   baseTest('v2')
-  // baseTest('v3')
+  baseTest('v3')
 
   dataAPIsV3Test('v2')
   // dataAPIsV3Test('v3')

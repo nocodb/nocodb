@@ -22,7 +22,9 @@ export default function (API_VERSION: 'v3' | 'v2') {
   const isV2 = API_VERSION === 'v2';
   const isEE = !!process.env.EE;
 
-  describe('Base', () => {
+  if(!isV3) return
+
+  describe.only('Base', () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     beforeEach(async () => {

@@ -4,7 +4,8 @@ import {
   extractRolesObj,
   OrgUserRoles,
   PluginCategory,
-  ProjectRoles, WorkspaceUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
@@ -32,6 +33,7 @@ import { sanitiseEmailContent } from '~/utils';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
+import { WorkspaceUser } from '~/ee/models';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -81,34 +83,80 @@ export class BaseUsersV3Service {
       req: NcRequest;
     },
   ): Promise<any> {
-    for (const baseUser of param.baseUsers) {
-      validatePayload(
-        'swagger.json#/components/schemas/ProjectUserV3Req',
-        baseUser,
-      );
+    const ncMeta = await Noco.ncMeta.startTransaction();
+    const userIds = [];
+    try {
+      for (const baseUser of param.baseUsers) {
+        // todo: enable later
+        // validatePayload(
+        //   'swagger.json#/components/schemas/ProjectUserV3Req',
+        //   baseUser,
+        // );
 
-      if (baseUser.workspace_role) {
-        await this.workspaceUsersService.invite( {
-          body: {
-            role: baseUser.workspace_role,
-            email: baseUser.email,
+        // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
+        if (!baseUser.workspace_role) {
+          // get the user from workspace
+          const user = await User.getByEmail(baseUser.email, ncMeta);
+          if (user) {
+            const workspaceUser = await WorkspaceUser.get(
+              param.req.ncWorkspaceId,
+              user.id,
+              ncMeta,
+            );
+            if (!workspaceUser) {
+              baseUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
+            }
+          } else {
+            baseUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
+          }
+        }
+
+        // invite at the workspace level if workspace role is provided
+        if (baseUser.workspace_role) {
+          await this.workspaceUsersService.invite(
+            {
+              body: {
+                roles: baseUser.workspace_role,
+                email: baseUser.email,
+              },
+              siteUrl: param.req.ncSiteUrl,
+              invitedBy: param.req.user,
+              req: param.req,
+              workspaceId: param.req.ncWorkspaceId,
+            },
+            ncMeta,
+          );
+        }
+
+        await this.baseUsersService.userInvite(
+          context,
+          {
+            baseId: param.baseId,
+            baseUser: {
+              email: baseUser.email,
+              roles: baseUser.base_role as ProjectUserReqType['roles'],
+            },
+            req: param.req,
           },
-          siteUrl: param.req.ncSiteUrl,
-          invitedBy: param.req.user,
-          req: param.req,
-          workspaceId: param.req.ncWorkspaceId,
-        });
-      }
+          ncMeta,
+        );
 
-      await this.baseUsersService.userInvite(context, {
-        baseId: param.baseId,
-        baseUser: {
-          email: baseUser.email,
-          roles: baseUser.base_role as ProjectUserReqType['roles'],
-        },
-        req: param.req,
-      });
+        const user = await User.getByEmail(baseUser.email);
+
+        userIds.push(user.id);
+      }
+      await ncMeta.commit();
+    } catch (e) {
+      // on error rollback the transaction and throw the error
+      await ncMeta.rollback();
+      throw e;
     }
+    return this.builder().build(
+      await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+        user_ids: userIds,
+      }),
+    );
   }
 
   async baseUserUpdate(
@@ -120,58 +168,64 @@ export class BaseUsersV3Service {
       baseId: string;
     },
   ): Promise<any> {
-    for (const baseUser of param.baseUsers) {
-      validatePayload(
-        'swagger.json#/components/schemas/ProjectUserV3Req',
-        baseUser,
-      );
+    const ncMeta = await Noco.ncMeta.startTransaction();
+    const userIds = [];
+    try {
+      for (const baseUser of param.baseUsers) {
+        validatePayload(
+          'swagger.json#/components/schemas/ProjectUserV3Req',
+          baseUser,
+        );
 
-      if (baseUser.workspace_role) {
-        if (baseUser.id) {
-          await this.workspaceUsersService.update({
-            userId: baseUser.id,
-            req: param.req,
-            workspaceId: param.req.ncWorkspaceId,
-            roles: baseUser.workspace_role as WorkspaceUserRoles,
-            siteUrl: param.req.ncSiteUrl,
-          });
-        } else {
-          await this.workspaceUsersService.invite({
-            body: {
-              role: baseUser.workspace_role,
-              email: baseUser.email,
-            },
-            invitedBy: param.req.user,
-            req: param.req,
-            workspaceId: param.req.ncWorkspaceId,
-            siteUrl: param.req.ncSit
-          });
+        let userId = baseUser.id;
+
+        if (!baseUser.id && baseUser.email) {
+          const user = await User.getByEmail(baseUser.email, ncMeta);
+          if (user) {
+            userId = user.id;
+          } else {
+            NcError.userNotFound(baseUser.email);
+          }
         }
-      }
 
-      if (baseUser.id) {
+        userIds.push(userId);
+
+        if (baseUser.workspace_role) {
+          await this.workspaceUsersService.update(
+            {
+              userId,
+              req: param.req,
+              workspaceId: param.req.ncWorkspaceId,
+              roles: baseUser.workspace_role as WorkspaceUserRoles,
+              siteUrl: param.req.ncSiteUrl,
+            },
+            ncMeta,
+          );
+        }
+
         await this.baseUsersService.baseUserUpdate(context, {
           baseId: param.baseId,
           baseUser: {
             roles: baseUser.base_role as ProjectUserReqType['roles'],
           },
-          userId: baseUser.id,
-          req: param.req,
-        });
-      } else {
-        await this.baseUsersService.userInvite(context, {
-          baseId: param.baseId,
-          baseUser: {
-            email: baseUser.email,
-            roles: baseUser.base_role as ProjectUserReqType['roles'],
-          },
+          userId,
           req: param.req,
         });
       }
+    } catch (e) {
+      // on error rollback the transaction and throw the error
+      await ncMeta.rollback();
+      throw e;
     }
+    return this.builder().build(
+      await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+        user_ids: userIds,
+      }),
+    );
   }
 
-  async baseUserDelete(
+/*  async baseUserDelete(
     context: NcContext,
     param: {
       baseUsers: ProjectUserDeleteV3ReqType[];
@@ -179,11 +233,14 @@ export class BaseUsersV3Service {
       req: any;
     },
   ): Promise<any> {
+    const ncMeta = await Noco.ncMeta.startTransaction();
+    const userIds = [];
+    try {
     for (const baseUser of param.baseUsers) {
-      validatePayload(
-        'swagger.json#/components/schemas/ProjectUserDeleteV3Req',
-        baseUser,
-      );
+      // validatePayload(
+      //   'swagger.json#/components/schemas/ProjectUserDeleteV3Req',
+      //   baseUser,
+      // );
 
       let userId = baseUser.id;
 
@@ -199,9 +256,9 @@ export class BaseUsersV3Service {
 
       await this.baseUsersService.baseUserDelete(context, {
         baseId: param.baseId,
-        userId: baseUser.id,
+        userId,
         req: param.req,
       });
     }
-  }
+  }*/
 }

@@ -12,10 +12,7 @@ import {
 import { FiltersService } from '~/services/filters.service';
 
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
-  return {
-    AND: 'and',
-    OR: 'or',
-  }[group_operator] as 'and' | 'or';
+  return group_operator?.toLowerCase() as 'and' | 'or';
 }
 
 @Injectable()
@@ -414,7 +411,7 @@ export class FiltersV3Service {
           : undefined;
         const currentItem = {
           ...child,
-          parent_id: parentId ?? undefined, // Root-level items have no parent_id
+          parent_id: undefined, // Root-level items have no parent_id
           group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
           logical_op: undefined, // Remove logical_op from filters
           filters: isGroup ? buildNestedStructure(child.id) : undefined, // Recursively nest children for groups

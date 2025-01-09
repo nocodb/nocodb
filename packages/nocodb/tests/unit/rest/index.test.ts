@@ -3,7 +3,7 @@ import authTests from './tests/auth.test';
 import orgTests from './tests/org.test';
 import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
-import tableTests from './tests/table.test';
+import tableTests from './tests/meta-apis/table.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import attachmentTests from './tests/attachment.test';
@@ -37,7 +37,6 @@ function restTests() {
   authTests();
   orgTests();
   baseTests();
-  tableTests();
   tableRowTests();
   viewRowTests();
   columnTypeSpecificTests();
@@ -54,6 +53,10 @@ function restTests() {
   bulkAggregationTest();
   columnTest();
   integrationTest();
+
+  tableTests('v1');
+  tableTests('v2');
+  // tableTests('v3');
 
   dataAPIsV3Test('v2')
   // dataAPIsV3Test('v3')

@@ -17,6 +17,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import {CustomUrl} from "~/models";
 
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
@@ -327,6 +328,7 @@ export interface SharedBaseEvent extends NcBaseEvent {
   base?: BaseType;
   sharedBaseRole: string;
   uuid: string;
+  customUrl?: CustomUrl;
 }
 
 export interface SharedBaseDeleteEvent

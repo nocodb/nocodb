@@ -640,6 +640,9 @@ export interface APITokenDeletePayload {
 export interface SharedBasePayload {
   base_title: string;
   uuid: string;
+
+  custom_url_id?: string;
+  custom_url?: string;
 }
 
 export interface SharedBasePayloadType {

@@ -20,7 +20,11 @@ import type {
 import type { Job } from 'bull';
 import type { UserType } from 'nocodb-sdk';
 import type { AtImportJobData } from '~/interface/Jobs';
-import { generateAuditV1Payload } from '~/utils';
+import {
+  extractNonSystemProps,
+  generateAuditV1Payload,
+  transformToSnakeCase,
+} from '~/utils';
 import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -145,6 +149,7 @@ export class AtImportProcessor {
           context,
           details: {
             airtable_sync_id: syncDB.syncId,
+            ...transformToSnakeCase(extractNonSystemProps(syncDB.options)),
           },
           req,
           id: parentAuditId,

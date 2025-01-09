@@ -350,7 +350,7 @@ export class AppHooksListenerService
                 details: {
                   user_id: param.user.id,
                   user_email: param.user.email,
-                  user_name: param.user.display_name ?? undefined,
+                  user_name: param.user.display_name || undefined,
                 },
                 context: param.context,
                 req: param.req,
@@ -1244,7 +1244,7 @@ export class AppHooksListenerService
                 details: {
                   workspace_title: param.workspace.title,
                   user_email: param.user.email,
-                  user_name: param.user.display_name ?? undefined,
+                  user_name: param.user.display_name || undefined,
                   user_role: param.roles,
                   user_id: param.user.id,
                 },
@@ -1354,7 +1354,15 @@ export class AppHooksListenerService
             },
           });
 
-          if (!updatePayload) break;
+          const configChange = populateUpdatePayloadDiff({
+            next: param.integration,
+            prev: param.oldIntegration,
+            aliasMap: {
+              title: 'integration_title',
+            },
+          });
+
+          if (!updatePayload && !configChange) break;
 
           await this.auditInsert(
             await generateAuditV1Payload<IntegrationUpdatePayload>(
@@ -1364,7 +1372,11 @@ export class AppHooksListenerService
                   integration_id: param.integration?.id,
                   integration_type: param.integration?.type,
                   integration_title: param.integration?.title,
-                  ...updatePayload,
+                  ...(updatePayload || {
+                    previous_state: {
+                      config: {},
+                    },
+                  }),
                 },
                 context: param.context,
                 req: param.req,
@@ -2551,7 +2563,7 @@ export class AppHooksListenerService
               {
                 details: {
                   token_title: param.tokenTitle,
-                  token_id: param.tokenId,
+                  token_id: param.tokenId + '',
                 },
                 context: param.context,
                 req: param.req,
@@ -2572,7 +2584,7 @@ export class AppHooksListenerService
               {
                 details: {
                   token_title: param.tokenTitle,
-                  token_id: param.tokenId,
+                  token_id: param.tokenId + '',
                 },
                 context: param.context,
                 req: param.req,
@@ -2723,6 +2735,8 @@ export class AppHooksListenerService
                 details: {
                   base_title: param.base.title,
                   uuid: param.uuid,
+                  custom_url_id: param.customUrl?.id ?? undefined,
+                  custom_url: param.customUrl?.original_path ?? undefined,
                 },
                 context: param.context,
                 req: param.req,

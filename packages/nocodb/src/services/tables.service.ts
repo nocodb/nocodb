@@ -781,7 +781,7 @@ export class TablesService {
         }),
         ...virtualColumns.map((c, i) => ({
           ...c,
-          uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+          uidt: c.uidt || getColumnUiType(source, c),
           title: c.title || getColumnNameAlias(c.cn, source),
           order: tableCreatePayLoad.columns.length + i + 1,
         })),

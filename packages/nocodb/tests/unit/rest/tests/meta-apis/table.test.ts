@@ -57,7 +57,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .set('xc-auth', context.token)
         .send({
           title: undefined,
-          columns: defaultColumns(context),
+          columns: defaultColumns(context, isV3),
         })
         .expect(400);
 
@@ -74,7 +74,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: table.table_name,
           title: 'New_title',
-          columns: defaultColumns(context),
+          columns: defaultColumns(context, isV3),
         })
         .expect(400);
 
@@ -91,7 +91,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: 'New_table_name',
           title: table.title,
-          columns: defaultColumns(context),
+          columns: defaultColumns(context, isV3),
         })
         .expect(400);
 
@@ -108,7 +108,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: 'a'.repeat(256),
           title: 'new_title',
-          columns: defaultColumns(context),
+          columns: defaultColumns(context, isV3),
         })
         .expect(400);
 
@@ -125,7 +125,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: 'table_name_with_whitespace ',
           title: 'new_title',
-          columns: defaultColumns(context),
+          columns: defaultColumns(context, isV3),
         })
         .expect(400);
 
@@ -135,22 +135,36 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
     });
 
     it(`Create table ${API_VERSION}`, async function () {
+      const columnProps = isV3
+        ? {
+            fields: defaultColumns(context, isV3),
+          }
+        : {
+            columns: defaultColumns(context, isV3),
+          };
+
       const response = await request(context.app)
         .post(`${META_API_BASE_ROUTE}/${base.id}/tables`)
         .set('xc-auth', context.token)
         .send({
           table_name: 'table2',
           title: 'new_title_2',
-          columns: defaultColumns(context),
+          ...columnProps,
         })
         .expect(200);
 
       const tables = await getAllTables({ base });
       expect(tables.length).to.eq(2);
 
-      expect(response.body.columns.length).to.eq(
-        defaultColumns(context).length + 3, // nc_order, createdby, updatedby
-      );
+      if (isV3) {
+        expect(response.body.fields.length).to.eq(
+          defaultColumns(context, isV3).length,
+        );
+      } else {
+        expect(response.body.columns.length).to.eq(
+          defaultColumns(context, isV3).length + 3, // nc_order, createdby, updatedby
+        );
+      }
 
       expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
       expect(response.body.table_name.endsWith('table2')).to.eq(true);

@@ -22,7 +22,7 @@ const defaultColumns = function (
   return [
     isV3
       ? {
-          name: 'Id',
+          title: 'Id',
           type: UITypes.ID,
           description: `Test ${UITypes.ID}`,
           options: {
@@ -38,7 +38,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'Title',
+          title: 'Title',
           type: UITypes.SingleLineText,
           description: `Title ${UITypes.SingleLineText}`,
           options: {
@@ -54,7 +54,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'CreatedAt',
+          title: 'CreatedAt',
           type: UITypes.CreatedTime,
           description: `CreatedAt ${UITypes.CreatedTime}`,
           options: {
@@ -70,7 +70,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'UpdatedAt',
+          title: 'UpdatedAt',
           type: UITypes.LastModifiedTime,
           description: `UpdatedAt ${UITypes.LastModifiedTime}`,
           options: {
@@ -86,7 +86,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'CreatedBy',
+          title: 'CreatedBy',
           type: UITypes.CreatedBy,
           description: `CreatedBy ${UITypes.CreatedBy}`,
           options: {
@@ -102,7 +102,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'UpdatedBy',
+          title: 'UpdatedBy',
           type: UITypes.LastModifiedBy,
           description: `UpdatedBy ${UITypes.LastModifiedBy}`,
           options: {
@@ -118,7 +118,7 @@ const defaultColumns = function (
         },
     isV3
       ? {
-          name: 'NcOrder',
+          title: 'NcOrder',
           type: UITypes.Number,
           description: `NcOrder ${UITypes.Number}`,
           options: {

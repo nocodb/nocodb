@@ -700,10 +700,10 @@ export class TablesService {
           column.column_name = targetColumnName;
         }
         uniqueColumnNameCount[column.column_name] = 1;
-      }
 
-      if (column.column_name.length > mxColumnLength) {
-        column.column_name = column.column_name.slice(0, mxColumnLength);
+        if (column.column_name.length > mxColumnLength) {
+          column.column_name = column.column_name.slice(0, mxColumnLength);
+        }
       }
 
       if (column.title && column.title.length > 255) {

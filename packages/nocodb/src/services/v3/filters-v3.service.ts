@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { FilterGroup } from '~/controllers/v3/filters-v3.controller';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -11,6 +12,13 @@ import {
   filterRevBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { FiltersService } from '~/services/filters.service';
+
+function extractLogicalOp(group_operator: 'AND' | 'OR') {
+  return {
+    AND: 'and',
+    OR: 'or',
+  }[group_operator] as 'and' | 'or';
+}
 
 @Injectable()
 export class FiltersV3Service {
@@ -22,7 +30,7 @@ export class FiltersV3Service {
   async filterCreate(
     context: NcContext,
     param: {
-      filter: FilterReqType;
+      filter: FilterGroup;
       user: UserType;
       req: NcRequest;
     } & ({ viewId: string } | { hookId: string } | { linkColumnId: string }),
@@ -32,36 +40,86 @@ export class FiltersV3Service {
       param.filter,
     );
 
-    const { additionalProps, additionalAuditProps } =
-      await this.extractAdditionalProps(param, context);
+    // const filter = await Filter.insert(context, {
+    //   ...param.filter,
+    //   ...additionalProps,
+    // });
 
-    const filter = await Filter.insert(context, {
-      ...param.filter,
-      ...additionalProps,
-    });
+    await this.insertFilterGroup(context, param, param.filter);
 
-    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
-      filter,
-      req: param.req,
-      ...additionalAuditProps,
-    });
+    const list = this.filterList(context, param);
 
-    return filterBuilder().build(filter);
+    /*    for(const filter of list) {
+      this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+        filter,
+        req: param.req,
+        ...additionalAuditProps,
+      });
+    }*/
+
+    return list;
+  }
+
+  async insertFilterGroup(
+    context: any,
+    param: { viewId: string } | { hookId: string } | { linkColumnId: string },
+    group: FilterGroup,
+    parentId: string | null = null,
+    logicalOp: 'AND' | 'OR' | null = null,
+    isRoot: boolean = true, // Flag to check if it's the root group
+  ): Promise<void> {
+    let currentParentId = parentId;
+
+    const { additionalProps } = await this.extractAdditionalProps(
+      param,
+      context,
+    );
+
+    if (!isRoot) {
+      // Insert the current group (not the root group)
+      const groupResponse = await Filter.insert(context, {
+        is_group: true, // Mark as a group
+        fk_parent_id: parentId, // Link to the parent group
+        logical_op: extractLogicalOp(logicalOp), // Logical operator passed down
+        ...additionalProps,
+      });
+
+      // Update the parent ID for children to this group's ID
+      currentParentId = groupResponse.id;
+    }
+
+    for (const filterOrGroup of group.filters) {
+      if ('field_id' in filterOrGroup) {
+        // Insert individual filter
+        await Filter.insert(context, {
+          ...filterOrGroup,
+          fk_parent_id: currentParentId, // Link to the parent group or new group
+          logical_op: extractLogicalOp(group.group_operator), // Pass the current group's operator to the filter
+          ...additionalProps,
+        });
+      } else if ('group_operator' in filterOrGroup) {
+        // Recursively handle nested groups
+        await this.insertFilterGroup(
+          context,
+          param,
+          filterOrGroup,
+          currentParentId, // Pass the current group's ID as parent
+          group.group_operator, // Pass the current group's logical operator
+          false, // Indicate it's not the root
+        );
+      }
+    }
   }
 
   private async extractAdditionalProps(
     param:
-      | ({ filter: FilterReqType; user: UserType; req: NcRequest } & {
+      | {
           viewId: string;
-        })
-      | ({
-          filter: FilterReqType;
-          user: UserType;
-          req: NcRequest;
-        } & { hookId: string })
-      | ({ filter: FilterReqType; user: UserType; req: NcRequest } & {
+        }
+      | { hookId: string }
+      | {
           linkColumnId: string;
-        }),
+        },
     context: NcContext,
   ) {
     let additionalProps = {};
@@ -158,5 +216,29 @@ export class FiltersV3Service {
       });
     }
     return filterBuilder().build(filters);
+  }
+
+  async filterReplace(
+    context: NcContext,
+    param: {
+      filter: FilterGroup;
+      user: UserType & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+        provider?: string;
+      };
+      req: NcRequest;
+    } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
+  ) {
+    // delete existing filters
+    await Filter.deleteAll(context, param.viewId);
+
+    // then create filters using filterCreate
+    return this.filterCreate(context, {
+      filter: param.filter,
+      user: param.user,
+      req: param.req,
+      ...param,
+    });
   }
 }

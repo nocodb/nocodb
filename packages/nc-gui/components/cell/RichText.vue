@@ -3,7 +3,6 @@ import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Markdown } from 'tiptap-markdown'
 import {
   HardBreak,
   Italic,
@@ -15,6 +14,7 @@ import {
   UserMention,
   UserMentionList,
   suggestion,
+  Markdown,
 } from '~/helpers/tiptap/extensions'
 
 const props = withDefaults(
@@ -125,7 +125,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: false }),
+    Markdown.configure({ breaks: true, transformPastedText: true }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

@@ -39,6 +39,13 @@ export class TablesV3Service {
       mappings: {
         fk_workspace_id: 'workspace_id',
       },
+      transformFn: (table) => {
+        // if description is empty, set it to undefined
+        if (table.description === '') {
+          table.description = undefined;
+        }
+        return table;
+      },
     });
 
     this.viewBuilder = builderGenerator({
@@ -109,9 +116,11 @@ export class TablesV3Service {
 
     result.display_field_id = table.columns.find((column) => column.pv)?.id;
 
-    result.fields = table.columns.map((column) => {
-      return columnBuilder().build(column);
-    });
+    result.fields = table.columns
+      .filter((c) => !c.system)
+      .map((column) => {
+        return columnBuilder().build(column);
+      });
 
     return result;
   }
@@ -179,7 +188,7 @@ export class TablesV3Service {
     )?.id;
 
     result.fields = tableCreateOutput.columns
-      .filter((c) => c.system)
+      .filter((c) => !c.system)
       .map((column) => {
         return columnBuilder().build(column);
       });

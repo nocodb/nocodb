@@ -670,6 +670,16 @@ export class AppHooksListenerService
             source_id: param.column.source_id,
           });
 
+          const options = Object.assign(
+            {},
+            column.options,
+            await extractRefColumnIfFound({
+              column: param.column,
+              columns: param.columns,
+              context: param.context,
+            }),
+          );
+
           await this.auditInsert(
             await generateAuditV1Payload<ColumnCreatePayload>(
               AuditV1OperationTypes.COLUMN_CREATE,
@@ -679,11 +689,6 @@ export class AppHooksListenerService
                   field_title: param.column.title,
                   field_type: param.column.uidt as UITypes,
                   uidt: undefined,
-                  ...(await extractRefColumnIfFound({
-                    column: param.column,
-                    columns: param.columns,
-                    context: param.context,
-                  })),
                   // ...(param.column.colOptions || {}),
                   // ...filterAndMapAliasToColProps(
                   //   extractNonSystemProps(
@@ -692,6 +697,7 @@ export class AppHooksListenerService
                   //   ),
                   // ),
                   ...(column as Record<string, unknown>),
+                  options: Object.keys(options).length ? options : undefined,
                   type: undefined,
                   id: undefined,
                   title: undefined,
@@ -747,26 +753,34 @@ export class AppHooksListenerService
           const updatePayload = populateUpdatePayloadDiff({
             prev: {
               primary_key: false,
-              ...(await extractRefColumnIfFound({
-                column: {
-                  ...(param.oldColumn?.colOptions ?? {}),
-                  ...param.oldColumn,
-                },
-                columns: param.columns,
-                context: param.context,
-              })),
               ...oldColumn,
+              options: Object.assign(
+                {},
+                await extractRefColumnIfFound({
+                  column: {
+                    ...(param.oldColumn?.colOptions ?? {}),
+                    ...param.oldColumn,
+                  },
+                  columns: param.columns,
+                  context: param.context,
+                }),
+                oldColumn.options || {},
+              ),
             },
             next: {
-              ...(await extractRefColumnIfFound({
-                column: {
-                  ...(param.column?.colOptions ?? {}),
-                  ...param.column,
-                },
-                columns: param.columns,
-                context: param.context,
-              })),
               ...column,
+              options: Object.assign(
+                {},
+                await extractRefColumnIfFound({
+                  column: {
+                    ...(param.column?.colOptions ?? {}),
+                    ...param.column,
+                  },
+                  columns: param.columns,
+                  context: param.context,
+                }),
+                column.options || {},
+              ),
             },
             aliasMap: {
               title: 'field_title',
@@ -834,12 +848,21 @@ export class AppHooksListenerService
                   //     ],
                   //   ),
                   // ),
-                  ...(columnBuilderRef.build(column) as object),
-                  ...(await extractRefColumnIfFound({
-                    column: param.column,
-                    columns: param.columns,
-                    context: param.context,
-                  })),
+                  ...(column as object),
+                  // ...(await extractRefColumnIfFound({
+                  //   column: param.column,
+                  //   columns: param.columns,
+                  //   context: param.context,
+                  // })),
+                  options: Object.assign(
+                    {},
+                    await extractRefColumnIfFound({
+                      column: param.column,
+                      columns: param.columns,
+                      context: param.context,
+                    }),
+                    column.options || {},
+                  ),
                   ...updatePayload,
                 },
                 fk_model_id: column.fk_model_id,
@@ -878,11 +901,15 @@ export class AppHooksListenerService
                   //   ]),
                   // ),
                   ...(columnBuilderRef.build(param.column) as object),
-                  ...(await extractRefColumnIfFound({
-                    column: param.column,
-                    columns: param.columns,
-                    context: param.context,
-                  })),
+                  options: Object.assign(
+                    {},
+                    await extractRefColumnIfFound({
+                      column: param.column,
+                      columns: param.columns,
+                      context: param.context,
+                    }),
+                    param.column.options || {},
+                  ),
                 },
                 fk_model_id: param.column.fk_model_id,
                 context: param.context,

@@ -351,10 +351,15 @@ export const extractRefColumnIfFound = async ({
     return {
       link_field_id: linkField?.id,
       link_field_title: linkField?.title,
-      lookup_table_id: lookupTable?.id,
-      lookup_table_title: lookupTable?.title,
-      lookup_field_id: lookupColumn?.id,
-      lookup_field_title: lookupColumn?.title,
+      // lookup_table_id: lookupTable?.id,
+      // lookup_table_title: lookupTable?.title,
+      // lookup_field_id: lookupColumn?.id,
+      // lookup_field_title: lookupColumn?.title,
+
+
+      linked_table_lookup_field_title: lookupColumn?.title,
+      linked_table_id: lookupTable?.id,
+      linked_table_title: lookupTable?.title,
     };
   }
 
@@ -377,11 +382,17 @@ export const extractRefColumnIfFound = async ({
       link_field_id: linkField?.id,
       link_field_title: linkField?.title,
 
-      rollup_table_id: rollupTable?.id,
-      rollup_table_title: rollupTable?.title,
+      // rollup_table_id: rollupTable?.id,
+      // rollup_table_title: rollupTable?.title,
 
       rollup_field_id: rollupColumn?.id,
       rollup_field_title: rollupColumn?.title,
+
+      linked_table_rollup_field_title: rollupColumn?.title,
+      linked_table_id: rollupTable?.id,
+      linked_table_title: rollupTable?.title,
+
+
     };
   }
 

@@ -10,6 +10,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DataTableService {
@@ -23,6 +24,7 @@ export class DataTableService {
       query: any;
       viewId?: string;
       ignorePagination?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { modelId, viewId, baseId, ...rest } = param;
@@ -114,6 +116,7 @@ export class DataTableService {
       body: any;
       cookie: any;
       undo?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -177,6 +180,7 @@ export class DataTableService {
       // rowId: string;
       body: any;
       cookie: any;
+      apiVersion?: NcApiVersion
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -197,6 +201,7 @@ export class DataTableService {
         cookie: param.cookie,
         throwExceptionIfNotExist: true,
         isSingleRecordUpdation: !Array.isArray(param.body),
+        apiVersion: param.apiVersion
       },
     );
 

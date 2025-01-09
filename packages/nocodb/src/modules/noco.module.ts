@@ -128,6 +128,8 @@ import { CalendarDatasController } from '~/controllers/calendars-datas.controlle
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { IntegrationsService } from '~/services/integrations.service';
+import { DataV3Service } from '~/services/data-v3.service';
+import { Datav3Controller } from '~/controllers/data-v3.controller';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -202,6 +204,7 @@ export const nocoModuleMetadata = {
           OldDatasController,
           PublicDatasController,
           PublicDatasExportController,
+          Datav3Controller,
         ]
       : []),
   ],
@@ -270,6 +273,7 @@ export const nocoModuleMetadata = {
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
+    DataV3Service,
   ],
   exports: [
     /* Generic */
@@ -308,6 +312,7 @@ export const nocoModuleMetadata = {
     DatasService,
     BulkDataAliasService,
     DataTableService,
+    DataV3Service,
   ],
 };
 

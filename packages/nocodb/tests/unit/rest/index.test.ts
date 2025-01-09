@@ -18,8 +18,8 @@ import baseTest from './tests/meta-apis/base.test';
 import tableTests from './tests/meta-apis/table.test';
 import fieldsTests from './tests/meta-apis/fields.test';
 import commentTests from './tests/meta-apis/comment.test';
-import filterTests from './tests/meta-apis/filter.test';
-import sortTests from './tests/meta-apis/sort.test';
+import filterTests from './tests/meta-apis/filters.test';
+import sortsTests from './tests/meta-apis/sorts.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};

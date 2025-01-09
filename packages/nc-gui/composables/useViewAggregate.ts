@@ -65,7 +65,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         value: aggregations.value[fields.value[0].title] ?? null,
         column: fields.value[0],
         field: gridViewCols.value[fields.value[0].id!],
-        width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', '')) + 64}px` || '244px',
+        width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', '')) + 80}px` || '260px',
       }
     })
 

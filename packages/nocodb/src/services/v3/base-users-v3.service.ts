@@ -9,8 +9,8 @@ import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
-import { WorkspaceUser } from '~/ee/models';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { WorkspaceUser } from '~/models';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -122,7 +122,7 @@ export class BaseUsersV3Service {
           ncMeta,
         );
 
-        user = await User.getByEmail(baseUser.email);
+        user = await User.getByEmail(baseUser.email, ncMeta);
 
         userIds.push(user.id);
       }

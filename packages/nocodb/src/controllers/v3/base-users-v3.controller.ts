@@ -39,7 +39,6 @@ export class BaseUsersV3Controller {
   }
 
   @Post(['/api/v3/meta/bases/:baseId/users'])
-  @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
     @TenantContext() context: NcContext,

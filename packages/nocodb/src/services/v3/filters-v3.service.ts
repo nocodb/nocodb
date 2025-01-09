@@ -216,13 +216,20 @@ export class FiltersV3Service {
       });
     }
 
-    return this.addDummyRootAndFlattenByLevels(filterBuilder().build(filters));
+    return this.addDummyRootAndFlattenByLevels(
+      filterBuilder().build(filters) as Filter[],
+    );
   }
 
   private addDummyRootAndFlattenByLevels(filters: any[]): any[] {
+    // if empty return as it is
+    if (filters.length === 0) {
+      return filters;
+    }
+
     // Create a map of filters by parent_id for easy lookup
     const filterMap = new Map<string | null, any[]>();
-    filters.forEach(filter => {
+    filters.forEach((filter) => {
       const parentId = filter.parent_id || null;
       if (!filterMap.has(parentId)) {
         filterMap.set(parentId, []);
@@ -231,22 +238,30 @@ export class FiltersV3Service {
     });
 
     // Helper function to determine group_operator for a group
-    const getGroupOperatorFromFirstChild = (groupId: string | null): 'AND' | 'OR' | null => {
+    const getGroupOperatorFromFirstChild = (
+      groupId: string | null,
+    ): 'AND' | 'OR' | null => {
       const children = filterMap.get(groupId) || [];
-      return children.length > 0 && children[0].logical_op ? children[0].logical_op : null;
+      return children.length > 0 && children[0].logical_op
+        ? children[0].logical_op
+        : null;
     };
 
     // Flatten filters by levels
     const flattenByLevels = (): any[] => {
       const result: any[] = [];
-      const queue: { parentId: string | null; level: number }[] = [{ parentId: null, level: 0 }];
+      const queue: { parentId: string | null; level: number }[] = [
+        { parentId: null, level: 0 },
+      ];
 
       while (queue.length > 0) {
         const { parentId, level } = queue.shift()!;
         const children = filterMap.get(parentId) || [];
         for (const child of children) {
           const isGroup = !!child.is_group;
-          const groupOperator = isGroup ? getGroupOperatorFromFirstChild(child.id) : undefined;
+          const groupOperator = isGroup
+            ? getGroupOperatorFromFirstChild(child.id)
+            : undefined;
           const currentItem = {
             ...child,
             parent_id: parentId === 'root' ? null : parentId, // Remove parent_id for root-level items
@@ -274,7 +289,10 @@ export class FiltersV3Service {
       {
         id: 'root',
         is_group: true,
-        group_operator: flattenedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
+        group_operator:
+          flattenedFilters.length > 0
+            ? getGroupOperatorFromFirstChild(null)
+            : null,
         parent_id: null, // Root has no parent_id
       },
       ...flattenedFilters,

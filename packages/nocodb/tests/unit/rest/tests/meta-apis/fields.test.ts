@@ -1,17 +1,19 @@
 import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
+import { UITypes } from 'nocodb-sdk';
 import init from '../../../init';
 import { createProject } from '../../../factory/base';
 import { createTable, getAllTables, updateTable } from '../../../factory/table';
 import { customColumns, defaultColumns } from '../../../factory/column';
-import { Base, Model } from '../../../../../src/models';
-import { UITypes } from 'nocodb-sdk';
+import type { Base, Model } from '../../../../../src/models';
 
 export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';
   const isV2 = API_VERSION === 'v2';
   const isV3 = API_VERSION === 'v3';
+
+  const columnsProp = isV3 ? 'fields' : 'columns';
 
   const isEE = !!process.env.EE;
 
@@ -38,7 +40,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: 'table2',
           title: 'new_title_2',
-          columns: defaultColumns(context),
+          [columnsProp]: defaultColumns(context, isV3),
         })
         .expect(200);
 
@@ -49,13 +51,17 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       if (isV1 || isV2) {
         columns = response.body.columns.filter((c: any) => !c.system);
       } else if (isV3) {
-        columns = response.body.columns;
+        columns = response.body.fields;
       }
 
-      expect(columns.length).to.eq(defaultColumns(context).length);
+      expect(columns.length).to.eq(defaultColumns(context, isV3).length);
 
-      expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
-      expect(response.body.table_name.endsWith('table2')).to.eq(true);
+      if (isV3) {
+        expect(response.body.title).to.be.eq('new_title_2');
+      } else {
+        expect(response.body.table_name.startsWith(base.prefix)).to.eq(true);
+        expect(response.body.table_name.endsWith('table2')).to.eq(true);
+      }
 
       columns.forEach((c) => validateColumn(c));
     });
@@ -68,7 +74,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         .send({
           table_name: `table2 ${fieldClass}`,
           title: `new_title_2 ${fieldClass}`,
-          columns: fields,
+          [columnsProp]: fields,
         })
         .expect(200);
 
@@ -76,7 +82,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       if (isV1 || isV2) {
         columns = response.body.columns.filter((c: any) => !c.system);
       } else if (isV3) {
-        columns = response.body.columns;
+        columns = response.body.fields;
       }
 
       expect(fields.length).to.be.greaterThan(0); // Added this so if spelling mistake in fieldClass, test fails.
@@ -98,8 +104,8 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
 
   function validateColumn(responseColumn: any) {
     expect(responseColumn).to.haveOwnProperty('id');
-    expect(responseColumn).to.haveOwnProperty('description');
     if (isV1 || isV2) {
+      expect(responseColumn).to.haveOwnProperty('description');
       expect(responseColumn).to.haveOwnProperty('source_id');
       expect(responseColumn).to.haveOwnProperty('base_id');
       expect(responseColumn).to.haveOwnProperty('fk_model_id');
@@ -116,12 +122,8 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         expect(responseColumn).to.haveOwnProperty('fk_workspace_id');
       }
     } else if (isV3) {
-      expect(responseColumn).to.haveOwnProperty('name');
+      expect(responseColumn).to.haveOwnProperty('title');
       expect(responseColumn).to.haveOwnProperty('type');
-      expect(responseColumn).to.haveOwnProperty('default_value');
-      if (isEE) {
-        expect(responseColumn).to.haveOwnProperty('workspace_id');
-      }
     }
     const uidt = responseColumn.uidt;
     /**

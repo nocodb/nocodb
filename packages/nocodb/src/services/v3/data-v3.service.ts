@@ -1,14 +1,8 @@
-import {Delete, Injectable, Param, Query, Req} from '@nestjs/common';
+import { NcApiVersion } from 'nc-gui/lib/enums';
 import type { NcContext, NcRequest } from '~/interface/config';
-import {
-  PagedResponseV3Impl,
-} from '~/helpers/PagedResponse';
+import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
-import {NcApiVersion} from "nc-gui/lib/enums";
-import {Model, Source} from "~/models";
-import NcConnectionMgrv2 from "~/utils/common/NcConnectionMgrv2";
-import {Acl} from "~/middlewares/extract-ids/extract-ids.middleware";
-import {TenantContext} from "~/decorators/tenant-context.decorator";
+import {Injectable} from "@nestjs/common";
 
 @Injectable()
 export class DataV3Service {
@@ -65,8 +59,6 @@ export class DataV3Service {
     });
   }
 
-
-
   async dataUpdate(
     context: NcContext,
     param: {
@@ -77,10 +69,9 @@ export class DataV3Service {
       cookie: any;
     },
   ) {
-  return this.dataTableService.dataUpdate(context, {
+    return this.dataTableService.dataUpdate(context, {
       ...param,
       apiVersion: NcApiVersion.V3,
     });
   }
-
 }

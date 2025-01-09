@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
+import type { NcApiVersion } from 'nc-gui/lib/enums';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
@@ -14,7 +15,6 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import {NcApiVersion} from "nc-gui/lib/enums";
 
 @Injectable()
 export class DatasService {

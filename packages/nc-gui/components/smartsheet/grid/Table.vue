@@ -1368,6 +1368,10 @@ const placeholderEndFields = computed(() => {
   return colSlice.value.end < fields.value.length - 1 ? fields.value.slice(colSlice.value.end + 1) : []
 })
 
+const totalRenderedColLength = computed(() => {
+  return visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
+})
+
 const visibleData = computed(() => {
   if (disableVirtualY.value) return dataRef.value.map((row, index) => ({ row, index }))
   // return data as { row, index } to keep track of the index
@@ -1377,8 +1381,26 @@ const visibleData = computed(() => {
   }))
 })
 
+const totalMaxPlaceholderRows = computed(() => {
+  if (!gridWrapper.value || rowSlice.value.start <= 1) {
+    return 0
+  }
+
+  return parseInt(`${gridWrapper.value?.clientHeight / (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`] || 32)}`)
+})
+
+const placeholderStartRows = computed(() => {
+  return rowSlice.value.start > 1 ? ncArrayFrom(Math.min(rowSlice.value.start - 1, totalMaxPlaceholderRows.value)) : []
+})
+
+const placeholderEndRows = computed(() => {
+  return rowSlice.value.end < (paginationDataRef.value?.pageSize ?? 25) - 1
+    ? ncArrayFrom(Math.min((paginationDataRef.value?.pageSize ?? 25) - 1 - rowSlice.value.end, totalMaxPlaceholderRows.value))
+    : []
+})
+
 const topOffset = computed(() => {
-  return rowHeightInPx[`${props.rowHeight}`] * rowSlice.value.start
+  return rowHeightInPx[`${props.rowHeight}`] * (rowSlice.value.start - placeholderStartRows.value.length)
 })
 
 // #Fill Handle
@@ -2091,6 +2113,21 @@ onKeyStroke('ArrowDown', onDown)
                     ></td>
                   </tr>
                 </template>
+                <template v-if="!showSkeleton">
+                  <tr
+                    v-for="(_row, index) of placeholderStartRows"
+                    :key="index"
+                    class="nc-grid-row !xs:h-14"
+                    :style="{
+                      height: `${rowHeight}px`,
+                    }"
+                  >
+                    <td
+                      :colspan="totalRenderedColLength"
+                      class="nc-grid-cell"
+                    ></td>
+                  </tr>
+                </template>
                 <LazySmartsheetRow v-for="{ row, index: rowIndex } in visibleData" :key="rowIndex" :row="row">
                   <template #default="{ state }">
                     <tr
@@ -2311,6 +2348,22 @@ onKeyStroke('ArrowDown', onDown)
                     </tr>
                   </template>
                 </LazySmartsheetRow>
+
+                <template v-if="!showSkeleton">
+                  <tr
+                    v-for="(_row, index) of placeholderEndRows"
+                    :key="index"
+                    class="nc-grid-row !xs:h-14"
+                    :style="{
+                      height: `${rowHeight}px`,
+                    }"
+                  >
+                    <td
+                      :colspan="totalRenderedColLength"
+                      class="nc-grid-cell"
+                    ></td>
+                  </tr>
+                </template>
 
                 <tr
                   v-if="isAddingEmptyRowAllowed && !isGroupBy"

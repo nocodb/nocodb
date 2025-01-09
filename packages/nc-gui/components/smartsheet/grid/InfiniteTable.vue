@@ -274,6 +274,31 @@ const visibleRows = computed(() => {
   })
 })
 
+const totalMaxPlaceholderRows = computed(() => {
+  if (!gridWrapper.value || rowSlice.start <= 1) {
+    return 0
+  }
+
+  return parseInt(`${gridWrapper.value?.clientHeight / (isMobileMode.value ? 56 : rowHeight.value || 32)}`)
+})
+
+const placeholderStartRows = computed(() => {
+  const { start } = rowSlice
+
+  return start > 1 ? ncArrayFrom(Math.min(start - 1, totalMaxPlaceholderRows.value)) : []
+})
+
+const placeholderEndRows = computed(() => {
+  const { end } = rowSlice
+
+  return end < totalRows.value - 1 ? ncArrayFrom(Math.min(totalRows.value - 1 - end, totalMaxPlaceholderRows.value)) : []
+})
+
+
+const topOffset = computed(() => {
+  return (rowHeight.value ?? 32) * (rowSlice.start - placeholderStartRows.value.length)
+})
+
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -1454,6 +1479,10 @@ const placeholderEndFields = computed(() => {
   return colSlice.value.end < fields.value.length - 1 ? fields.value.slice(colSlice.value.end + 1) : []
 })
 
+const totalRenderedColLength = computed(() => {
+  return visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
+})
+
 // Fill Handle
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
@@ -1553,7 +1582,6 @@ const reloadViewDataHookHandler = async (param) => {
     cachedRows.value.set(totalRows.value + index, row)
   })
 }
-
 
 let requestAnimationFrameId: null | number = null
 
@@ -2210,9 +2238,22 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 ref="tableBodyEl"
                 class="xc-row-table"
                 :style="{
-                  transform: `translateY(${rowSlice.start * rowHeight}px)`,
+                  transform: `translateY(${topOffset}px)`,
                 }"
               >
+                <tr
+                  v-for="(_row, index) of placeholderStartRows"
+                  :key="index"
+                  class="nc-grid-row !xs:h-14"
+                  :style="{
+                    height: `${rowHeight}px`,
+                  }"
+                >
+                  <td
+                    :colspan="totalRenderedColLength"
+                    class="nc-grid-cell"
+                  ></td>
+                </tr>
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
                   :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
@@ -2504,6 +2545,19 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     </tr>
                   </template>
                 </LazySmartsheetRow>
+                <tr
+                  v-for="(_row, index) of placeholderEndRows"
+                  :key="index"
+                  class="nc-grid-row !xs:h-14"
+                  :style="{
+                    height: `${rowHeight}px`,
+                  }"
+                >
+                  <td
+                    :colspan="totalRenderedColLength"
+                    class="nc-grid-cell"
+                  ></td>
+                </tr>
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"

@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { extractRolesObj, TableReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { TablesService } from '~/services/tables.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

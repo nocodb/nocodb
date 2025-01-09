@@ -142,6 +142,8 @@ import {SortsV3Service} from "~/services/v3/sorts-v3.service";
 import {SortsV3Controller} from "~/controllers/v3/sorts-v3.controller";
 import {ViewsV3Controller} from "~/controllers/v3/views-v3.controller";
 import {ViewsV3Service} from "~/services/v3/views-v3.service";
+import {FiltersV3Controller} from "~/controllers/v3/filters-v3.controller";
+import {FiltersV3Service} from "~/services/v3/filters-v3.service";
 
 export const nocoModuleMetadata = {
   imports: [
@@ -205,11 +207,14 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+
+          /* V3 APIs */
           BasesV3Controller,
           TablesV3Controller,
           ColumnsV3Controller,
           SortsV3Controller,
           ViewsV3Controller,
+          FiltersV3Controller,
 
           /* Datas */
           DataTableController,
@@ -287,6 +292,7 @@ export const nocoModuleMetadata = {
     ColumnsV3Service,
     SortsV3Service,
     ViewsV3Service,
+    FiltersV3Service,
 
     /* Datas */
     DataTableService,

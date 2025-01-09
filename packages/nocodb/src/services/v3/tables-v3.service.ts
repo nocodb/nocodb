@@ -1,15 +1,19 @@
-import {Injectable, Logger} from '@nestjs/common';
-import type {TableReqType, UserType} from 'nocodb-sdk';
-import {viewTypeAlias} from 'nocodb-sdk';
-import type {User} from '~/models';
-import {Model} from '~/models';
-import type {NcContext, NcRequest} from '~/interface/config';
-import {ColumnsService} from '~/services/columns.service';
-import {MetaDiffsService} from '~/services/meta-diffs.service';
-import {AppHooksService} from '~/services/app-hooks/app-hooks.service';
-import {builderGenerator, columnBuilder, columnV3ToV2Builder} from '~/utils/api-v3-data-transformation.builder';
-import {TablesService} from '~/services/tables.service';
-import {NcApiVersion} from "nocodb-sdk";
+import { Injectable, Logger } from '@nestjs/common';
+import { viewTypeAlias } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
+import type { TableReqType, UserType } from 'nocodb-sdk';
+import type { User } from '~/models';
+import type { NcContext, NcRequest } from '~/interface/config';
+import { Model } from '~/models';
+import { ColumnsService } from '~/services/columns.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import {
+  builderGenerator,
+  columnBuilder,
+  columnV3ToV2Builder,
+} from '~/utils/api-v3-data-transformation.builder';
+import { TablesService } from '~/services/tables.service';
 
 @Injectable()
 export class TablesV3Service {
@@ -49,9 +53,18 @@ export class TablesV3Service {
       req: NcRequest;
     },
   ) {
-    return true;
-  }
+    await this.tablesService.tableUpdate(context, {
+      tableId: param.tableId,
+      table: param.table,
+      baseId: param.baseId,
+      user: param.user,
+      req: param.req,
+    });
 
+    const table = await Model.get(context, param.tableId);
+
+    return this.tableReadBuilder().build(table);
+  }
 
   async tableDelete(
     context: NcContext,
@@ -62,7 +75,7 @@ export class TablesV3Service {
       req?: any;
     },
   ) {
-    const result = await this.tablesService.tableDelete(context, param);
+    await this.tablesService.tableDelete(context, param);
     return {};
   }
 
@@ -136,7 +149,6 @@ export class TablesV3Service {
     });
 
     const result = this.tableReadBuilder().build(tableCreateOutput);
-
 
     result.fields = tableCreateOutput.columns.map((column) => {
       return columnBuilder().build(column);

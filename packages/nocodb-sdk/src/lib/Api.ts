@@ -333,8 +333,6 @@ export interface IntegrationType {
   is_private?: BoolType;
   /** Model for Bool */
   is_default?: BoolType;
-  /** Model for Bool */
-  is_global?: BoolType;
   /** Integration Type */
   type?: IntegrationsType;
   /**

@@ -265,7 +265,7 @@
     "avg": "平均值",
     "sum": "求和",
     "count": "总计",
-    "countDistinct": "计数",
+    "countDistinct": "去重计数",
     "sumDistinct": "总和",
     "avgDistinct": "平均差异",
     "join": "加入",
@@ -1481,7 +1481,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
-    "deleteAccountPermanently": "Delete your account permanently",
+    "deleteAccountPermanently": "永久删除您的账户",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",
     "manageConnections": "Manage connections for your integrations.",

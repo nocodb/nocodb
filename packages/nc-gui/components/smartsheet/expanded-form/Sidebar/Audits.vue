@@ -56,6 +56,18 @@ function safeJsonParse(json: string) {
     return {}
   }
 }
+
+function isV0Audit(audit: AuditType) {
+  if (!audit.details) {
+    return true
+  }
+
+  if (['LINK_RECORD', 'UNLINK_RECORD'].includes(audit?.op_sub_type || '') && audit.details?.startsWith('<span')) {
+    return true
+  }
+
+  return false
+}
 </script>
 
 <template>
@@ -81,8 +93,8 @@ function safeJsonParse(json: string) {
               <div class="flex items-start gap-3 flex-1 w-full">
                 <GeneralUserIcon
                   :user="{
-                    email: audit?.created_by_email,
-                    display_name: audit?.created_display_name,
+                    email: audit?.created_by_email || audit?.user,
+                    display_name: audit?.created_display_name || audit?.user,
                   }"
                   class="mt-0.5"
                   size="medium"
@@ -97,7 +109,12 @@ function safeJsonParse(json: string) {
                 </div>
               </div>
             </div>
-            <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
+            <div v-if="isV0Audit(audit)" class="pl-9">
+              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                {{ audit.description }}
+              </div>
+            </div>
+            <div v-else-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
             <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
               <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">

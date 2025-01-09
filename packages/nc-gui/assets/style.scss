@@ -1152,3 +1152,143 @@ svg.nc-virtual-cell-icon {
     @apply m-0;
   }
 }
+
+.nc-rich-text-content {
+  p {
+    @apply !mb-1;
+  }
+
+  ul {
+    li {
+      @apply ml-4;
+      list-style-type: disc;
+    }
+  }
+
+  ol {
+    @apply !pl-4;
+    li {
+      list-style-type: decimal;
+    }
+  }
+
+  ul,
+  ol {
+    @apply !my-0;
+  }
+
+  ul[data-type='taskList'],
+  ul.contains-task-list {
+    &.contains-task-list li {
+      @apply mb-1;
+    }
+
+    li {
+      @apply !ml-0 flex flex-row;
+      list-style-type: none;
+
+      label {
+        @apply flex flex-row gap-x-2;
+
+        input {
+          z-index: initial;
+        }
+      }
+
+      input {
+        @apply mt-1 flex rounded-sm !h-3.4 !w-3.5;
+        z-index: -10;
+      }
+      // Unchecked
+      input:not(:checked) {
+        // Add border to checkbox
+        border-width: 1.5px;
+        @apply border-gray-700;
+      }
+    }
+  }
+
+  // Pre tag is the parent wrapper for Code block
+  pre {
+    border-color: #d0d5dd;
+    border: 1px;
+    color: black;
+    font-family: 'JetBrainsMono', monospace;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    @apply overflow-auto mt-3 bg-gray-100;
+
+    code {
+      @apply !px-0;
+    }
+  }
+
+  code {
+    @apply rounded-md px-2 py-1 bg-gray-100;
+    color: inherit;
+    font-size: 0.8rem;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: 1.85rem;
+    margin-bottom: 0.1rem;
+    line-height: 36px;
+  }
+
+  h2 {
+    font-weight: 600;
+    font-size: 1.55rem;
+    margin-bottom: 0.1em;
+    line-height: 30px;
+  }
+
+  h3 {
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 0.1em;
+    line-height: 24px;
+  }
+
+  blockquote {
+    border-left: 3px solid #d0d5dd;
+    padding: 0 1em;
+    color: #666;
+    margin: 1em 0;
+    font-style: italic;
+  }
+
+  hr {
+    @apply !border-gray-300;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1.5em 0;
+  }
+
+  pre {
+    height: fit-content;
+  }
+
+  .mention {
+    @apply font-semibold rounded-md px-1 inline-block my-2px;
+
+    &.nc-current-user {
+      @apply bg-[#D4F7E0] text-[#17803D];
+    }
+
+    &:not(.nc-current-user) {
+      @apply bg-brand-50 text-brand-500;
+    }
+    span {
+      display: none;
+    }
+  }
+
+  em {
+    font-synthesis: initial !important;
+
+    & * {
+      font-synthesis: initial !important;
+    }
+  }
+}

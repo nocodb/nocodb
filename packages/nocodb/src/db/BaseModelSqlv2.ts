@@ -10479,18 +10479,24 @@ class BaseModelSqlv2 {
                 : [],
             );
 
+            const deleteIds = [];
+
             for (const [oldId, oldAttachment] of oldAttachmentMap) {
               if (!newAttachmentMap.has(oldId)) {
-                await FileReference.delete(this.context, oldId);
+                deleteIds.push(oldId);
               } else if (
                 (oldAttachment.url &&
                   oldAttachment.url !== newAttachmentMap.get(oldId).url) ||
                 (oldAttachment.path &&
                   oldAttachment.path !== newAttachmentMap.get(oldId).path)
               ) {
-                await FileReference.delete(this.context, oldId);
+                deleteIds.push(oldId);
                 regenerateIds.push(oldId);
               }
+            }
+
+            if (deleteIds.length) {
+              await FileReference.delete(this.context, deleteIds);
             }
 
             for (const [newId, newAttachment] of newAttachmentMap) {

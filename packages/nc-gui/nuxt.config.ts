@@ -266,6 +266,14 @@ export default defineNuxtConfig({
         'youtube-vue3',
         'vuedraggable',
         'jsbarcode',
+        '@tiptap/pm/model',
+        '@tiptap/extension-hard-break',
+        '@tiptap/extension-strike',
+        '@tiptap/extension-italic',
+        'tiptap-markdown',
+        'markdown-it',
+        'markdown-it-task-lists',
+        'markdown-it-regexp',
       ],
       esbuildOptions: {
         define: {

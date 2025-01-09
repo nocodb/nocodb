@@ -52,70 +52,70 @@ const defaultColumns = function (
           description: `Title ${UITypes.SingleLineText}`,
           ...optionsOverride['Title'],
         },
-    isV3
-      ? {
-          title: 'CreatedAt',
-          type: UITypes.CreatedTime,
-          description: `CreatedAt ${UITypes.CreatedTime}`,
-          options: {
-            ...optionsOverride['CreatedAt'],
-          },
-        }
-      : {
-          column_name: 'created_at',
-          title: 'CreatedAt',
-          uidt: UITypes.CreatedTime,
-          description: `CreatedAt ${UITypes.CreatedTime}`,
-          ...optionsOverride['CreatedAt'],
-        },
-    isV3
-      ? {
-          title: 'UpdatedAt',
-          type: UITypes.LastModifiedTime,
-          description: `UpdatedAt ${UITypes.LastModifiedTime}`,
-          options: {
-            ...optionsOverride['UpdateAt'],
-          },
-        }
-      : {
-          column_name: 'updated_at',
-          title: 'UpdatedAt',
-          uidt: UITypes.LastModifiedTime,
-          description: `UpdatedAt ${UITypes.LastModifiedTime}`,
-          ...optionsOverride['UpdateAt'],
-        },
-    isV3
-      ? {
-          title: 'CreatedBy',
-          type: UITypes.CreatedBy,
-          description: `CreatedBy ${UITypes.CreatedBy}`,
-          options: {
-            ...optionsOverride['CreatedBy'],
-          },
-        }
-      : {
-          column_name: 'created_by',
-          title: 'CreatedBy',
-          uidt: UITypes.CreatedBy,
-          description: `CreatedBy ${UITypes.CreatedBy}`,
-          ...optionsOverride['CreatedBy'],
-        },
-    isV3
-      ? {
-          title: 'UpdatedBy',
-          type: UITypes.LastModifiedBy,
-          description: `UpdatedBy ${UITypes.LastModifiedBy}`,
-          options: {
-            ...optionsOverride['UpdatedBy'],
-          },
-        }
-      : {
-          column_name: 'updated_by',
-          title: 'UpdatedBy',
-          uidt: UITypes.LastModifiedBy,
-          description: `UpdatedBy ${UITypes.LastModifiedBy}`,
-          ...optionsOverride['UpdatedBy'],
-        },
+    // isV3
+    //   ? {
+    //       title: 'CreatedAt',
+    //       type: UITypes.CreatedTime,
+    //       description: `CreatedAt ${UITypes.CreatedTime}`,
+    //       options: {
+    //         ...optionsOverride['CreatedAt'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'created_at',
+    //       title: 'CreatedAt',
+    //       uidt: UITypes.CreatedTime,
+    //       description: `CreatedAt ${UITypes.CreatedTime}`,
+    //       ...optionsOverride['CreatedAt'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'UpdatedAt',
+    //       type: UITypes.LastModifiedTime,
+    //       description: `UpdatedAt ${UITypes.LastModifiedTime}`,
+    //       options: {
+    //         ...optionsOverride['UpdateAt'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'updated_at',
+    //       title: 'UpdatedAt',
+    //       uidt: UITypes.LastModifiedTime,
+    //       description: `UpdatedAt ${UITypes.LastModifiedTime}`,
+    //       ...optionsOverride['UpdateAt'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'CreatedBy',
+    //       type: UITypes.CreatedBy,
+    //       description: `CreatedBy ${UITypes.CreatedBy}`,
+    //       options: {
+    //         ...optionsOverride['CreatedBy'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'created_by',
+    //       title: 'CreatedBy',
+    //       uidt: UITypes.CreatedBy,
+    //       description: `CreatedBy ${UITypes.CreatedBy}`,
+    //       ...optionsOverride['CreatedBy'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'UpdatedBy',
+    //       type: UITypes.LastModifiedBy,
+    //       description: `UpdatedBy ${UITypes.LastModifiedBy}`,
+    //       options: {
+    //         ...optionsOverride['UpdatedBy'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'updated_by',
+    //       title: 'UpdatedBy',
+    //       uidt: UITypes.LastModifiedBy,
+    //       description: `UpdatedBy ${UITypes.LastModifiedBy}`,
+    //       ...optionsOverride['UpdatedBy'],
+    //     },
   ];
 };
 

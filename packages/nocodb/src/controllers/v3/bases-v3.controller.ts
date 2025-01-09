@@ -37,7 +37,7 @@ export class BasesV3Controller {
       user: req.user,
       query: queryParams,
     });
-    return { bases };
+    return { list: bases };
   }
 
   @Acl('baseGet')

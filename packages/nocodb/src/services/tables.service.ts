@@ -39,6 +39,7 @@ import {
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
+import {NcApiVersion} from "nocodb-sdk";
 
 @Injectable()
 export class TablesService {
@@ -467,6 +468,7 @@ export class TablesService {
       table: TableReqType;
       user: User | UserType;
       req?: any;
+      apiVersion?: NcApiVersion;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -501,6 +503,7 @@ export class TablesService {
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
       for (const uidt of [
+        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : [] ),
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
         UITypes.CreatedBy,
@@ -533,6 +536,11 @@ export class TablesService {
           case UITypes.Order:
             columnTitle = 'nc_order';
             columnName = 'nc_order';
+            break;
+          case UITypes.ID:
+            columnTitle = 'id';
+            columnName = 'id';
+            break;
         }
 
         const colName = getUniqueColumnName(

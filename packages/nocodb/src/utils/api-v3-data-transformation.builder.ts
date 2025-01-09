@@ -1,5 +1,10 @@
+import { checkboxIconList, ratingIconList, UITypes } from 'nocodb-sdk';
+
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+};
+const convertToCamelCase = (str: string) => {
+  return str.replace(/_([a-z])/g, (_, letter) => `${letter.toUpperCase()}`);
 };
 
 export class ApiV3DataTransformationBuilder {
@@ -33,20 +38,24 @@ export class ApiV3DataTransformationBuilder {
 
   metaTransform({
     snakeCase = true,
-    mapping = {},
+    camelCase = false,
+    mappings = {},
     metaProps = ['meta'],
+    skipTransformFor,
+    ...rest
   }: {
     snakeCase?: boolean;
-    mapping?: Record<string, string>;
+    camelCase?: boolean;
+    mappings?: Record<string, string>;
     metaProps?: string[];
-  } = {}): this {
+    skipTransformFor?: string[];
+  } & ({ allowed: string[] } | { excluded: string[] } | {}) = {}): this {
     this.transformations.push((data) => {
-      let result = { ...data };
+      const result = { ...data };
 
       // iterate and update properties of metaProps only
       for (const prop of metaProps) {
         if (result[prop]) {
-
           if (typeof result[prop] === 'string') {
             try {
               result[prop] = JSON.parse(result[prop]);
@@ -55,14 +64,35 @@ export class ApiV3DataTransformationBuilder {
             result[prop] = { ...result[prop] };
           }
 
-          result[prop] = Object.entries(result[prop]).reduce(
-            (result, [key, value]) => {
-              const newKey = mapping[key] || key;
-              result[snakeCase ? convertToSnakeCase(newKey) : newKey] = value;
+          result[prop] = Object.entries(result[prop])
+            .filter(([key]) => {
+              if ('excluded' in rest) {
+                return !rest.excluded.includes(key);
+              }
+
+              if ('allowed' in rest) {
+                return rest.allowed.includes(key);
+              }
+
+              return true;
+            })
+            .reduce((result, [key, value]) => {
+              let newKey = mappings[key] || key;
+
+              if (skipTransformFor && skipTransformFor.includes(newKey)) {
+                result[newKey] = value;
+                return result;
+              }
+
+              if (camelCase) {
+                newKey = convertToCamelCase(newKey);
+              } else if (snakeCase) {
+                newKey = convertToSnakeCase(newKey);
+              }
+
+              result[newKey] = value;
               return result;
-            },
-            {},
-          );
+            }, {});
         }
       }
       return result;
@@ -103,9 +133,11 @@ export const builderGenerator = ({
   transformFn?: (data: any) => any;
   meta?: {
     snakeCase?: boolean;
-    mapping?: Record<string, string>;
+    camelCase?: boolean;
+    mappings?: Record<string, string>;
     metaProps?: string[];
-  };
+    skipTransformFor?: string[];
+  } & ({ allowed: string[] } | { excluded: string[] } | {});
 } & (
   | { allowed: string[] }
   | { excluded: string[] }
@@ -128,3 +160,185 @@ export const builderGenerator = ({
     return builder;
   };
 };
+
+export const colOptionBuilder = builderGenerator({
+  allowed: [
+    'formula_raw',
+    'fk_qr_value_column_id',
+    'fk_barcode_value_column_id',
+    'fk_related_model_id',
+    'type',
+    'fk_relation_column_id',
+    'fk_rollup_column_id',
+    'fk_lookup_column_id',
+    'rollup_function',
+  ],
+  mappings: {
+    formula_raw: 'formula',
+    fk_qr_value_column_id: 'qr_value_field_id',
+    fk_barcode_value_column_id: 'barcode_value_field_id',
+
+    type: 'relation_type',
+    fk_related_model_id: 'linked_table_id',
+
+    fk_relation_column_id: 'link_field_id',
+    fk_rollup_column_id: 'linked_table_lookup_field_id',
+    fk_lookup_column_id: 'linked_table_lookup_field_id',
+
+    // todo: extract this
+    // inverse_link_field_id: 'inverse_link_field_id',
+  },
+});
+
+export const columnBuilder = builderGenerator({
+  allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
+  mappings: {
+    uidt: 'type',
+    cdf: 'default_value',
+    meta: 'options',
+  },
+  meta: {
+    snakeCase: true,
+    metaProps: ['meta'],
+    mappings: {
+      is12hrFormat: '12hr_format',
+      isLocaleString: 'locale_string',
+      duration: 'duration_format',
+    },
+    excluded: ['defaultViewColOrder', 'singular', 'plural'],
+    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx'],
+  },
+  transformFn: (data) => {
+    let options: Record<string, any> = data.options || {};
+    if (data.colOptions) {
+      switch (data.type) {
+        case UITypes.SingleSelect:
+        case UITypes.MultiSelect:
+          {
+            const choices = data.colOptions.options.map((opt) => ({
+              id: opt.id,
+              title: opt.title,
+              color: opt.color,
+            }));
+            options.choices = choices;
+          }
+          break;
+        default:
+          {
+            console.log(data.colOptions);
+            const additionalOptions =
+              colOptionBuilder().build(data.colOptions) || {};
+            Object.assign(options, additionalOptions);
+          }
+          break;
+      }
+    }
+
+    if (data.type === UITypes.Checkbox) {
+      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+      // extract option meta and include only label and color
+      options = rest;
+
+      if (iconIdx) {
+        options.icon = checkboxIconList[iconIdx]?.label;
+      } else if (icon) {
+        options.icon = checkboxIconList.find(
+          (ic) => ic.checked === icon?.['checked'],
+        )?.label;
+      }
+    } else if (data.type === UITypes.Rating) {
+      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+      // extract option meta and include only label and color
+      options = rest;
+
+      if (iconIdx !== undefined && iconIdx !== null) {
+        options.icon = ratingIconList[iconIdx]?.label;
+      } else if (icon) {
+        options.icon = ratingIconList.find(
+          (ic) => ic.full === icon?.['full'],
+        )?.label;
+      }
+    }
+
+    return {
+      ...data,
+      colOptions: undefined,
+      options: options || data.options,
+    };
+  },
+});
+
+export const columnV3ToV2Builder = builderGenerator({
+  allowed: ['id', 'title', 'type', 'default_value', 'options'],
+  mappings: {
+    type: 'uidt',
+    default_value: 'cdf',
+    options: 'meta',
+  },
+  meta: {
+    snakeCase: false,
+    camelCase: true,
+    metaProps: ['options'],
+    mappings: {
+      '12hr_format': 'is12hrFormat',
+      locale_string: 'isLocaleString',
+      duration_format: 'duration',
+    },
+    excluded: ['defaultViewColOrder', 'singular', 'plural'],
+    skipTransformFor: ['currency_locale', 'currency_code', 'icon', 'iconIdx'],
+  },
+  transformFn: (data) => {
+    const meta: Record<string, any> = data.meta || {};
+    let colOptions: any;
+
+    switch (data.uidt) {
+      case UITypes.SingleSelect:
+      case UITypes.MultiSelect:
+        {
+          const choices = data.meta.choices.map((opt) => ({
+            id: opt.id,
+            title: opt.title,
+            color: opt.color,
+          }));
+          colOptions = { options: choices };
+        }
+        break;
+
+      default:
+        // todo: handle LTAR/Lookup/Rollup
+        break;
+    }
+
+    if (data.uidt === UITypes.Checkbox) {
+      const { icon, ...rest } = data.options as Record<string, any>;
+
+      if (icon) {
+        const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);
+        if (iconIdx !== -1) {
+          const { label: _, ...rest } = checkboxIconList[iconIdx];
+          meta.iconIdx = iconIdx;
+          meta.icon = rest;
+        }
+      }
+    } else if (data.type === UITypes.Rating) {
+      const { icon, ...rest } = data.options as Record<string, any>;
+
+      if (icon) {
+        const iconIdx = ratingIconList.findIndex((ic) => ic.label === icon);
+        if (iconIdx !== -1) {
+          const { label: _, ...rest } = ratingIconList[iconIdx];
+          meta.iconIdx = iconIdx;
+          meta.icon = rest;
+        }
+      }
+    }
+
+    return {
+      ...data,
+      colOptions,
+      meta: meta || data.meta,
+    };
+  },
+});

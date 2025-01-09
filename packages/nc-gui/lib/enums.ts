@@ -181,14 +181,8 @@ export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
 }
 
-export enum IconType {
+export enum WorkspaceIconType {
   IMAGE = 'IMAGE',
   EMOJI = 'EMOJI',
   ICON = 'ICON',
-}
-
-export enum NcApiVersion {
-  V1,
-  V2,
-  V3,
 }

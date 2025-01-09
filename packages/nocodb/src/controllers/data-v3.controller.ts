@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { NcApiVersion } from 'nc-gui/lib/enums';
+import { NcApiVersion } from 'nocodb-sdk';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';

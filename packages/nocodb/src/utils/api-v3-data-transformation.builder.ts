@@ -389,6 +389,12 @@ export const columnBuilder = builderGenerator<Column | ColumnType>({
     }
 
     options = options || data.options;
+
+    // exclude rollup function if Links
+    if (data.type === UITypes.Links && options && options.rollup_function) {
+      options.rollup_function = undefined;
+    }
+
     return {
       ...data,
       colOptions: undefined,

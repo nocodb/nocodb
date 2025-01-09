@@ -290,7 +290,7 @@ const placeholderStartRows = computed(() => {
   }
 
   result.totalRowHeight = result.length * result.rowHeight
-  
+
   return result
 })
 
@@ -1258,7 +1258,7 @@ const colPositions = computed(() => {
   return fields.value
     .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
     .map((col) => {
-      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
+      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 180
     })
     .reduce(
       (acc, width, i) => {
@@ -1283,7 +1283,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
       top: row * rowHeight.value,
       left: colPositions.value[col],
       right:
-        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 200 : colPositions.value[col + 1],
+        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 180 : colPositions.value[col + 1],
       bottom: (row + 1) * rowHeight.value,
     }
 
@@ -1482,15 +1482,28 @@ const visibleFields = computed(() => {
 })
 
 const placeholderStartFields = computed(() => {
-  return colSlice.value.start > 1 ? fields.value.slice(1, colSlice.value.start) : []
+  const result = {
+    length: colSlice.value.start > 0 ? colSlice.value.start - 1 : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[colSlice.value.start]! - colPositions.value[1]! : 0
+
+  return result
 })
 
 const placeholderEndFields = computed(() => {
-  return colSlice.value.end < fields.value.length - 1 ? fields.value.slice(colSlice.value.end + 1) : []
+  const result = {
+    length: colSlice.value.end < fields.value.length - 1 ? fields.value.length - colSlice.value.end : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[fields.value.length]! - colPositions.value[colSlice.value.end]! : 0
+
+  return result
 })
 
 const totalRenderedColLength = computed(() => {
-  return visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
+  // number col + display col = 2
+  return 2 + visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
 })
 
 // Fill Handle
@@ -2031,12 +2044,12 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   </div>
                 </th>
                 <th
-                  v-for="col of placeholderStartFields"
-                  :key="col.id"
+                  v-if="placeholderStartFields.length"
+                  :colspan="placeholderStartFields.length"
                   :style="{
-                    'min-width': gridViewCols[col.id]?.width || '180px',
-                    'max-width': gridViewCols[col.id]?.width || '180px',
-                    'width': gridViewCols[col.id]?.width || '180px',
+                    minWidth: `${placeholderStartFields.width}px`,
+                    maxWidth: `${placeholderStartFields.width}px`,
+                    width: `${placeholderStartFields.width}px`,
                   }"
                   class="nc-grid-column-header"
                 ></th>
@@ -2075,12 +2088,12 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   </div>
                 </th>
                 <th
-                  v-for="col of placeholderEndFields"
-                  :key="col.id"
+                  v-if="placeholderEndFields.length"
+                  :colspan="placeholderEndFields.length"
                   :style="{
-                    'min-width': gridViewCols[col.id]?.width || '180px',
-                    'max-width': gridViewCols[col.id]?.width || '180px',
-                    'width': gridViewCols[col.id]?.width || '180px',
+                    minWidth: `${placeholderEndFields.width}px`,
+                    maxWidth: `${placeholderEndFields.width}px`,
+                    width: `${placeholderEndFields.width}px`,
                   }"
                   class="nc-grid-column-header"
                 ></th>
@@ -2367,27 +2380,29 @@ watch(vSelectedAllRecords, (selectedAll) => {
                               :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                             />
 
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                              class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
-                              @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                              class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
-                            >
-                              <component
-                                :is="iconMap.maximize"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                            <template v-else>
+                              <span
+                                v-if="row.rowMeta?.commentCount && expandForm"
+                                v-e="['c:expanded-form:open']"
+                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                                 @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
+                              >
+                                {{ row.rowMeta.commentCount }}
+                              </span>
+                              <div
+                                v-else
+                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                              >
+                                <component
+                                  :is="iconMap.maximize"
+                                  v-if="expandForm"
+                                  v-e="['c:row-expand:open']"
+                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                                  @click="expandAndLooseFocus(row, state)"
+                                />
+                              </div>
+                            </template>
                           </div>
                         </div>
                       </td>
@@ -2459,12 +2474,12 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         </div>
                       </SmartsheetTableDataCell>
                       <td
-                        v-for="(columnObj, colIndex) of placeholderStartFields"
-                        :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
+                        v-if="placeholderStartFields.length"
+                        :colspan="placeholderStartFields.length"
                         :style="{
-                          'min-width': gridViewCols[columnObj.id]?.width || '180px',
-                          'max-width': gridViewCols[columnObj.id]?.width || '180px',
-                          'width': gridViewCols[columnObj.id]?.width || '180px',
+                          minWidth: `${placeholderStartFields.width}px`,
+                          maxWidth: `${placeholderStartFields.width}px`,
+                          width: `${placeholderStartFields.width}px`,
                         }"
                         class="nc-grid-cell"
                       ></td>
@@ -2537,12 +2552,12 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         </div>
                       </SmartsheetTableDataCell>
                       <td
-                        v-for="(columnObj, colIndex) of placeholderEndFields"
-                        :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
+                        v-if="placeholderEndFields.length"
+                        :colspan="placeholderEndFields.length"
                         :style="{
-                          'min-width': gridViewCols[columnObj.id]?.width || '180px',
-                          'max-width': gridViewCols[columnObj.id]?.width || '180px',
-                          'width': gridViewCols[columnObj.id]?.width || '180px',
+                          minWidth: `${placeholderEndFields.width}px`,
+                          maxWidth: `${placeholderEndFields.width}px`,
+                          width: `${placeholderEndFields.width}px`,
                         }"
                         class="nc-grid-cell"
                       ></td>

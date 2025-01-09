@@ -287,6 +287,7 @@ export const columnBuilder = builderGenerator({
     cdf: 'default_value',
     meta: 'options',
   },
+  excludeNullProps: true,
   meta: {
     snakeCase: true,
     metaProps: ['meta'],

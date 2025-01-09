@@ -52,7 +52,7 @@ export class BaseUsersV3Service {
       mode: param.mode,
     });
 
-    return { users: this.builder().build(baseUsers) };
+    return { list: this.builder().build(baseUsers) };
   }
 
   async userInvite(

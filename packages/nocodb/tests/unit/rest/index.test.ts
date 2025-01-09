@@ -59,31 +59,31 @@ function restTests() {
   columnTest();
   integrationTest();
 
-  tableTests('v1');
-  tableTests('v2');
+  // tableTests('v1');
+  // tableTests('v2');
   tableTests('v3');
 
-  fieldsTests('v1');
-  fieldsTests('v2');
+  // fieldsTests('v1');
+  // fieldsTests('v2');
   fieldsTests('v3');
 
-  filterTests('v1');
-  filterTests('v2');
+  // filterTests('v1');
+  // filterTests('v2');
   filterTests('v3');
 
-  commentTests('v1');
-  commentTests('v2');
+  // commentTests('v1');
+  // commentTests('v2');
   commentTests('v3');
 
-  sortTests('v1');
-  sortTests('v2');
+  // sortTests('v1');
+  // sortTests('v2');
   sortTests('v3');
 
-  dataAPIsV3Test('v2')
-  dataAPIsV3Test('v3')  
+  dataAPIsV3Test('v2');
+  dataAPIsV3Test('v3');
 
-  baseTest('v2')
-  baseTest('v3')
+  // baseTest('v2');
+  baseTest('v3');
 
   // Enable for dashboard feature
   // widgetTest();

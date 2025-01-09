@@ -7,14 +7,11 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { FiltersService } from '~/services/filters.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';

@@ -136,14 +136,14 @@ import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
-import {ColumnsV3Controller} from "~/controllers/v3/columns-v3.controller";
-import {ColumnsV3Service} from "~/services/v3/columns-v3.service";
-import {SortsV3Service} from "~/services/v3/sorts-v3.service";
-import {SortsV3Controller} from "~/controllers/v3/sorts-v3.controller";
-import {ViewsV3Controller} from "~/controllers/v3/views-v3.controller";
-import {ViewsV3Service} from "~/services/v3/views-v3.service";
-import {FiltersV3Controller} from "~/controllers/v3/filters-v3.controller";
-import {FiltersV3Service} from "~/services/v3/filters-v3.service";
+import { ColumnsV3Controller } from '~/controllers/v3/columns-v3.controller';
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
+import { SortsV3Controller } from '~/controllers/v3/sorts-v3.controller';
+import { ViewsV3Controller } from '~/controllers/v3/views-v3.controller';
+import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 
 export const nocoModuleMetadata = {
   imports: [

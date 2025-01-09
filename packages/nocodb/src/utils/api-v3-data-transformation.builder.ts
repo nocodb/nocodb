@@ -75,7 +75,11 @@ export class ApiV3DataTransformationBuilder<
     metaProps?: string[];
     skipTransformFor?: string[];
     skipfn?: (data: any) => boolean;
-  } & ({ allowed: string[] } | { excluded: string[] } | {}) = {}): this {
+  } & (
+    | { allowed: string[] }
+    | { excluded: string[] }
+    | Record<string, never>
+  ) = {}): this {
     this.transformations.push((data: S) => {
       const result = { ...data };
 
@@ -177,13 +181,13 @@ export class ApiV3DataTransformationBuilder<
   nestedExtract<S = Input, T = Output>(
     nestedExtract: Record<string, string[]>,
   ) {
-    this.transformations.push((data: S) => {
+    this.transformations.push((data: S): T => {
       const result = { ...data };
       Object.entries(nestedExtract).forEach(([key, path]) => {
         const value = path.reduce((acc, key) => acc?.[key], result);
         result[key] = value;
       });
-      return result;
+      return result as unknown as T;
     });
   }
 }
@@ -214,11 +218,11 @@ export const builderGenerator = <
     metaProps?: string[];
     skipTransformFor?: string[];
     skipfn?: (data: any) => boolean;
-  } & ({ allowed: string[] } | { excluded: string[] } | {});
+  } & ({ allowed: string[] } | { excluded: string[] } | Record<string, never>);
 } & (
   | { allowed: string[] }
   | { excluded: string[] }
-  | {}
+  | Record<string, never>
 )): (() => ApiV3DataTransformationBuilder<Input, Output>) => {
   return () => {
     const builder = new ApiV3DataTransformationBuilder<Input, Output>();
@@ -462,7 +466,7 @@ export const columnV3ToV2Builder = builderGenerator({
     }
 
     if (data.uidt === UITypes.Checkbox) {
-      const { icon, ...rest } = data.meta as Record<string, any>;
+      const { icon, ..._ } = data.meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);
@@ -473,7 +477,7 @@ export const columnV3ToV2Builder = builderGenerator({
         }
       }
     } else if (data.uidt === UITypes.Rating) {
-      const { icon, ...rest } = data.meta as Record<string, any>;
+      const { icon, ..._ } = data.meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = ratingIconList.findIndex((ic) => ic.label === icon);
@@ -484,7 +488,7 @@ export const columnV3ToV2Builder = builderGenerator({
         }
       }
     } else if (data.uidt === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = data.meta as Record<
+      const { duration, duration_format, ..._ } = data.meta as Record<
         string,
         any
       >;
@@ -550,7 +554,7 @@ export const filterBuilder = builderGenerator<
     fk_value_col_id: 'value_field_id',
     comparison_op: 'comparison_operation',
     comparison_sub_op: 'comparison_sub_operation',
-    fk_view_id: 'view_id'
+    fk_view_id: 'view_id',
   },
   excludeNullProps: true,
   booleanProps: ['is_group'],

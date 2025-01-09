@@ -28,9 +28,12 @@ export class ColumnsV3Service {
   ) {
     let column = await Column.get(context, { colId: param.columnId });
 
-    let type = param.column?.uidt ?? column.uidt;
+    const type = param.column?.uidt ?? column.uidt;
 
-    const processedColumnReq = columnV3ToV2Builder().build({...param.column, type});
+    const processedColumnReq = columnV3ToV2Builder().build({
+      ...param.column,
+      type,
+    });
 
     if (!processedColumnReq.column_name) {
       processedColumnReq.column_name = column.column_name;
@@ -40,10 +43,12 @@ export class ColumnsV3Service {
     }
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-      if(column.meta){
+      if (column.meta) {
         column.meta.choices = undefined;
       }
-      column.dtxp = column.colOptions?.options?.map((o: any) => `'${o.value}'`).join('');
+      column.dtxp = column.colOptions?.options
+        ?.map((o: any) => `'${o.value}'`)
+        .join('');
     }
 
     // in payload id is required in existing implementation
@@ -85,10 +90,12 @@ export class ColumnsV3Service {
     }
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-      if(column.meta){
+      if (column.meta) {
         column.meta.choices = undefined;
       }
-column.dtxp = column.colOptions?.options?.map((o: any) => `${o.value}`).join('');
+      column.dtxp = column.colOptions?.options
+        ?.map((o: any) => `${o.value}`)
+        .join('');
     }
 
     const res = await this.columnsService.columnAdd(context, {
@@ -112,8 +119,8 @@ column.dtxp = column.colOptions?.options?.map((o: any) => `${o.value}`).join('')
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const res = this.columnsService.columnDelete(context, param, ncMeta);
+    this.columnsService.columnDelete(context, param, ncMeta);
 
-    return {}
+    return {};
   }
 }

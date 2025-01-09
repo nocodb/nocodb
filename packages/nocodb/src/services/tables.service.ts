@@ -12,6 +12,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
@@ -39,7 +40,6 @@ import {
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
-import {NcApiVersion} from "nocodb-sdk";
 
 @Injectable()
 export class TablesService {
@@ -503,7 +503,7 @@ export class TablesService {
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
       for (const uidt of [
-        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : [] ),
+        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : []),
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
         UITypes.CreatedBy,

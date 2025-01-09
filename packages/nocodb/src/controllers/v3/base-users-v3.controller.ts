@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -8,7 +9,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type { ProjectUserV3ReqType } from 'nocodb-sdk';
+import { ProjectRoles } from 'nocodb-sdk';
+import type {
+  ProjectUserDeleteV3ReqType,
+  ProjectUserV3ReqType,
+} from 'nocodb-sdk';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -16,6 +21,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
+import { NcError } from '~/helpers/catchError';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -59,8 +65,6 @@ export class BaseUsersV3Controller {
     context: NcContext,
     @Param('baseId')
     baseId: string,
-    @Param('userId')
-    userId: string,
     @Req()
     req: NcRequest,
     @Body() baseUsers: ProjectUserV3ReqType[],
@@ -68,12 +72,11 @@ export class BaseUsersV3Controller {
     return await this.baseUsersV3Service.baseUserUpdate(context, {
       baseUsers,
       baseId,
-      userId,
       req,
     });
   }
 
-  /*  @Delete(['/api/v3/meta/bases/:baseId/users'])
+  @Delete(['/api/v3/meta/bases/:baseId/users'])
   @Acl('baseUserDelete')
   async baseUserDelete(
     @TenantContext() context: NcContext,
@@ -81,13 +84,22 @@ export class BaseUsersV3Controller {
     @Req() req: NcRequest,
     @Body() baseUsers: ProjectUserDeleteV3ReqType[],
   ): Promise<any> {
-    await this.baseUsersV3Service.baseUserDelete(context, {
+    // if not array throw bad request error
+    if (!Array.isArray(baseUsers)) {
+      NcError.badRequest('Expected an array of user object with id/email');
+    }
+
+    await this.baseUsersV3Service.baseUserUpdate(context, {
       baseId,
       req,
-      baseUsers,
+      baseUsers: baseUsers.map((user) => ({
+        id: user.id,
+        email: user.email,
+        base_role: ProjectRoles.NO_ACCESS,
+      })),
     });
     return {
       msg: 'The user has been deleted successfully',
     };
-  }*/
+  }
 }

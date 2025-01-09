@@ -34,6 +34,7 @@ export class BaseUsersV3Service {
         'roles',
         'workspace_roles',
         'workspace_id',
+        'display_name',
       ],
       mappings: {
         roles: 'base_role',

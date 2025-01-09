@@ -27,7 +27,18 @@ export class TablesV3Service {
     protected readonly tablesService: TablesService,
   ) {
     this.tableReadBuilder = builderGenerator({
-      allowed: ['id', 'source_id', 'base_id', 'title', 'description'],
+      allowed: [
+        'id',
+        'source_id',
+        'base_id',
+        'title',
+        'description',
+        'fk_workspace_id',
+        'source_id',
+      ],
+      mappings: {
+        fk_workspace_id: 'workspace_id',
+      },
     });
 
     this.viewBuilder = builderGenerator({
@@ -96,6 +107,8 @@ export class TablesV3Service {
       return viewBuilder.build(view);
     });
 
+    result.display_field_id = table.columns.find((column) => column.pv)?.id;
+
     result.fields = table.columns.map((column) => {
       return columnBuilder().build(column);
     });
@@ -160,6 +173,8 @@ export class TablesV3Service {
     });
 
     const result = this.tableReadBuilder().build(tableCreateOutput);
+
+    result.display_field_id = table.columns.find((column) => column.pv)?.id;
 
     result.fields = tableCreateOutput.columns.map((column) => {
       return columnBuilder().build(column);

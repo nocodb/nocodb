@@ -14,6 +14,8 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV2 = API_VERSION === 'v2';
   const isV3 = API_VERSION === 'v3';
 
+  const isEE = !!process.env.EE;
+
   const META_API_BASE_ROUTE = `/api/${API_VERSION}${isV1 ? '/db' : ''}/meta/${
     isV1 ? 'projects' : 'bases'
   }`;
@@ -359,10 +361,17 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(responseTable).to.haveOwnProperty('updated_at');
       // @ts-expect-error type not on Model, but present
       expect(responseTable.updated_at).to.eq(table.updated_at);
+
+      if (isEE) {
+        expect(responseTable).to.haveOwnProperty('fk_workspace_id');
+        expect(responseTable.fk_workspace_id).to.eq(table.fk_workspace_id);
+      }
     } else if (isV3) {
-      expect(responseTable).to.haveOwnProperty('workspace_id');
-      expect(responseTable.workspace_id).to.eq(table.fk_workspace_id);
+      if (isEE) {
+        expect(responseTable).to.haveOwnProperty('workspace_id');
+        expect(responseTable.workspace_id).to.eq(table.fk_workspace_id);
+      }
     }
   }
-  describe('Table', tableTests);
+  describe(`Table ${API_VERSION}`, tableTests);
 }

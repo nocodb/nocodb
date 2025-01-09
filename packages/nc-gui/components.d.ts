@@ -114,7 +114,6 @@ declare module 'vue' {
     MdiClose: typeof import('~icons/mdi/close')['default']
     MdiCodeTags: typeof import('~icons/mdi/code-tags')['default']
     MdiContentCopy: typeof import('~icons/mdi/content-copy')['default']
-    MdiCurrencyUsd: typeof import('~icons/mdi/currency-usd')['default']
     MdiDotsHorizontal: typeof import('~icons/mdi/dots-horizontal')['default']
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiEye: typeof import('~icons/mdi/eye')['default']

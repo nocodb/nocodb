@@ -37,7 +37,7 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(firstRowId).to.not.be.undefined;
     });
 
-    it.only(`Comments Meta CRUD ${API_VERSION}`, async () => {
+    it(`Comments Meta CRUD ${API_VERSION}`, async () => {
       let response = await request(context.app)
         .get(`${META_API_COMMENTS_ROUTE}`)
         .query({
@@ -123,7 +123,9 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
       }
 
       // For V1 and V2, path doesn't end with plural
-      const patchOrDelBasePath = isV3 ? META_API_COMMENTS_ROUTE : META_API_COMMENTS_ROUTE.replace("comments", "comment");
+      const patchOrDelBasePath = isV3
+        ? META_API_COMMENTS_ROUTE
+        : META_API_COMMENTS_ROUTE.replace('comments', 'comment');
       await request(context.app)
         .patch(`${patchOrDelBasePath}/${commentResponse.id}`)
         .set('xc-auth', context.token)

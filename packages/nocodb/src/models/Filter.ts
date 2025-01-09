@@ -1032,10 +1032,10 @@ export default class Filter implements FilterType {
       if (!filter.is_group) {
         return;
       }
-      filters = filter.getChildren(context, ncMeta);
+      filters = await filter.getChildren(context, ncMeta);
     }
 
-    for (const child of filters) {
+    for (const child of filters || []) {
       await Filter.update(context, child.id, { logical_op: logicalOp }, ncMeta);
     }
   }

@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { FilterGroup } from '~/controllers/v3/filters-v3.controller';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
 import {
@@ -90,10 +88,23 @@ export class FiltersV3Service {
       context,
     );
 
+    // if not filter group simply insert filter
+    if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
+      await Filter.insert(context, {
+        ...filterRevBuilder().build(groupOrFilter as Filter),
+        fk_parent_id: parentId === 'root' ? null : parentId,
+        ...additionalProps,
+        id: undefined,
+      });
+      return;
+    }
+
     if (isRoot) {
       // Check if parentId exists within groupOrFilter
       const hasParentInGroup =
-        'parent_id' in groupOrFilter && groupOrFilter.parent_id;
+        'parent_id' in groupOrFilter &&
+        groupOrFilter.parent_id &&
+        groupOrFilter.parent_id !== 'root';
       if (!hasParentInGroup) {
         // Root group handling when parent_id is not provided in groupOrFilter
         const existingRootFilters = await Filter.rootFilterList(context, {
@@ -255,10 +266,10 @@ export class FiltersV3Service {
       req: NcRequest;
     },
   ) {
-    validatePayload(
-      'swagger-v3.json#/components/schemas/FilterReq',
-      param.filter,
-    );
+    // validatePayload(
+    //   'swagger-v3.json#/components/schemas/FilterReq',
+    //   param.filter,
+    // );
 
     const filter = await Filter.get(context, param.filterId);
 
@@ -267,12 +278,14 @@ export class FiltersV3Service {
     }
 
     // if group operator is changed, update all children logical_op
-    if (param.filter.group_operator && filter.is_group) {
-      await Filter.updateAllChildrenLogicalOp(context, {
-        viewId: param.viewId,
-        parentFilterId: param.filterId,
-        logicalOp: extractLogicalOp(param.filter.group_operator),
-      });
+    if (filter.is_group) {
+      if (param.filter.group_operator) {
+        await Filter.updateAllChildrenLogicalOp(context, {
+          viewId: param.viewId,
+          parentFilterId: param.filterId,
+          logicalOp: extractLogicalOp(param.filter.group_operator),
+        });
+      }
     } else {
       const remappedFilter = filterRevBuilder().build(
         param.filter,
@@ -284,6 +297,29 @@ export class FiltersV3Service {
         user: param.user,
         req: param.req,
       });
+    }
+
+    if (filter.is_group) {
+      // get nested list
+      const list = await this.filterList(context, {
+        viewId: param.viewId,
+      });
+
+      // iterate recursively and extract filter and return
+      const extractFilter = (list: any[]) => {
+        for (const item of list) {
+          if (item.id === param.filterId) {
+            return item;
+          }
+          if (item.filters) {
+            const filter = extractFilter(item.filters);
+            if (filter) {
+              return filter;
+            }
+          }
+        }
+      };
+      return extractFilter(list?.[0]?.filters);
     }
 
     return filterBuilder().build(await Filter.get(context, param.filterId));
@@ -354,6 +390,7 @@ export class FiltersV3Service {
           group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
           logical_op: undefined, // Remove logical_op from filters
           filters: isGroup ? buildNestedStructure(child.id) : undefined, // Recursively nest children for groups
+          is_group: undefined,
         };
 
         if (!isGroup) {

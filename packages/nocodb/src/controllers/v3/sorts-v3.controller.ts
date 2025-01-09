@@ -30,11 +30,11 @@ export class SortsV3Controller {
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
   ) {
-    return new PagedResponseImpl(
-      await this.sortsV3Service.sortList(context, {
+    return {
+      list: await this.sortsV3Service.sortList(context, {
         viewId,
       }),
-    );
+    };
   }
 
   @Post('/api/v3/meta/views/:viewId/sorts/')

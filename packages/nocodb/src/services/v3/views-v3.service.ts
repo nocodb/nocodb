@@ -42,7 +42,7 @@ export class ViewsV3Service {
         type: 'view_type',
       },
       meta: {
-        mapping: {
+        mappings: {
           allowCSVDownload: 'allow_csv_download',
         },
         skipTransformFor: ['allowCSVDownload'],
@@ -149,7 +149,7 @@ export class ViewsV3Service {
     return this.builder().build(views);
   }
 
-  async getView(context: NcContext, param: { viewId: string; user: any }) {
+  async getView(context: NcContext, param: { viewId: string; req: NcRequest }) {
     const view = await View.get(context, param.viewId);
 
     // todo: check for GUI permissions, since we are handling at ui level we can ignore for now

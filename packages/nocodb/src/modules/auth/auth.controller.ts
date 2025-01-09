@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
 import * as ejs from 'ejs';
+import { PresignedUrl } from 'src/models';
 import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
@@ -25,7 +26,6 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
-import { PresignedUrl } from 'src/models';
 
 @Controller()
 export class AuthController {

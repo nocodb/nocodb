@@ -4,7 +4,17 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
-import type { FilterType, SortType } from 'nocodb-sdk';
+import type { ColumnType, FilterType, SortType } from 'nocodb-sdk';
+import type {
+  CalendarViewColumn,
+  Column,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
+  KanbanViewColumn,
+} from '~/models';
+import type { Sort } from '~/models';
+import type { Filter } from '~/models';
 
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -44,7 +54,7 @@ export class ApiV3DataTransformationBuilder<
   }
 
   filterColumns<S = Input, T = Output>(
-    args: { allowed: string[] } | { excluded: string[] },
+    args: Partial<{ allowed: string[] } | { excluded: string[] }>,
   ): this {
     this.transformations.push((data: S) => {
       return Object.keys(data)
@@ -75,11 +85,7 @@ export class ApiV3DataTransformationBuilder<
     metaProps?: string[];
     skipTransformFor?: string[];
     skipfn?: (data: any) => boolean;
-  } & (
-    | { allowed: string[] }
-    | { excluded: string[] }
-    | Record<string, never>
-  ) = {}): this {
+  } & Partial<{ allowed: string[] } | { excluded: string[] }> = {}): this {
     this.transformations.push((data: S) => {
       const result = { ...data };
 
@@ -218,12 +224,10 @@ export const builderGenerator = <
     metaProps?: string[];
     skipTransformFor?: string[];
     skipfn?: (data: any) => boolean;
-  } & ({ allowed: string[] } | { excluded: string[] } | Record<string, never>);
-} & (
-  | { allowed: string[] }
-  | { excluded: string[] }
-  | Record<string, never>
-)): (() => ApiV3DataTransformationBuilder<Input, Output>) => {
+  } & Partial<{ allowed: string[] } | { excluded: string[] }>;
+} & Partial<
+  { allowed: string[] } | { excluded: string[] }
+>): (() => ApiV3DataTransformationBuilder<Input, Output>) => {
   return () => {
     const builder = new ApiV3DataTransformationBuilder<Input, Output>();
     if (nestedExtract) {
@@ -284,7 +288,7 @@ export const colOptionBuilder = builderGenerator({
   },
 });
 
-export const columnBuilder = builderGenerator({
+export const columnBuilder = builderGenerator<Column | ColumnType>({
   allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
   mappings: {
     uidt: 'type',
@@ -317,7 +321,7 @@ export const columnBuilder = builderGenerator({
         case UITypes.MultiSelect:
           {
             const choices = data.colOptions.options.map((opt) => {
-              const res = {
+              const res: Record<string, unknown> = {
                 title: opt.title,
                 color: opt.color,
               };
@@ -414,7 +418,9 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
   },
 });
 
-export const columnV3ToV2Builder = builderGenerator({
+export const columnV3ToV2Builder = builderGenerator<
+  (Column | ColumnType) & { type?: UITypes | string }
+>({
   allowed: ['id', 'title', 'type', 'default_value', 'options'],
   mappings: {
     type: 'uidt',
@@ -449,7 +455,7 @@ export const columnV3ToV2Builder = builderGenerator({
       case UITypes.MultiSelect:
         {
           const choices = data.meta.choices.map((opt) => {
-            const res = {
+            const res: Record<string, unknown> = {
               title: opt.title,
               color: opt.color,
             };
@@ -520,17 +526,14 @@ export const columnV3ToV2Builder = builderGenerator({
   },
 });
 
-export const sortBuilder = builderGenerator<SortType[], Partial<SortType>>({
+export const sortBuilder = builderGenerator<Sort | SortType>({
   allowed: ['id', 'fk_column_id', 'direction'],
   mappings: {
     fk_column_id: 'field_id',
   },
 });
 
-export const filterBuilder = builderGenerator<
-  FilterType[],
-  Partial<FilterType>[]
->({
+export const filterBuilder = builderGenerator<FilterType | Filter>({
   allowed: [
     'id',
     'fk_column_id',
@@ -560,10 +563,7 @@ export const filterBuilder = builderGenerator<
   booleanProps: ['is_group'],
 });
 
-export const filterRevBuilder = builderGenerator<
-  FilterType[] | FilterType,
-  Partial<FilterType>[] | Partial<FilterType>
->({
+export const filterRevBuilder = builderGenerator<Filter | FilterType>({
   allowed: [
     'id',
     'field_id',
@@ -582,6 +582,13 @@ export const filterRevBuilder = builderGenerator<
     comparison_sub_operation: 'comparison_sub_op',
   },
 });
+
+type ViewColumn =
+  | GridViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | FormViewColumn
+  | CalendarViewColumn;
 
 export const viewColumnBuilder = builderGenerator<
   ViewColumn[],

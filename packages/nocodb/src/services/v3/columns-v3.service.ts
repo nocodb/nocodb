@@ -33,7 +33,11 @@ export class ColumnsV3Service {
     const processedColumnReq = columnV3ToV2Builder().build({
       ...param.column,
       type,
-    });
+    }) as ColumnReqType & {
+      meta?: any;
+      colOptions?: any;
+      dtxp?: string;
+    };
 
     if (!processedColumnReq.column_name) {
       processedColumnReq.column_name = column.column_name;
@@ -68,7 +72,7 @@ export class ColumnsV3Service {
 
   async columnGet(context: NcContext, param: { columnId: string }) {
     return columnBuilder().build(
-      Column.get(context, { colId: param.columnId }),
+      await Column.get(context, { colId: param.columnId }),
     );
   }
 
@@ -82,14 +86,25 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-    const column = columnV3ToV2Builder().build(param.column);
+    const column = columnV3ToV2Builder().build(
+      param.column,
+    ) as ColumnReqType & {
+      parentId?: string;
+      meta?: any;
+      colOptions?: any;
+      dtxp?: string;
+    };
 
     // if LTAR column then define tablr id as parent id in request
     if (isLinksOrLTAR(column) && !column.parentId) {
       column.parentId = param.tableId;
     }
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
+    if (
+      [UITypes.SingleSelect, UITypes.MultiSelect].includes(
+        column.uidt as UITypes,
+      )
+    ) {
       if (column.meta) {
         column.meta.choices = undefined;
       }

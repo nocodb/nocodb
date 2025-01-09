@@ -329,7 +329,7 @@ const createBulkRows = async (
     values: any[];
   },
 ) => {
-  await request(context.app)
+  const res = await request(context.app)
     .post(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .send(values)

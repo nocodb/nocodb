@@ -83,9 +83,7 @@
 
 import 'mocha';
 import {
-  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isOrderCol,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,

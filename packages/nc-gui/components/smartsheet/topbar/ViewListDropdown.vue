@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -112,6 +112,8 @@ async function onOpenModal({
   coverImageColumnId?: string
 }) {
   isOpen.value = false
+
+  $e('c:view:create:topbar', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
   const isDlgOpen = ref(true)
 

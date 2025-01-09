@@ -358,6 +358,7 @@ export default class Column<T = any> implements ColumnType {
           formula: column?.formula,
           formula_raw: column?.formula_raw,
           parsed_tree: column?.parsed_tree,
+          error: column?.error,
           icon: column?.icon,
           type: column.type,
           theme: column.theme,

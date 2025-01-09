@@ -16,6 +16,7 @@ export const TaskItem = Node.create<TaskItemOptions>({
 
   addOptions() {
     return {
+      ...this.parent?.(),
       nested: false,
       HTMLAttributes: {},
       taskListTypeName: 'taskList',

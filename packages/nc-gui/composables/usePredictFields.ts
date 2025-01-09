@@ -14,6 +14,8 @@ const useForm = Form.useForm
 
 export const usePredictFields = createSharedComposable(
   (isFromTableExplorer?: Ref<boolean>, fields?: WritableComputedRef<Record<string, any>[]>) => {
+    const { $e } = useNuxtApp()
+
     const { t } = useI18n()
 
     const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas, predictNextButtons } = useNocoAi()
@@ -62,6 +64,10 @@ export const usePredictFields = createSharedComposable(
         activeAiTabLocal.value = value
 
         aiError.value = ''
+
+        if (aiMode.value) {
+          $e(`c:column:ai:tab-change:${value}`)
+        }
       },
     })
 
@@ -262,11 +268,17 @@ export const usePredictFields = createSharedComposable(
     }
 
     const disableAiMode = () => {
+      $e('c:column:ai:toggle:false', {
+        mode: fieldPredictionMode.value,
+      })
+
       onInit()
     }
 
     const predictMore = async () => {
       calledFunction.value = 'predictMore'
+
+      $e('a:column:ai:predict-more')
 
       const predictions = await predictNextFields()
 
@@ -280,6 +292,8 @@ export const usePredictFields = createSharedComposable(
 
     const predictRefresh = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictRefresh'
+
+      $e('a:column:ai:predict-refresh')
 
       const predictions = await predictNextFields()
 
@@ -303,6 +317,10 @@ export const usePredictFields = createSharedComposable(
 
     const predictFromPrompt = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictFromPrompt'
+
+      $e('a:column:ai:predict-from-prompt', {
+        prompt: prompt.value,
+      })
 
       const predictions = await predictNextFields()
 
@@ -492,6 +510,10 @@ export const usePredictFields = createSharedComposable(
       }
     }
     const toggleAiMode = async (mode: 'field' | 'button' | 'formula' = 'field', fromFieldModal = false) => {
+      $e('c:column:ai:toggle:true', {
+        mode,
+      })
+
       if (mode === 'formula') {
         fieldPredictionMode.value = 'formula'
       } else if (mode === 'button') {

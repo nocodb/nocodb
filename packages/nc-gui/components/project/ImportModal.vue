@@ -12,20 +12,30 @@ const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
+const transitionName = ref<string | undefined>(undefined)
+
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
+  transitionName.value = 'dissolve'
+
+  await nextTick()
+  visible.value = false
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
+    'transition': 'dissolve',
+    'onBack': () => {
+      visible.value = true
+    },
   })
 
   function closeDialog() {
@@ -35,12 +45,16 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   }
 }
 
-function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
+async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   if (!source.value.id || !source.value.base_id) return
 
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
+  transitionName.value = 'dissolve'
+
+  await nextTick()
+  visible.value = false
 
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
@@ -48,6 +62,10 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
+    'transition': 'dissolve',
+    'onBack': () => {
+      visible.value = true
+    },
   })
 
   function closeDialog() {
@@ -58,8 +76,6 @@ function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
 }
 
 const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
-  visible.value = false
-
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else {
@@ -69,50 +85,87 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" width="35rem">
-    <div class="flex flex-col px-8 pt-6 pb-9">
+  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]" :transition-name="transitionName">
+    <div class="flex flex-col px-6 pt-6 pb-9">
       <div class="flex items-center gap-3 mb-6">
-        <GeneralIcon icon="download" class="flex-none !text-orange-700 !w-4 !h-4" />
-
-        <div class="text-base font-weight-700">{{ $t('general.import') }}</div>
+        <div class="text-base font-weight-700">{{ $t('labels.importDataFrom') }}</div>
       </div>
-      <div class="row mb-10">
-        <div class="nc-base-view-import-sub-btn" @click="onClick('airtable')">
-          <GeneralIcon icon="airtable" />
-          <div class="label">{{ $t('labels.airtable') }}</div>
-        </div>
-        <div class="nc-base-view-import-sub-btn" @click="onClick('csv')">
-          <GeneralIcon icon="ncFileTypeCsvSmall" />
-          <div class="label">{{ $t('labels.csv') }}</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="nc-base-view-import-sub-btn" @click="onClick('excel')">
-          <GeneralIcon icon="ncFileTypeExcel" />
-          <div class="label">{{ $t('labels.excel') }}</div>
-        </div>
-        <div class="nc-base-view-import-sub-btn" @click="onClick('json')">
-          <GeneralIcon icon="ncFileTypeJson" />
-          <div class="label">{{ $t('labels.json') }}</div>
-        </div>
-      </div>
+      <NcMenu class="border-1 divide-y-1 nc-import-items-menu overflow-clip">
+        <NcMenuItem @click="onClick('airtable')">
+          <GeneralIcon icon="importAirtable" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> Airtable </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('csv')">
+          <GeneralIcon icon="importCsv" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> CSV </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('json')">
+          <GeneralIcon icon="importJson" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> Json </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem @click="onClick('excel')">
+          <GeneralIcon icon="importExcel" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> Excel </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <!-- <NcMenuItem disabled>
+          <GeneralIcon icon="importSheets" class="w-5 h-5 opacity-50" />
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
+            Sheet
+          </span>
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
+            Coming soon
+          </span>
+          <GeneralIcon icon="chevronRight" class="text-lg" />
+        </NcMenuItem> -->
+        <!-- <NcMenuItem disabled>
+          <GeneralIcon icon="importSalesforce" class="w-5 h-5 text-white" />
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
+            Salesforce
+          </span>
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
+            Coming soon
+          </span>
+          <GeneralIcon icon="chevronRight" class="text-lg" />
+        </NcMenuItem> -->
+        <!-- <NcMenuItem disabled>
+          <GeneralIcon icon="importMonday" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700 text-[#6A7184]">
+            Monday.com
+          </span>
+          <span class="ml-auto text-primary bg-[#F0F3FF] px-1 rounded-md mr-2 font-weight-500 text-[13px]">
+            Coming soon
+          </span>
+          <GeneralIcon icon="chevronRight" class="text-lg" />
+        </NcMenuItem> -->
+      </NcMenu>
     </div>
   </GeneralModal>
 </template>
 
 <style lang="scss" scoped>
-.row {
-  @apply flex flex-row gap-x-10;
-}
-.nc-base-view-import-sub-btn {
-  @apply flex flex-col gap-y-6 p-16 bg-gray-50 items-center justify-center rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-100 !text-black);
-
-  .nc-icon {
-    @apply h-12 w-12;
-  }
-
-  .label {
-    @apply text-lg font-medium;
+.nc-import-items-menu {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  & :deep(.nc-menu-item) {
+    &:hover {
+      @apply bg-gray-50 text-black;
+    }
+    margin: 0 !important;
+    &.ant-menu-item-disabled {
+      @apply bg-gray-50;
+    }
+    & .ant-menu-title-content {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      & .nc-menu-item-inner {
+        width: 100%;
+      }
+    }
   }
 }
 </style>

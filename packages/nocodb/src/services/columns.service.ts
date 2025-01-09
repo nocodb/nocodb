@@ -1940,6 +1940,7 @@ export class ColumnsService {
           );
         } catch (e) {
           colBody.error = e.message;
+          colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             throw e;
           }
@@ -1953,26 +1954,26 @@ export class ColumnsService {
         break;
       case UITypes.Button: {
         if (colBody.type === ButtonActionsType.Url) {
-          colBody.formula = await substituteColumnAliasWithIdInFormula(
-            colBody.formula_raw || colBody.formula,
-            table.columns,
-          );
-          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
-            formula: colBody.formula,
-            columns: table.columns,
-            column: {
-              ...colBody,
-              colOptions: colBody,
-            },
-            clientOrSqlUi: source.type as any,
-            getMeta: async (modelId) => {
-              const model = await Model.get(context, modelId);
-              await model.getColumns(context);
-              return model;
-            },
-          });
-
           try {
+            colBody.formula = await substituteColumnAliasWithIdInFormula(
+              colBody.formula_raw || colBody.formula,
+              table.columns,
+            );
+            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+              formula: colBody.formula,
+              columns: table.columns,
+              column: {
+                ...colBody,
+                colOptions: colBody,
+              },
+              clientOrSqlUi: source.type as any,
+              getMeta: async (modelId) => {
+                const model = await Model.get(context, modelId);
+                await model.getColumns(context);
+                return model;
+              },
+            });
+
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
               Model.getBaseModelSQL(context, {
                 id: table.id,
@@ -1993,8 +1994,11 @@ export class ColumnsService {
               colBody.parsed_tree,
             );
           } catch (e) {
-            console.error(e);
-            NcError.badRequest('Invalid URL Formula');
+            colBody.error = e.message;
+            colBody.parsed_tree = null;
+            if (!param.suppressFormulaError) {
+              NcError.badRequest('Invalid URL Formula');
+            }
           }
         } else if (colBody.type === ButtonActionsType.Webhook) {
           if (!colBody.fk_webhook_id) {

@@ -12,11 +12,12 @@ interface Props {
   baseId: string
   sourceId: string
   importDataOnly?: boolean
+  transition?: string
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, transition, ...rest } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
@@ -40,8 +41,6 @@ const { baseTables } = storeToRefs(tablesStore)
 
 const activeKey = ref('uploadTab')
 
-const jsonEditorRef = ref()
-
 const templateEditorRef = ref()
 
 const preImportLoading = ref(false)
@@ -57,6 +56,12 @@ const importColumns = ref([])
 const templateEditorModal = ref(false)
 
 const isParsingData = ref(false)
+
+const collapseKey = ref('')
+
+const temporaryJson = ref({})
+
+const jsonErrorText = ref('')
 
 const useForm = Form.useForm
 
@@ -84,7 +89,7 @@ const isImportTypeCsv = computed(() => importType === 'csv')
 const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
-  url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
+  url: [importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)
@@ -93,7 +98,8 @@ const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
       header: `${t('title.quickImportExcel')}`,
-      uploadHint: t('msg.info.excelSupport'),
+      icon: 'importExcel',
+      uploadHint: '',
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
       acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
@@ -101,6 +107,7 @@ const importMeta = computed(() => {
   } else if (isImportTypeCsv.value) {
     return {
       header: `${t('title.quickImportCSV')}`,
+      icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -109,6 +116,7 @@ const importMeta = computed(() => {
   } else if (isImportTypeJson.value) {
     return {
       header: `${t('title.quickImportJSON')}`,
+      icon: 'importJson',
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -133,27 +141,32 @@ if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   )
 }
 
-const disablePreImportButton = computed(() => {
-  if (activeKey.value === 'uploadTab') {
-    return !(importState.fileList.length > 0)
-  } else if (activeKey.value === 'urlTab') {
-    if (!validateInfos.url.validateStatus) return true
+const isPreImportFileFilled = computed(() => {
+  return importState.fileList?.length > 0
+})
 
-    return validateInfos.url.validateStatus === 'error'
-  } else if (activeKey.value === 'jsonEditorTab') {
-    return !jsonEditorRef.value?.isValid
+const isPreImportUrlFilled = computed(() => {
+  return validateInfos?.url?.validateStatus === 'success' && !!importState.url
+})
+
+const isPreImportJsonFilled = computed(() => {
+  return JSON.stringify(importState.jsonEditor).length > 2 && !jsonErrorText.value
+})
+
+const disablePreImportButton = computed(() => {
+  if (isImportTypeCsv.value) {
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value
+  } else if (IsImportTypeExcel.value) {
+    return isPreImportFileFilled.value === isPreImportUrlFilled.value
+  } else if (isImportTypeJson.value) {
+    return !isPreImportFileFilled.value && !isPreImportJsonFilled.value
   }
 })
 
 const isError = ref(false)
+const refMonacoEditor = ref()
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
-
-const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
-
-const modalWidth = computed(() => {
-  return 'max(60vw, 600px)'
-})
 
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
 
@@ -165,21 +178,42 @@ async function handlePreImport() {
     await loadProjectTables(baseId)
   }
 
-  if (activeKey.value === 'uploadTab') {
-    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
+  if (isImportTypeCsv.value) {
+    if (isPreImportFileFilled.value) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
+    } else if (isPreImportUrlFilled.value) {
+      try {
+        await validate()
+        await parseAndExtractData(importState.url)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+  } else if (isImportTypeJson.value) {
+    if (isPreImportFileFilled.value) {
+      if (isWorkerSupport && importWorker) {
+        await parseAndExtractData(importState.fileList as streamImportFileList)
+      } else {
+        await parseAndExtractData((importState.fileList as importFileList)[0].data)
+      }
     } else {
-      await parseAndExtractData((importState.fileList as importFileList)[0].data)
+      await parseAndExtractData(JSON.stringify(importState.jsonEditor))
     }
-  } else if (activeKey.value === 'urlTab') {
-    try {
-      await validate()
-      await parseAndExtractData(importState.url)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+  } else if (IsImportTypeExcel) {
+    if (isPreImportFileFilled.value) {
+      if (isWorkerSupport && importWorker) {
+        await parseAndExtractData(importState.fileList as streamImportFileList)
+      } else {
+        await parseAndExtractData((importState.fileList as importFileList)[0].data)
+      }
+    } else if (isPreImportUrlFilled.value) {
+      try {
+        await validate()
+        await parseAndExtractData(importState.url)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     }
-  } else if (activeKey.value === 'jsonEditorTab') {
-    await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
   isParsingData.value = false
@@ -250,7 +284,7 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
-  jsonEditorRef.value?.format()
+  refMonacoEditor.value?.format()
 }
 
 function populateUniqueTableName(tn: string, draftTn: string[] = []) {
@@ -271,33 +305,28 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
 
 function getAdapter(val: any) {
   if (isImportTypeCsv.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new CSVTemplateAdapter(val, {
-          ...importState.parserConfig,
-          importFromURL: false,
-        })
-      case 'urlTab':
-        return new CSVTemplateAdapter(val, {
-          ...importState.parserConfig,
-          importFromURL: true,
-        })
+    if (isPreImportFileFilled.value) {
+      return new CSVTemplateAdapter(val, {
+        ...importState.parserConfig,
+        importFromURL: false,
+      })
+    } else {
+      return new CSVTemplateAdapter(val, {
+        ...importState.parserConfig,
+        importFromURL: true,
+      })
     }
   } else if (IsImportTypeExcel.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new ExcelTemplateAdapter(val, importState.parserConfig)
-      case 'urlTab':
-        return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
+    if (isPreImportFileFilled.value) {
+      return new ExcelTemplateAdapter(val, importState.parserConfig)
+    } else {
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
     }
   } else if (isImportTypeJson.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        return new JSONTemplateAdapter(val, importState.parserConfig)
-      case 'urlTab':
-        return new JSONUrlTemplateAdapter(val, importState.parserConfig, $api)
-      case 'jsonEditorTab':
-        return new JSONTemplateAdapter(val, importState.parserConfig)
+    if (isPreImportFileFilled.value) {
+      return new JSONTemplateAdapter(val, importState.parserConfig)
+    } else {
+      return new JSONTemplateAdapter(val, importState.parserConfig)
     }
   }
 
@@ -522,192 +551,305 @@ onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
+
+function handleJsonChange(newValue: any) {
+  try {
+    temporaryJson.value = newValue
+    importState.jsonEditor = JSON.parse(JSON.stringify(newValue))
+    jsonErrorText.value = ''
+  } catch (e: any) {
+    jsonErrorText.value = e.message || 'Invalid JSON'
+  }
+}
+
+watch(
+  () => importState.fileList,
+  () => {
+    if (isImportTypeJson.value) {
+      setTimeout(() => {
+        const data = importState.fileList?.[0]?.data
+        if (data && 'TextDecoder' in window) {
+          try {
+            temporaryJson.value = JSON.parse(new TextDecoder().decode(data))
+            importState.jsonEditor = JSON.parse(new TextDecoder().decode(data))
+          } catch (e) {
+            console.log(e)
+          }
+        }
+      }, 500)
+    }
+  },
+)
 </script>
 
 <template>
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    :width="modalWidth"
+    :closable="false"
+    width="448px"
+    class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
+    :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >
     <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
-      <div class="px-5">
-        <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
-
-        <div
-          class="mt-5"
-          :class="{
-            'mb-4': templateEditorModal,
-          }"
+      <div class="text-base font-weight-700 m-0 flex items-center gap-3">
+        <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
+        {{ importMeta.header }}
+        <a
+          href="https://docs.nocodb.com/tables/create-table-via-import/"
+          class="!text-gray-500 prose-sm ml-auto"
+          target="_blank"
+          rel="noopener"
         >
-          <LazyTemplateEditor
-            v-if="templateEditorModal"
-            ref="templateEditorRef"
-            :base-template="templateData"
-            :import-data="importData"
-            :import-columns="importColumns"
-            :import-data-only="importDataOnly"
-            :quick-import-type="importType"
-            :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
-            :source-id="sourceId"
-            :import-worker="importWorker"
-            class="nc-quick-import-template-editor"
-            @import="handleImport"
-            @error="onError"
-            @change="onChange"
-          />
+          Docs
+        </a>
+      </div>
 
-          <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
-            <a-tab-pane key="uploadTab" :closable="false">
-              <template #tab>
-                <!--              Upload -->
-                <div class="flex items-center gap-2">
-                  <component :is="iconMap.fileUpload" />
-                  {{ $t('general.upload') }}
+      <div class="mt-5">
+        <LazyTemplateEditor
+          v-if="templateEditorModal"
+          ref="templateEditorRef"
+          :base-template="templateData"
+          :import-data="importData"
+          :import-columns="importColumns"
+          :import-data-only="importDataOnly"
+          :quick-import-type="importType"
+          :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+          :base-id="baseId"
+          :source-id="sourceId"
+          :import-worker="importWorker"
+          :table-icon="importMeta.icon"
+          class="nc-quick-import-template-editor"
+          @import="handleImport"
+          @error="onError"
+          @change="onChange"
+        />
+        <div v-else>
+          <a-upload-dragger
+            v-model:fileList="importState.fileList"
+            name="file"
+            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+            list-type="picture"
+            :accept="importMeta.acceptTypes"
+            :max-count="isImportTypeCsv ? 3 : 1"
+            :multiple="true"
+            :custom-request="customReqCbk"
+            :before-upload="beforeUpload"
+            :disabled="isImportTypeJson ? isPreImportJsonFilled && !isPreImportFileFilled : isPreImportUrlFilled"
+            @change="handleChange"
+            @reject="rejectDrop"
+          >
+            <component :is="iconMap.upload" class="w-6 h-6" />
+
+            <p class="!mt-2 text-[13px]">
+              {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
+              <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
+            </p>
+
+            <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
+
+            <p class="ant-upload-hint">
+              {{ importMeta.uploadHint }}
+            </p>
+
+            <template #itemRender="{ file, actions }">
+              <div class="flex items-center gap-3">
+                <div class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-lg">
+                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
+                </div>
+                <div>
+                  <div class="text-[14px] text-[#15171A] font-weight-500">
+                    <NcTooltip>
+                      <template #title>
+                        {{ file.name }}
+                      </template>
+                      <span class="inline-block truncate max-w-[280px]">
+                        {{ file.name }}
+                      </span>
+                    </NcTooltip>
+                  </div>
+                  <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
+                    {{ getReadableFileSize(file.size) }}
+                  </div>
+                </div>
+                <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
+                  <GeneralIcon icon="deleteListItem" />
+                </nc-button>
+              </div>
+            </template>
+          </a-upload-dragger>
+
+          <div v-if="isImportTypeJson" class="my-5">
+            <div class="flex items-end gap-2">
+              <label> Enter Json </label>
+              <div class="flex-1" />
+              <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+            </div>
+            <LazyMonacoEditor
+              ref="refMonacoEditor"
+              class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
+              :auto-focus="false"
+              hide-minimap
+              :read-only="isPreImportFileFilled"
+              :monaco-config="{
+                lineNumbers: 'on',
+              }"
+              :model-value="temporaryJson"
+              @update:model-value="handleJsonChange($event)"
+            />
+            <a-alert v-if="jsonErrorText && !isPreImportFileFilled" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
+              <template #message>
+                <div class="flex flex-row items-center gap-2 mb-2">
+                  <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+                  <span class="font-weight-700 text-[14px]">Json Error</span>
                 </div>
               </template>
-
-              <div class="py-6">
-                <a-upload-dragger
-                  v-model:fileList="importState.fileList"
-                  name="file"
-                  class="nc-input-import !scrollbar-thin-dull"
-                  list-type="picture"
-                  :accept="importMeta.acceptTypes"
-                  :max-count="isImportTypeCsv ? 5 : 1"
-                  :multiple="true"
-                  :custom-request="customReqCbk"
-                  :before-upload="beforeUpload"
-                  @change="handleChange"
-                  @reject="rejectDrop"
-                >
-                  <component :is="iconMap.plusCircle" size="large" />
-
-                  <!-- Click or drag file to this area to upload -->
-                  <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
-
-                  <p class="ant-upload-hint">
-                    {{ importMeta.uploadHint }}
-                  </p>
-                  <template #removeIcon>
-                    <component :is="iconMap.deleteListItem" />
-                  </template>
-                </a-upload-dragger>
-              </div>
-            </a-tab-pane>
-
-            <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
-              <template #tab>
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.json" />
-                  {{ $t('title.jsonEditor') }}
-                </span>
+              <template #description>
+                <div class="text-gray-500 text-[13px] leading-5 ml-6">
+                  {{ jsonErrorText }}
+                </div>
               </template>
+            </a-alert>
+          </div>
 
-              <div class="pb-3 pt-3">
-                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
-              </div>
-            </a-tab-pane>
-
-            <a-tab-pane v-else key="urlTab" :closable="false">
-              <template #tab>
-                <span class="flex items-center gap-2">
-                  <component :is="iconMap.link" />
-                  {{ $t('datatype.URL') }}
-                </span>
-              </template>
-
-              <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !ml-0.5">
-                  <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large" class="!rounded-md" />
-                  </a-form-item>
-                </a-form>
-              </div>
-            </a-tab-pane>
-          </a-tabs>
+          <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-5">
+            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
+              <a-input
+                v-model:value="importState.url"
+                class="!rounded-md"
+                placeholder="Paste file link here..."
+                :disabled="isPreImportFileFilled"
+              />
+            </a-form-item>
+          </a-form>
         </div>
+      </div>
 
-        <div v-if="!templateEditorModal">
-          <a-divider />
+      <div v-if="!templateEditorModal" class="mt-5">
+        <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
+          {{ $t('title.advancedSettings') }}
+          <GeneralIcon
+            icon="chevronDown"
+            class="ml-2 !transition-all !transform"
+            :class="{ '!rotate-180': collapseKey === 'advanced-settings' }"
+          />
+        </nc-button>
 
-          <div class="mb-4">
-            <!-- Advanced Settings -->
-            <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
-
-            <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
+        <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
+          <a-collapse-panel key="advanced-settings">
+            <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
               </a-checkbox>
             </a-form-item>
 
-            <!-- Flatten nested -->
-            <a-form-item v-if="isImportTypeJson" class="!my-2">
+            <a-form-item v-if="isImportTypeJson" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
               </a-checkbox>
             </a-form-item>
 
-            <!-- Import Data -->
-            <a-form-item v-if="!importDataOnly" class="!my-2">
+            <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
             </a-form-item>
-          </div>
-        </div>
+          </a-collapse-panel>
+        </a-collapse>
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false"
-        >{{ $t('general.back') }}
-      </a-button>
+      <div class="flex items-center gap-2 pt-3">
+        <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+          {{ $t('general.back') }}
+        </nc-button>
 
-      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }} </a-button>
+        <nc-button
+          v-else
+          key="cancel"
+          type="text"
+          size="small"
+          @click="
+            () => {
+              dialogShow = false
+              emit('back')
+            }
+          "
+        >
+          {{ $t('general.back') }}
+        </nc-button>
 
-      <a-button
-        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
-        key="format"
-        class="!rounded-md"
-        :disabled="disableFormatJsonButton"
-        @click="formatJson"
-      >
-        {{ $t('labels.formatJson') }}
-      </a-button>
+        <div class="flex-1" />
 
-      <a-button
-        v-if="!templateEditorModal"
-        key="pre-import"
-        type="primary"
-        class="nc-btn-import !rounded-md"
-        :loading="preImportLoading"
-        :disabled="disablePreImportButton"
-        @click="handlePreImport"
-      >
-        {{ $t('activity.import') }}
-      </a-button>
+        <nc-button
+          v-if="!templateEditorModal"
+          key="pre-import"
+          size="small"
+          class="nc-btn-import"
+          :loading="preImportLoading"
+          :disabled="disablePreImportButton"
+          @click="handlePreImport"
+        >
+          {{ $t('activity.import') }}
+        </nc-button>
 
-      <a-button
-        v-else
-        key="import"
-        type="primary"
-        class="!rounded-md"
-        :loading="importLoading"
-        :disabled="disableImportButton"
-        @click="handleImport"
-      >
-        {{ $t('activity.import') }}
-      </a-button>
+        <nc-button
+          v-else
+          key="import"
+          size="small"
+          :loading="importLoading"
+          :disabled="disableImportButton"
+          @click="handleImport"
+        >
+          {{ $t('activity.import') }}
+        </nc-button>
+      </div>
     </template>
   </a-modal>
 </template>
 
+<style lang="scss">
+.nc-modal-quick-import .ant-modal-footer {
+  border: none;
+  padding: 0 !important;
+}
+.nc-modal-quick-import .ant-collapse-content-box {
+  padding-top: 0 !important;
+  padding-left: 6px;
+}
+.nc-import-monaco-editor .monaco-editor {
+  outline-width: 0 !important;
+  & * {
+    outline-width: 0 !important;
+    border-width: 0 !important;
+  }
+}
+</style>
+
 <style lang="scss" scoped>
+.nc-modal-quick-import :deep(.ant-modal-footer) {
+  @apply !px-0 !pb-0;
+}
 :deep(.ant-upload-list-item-thumbnail) {
   line-height: 48px;
 }
 :deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only) {
   @apply !h-6;
+}
+.nc-import-collapse :deep(.ant-collapse-header) {
+  display: none !important;
+}
+span:has(> .nc-modern-drag-import) {
+  display: flex;
+  flex-direction: column-reverse;
+  :deep(& > .ant-upload-list:has(.ant-upload-list-picture-container)) {
+    @apply mb-4 space-y-2 transition-all nc-scrollbar-thin overflow-hidden;
+  }
+}
+:deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
+  @apply bg-white hover:bg-gray-50;
+}
+:deep(.nc-dense-checkbox-container .ant-form-item-control-input) {
+  min-height: unset !important;
 }
 </style>

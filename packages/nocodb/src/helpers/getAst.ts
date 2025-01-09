@@ -1,4 +1,5 @@
 import {
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isOrderCol,
   isSystemColumn,
@@ -223,6 +224,8 @@ const getAst = async (
       (col.system || col.uidt === UITypes.ForeignKey) &&
       apiVersion === NcApiVersion.V3
     ) {
+      isRequested = false;
+    } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;

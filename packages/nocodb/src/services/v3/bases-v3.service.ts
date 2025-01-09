@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  BaseReqType,
-  BaseType,
-  extractRolesObj,
-  OrgUserRoles,
-} from 'nocodb-sdk';
+import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,

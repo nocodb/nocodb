@@ -149,21 +149,24 @@ export class AuthService {
     return await this.login(user);
   }
 
-  async registerNewUserIfAllowed({
-    firstname,
-    lastname,
-    email,
-    salt,
-    password,
-    email_verification_token,
-  }: {
-    firstname;
-    lastname;
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
-  }) {
+  async registerNewUserIfAllowed(
+    {
+      firstname,
+      lastname,
+      email,
+      salt,
+      password,
+      email_verification_token,
+    }: {
+      firstname;
+      lastname;
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     const roles: string = OrgUserRoles.CREATOR;
 
     // if (await User.isFirst()) {
@@ -189,15 +192,18 @@ export class AuthService {
 
     const token_version = ''; // randomTokenString();
 
-    return await this.usersService.insert({
-      firstname,
-      lastname,
-      email,
-      salt,
-      password,
-      email_verification_token,
-      roles,
-      token_version,
-    });
+    return await this.usersService.insert(
+      {
+        firstname,
+        lastname,
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+      },
+      ncMeta,
+    );
   }
 }

@@ -77,7 +77,19 @@ export class BaseUsersV3Service {
         // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
         // if (!baseUser.workspace_role) {
         // get the user from workspace
-        let user = await User.getByEmail(baseUser.email, ncMeta);
+        let user: User;
+        if (baseUser.id) {
+          user = await User.get(baseUser.id, ncMeta);
+          if (!user) {
+            NcError.userNotFound(baseUser.id);
+          }
+          baseUser.email = user.email;
+        } else if (baseUser.email) {
+          user = await User.getByEmail(baseUser.email, ncMeta);
+        } else {
+          NcError.badRequest('Either email or id is required');
+        }
+
         if (user) {
           const workspaceUser = await WorkspaceUser.get(
             param.req.ncWorkspaceId,
@@ -153,10 +165,10 @@ export class BaseUsersV3Service {
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        validatePayload(
-          'swagger.json#/components/schemas/ProjectUserV3Req',
-          baseUser,
-        );
+        // validatePayload(
+        //   'swagger.json#/components/schemas/ProjectUserV3Req',
+        //   baseUser,
+        // );
 
         let userId = baseUser.id;
 

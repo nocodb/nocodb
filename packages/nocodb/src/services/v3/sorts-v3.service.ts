@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { SortReqType } from 'nocodb-sdk';
+import type {SortReqType, SortType} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
@@ -72,6 +72,6 @@ export class SortsV3Service {
   async sortList(context: NcContext, param: { viewId: string }) {
     return sortBuilder().build(
       await Sort.list(context, { viewId: param.viewId }),
-    );
+    ) as SortType[];
   }
 }

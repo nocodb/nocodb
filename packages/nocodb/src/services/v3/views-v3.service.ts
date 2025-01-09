@@ -12,6 +12,8 @@ import {
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';
 import { NcError } from '~/helpers/catchError';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 
 @Injectable()
 export class ViewsV3Service {
@@ -19,7 +21,11 @@ export class ViewsV3Service {
   private builder;
   private viewBuilder;
 
-  constructor(protected readonly viewsService: ViewsService) {
+  constructor(
+    protected readonly viewsService: ViewsService,
+    protected filtersV3Service: FiltersV3Service,
+    protected sortsV3Service: SortsV3Service,
+  ) {
     this.builder = builderGenerator({
       allowed: [
         'id',
@@ -167,26 +173,18 @@ export class ViewsV3Service {
 
     if (view.type !== ViewTypes.FORM) {
       // get filters
-      const filters = filterBuilder().build(
-        await Filter.allViewFilterList(context, {
-          viewId: view.id,
-        }),
-      );
+      const filters = await this.filtersV3Service.filterList(context, {
+        viewId: view.id,
+      });
 
-      formattedView.filters = (filters as Partial<FilterType>[])?.length
-        ? filters
-        : undefined;
+      formattedView.filters = filters?.length ? filters : undefined;
 
       // get sorts
-      const sorts = sortBuilder().build(
-        await Sort.list(context, {
-          viewId: view.id,
-        }),
-      );
+      const sorts = await this.sortsV3Service.sortList(context, {
+        viewId: view.id,
+      });
 
-      formattedView.sorts = (sorts as Partial<SortType>[])?.length
-        ? sorts
-        : undefined;
+      formattedView.sorts = sorts?.length ? sorts : undefined;
     }
 
     const viewColumnList = await View.getColumns(context, view.id);

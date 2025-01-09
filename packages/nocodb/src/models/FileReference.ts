@@ -77,17 +77,34 @@ export default class FileReference {
     fileReferenceId: string | string[],
     ncMeta = Noco.ncMeta,
   ) {
-    fileReferenceId = Array.isArray(fileReferenceId)
+    if (
+      !fileReferenceId ||
+      (Array.isArray(fileReferenceId) && fileReferenceId.length === 0)
+    ) {
+      return;
+    }
+
+    const fileReferences = Array.isArray(fileReferenceId)
       ? fileReferenceId
       : [fileReferenceId];
 
-    await ncMeta.bulkMetaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILE_REFERENCES,
-      { deleted: true },
-      fileReferenceId,
-    );
+    if (fileReferences.length === 1) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILE_REFERENCES,
+        { deleted: true },
+        fileReferences[0],
+      );
+    } else {
+      await ncMeta.bulkMetaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILE_REFERENCES,
+        { deleted: true },
+        fileReferences,
+      );
+    }
   }
 
   public static async bulkDelete(

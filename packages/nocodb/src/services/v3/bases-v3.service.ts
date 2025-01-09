@@ -1,41 +1,21 @@
-import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import * as DOMPurify from 'isomorphic-dompurify';
-import { customAlphabet } from 'nanoid';
-import {
-  AppEvents,
-  extractRolesObj,
-  IntegrationsType,
-  OrgUserRoles,
-  SqlUiFactory,
-} from 'nocodb-sdk';
+import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
-import type { Request } from 'express';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { validatePayload } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
-import { extractPropsAndSanitize } from '~/helpers/extractProps';
-import { Base, BaseUser } from '~/models';
-import { MetaService } from '~/meta/meta.service';
-import { RootScopes } from '~/utils/globals';
-import { TablesService } from '~/services/tables.service';
+import { Base, BaseUser, Source } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+import { BasesService } from '~/services/bases.service';
 
 @Injectable()
 export class BasesV3Service {
-  private builder;
-  private sourceBuilder;
+  protected builder;
+  protected sourceBuilder;
 
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected metaService: MetaService,
-    protected tablesService: TablesService,
-  ) {
+  constructor(protected readonly basesService: BasesService) {
     this.builder = builderGenerator({
       allowed: [
         'id',
@@ -51,22 +31,38 @@ export class BasesV3Service {
         isMeta: 'is_meta',
         source: 'sources',
       },
+      meta: {
+        snakeCase: true,
+        metaProps: ['meta'],
+      },
     });
     this.sourceBuilder = builderGenerator({
       allowed: [
         'id',
-        'title',
+        'alias',
         'type',
         'is_schema_readonly',
         'is_data_readonly',
         'integration_id',
       ],
       mappings: {
-        name: 'title',
+        alias: 'title',
         isMeta: 'is_meta',
         source: 'sources',
       },
     });
+  }
+
+  protected async getBaseList(
+    context: NcContext,
+    param: {
+      user: { id: string; roles?: string | Record<string, boolean> };
+      query?: any;
+    },
+  ) {
+    return extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
+      ? await Base.list()
+      : await BaseUser.getProjectsList(param.user.id, param.query);
   }
 
   async baseList(
@@ -76,16 +72,17 @@ export class BasesV3Service {
       query?: any;
     },
   ) {
-    const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list()
-      : await BaseUser.getProjectsList(param.user.id, param.query);
+    const bases = await this.getBaseList(context, param);
 
-    const result = this.builder().build(bases);
-
-    return {
-      ...result,
-      sources: result.sources && this.sourceBuilder().build(result.sources),
-    };
+    for (const base of bases) {
+      const sources = this.sourceBuilder().build(
+        (await new Base(base).getSources()).filter(
+          (s) => !new Source(s).isMeta(),
+        ),
+      );
+      base.sources = sources.length ? sources : undefined;
+    }
+    return this.builder().build(bases);
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {
@@ -97,17 +94,17 @@ export class BasesV3Service {
     context: NcContext,
     param: { baseId: string; includeConfig?: boolean },
   ) {
-    const { includeConfig = true } = param;
-    const base = await Base.getWithInfo(context, param.baseId, includeConfig);
-    return base;
-  }
+    const base = await this.basesService.getProjectWithInfo(context, param);
 
-  sanitizeProject(base: any) {
-    const sanitizedProject = { ...base };
-    sanitizedProject.sources?.forEach((b: any) => {
-      ['config'].forEach((k) => delete b[k]);
-    });
-    return sanitizedProject;
+    // filter non-meta sources
+    const sources = base.sources.filter((s) => !new Source(s).isMeta());
+
+    return {
+      ...this.builder().build(base),
+      sources: sources?.length
+        ? this.sourceBuilder().build(sources)
+        : undefined,
+    };
   }
 
   async baseUpdate(
@@ -119,79 +116,22 @@ export class BasesV3Service {
       req: NcRequest;
     },
   ) {
-    validatePayload(
-      'swagger.json#/components/schemas/ProjectUpdateReq',
-      param.base,
-    );
-
-    const base = await Base.getWithInfo(context, param.baseId);
-
-    const data: Partial<Base> = extractPropsAndSanitize(param?.base as Base, [
-      'title',
-      'meta',
-      'color',
-      'status',
-      'order',
-    ]);
-    await this.validateProjectTitle(context, data, base);
-
-    if (data?.order !== undefined) {
-      data.order = !isNaN(+data.order) ? +data.order : 0;
-    }
-
-    const result = await Base.update(context, param.baseId, data);
-
-    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
-      base,
-      user: param.user,
-      req: param.req,
-    });
-
-    return result;
+    await this.basesService.baseUpdate(context, param);
+    return this.getProjectWithInfo(context, { baseId: param.baseId });
   }
 
-  protected async validateProjectTitle(
-    context: NcContext,
-    data: Partial<Base>,
-    base: Base,
-  ) {
-    if (
-      data?.title &&
-      base.title !== data.title &&
-      (await Base.getByTitle(
-        {
-          workspace_id: RootScopes.BASE,
-          base_id: RootScopes.BASE,
-        },
-        data.title,
-      ))
-    ) {
-      NcError.badRequest('Base title already in use');
-    }
+  async baseCreate(_param: { base: ProjectReqType; user: any; req: any }) {
+    const res = await this.basesService.baseCreate(param);
+    return this.getProjectWithInfo({ baseId: res.id });
   }
+
 
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
   ) {
-    const base = await Base.getWithInfo(context, param.baseId);
-
-    if (!base) {
-      NcError.baseNotFound(param.baseId);
-    }
-
-    await Base.softDelete(context, param.baseId);
-
-    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
-      base,
-      user: param.user,
-      req: param.req,
-    });
-
-    return true;
+    await this.basesService.baseSoftDelete(context, param);
+    return { success: true };
   }
 
-  async baseCreate(_param: { base: ProjectReqType; user: any; req: any }) {
-    return null;
-  }
 }

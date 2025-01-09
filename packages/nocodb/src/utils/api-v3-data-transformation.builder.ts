@@ -41,16 +41,31 @@ export class ApiV3DataTransformationBuilder {
     metaProps?: string[];
   } = {}): this {
     this.transformations.push((data) => {
-      return Object.entries(data).reduce((result, [key, value]) => {
-        const newKey =
-          mapping[key] || (snakeCase ? convertToSnakeCase(key) : key);
-        if (metaProps.includes(newKey)) {
-          result[newKey] = value;
-        } else {
-          result[newKey] = value;
+      let result = { ...data };
+
+      // iterate and update properties of metaProps only
+      for (const prop of metaProps) {
+        if (result[prop]) {
+
+          if (typeof result[prop] === 'string') {
+            try {
+              result[prop] = JSON.parse(result[prop]);
+            } catch {}
+          } else {
+            result[prop] = { ...result[prop] };
+          }
+
+          result[prop] = Object.entries(result[prop]).reduce(
+            (result, [key, value]) => {
+              const newKey = mapping[key] || key;
+              result[snakeCase ? convertToSnakeCase(newKey) : newKey] = value;
+              return result;
+            },
+            {},
+          );
         }
-        return result;
-      }, {});
+      }
+      return result;
     });
     return this;
   }
@@ -98,17 +113,17 @@ export const builderGenerator = ({
 )): (() => ApiV3DataTransformationBuilder) => {
   return () => {
     const builder = new ApiV3DataTransformationBuilder();
-    if (mappings) {
-      builder.remapColumns(mappings);
-    }
-    if (transformFn) {
-      builder.customTransform(transformFn);
-    }
     if ('allowed' in rest || 'excluded' in rest) {
       builder.filterColumns(rest);
     }
     if (meta) {
       builder.metaTransform(meta);
+    }
+    if (mappings) {
+      builder.remapColumns(mappings);
+    }
+    if (transformFn) {
+      builder.customTransform(transformFn);
     }
     return builder;
   };

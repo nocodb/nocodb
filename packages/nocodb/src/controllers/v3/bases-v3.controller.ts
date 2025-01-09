@@ -21,7 +21,7 @@ import { BasesV3Service } from '~/services/v3/bases-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-export class BasesController {
+export class BasesV3Controller {
   constructor(protected readonly baseV3Service: BasesV3Service) {}
 
   @Acl('baseList', {
@@ -50,8 +50,6 @@ export class BasesController {
       baseId: baseId,
       includeConfig: false,
     });
-
-    this.baseV3Service.sanitizeProject(base);
 
     return base;
   }

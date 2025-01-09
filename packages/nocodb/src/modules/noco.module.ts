@@ -132,6 +132,8 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 import { Datav3Controller } from '~/controllers/data-v3.controller';
 import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
+import {BasesV3Controller} from "~/controllers/v3/bases-v3.controller";
+import {BasesV3Service} from "~/services/v3/bases-v3.service";
 
 export const nocoModuleMetadata = {
   imports: [
@@ -195,6 +197,7 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+          BasesV3Controller,
 
           /* Datas */
           DataTableController,
@@ -267,6 +270,7 @@ export const nocoModuleMetadata = {
     ExtensionsService,
     JobsMetaService,
     IntegrationsService,
+    BasesV3Service,
 
     /* Datas */
     DataTableService,

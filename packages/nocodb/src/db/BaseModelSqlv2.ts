@@ -31,7 +31,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import type {
   BulkAuditV1OperationTypes,
+  DataBulkDeletePayload,
+  DataBulkInsertPayload,
+  DataBulkUpdateAllPayload,
+  DataBulkUpdatePayload,
+  DataDeletePayload,
+  DataInsertPayload,
+  DataLinkPayload,
+  DataUnlinkPayload,
+  DataUpdatePayload,
   FilterType,
+  NcRequest,
   SortType,
 } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
@@ -83,6 +93,19 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import applyAggregation from '~/db/aggregation';
 import { chunkArray } from '~/utils/tsUtils';
+import {
+  generateAuditV1Payload,
+  remapWithAlias,
+  removeBlankPropsAndMask,
+} from '~/ee/utils';
+import { Audit, ModelStat } from '~/ee/models';
+import {
+  UPDATE_MODEL_STAT,
+  UPDATE_WORKSPACE_COUNTER,
+} from '~/ee/services/update-stats.service';
+import { MetaTable } from '~/ee/utils/globals';
+import { getLimit } from '~/ee/plan-limits';
+import { extractColsMetaForAudit } from '~/ee/db/BaseModelSqlv2';
 
 dayjs.extend(utc);
 
@@ -7033,6 +7056,7 @@ class BaseModelSqlv2 {
 
   public async afterInsert({
     data,
+    insertData,
     trx: _trx,
     req,
   }: {
@@ -7042,6 +7066,189 @@ class BaseModelSqlv2 {
     req: NcRequest;
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
+    const id = this.extractPksValues(data);
+    const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
+      'CreatedAt',
+      'UpdatedAt',
+      // exclude virtual columns
+      ...this.model.columns
+        .filter((c) => isVirtualCol(c) || isSystemColumn(c))
+        .map((c) => c.title),
+    ]);
+    await Audit.insert(
+      generateAuditV1Payload<DataInsertPayload>(
+        AuditV1OperationTypes.DATA_INSERT,
+        {
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          details: {
+            data: filteredAuditData,
+            column_meta: extractColsMetaForAudit(
+              this.model.columns,
+              filteredAuditData,
+            ),
+          },
+          req,
+        },
+      ),
+    );
+
+    await this.handleRichTextMentions(null, data, req);
+
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      context: this.context,
+      fk_workspace_id: this.model.fk_workspace_id,
+      base_id: this.model.base_id,
+      fk_model_id: this.model.id,
+      count: 1,
+    });
+  }
+
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('after.bulkInsert', null, data, req);
+    let parentAuditId;
+    if (!req.ncParentAuditId) {
+      parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
+      await Audit.insert(
+        generateAuditV1Payload<DataBulkDeletePayload>(
+          AuditV1OperationTypes.DATA_BULK_INSERT,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          },
+        ),
+      );
+
+      req.ncParentAuditId = parentAuditId;
+    }
+    // data here is not mapped to column alias
+    await Audit.insert(
+      data.map((d) => {
+        const data = remapWithAlias({ data: d, columns: this.model.columns });
+
+        return generateAuditV1Payload<DataBulkInsertPayload>(
+          AuditV1OperationTypes.DATA_INSERT,
+          {
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: this.extractPksValues(data, true),
+            },
+            details: {
+              data: removeBlankPropsAndMask(data, [
+                'created_at',
+                'updated_at',
+                'created_by',
+                'updated_by',
+              ]),
+              column_meta: extractColsMetaForAudit(this.model.columns, data),
+            },
+            req,
+          },
+        );
+      }),
+    );
+
+    await this.handleRichTextMentions(null, data, req);
+  }
+
+  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+    const id = this.extractPksValues(data);
+
+    await Audit.insert(
+      generateAuditV1Payload<DataDeletePayload>(
+        AuditV1OperationTypes.DATA_DELETE,
+        {
+          details: {
+            data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+            column_meta: extractColsMetaForAudit(this.model.columns, data),
+          },
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          req,
+        },
+      ),
+    );
+
+    await this.handleHooks('after.delete', null, data, req);
+
+    const modelStats = await ModelStat.get(
+      this.context,
+      this.model.fk_workspace_id,
+      this.model.id,
+    );
+  }
+
+  public async afterBulkDelete(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
+    let noOfDeletedRecords: number = data;
+    if (!isBulkAllOperation) {
+      noOfDeletedRecords = data.length;
+      await this.handleHooks('after.bulkDelete', null, data, req);
+    }
+
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
+    await Audit.insert(
+      generateAuditV1Payload<DataBulkDeletePayload>(
+        AuditV1OperationTypes.DATA_BULK_DELETE,
+        {
+          details: {},
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+          },
+          req,
+          id: parentAuditId,
+        },
+      ),
+    );
+    req.ncParentAuditId = parentAuditId;
+
+    const column_meta = extractColsMetaForAudit(this.model.columns);
+    await Audit.insert(
+      data?.map?.((d) =>
+        generateAuditV1Payload<DataBulkDeletePayload>(
+          AuditV1OperationTypes.DATA_DELETE,
+          {
+            details: {
+              data: d
+                ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                : null,
+              column_meta,
+            },
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: this.extractPksValues(d, true),
+            },
+            req,
+          },
+        ),
+      ),
+    );
   }
 
   public async afterBulkUpdate(
@@ -7055,22 +7262,62 @@ class BaseModelSqlv2 {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    await this.handleRichTextMentions(prevData, newData, req);
-  }
+    if (newData && newData.length > 0) {
+      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
-  public async afterBulkDelete(
-    data: any,
-    _trx: any,
-    req,
-    isBulkAllOperation = false,
-  ): Promise<void> {
-    if (!isBulkAllOperation) {
-      await this.handleHooks('after.bulkDelete', null, data, req);
+      await Audit.insert(
+        generateAuditV1Payload<DataBulkUpdatePayload>(
+          AuditV1OperationTypes.DATA_BULK_UPDATE,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          },
+        ),
+      );
+
+      req.ncParentAuditId = parentAuditId;
+
+      await Audit.insert(
+        newData.map((d, i) =>
+          generateAuditV1Payload<DataUpdatePayload>(
+            AuditV1OperationTypes.DATA_UPDATE,
+            {
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(d, true),
+              },
+              details: {
+                old_data: prevData?.[i]
+                  ? removeBlankPropsAndMask(prevData?.[i], [
+                      'CreatedAt',
+                      'UpdatedAt',
+                    ])
+                  : null,
+                data: d
+                  ? removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt'])
+                  : null,
+                column_meta: extractColsMetaForAudit(
+                  this.model.columns,
+                  d,
+                  prevData?.[i],
+                ),
+              },
+              req,
+            },
+          ),
+        ),
+      );
     }
-  }
 
-  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
-    await this.handleHooks('after.bulkInsert', null, data, req);
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
@@ -7092,7 +7339,8 @@ class BaseModelSqlv2 {
     req,
     updateObj?: Record<string, any>,
   ): Promise<void> {
-    // const id = this.extractPksValues(newData);
+    // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
+    const id = this.extractPksValues(newData);
 
     const oldData: { [key: string]: any } = {};
     const data: { [key: string]: any } = {};
@@ -7109,6 +7357,30 @@ class BaseModelSqlv2 {
       Object.assign(data, newData);
     }
 
+    await Audit.insert(
+      generateAuditV1Payload<DataUpdatePayload>(
+        AuditV1OperationTypes.DATA_UPDATE,
+        {
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          details: {
+            old_data: oldData,
+            data: data,
+            column_meta: extractColsMetaForAudit(
+              this.model.columns,
+              data,
+              oldData,
+            ),
+          },
+          req,
+        },
+      ),
+    );
+
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -7118,14 +7390,11 @@ class BaseModelSqlv2 {
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
       await this.handleHooks('after.update', prevData, newData, req);
     }
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.delete', null, data, req);
-  }
-
-  public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('after.delete', null, data, req);
   }
 
   protected async handleHooks(hookName, prevData, newData, req): Promise<void> {
@@ -8090,7 +8359,18 @@ class BaseModelSqlv2 {
     );
   }
 
-  public async afterAddChild(_: {
+  public async afterAddChild({
+                               columnTitle,
+                               columnId,
+                               rowId,
+                               refRowId,
+                               req,
+                               model = this.model,
+                               refModel = this.model,
+                               displayValue,
+                               refDisplayValue,
+                               type,
+                             }: {
     columnTitle: string;
     columnId: string;
     refColumnTitle: string;
@@ -8103,7 +8383,52 @@ class BaseModelSqlv2 {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
-    // placeholder
+    if (!refDisplayValue) {
+      refDisplayValue = await this.readByPkFromModel(
+        refModel,
+        undefined,
+        true,
+        refRowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    if (!displayValue) {
+      displayValue = await this.readByPkFromModel(
+        model,
+        undefined,
+        true,
+        rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    await Audit.insert(
+      generateAuditV1Payload<DataLinkPayload>(AuditV1OperationTypes.DATA_LINK, {
+        context: {
+          ...this.context,
+          source_id: model.source_id,
+          fk_model_id: model.id,
+          row_id: rowId as string,
+        },
+        details: {
+          table_title: model.title,
+          ref_table_title: refModel.title,
+          link_field_title: columnTitle,
+          link_field_id: columnId,
+          row_id: rowId,
+          ref_row_id: refRowId,
+          display_value: displayValue,
+          ref_display_value: refDisplayValue,
+          type,
+        },
+        req,
+      }),
+    );
   }
 
   async removeChild({
@@ -8357,7 +8682,19 @@ class BaseModelSqlv2 {
     );
   }
 
-  public async afterRemoveChild(_: {
+
+  public async afterRemoveChild({
+    columnTitle,
+    columnId,
+    rowId,
+    refRowId,
+    req,
+    model = this.model,
+    refModel = this.model,
+    displayValue,
+    refDisplayValue,
+    type,
+  }: {
     columnTitle: string;
     columnId: string;
     refColumnTitle: string;
@@ -8370,9 +8707,56 @@ class BaseModelSqlv2 {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
-    // placeholder
-  }
+    if (!refDisplayValue) {
+      refDisplayValue = await this.readByPkFromModel(
+        refModel,
+        undefined,
+        true,
+        refRowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
 
+    if (!displayValue) {
+      displayValue = await this.readByPkFromModel(
+        model,
+        undefined,
+        true,
+        rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    await Audit.insert(
+      generateAuditV1Payload<DataUnlinkPayload>(
+        AuditV1OperationTypes.DATA_UNLINK,
+        {
+          context: {
+            ...this.context,
+            source_id: model.source_id,
+            fk_model_id: model.id,
+            row_id: rowId as string,
+          },
+          details: {
+            table_title: model.title,
+            ref_table_title: refModel.title,
+            link_field_title: columnTitle,
+            link_field_id: columnId,
+            row_id: rowId,
+            ref_row_id: refRowId,
+            display_value: displayValue,
+            ref_display_value: refDisplayValue,
+            type,
+          },
+          req,
+        },
+      ),
+    );
+  }
   public async groupedList(
     args: {
       groupColumnId: string;
@@ -11084,13 +11468,44 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async bulkUpdateAudit(_: {
+  public async bulkUpdateAudit({
+    rowIds,
+    req,
+    conditions,
+    data,
+  }: {
     rowIds: any[];
     conditions: FilterType[];
     data?: Record<string, any>;
     req: NcRequest;
   }) {
-    // placeholder
+    const auditUpdateObj = [];
+    for (const rowId of rowIds) {
+      auditUpdateObj.push(
+        generateAuditV1Payload<DataBulkUpdateAllPayload>(
+          AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
+          {
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: this.extractPksValues(rowId, true),
+            },
+            details: {
+              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              old_data: removeBlankPropsAndMask(rowId, [
+                'CreatedAt',
+                'UpdatedAt',
+              ]),
+              conditions: conditions,
+              column_meta: extractColsMetaForAudit(this.model.columns, data),
+            },
+            req,
+          },
+        ),
+      );
+    }
+    await Audit.insert(auditUpdateObj);
   }
 
   protected async bulkDeleteAudit(_: {

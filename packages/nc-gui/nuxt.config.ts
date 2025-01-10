@@ -113,6 +113,7 @@ export default defineNuxtConfig({
     '~/assets/css/global.css',
     '~/assets/style.scss',
     '~/assets/css/typesense-docsearch.css',
+    'vue-json-pretty/lib/styles.css',
   ],
 
   runtimeConfig: {

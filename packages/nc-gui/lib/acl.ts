@@ -89,6 +89,8 @@ const rolePermissions = {
       baseDuplicate: true,
       sourceCreate: true,
       baseAuditList: true,
+
+      extensionList: true,
     },
   },
   [ProjectRoles.EDITOR]: {

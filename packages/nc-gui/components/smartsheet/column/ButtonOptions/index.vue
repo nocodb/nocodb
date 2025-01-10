@@ -65,6 +65,14 @@ const isAiButtonEnabled = computed(() => {
   return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
 })
 
+const isScriptButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)
+})
+
 const buttonTypes = computed(() => [
   {
     label: t('labels.openUrl'),
@@ -83,7 +91,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI
+  ...(isEeUI && isScriptButtonEnabled.value
     ? [
         {
           label: t('labels.runScript'),

@@ -45,6 +45,9 @@ const { base } = storeToRefs(useBase())
 const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
 })
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
@@ -252,7 +255,7 @@ const onReady = () => {
           </div>
         </Pane>
         <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-        <SmartsheetAutomationActionPane v-else-if="isActionPaneActive" ref="actionPaneRef" />
+        <SmartsheetAutomationActionPane v-else-if="isActionPaneActive && isEeUI && isAutomationEnabled" ref="actionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

@@ -122,8 +122,6 @@ const triggerAction = async () => {
       })
 
       isExecutingId.value = id
-
-      console.log(id)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))

@@ -21,16 +21,16 @@ const editedAt = (comment: CommentType) => {
 </script>
 
 <template>
-  <div class="bg-white p-3 rounded-lg -ml-8 border border-gray-300 border-1 shadow-sm relative group">
-    <div>
+  <div class="bg-white rounded-lg border border-gray-300 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
+    <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-200 rounded-t-lg">
+      <GeneralUserIcon :email="props.comment.user" class="w-[24px] aspect-square" />
       <span class="font-medium text-sm">
         {{ props.comment.displayName }}
       </span>
-      <span class="text-xs text-gray-500 ml-2">
+      <span class="text-xs text-gray-500">
         {{ timeAgo(props.comment.created_at) }}
       </span>
-    </div>
-    <div class="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex gap-1">
+      <div class="flex-1 text-right" />
       <NcTooltip>
         <NcButton
           class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -54,9 +54,16 @@ const editedAt = (comment: CommentType) => {
     </div>
     <SmartsheetExpandedFormRichComment
       :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-      class="!text-small !leading-18px !text-gray-800 -ml-1"
+      class="!text-small !leading-18px !text-gray-800 px-5 py-4"
       read-only
       sync-value-change
     />
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-audit-comment-block::before {
+  content: '';
+  @apply absolute -top-4.5 left-5.75 w-[1px] h-4.5 bg-gray-200;
+}
+</style>

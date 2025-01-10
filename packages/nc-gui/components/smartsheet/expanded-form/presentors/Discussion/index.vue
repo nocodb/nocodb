@@ -44,36 +44,30 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="max-w-[660px] mx-auto py-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full flex gap-8 items-start">
-          <div class="pb-4">
-            <GeneralUserIcon :email="group.user" class="w-[32px] aspect-square" />
-          </div>
-          <div class="w-0 flex-1 pb-4 border-l border-gray-200 pl-6">
-            <template v-if="group.type === 'audit'">
-              <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
-            </template>
-            <template v-else>
-              <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
-            </template>
-          </div>
+      <div class="max-w-[660px] mx-auto pb-4">
+        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full mx-6">
+          <template v-if="group.type === 'audit'">
+            <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
+          </template>
+          <template v-else>
+            <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
+          </template>
         </div>
-        <div class="w-full flex gap-8 items-start">
-          <div class="pb-4">
-            <GeneralUserIcon email="yooneskh@gmail.com" class="w-[32px] aspect-square" />
+        <div class="w-full border-t border-gray-200 px-6">
+          <div class="font-bold my-3">
+            Add a comment
           </div>
-          <div class="w-0 flex-1 border-l border-gray-200 pl-6">
-            <SmartsheetExpandedFormRichComment
-              v-model:value="newCommentText"
-              :hide-options="false"
-              placeholder="Comment..."
-              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] -ml-8 bg-white !w-auto"
-              data-testid="expanded-form-comment-input"
-              @keydown.stop
-              @save="saveComment(newCommentText); newCommentText = ''"
-              @keydown.enter.exact.prevent="saveComment(newCommentText); newCommentText = ''"
-            />
-          </div>
+          <SmartsheetExpandedFormRichComment
+            :key="auditCommentGroups.length"
+            v-model:value="newCommentText"
+            :hide-options="false"
+            placeholder="Comment..."
+            class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"
+            data-testid="expanded-form-comment-input"
+            @keydown.stop
+            @save="saveComment(newCommentText); newCommentText = ''"
+            @keydown.enter.exact.prevent="saveComment(newCommentText); newCommentText = ''"
+          />
         </div>
       </div>
     </div>

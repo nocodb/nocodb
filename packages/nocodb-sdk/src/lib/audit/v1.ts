@@ -265,9 +265,7 @@ export interface DataBulkInsertPayloadRecord {}
 
 export interface DataBulkUpdatePayload {}
 
-export interface DataBulkDeletePayload {
-
-}
+export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;

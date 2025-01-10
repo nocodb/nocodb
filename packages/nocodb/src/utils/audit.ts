@@ -975,10 +975,7 @@ export const extractColsMetaForAudit = (
         !datas.length ||
         datas.some((data) => data[col.title] !== undefined)
       ) {
-        acc[col.title] = filterAndMapAliasToColProps(
-          extractColMetaForAudit(col, datas),
-          ['defaultViewColOrder'],
-        );
+        acc[col.title] = extractColMetaForAudit(col, datas) as ColumnMeta;
       }
       return acc;
     }, {} as Record<string, ColumnMeta>);

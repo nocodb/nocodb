@@ -179,6 +179,6 @@ export class NcConfig {
   }
 
   static get isAuditEnabled() {
-    return process.env.NC_AUDIT_ENABLED === 'true';
+    return process.env.NC_ENABLE_AUDIT === 'true';
   }
 }

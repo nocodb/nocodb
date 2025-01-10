@@ -252,7 +252,7 @@ const onReady = () => {
           </div>
         </Pane>
         <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-        <SmartsheetAutomationActionPane v-else ref="actionPaneRef" />
+        <SmartsheetAutomationActionPane v-else-if="isActionPaneActive" ref="actionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

@@ -41,7 +41,7 @@ watch(
     nextTick(() => {
       setTimeout(() => {
         scrollToAudit(audits.value[auditCount - 1]?.id)
-      }, 100)
+      }, 1000)
     })
   },
 )
@@ -49,7 +49,7 @@ watch(
 
 <template>
   <div class="h-full">
-    <div v-if="isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
+    <div v-if="isAuditLoading && audits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
       <GeneralLoader size="xlarge" />
     </div>
 

@@ -1,4 +1,4 @@
-import { ColumnReqType, ColumnType, TableType } from './Api';
+import { ButtonActionsType, ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
@@ -262,6 +262,22 @@ export function isOrderCol(
 ) {
   return [UITypes.Order].includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isActionButtonCol(
+  col: (ColumnReqType | ColumnType) & {
+    colOptions?: any;
+    system?: number | boolean;
+  }
+) {
+  return (
+    col.uidt === UITypes.Button &&
+    [
+      ButtonActionsType.Script,
+      ButtonActionsType.Webhook,
+      ButtonActionsType.Ai,
+    ].includes((col?.colOptions as any)?.type)
   );
 }
 

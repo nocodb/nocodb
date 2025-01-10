@@ -1116,6 +1116,7 @@
     "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",
     "removeFromStarred": "Remove from starred",
+    "runActions": "Run Actions",
     "createScript": "Create Script",
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",

@@ -62,7 +62,7 @@ watch(isOpen, (val) => {
   if (!val) return
   nextTick(() => {
     setTimeout(() => {
-      const input = document.querySelector<HTMLInputElement>('.emoji-mart-search input');
+      const input = document.querySelector<HTMLInputElement>('.emoji-mart-search input')
       if (!input) return
       input.focus()
       input.select()
@@ -72,7 +72,7 @@ watch(isOpen, (val) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly" destroy-popup-on-hide>
+  <NcDropdown v-model:visible="isOpen" :disabled="readonly" destroy-popup-on-hide overlay-class-name="overflow-hidden">
     <div
       class="flex-none flex flex-row justify-center items-center select-none rounded-md nc-emoji"
       :class="{
@@ -103,9 +103,7 @@ watch(isOpen, (val) => {
           clearable: showClearButton,
         }"
       >
-        <div v-if="!isOpen" class="h-105 w-90"></div>
         <Picker
-          v-else
           :data="emojiIndex"
           :native="true"
           :show-preview="false"
@@ -116,10 +114,10 @@ watch(isOpen, (val) => {
           @click.stop="() => {}"
         >
         </Picker>
-        <div v-if="isOpen && showClearButton" class="absolute top-10 right-1.5">
+        <div v-if="showClearButton" class="absolute top-10 right-1.5">
           <div
             role="button"
-            class="flex flex-row items-center bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
+            class="flex flex-row items-center h-[32px] -mt-[1px] bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
             @click="clearEmoji"
           >
             Remove
@@ -152,7 +150,6 @@ watch(isOpen, (val) => {
   }
 
   .emoji-mart-search {
-    @apply px-2 mt-2;
     input {
       @apply text-sm pl-[11px] rounded-lg !py-5px transition-all duration-300 !outline-none ring-0;
 

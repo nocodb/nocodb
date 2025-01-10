@@ -5,7 +5,7 @@ const props = defineProps<{
 }>()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
-const isAuditsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))
+const isAuditsEnabled = computed(() => !isEeUI || isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))
 
 const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
 </script>

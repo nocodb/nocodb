@@ -34,13 +34,6 @@ watch(
     if (props.filterView) {
       viewsList = viewsList.filter(props.filterView)
     }
-    if (NSelectComponent.value) {
-      let selectedView = viewsList.find((v) => v.is_default)
-      if (!selectedView) {
-        selectedView = viewsList[0]
-      }
-      NSelectComponent.value.selectValue(selectedView?.id)
-    }
     viewsRef.value = viewsList
   },
   { immediate: true },

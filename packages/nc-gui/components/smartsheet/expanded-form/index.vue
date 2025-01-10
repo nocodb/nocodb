@@ -717,6 +717,7 @@ export default {
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment' },
+              { icon: 'ncMessageSquare', value: 'discussion' },
             ]"
           />
         </div>
@@ -860,6 +861,12 @@ export default {
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === 'discussion'">
+          <SmartsheetExpandedFormPresentorsDiscussion
+            :store="expandedFormStore"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
           />
         </template>
       </div>

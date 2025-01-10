@@ -17,6 +17,13 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'nocodb_scripts',
+    title: 'NocoDB Scripts (Beta)',
+    description: 'Enable NocoDB Scripts to automate repetetive workflow',
+    enabled: false,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',

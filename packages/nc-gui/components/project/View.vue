@@ -15,7 +15,15 @@ const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesSt
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { navigateToProjectPage, isSharedBase } = useBase()
+const { isSharedBase } = useBase()
+
+const automationStore = useAutomationStore()
+
+const { loadAutomations } = automationStore
+
+const { automations, isAutomationActive } = storeToRefs(automationStore)
+
+const scripts = computed(() => automations.value.get(currentBase.value?.id))
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
@@ -50,6 +58,10 @@ const userCount = computed(() =>
   activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
 )
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
@@ -61,7 +73,7 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
-      } else if (newVal === 'allScripts') {
+      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
         projectPageTab.value = 'allScripts'
       } else {
         projectPageTab.value = 'base-settings'
@@ -77,14 +89,16 @@ watch(
   { immediate: true },
 )
 
+const { navigateToProjectPage } = useBase()
+
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  /* if (projectPageTab.value !== 'allScripts') {
-    navigateToProjectPage({
-      page: projectPageTab.value as any,
-    })
-  } */
+  if (isAutomationActive.value) return
+
+  navigateToProjectPage({
+    page: projectPageTab.value as any,
+  })
 })
 
 watch(
@@ -115,6 +129,7 @@ onMounted(() => {
   if (props.tab) {
     projectPageTab.value = props.tab
   }
+  loadAutomations({ baseId: currentBase.value?.id })
 })
 </script>
 
@@ -170,7 +185,7 @@ onMounted(() => {
           </template>
           <ProjectAllTables />
         </a-tab-pane>
-        <a-tab-pane v-if="!isAdminPanel" key="allScripts">
+        <a-tab-pane v-if="!isAdminPanel && isAutomationEnabled && isEeUI" key="allScripts">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
@@ -182,7 +197,7 @@ onMounted(() => {
                   'bg-gray-50': projectPageTab !== 'allScripts',
                 }"
               >
-                {{ activeTables.length }}
+                {{ scripts?.length }}
               </div>
             </div>
           </template>

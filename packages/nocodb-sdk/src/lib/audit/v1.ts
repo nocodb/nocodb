@@ -129,6 +129,7 @@ enum AuditV1OperationTypes {
 
   DATA_IMPORT = 'DATA_IMPORT',
   DATA_EXPORT = 'DATA_EXPORT',
+  USER_PROFILE_UPDATE = 'USER_PROFILE_UPDATE',
 }
 
 export type BulkAuditV1OperationTypes =
@@ -179,6 +180,11 @@ export interface BaseUserRoleUpdatePayload extends UpdatePayload {
   user_email: string;
   user_role: string;
   base_title: string;
+}
+
+export interface UserProfileUpdatePayload extends UpdatePayload {
+  user_id: string;
+  user_email: string;
 }
 
 export interface TableCreatePayload {

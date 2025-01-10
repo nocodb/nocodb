@@ -48,7 +48,7 @@ import type {
   UserInviteEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent,
+  UserPasswordResetEvent, UserProfileUpdateEvent,
   UserSigninEvent,
   UserSignoutEvent,
   UserSignupEvent,
@@ -384,6 +384,10 @@ export class AppHooksService {
     data: ViewDuplicateEvent,
   ): void;
   emit(event: AppEvents.WEBHOOK_TEST, data: WebhookEvent): void;
+  emit(
+    event: AppEvents.USER_PROFILE_UPDATE,
+    data: UserProfileUpdateEvent,
+  ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

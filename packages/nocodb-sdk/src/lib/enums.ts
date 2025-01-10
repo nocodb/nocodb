@@ -201,6 +201,7 @@ export enum AppEvents {
 
   DATA_EXPORT = 'data.export',
   DATA_IMPORT = 'data.import',
+  USER_PROFILE_UPDATE = 'user.profile.update',
 }
 
 export enum ClickhouseTables {

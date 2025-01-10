@@ -28,6 +28,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
+import deepClone from "~/helpers/deepClone";
 
 @Injectable()
 export class UsersService {
@@ -91,17 +92,26 @@ export class UsersService {
   async profileUpdate({
     id,
     params,
+    req
   }: {
-    id: number;
+    id: string;
     params: {
       display_name?: string;
       avatar?: string;
       meta?: MetaType;
     };
+    req: NcRequest;
   }) {
+    const oldUser = await User.get(id);
     const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
 
     const user = await User.update(id, updateObj);
+
+    this.appHooksService.emit(AppEvents.USER_PROFILE_UPDATE, {
+      user: deepClone(user),
+      oldUser,
+      req,
+    });
 
     await PresignedUrl.signMetaIconImage(user);
 

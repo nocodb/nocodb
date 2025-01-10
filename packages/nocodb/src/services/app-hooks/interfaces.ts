@@ -57,6 +57,11 @@ export interface ProjectUserUpdateEvent extends NcBaseEvent {
   baseUser: Partial<ProjectUserReqType>;
   oldBaseUser: Partial<ProjectUserReqType>;
 }
+export interface UserProfileUpdateEvent
+  extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+  oldUser: Partial<UserType>;
+}
 
 export interface ProjectUserDeleteEvent extends NcBaseEvent {
   base: BaseType;

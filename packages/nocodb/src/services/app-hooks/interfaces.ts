@@ -439,6 +439,16 @@ export interface DataImportEvent extends NcBaseEvent {
   id: string;
 }
 
+export interface IntegrationEvent extends Optional<NcBaseEvent, 'context'> {
+  integration: IntegrationType;
+  user: UserType;
+  ip?: string;
+}
+
+export interface IntegrationUpdateEvent extends IntegrationEvent {
+  oldIntegration: IntegrationType;
+}
+
 export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;

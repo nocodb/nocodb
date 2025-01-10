@@ -12,6 +12,8 @@ import type {
   ColumnDuplicateEvent,
   ColumnEvent,
   ColumnUpdateEvent,
+  DataExportEvent,
+  DataImportEvent,
   FilterEvent,
   FilterUpdateEvent,
   FormColumnEvent,
@@ -391,6 +393,25 @@ export class AppHooksService {
   emit(
     event: AppEvents.USER_PROFILE_UPDATE,
     data: UserProfileUpdateEvent,
+  ): void;
+  emit(event: AppEvents.DATA_EXPORT, data: DataExportEvent): void;
+  emit(event: AppEvents.DATA_IMPORT, data: DataImportEvent): void;
+
+  emit(
+    event:
+      | AppEvents.FORM_UPDATE
+      | AppEvents.GRID_UPDATE
+      | AppEvents.CALENDAR_UPDATE
+      | AppEvents.GALLERY_UPDATE
+      | AppEvents.KANBAN_UPDATE
+      | AppEvents.MAP_UPDATE,
+    data:
+      | ViewUpdateEvent
+      | GridViewUpdateEvent
+      | GalleryViewUpdateEvent
+      | KanbanViewUpdateEvent
+      | CalendarViewUpdateEvent
+      | FormViewUpdateEvent,
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

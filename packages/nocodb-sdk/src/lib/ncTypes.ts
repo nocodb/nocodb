@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type {TableType, UserType} from '~/lib/Api';
+import type { TableType, UserType } from '~/lib/Api';
 
 export interface NcContext {
   org_id?: string;

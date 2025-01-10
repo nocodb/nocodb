@@ -58,7 +58,7 @@ function safeJsonParse(json: string) {
 }
 
 function isV0Audit(audit: AuditType) {
-  if (!audit.details) {
+  if (audit.version === 0) {
     return true
   }
 
@@ -110,7 +110,12 @@ function isV0Audit(audit: AuditType) {
               </div>
             </div>
             <div v-if="isV0Audit(audit)" class="pl-9">
-              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+              <div
+                v-if="audit.details"
+                class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3"
+                v-dompurify-html="audit.details"
+              ></div>
+              <div v-else class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 {{ audit.description }}
               </div>
             </div>

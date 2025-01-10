@@ -21,16 +21,16 @@ export const Paragraph = Node.create<any, { markdown: MarkdownNodeSpec }>({
 
           // Handle empty paragraphs
           if (isEmpty && !isLastNode) {
-            // Add `</br>` with a newline if the next node is a block
+            // Add `<br />` with a newline if the next node is a block
             const nextNode = parent.child(parent.children.indexOf(node) + 1)
 
-            // Avoid adding `<br>` if the previous node already ended with it
+            // Avoid adding `<br />` if the previous node already ended with it
             const prevNodeEndedWithBr = prevNode?.type.name === 'paragraph' && prevNode.childCount === 0
 
             if (nextNode?.isBlock && !['hardBreak', 'paragraph'].includes(nextNode.type.name)) {
-              state.write(' </br>\n\n ') // Ensure block starts correctly
+              state.write(' <br />\n\n ') // Ensure block starts correctly
             } else {
-              state.write(' </br> ') // Inline `</br>` for non-block contexts
+              state.write(' <br /> ') // Inline `<br />` for non-block contexts
             }
             return
           }

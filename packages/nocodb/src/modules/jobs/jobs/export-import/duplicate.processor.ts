@@ -3,7 +3,6 @@ import papaparse from 'papaparse';
 import debug from 'debug';
 import {
   AppEvents,
-  isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   RelationTypes,

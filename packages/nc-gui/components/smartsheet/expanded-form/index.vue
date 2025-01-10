@@ -721,7 +721,7 @@ export default {
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment' },
-              { icon: 'ncMessageSquare', value: 'discussion' },
+              // { icon: 'ncMessageSquare', value: 'discussion' },
             ]"
           />
         </div>

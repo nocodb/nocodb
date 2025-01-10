@@ -26,7 +26,12 @@ const viewsRef = shallowRef<ViewType[]>([])
 watch(
   () => [props.tableId, props.ignoreLoading, props.forceFetchViews],
   async () => {
-    await viewsStore.loadViews({ tableId: props.tableId, ignoreLoading: props.ignoreLoading, force: props.forceFetchViews })
+    try {
+      await viewsStore.loadViews({ tableId: props.tableId, ignoreLoading: props.ignoreLoading, force: props.forceFetchViews })
+    } catch (e) {
+      console.error(e)
+    }
+
     let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
     if (props.labelDefaultViewAsDefault) {
       viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))

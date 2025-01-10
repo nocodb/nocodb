@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, isSystemColumn } from 'nocodb-sdk';
+import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
 import type { NSelectProps } from './types'
 const props = withDefaults(
   defineProps<NSelectProps & { tableId?: string; forceLoadTableFields?: boolean; filterColumn?: (t: ColumnType) => boolean }>(),
@@ -16,14 +16,17 @@ const { activeTable } = storeToRefs(tableStore)
 const fieldsRef = computedAsync<ColumnType[]>(async () => {
   let fields: ColumnType[]
   if (props.tableId) {
-    fields = (await loadTableMeta(props.tableId)).columns || []
+    fields = (await loadTableMeta(props.tableId))?.columns || []
   } else {
     fields = activeTable.value.columns
   }
   if (props.filterColumn) {
     return fields.filter(props.filterColumn)
   }
-  return fields.filter((f) => !isSystemColumn(f) || f.pk)
+
+  fields = fields.filter((f) => !isSystemColumn(f) || f.pk)
+
+  return fields
 })
 defineExpose({
   fieldsRef,

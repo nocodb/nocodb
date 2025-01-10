@@ -631,14 +631,6 @@ export default class View implements ViewType {
         logger.error('Failed to clean command palette cache');
       });
 
-      return View.get(context, view_id, ncMeta).then(async (v) => {
-        await NocoCache.appendToList(
-          CacheScope.VIEW,
-          [view.fk_model_id],
-          `${CacheScope.VIEW}:${view_id}`,
-        );
-        return v;
-      });
       if (copyFromView) {
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_COMPLETE, {
           sourceView: copyFromView,
@@ -647,6 +639,14 @@ export default class View implements ViewType {
           context,
         });
       }
+      return View.get(context, view_id, ncMeta).then(async (v) => {
+        await NocoCache.appendToList(
+          CacheScope.VIEW,
+          [view.fk_model_id],
+          `${CacheScope.VIEW}:${view_id}`,
+        );
+        return v;
+      });
     } catch (e) {
       if (copyFromView) {
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_FAIL, {

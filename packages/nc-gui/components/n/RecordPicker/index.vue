@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { TableType, ViewType } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -9,18 +9,22 @@ const props = withDefaults(
     modelValue: Record<string, any>
     fields?: string[]
     allowRecordCreation?: boolean
-    sourceData?: Record<string, any>[]
+    records?: Record<string, any>[]
   }>(),
   {
     label: '- select a record -',
   },
 )
 
+const emits = defineEmits<{
+  'update:modelValue': (value: Record<string, any>) => void
+}>()
+
 const searchQuery = ref('')
 
-const isSearchInputFocused = ref(false)
-
 const ncRecordPickerDropdownRef = ref<HTMLDivElement>()
+
+const vModel = useVModel(props, 'modelValue', emits)
 
 const randomClass = `record_picker_${Math.floor(Math.random() * 99999)}`
 
@@ -67,13 +71,52 @@ watch([ncRecordPickerDropdownRef, isOpen], () => {
     addOrRemoveClass(false)
   }
 })
+
+const { getMeta } = useMetas()
+
+const { viewsByTable } = storeToRefs(useViewsStore())
+const { loadViews } = useViewsStore()
+
+const viewMeta = ref<ViewType>()
+
+const tableMeta = ref<TableType>()
+
+const isLoading = ref(false)
+
+const loadMetas = async () => {
+  if (!props.tableId) return
+  isLoading.value = true
+
+  tableMeta.value = (await getMeta(props.tableId))!
+
+  if (props.viewId) {
+    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
+
+    if (!viewMeta.value) {
+      await loadViews({ tableId: props.tableId, force: true })
+      viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
+    }
+  } else {
+    await loadViews({ tableId: props.tableId, force: true })
+    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.is_default)
+  }
+  isLoading.value = false
+}
+
+onMounted(async () => {
+  await loadMetas()
+})
+
+const resolveInput = (row: Record<string, any>) => {
+  vModel.value = row
+  isOpen.value = false
+}
 </script>
 
 <template>
   <NcDropdown
     v-model:visible="isOpen"
     :trigger="['click']"
-    placement="bottomLeft"
     :class="`.nc-${randomClass}`"
     :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
@@ -83,25 +126,32 @@ watch([ncRecordPickerDropdownRef, isOpen], () => {
 
     <template #overlay>
       <div ref="ncRecordPickerDropdownRef" :class="`${randomClass}`" class="nc-record-picker-dropdown-wrapper">
-        <div class="h-full w-full" :class="{ active: isOpen }" @keydown.enter.stop>
-          <div class="flex flex-col h-full">
-            <div class="bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-              <div class="flex-1 nc-record-picker-dropdown-record-search-wrapper flex items-center py-0.5 rounded-md">
-                <a-input
-                  ref="filterQueryRef"
-                  v-model:value="searchQuery"
-                  :bordered="false"
-                  placeholder="Search records..."
-                  class="w-full min-h-4 !pl-0"
-                  size="small"
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
-                  </template>
-                </a-input>
-              </div>
+        <div class="flex flex-col h-full w-full" :class="{ active: isOpen }" @keydown.enter.stop>
+          <div class="bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
+            <div class="flex-1 nc-record-picker-dropdown-record-search-wrapper flex items-center py-0.5 rounded-md">
+              <a-input
+                ref="filterQueryRef"
+                v-model:value="searchQuery"
+                :bordered="false"
+                placeholder="Search records..."
+                class="w-full min-h-4 !pl-0"
+                size="small"
+              >
+                <template #prefix>
+                  <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+                </template>
+              </a-input>
             </div>
           </div>
+          <NRecordPickerRecords
+            v-if="!isLoading"
+            :view-meta="viewMeta"
+            :data="records"
+            :fields="fields"
+            :meta="tableMeta"
+            :where="searchQuery"
+            @resolve="resolveInput"
+          />
         </div>
       </div>
     </template>
@@ -119,7 +169,7 @@ watch([ncRecordPickerDropdownRef, isOpen], () => {
   overflow-x: hidden;
   resize: vertical;
   min-height: 412px;
-  max-height: 700px;
+  max-height: 600px;
   max-width: 540px;
 }
 

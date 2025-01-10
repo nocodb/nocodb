@@ -35,10 +35,11 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
   }
   where?: ComputedRef<string | undefined>
+  disableSmartsheet?: boolean
 }) {
   const NOCO = 'noco'
 
-  const { meta, viewMeta, callbacks, where } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet } = args
 
   const { $api } = useNuxtApp()
 
@@ -66,7 +67,13 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, sorts } = disableSmartsheet
+    ? {
+        nestedFilters: ref([]),
+        allFilters: ref([]),
+        sorts: ref([]),
+      }
+    : useSmartsheetStoreOrThrow()
 
   const selectedAllRecords = ref(false)
 
@@ -88,7 +95,7 @@ export function useInfiniteData(args: {
   })
 
   const computedWhereFilter = computed(() => {
-    const filter = extractFilterFromXwhere(xWhere.value ?? '', columnsByAlias.value)
+    const filter = extractFilterFromXwhere(where?.value ?? '', columnsByAlias.value)
 
     return filter.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }

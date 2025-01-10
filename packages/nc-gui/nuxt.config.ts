@@ -267,6 +267,8 @@ export default defineNuxtConfig({
         'youtube-vue3',
         'vuedraggable',
         'jsbarcode',
+        '@ckpack/vue-color',
+        'locale-codes',
         '@tiptap/pm/model',
         '@tiptap/extension-hard-break',
         '@tiptap/extension-strike',

@@ -283,7 +283,7 @@ const visibleRows = computed(() => {
 
     const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
-    row.rowMeta.rowProgress = tableState.rowProgress.get(rowId.toString())
+    row.rowMeta.rowProgress = tableState.rowProgress.get(String(rowId))
     return row
   })
 })

@@ -8,56 +8,6 @@
     "version": "",
     "description": "NocoDB API Documentation"
   },
-  "x-tagGroups": [
-    {
-      "name": "Auth APIs",
-      "tags": [
-        "Auth",
-        "API Token"
-      ]
-    },
-    {
-      "name": "Public APIs",
-      "tags": [
-        "Public"
-      ]
-    },
-    {
-      "name": "Data APIs",
-      "tags": [
-        "DB Table Row",
-        "DB View Row",
-        "Storage"
-      ]
-    },
-    {
-      "name": "Meta APIs",
-      "tags": [
-        "Source",
-        "DB Table",
-        "DB Table Column",
-        "DB Table Filter",
-        "DB Table Sort",
-        "DB Table Webhook",
-        "DB Table Webhook Filter",
-        "DB View",
-        "DB View Column",
-        "DB View Share",
-        "Plugin",
-        "Base",
-        "Utils"
-      ]
-    },
-    {
-      "name": "Organisation APIs",
-      "tags": [
-        "Org App Settings",
-        "Org License",
-        "Org Tokens",
-        "Org Users"
-      ]
-    }
-  ],
   "servers": [
     {
       "url": "http://localhost:8080"
@@ -266,7 +216,7 @@
                     "invited_users": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/BaseUserInvite"
+                        "$ref": "#/components/schemas/BaseUserInviteRequest"
                       },
                       "description": "List of successfully invited users."
                     }
@@ -325,7 +275,7 @@
                     "updated_users": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/BaseUserUpdate"
+                        "$ref": "#/components/schemas/BaseUserUpdateRequest"
                       },
                       "description": "List of successfully updated users."
                     }
@@ -384,7 +334,7 @@
                     "deleted_users": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/BaseUserDelete"
+                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
                       },
                       "description": "List of successfully deleted users."
                     }
@@ -643,13 +593,13 @@
         }
       }
     },
-    "/api/v3/meta/tables/{table_id}": {
+    "/api/v3/meta/tables/{tableId}": {
       "get": {
         "summary": "Retrieve table details",
         "description": "Retrieve the details of a specific table.",
         "parameters": [
           {
-            "name": "table_id",
+            "name": "tableId",
             "in": "path",
             "required": true,
             "schema": {
@@ -682,7 +632,7 @@
         "description": "Update the details of a specific table.",
         "parameters": [
           {
-            "name": "table_id",
+            "name": "tableId",
             "in": "path",
             "required": true,
             "schema": {
@@ -728,7 +678,7 @@
         "description": "Delete a specific table.",
         "parameters": [
           {
-            "name": "table_id",
+            "name": "tableId",
             "in": "path",
             "required": true,
             "schema": {
@@ -750,7 +700,6 @@
         }
       }
     },
-
     "/api/v3/meta/filters/{filterId}": {
       "patch": {
         "summary": "Update a filter or group",
@@ -760,7 +709,9 @@
             "name": "filterId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the filter or group."
           }
         ],
@@ -768,7 +719,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/FilterCreateUpdate" }
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
             }
           }
         },
@@ -777,13 +730,21 @@
             "description": "Filter or group updated successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FilterCreateUpdate" }
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
               }
             }
           },
-          "400": { "description": "Invalid request body." },
-          "404": { "description": "Filter or group not found." },
-          "500": { "description": "Server error." }
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       },
       "delete": {
@@ -794,14 +755,22 @@
             "name": "filterId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the filter or group."
           }
         ],
         "responses": {
-          "204": { "description": "Filter or group deleted successfully." },
-          "404": { "description": "Filter or group not found." },
-          "500": { "description": "Server error." }
+          "204": {
+            "description": "Filter or group deleted successfully."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       }
     },
@@ -814,7 +783,9 @@
             "name": "viewId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the view."
           }
         ],
@@ -823,12 +794,18 @@
             "description": "List of filters and groups retrieved successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FilterListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/FilterListResponse"
+                }
               }
             }
           },
-          "404": { "description": "View not found." },
-          "500": { "description": "Server error." }
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       },
       "post": {
@@ -839,7 +816,9 @@
             "name": "viewId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the view."
           }
         ],
@@ -847,7 +826,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/FilterCreateUpdate" }
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
             }
           }
         },
@@ -856,16 +837,21 @@
             "description": "Filter or group created successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FilterCreateUpdate" }
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
               }
             }
           },
-          "400": { "description": "Invalid request body." },
-          "500": { "description": "Server error." }
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       }
     },
-
     "/api/v3/meta/views/{viewId}/sorts": {
       "get": {
         "summary": "List sorts for a view",
@@ -875,7 +861,9 @@
             "name": "viewId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the view."
           }
         ],
@@ -884,12 +872,18 @@
             "description": "List of sorts retrieved successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SortListResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/SortListResponse"
+                }
               }
             }
           },
-          "404": { "description": "View not found." },
-          "500": { "description": "Server error." }
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       },
       "post": {
@@ -900,7 +894,9 @@
             "name": "viewId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the view."
           }
         ],
@@ -908,7 +904,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SortCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/SortCreate"
+              }
             }
           }
         },
@@ -917,16 +915,21 @@
             "description": "Sort created successfully.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Sort" }
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
               }
             }
           },
-          "400": { "description": "Invalid request body." },
-          "500": { "description": "Server error." }
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       }
     },
-
     "/api/v3/meta/sorts/{sortId}": {
       "delete": {
         "summary": "Delete a sort",
@@ -936,20 +939,144 @@
             "name": "sortId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Unique identifier for the sort."
           }
         ],
         "responses": {
-          "204": { "description": "Sort deleted successfully." },
-          "404": { "description": "Sort not found." },
-          "500": { "description": "Server error." }
+          "204": {
+            "description": "Sort deleted successfully."
+          },
+          "404": {
+            "description": "Sort not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
         }
       }
     },
-
-
-
+    "/api/v3/meta/tables/{tableId}/fields": {
+      "post": {
+        "summary": "Create a new column",
+        "description": "Create a new column within the specified table.",
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Column created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/fields/{fieldId}": {
+      "patch": {
+        "summary": "Update a column",
+        "description": "Update the details of a specific column.",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the column."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Column updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Column not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a column",
+        "description": "Delete a specific column.",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the column."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Column deleted successfully."
+          },
+          "404": {
+            "description": "Column not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/tables/{tableId}/records": {
       "parameters": [
         {
@@ -997,11 +1124,20 @@
           {
             "schema": {
               "type": "integer",
-              "minimum": 0
+              "minimum": 1
             },
             "in": "query",
-            "name": "offset",
-            "description": "Enables you to control the pagination of your API response by specifying the number of records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no records are skipped by default.\n\nExample: `offset=25` will skip the first 25 records in your API response, allowing you to access records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of records to exclude, not an index value, so an offset of 25 will skip the first 25 records."
+            "name": "page",
+            "description": "Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset."
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "nestedPage",
+            "description": "Enables you to control the pagination of your nested data in API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset. By nested data we mean Linked records data list."
           },
           {
             "schema": {
@@ -1671,8 +1807,8 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset",
-            "description": "Enables you to control the pagination of your API response by specifying the number of linked records you want to skip from the beginning of the result set. The default value for this parameter is set to 0, meaning no linked records are skipped by default.\n\nExample: `offset=25` will skip the first 25 linked records in your API response, allowing you to access linked records starting from the 26th position.\n\nPlease note that the 'offset' value represents the number of linked records to exclude, not an index value, so an offset of 25 will skip the first 25 linked records."
+            "name": "page",
+            "description": "Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of linked records in the dataset."
           },
           {
             "schema": {
@@ -4012,8 +4148,6 @@
           "list"
         ]
       },
-
-
       "FilterGroup": {
         "type": "object",
         "properties": {
@@ -4022,16 +4156,25 @@
             "description": "Unique identifier for the filter group."
           },
           "parent_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Parent ID for the group or null if root."
           },
           "group_operator": {
             "type": "string",
-            "enum": ["AND", "OR"],
+            "enum": [
+              "AND",
+              "OR"
+            ],
             "description": "Logical operator for the group."
           }
         },
-        "required": ["group_id", "group_operator"]
+        "required": [
+          "group_id",
+          "group_operator"
+        ]
       },
       "Filter": {
         "type": "object",
@@ -4053,15 +4196,29 @@
             "description": "Primary comparison operator (e.g., eq, gt, lt)."
           },
           "sub_operator": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Secondary comparison operator (if applicable)."
           },
           "value": {
-            "type": ["string", "number", "boolean", "null"],
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ],
             "description": "Value for comparison."
           }
         },
-        "required": ["filter_id", "parent_id", "field_id", "operator", "value"]
+        "required": [
+          "filter_id",
+          "parent_id",
+          "field_id",
+          "operator",
+          "value"
+        ]
       },
       "FilterCreateUpdate": {
         "oneOf": [
@@ -4084,15 +4241,28 @@
                 "description": "Primary comparison operator (e.g., eq, gt, lt)."
               },
               "comparison_sub_op": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Secondary comparison operator (if applicable)."
               },
               "value": {
-                "type": ["string", "number", "boolean", "null"],
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ],
                 "description": "Value for comparison."
               }
             },
-            "required": ["parent_id", "field_id", "comparison_op", "value"]
+            "required": [
+              "parent_id",
+              "field_id",
+              "comparison_op",
+              "value"
+            ]
           }
         ]
       },
@@ -4103,15 +4273,20 @@
             "type": "array",
             "items": {
               "oneOf": [
-                { "$ref": "#/components/schemas/FilterGroup" },
-                { "$ref": "#/components/schemas/Filter" }
+                {
+                  "$ref": "#/components/schemas/FilterGroup"
+                },
+                {
+                  "$ref": "#/components/schemas/Filter"
+                }
               ]
             }
           }
         },
-        "required": ["list"]
+        "required": [
+          "list"
+        ]
       },
-
       "Sort": {
         "type": "object",
         "properties": {
@@ -4125,11 +4300,17 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"],
+            "enum": [
+              "asc",
+              "desc"
+            ],
             "description": "Direction of sorting (ascending or descending)."
           }
         },
-        "required": ["field_id", "direction"]
+        "required": [
+          "field_id",
+          "direction"
+        ]
       },
       "SortListResponse": {
         "type": "object",
@@ -4141,7 +4322,9 @@
             }
           }
         },
-        "required": ["list"]
+        "required": [
+          "list"
+        ]
       },
       "SortCreate": {
         "type": "object",
@@ -4152,13 +4335,18 @@
           },
           "direction": {
             "type": "string",
-            "enum": ["asc", "desc"],
+            "enum": [
+              "asc",
+              "desc"
+            ],
             "description": "Direction of sorting (ascending or descending)."
           }
         },
-        "required": ["field_id", "direction"]
+        "required": [
+          "field_id",
+          "direction"
+        ]
       },
-
       "Paginated": {
         "description": "Model for Paginated",
         "examples": [
@@ -4187,6 +4375,64 @@
         },
         "title": "Paginated Model",
         "type": "object"
+      },
+      "BaseUserDeleteRequest": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user."
+            }
+          }
+        }
+      },
+      "BaseUserUpdateRequest": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user."
+            },
+            "base_role": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "editor",
+                "viewer",
+                "no-access",
+                null
+              ],
+              "description": "Role of the user for the base. Can be null if not assigned."
+            }
+          }
+        }
+      },
+      "BaseUserInviteRequest": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user."
+            },
+            "base_role": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "editor",
+                "viewer",
+                "no-access",
+                null
+              ],
+              "description": "Role of the user for the base. Can be null if not assigned."
+            }
+          }
+        }
       }
     },
     "responses": {

@@ -388,27 +388,25 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const auditCommentGroups = computed(() => {
-
-    const groups = [];
+    const groups = []
 
     const currentAudits = [...audits.value].sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
-    });
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
+    })
 
     const currentComments = [...comments.value].sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1;
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
     })
 
     let currentAudit = currentAudits.shift()
     let currentComment = currentComments.shift()
-    let currentAuditGroup = undefined
+    let currentAuditGroup
 
     while (currentAudit || currentComment) {
       if (currentComment && !currentAudit) {
-
         if (currentAuditGroup) {
-          groups.push(currentAuditGroup);
-          currentAuditGroup = undefined;
+          groups.push(currentAuditGroup)
+          currentAuditGroup = undefined
         }
 
         groups.push({
@@ -416,13 +414,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           user: currentComment.created_by_email,
           displayName: currentComment.created_display_name,
           type: 'comment',
-        });
+        })
 
         currentComment = currentComments.shift()
-
-      }
-      else if (currentAudit && !currentComment) {
-
+      } else if (currentAudit && !currentComment) {
         if (!currentAuditGroup) {
           currentAuditGroup = {
             user: currentAudit.user,
@@ -430,12 +425,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             created_at: currentAudit.created_at,
             type: 'audit',
             audits: [currentAudit],
-          };
-        }
-        else {
-          if (currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type || currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type || currentAudit?.user !== currentAuditGroup?.audits[0]?.user) {
-
-            groups.push(currentAuditGroup);
+          }
+        } else {
+          if (
+            currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type ||
+            currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type ||
+            currentAudit?.user !== currentAuditGroup?.audits[0]?.user
+          ) {
+            groups.push(currentAuditGroup)
 
             currentAuditGroup = {
               user: currentAudit.user,
@@ -443,23 +440,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               created_at: currentAudit.created_at,
               type: 'audit',
               audits: [currentAudit],
-            };
-
-          }
-          else {
-            currentAuditGroup.audits.push(currentAudit);
+            }
+          } else {
+            currentAuditGroup.audits.push(currentAudit)
           }
         }
 
         currentAudit = currentAudits.shift()
-
-      }
-      else if (currentComment && currentAudit) {
+      } else if (currentComment && currentAudit) {
         if (dayjs(currentComment.created_at).isBefore(dayjs(currentAudit.created_at))) {
-
           if (currentAuditGroup) {
-            groups.push(currentAuditGroup);
-            currentAuditGroup = undefined;
+            groups.push(currentAuditGroup)
+            currentAuditGroup = undefined
           }
 
           groups.push({
@@ -467,13 +459,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             user: currentComment.created_by_email,
             displayName: currentComment.created_display_name,
             type: 'comment',
-          });
+          })
 
-          currentComment = currentComments.shift();
-
-        }
-        else {
-          
+          currentComment = currentComments.shift()
+        } else {
           if (!currentAuditGroup) {
             currentAuditGroup = {
               user: currentAudit.user,
@@ -481,40 +470,38 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               created_at: currentAudit.created_at,
               type: 'audit',
               audits: [currentAudit],
-            };
-          }
-          else {
-            if (currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type || currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type || currentAudit?.user !== currentAuditGroup?.audits[0]?.user) {
+            }
+          } else {
+            if (
+              currentAudit?.op_type !== currentAuditGroup?.audits[0]?.op_type ||
+              currentAudit?.op_sub_type !== currentAuditGroup?.audits[0]?.op_sub_type ||
+              currentAudit?.user !== currentAuditGroup?.audits[0]?.user
+            ) {
+              groups.push(currentAuditGroup)
 
-              groups.push(currentAuditGroup);
-  
               currentAuditGroup = {
                 user: currentAudit.user,
                 displayName: currentAudit.created_display_name,
                 created_at: currentAudit.created_at,
                 type: 'audit',
                 audits: [currentAudit],
-              };
-  
-            }
-            else {
-              currentAuditGroup.audits.push(currentAudit);
+              }
+            } else {
+              currentAuditGroup.audits.push(currentAudit)
             }
           }
-  
-          currentAudit = currentAudits.shift()
 
+          currentAudit = currentAudits.shift()
         }
       }
     }
 
     if (currentAuditGroup?.audits?.length) {
-      groups.push(currentAuditGroup);
+      groups.push(currentAuditGroup)
     }
 
-    return groups;
-
-  });
+    return groups
+  })
 
   return {
     ...rowStore,

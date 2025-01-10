@@ -1,5 +1,13 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  RelationTypes,
+  UITypes,
+  LongTextAiMetaProp as _LongTextAiMetaProp,
+  checkboxIconList,
+  ratingIconList,
+} from 'nocodb-sdk'
 import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp, checkboxIconList, ratingIconList } from 'nocodb-sdk'
 
 export interface UiTypesType {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { type CommentType } from 'nocodb-sdk'
 
 /* interface */
@@ -12,11 +11,7 @@ const { user } = useGlobal()
 
 /* stores */
 
-const {
-  loadComments,
-  resolveComment,
-  updateComment,
-} = useRowCommentsOrThrow()
+const { loadComments, resolveComment, updateComment } = useRowCommentsOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -109,13 +104,11 @@ async function onEditComment() {
   })
   loadComments()
 }
-
 </script>
 
 <template>
   <div class="bg-white rounded-lg border border-gray-300 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
     <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-200 rounded-t-lg">
-
       <GeneralUserIcon :email="props.comment.user" class="w-[24px] aspect-square" />
 
       <span class="font-medium text-sm">
@@ -128,7 +121,6 @@ async function onEditComment() {
       <div class="flex-1" />
 
       <template v-if="!editCommentValue">
-
         <NcTooltip v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -140,7 +132,7 @@ async function onEditComment() {
           </NcButton>
           <template #title>Click to edit</template>
         </NcTooltip>
-  
+
         <NcTooltip v-if="!props.comment.resolved_by && hasEditPermission">
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -163,9 +155,7 @@ async function onEditComment() {
             <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
           </NcButton>
         </NcTooltip>
-
       </template>
-
     </div>
     <SmartsheetExpandedFormRichComment
       v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
@@ -177,7 +167,10 @@ async function onEditComment() {
       sync-value-change
       @save="onEditComment"
       @keydown.esc="onCancel"
-      @blur="editCommentValue = undefined; isEditing = false"
+      @blur="
+        editCommentValue = undefined
+        isEditing = false
+      "
       @keydown.enter.exact.prevent="onEditComment"
     />
     <SmartsheetExpandedFormRichComment

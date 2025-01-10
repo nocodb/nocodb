@@ -1,5 +1,5 @@
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import type { Node } from 'prosemirror-model'
+import type { Node } from '@tiptap/pm/model'
 
 export const dragOptionStyle = ({
   currentNode,

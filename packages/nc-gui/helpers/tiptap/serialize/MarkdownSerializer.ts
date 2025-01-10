@@ -1,5 +1,5 @@
 import type { Editor, AnyExtension } from '@tiptap/core'
-import prosemirror from 'prosemirror-model'
+import prosemirror from '@tiptap/pm/model'
 import { MarkdownSerializerState } from './state'
 import { HTMLMark, HTMLNode, HardBreak } from '../extensions'
 import { getMarkdownSpec } from '../util/extensions'

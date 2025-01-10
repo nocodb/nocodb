@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { CellSelection } from '@tiptap/pm/tables'
 import TableCellNodeView from './table-cell.vue'

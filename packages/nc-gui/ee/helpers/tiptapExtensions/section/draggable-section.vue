@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { NodeSelection } from 'prosemirror-state'
+import { NodeSelection } from '@tiptap/pm/state'
 import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)

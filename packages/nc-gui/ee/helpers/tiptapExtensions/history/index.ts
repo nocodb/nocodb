@@ -1,5 +1,5 @@
 import { Extension } from '@tiptap/core'
-import { history, redo, undo } from 'prosemirror-history'
+import { history, redo, undo } from '@tiptap/pm/history'
 
 export interface HistoryOptions {
   depth: number

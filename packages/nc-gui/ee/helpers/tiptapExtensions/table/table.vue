@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import type { EditorState } from 'prosemirror-state'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
+import type { EditorState } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { CellSelection, addColumn, addRow, selectedRect } from '@tiptap/pm/tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)

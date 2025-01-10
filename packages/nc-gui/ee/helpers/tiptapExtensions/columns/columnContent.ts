@@ -1,8 +1,8 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { Plugin } from 'prosemirror-state'
-import { Slice } from 'prosemirror-model'
+import { Plugin } from '@tiptap/pm/state'
+import { Slice } from '@tiptap/pm/model'
 import { getPositionOfSection } from '../helper'
 import ColumnContent from './column-content.vue'
 

@@ -1,4 +1,4 @@
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState } from '@tiptap/pm/state'
 
 export function selectSectionsInTextSelection(state: EditorState) {
   const { selection } = state

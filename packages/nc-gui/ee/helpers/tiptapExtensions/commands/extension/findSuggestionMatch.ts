@@ -1,6 +1,6 @@
 import type { Range } from '@tiptap/core'
 import { escapeForRegEx } from '@tiptap/core'
-import type { ResolvedPos } from 'prosemirror-model'
+import type { ResolvedPos } from '@tiptap/pm/model'
 
 export interface Trigger {
   char: string

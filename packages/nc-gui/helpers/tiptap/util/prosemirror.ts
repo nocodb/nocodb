@@ -1,4 +1,4 @@
-import { Node } from 'prosemirror-model'
+import { Node } from '@tiptap/pm/model'
 
 export function childNodes(node: Node) {
   return node?.content?.content ?? []

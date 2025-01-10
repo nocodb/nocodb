@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { TextSelection } from 'prosemirror-state'
+import { TextSelection } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPosOfChildNodeOfType, positionOfFirstChild } from '../helper'
 

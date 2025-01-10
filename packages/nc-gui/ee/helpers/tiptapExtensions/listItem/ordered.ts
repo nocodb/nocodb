@@ -1,6 +1,6 @@
 import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { nodeTypesContainingListItems } from '../helper'
 import type { ListNodeType } from './helper'

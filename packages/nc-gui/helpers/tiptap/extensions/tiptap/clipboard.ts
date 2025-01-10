@@ -27,7 +27,7 @@ export const MarkdownClipboard = Extension.create({
             })
           },
           /**
-           * @param {import('prosemirror-model').Slice} slice
+           * @param {import('@tiptap/pm/model').Slice} slice
            */
           clipboardTextSerializer: (slice) => {
             if (!this.options.transformCopiedText) {

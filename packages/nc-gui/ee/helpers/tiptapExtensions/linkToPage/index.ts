@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { Plugin } from 'prosemirror-state'
+import { Plugin } from '@tiptap/pm/state'
 import { getPositionOfSection, nodeTypesContainingSection } from '../helper'
 import LinkToPageComponent from './link-to-page.vue'
 

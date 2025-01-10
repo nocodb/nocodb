@@ -1,7 +1,7 @@
 import TiptapHeading from '@tiptap/extension-heading'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { Slice } from 'prosemirror-model'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
+import { Slice } from '@tiptap/pm/model'
 import { getPositionOfPreviousSection, getPositionOfSection, paragraphContent } from '../helper'
 
 export const Heading = TiptapHeading.extend({

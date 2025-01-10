@@ -1,4 +1,4 @@
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState } from '@tiptap/pm/state'
 import type { ListNodeType } from '.'
 
 export const isSelectionOfType = (state: EditorState, type: ListNodeType) => {

@@ -7,6 +7,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -14,7 +15,6 @@ import type {
   Model,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   GalleryView,
@@ -23,6 +23,7 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 const getAst = async (
   context: NcContext,
@@ -40,6 +41,7 @@ const getAst = async (
     getHiddenColumn = query?.['getHiddenColumn'],
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
+    apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
   }: {
     query?: RequestQuery;
@@ -52,6 +54,7 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
+    apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
   },
 ) => {
@@ -216,7 +219,13 @@ const getAst = async (
     }
     let isRequested;
 
-    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+    // exclude system column and foreign key from API response for v3
+    if (
+      (col.system || col.uidt === UITypes.ForeignKey) &&
+      apiVersion === NcApiVersion.V3
+    ) {
+      isRequested = false;
+    } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;

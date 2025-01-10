@@ -292,6 +292,7 @@ import NcOpenai from '~icons/nc-icons/openai'
 import NcClaude from '~icons/nc-icons/claude'
 import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
+import NcPosthog from '~icons/nc-icons/posthog'
 
 // Buttons Icons V2
 
@@ -1228,6 +1229,7 @@ export const iconMap = {
   claude: NcClaude,
   ollama: NcOllama,
   groq: NcGroq,
+  posthog: h(NcPosthog, { stroke: 'transparent' }),
   refreshCw: NcRefreshCW,
   iconReddit: NcRedditIcon,
   iconTwitter: NcTwitterIcon,

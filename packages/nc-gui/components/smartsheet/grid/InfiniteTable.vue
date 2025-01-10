@@ -1635,13 +1635,14 @@ const handleProgress = (payload: any) => {
       rowCells.set(payload.data.cellId, {
         progress: payload.data.progress,
         message: payload.data.message,
+        icon: payload.data?.icon,
       })
       break
     }
   }
 }
 
-const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: {rowId?: string; cellId?: string} }) => {
+const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?: string; cellId?: string } }) => {
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = null
@@ -2575,11 +2576,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
                         <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
-
                           <div
                             class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
                           >
-                            <GeneralIcon class="w-4 h-4" icon="ncGithub" />
+                            <GeneralIcon
+                              v-if="cellMeta[index][0]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][0]?.cellProgress?.icon"
+                            />
                             {{ cellMeta[index][0]?.cellProgress.message }}
                             <div class="flex-1" />
                             <GeneralSpinner class="w-4 h-4" />
@@ -2668,7 +2672,11 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           <div
                             class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
                           >
-                            <GeneralIcon class="w-4 h-4" icon="ncGithub" />
+                            <GeneralIcon
+                              v-if="cellMeta[index][colIndex]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][colIndex]?.cellProgress?.icon"
+                            />
                             {{ cellMeta[index][colIndex]?.cellProgress.message }}
                             <div class="flex-1" />
                             <GeneralSpinner class="w-4 h-4" />

@@ -351,6 +351,7 @@ interface ViewActionState {
       {
         progress: number
         message?: string
+        icon?: keyof typeof iconMap
       }
     >
   >

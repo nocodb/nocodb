@@ -45,6 +45,22 @@ function formatCurrency(value: string, currencyMeta: any) {
 /* attachment */
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+/* meta */
+
+function normalizeMeta(meta: Record<string, any> | undefined) {
+  return {
+    ...(meta ?? {}),
+    icon: meta?.icon
+      ? {
+          full: 'mdi-' + meta?.icon,
+          empty: 'mdi-' + meta?.icon,
+          checked: 'mdi-' + meta?.icon,
+          unchecked: 'mdi-' + meta?.icon,
+        }
+      : undefined,
+  }
+}
 </script>
 
 <template>
@@ -107,39 +123,68 @@ const { getPossibleAttachmentSrc } = useAttachment()
             </template>
           </div>
         </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Currency'">
-          <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
-            {{ formatCurrency(oldData[columnKey], meta[columnKey]) }}
+        <template v-else-if="meta[columnKey]?.field_type === 'LongText'">
+          <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through">
+            {{ oldData[columnKey] ?? 'empty' }}
           </div>
           <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
-            {{ formatCurrency(newData[columnKey], meta[columnKey]) }}
-          </div>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Checkbox'">
-          <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
-            <a-checkbox :checked="oldData[columnKey]" />
-          </div>
-          <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
-            <a-checkbox :checked="newData[columnKey]" />
-          </div>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Rating'">
-          <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50">
-            <a-rate :value="oldData[columnKey]" />
-          </div>
-          <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
-            <a-rate :value="newData[columnKey]" />
+            {{ newData[columnKey] ?? 'empty' }}
           </div>
         </template>
         <template v-else>
-          <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through">
-            {{ oldData[columnKey] ?? '"empty"' }}
+          <div class="nc-audit-mini-item-cell text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-0.25 bg-red-50 line-through">
+            <span v-if="!oldData[columnKey]"> empty </span>
+            <SmartsheetCell
+              v-else
+              :column="{
+                uidt: meta[columnKey]?.field_type,
+                meta: normalizeMeta(meta[columnKey]?.meta),
+                colOptions: meta[columnKey]?.col_options,
+              }"
+              :model-value="oldData[columnKey]"
+              :edit-enabled="false"
+              :read-only="true"
+              :class="{
+                'min-w-[100px]': meta[columnKey]?.field_type === 'Percent',
+              }"
+            />
           </div>
-          <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
-            {{ newData[columnKey] }}
+          <div class="nc-audit-mini-item-cell text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-0.25 bg-green-50">
+            <span v-if="!newData[columnKey]"> empty </span>
+            <SmartsheetCell
+              v-else
+              :column="{
+                uidt: meta[columnKey]?.field_type,
+                meta: normalizeMeta(meta[columnKey]?.meta),
+                colOptions: meta[columnKey]?.col_options,
+              }"
+              :model-value="newData[columnKey]"
+              :edit-enabled="false"
+              :read-only="true"
+              :class="{
+                'min-w-[100px]': meta[columnKey]?.field_type === 'Percent',
+              }"
+            />
           </div>
         </template>
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-audit-mini-item-cell :deep(.nc-cell-checkbox > div:first-child) {
+  @apply pl-0;
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-field.nc-multi-select > div) {
+  @apply !gap-1 !flex;
+  & > span {
+    @apply !m-0;
+  }
+}
+.nc-audit-mini-item-cell :deep(.nc-cell-field.nc-single-select > div) {
+  & > span {
+    @apply !m-0;
+  }
+}
+</style>

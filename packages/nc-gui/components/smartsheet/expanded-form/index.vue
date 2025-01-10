@@ -122,9 +122,9 @@ watch(activeViewMode, async (v) => {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
     await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
-  else if (v === 'discussion') {
-    await setCurrentViewExpandedFormMode(viewId, v)
-  }
+  // else if (v === 'discussion') {
+  //   await setCurrentViewExpandedFormMode(viewId, v)
+  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)

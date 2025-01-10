@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectStatus } from 'nocodb-sdk';
+import { AppEvents, ProjectStatus } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -20,6 +20,9 @@ import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { JobTypes } from '~/interface/Jobs';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import Noco from '~/Noco';
+import { MetaTable } from '~/cli';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -27,6 +30,7 @@ export class SnapshotController {
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   @Acl('manageSnapshots')
@@ -80,7 +84,7 @@ export class SnapshotController {
         is_snapshot: true,
       } as any,
       user: { id: req.user.id },
-      req: { user: { id: req.user.id } } as any,
+      req: { user: { id: req.user.id }, skipAudit: true } as any,
     });
 
     const snapshot = await Snapshot.insert(context, {
@@ -106,7 +110,15 @@ export class SnapshotController {
       req: {
         user: req.user,
         clientIp: req.clientIp,
+        skipAudit: true,
       },
+    });
+
+    this.appHooksService.emit(AppEvents.SNAPSHOT_CREATE, {
+      snapshot,
+      base,
+      context,
+      req,
     });
 
     return { id: job.id };
@@ -158,6 +170,7 @@ export class SnapshotController {
     if (!source) {
       throw new Error(`Source not found!`);
     }
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
     const targetBase = await this.basesService.baseCreate({
       base: {
@@ -171,7 +184,21 @@ export class SnapshotController {
           : {}),
       } as any,
       user: { id: req.user.id },
-      req: { user: { id: req.user.id } } as any,
+      req: {
+        user: { id: req.user.id, email: req.user.email },
+        ncParentAuditId: parentAuditId,
+        ncWorkspaceId: base.fk_workspace_id,
+      } as any,
+    });
+
+    const sourceBase = await Base.get(context, snapshot.base_id);
+
+    this.appHooksService.emit(AppEvents.SNAPSHOT_RESTORE, {
+      snapshot,
+      context,
+      targetBase,
+      sourceBase,
+      req,
     });
 
     const job = await this.jobsService.add(JobTypes.RestoreSnapshot, {
@@ -191,6 +218,9 @@ export class SnapshotController {
       req: {
         user: req.user,
         clientIp: req.clientIp,
+        ncParentAuditId: parentAuditId,
+        ncBaseId: targetBase.id,
+        ncWorkspaceId: base.fk_workspace_id,
       },
     });
 

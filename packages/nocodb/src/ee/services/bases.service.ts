@@ -285,6 +285,7 @@ export class BasesService extends BasesServiceCE {
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,
           req: param.req,
+          context,
         });
 
         source.config = undefined;
@@ -296,6 +297,7 @@ export class BasesService extends BasesServiceCE {
       user: param.user,
       xcdb: !baseBody.external,
       req: param.req,
+      context,
     });
 
     return base;

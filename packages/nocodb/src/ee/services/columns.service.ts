@@ -180,6 +180,7 @@ export class ColumnsService extends ColumnsServiceCE {
       reuse?: ReusableParams;
       colExtra?: any;
       user: UserType;
+      req: NcRequest;
     },
   ) {
     if ((param.column as any).is_custom_link) {
@@ -223,6 +224,7 @@ export class ColumnsService extends ColumnsServiceCE {
       ) {
         await createHmAndBtColumn(
           context,
+          param.req,
           child,
           parent,
           childColumn,
@@ -241,6 +243,7 @@ export class ColumnsService extends ColumnsServiceCE {
       } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
         await createOOColumn(
           context,
+          param.req,
           child,
           parent,
           childColumn,

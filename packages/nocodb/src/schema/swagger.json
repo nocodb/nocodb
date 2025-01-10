@@ -11531,6 +11531,22 @@
             },
             "in": "query",
             "name": "undo"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "nc-operation-id",
+            "description": "Operation ID"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "nc-import-type",
+            "description": "Import Type if triggering from import"
           }
         ]
       },

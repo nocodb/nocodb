@@ -232,7 +232,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       this.appHooksService.emit(AppEvents.WORKSPACE_CREATE, {
         workspace,
-        user: param.user,
         req: param.req,
       });
 
@@ -265,6 +264,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
             columns,
           },
           user: param.user,
+          req: param.req,
         });
 
         (base as any).tables = [table];
@@ -546,11 +546,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
     const updatedWorkspace = await Workspace.update(workspaceId, updateObj);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_UPDATE, {
+      oldWorkspace: existingWorkspace as WorkspaceType,
       workspace: {
         ...existingWorkspace,
         ...workspace,
-      },
-      user: param.user,
+      } as WorkspaceType,
       req: param.req,
     });
 
@@ -571,7 +571,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
       workspace,
-      user: param.user,
       req: param.req,
     });
 

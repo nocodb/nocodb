@@ -59,7 +59,7 @@ export class BaseUsersV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: any[], //ProjectUserReqType[];
+      baseUsers: any[]; //ProjectUserReqType[];
       req: NcRequest;
     },
   ): Promise<any> {
@@ -120,7 +120,7 @@ export class BaseUsersV3Service {
   async baseUserUpdate(
     context: NcContext,
     param: {
-      baseUsers: any[], // ProjectUserReqType[];
+      baseUsers: any[]; // ProjectUserReqType[];
       req: any;
       baseId: string;
     },

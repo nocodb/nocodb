@@ -411,7 +411,7 @@ async function importTemplate() {
             }
             const data = importData[k]
             const total = data.length
-
+            let operationId
             for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
               const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
                 srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
@@ -447,7 +447,18 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
+              const res = await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData, {
+                query: {
+                  operation_id: operationId,
+                },
+                wrapped: true,
+                headers: {
+                  'nc-operation-id': operationId,
+                  'nc-import-type': quickImportType,
+                },
+              })
+
+              operationId = res.headers['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
             }

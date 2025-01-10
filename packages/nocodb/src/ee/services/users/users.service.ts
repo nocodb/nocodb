@@ -151,6 +151,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token,
       meta,
       req,
+      workspace_invite,
     }: {
       avatar;
       display_name;
@@ -161,6 +162,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token;
       meta?: MetaType;
       req: NcRequest;
+      workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -204,11 +206,20 @@ export class UsersService extends UsersServiceCE {
       ncMeta,
     );
 
-    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
-      user: user,
-      ip: req?.clientIp,
-      req: req,
-    });
+    if (req.user) {
+      this.appHooksService.emit(AppEvents.USER_INVITE, {
+        user: user,
+        req: req,
+        role: req.user.roles,
+        workspaceInvite: workspace_invite,
+        workspaceId: req.ncWorkspaceId,
+      });
+    } else {
+      this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+        user: user,
+        req: req,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
@@ -295,7 +306,6 @@ export class UsersService extends UsersServiceCE {
 
         this.appHooksService.emit(AppEvents.USER_SIGNUP, {
           user: user,
-          ip: param.req?.clientIp,
           req: param.req,
         });
 

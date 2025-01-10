@@ -5,8 +5,10 @@ import {
   Get,
   Param,
   Patch,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { NcRequest } from 'nocodb-sdk';
 import type { SnapshotType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -43,13 +45,14 @@ export class SnapshotController {
   @Delete('/api/v2/meta/bases/:baseId/snapshots/:snapshotId')
   async deleteSnapshot(
     @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('snapshotId') snapshotId: string,
     @Param('baseId') baseId: string,
   ) {
-    return await this.snapshotService.deleteSnapshot(
-      context,
+    return await this.snapshotService.deleteSnapshot(context, {
       baseId,
       snapshotId,
-    );
+      req,
+    });
   }
 }

@@ -30,7 +30,7 @@ export class TablesService extends TableServiceCE {
       sourceId?: string;
       table: TableReqType;
       user: User | UserType;
-      req?: NcRequest;
+      req: NcRequest;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -65,6 +65,9 @@ export class TablesService extends TableServiceCE {
       }
     }
 
-    return super.tableCreate(context, param);
+    return super.tableCreate(context, {
+      ...param,
+      sourceId: source?.id || param.sourceId,
+    });
   }
 }

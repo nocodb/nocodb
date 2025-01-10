@@ -14,6 +14,7 @@ import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
@@ -177,21 +178,38 @@ export class WorkspaceUsersService {
 
     await PresignedUrl.signMetaIconImage(workspaceUser);
 
+    this.appHooksService.emit(AppEvents.WORKSPACE_USER_UPDATE, {
+      workspace,
+      user,
+      req: param.req,
+      workspaceUser: {
+        roles: param.roles,
+      },
+      oldWorkspaceUser: workspaceUser,
+    });
+
     return workspaceUser;
   }
 
   async delete(param: { workspaceId: string; userId: string; req: NcRequest }) {
     const { workspaceId, userId } = param;
 
+    const workspace = await Workspace.get(workspaceId);
+
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
-      const user = await WorkspaceUser.get(workspaceId, userId, ncMeta);
+      const user = await User.get(userId);
+      const workspaceUser = await WorkspaceUser.get(
+        workspaceId,
+        userId,
+        ncMeta,
+      );
 
-      if (!user) NcError.userNotFound(userId);
+      if (!workspaceUser) NcError.userNotFound(userId);
 
-      if (user.roles === WorkspaceUserRoles.OWNER) {
-        // current user should have owner role to delete owner
+      if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
+        // current workspaceUser should have owner role to delete owner
         if (
           !extractRolesObj(param.req.user.workspace_roles)?.[
             WorkspaceUserRoles.OWNER
@@ -211,22 +229,25 @@ export class WorkspaceUsersService {
         }
       }
 
-      // for other user delete user should have higher or equal role
-      if (getWorkspaceRolePower(user) > getWorkspaceRolePower(param.req.user)) {
+      // for other workspaceUser delete workspaceUser should have higher or equal role
+      if (
+        getWorkspaceRolePower(workspaceUser) >
+        getWorkspaceRolePower(param.req.user)
+      ) {
         NcError.badRequest(`Insufficient privilege to delete user`);
       }
 
-      // if not owner/creator then user can only delete self
+      // if not owner/creator then workspaceUser can only delete self
       if (
         ![WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].some((r) => {
           return extractRolesObj(param.req.user.workspace_roles)?.[r];
         }) &&
-        user.fk_user_id !== param.req.user.id
+        workspaceUser.fk_user_id !== param.req.user.id
       ) {
-        NcError.badRequest('Insufficient privilege to delete user');
+        NcError.badRequest('Insufficient privilege to delete workspaceUser');
       }
 
-      // get all bases user is part of and delete them
+      // get all bases workspaceUser is part of and delete them
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
         true,
@@ -248,6 +269,13 @@ export class WorkspaceUsersService {
       const res = await WorkspaceUser.softDelete(workspaceId, userId, ncMeta);
 
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
+        workspace,
+        workspaceUser: workspaceUser,
+        user,
+        req: param.req,
+      } as WorkspaceUserDeleteEvent);
 
       return res;
     } catch (e) {
@@ -406,10 +434,11 @@ export class WorkspaceUsersService {
             console.error(e);
           });
       }
-      this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
+      this.appHooksService.emit(AppEvents.WORKSPACE_USER_INVITE, {
         workspace,
         user,
-        invitedBy: param.invitedBy,
+        roles: roles || WorkspaceUserRoles.NO_ACCESS,
+        invitedBy: param.req?.user,
         req: param.req,
       });
     }

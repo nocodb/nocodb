@@ -1,13 +1,13 @@
 import {
   AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
+  AuditV1OperationTypes,
   extractFilterFromXwhere,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isSystemColumn,
   isVirtualCol,
   NcErrorType,
   PlanLimitTypes,
@@ -19,6 +19,7 @@ import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
   extractSortsObject,
+  formatDataForAudit,
   getAs,
   getColumnName,
   getCompositePkValue,
@@ -26,7 +27,6 @@ import {
   haveFormulaColumn,
   populatePk,
 } from 'src/db/BaseModelSqlv2';
-import DOMPurify from 'isomorphic-dompurify';
 import dayjs from 'dayjs';
 import conditionV2 from 'src/db/conditionV2';
 import Validator from 'validator';
@@ -34,10 +34,27 @@ import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import { NcApiVersion } from 'nocodb-sdk';
+import type {
+  DataBulkDeletePayload,
+  DataBulkUpdateAllPayload,
+  DataBulkUpdatePayload,
+  DataDeletePayload,
+  DataInsertPayload,
+  DataLinkPayload,
+  DataUnlinkPayload,
+  DataUpdatePayload,
+  FilterType,
+  NcRequest,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
+import {
+  extractColsMetaForAudit,
+  generateAuditV1Payload,
+  remapWithAlias,
+} from '~/utils';
 import {
   Audit,
   Column,
@@ -47,7 +64,7 @@ import {
   ModelStat,
 } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
-import { canUseOptimisedQuery } from '~/utils';
+import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_MODEL_STAT,
   UPDATE_WORKSPACE_COUNTER,
@@ -59,6 +76,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
 import { extractMentions } from '~/utils/richTextHelper';
+import { MetaTable } from '~/utils/globals';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -514,7 +532,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             );
       }
 
-      await this.afterInsert(response, trx, cookie);
+      await this.afterInsert({
+        data: response,
+        trx,
+        req: cookie,
+        insertData: data,
+      });
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
       console.log(e);
@@ -1082,24 +1105,48 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
-  public async afterInsert(data: any, _trx: any, req): Promise<void> {
+  public async afterInsert({
+    data,
+    insertData,
+    trx: _trx,
+    req,
+  }: {
+    data: any;
+    insertData: any;
+    trx: any;
+    req: NcRequest;
+  }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.INSERT,
-      description: DOMPurify.sanitize(
-        `Record with ID ${id} has been inserted into Table ${this.model.title}`,
+    const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
+      'CreatedAt',
+      'UpdatedAt',
+      // exclude virtual columns
+      ...this.model.columns
+        .filter((c) => isVirtualCol(c) || isSystemColumn(c))
+        .map((c) => c.title),
+    ]);
+    await Audit.insert(
+      await generateAuditV1Payload<DataInsertPayload>(
+        AuditV1OperationTypes.DATA_INSERT,
+        {
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          details: {
+            data: formatDataForAudit(filteredAuditData, this.model.columns),
+            column_meta: extractColsMetaForAudit(
+              this.model.columns,
+              filteredAuditData,
+            ),
+          },
+          req,
+        },
       ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+    );
 
     await this.handleRichTextMentions(null, data, req);
 
@@ -1114,23 +1161,61 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
+    let parentAuditId;
+    if (!req.ncParentAuditId) {
+      parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
-      description: DOMPurify.sanitize(
-        `${data.length} ${
-          data.length > 1 ? 'records have' : 'record has'
-        } been bulk inserted in ${this.model.title}`,
+      await Audit.insert(
+        await generateAuditV1Payload<DataBulkDeletePayload>(
+          AuditV1OperationTypes.DATA_BULK_INSERT,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          },
+        ),
+      );
+
+      req.ncParentAuditId = parentAuditId;
+    }
+    // data here is not mapped to column alias
+    await Audit.insert(
+      await Promise.all(
+        data.map((d) => {
+          const data = remapWithAlias({ data: d, columns: this.model.columns });
+
+          return generateAuditV1Payload<DataInsertPayload>(
+            AuditV1OperationTypes.DATA_INSERT,
+            {
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(data, true),
+              },
+              details: {
+                data: formatDataForAudit(
+                  removeBlankPropsAndMask(data, [
+                    'created_at',
+                    'updated_at',
+                    'created_by',
+                    'updated_by',
+                  ]),
+                  this.model.columns,
+                ),
+                column_meta: extractColsMetaForAudit(this.model.columns, data),
+              },
+              req,
+            },
+          );
+        }),
       ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+    );
 
     await this.handleRichTextMentions(null, data, req);
 
@@ -1144,22 +1229,30 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = req?.params?.id;
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.DELETE,
-      description: DOMPurify.sanitize(
-        `Record with ID ${id} has been deleted in Table ${this.model.title}`,
+    const id = this.extractPksValues(data);
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataDeletePayload>(
+        AuditV1OperationTypes.DATA_DELETE,
+        {
+          details: {
+            data: formatDataForAudit(
+              removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              this.model.columns,
+            ),
+            column_meta: extractColsMetaForAudit(this.model.columns, data),
+          },
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          req,
+        },
       ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+    );
+
     await this.handleHooks('after.delete', null, data, req);
 
     const modelStats = await ModelStat.get(
@@ -1211,28 +1304,59 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfDeletedRecords = data;
+    let noOfDeletedRecords: number = data;
     if (!isBulkAllOperation) {
       noOfDeletedRecords = data.length;
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
-      description: DOMPurify.sanitize(
-        `${noOfDeletedRecords} ${
-          noOfDeletedRecords > 1 ? 'records have' : 'record has'
-        } been bulk deleted in ${this.model.title}`,
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataBulkDeletePayload>(
+        AuditV1OperationTypes.DATA_BULK_DELETE,
+        {
+          details: {},
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+          },
+          req,
+          id: parentAuditId,
+        },
       ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+    );
+    req.ncParentAuditId = parentAuditId;
+
+    const column_meta = extractColsMetaForAudit(this.model.columns);
+    await Audit.insert(
+      await Promise.all(
+        data?.map?.((d) =>
+          generateAuditV1Payload<DataDeletePayload>(
+            AuditV1OperationTypes.DATA_DELETE,
+            {
+              details: {
+                data: d
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                      this.model.columns,
+                    )
+                  : null,
+                column_meta,
+              },
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: this.extractPksValues(d, true),
+              },
+              req,
+            },
+          ),
+        ),
+      ),
+    );
 
     const modelStats = await ModelStat.get(
       this.context,
@@ -1609,6 +1733,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             const operations = await this.prepareNestedLinkQb({
               nestedCols,
               data: d,
+              req: cookie,
               insertObj,
             });
 
@@ -1801,9 +1926,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         if (isSingleRecordInsertion) {
           const insertData = await this.readByPk(responses[0]);
-          await this.afterInsert(insertData, this.dbDriver, cookie);
+          await this.afterInsert({
+            data: insertData,
+            trx: this.dbDriver,
+            req: cookie,
+            insertData: datas?.[0],
+          });
         } else {
-          await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+          await this.afterBulkInsert(
+            insertDatas.map((r, i) => {
+              return { ...(r || {}), ...(responses?.[i] || {}) };
+            }),
+            this.dbDriver,
+            cookie,
+          );
         }
       }
 
@@ -2069,7 +2205,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         if (insertResponses.length === 1) {
           const insertData = await this.readByPk(insertResponses[0]);
-          await this.afterInsert(insertData, this.dbDriver, cookie);
+          await this.afterInsert({
+            data: insertData,
+            trx: this.dbDriver,
+            req: cookie,
+            insertData: datas[0],
+          });
         } else {
           await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
         }
@@ -2328,6 +2469,156 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (e) {
       throw e;
     }
+  }
+
+  public async afterAddChild({
+    columnTitle,
+    columnId,
+    rowId,
+    refRowId,
+    req,
+    model = this.model,
+    refModel = this.model,
+    displayValue,
+    refDisplayValue,
+    type,
+  }: {
+    columnTitle: string;
+    columnId: string;
+    refColumnTitle: string;
+    rowId: unknown;
+    refRowId: unknown;
+    req: NcRequest;
+    model: Model;
+    refModel: Model;
+    displayValue: unknown;
+    refDisplayValue: unknown;
+    type: RelationTypes;
+  }): Promise<void> {
+    if (!refDisplayValue) {
+      refDisplayValue = await this.readByPkFromModel(
+        refModel,
+        undefined,
+        true,
+        refRowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    if (!displayValue) {
+      displayValue = await this.readByPkFromModel(
+        model,
+        undefined,
+        true,
+        rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataLinkPayload>(
+        AuditV1OperationTypes.DATA_LINK,
+        {
+          context: {
+            ...this.context,
+            source_id: model.source_id,
+            fk_model_id: model.id,
+            row_id: rowId as string,
+          },
+          details: {
+            table_title: model.title,
+            ref_table_title: refModel.title,
+            link_field_title: columnTitle,
+            link_field_id: columnId,
+            row_id: rowId,
+            ref_row_id: refRowId,
+            display_value: displayValue,
+            ref_display_value: refDisplayValue,
+            type,
+          },
+          req,
+        },
+      ),
+    );
+  }
+
+  public async afterRemoveChild({
+    columnTitle,
+    columnId,
+    rowId,
+    refRowId,
+    req,
+    model = this.model,
+    refModel = this.model,
+    displayValue,
+    refDisplayValue,
+    type,
+  }: {
+    columnTitle: string;
+    columnId: string;
+    refColumnTitle: string;
+    rowId: unknown;
+    refRowId: unknown;
+    req: NcRequest;
+    model: Model;
+    refModel: Model;
+    displayValue: unknown;
+    refDisplayValue: unknown;
+    type: RelationTypes;
+  }): Promise<void> {
+    if (!refDisplayValue) {
+      refDisplayValue = await this.readByPkFromModel(
+        refModel,
+        undefined,
+        true,
+        refRowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    if (!displayValue) {
+      displayValue = await this.readByPkFromModel(
+        model,
+        undefined,
+        true,
+        rowId,
+        false,
+        {},
+        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
+      );
+    }
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataUnlinkPayload>(
+        AuditV1OperationTypes.DATA_UNLINK,
+        {
+          context: {
+            ...this.context,
+            source_id: model.source_id,
+            fk_model_id: model.id,
+            row_id: rowId as string,
+          },
+          details: {
+            table_title: model.title,
+            ref_table_title: refModel.title,
+            link_field_title: columnTitle,
+            link_field_id: columnId,
+            row_id: rowId,
+            ref_row_id: refRowId,
+            display_value: displayValue,
+            ref_display_value: refDisplayValue,
+            type,
+          },
+          req,
+        },
+      ),
+    );
   }
 
   async bulkDelete(
@@ -2758,7 +3049,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      await this.afterBulkDelete(response.length, this.dbDriver, cookie, true);
+      await this.afterBulkDelete(response, this.dbDriver, cookie, true);
 
       return response;
     } catch (e) {
@@ -2771,24 +3062,49 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     newData: any,
     _trx: any,
     req,
-    _updateObj?: Record<string, any>,
+    updateObj?: Record<string, any>,
   ): Promise<void> {
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
     const id = this.extractPksValues(newData);
-    const desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: desc,
-      details: '',
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+
+    const oldData: { [key: string]: any } = {};
+    const data: { [key: string]: any } = {};
+
+    if (updateObj) {
+      updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
+
+      for (const k of Object.keys(updateObj)) {
+        oldData[k] = prevData[k];
+        data[k] = newData[k];
+      }
+    } else {
+      Object.assign(oldData, prevData);
+      Object.assign(data, newData);
+    }
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataUpdatePayload>(
+        AuditV1OperationTypes.DATA_UPDATE,
+        {
+          context: {
+            ...this.context,
+            source_id: this.model.source_id,
+            fk_model_id: this.model.id,
+            row_id: id,
+          },
+          details: {
+            old_data: formatDataForAudit(oldData, this.model.columns),
+            data: formatDataForAudit(data, this.model.columns),
+            column_meta: extractColsMetaForAudit(
+              this.model.columns,
+              data,
+              oldData,
+            ),
+          },
+          req,
+        },
+      ),
+    );
 
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
@@ -2800,6 +3116,123 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.update', prevData, newData, req);
     }
     await this.handleRichTextMentions(prevData, newData, req);
+  }
+
+  public async afterBulkUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
+    if (!isBulkAllOperation) {
+      await this.handleHooks('after.bulkUpdate', prevData, newData, req);
+    }
+
+    if (newData && newData.length > 0) {
+      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
+      await Audit.insert(
+        await generateAuditV1Payload<DataBulkUpdatePayload>(
+          AuditV1OperationTypes.DATA_BULK_UPDATE,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          },
+        ),
+      );
+
+      req.ncParentAuditId = parentAuditId;
+
+      await Audit.insert(
+        await Promise.all(
+          newData.map((d, i) =>
+            generateAuditV1Payload<DataUpdatePayload>(
+              AuditV1OperationTypes.DATA_UPDATE,
+              {
+                context: {
+                  ...this.context,
+                  source_id: this.model.source_id,
+                  fk_model_id: this.model.id,
+                  row_id: this.extractPksValues(d, true),
+                },
+                details: {
+                  old_data: prevData?.[i]
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(prevData?.[i], [
+                          'CreatedAt',
+                          'UpdatedAt',
+                        ]),
+                        this.model.columns,
+                      )
+                    : null,
+                  data: d
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                        this.model.columns,
+                      )
+                    : null,
+                  column_meta: extractColsMetaForAudit(
+                    this.model.columns,
+                    d,
+                    prevData?.[i],
+                  ),
+                },
+                req,
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    await this.handleRichTextMentions(prevData, newData, req);
+  }
+
+  public async bulkUpdateAudit({
+    rowIds,
+    req,
+    conditions,
+    data,
+  }: {
+    rowIds: any[];
+    conditions: FilterType[];
+    data?: Record<string, any>;
+    req: NcRequest;
+  }) {
+    const auditUpdateObj = [];
+    for (const rowId of rowIds) {
+      auditUpdateObj.push(
+        await generateAuditV1Payload<DataBulkUpdateAllPayload>(
+          AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
+          {
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: this.extractPksValues(rowId, true),
+            },
+            details: {
+              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              old_data: removeBlankPropsAndMask(rowId, [
+                'CreatedAt',
+                'UpdatedAt',
+              ]),
+              conditions: conditions,
+              column_meta: extractColsMetaForAudit(this.model.columns, data),
+            },
+            req,
+          },
+        ),
+      );
+    }
+    await Audit.insert(auditUpdateObj);
   }
 
   async getCustomConditionsAndApply({

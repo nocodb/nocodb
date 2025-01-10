@@ -7,7 +7,12 @@ const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const addParamRow = () => vModel.value.push({})
+const addParamRow = () =>
+  vModel.value.push({
+    enabled: false,
+    name: '',
+    value: '',
+  })
 
 const deleteParamRow = (i: number) => {
   if (vModel.value.length === 1) return

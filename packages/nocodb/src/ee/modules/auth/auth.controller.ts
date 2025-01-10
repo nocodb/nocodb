@@ -11,6 +11,8 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.controller';
+import { AppEvents } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -65,6 +67,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   /* OpenID Connect auth apis */
+
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('openid'))
@@ -140,6 +143,11 @@ export class AuthController extends AuthControllerCE {
       return res.json(result);
     }
 
+    this.appHooksService.emit(AppEvents.USER_SIGNOUT, {
+      user: req.user as UserType,
+      req,
+    });
+
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
       let callbackURL = req.ncSiteUrl + '/auth/oidc/logout-redirect';
@@ -168,6 +176,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   /* OpenID Connect auth apis */
+
   /* OpenID Connect APIs */
   @Post('/auth/cognito')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('cognito'))

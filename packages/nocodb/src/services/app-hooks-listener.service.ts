@@ -1,283 +1,298 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-} from 'nocodb-sdk';
-import type { AuditType } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
-  ColumnEvent,
-  OrgUserInviteEvent,
-  ProjectInviteEvent,
-  ProjectUserResendInviteEvent,
-  ProjectUserUpdateEvent,
-  TableEvent,
-  UserEmailVerificationEvent,
-  UserPasswordChangeEvent,
-  UserPasswordForgotEvent,
-  UserPasswordResetEvent,
-  UserSigninEvent,
+  MetaDiffEvent,
+  UserInviteEvent,
   UserSignupEvent,
 } from '~/services/app-hooks/interfaces';
 import { T } from '~/utils';
-import { Audit, User } from '~/models';
+import { Audit } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
-  private unsubscribe: () => void;
-  private logger = new Logger(AppHooksListenerService.name);
+  protected unsubscribe: () => void;
+  protected logger = new Logger(AppHooksListenerService.name);
 
   constructor(
-    private readonly appHooksService: AppHooksService,
-    private readonly telemetryService: TelemetryService, // @Inject(Producer) private readonly producer: Producer,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly telemetryService: TelemetryService,
   ) {}
 
-  private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
+  protected async hookHandler({
+    event,
+    data,
+  }: {
+    event: AppEvents;
+    data: any;
+  }) {
+    const { req, clientId } = data;
     switch (event) {
-      case AppEvents.PROJECT_INVITE:
-        {
-          const param = data as ProjectInviteEvent;
-
-          await this.auditInsert({
-            base_id: param.base.id,
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.INVITE,
-            user: param.invitedBy.email,
-            description: `invited ${param.user.email} to ${param.base.id} base `,
-            ip: param.ip,
-          });
-
-          const count = await User.count();
-
-          this.telemetryService.sendEvent({
-            evt_type: 'base:invite',
-            count,
-          });
-        }
-        break;
-      case AppEvents.PROJECT_USER_UPDATE:
-        {
-          const param = data as ProjectUserUpdateEvent;
-
-          await this.auditInsert({
-            base_id: param.base.id,
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
-            user: param.updatedBy.email,
-            description: `Roles for ${param.user.email} with has been updated to ${param.baseUser.roles}`,
-            ip: param.ip,
-          });
-        }
-        break;
-      case AppEvents.PROJECT_USER_RESEND_INVITE:
-        {
-          const param = data as ProjectUserResendInviteEvent;
-
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-            user: param.user.email,
-            description: `${param.user.email} has been re-invited`,
-            ip: param.ip,
-            base_id: param.base.id,
-          });
-        }
-        break;
-      case AppEvents.USER_PASSWORD_CHANGE:
-        {
-          const param = data as UserPasswordChangeEvent;
-
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
-            user: param.user.email,
-            description: `Password has been changed`,
-            ip: param.ip,
-          });
-        }
-        break;
-      case AppEvents.USER_PASSWORD_FORGOT:
-        {
-          const param = data as UserPasswordForgotEvent;
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
-            user: param.user.email,
-            description: `Password Reset has been requested`,
-            ip: param.ip,
-          });
-        }
-        break;
-      case AppEvents.USER_PASSWORD_RESET:
-        {
-          const param = data as UserPasswordResetEvent;
-
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
-            user: param.user.email,
-            description: `Password has been reset`,
-            ip: param.ip,
-          });
-        }
-        break;
-      case AppEvents.USER_EMAIL_VERIFICATION:
-        {
-          const param = data as UserEmailVerificationEvent;
-
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
-            user: param.user.email,
-            description: `Email has been verified`,
-            ip: param.ip,
-          });
-        }
-        break;
-      case AppEvents.TABLE_CREATE:
-        {
-          const param = data as TableEvent;
-          await this.auditInsert({
-            base_id: param.table.base_id,
-            source_id: param.table.source_id,
-            op_type: AuditOperationTypes.TABLE,
-            op_sub_type: AuditOperationSubTypes.CREATE,
-            user: param.user?.email,
-            description: `Table ${param.table.table_name} with alias ${param.table.title} has been created`,
-            ip: param.ip,
-          });
-        }
-        break;
-
-      case AppEvents.TABLE_DELETE:
-        {
-          const { table, ip, user } = data as TableEvent;
-
-          await this.auditInsert({
-            base_id: table.base_id,
-            source_id: table.source_id,
-            op_type: AuditOperationTypes.TABLE,
-            op_sub_type: AuditOperationSubTypes.DELETE,
-            user: user?.email,
-            description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-            ip,
-          });
-        }
-        break;
-      case AppEvents.COLUMN_UPDATE:
-        {
-          const { column, ip, user, table } = data as ColumnEvent;
-
-          await this.auditInsert({
-            // todo: type correction
-            base_id: (column as any).base_id,
-            op_type: AuditOperationTypes.TABLE_COLUMN,
-            op_sub_type: AuditOperationSubTypes.UPDATE,
-            user: user?.email,
-            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
-            ip,
-          });
-        }
-        break;
-      case AppEvents.COLUMN_CREATE:
-        {
-          const { column, ip, user, table } = data as ColumnEvent;
-          await this.auditInsert({
-            base_id: table.base_id,
-            op_type: AuditOperationTypes.TABLE_COLUMN,
-            op_sub_type: AuditOperationSubTypes.CREATE,
-            user: user?.email,
-            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been created`,
-            ip,
-          });
-        }
-        break;
-      case AppEvents.COLUMN_DELETE:
-        {
-          const { column, ip, user, table } = data as ColumnEvent;
-
-          await this.auditInsert({
-            base_id: (column as any).base_id,
-            op_type: AuditOperationTypes.TABLE_COLUMN,
-            op_sub_type: AuditOperationSubTypes.DELETE,
-            user: user?.email,
-            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
-            ip,
-          });
-        }
-        break;
-
       case AppEvents.USER_SIGNIN:
-        {
-          const param = data as UserSigninEvent;
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.SIGNIN,
-            user: param.user.email,
-            ip: param.ip,
-            description: param.auditDescription,
-          });
-        }
+        break;
+      case AppEvents.USER_SIGNOUT:
         break;
       case AppEvents.USER_SIGNUP:
         {
           const param = data as UserSignupEvent;
-          await this.auditInsert({
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.SIGNUP,
-            user: param.user.email,
-            description: `User has signed up`,
-            ip: param.ip,
+
+          // assign user to req (as this is self-event)
+          param.req.user = param.user;
+
+          this.telemetryService.sendEvent({
+            evt_type: 'a:signup',
+            req,
+            clientId,
+            email: param.user?.email,
           });
+        }
+        break;
+      case AppEvents.USER_INVITE:
+        {
+          const param = data as UserInviteEvent;
+
+          this.telemetryService.sendEvent({
+            evt_type: 'a:signup',
+            req,
+            clientId,
+            email: param.user?.email,
+          });
+        }
+        break;
+      case AppEvents.USER_UPDATE:
+        break;
+      case AppEvents.USER_PASSWORD_CHANGE:
+        break;
+      case AppEvents.USER_PASSWORD_FORGOT:
+        break;
+      case AppEvents.USER_DELETE:
+        break;
+      case AppEvents.USER_PASSWORD_RESET:
+        break;
+      case AppEvents.USER_EMAIL_VERIFICATION:
+        break;
+      case AppEvents.PROJECT_INVITE:
+        break;
+      case AppEvents.PROJECT_USER_UPDATE:
+        break;
+      case AppEvents.PROJECT_USER_RESEND_INVITE:
+        break;
+      case AppEvents.TABLE_CREATE:
+        break;
+      case AppEvents.TABLE_DELETE:
+        break;
+      case AppEvents.TABLE_UPDATE:
+        break;
+      case AppEvents.VIEW_CREATE:
+        break;
+      case AppEvents.VIEW_DELETE:
+        break;
+      case AppEvents.COLUMN_CREATE:
+        break;
+      case AppEvents.COLUMN_UPDATE:
+        break;
+      case AppEvents.DATA_CREATE:
+        break;
+      case AppEvents.DATA_DELETE:
+        break;
+      case AppEvents.DATA_UPDATE:
+        break;
+      case AppEvents.COLUMN_DELETE:
+        break;
+      case AppEvents.META_DIFF_SYNC:
+        {
+          const param = data as MetaDiffEvent;
+
+          if (param.source) {
+            this.telemetryService.sendEvent({
+              evt_type: 'a:baseMetaDiff:synced',
+              req,
+              clientId,
+            });
+          } else {
+            this.telemetryService.sendEvent({
+              evt_type: 'a:metaDiff:synced',
+              req,
+              clientId,
+            });
+          }
         }
         break;
       case AppEvents.ORG_USER_INVITE:
-        {
-          const param = data as OrgUserInviteEvent;
-          this.telemetryService.sendEvent({
-            evt_type: 'org:user:invite',
-            count: param.count,
-          });
-
-          await this.auditInsert({
-            op_type: AuditOperationTypes.ORG_USER,
-            op_sub_type: AuditOperationSubTypes.INVITE,
-            user: param.invitedBy.email,
-            description: `${param.user.email} has been invited to the organisation`,
-            ip: param.ip,
-          });
-        }
         break;
       case AppEvents.ORG_USER_RESEND_INVITE:
-        {
-          const param = data as OrgUserInviteEvent;
-          await this.auditInsert({
-            op_type: AuditOperationTypes.ORG_USER,
-            op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-            user: param.invitedBy.email,
-            description: `${param.user.email} has been re-invited`,
-            ip: param.ip,
-          });
-        }
+        break;
+      case AppEvents.VIEW_COLUMN_UPDATE:
+        break;
+      case AppEvents.IMAGE_UPLOAD:
+        break;
+      case AppEvents.FORM_COLUMN_UPDATE:
+        break;
+
+      case AppEvents.PROJECT_CREATE:
+        break;
+
+      case AppEvents.PROJECT_UPDATE:
+        break;
+      case AppEvents.PROJECT_CLONE:
+        break;
+      case AppEvents.WELCOME:
+        break;
+      case AppEvents.WORKSPACE_CREATE:
+        break;
+      case AppEvents.WORKSPACE_DELETE:
+        break;
+      case AppEvents.WORKSPACE_UPDATE:
+        break;
+
+      case AppEvents.PROJECT_DELETE:
+        break;
+
+      case AppEvents.GRID_CREATE:
+        break;
+      case AppEvents.GRID_COLUMN_UPDATE:
+        break;
+      case AppEvents.GRID_DELETE:
+        break;
+      case AppEvents.GRID_DUPLICATE:
+        break;
+      case AppEvents.FORM_CREATE:
+        break;
+      case AppEvents.FORM_UPDATE:
+      case AppEvents.GRID_UPDATE:
+      case AppEvents.CALENDAR_UPDATE:
+      case AppEvents.GALLERY_UPDATE:
+      case AppEvents.KANBAN_UPDATE:
+      case AppEvents.VIEW_UPDATE:
+        break;
+      case AppEvents.FORM_DELETE:
+        break;
+      case AppEvents.KANBAN_CREATE:
+        break;
+      case AppEvents.KANBAN_DELETE:
+        break;
+      case AppEvents.GALLERY_CREATE:
+        break;
+      case AppEvents.GALLERY_DELETE:
+        break;
+      case AppEvents.CALENDAR_CREATE:
+        break;
+      case AppEvents.CALENDAR_DELETE:
+        break;
+
+      case AppEvents.FILTER_CREATE:
+        break;
+      case AppEvents.FILTER_UPDATE:
+        break;
+      case AppEvents.FILTER_DELETE:
+        break;
+
+      case AppEvents.WEBHOOK_CREATE:
+        break;
+      case AppEvents.WEBHOOK_UPDATE:
+        break;
+
+      case AppEvents.WEBHOOK_DELETE:
+        break;
+
+      case AppEvents.SORT_CREATE:
+        break;
+
+      case AppEvents.SORT_UPDATE:
+        break;
+
+      case AppEvents.SORT_DELETE:
+        break;
+
+      case AppEvents.API_TOKEN_CREATE:
+      case AppEvents.ORG_API_TOKEN_CREATE:
+        break;
+
+      case AppEvents.PLUGIN_TEST:
+        break;
+      case AppEvents.PLUGIN_INSTALL:
+        break;
+      case AppEvents.PLUGIN_UNINSTALL:
+        break;
+      case AppEvents.SYNC_SOURCE_CREATE:
+        break;
+      case AppEvents.SYNC_SOURCE_UPDATE:
+        break;
+      case AppEvents.SYNC_SOURCE_DELETE:
+        break;
+      case AppEvents.RELATION_DELETE:
+        break;
+      case AppEvents.RELATION_CREATE:
+        break;
+
+      case AppEvents.API_TOKEN_DELETE:
+      case AppEvents.ORG_API_TOKEN_DELETE:
+        break;
+
+      case AppEvents.SHARED_VIEW_CREATE:
+        break;
+
+      case AppEvents.SHARED_VIEW_UPDATE:
+        break;
+
+      case AppEvents.SHARED_VIEW_DELETE:
+        break;
+
+      case AppEvents.SHARED_BASE_GENERATE_LINK:
+        break;
+      case AppEvents.SHARED_BASE_DELETE_LINK:
         break;
       case AppEvents.ATTACHMENT_UPLOAD:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'image:uploaded',
-            type: data?.type,
-          });
-        }
         break;
-      case AppEvents.WEBHOOK_TRIGGER:
-        {
-          this.telemetryService.sendEvent({
-            evt_type: 'webhook:trigger',
-            type: data?.type,
-          });
-        }
+      case AppEvents.APIS_CREATED:
+        break;
+      case AppEvents.EXTENSION_CREATE:
+        break;
+      case AppEvents.EXTENSION_UPDATE:
+        break;
+      case AppEvents.EXTENSION_DELETE:
+        break;
+      case AppEvents.COMMENT_CREATE:
+        break;
+      case AppEvents.COMMENT_DELETE:
+        break;
+      case AppEvents.COMMENT_UPDATE:
+        break;
+      case AppEvents.INTEGRATION_DELETE:
+        break;
+      case AppEvents.INTEGRATION_CREATE:
+        break;
+      case AppEvents.INTEGRATION_UPDATE:
+        break;
+      case AppEvents.ROW_USER_MENTION:
+        break;
+
+      case AppEvents.SOURCE_CREATE:
+        break;
+
+      case AppEvents.SOURCE_UPDATE:
+        break;
+
+      case AppEvents.SOURCE_DELETE:
+        break;
+
+      case AppEvents.BASE_DUPLICATE_START:
+      case AppEvents.BASE_DUPLICATE_FAIL:
+        break;
+
+      case AppEvents.TABLE_DUPLICATE_START:
+      case AppEvents.TABLE_DUPLICATE_FAIL:
+        break;
+      case AppEvents.COLUMN_DUPLICATE_START:
+      case AppEvents.COLUMN_DUPLICATE_FAIL:
+        break;
+      case AppEvents.VIEW_DUPLICATE_START:
+      case AppEvents.VIEW_DUPLICATE_FAIL:
+        break;
+
+      case AppEvents.UI_ACL:
         break;
     }
   }
@@ -290,9 +305,9 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
     this.unsubscribe = this.appHooksService.onAll(this.hookHandler.bind(this));
   }
 
-  async auditInsert(param: Partial<Audit | AuditType>) {
-    await Audit.insert(param);
+  async auditInsert(param: Partial<Audit>) {
     try {
+      await Audit.insert(param);
       T.event({ ...param, created_at: Date.now() });
     } catch (e) {
       this.logger.error(e);

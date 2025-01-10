@@ -74,14 +74,14 @@ export class FiltersService extends FiltersServiceCE {
     context: NcContext,
     param: {
       filter: FilterReqType;
-      columnId: any;
+      columnId: string;
       user: UserType;
       req: NcRequest;
     },
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
-    const column = await Column.get(context, param.columnId);
+    const column = await Column.get(context, { colId: param.columnId });
 
     if (!column && !isLinksOrLTAR(column)) {
       NcError.badRequest('Link column not found');
@@ -94,8 +94,14 @@ export class FiltersService extends FiltersServiceCE {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
-      column,
+      column:
+        param.filter.fk_column_id &&
+        (await Column.get(context, {
+          colId: param.filter.fk_column_id,
+        })),
+      linkColumn: column,
       req: param.req,
+      context,
     });
     return filter;
   }

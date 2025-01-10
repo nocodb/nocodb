@@ -16,9 +16,11 @@ import { BasesService } from '~/services/bases.service';
 import { Base } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,8 +28,9 @@ export class DuplicateController extends DuplicateControllerCE {
   constructor(
     @Inject('JobsService') protected readonly jobsService,
     protected readonly basesService: BasesService,
+    protected readonly appHooksService: AppHooksService,
   ) {
-    super(jobsService, basesService);
+    super(jobsService, basesService, appHooksService);
   }
 
   @Post([
@@ -53,6 +56,8 @@ export class DuplicateController extends DuplicateControllerCE {
       base?: any;
     },
   ) {
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
     const base = await Base.getByUuid(
       {
         workspace_id: RootScopes.BASE,
@@ -98,6 +103,7 @@ export class DuplicateController extends DuplicateControllerCE {
       req: {
         user: req.user,
         clientIp: req.clientIp,
+        ncParentAuditId: parentAuditId,
       },
     });
 

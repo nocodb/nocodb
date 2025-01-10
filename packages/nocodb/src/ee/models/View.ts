@@ -1,7 +1,7 @@
 import ViewCE from 'src/models/View';
 import { ExpandedFormMode, type ExpandedFormModeType } from 'nocodb-sdk';
 import CalendarRange from './CalendarRange';
-import type { ViewType } from 'nocodb-sdk';
+import type { NcRequest, ViewType } from 'nocodb-sdk';
 import type FormView from '~/models/FormView';
 import type GridView from '~/models/GridView';
 import type KanbanView from '~/models/KanbanView';
@@ -21,11 +21,17 @@ export default class View extends ViewCE implements ViewType {
 
   static async insert(
     context: NcContext,
-    view: Partial<View> &
-      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
-        copy_from_id?: string;
-        fk_grp_col_id?: string;
-      },
+    {
+      req,
+      view,
+    }: {
+      view: Partial<View> &
+        Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
+          copy_from_id?: string;
+          fk_grp_col_id?: string;
+        };
+      req: NcRequest;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const model = await Model.get(context, view.fk_model_id);
@@ -56,7 +62,7 @@ export default class View extends ViewCE implements ViewType {
       );
     }
 
-    return super.insert(context, view, ncMeta);
+    return super.insert(context, { view, req }, ncMeta);
   }
 
   static async getRangeColumnsAsArray(

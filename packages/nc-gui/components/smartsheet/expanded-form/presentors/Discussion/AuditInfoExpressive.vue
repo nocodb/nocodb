@@ -55,58 +55,13 @@ const { getPossibleAttachmentSrc } = useAttachment()
       class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
     />
     <div class="mb-1 ml-6.5">
-      <div class="text-sm">
+      <div class="text-sm inline-flex items-center">
         changed
-        <span
-          class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-        >
+        <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-2 mr-3">
           <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.field_type}" class="!w-[12px] !h-[12px] !m-0" />
           {{ columnKey }}
         </span>
-        <template v-if="meta[columnKey]?.field_type === 'SingleLineText'">
-          <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
-          <span class="ml-2"> {{ newData[columnKey] }} </span>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'LongText'">
-          <span class="line-through">{{ oldData[columnKey] ?? '"empty"' }}</span>
-          <!-- <span class="text-primary">...more</span> -->
-          <span class="mx-2"> to </span>
-          <span>{{ newData[columnKey] }}</span>
-          <!-- <span class="text-primary">...more</span> -->
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Email'">
-          <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
-          <span class="mx-2"> to </span>
-          <span> {{ newData[columnKey] }} </span>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Currency'">
-          <span class="line-through"> {{ formatCurrency(oldData[columnKey], meta[columnKey]) }} </span>
-          <span class="mx-2"> to </span>
-          <span> {{ formatCurrency(newData[columnKey], meta[columnKey]) }} </span>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'SingleSelect'">
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through"
-            :style="{
-              backgroundColor: meta[columnKey]?.col_options?.options?.find(
-                (option: any) => option.title === oldData[columnKey]
-              )?.color ?? '#EAEAEA',
-            }"
-          >
-            {{ oldData[columnKey] ?? '"empty"' }}
-          </span>
-          <span
-            class="ml-2 text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1"
-            :style="{
-              backgroundColor: meta[columnKey]?.col_options?.options?.find(
-                (option: any) => option.title === newData[columnKey]
-              )?.color ?? '#EAEAEA',
-            }"
-          >
-            {{ newData[columnKey] }}
-          </span>
-        </template>
-        <template v-else-if="meta[columnKey]?.field_type === 'Attachment'">
+        <template v-if="meta[columnKey]?.field_type === 'Attachment'">
           <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through">
             <template v-if="!oldData[columnKey]?.length">
               0 files
@@ -156,9 +111,35 @@ const { getPossibleAttachmentSrc } = useAttachment()
           </span>
         </template>
         <template v-else>
-          <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
-          <span class="mx-2"> to </span>
-          <span> {{ newData[columnKey] }} </span>
+          <span class="inline-flex items-center">
+            <span class="line-through">
+              <span v-if="!oldData[columnKey]">
+                empty
+              </span>
+              <SmartsheetCell
+                v-else
+                :column="{ uidt: meta[columnKey]?.field_type, meta: meta[columnKey]?.meta, colOptions: meta[columnKey]?.col_options }"
+                :model-value="oldData[columnKey]"
+                :edit-enabled="false"
+                :read-only="true"
+              />
+            </span>
+            <span class="mx-2">
+              to
+            </span>
+            <span>
+              <span v-if="!newData[columnKey]">
+                empty
+              </span>
+              <SmartsheetCell
+                v-else
+                :column="{ uidt: meta[columnKey]?.field_type, meta: meta[columnKey]?.meta, colOptions: meta[columnKey]?.col_options }"
+                :model-value="newData[columnKey]"
+                :edit-enabled="false"
+                :read-only="true"
+              />
+            </span>
+          </span>
         </template>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 
 interface Props {
-  modelValue?: string | null
+  modelValue?: string | number | null
 }
 
 const props = defineProps<Props>()

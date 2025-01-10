@@ -1612,8 +1612,8 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; rowId?: string
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = null
-      tableState.cellProgress = null
-      tableState.rowProgress = null
+      tableState.cellProgress = new Map()
+      tableState.rowProgress = new Map()
       break
 
     case 'row':

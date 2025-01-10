@@ -138,13 +138,20 @@ export function transformFieldConfig(field: Field): Field {
       break;
 
     case UITypes.Number:
-    case UITypes.Decimal:
       newField.options = {
         ...newField.options,
         thousands_separator: metaObj.isLocaleString || false,
       };
       break;
 
+    case UITypes.Decimal:
+    case UITypes.Rollup:
+      newField.options = {
+        ...newField.options,
+        precision: metaObj.precision || 1,
+        thousands_separator: metaObj.isLocaleString || false,
+      };
+      break;
     case UITypes.Currency:
       newField.options = {
         ...newField.options,
@@ -240,6 +247,13 @@ export function transformFieldConfig(field: Field): Field {
         };
       }
       break;
+    case UITypes.Links:
+    case UITypes.LinkToAnotherRecord:
+      newField.options = {
+        ...newField.options,
+        singular: metaObj.singular,
+        plural: metaObj.plural,
+      };
   }
 
   delete newField.meta;

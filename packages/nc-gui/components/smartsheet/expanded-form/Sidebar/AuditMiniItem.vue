@@ -115,7 +115,7 @@ function shouldUseNormalizedPadding(key: string) {
 }
 
 function shouldUseUniformPadding(key: string) {
-  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type);
+  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type)
 }
 
 /* visibility */

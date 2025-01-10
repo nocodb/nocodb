@@ -1736,8 +1736,6 @@ scriptEventBus.on(async (event, payload) => {
   }
 })
 
-let scrollRaf = false
-
 useScroll(gridWrapper, {
   onScroll: (e) => {
     // Cancel the previous animation frame if it exists

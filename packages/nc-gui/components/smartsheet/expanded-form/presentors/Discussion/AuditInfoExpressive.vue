@@ -53,7 +53,7 @@ function normalizeMeta(meta: Record<string, any> | undefined) {
 </script>
 
 <template>
-  <div v-for="columnKey in columnKeys" class="relative mb-2">
+  <div v-for="columnKey in columnKeys" :key="columnKey" class="relative mb-2">
     <GeneralIcon icon="ncLink" class="w-[12px] h-[12px] text-gray-500 absolute top-[6px] left-0 transform -translate-x-1/2" />
     <div class="mb-1 ml-6.5">
       <div

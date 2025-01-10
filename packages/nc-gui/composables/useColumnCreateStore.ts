@@ -360,7 +360,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           // ignore filters from payload since it's not required
-          const { filters: _, ...updateData } = formState.value;
+          const { filters: _, ...updateData } = formState.value
 
           try {
             await $api.dbTableColumn.update(column.value?.id as string, updateData)

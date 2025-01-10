@@ -266,7 +266,7 @@ const getUserRole = (email: string) => {
             {
               'mt-auto': index === 0,
             },
-            commentItem.id
+            commentItem.id,
           ]"
           class="nc-comment-item"
           @mouseover="handleResetHoverEffect"

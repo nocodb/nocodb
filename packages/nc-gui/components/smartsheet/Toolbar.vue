@@ -67,6 +67,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+        <LazySmartsheetToolbarBulkAction v-if="isGrid || isGallery" />
 
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>

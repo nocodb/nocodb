@@ -1252,6 +1252,8 @@ export function useInfiniteData(args: {
   }
 
   async function syncCount(): Promise<void> {
+    if (!isPublic.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+
     try {
       const { count } = isPublic.value
         ? await fetchCount({

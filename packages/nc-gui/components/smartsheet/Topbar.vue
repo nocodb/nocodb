@@ -83,7 +83,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center">
           <LazySmartsheetTopbarCmdK />
-          <LazySmartsheetTopbarScriptAction v-if="activeAutomation" />
+          <LazySmartsheetTopbarScriptAction v-if="activeAutomation || isAutomationActive" />
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomation && !isAutomationActive" />
 

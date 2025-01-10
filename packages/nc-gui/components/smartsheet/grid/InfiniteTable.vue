@@ -1105,6 +1105,40 @@ const isSelectedOnlyAI = computed(() => {
   }
 })
 
+const isSelectedOnlyScript = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: isScriptButton(field),
+      disabled: false,
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const { runScript } = useScriptExecutor()
+
+const bulkExecuteScript = () => {
+  if (!isSelectedOnlyScript.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  for (const row of rows) {
+    const pk = extractPkFromRow(row.row, meta.value.columns)
+    runScript((field.colOptions as ButtonType).fk_script_id!, row.row, {
+      pk,
+      fieldId: field.id,
+    })
+  }
+}
+
 const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
 
 const generateAIBulk = async () => {
@@ -1649,13 +1683,6 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
-
-  if (event === SmartsheetStoreEvents.UPDATE_PROGRESS) {
-    handleProgress(payload)
-  }
-  if (event === SmartsheetStoreEvents.RESET_PROGRESS) {
-    resetProgress(payload)
-  }
 })
 
 watch(activeCell, (activeCell) => {
@@ -1693,6 +1720,21 @@ const reloadViewDataHookHandler = async (param) => {
 }
 
 let requestAnimationFrameId: null | number = null
+const { eventBus: scriptEventBus } = useScriptExecutor()
+
+scriptEventBus.on(async (event, payload) => {
+  if (event === SmartsheetScriptActions.UPDATE_PROGRESS) {
+    handleProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.RESET_PROGRESS) {
+    resetProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.ACTION) {
+    await reloadViewDataHookHandler()
+  }
+})
+
+let scrollRaf = false
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
@@ -2846,6 +2888,20 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 </div>
               </NcMenuItem>
             </NcTooltip>
+
+            <NcMenuItem
+              v-if="isSelectedOnlyScript.enabled"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-bulk-script"
+              :disabled="isSelectedOnlyScript.disabled"
+              @click="bulkExecuteScript"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncScript" class="h-4 w-4" />
+                <!-- Generate All -->
+                Execute {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+              </div>
+            </NcMenuItem>
 
             <NcMenuItem
               v-if="contextMenuTarget"

@@ -488,7 +488,7 @@ export class PublicDatasService {
       insertObject[column] = JSON.stringify(data);
     }
 
-    return await baseModel.nestedInsert(insertObject, null, param.req);
+    return await baseModel.nestedInsert(insertObject,  param.req, null);
   }
 
   async relDataList(

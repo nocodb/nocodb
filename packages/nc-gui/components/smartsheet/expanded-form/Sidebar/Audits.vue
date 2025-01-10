@@ -53,7 +53,7 @@ watch(
       <GeneralLoader size="xlarge" />
     </div>
 
-    <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin">
+    <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
       <template v-if="audits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-600">
@@ -69,8 +69,10 @@ watch(
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
                 <GeneralUserIcon
-                  :email="audit?.created_by_email"
-                  :name="audit?.created_display_name"
+                  :user="{
+                    email: audit?.created_by_email,
+                    display_name: audit?.created_display_name,
+                  }"
                   class="mt-0.5"
                   size="medium"
                 />

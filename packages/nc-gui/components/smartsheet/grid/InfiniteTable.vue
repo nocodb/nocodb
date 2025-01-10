@@ -265,6 +265,12 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
+const tableState = reactive<ViewActionState>({
+  viewProgress: null,
+  rowProgress: new Map(),
+  cellProgress: new Map(),
+})
+
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
 
@@ -277,7 +283,7 @@ const visibleRows = computed(() => {
 
     const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
-    row.rowMeta.rowProgress = tableState.rowProgress.get(rowId)
+    row.rowMeta.rowProgress = tableState.rowProgress.get(rowId.toString())
     return row
   })
 })
@@ -1605,14 +1611,7 @@ watch(
   },
 )
 
-const tableState = reactive<ViewActionState>({
-  viewProgress: null,
-  rowProgress: new Map(),
-  cellProgress: new Map(),
-})
-
 const handleProgress = (payload: any) => {
-  console.log(payload.data)
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = {
@@ -1642,7 +1641,7 @@ const handleProgress = (payload: any) => {
   }
 }
 
-const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; rowId?: string; cellId?: string }) => {
+const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: {rowId?: string; cellId?: string} }) => {
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = null
@@ -1651,19 +1650,21 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; rowId?: string
       break
 
     case 'row':
-      if (payload.rowId) {
-        tableState.rowProgress.delete(payload.rowId)
-        tableState.rowProgress.set(payload.rowId, null)
+      if (payload.data.rowId) {
+        tableState.rowProgress.delete(payload.data.rowId)
+        tableState.rowProgress.set(payload.data.rowId, null)
       }
       break
 
     case 'cell':
-      if (payload.rowId && payload.cellId) {
-        const rowCells = tableState.cellProgress.get(payload.rowId)
+      if (payload.data.rowId && payload.data.cellId) {
+        const rowCells = tableState.cellProgress.get(payload.data.rowId)
         if (rowCells) {
-          rowCells.delete(payload.cellId)
+          rowCells.delete(payload.data.cellId)
           if (rowCells.size === 0) {
-            tableState.cellProgress.delete(payload.rowId)
+            tableState.cellProgress.delete(payload.data.rowId)
+          } else {
+            tableState.cellProgress.set(payload.data.rowId, rowCells)
           }
         }
       }
@@ -1729,7 +1730,7 @@ scriptEventBus.on(async (event, payload) => {
   if (event === SmartsheetScriptActions.RESET_PROGRESS) {
     resetProgress(payload)
   }
-  if (event === SmartsheetScriptActions.ACTION) {
+  if (event === SmartsheetScriptActions.RELOAD_VIEW) {
     await reloadViewDataHookHandler()
   }
 })

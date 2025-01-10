@@ -8,6 +8,8 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isLocalMode } = useViewColumnsOrThrow()
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -67,7 +69,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
-        <LazySmartsheetToolbarBulkAction v-if="isGrid || isGallery" />
+        <LazySmartsheetToolbarBulkAction v-if="(isGrid || isGallery) && !isPublic" />
 
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>

@@ -116,7 +116,10 @@ const triggerAction = async () => {
 
       const script = await loadAutomation(colOptions.fk_script_id)
 
-      const id = await runScript(script, currentRow.value.row)
+      const id = await runScript(script, currentRow.value.row, {
+        pk: pk.value,
+        fieldId: column.value.id,
+      })
 
       isExecutingId.value = id
 

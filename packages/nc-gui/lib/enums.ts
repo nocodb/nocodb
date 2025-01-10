@@ -84,6 +84,9 @@ export enum SmartsheetScriptActions {
   UPDATE_PROGRESS = 'update-progress',
   RESET_PROGRESS = 'reset-progress',
   ACTION = 'action',
+
+  RELOAD_VIEW = 'reload-view',
+  RELOAD_ROW = 'reload-row',
 }
 
 export enum DataSourcesSubTab {

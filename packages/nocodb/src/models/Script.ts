@@ -2,7 +2,6 @@ import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 
 export default class Script {
-
   constructor(_unknown: any) {
     Object.assign(this, _unknown);
   }
@@ -12,7 +11,7 @@ export default class Script {
     _param1: string,
     _ncMeta = Noco.ncMeta,
   ) {
-   return null
+    return null;
   }
 
   public static async list(
@@ -20,11 +19,15 @@ export default class Script {
     _param1: string,
     _ncMeta = Noco.ncMeta,
   ) {
-    return []
+    return [];
   }
 
-  static async delete(_context: NcContext, _param1: any, _ncMeta = Noco.ncMeta) {
-    return true
+  static async delete(
+    _context: NcContext,
+    _param1: any,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return true;
   }
 
   public static async update(
@@ -33,7 +36,7 @@ export default class Script {
     _param2: Partial<any>,
     _ncMeta = Noco.ncMeta,
   ) {
-    return {}
+    return {};
   }
 
   public static async insert(
@@ -42,6 +45,6 @@ export default class Script {
     _param2: Partial<any>,
     _ncMeta = Noco.ncMeta,
   ) {
-    return {}
+    return {};
   }
 }

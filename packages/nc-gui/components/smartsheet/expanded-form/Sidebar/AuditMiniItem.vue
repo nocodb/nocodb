@@ -37,7 +37,7 @@ provide(RawReadonlyInj, ref(true));
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-/* meta */
+/* meta processing */
 
 function normalizeColOptions(key: string) {
   return {

@@ -34,16 +34,36 @@ const columnKeys = computed(() => {
 /* attachment */
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+/* meta */
+
+function normalizeMeta(meta: Record<string, any> | undefined) {
+  return {
+    ...(meta ?? {}),
+    icon: meta?.icon
+      ? {
+          full: 'mdi-' + meta?.icon,
+          empty: 'mdi-' + meta?.icon,
+          checked: 'mdi-' + meta?.icon,
+          unchecked: 'mdi-' + meta?.icon,
+        }
+      : undefined,
+  }
+}
 </script>
 
 <template>
   <div v-for="columnKey in columnKeys" class="relative mb-2">
     <GeneralIcon
       icon="ncLink"
-      class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+      class="w-[12px] h-[12px] text-gray-500 absolute top-[6px] left-0 transform -translate-x-1/2"
     />
     <div class="mb-1 ml-6.5">
-      <div class="text-sm inline-flex items-center">
+      <div
+        class="text-sm"
+        :class="{
+          'inline-flex items-center': meta[columnKey]?.field_type !== 'LongText',
+        }">
         changed
         <span
           class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-2 mr-3"
@@ -94,6 +114,15 @@ const { getPossibleAttachmentSrc } = useAttachment()
             </template>
           </span>
         </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'LongText'">
+          <span class="line-through">
+            {{ oldData[columnKey] ?? 'empty' }}
+          </span>
+          <span class="mx-2"> to </span>
+          <span>
+            {{ newData[columnKey] ?? 'empty' }}
+          </span>
+        </template>
         <template v-else>
           <span class="inline-flex items-center">
             <span class="line-through">
@@ -102,12 +131,15 @@ const { getPossibleAttachmentSrc } = useAttachment()
                 v-else
                 :column="{
                   uidt: meta[columnKey]?.field_type,
-                  meta: meta[columnKey]?.meta,
+                  meta: normalizeMeta(meta[columnKey]?.meta),
                   colOptions: meta[columnKey]?.col_options,
                 }"
                 :model-value="oldData[columnKey]"
                 :edit-enabled="false"
                 :read-only="true"
+                :class="{
+                  'min-w-[100px]': meta[columnKey]?.field_type === 'Percent',
+                }"
               />
             </span>
             <span class="mx-2"> to </span>
@@ -117,12 +149,15 @@ const { getPossibleAttachmentSrc } = useAttachment()
                 v-else
                 :column="{
                   uidt: meta[columnKey]?.field_type,
-                  meta: meta[columnKey]?.meta,
+                  meta: normalizeMeta(meta[columnKey]?.meta),
                   colOptions: meta[columnKey]?.col_options,
                 }"
                 :model-value="newData[columnKey]"
                 :edit-enabled="false"
                 :read-only="true"
+                :class="{
+                  'min-w-[100px]': meta[columnKey]?.field_type === 'Percent',
+                }"
               />
             </span>
           </span>

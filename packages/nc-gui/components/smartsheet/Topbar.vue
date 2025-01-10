@@ -4,7 +4,7 @@ const route = router.currentRoute
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { activeAutomation, isAutomationActive } = storeToRefs(useAutomation())
+const { activeAutomation, isAutomationActive } = storeToRefs(useAutomationStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 

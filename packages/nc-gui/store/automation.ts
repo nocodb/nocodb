@@ -1,39 +1,55 @@
-import { acceptHMRUpdate } from 'pinia'
+export const useAutomationStore = defineStore('automation', () => {
+  // State
+  const automations = ref<Map<string, any>>(new Map())
+  const activeAutomation = ref<any | null>(null)
+  const isLoading = ref(false)
+  const isLoadingAutomation = ref(false)
 
-export const useAutomation = defineStore('automationStore', () => {
+  // Getters
   const isAutomationActive = computed(() => false)
-
-  const isAutomationsLoading = ref()
-  const isLoadingAutomation = ref()
-
-  const baseAutomations = ref<any>(new Map())
 
   const activeBaseAutomations = computed(() => [])
 
   const activeAutomationId = computed(() => '')
 
-  const activeAutomation = ref()
+  // Actions
+  const loadAutomations = async (_parama: any) => {
+    return []
+  }
 
-  const loadAutomations = async (_param: any) => []
+  const loadAutomation = async (_p1: any, _p2: any) => {}
 
-  const loadAutomation = async (_param1, _param2) => {}
+  const createAutomation = async (_p1: any, _p2: any) => {}
 
-  const openScript = async (_param: any) => {}
+  const updateAutomation = async (_p1: any, _p2: any, _p3: any) => {}
+
+  const deleteAutomation = async (_p1: any, _p2: any) => {}
+
+  const openScript = async (_p1: any) => {}
 
   return {
-    loadAutomations,
-    isAutomationsLoading,
-    baseAutomations,
+    // State
+    automations,
+    activeAutomation,
+    isLoading,
+    isLoadingAutomation,
+
+    // Getters
     isAutomationActive,
     activeBaseAutomations,
-    activeAutomation,
     activeAutomationId,
+
+    // Actions
+    loadAutomations,
     loadAutomation,
-    isLoadingAutomation,
+    createAutomation,
+    updateAutomation,
+    deleteAutomation,
     openScript,
   }
 })
 
+// Enable HMR
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useAutomation as any, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useAutomationStore, import.meta.hot))
 }

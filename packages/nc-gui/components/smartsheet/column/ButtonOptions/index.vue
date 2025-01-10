@@ -41,7 +41,7 @@ const { loadHooksList } = webhooksStore
 
 const { hooks } = toRefs(webhooksStore)
 
-const automationStore = useAutomation()
+const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
 
@@ -49,7 +49,7 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-await Promise.all([loadHooksList(), loadAutomations({ baseId: openedProject.value.id, force: true })])
+await Promise.all([loadHooksList(), loadAutomations({ baseId: openedProject.value!.id, force: true })])
 
 const { activeBaseAutomations } = toRefs(automationStore)
 

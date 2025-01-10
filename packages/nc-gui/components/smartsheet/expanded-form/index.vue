@@ -708,8 +708,9 @@ export default {
           </div>
         </div>
         <div class="ml-auto">
+          <!-- TODO: add back after review -->
+          <!-- v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)" -->
           <NcSelectTab
-            v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             v-model="activeViewMode"
             class="nc-expanded-form-mode-switch"
             :disabled="!isUIAllowed('viewCreateOrEdit')"

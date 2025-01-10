@@ -61,12 +61,13 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
+      } else if (newVal === 'allScripts') {
+        projectPageTab.value = 'allScripts'
       } else {
         projectPageTab.value = 'base-settings'
       }
       return
     }
-
     if (isAdminPanel.value) {
       projectPageTab.value = 'collaborator'
     } else {
@@ -79,11 +80,11 @@ watch(
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  if (projectPageTab.value) {
+  /* if (projectPageTab.value !== 'allScripts') {
     navigateToProjectPage({
       page: projectPageTab.value as any,
     })
-  }
+  } */
 })
 
 watch(
@@ -109,6 +110,12 @@ watch(
     integrations.value = []
   },
 )
+
+onMounted(() => {
+  if (props.tab) {
+    projectPageTab.value = props.tab
+  }
+})
 </script>
 
 <template>
@@ -162,6 +169,24 @@ watch(
             </div>
           </template>
           <ProjectAllTables />
+        </a-tab-pane>
+        <a-tab-pane v-if="!isAdminPanel" key="allScripts">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__all-tables">
+              <NcLayout />
+              <div>{{ $t('labels.allScripts') }}</div>
+              <div
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'allScripts',
+                  'bg-gray-50': projectPageTab !== 'allScripts',
+                }"
+              >
+                {{ activeTables.length }}
+              </div>
+            </div>
+          </template>
+          <ProjectAllScripts />
         </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
           <ErdView :source-id="defaultBase!.id" class="!h-full" />

@@ -32,6 +32,7 @@ import * as nc_031_snapshot from './v3/nc_031_snapshot';
 import * as nc_032_attachment_mode from './v3/nc_032_attachment_mode';
 import * as nc_033_custom_url from './v3/nc_033_custom_url';
 import * as nc_034_custom_url_pk from './v3/nc_034_custom_url_pk';
+import * as nc_035_missing_context_indexes from './v3/nc_035_missing_context_indexes';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -75,6 +76,7 @@ export default class XcMigrationSourcev3 {
       'nc_032_attachment_mode',
       'nc_033_custom_url',
       'nc_034_custom_url_pk',
+      'nc_035_missing_context_indexes',
     ]);
   }
 
@@ -152,6 +154,8 @@ export default class XcMigrationSourcev3 {
         return nc_033_custom_url;
       case 'nc_034_custom_url_pk':
         return nc_034_custom_url_pk;
+      case 'nc_035_missing_context_indexes':
+        return nc_035_missing_context_indexes;
     }
   }
 }

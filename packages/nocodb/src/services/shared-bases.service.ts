@@ -67,6 +67,11 @@ export class SharedBasesService {
       link: data.url,
       base,
       req: param.req,
+      uuid: data.uuid,
+      sharedBaseRole: roles,
+      context: {
+        ...context,
+      },
     });
 
     return data;
@@ -161,6 +166,9 @@ export class SharedBasesService {
       link: data.url,
       base,
       req: param.req,
+      sharedBaseRole: roles,
+      context,
+      uuid: data.uuid,
     });
     return data;
   }
@@ -206,6 +214,8 @@ export class SharedBasesService {
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       base,
       req: param.req,
+      context,
+      uuid: base.uuid,
     });
     return { uuid: null };
   }

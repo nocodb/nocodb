@@ -55,7 +55,7 @@ export class AttachmentsService {
 
   async upload(param: {
     files: FileType[];
-    req?: NcRequest;
+    req: NcRequest;
     path?: string;
     scope?: PublicAttachmentScope;
   }) {
@@ -219,7 +219,7 @@ export class AttachmentsService {
   @UseWorker()
   async uploadViaURL(param: {
     urls: AttachmentReqType[];
-    req?: NcRequest;
+    req: NcRequest;
     path?: string;
     scope?: PublicAttachmentScope;
   }) {

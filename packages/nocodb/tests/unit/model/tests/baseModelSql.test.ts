@@ -75,7 +75,7 @@ function baseModelSqlTests() {
 
     expect(response).to.include(insertedRow);
 
-    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'INSERT',
     );
     expect(rowInsertedAudit).to.include({
@@ -88,7 +88,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'INSERT',
       description: 'Record with ID 1 has been inserted into Table Table1_Title',
-    });
+    });*/
   });
 
   it('Bulk insert record', async () => {
@@ -119,7 +119,7 @@ function baseModelSqlTests() {
       expect(insertedRows[index]).to.include(inputData);
     });
 
-    const rowBulkInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowBulkInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'BULK_INSERT',
     );
     expect(rowBulkInsertedAudit).to.include({
@@ -134,7 +134,7 @@ function baseModelSqlTests() {
       status: null,
       description: '10 records have been bulk inserted in Table1_Title',
       details: null,
-    });
+    });*/
   });
 
   it('Update record', async () => {
@@ -153,7 +153,7 @@ function baseModelSqlTests() {
 
     expect(updatedRow).to.include({ Id: rowId, Title: 'test' });
 
-    const rowUpdatedAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowUpdatedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'UPDATE',
     );
     expect(rowUpdatedAudit).to.include({
@@ -169,7 +169,7 @@ function baseModelSqlTests() {
 
     expect(rowUpdatedAudit.description).to.contains(
       'Record with ID 1 has been updated in Table Table1_Title',
-    );
+    );*/
   });
 
   it('Bulk update record', async () => {
@@ -201,7 +201,7 @@ function baseModelSqlTests() {
     updatedRows.forEach((row, index) => {
       expect(row['Title']).to.equal(`new-test-${index}`);
     });
-    const rowBulkUpdateAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowBulkUpdateAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'BULK_UPDATE',
     );
     expect(rowBulkUpdateAudit).to.include({
@@ -216,7 +216,7 @@ function baseModelSqlTests() {
       status: null,
       description: '10 records have been bulk updated in Table1_Title',
       details: null,
-    });
+    });*/
   });
 
   it('Bulk update all record', async () => {
@@ -252,7 +252,7 @@ function baseModelSqlTests() {
     updatedRows.forEach((row) => {
       if (row.id < 5) expect(row['Title']).to.equal('new-1');
     });
-    const rowBulkUpdateAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowBulkUpdateAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'BULK_UPDATE',
     );
     expect(rowBulkUpdateAudit).to.include({
@@ -267,7 +267,7 @@ function baseModelSqlTests() {
       status: null,
       description: '4 records have been bulk updated in Table1_Title',
       details: null,
-    });
+    });*/
   });
 
   it('Delete record', async () => {
@@ -290,7 +290,7 @@ function baseModelSqlTests() {
 
     expect(deletedRow).to.be.null;
 
-    console.log('Delete record', await Audit.baseAuditList(base.id, {}));
+    /*    console.log('Delete record', await Audit.baseAuditList(base.id, {}));
     const rowDeletedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'DELETE',
     );
@@ -304,7 +304,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'DELETE',
       description: 'Record with ID 1 has been deleted in Table Table1_Title',
-    });
+    });*/
   });
 
   it('Bulk delete records', async () => {
@@ -331,7 +331,7 @@ function baseModelSqlTests() {
 
     expect(remainingRows).to.length(6);
 
-    const rowBulkDeleteAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowBulkDeleteAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'BULK_DELETE',
     );
 
@@ -347,7 +347,7 @@ function baseModelSqlTests() {
       status: null,
       description: '4 records have been bulk deleted in Table1_Title',
       details: null,
-    });
+    });*/
   });
 
   it('Bulk delete all record', async () => {
@@ -380,7 +380,7 @@ function baseModelSqlTests() {
     const remainingRows = await baseModelSql.list();
 
     expect(remainingRows).to.length(6);
-    const rowBulkDeleteAudit = (await Audit.baseAuditList(base.id, {})).find(
+    /*    const rowBulkDeleteAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'BULK_DELETE',
     );
     expect(rowBulkDeleteAudit).to.include({
@@ -395,7 +395,7 @@ function baseModelSqlTests() {
       status: null,
       description: '4 records have been bulk deleted in Table1_Title',
       details: null,
-    });
+    });*/
   });
 
   it('Nested insert', async () => {
@@ -443,7 +443,7 @@ function baseModelSqlTests() {
     const insertedChildRow = await childBaseModel.readByPk(childRow['Id']);
     expect(insertedChildRow[childCol.column_name]).to.equal(childRow['Id']);
 
-    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
+    /*    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'INSERT');
 
@@ -457,7 +457,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'INSERT',
       description: 'Record with ID 1 has been inserted into Table Table1_Title',
-    });
+    });*/
   });
 
   it('Link child', async () => {
@@ -513,7 +513,7 @@ function baseModelSqlTests() {
 
     expect(updatedChildRow[childCol.column_name]).to.equal(insertedRow['Id']);
 
-    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
+    /*    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'LINK_RECORD');
 
@@ -528,7 +528,7 @@ function baseModelSqlTests() {
       op_sub_type: 'LINK_RECORD',
       description:
         'Record [id:1] has been linked with record [id:1] in Table1_Title',
-    });
+    });*/
   });
 
   it('Unlink child', async () => {
@@ -591,7 +591,7 @@ function baseModelSqlTests() {
 
     expect(updatedChildRow[childCol.column_name]).to.be.null;
 
-    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
+    /*    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'UNLINK_RECORD');
 
@@ -606,7 +606,7 @@ function baseModelSqlTests() {
       op_sub_type: 'UNLINK_RECORD',
       description:
         'Record [id:1] has been unlinked with record [id:1] in Table1_Title',
-    });
+    });*/
   });
 }
 

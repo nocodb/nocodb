@@ -53,7 +53,12 @@ const headerList = ref<Option[]>([
   { value: 'X-CSRF-Token' },
 ])
 
-const addHeaderRow = () => vModel.value.push({})
+const addHeaderRow = () =>
+  vModel.value.push({
+    enabled: false,
+    name: '',
+    value: '',
+  })
 
 const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 

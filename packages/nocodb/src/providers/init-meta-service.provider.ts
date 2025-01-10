@@ -15,6 +15,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -24,7 +25,10 @@ export const InitMetaServiceProvider: FactoryProvider = {
   // 4. init jwt
   // 5. init plugin manager
   // 6. run upgrader
-  useFactory: async (eventEmitter: IEventEmitter) => {
+  useFactory: async (
+    eventEmitter: IEventEmitter,
+    appHooksService: AppHooksService,
+  ) => {
     // NC_DATABASE_URL_FILE, DATABASE_URL_FILE, DATABASE_URL, NC_DATABASE_URL to NC_DB
     await prepareEnv();
 
@@ -82,6 +86,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // provide meta and config to Noco
     Noco._ncMeta = metaService;
+    Noco.appHooksService = appHooksService;
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
 
@@ -123,5 +128,5 @@ export const InitMetaServiceProvider: FactoryProvider = {
     return metaService;
   },
   provide: MetaService,
-  inject: ['IEventEmitter'],
+  inject: ['IEventEmitter', AppHooksService],
 };

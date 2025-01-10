@@ -41,6 +41,7 @@ export class SyncService {
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
       syncSource: sync,
       req: param.req,
+      context,
     });
 
     return sync;
@@ -61,6 +62,7 @@ export class SyncService {
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
       syncSource,
       req: param.req,
+      context,
     });
     return res;
   }
@@ -87,8 +89,8 @@ export class SyncService {
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
       syncSource,
-
       req: param.req,
+      context,
     });
 
     return res;

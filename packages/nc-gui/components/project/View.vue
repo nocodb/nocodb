@@ -4,6 +4,7 @@ import NcLayout from '~icons/nc-icons/layout'
 
 const props = defineProps<{
   baseId?: string
+  tab?: string
 }>()
 
 const { integrations } = useProvideIntegrationViewStore()

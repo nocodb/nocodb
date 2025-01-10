@@ -74,6 +74,7 @@ import TableCurrent from '~icons/nc-icons/table-current'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
+import AutomationIcon from '~icons/nc-icons/automations'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -1524,6 +1525,7 @@ export const iconMap = {
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,
   ncQuote: NcQuote,
+  ncAutomation: AutomationIcon,
   ncWebhook: NcWebhook,
   ncLogoAsanaColored: h(NcLogoAsanaColored, { stroke: 'transparent' }),
   ncLogoAsana: h(NcLogoAsana, { stroke: 'transparent' }),

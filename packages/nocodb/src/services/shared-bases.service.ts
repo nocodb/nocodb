@@ -169,6 +169,7 @@ export class SharedBasesService {
       sharedBaseRole: roles,
       context,
       uuid: data.uuid,
+      customUrl,
     });
     return data;
   }

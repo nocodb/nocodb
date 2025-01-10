@@ -56,6 +56,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isWebhookCreateModalOpen = ref(false)
 
+    const isScriptCreateModalOpen = ref(false)
+
     const isAiButtonConfigModalOpen = ref(false)
 
     const isEdit = computed(() => !!column?.value?.id)
@@ -498,6 +500,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       loadData,
       tableExplorerColumns,
       defaultFormState,
+      isScriptCreateModalOpen,
     }
   },
 )

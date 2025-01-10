@@ -4503,7 +4503,8 @@ class BaseModelSqlv2 {
                 default:
                   qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
               }
-            } else if (colOption.type === ButtonActionsType.Webhook) {
+            } else if ([ButtonActionsType.Webhook, ButtonActionsType.Script].includes(colOption.type)) {
+              const key = colOption.type === ButtonActionsType.Webhook ? 'webhook' : 'script';
               switch (this.dbDriver.client.config.client) {
                 case 'mysql2':
                   qb.select(

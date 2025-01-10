@@ -45,6 +45,7 @@ import {
   Model,
   Source,
   View,
+  Script
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -455,6 +456,7 @@ export class ColumnsService {
       colOptions?: any;
       fk_webhook_id?: string;
       type?: ButtonActionsType;
+      fk_script_id?: string
       prompt?: string;
       prompt_raw?: string;
       fk_integration_id?: string;
@@ -584,6 +586,17 @@ export class ColumnsService {
             if (!hook || !hook.active || hook.event !== 'manual') {
               NcError.badRequest('Webhook not found');
             }
+          } else if(colBody.type === ButtonActionsType.Script) {
+            if (!colBody.fk_script_id) {
+              NcError.badRequest('Script not found');
+            }
+
+            const script = await Script.get(context, context.base_id, colBody.fk_script_id);
+
+            if (!script) {
+              NcError.badRequest('Script not found');
+            }
+
           } else if (colBody.type === ButtonActionsType.Ai) {
             /*
               Substitute column alias with id in prompt
@@ -2075,7 +2088,17 @@ export class ColumnsService {
           if (!hook || !hook.active || hook.event !== 'manual') {
             colBody.fk_webhook_id = null;
           }
-        } else if (colBody.type === ButtonActionsType.Ai) {
+        } else if (colBody.type === ButtonActionsType.Script) {
+          if (!colBody.fk_script_id) {
+            colBody.fk_script_id = null;
+          }
+
+          const script = await Script.get(context, context.base_id, colBody.fk_script_id);
+
+          if (!script) {
+            colBody.fk_script_id = null;
+          }
+        }else if (colBody.type === ButtonActionsType.Ai) {
           /*
             Substitute column alias with id in prompt
           */

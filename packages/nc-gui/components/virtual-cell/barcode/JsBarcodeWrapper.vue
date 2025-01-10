@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import JsBarcode from 'jsbarcode'
-import { downloadSvg as _downloadSvg } from '~/utils/svgToPng'
+import { message } from 'ant-design-vue'
+import { downloadSvg as _downloadSvg, copySVGToClipboard } from '~/utils/svgToPng'
 
 const props = defineProps({
   barcodeValue: { type: String, required: true },
@@ -8,8 +9,9 @@ const props = defineProps({
   customStyle: { type: Object, required: false },
   showDownload: { type: Boolean, required: false, default: false },
 })
-
 const emit = defineEmits(['onClickBarcode'])
+
+const { t } = useI18n()
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
@@ -41,6 +43,16 @@ const downloadSvg = () => {
   _downloadSvg(barcodeSvgRef.value, `${props.barcodeValue}.png`)
 }
 
+const copyAsPng = async () => {
+  if (!barcodeSvgRef.value) return
+  const success = await copySVGToClipboard(barcodeSvgRef.value)
+  if (success) {
+    message.success(t('msg.info.copiedToClipboard'))
+  } else {
+    message.error(t('msg.error.notSupported'))
+  }
+}
+
 const onBarcodeClick = (ev: MouseEvent) => {
   ev.stopPropagation()
   emit('onClickBarcode')
@@ -63,13 +75,24 @@ onMounted(generate)
       @click="onBarcodeClick"
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
-    <NcTooltip class="!absolute bottom-0 right-0">
-      <template #title>
-        {{ $t('labels.clickToDownload') }}
-      </template>
-      <NcButton v-if="props.showDownload" size="small" type="secondary" @click="downloadSvg">
-        <GeneralIcon icon="download" class="w-4 h-4" />
+    <div v-if="props.showDownload" class="flex justify-end gap-2 mt-8">
+      <NcButton size="small" type="secondary" @click="copyAsPng">
+        <template #icon>
+          <GeneralIcon icon="copy" class="w-4 h-4" />
+        </template>
+        {{ $t('labels.copyAsPNG') }}
       </NcButton>
-    </NcTooltip>
+      <NcTooltip>
+        <template #title>
+          {{ $t('labels.clickToDownload') }}
+        </template>
+        <NcButton size="small" type="secondary" @click="downloadSvg">
+          <template #icon>
+            <GeneralIcon icon="download" class="w-4 h-4" />
+          </template>
+          {{ $t('labels.downloadAsPNG') }}
+        </NcButton>
+      </NcTooltip>
+    </div>
   </div>
 </template>

@@ -55,27 +55,25 @@ const clearEmoji = () => {
   isOpen.value = false
 }
 
-// Due to calculation of dropdown position by ant dropdown, we need to delay the isOpen change
-// otherwise dropdown opening will be slow
-const debounceIsOpen = ref(false)
-watch(isOpen, () => {
-  if (!isOpen.value) {
-    debounceIsOpen.value = isOpen.value
-    return
-  }
-
-  setTimeout(() => {
-    debounceIsOpen.value = isOpen.value
-  }, 10)
-})
-
 const showClearButton = computed(() => {
   return !!emojiRef.value && clearable.value
+})
+
+watch(isOpen, (val) => {
+  if (!val) return
+  nextTick(() => {
+    setTimeout(() => {
+      const input = document.querySelector<HTMLInputElement>('.emoji-mart-search input')
+      if (!input) return
+      input.focus()
+      input.select()
+    }, 250)
+  })
 })
 </script>
 
 <template>
-  <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
+  <NcDropdown v-model:visible="isOpen" :disabled="readonly" destroy-popup-on-hide overlay-class-name="overflow-hidden">
     <div
       class="flex-none flex flex-row justify-center items-center select-none rounded-md nc-emoji"
       :class="[
@@ -109,9 +107,7 @@ const showClearButton = computed(() => {
           clearable: showClearButton,
         }"
       >
-        <div v-if="!debounceIsOpen" class="h-105 w-90"></div>
         <Picker
-          v-else
           :data="emojiIndex"
           :native="true"
           :show-preview="false"
@@ -122,10 +118,10 @@ const showClearButton = computed(() => {
           @click.stop="() => {}"
         >
         </Picker>
-        <div v-if="debounceIsOpen && showClearButton" class="absolute top-10 right-1.5">
+        <div v-if="showClearButton" class="absolute top-10 right-1.5">
           <div
             role="button"
-            class="flex flex-row items-center bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
+            class="flex flex-row items-center h-[32px] -mt-[1px] bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
             @click="clearEmoji"
           >
             Remove
@@ -133,7 +129,7 @@ const showClearButton = computed(() => {
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style lang="scss">
@@ -144,6 +140,7 @@ const showClearButton = computed(() => {
 }
 .nc-emoji-picker.emoji-mart {
   @apply !w-90;
+  @apply border-none;
 
   span.emoji-type-native {
     @apply cursor-pointer;
@@ -158,10 +155,10 @@ const showClearButton = computed(() => {
 
   .emoji-mart-search {
     input {
-      @apply text-sm pl-3.5 rounded;
-      // Remove focus outline
+      @apply text-sm pl-[11px] rounded-lg !py-5px transition-all duration-300 !outline-none ring-0;
+
       &:focus {
-        @apply !outline-none border-0 mt-0.2 mb-0.2;
+        @apply !outline-none ring-0 shadow-selected border-primary;
       }
     }
   }

@@ -4,6 +4,8 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
+import type { Column } from '~/models';
 
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -279,7 +281,7 @@ export const colOptionBuilder = builderGenerator({
   },
 });
 
-export const columnBuilder = builderGenerator({
+export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
   allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
   mappings: {
     uidt: 'type',

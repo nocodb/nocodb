@@ -197,7 +197,7 @@ export interface TableDeletePayload {
 export interface ColumnCreatePayload {
   field_id: string;
   field_title: string;
-  type: UITypes;
+  field_type: UITypes;
   required?: boolean;
 }
 

@@ -311,7 +311,7 @@ export const columnBuilder = builderGenerator({
         case UITypes.MultiSelect:
           {
             const choices = data.colOptions.options.map((opt) => {
-              const res = {
+              const res: { title: string; color?: string; id?: string } = {
                 title: opt.title,
                 color: opt.color,
               };
@@ -443,7 +443,7 @@ export const columnV3ToV2Builder = builderGenerator({
       case UITypes.MultiSelect:
         {
           const choices = data.meta.choices.map((opt) => {
-            const res = {
+            const res: { title: string; color?: string; id?: string } = {
               title: opt.title,
               color: opt.color,
             };

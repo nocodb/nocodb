@@ -1,4 +1,19 @@
-import {builderGenerator} from "~/utils/data-transformation.builder";
+import type {
+  CalendarViewColumn,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
+  KanbanViewColumn,
+} from '~/models';
+import { builderGenerator } from '~/utils/data-transformation.builder';
+
+// todo: move to a better place
+type ViewColumn =
+  | GridViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | FormViewColumn
+  | CalendarViewColumn;
 
 export const viewColumnBuilder = builderGenerator<
   ViewColumn[],

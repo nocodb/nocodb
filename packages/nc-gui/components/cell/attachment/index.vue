@@ -138,7 +138,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
-    if (!modalVisible.value && !isMobileMode.value && visibleItems.value.length) {
+    if (!isMobileMode.value && visibleItems.value.length) {
       modalRendered.value = true
       modalVisible.value = true
     } else {

@@ -21,6 +21,7 @@ const FEATURES = [
     title: 'NocoDB Scripts (Beta)',
     description: 'Enable NocoDB Scripts to automate repetetive workflow',
     enabled: false,
+    isEngineering: true,
     isEE: true,
   },
   {

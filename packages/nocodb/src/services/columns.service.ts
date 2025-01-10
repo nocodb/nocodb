@@ -184,7 +184,7 @@ async function getJunctionTableName(
 }
 
 @Injectable()
-export class  ColumnsService {
+export class ColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
@@ -338,7 +338,9 @@ export class  ColumnsService {
       */
       await table.getColumns(context);
 
-      const updatedColumn = await Column.get(context, { colId: param.columnId });
+      const updatedColumn = await Column.get(context, {
+        colId: param.columnId,
+      });
 
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
         table,
@@ -1704,7 +1706,6 @@ export class  ColumnsService {
     // Get all the columns in the table and return
     await table.getColumns(context);
 
-
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -1733,6 +1734,9 @@ export class  ColumnsService {
     param: { columnId: string; req: NcRequest },
   ) {
     const oldColumn = await Column.get(context, { colId: param.columnId });
+    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
+      .then((model) => model.getColumns(context))
+      .then((columns) => columns.find((c) => c.pv));
     if (!oldColumn) {
       NcError.notFound(`Column with id ${param.columnId} not found`);
     }
@@ -1745,6 +1749,18 @@ export class  ColumnsService {
     const column = await Column.get(context, { colId: param.columnId });
 
     const table = await Model.get(context, column.fk_model_id);
+
+    if (oldPrimaryColumn) {
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        oldColumn: oldPrimaryColumn,
+        column: { ...oldPrimaryColumn, pv: false },
+        columnId: column.id,
+        req: param.req,
+        context,
+        columns: table.columns,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
       table,

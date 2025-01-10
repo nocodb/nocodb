@@ -98,9 +98,7 @@ import {
   removeBlankPropsAndMask,
 } from '~/ee/utils';
 import { Audit, ModelStat } from '~/ee/models';
-import {
-  UPDATE_WORKSPACE_COUNTER,
-} from '~/ee/services/update-stats.service';
+import { UPDATE_WORKSPACE_COUNTER } from '~/ee/services/update-stats.service';
 import { MetaTable } from '~/ee/utils/globals';
 import { extractColsMetaForAudit } from '~/ee/db/BaseModelSqlv2';
 
@@ -5328,7 +5326,7 @@ class BaseModelSqlv2 {
     nestedCols: Column[];
     data: Record<string, any>;
     insertObj: Record<string, any>;
-    req: NcRequest
+    req: NcRequest;
   }) {
     const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
     const preInsertOps: (() => Promise<string>)[] = [];

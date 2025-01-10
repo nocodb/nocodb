@@ -156,17 +156,23 @@ export class DuplicateController {
       bases.map((p) => p.title),
     );
 
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+
+    req.ncParentAuditId = parentAuditId;
+
     const dupProject = await this.basesService.baseCreate({
       base: {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
         ...(body.base || {}),
       },
-      user: { id: req.user.id },
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        display_name: req.user.display_name,
+      },
       req,
     });
-
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
     this.appHooksService.emit(AppEvents.BASE_DUPLICATE_START, {
       sourceBase: base,
@@ -177,7 +183,6 @@ export class DuplicateController {
       id: parentAuditId,
       options: body?.options,
     });
-    req.ncParentAuditId = parentAuditId;
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
       context,

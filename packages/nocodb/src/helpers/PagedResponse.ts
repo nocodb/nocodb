@@ -1,5 +1,5 @@
 import { extractLimitAndOffset } from '.';
-import type { PaginatedType } from 'nocodb-sdk';
+import type { PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 
 export class PagedResponseImpl<T> {
@@ -49,4 +49,42 @@ export class PagedResponseImpl<T> {
   list: Array<T>;
   pageInfo: PaginatedType;
   errors?: any[];
+}
+
+export class PagedResponseV3Impl<T> {
+  next?: string;
+  prev?: string;
+  nestedNext?: string;
+  nestedPrev?: string;
+
+  constructor(
+    pagedResponse: PagedResponseImpl<T>,
+    {
+      baseUrl = '',
+      tableId,
+    }: {
+      baseUrl?: string;
+      tableId: string;
+    },
+  ) {
+    this.list = pagedResponse.list;
+    const pageInfo: PaginatedV3Type = {};
+
+    if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
+      pageInfo.prev = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
+        pagedResponse.pageInfo.page - 1
+      }`;
+    }
+
+    if (!pagedResponse.pageInfo.isLastPage && pagedResponse.pageInfo.page) {
+      pageInfo.next = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
+        pagedResponse.pageInfo.page + 1
+      }`;
+    }
+
+    this.pageInfo = pageInfo;
+  }
+
+  list: Array<T>;
+  pageInfo: PaginatedV3Type;
 }

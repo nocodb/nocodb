@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -30,6 +31,7 @@ export class TablesService extends TableServiceCE {
       table: TableReqType;
       user: User | UserType;
       req?: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const base = await Base.getWithInfo(context, param.baseId);

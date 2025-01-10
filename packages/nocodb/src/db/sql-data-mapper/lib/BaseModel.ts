@@ -1522,6 +1522,7 @@ export interface XcFilter {
   pks?: string;
   aggregation?: XcAggregation[];
   column_name?: string;
+  page?: string | number;
 }
 
 export interface XcFilterWithAlias extends XcFilter {
@@ -1533,6 +1534,7 @@ export interface XcFilterWithAlias extends XcFilter {
   o?: string | number;
   s?: string;
   f?: string;
+  p?: string | number;
 }
 
 export default BaseModel;

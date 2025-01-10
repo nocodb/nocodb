@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
@@ -30,6 +31,7 @@ export class DataOptService {
       baseModel?: BaseModelSqlv2;
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
@@ -72,6 +74,7 @@ export class DataOptService {
       id: string;
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     try {

@@ -219,10 +219,12 @@ export default class BaseUser extends BaseUserCE {
       base_id,
       mode = 'full',
       include_ws_deleted = true,
+      user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       include_ws_deleted?: boolean;
+      user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -245,8 +247,9 @@ export default class BaseUser extends BaseUserCE {
 
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.USERS}.meta`,
+        `${MetaTable.PROJECT_USERS}.created_at`,
+        `${MetaTable.PROJECT_USERS}.updated_at`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
         `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
@@ -294,6 +297,10 @@ export default class BaseUser extends BaseUserCE {
 
     if (!include_ws_deleted) {
       baseUsers = baseUsers.filter((u) => !u.deleted);
+    }
+
+    if (user_ids) {
+      baseUsers = baseUsers.filter((u) => user_ids.includes(u.id));
     }
 
     if (mode === 'full') {

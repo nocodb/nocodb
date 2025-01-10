@@ -11,6 +11,7 @@ import { BasesService } from '~/services/bases.service';
 import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
+import Noco from '~/Noco';
 
 @Injectable()
 export class UsersService extends UsersServiceEE {
@@ -33,27 +34,30 @@ export class UsersService extends UsersServiceEE {
     );
   }
 
-  async registerNewUserIfAllowed({
-    avatar,
-    display_name,
-    user_name,
-    email,
-    salt,
-    password,
-    email_verification_token,
-    meta,
-    req,
-  }: {
-    avatar;
-    display_name;
-    user_name;
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
-    meta?: MetaType;
-    req: NcRequest;
-  }) {
+  async registerNewUserIfAllowed(
+    {
+      avatar,
+      display_name,
+      user_name,
+      email,
+      salt,
+      password,
+      email_verification_token,
+      meta,
+      req,
+    }: {
+      avatar;
+      display_name;
+      user_name;
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      meta?: MetaType;
+      req: NcRequest;
+    },
+    _ncMeta = Noco.ncMeta,
+  ) {
     if (this.licenseService.isTrial()) {
       const userCount = await User.count();
       if (userCount >= this.licenseService.getMaxUsers()) {

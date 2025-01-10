@@ -67,16 +67,20 @@ export class WorkspaceUsersService {
     return user;
   }
 
-  async update(param: {
-    workspaceId: string;
-    userId: string;
-    roles: WorkspaceUserRoles;
-    siteUrl: string;
-    req: NcRequest;
-  }) {
+  async update(
+    param: {
+      workspaceId: string;
+      userId: string;
+      roles: WorkspaceUserRoles;
+      siteUrl: string;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
       param.userId,
+      ncMeta,
     );
 
     if (!workspaceUser)
@@ -108,11 +112,11 @@ export class WorkspaceUsersService {
       );
     }
 
-    const user = await User.get(param.userId);
+    const user = await User.get(param.userId, ncMeta);
 
     if (!user) NcError.userNotFound(param.userId);
 
-    const workspace = await Workspace.get(param.workspaceId);
+    const workspace = await Workspace.get(param.workspaceId, undefined, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
@@ -131,32 +135,43 @@ export class WorkspaceUsersService {
 
     // if old role is owner and there is only one owner then restrict to update
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-      const wsOwners = await WorkspaceUser.userList({
-        fk_workspace_id: workspace.id,
-        roles: WorkspaceUserRoles.OWNER,
-      });
+      const wsOwners = await WorkspaceUser.userList(
+        {
+          fk_workspace_id: workspace.id,
+          roles: WorkspaceUserRoles.OWNER,
+        },
+        ncMeta,
+      );
 
       if (wsOwners.length === 1) {
         NcError.badRequest('At least one owner should be there');
       }
     }
 
-    await WorkspaceUser.update(param.workspaceId, param.userId, {
-      roles: param.roles,
-    });
+    await WorkspaceUser.update(
+      param.workspaceId,
+      param.userId,
+      {
+        roles: param.roles,
+      },
+      ncMeta,
+    );
 
-    this.sendRoleUpdateEmail({
-      workspace,
-      user,
-      roles: param.roles,
-      siteUrl: getWorkspaceSiteUrl({
-        siteUrl: param.siteUrl,
-        workspaceId: workspace.id,
-        mainSubDomain: this.config.get('mainSubDomain', {
-          infer: true,
+    this.sendRoleUpdateEmail(
+      {
+        workspace,
+        user,
+        roles: param.roles,
+        siteUrl: getWorkspaceSiteUrl({
+          siteUrl: param.siteUrl,
+          workspaceId: workspace.id,
+          mainSubDomain: this.config.get('mainSubDomain', {
+            infer: true,
+          }),
         }),
-      }),
-    }).then(() => {
+      },
+      ncMeta,
+    ).then(() => {
       /* ignore */
     });
 
@@ -241,14 +256,17 @@ export class WorkspaceUsersService {
     }
   }
 
-  async invite(param: {
-    workspaceId: string;
-    body: any;
-    invitedBy?: UserType;
-    siteUrl: string;
-    req: NcRequest;
-    skipEmailInvite?: boolean;
-  }) {
+  async invite(
+    param: {
+      workspaceId: string;
+      body: any;
+      invitedBy?: UserType;
+      siteUrl: string;
+      req: NcRequest;
+      skipEmailInvite?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     validateParams(['email', 'roles'], param.body);
 
     const {
@@ -264,7 +282,7 @@ export class WorkspaceUsersService {
       NcError.badRequest(`Insufficient privilege to invite with this role`);
     }
 
-    const workspace = await Workspace.get(workspaceId);
+    const workspace = await Workspace.get(workspaceId, undefined, ncMeta);
 
     if (!workspace) {
       NcError.workspaceNotFound(workspaceId);
@@ -301,13 +319,17 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const usersInWorkspace = await WorkspaceUser.count({
-      workspaceId,
-    });
+    const usersInWorkspace = await WorkspaceUser.count(
+      {
+        workspaceId,
+      },
+      ncMeta,
+    );
 
     const userLimitForWorkspace = await getLimit(
       PlanLimitTypes.WORKSPACE_USER_LIMIT,
       workspaceId,
+      ncMeta,
     );
 
     // check if user limit is reached or going to be exceeded
@@ -322,48 +344,61 @@ export class WorkspaceUsersService {
 
     for (const email of emails) {
       // add user to base if user already exist
-      let user = await User.getByEmail(email);
+      let user = await User.getByEmail(email, ncMeta);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
-        user = await this.usersService.registerNewUserIfAllowed({
-          email,
-          password: '',
-          email_verification_token: null,
-          avatar: null,
-          user_name: null,
-          display_name: '',
-          salt,
-          req: param.req,
-        });
+        user = await this.usersService.registerNewUserIfAllowed(
+          {
+            email,
+            password: '',
+            email_verification_token: null,
+            avatar: null,
+            user_name: null,
+            display_name: '',
+            salt,
+            req: param.req,
+          },
+          ncMeta,
+        );
       }
 
       // check if this user has been added to this base
-      const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
+      const workspaceUser = await WorkspaceUser.get(
+        workspaceId,
+        user.id,
+        ncMeta,
+      );
       if (workspaceUser) {
         NcError.badRequest(
           `${user.email} with role ${workspaceUser.roles} already exists in this base`,
         );
       }
 
-      await WorkspaceUser.insert({
-        fk_workspace_id: workspaceId,
-        fk_user_id: user.id,
-        roles: roles || WorkspaceUserRoles.VIEWER,
-        invited_by: param.req?.user?.id,
-      });
+      await WorkspaceUser.insert(
+        {
+          fk_workspace_id: workspaceId,
+          fk_user_id: user.id,
+          roles: roles || WorkspaceUserRoles.VIEWER,
+          invited_by: param.req?.user?.id,
+        },
+        ncMeta,
+      );
       if (!param.skipEmailInvite) {
-        this.sendInviteEmail({
-          workspace,
-          user,
-          roles: roles || WorkspaceUserRoles.NO_ACCESS,
-          siteUrl: getWorkspaceSiteUrl({
-            siteUrl: param.siteUrl,
-            workspaceId: workspace.id,
-            mainSubDomain: this.config.get('mainSubDomain', {
-              infer: true,
+        this.sendInviteEmail(
+          {
+            workspace,
+            user,
+            roles: roles || WorkspaceUserRoles.NO_ACCESS,
+            siteUrl: getWorkspaceSiteUrl({
+              siteUrl: param.siteUrl,
+              workspaceId: workspace.id,
+              mainSubDomain: this.config.get('mainSubDomain', {
+                infer: true,
+              }),
             }),
-          }),
-        })
+          },
+          ncMeta,
+        )
           .then(() => {
             /* ignore */
           })
@@ -426,21 +461,24 @@ export class WorkspaceUsersService {
     );
   }
 
-  private async sendInviteEmail({
-    user,
-    workspace,
-    roles,
-    siteUrl,
-  }: {
-    workspace: Workspace;
-    roles: any;
-    user: any;
-    siteUrl: string;
-  }) {
+  private async sendInviteEmail(
+    {
+      user,
+      workspace,
+      roles,
+      siteUrl,
+    }: {
+      workspace: Workspace;
+      roles: any;
+      user: any;
+      siteUrl: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
       const template = (await import('~/helpers/email-templates/invite'))
         .default;
-      await NcPluginMgrv2.emailAdapter()
+      await NcPluginMgrv2.emailAdapter(undefined, ncMeta)
         .then((adapter) => {
           if (!adapter)
             return Promise.reject(
@@ -481,21 +519,24 @@ export class WorkspaceUsersService {
     }
   }
 
-  private async sendRoleUpdateEmail({
-    user,
-    workspace,
-    roles,
-    siteUrl,
-  }: {
-    workspace: Workspace;
-    roles: any;
-    user: any;
-    siteUrl: string;
-  }) {
+  private async sendRoleUpdateEmail(
+    {
+      user,
+      workspace,
+      roles,
+      siteUrl,
+    }: {
+      workspace: Workspace;
+      roles: any;
+      user: any;
+      siteUrl: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
       const template = (await import('~/helpers/email-templates/roleUpdate'))
         .default;
-      await NcPluginMgrv2.emailAdapter()
+      await NcPluginMgrv2.emailAdapter(undefined, ncMeta)
         .then((adapter) => {
           if (!adapter)
             return Promise.reject(

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { ReusableParams } from 'src/services/columns.service';
 import type { RelationTypes } from 'nocodb-sdk';
 import type {
@@ -35,7 +36,7 @@ export class ColumnsService extends ColumnsServiceCE {
     super(metaService, appHooksService);
   }
 
-  async columnAdd(
+  async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
       req: NcRequest;
@@ -44,8 +45,9 @@ export class ColumnsService extends ColumnsServiceCE {
       user: UserType;
       reuse?: any;
       suppressFormulaError?: boolean;
+      apiVersion?: T;
     },
-  ) {
+  ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -322,3 +324,4 @@ export class ColumnsService extends ColumnsServiceCE {
 }
 
 export { Altered } from 'src/services/columns.service';
+export { ReusableParams } from 'src/services/columns.service';

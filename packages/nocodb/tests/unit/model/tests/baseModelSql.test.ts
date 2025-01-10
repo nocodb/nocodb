@@ -66,6 +66,13 @@ function baseModelSqlTests() {
     const insertedRow = (await baseModelSql.list())[0];
 
     expect(insertedRow).to.deep.include(inputData);
+
+    // todo: enable if created by column included in default column list
+    // compare CreatedBy separately as it's an object
+    // const { CreatedBy, ...insertedRowWithoutCreatedBy } = insertedRow;
+    // expect(response).to.include(insertedRowWithoutCreatedBy);
+    // expect(response.CreatedBy).to.include(CreatedBy);
+
     expect(response).to.include(insertedRow);
 
     const rowInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(

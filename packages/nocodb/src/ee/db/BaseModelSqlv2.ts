@@ -33,6 +33,7 @@ import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
+import { NcApiVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
@@ -183,6 +184,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       bulkAggregate?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
+      apiVersion?: NcApiVersion;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
@@ -192,6 +194,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipJsonConversion: false,
       raw: false,
       first: false,
+      apiVersion: NcApiVersion.V2,
     },
   ) {
     if (options.raw || options.bulkAggregate) {
@@ -1409,6 +1412,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
+      apiVersion?: NcApiVersion;
       undo?: boolean;
     } = {},
   ) {
@@ -1444,6 +1448,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is auto generated and cannot be updated`,
+                );
+              }
+
+              if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
+                NcError.badRequest(
+                  `Column "${col.title}" is virtual and cannot be updated`,
                 );
               }
 
@@ -2102,11 +2112,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
+      apiVersion,
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
+      apiVersion?: NcApiVersion;
     } = {},
   ) {
     const queries: string[] = [];
@@ -2268,6 +2280,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } catch (e) {
           await trx.rollback();
           throw e;
+        }
+      }
+
+      // todo: wrap with transaction
+      if (apiVersion === NcApiVersion.V3) {
+        for (const d of datas) {
+          // remove LTAR/Links if part of the update request
+          await this.updateLTARCols({
+            rowId: this.extractPksValues(d, true),
+            cookie,
+            newData: d,
+          });
         }
       }
 

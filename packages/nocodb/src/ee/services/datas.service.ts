@@ -3,6 +3,7 @@ import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -32,6 +33,7 @@ export class DatasService extends DatasServiceCE {
       ignorePagination?: boolean;
       limitOverride?: number;
       getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };
@@ -122,6 +124,7 @@ export class DatasService extends DatasServiceCE {
         baseModel,
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
+        apiVersion: param.apiVersion,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -134,6 +137,7 @@ export class DatasService extends DatasServiceCE {
         baseModel,
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
+        apiVersion: param.apiVersion,
       });
     }
 
@@ -147,6 +151,7 @@ export class DatasService extends DatasServiceCE {
       rowId: string;
       disableOptimization?: boolean;
       getHiddenColumn?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);

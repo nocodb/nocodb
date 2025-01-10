@@ -3,6 +3,7 @@ import { UsersService as UsersServiceCE } from 'src/services/users/users.service
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AdminDeleteUserCommand,
+  AdminDisableUserCommand,
   CognitoIdentityProviderClient,
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -139,39 +140,44 @@ export class UsersService extends UsersServiceCE {
   ) {
     super(metaService, appHooksService, baseService);
   }
-  async registerNewUserIfAllowed({
-    avatar,
-    display_name,
-    user_name,
-    email,
-    salt,
-    password,
-    email_verification_token,
-    meta,
-    req,
-  }: {
-    avatar;
-    display_name;
-    user_name;
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
-    meta?: MetaType;
-    req: NcRequest;
-  }) {
+  async registerNewUserIfAllowed(
+    {
+      avatar,
+      display_name,
+      user_name,
+      email,
+      salt,
+      password,
+      email_verification_token,
+      meta,
+      req,
+    }: {
+      avatar;
+      display_name;
+      user_name;
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      meta?: MetaType;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     this.validateEmailPattern(email);
 
     let roles: string = OrgUserRoles.CREATOR;
 
     let settings: { invite_only_signup?: boolean } = {};
     try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+      settings = JSON.parse(
+        (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
+      );
     } catch {}
 
     // allow super user signup(first user) in non cloud mode(on-prem)
     const isFirstUserAndSuperUserAllowed =
-      process.env.NC_CLOUD !== 'true' && (await User.isFirst());
+      process.env.NC_CLOUD !== 'true' && (await User.isFirst(ncMeta));
 
     if (isFirstUserAndSuperUserAllowed) {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
@@ -182,18 +188,21 @@ export class UsersService extends UsersServiceCE {
     }
 
     const token_version = randomTokenString();
-    const user = await User.insert({
-      avatar,
-      display_name,
-      user_name,
-      email,
-      salt,
-      password,
-      email_verification_token,
-      roles,
-      token_version,
-      meta,
-    });
+    const user = await User.insert(
+      {
+        avatar,
+        display_name,
+        user_name,
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+        meta,
+      },
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
@@ -544,7 +553,7 @@ export class UsersService extends UsersServiceCE {
         7. Delete all api tokens of user
         8. Delete all extensions of users
         9. Delete all sync sources of user (Airtable import settings)
-  
+
         10. Mark user as deleted in meta - replace email & display_name with placeholder (Anonymous or Deleted User)
       */
 
@@ -633,7 +642,7 @@ export class UsersService extends UsersServiceCE {
         },
       );
 
-      
+
       for (const data of integrationsData) {
         const integration = new Integration(data);
 
@@ -688,27 +697,21 @@ export class UsersService extends UsersServiceCE {
           }),
         });
 
-        const { Users: userList } = await client.send(
-          new ListUsersCommand({
+        await client.send(
+          new AdminDisableUserCommand({
             UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
               infer: true,
             }),
-            Filter: `email = "${user.email}"`,
+            Username: user.email,
           }),
         );
-
-        if (userList.length !== 1) {
-          throw new Error('There was an error, please contact support');
-        }
-
-        const cognitoUser = userList[0];
 
         await client.send(
           new AdminDeleteUserCommand({
             UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
               infer: true,
             }),
-            Username: cognitoUser.Username,
+            Username: user.email,
           }),
         );
       }

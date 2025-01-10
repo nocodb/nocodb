@@ -21,6 +21,7 @@ import {
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
 import { parseMetaProp } from 'src/utils/modelUtils';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -285,6 +286,7 @@ export class ColumnsService {
       cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const reuse = param.reuse || {};
@@ -1701,6 +1703,10 @@ export class ColumnsService {
       req: param.req,
     });
 
+    if (param.apiVersion === NcApiVersion.V3) {
+      return column;
+    }
+
     return table;
   }
 
@@ -1713,7 +1719,7 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(context, column.fk_model_id, column.id);
   }
 
-  async columnAdd(
+  async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
       req: NcRequest;
@@ -1722,8 +1728,10 @@ export class ColumnsService {
       user: UserType;
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
+      apiVersion?: T;
     },
-  ) {
+  ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
+    let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -1843,7 +1851,7 @@ export class ColumnsService {
         {
           await validateRollupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1853,7 +1861,7 @@ export class ColumnsService {
         {
           await validateLookupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1862,7 +1870,7 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn(context, {
+        savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
           base,
@@ -1884,7 +1892,7 @@ export class ColumnsService {
       case UITypes.QrCode:
         validateParams(['fk_qr_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1892,7 +1900,7 @@ export class ColumnsService {
       case UITypes.Barcode:
         validateParams(['fk_barcode_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1946,7 +1954,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2032,7 +2040,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2124,7 +2132,7 @@ export class ColumnsService {
           } else {
             columnName = existingColumn.column_name;
           }
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
             column_name: null,
@@ -2372,7 +2380,7 @@ export class ColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -2393,7 +2401,22 @@ export class ColumnsService {
       req: param.req,
     });
 
-    return table;
+    if (param.apiVersion === NcApiVersion.V3) {
+      if (savedColumn)
+        return (await Column.get(context, {
+          colId: savedColumn.id,
+        })) as T extends NcApiVersion.V3 ? Column<any> : never;
+
+      if (param.column.title) {
+        return (await Column.get(context, {
+          colId: table.columns.find((c) => c.title === param.column.title)?.id,
+        })) as T extends NcApiVersion.V3 ? Column<any> : never;
+      }
+    }
+
+    return table as T extends NcApiVersion.V3 | null | undefined
+      ? never
+      : Model;
   }
 
   async columnDelete(
@@ -3184,6 +3207,8 @@ export class ColumnsService {
       user: UserType;
     },
   ) {
+    let savedColumn: Column;
+
     validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};
@@ -3305,7 +3330,7 @@ export class ColumnsService {
         }
       }
 
-      await createHmAndBtColumn(
+      savedColumn = await createHmAndBtColumn(
         context,
         child,
         parent,
@@ -3404,7 +3429,7 @@ export class ColumnsService {
           });
         }
       }
-      await createOOColumn(
+      savedColumn = await createOOColumn(
         context,
         child,
         parent,
@@ -3555,7 +3580,7 @@ export class ColumnsService {
         param.colExtra,
       );
 
-      await Column.insert(context, {
+      savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await child.getColumns(context),
           pluralize(parent.title),
@@ -3635,6 +3660,8 @@ export class ColumnsService {
           sqlMgr,
         });
       }
+
+      return savedColumn;
     }
   }
 
@@ -3807,13 +3834,13 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          const tableMeta = await this.columnAdd(context, {
+          const tableMeta = (await this.columnAdd(context, {
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
-          });
+          })) as Model;
 
           await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {

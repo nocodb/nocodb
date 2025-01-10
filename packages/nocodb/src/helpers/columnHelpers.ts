@@ -46,6 +46,7 @@ export async function createHmAndBtColumn(
   parentColumn?: Column,
   isCustom = false,
 ) {
+  let savedColumn: Column;
   // save bt column
   {
     const title = getUniqueColumnAliasName(
@@ -89,7 +90,7 @@ export async function createHmAndBtColumn(
       custom: isCustom,
     };
 
-    await Column.insert(context, {
+    savedColumn = await Column.insert(context, {
       title,
       fk_model_id: parent.id,
       uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -106,6 +107,7 @@ export async function createHmAndBtColumn(
       ...(type === 'hm' ? colExtra : {}),
     });
   }
+  return savedColumn;
 }
 
 /**
@@ -138,6 +140,7 @@ export async function createOOColumn(
   parentColumn?: Column,
   isCustom = false,
 ) {
+  let savedColumn: Column;
   // save bt column
   {
     const title = getUniqueColumnAliasName(
@@ -189,7 +192,7 @@ export async function createOOColumn(
       custom: isCustom,
     };
 
-    await Column.insert(context, {
+    savedColumn = await Column.insert(context, {
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -206,6 +209,7 @@ export async function createOOColumn(
       ...(colExtra || {}),
     });
   }
+  return savedColumn;
 }
 
 export async function validateRollupPayload(
@@ -299,6 +303,11 @@ export async function validateLookupPayload(
   const column = await Column.get(context, {
     colId: (payload as LookupColumnReqType).fk_relation_column_id,
   });
+
+  if (!column) {
+    throw new Error('Relation column not found');
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordType>(context);
 
   if (!relation) {

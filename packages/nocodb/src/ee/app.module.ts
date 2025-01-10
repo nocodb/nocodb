@@ -11,9 +11,10 @@ import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.midd
 import { UpdateStatsService } from '~/services/update-stats.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { generateUUID } from '~/helpers/uuidHelpers';
+import { throttlerEnabled } from '~/helpers/redisHelpers';
 
 // todo: refactor to use config service
-const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+const enableThrottler = throttlerEnabled();
 
 @Module({
   ...ceModuleConfig,

@@ -6,6 +6,7 @@ import type {
   ThrottlerModuleOptions,
   ThrottlerOptionsFactory,
 } from '@nestjs/throttler';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 class CustomThrottlerStorageRedisService extends ThrottlerStorageRedisService {
   // keeping this for reference
@@ -87,7 +88,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         },
       ],
       storage: new CustomThrottlerStorageRedisService(
-        process.env['NC_THROTTLER_REDIS'],
+        getRedisURL(NC_REDIS_TYPE.THROTTLER),
       ),
     };
   }

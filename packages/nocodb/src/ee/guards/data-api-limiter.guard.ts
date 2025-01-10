@@ -4,6 +4,7 @@ import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.inter
 import { Reflector } from '@nestjs/core';
 import { DataApiLimiterGuard as DataApiLimiterGuardCE } from 'src/guards/data-api-limiter.guard';
 import type { ExecutionContext } from '@nestjs/common';
+import { throttlerEnabled } from '~/helpers/redisHelpers';
 
 const HEADER_NAME = 'xc-token';
 const HEADER_NAME_GUI = 'xc-auth';
@@ -46,7 +47,7 @@ export class DataApiLimiterGuardEE extends ThrottlerGuard {
 }
 
 // to avoid issue if throttler is not enabled
-const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+const enableThrottler = throttlerEnabled();
 const AuthGuard = enableThrottler
   ? DataApiLimiterGuardEE
   : DataApiLimiterGuardCE;

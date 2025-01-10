@@ -1,16 +1,15 @@
 import Redlock from 'redlock';
 import Client from 'ioredis';
 import type { Lock, Settings } from 'redlock';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 export class RedlockWrapper {
   private client: Client;
   private redlock: Redlock;
 
   constructor(options: Settings) {
-    if (process.env['NC_THROTTLER_REDIS'] || process.env.NC_REDIS_URL) {
-      this.client = new Client(
-        process.env['NC_THROTTLER_REDIS'] || process.env.NC_REDIS_URL,
-      );
+    if (getRedisURL(NC_REDIS_TYPE.THROTTLER)) {
+      this.client = new Client(getRedisURL(NC_REDIS_TYPE.THROTTLER));
       this.redlock = new Redlock([this.client], options);
     }
   }

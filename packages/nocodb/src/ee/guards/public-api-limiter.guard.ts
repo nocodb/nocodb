@@ -5,6 +5,7 @@ import { Reflector } from '@nestjs/core';
 import { PublicApiLimiterGuard as PublicApiLimiterGuardCE } from 'src/guards/public-api-limiter.guard';
 import requestIp from 'request-ip';
 import type { ExecutionContext } from '@nestjs/common';
+import { throttlerEnabled } from '~/helpers/redisHelpers';
 
 @Injectable()
 class PublicApiLimiterGuardEE extends ThrottlerGuard {
@@ -37,7 +38,7 @@ class PublicApiLimiterGuardEE extends ThrottlerGuard {
   }
 }
 
-const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+const enableThrottler = throttlerEnabled();
 
 const AuthGuard = enableThrottler
   ? PublicApiLimiterGuardEE

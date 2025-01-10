@@ -11,6 +11,7 @@ import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
 import type { AppConfig } from '~/interface/config';
 import { Producer } from '~/services/producer/producer';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 // This interceptor is no longer in use and keeping it for future reference
 // It calculates the execution time of the request and sends it to the producer
@@ -24,9 +25,9 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
     private readonly configService: ConfigService<AppConfig>,
     @Inject(Producer) private producer: Producer,
   ) {
-    if (process.env['NC_THROTTLER_REDIS']) {
+    if (getRedisURL(NC_REDIS_TYPE.THROTTLER)) {
       // todo: use a single redis connection
-      this.client = new Client(process.env['NC_THROTTLER_REDIS']);
+      this.client = new Client(getRedisURL(NC_REDIS_TYPE.THROTTLER));
     }
   }
 

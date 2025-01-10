@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType } from '~/utils/globals';
+import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
 
 const log = debug('nc:cache');
 const logger = new Logger('CacheMgr');
@@ -17,9 +18,6 @@ const logger = new Logger('CacheMgr');
   - get returns `value` only
   - getRaw returns the whole cache object with metadata
 */
-
-const NC_REDIS_TTL = +process.env.NC_REDIS_TTL || 60 * 60 * 24 * 3; // 3 days
-const NC_REDIS_GRACE_TTL = +process.env.NC_REDIS_GRACE_TTL || 60 * 60 * 24 * 1; // 1 day
 
 export default abstract class CacheMgr {
   client: IORedis;

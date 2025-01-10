@@ -6,6 +6,7 @@ import { ClickhouseTables } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
 import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -19,8 +20,8 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
     private readonly clickHouseService: ClickhouseService,
     private readonly configService: ConfigService<AppConfig>, // private readonly kafkaProducer: KafkaProducer,
   ) {
-    this.client = new Client(process.env['NC_THROTTLER_REDIS']);
-    this.subscriber = new Client(process.env['NC_THROTTLER_REDIS']);
+    this.client = new Client(getRedisURL(NC_REDIS_TYPE.THROTTLER));
+    this.subscriber = new Client(getRedisURL(NC_REDIS_TYPE.THROTTLER));
 
     this.redlock = new Redlock([this.client], {
       // The expected clock drift; for more details see:
@@ -60,7 +61,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
 
     // Subscribe to expired events
     this.subscriber.psubscribe(
-      `__keyevent@${process.env['NC_THROTTLER_REDIS']
+      `__keyevent@${getRedisURL(NC_REDIS_TYPE.THROTTLER)
         .split('/')
         .pop()}__:expired`,
     );

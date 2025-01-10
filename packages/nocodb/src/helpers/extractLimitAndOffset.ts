@@ -2,12 +2,13 @@ export const defaultLimitConfig = {
   limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
   limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 10, 1),
   limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
-};
+  ltarV3Limit: Math.max(+process.env.DB_QUERY_LIMIT_LTAR_V3_LIMIT || 1000, 1),
+} as const;
 
 export const defaultGroupByLimitConfig = {
   limitGroup: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_GROUP || 25, 1),
   limitRecord: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_RECORD || 10, 1),
-};
+} as const;
 
 export function extractLimitAndOffset(
   args: {

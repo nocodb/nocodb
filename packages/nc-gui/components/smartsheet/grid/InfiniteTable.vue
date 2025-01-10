@@ -274,6 +274,41 @@ const visibleRows = computed(() => {
   })
 })
 
+const totalMaxPlaceholderRows = computed(() => {
+  if (!gridWrapper.value || rowSlice.start <= 1) {
+    return 0
+  }
+
+  return parseInt(`${gridWrapper.value?.clientHeight / (isMobileMode.value ? 56 : rowHeight.value || 32)}`)
+})
+
+const placeholderStartRows = computed(() => {
+  const result = {
+    length: rowSlice.start > 1 ? Math.min(rowSlice.start - 1, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    totalRowHeight: 0,
+  }
+
+  result.totalRowHeight = result.length * result.rowHeight
+
+  return result
+})
+
+const placeholderEndRows = computed(() => {
+  const result = {
+    length: rowSlice.end < totalRows.value - 1 ? Math.min(totalRows.value - 1 - rowSlice.end, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    totalRowHeight: 0,
+  }
+  result.totalRowHeight = result.length * result.rowHeight
+
+  return result
+})
+
+const topOffset = computed(() => {
+  return (isMobileMode.value ? 56 : rowHeight.value!) * (rowSlice.start - placeholderStartRows.value.length)
+})
+
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -1223,7 +1258,7 @@ const colPositions = computed(() => {
   return fields.value
     .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
     .map((col) => {
-      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
+      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 180
     })
     .reduce(
       (acc, width, i) => {
@@ -1248,7 +1283,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
       top: row * rowHeight.value,
       left: colPositions.value[col],
       right:
-        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 200 : colPositions.value[col + 1],
+        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 180 : colPositions.value[col + 1],
       bottom: (row + 1) * rowHeight.value,
     }
 
@@ -1446,8 +1481,29 @@ const visibleFields = computed(() => {
   return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
 })
 
-const leftOffset = computed(() => {
-  return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
+const placeholderStartFields = computed(() => {
+  const result = {
+    length: colSlice.value.start > 0 ? colSlice.value.start - 1 : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[colSlice.value.start]! - colPositions.value[1]! : 0
+
+  return result
+})
+
+const placeholderEndFields = computed(() => {
+  const result = {
+    length: colSlice.value.end < fields.value.length - 1 ? fields.value.length - colSlice.value.end : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[fields.value.length]! - colPositions.value[colSlice.value.end]! : 0
+
+  return result
+})
+
+const totalRenderedColLength = computed(() => {
+  // number col + display col = 2
+  return 2 + visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
 })
 
 // Fill Handle
@@ -1550,19 +1606,24 @@ const reloadViewDataHookHandler = async (param) => {
   })
 }
 
-let scrollRaf = false
+let requestAnimationFrameId: null | number = null
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
-    if (scrollRaf) return
+    // Cancel the previous animation frame if it exists
+    if (requestAnimationFrameId) {
+      cancelAnimationFrame(requestAnimationFrameId)
+    }
 
-    scrollRaf = true
-    requestAnimationFrame(() => {
+    // Request a new animation frame
+    requestAnimationFrameId = requestAnimationFrame(() => {
       scrollLeft.value = e.target?.scrollLeft
       scrollTop.value = e.target?.scrollTop
       calculateSlices()
       refreshFillHandle()
-      scrollRaf = false
+
+      // Clear the frame ID after execution
+      requestAnimationFrameId = null
     })
   },
   throttle: 100,
@@ -1924,21 +1985,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   />
                 </td>
               </tr>
-              <tr
-                v-show="!isViewColumnsLoading"
-                :style="{
-                  transform: `translateX(${leftOffset}px)`,
-                }"
-                class="nc-grid-header transform"
-              >
-                <th
-                  ref="numColHeader"
-                  class="w-[80px] min-w-[80px]"
-                  :style="{
-                    left: `-${leftOffset}px`,
-                  }"
-                  data-testid="grid-id-column"
-                >
+              <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
+                <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
                   <div
                     v-if="!readOnly"
                     data-testid="nc-check-all"
@@ -1971,11 +2019,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
                     'width': gridViewCols[fields[0].id]?.width || '180px',
-                    ...(leftOffset > 0
-                      ? {
-                          left: `-${leftOffset - 80}px`,
-                        }
-                      : {}),
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2000,6 +2043,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
+                <th
+                  v-if="placeholderStartFields.length"
+                  :colspan="placeholderStartFields.length"
+                  :style="{
+                    minWidth: `${placeholderStartFields.width}px`,
+                    maxWidth: `${placeholderStartFields.width}px`,
+                    width: `${placeholderStartFields.width}px`,
+                  }"
+                  class="nc-grid-column-header"
+                ></th>
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
@@ -2034,6 +2087,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
+                <th
+                  v-if="placeholderEndFields.length"
+                  :colspan="placeholderEndFields.length"
+                  :style="{
+                    minWidth: `${placeholderEndFields.width}px`,
+                    maxWidth: `${placeholderEndFields.width}px`,
+                    width: `${placeholderEndFields.width}px`,
+                  }"
+                  class="nc-grid-column-header"
+                ></th>
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
@@ -2175,11 +2238,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             </thead>
           </table>
 
-          <div
-            v-show="isDragging"
-            class="dragging-record"
-            :style="{ left: `${leftOffset}px`, width: `${width}px`, top: `${targetTop}px` }"
-          ></div>
+          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
 
           <div
             class="table-overlay"
@@ -2202,9 +2261,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 ref="tableBodyEl"
                 class="xc-row-table"
                 :style="{
-                  transform: `translateX(${leftOffset}px) translateY(${rowSlice.start * rowHeight}px)`,
+                  transform: `translateY(${topOffset}px)`,
                 }"
               >
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderStartRows.length"
+                  :row-count="placeholderStartRows.length"
+                  :row-height="placeholderStartRows.rowHeight"
+                  :total-row-height="placeholderStartRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
                   :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
@@ -2272,9 +2338,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         key="row-index"
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
-                        :style="{
-                          left: `-${leftOffset}px`,
-                        }"
                         @contextmenu="contextMenuTarget = null"
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
@@ -2317,27 +2380,29 @@ watch(vSelectedAllRecords, (selectedAll) => {
                               :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                             />
 
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                              class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
-                              @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                              class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
-                            >
-                              <component
-                                :is="iconMap.maximize"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                            <template v-else>
+                              <span
+                                v-if="row.rowMeta?.commentCount && expandForm"
+                                v-e="['c:expanded-form:open']"
+                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                                 @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
+                              >
+                                {{ row.rowMeta.commentCount }}
+                              </span>
+                              <div
+                                v-else
+                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                              >
+                                <component
+                                  :is="iconMap.maximize"
+                                  v-if="expandForm"
+                                  v-e="['c:row-expand:open']"
+                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                                  @click="expandAndLooseFocus(row, state)"
+                                />
+                              </div>
+                            </template>
                           </div>
                         </div>
                       </td>
@@ -2363,11 +2428,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
-                          ...(leftOffset > 0
-                            ? {
-                                left: `-${leftOffset - 80}px`,
-                              }
-                            : {}),
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"
@@ -2413,6 +2473,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           />
                         </div>
                       </SmartsheetTableDataCell>
+                      <td
+                        v-if="placeholderStartFields.length"
+                        :colspan="placeholderStartFields.length"
+                        :style="{
+                          minWidth: `${placeholderStartFields.width}px`,
+                          maxWidth: `${placeholderStartFields.width}px`,
+                          width: `${placeholderStartFields.width}px`,
+                        }"
+                        class="nc-grid-cell"
+                      ></td>
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
@@ -2481,9 +2551,26 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           />
                         </div>
                       </SmartsheetTableDataCell>
+                      <td
+                        v-if="placeholderEndFields.length"
+                        :colspan="placeholderEndFields.length"
+                        :style="{
+                          minWidth: `${placeholderEndFields.width}px`,
+                          maxWidth: `${placeholderEndFields.width}px`,
+                          width: `${placeholderEndFields.width}px`,
+                        }"
+                        class="nc-grid-cell"
+                      ></td>
                     </tr>
                   </template>
                 </LazySmartsheetRow>
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderEndRows.length"
+                  :row-count="placeholderEndRows.length"
+                  :row-height="placeholderEndRows.rowHeight"
+                  :total-row-height="placeholderEndRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
@@ -2497,9 +2584,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   @click="addEmptyRow()"
                 >
                   <td
-                    :style="{
-                      left: `-${leftOffset}px`,
-                    }"
                     class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                   >
                     <component

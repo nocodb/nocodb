@@ -352,16 +352,18 @@ export default class User implements UserType {
 
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
-        BaseUser.get(context, args.baseId, user.id).then(async (baseUser) => {
-          const roles = baseUser?.roles;
-          // + (user.roles ? `,${user.roles}` : '');
-          if (roles) {
-            resolve(extractRolesObj(roles));
-          } else {
-            resolve(null);
-          }
-          // todo: cache
-        });
+        BaseUser.get(context, args.baseId, user.id, ncMeta).then(
+          async (baseUser) => {
+            const roles = baseUser?.roles;
+            // + (user.roles ? `,${user.roles}` : '');
+            if (roles) {
+              resolve(extractRolesObj(roles));
+            } else {
+              resolve(null);
+            }
+            // todo: cache
+          },
+        );
       } else {
         resolve(null);
       }

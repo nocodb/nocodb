@@ -3268,7 +3268,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedBaseReq"
                   },
                   {
@@ -5930,7 +5930,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedViewReq"
                   },
                   {
@@ -24174,6 +24174,35 @@
           "id": "2x65v3n9xo8q3"
         }
       },
+      "PaginatedV3": {
+        "description": "Model for Paginated",
+        "examples": [
+          {
+            "next": "http://api.nocodd.com/api/v3/tables/id?page=3",
+            "prev": "http://api.nocodd.com/api/v3/tables/id?page=1"
+          }
+        ],
+        "properties": {
+          "next": {
+            "description": "URL to access next page",
+            "type": "string"
+          },
+          "prev": {
+            "description": "URL to access previous page",
+            "type": "string"
+          },
+          "nestedNext": {
+            "description": "URL to access current page data with next set of nested fields data",
+            "type": "string"
+          },
+          "nestedPrev": {
+            "description": "URL to access current page data with previous set of nested fields data",
+            "type": "string"
+          }
+        },
+        "title": "Paginated Model",
+        "type": "object"
+      },
       "Password": {
         "description": "Model for Password",
         "example": "password123456789",
@@ -24815,6 +24844,39 @@
           "id": "3bvgqk9tn16ur"
         }
       },
+      "ProjectUserUpdateReq": {
+        "description": "Model for Base User Request",
+        "examples": [
+          {
+            "roles": "owner"
+          }
+        ],
+        "title": "Base User Request Model",
+        "type": "object",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string",
+            "description": "Base User Email"
+          },
+          "roles": {
+            "enum": [
+              "no-access",
+              "commenter",
+              "editor",
+              "guest",
+              "owner",
+              "viewer",
+              "creator"
+            ],
+            "type": "string",
+            "description": "Base User Role"
+          }
+        },
+        "required": [
+          "roles"
+        ]
+      },
       "ProjectUserMetaReq": {
         "description": "Model for Base User Meta Request",
         "examples": [
@@ -24947,7 +25009,7 @@
         "examples": [
           {
             "id": "sl_hvfeuagqtlzzbk",
-            "title": "Option A",
+            "title": "OptionA",
             "fk_column_id": "cl_35zmvi2tezfipw",
             "color": "#cfdffe",
             "order": 1

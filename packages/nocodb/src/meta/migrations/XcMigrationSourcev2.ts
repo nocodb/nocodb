@@ -59,6 +59,7 @@ import * as nc_069_ai_prompt from '~/meta/migrations/v2/nc_069_ai_prompt';
 import * as nc_070_data_reflection from '~/meta/migrations/v2/nc_070_data_reflection';
 import * as nc_071_add_meta_in_users from '~/meta/migrations/v2/nc_071_add_meta_in_users';
 import * as nc_072_col_button_pk from '~/meta/migrations/v2/nc_072_col_button_pk';
+import * as nc_073_file_reference_indexes from '~/meta/migrations/v2/nc_073_file_reference_indexes';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -129,6 +130,7 @@ export default class XcMigrationSourcev2 {
       'nc_070_data_reflection',
       'nc_071_add_meta_in_users',
       'nc_072_col_button_pk',
+      'nc_073_file_reference_indexes',
     ]);
   }
 
@@ -260,6 +262,8 @@ export default class XcMigrationSourcev2 {
         return nc_071_add_meta_in_users;
       case 'nc_072_col_button_pk':
         return nc_072_col_button_pk;
+      case 'nc_073_file_reference_indexes':
+        return nc_073_file_reference_indexes;
     }
   }
 }

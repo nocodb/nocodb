@@ -35,6 +35,15 @@ const getTableByAPI = async (context, base) => {
   return response.body;
 };
 
+const getTableMeta = async (context, table) => {
+  const response = await request(context.app)
+    .get(`/api/v1/db/meta/tables/${table.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+  return response.body;
+}
+
 const getColumnsByAPI = async (context, base, table) => {
   const response = await request(context.app)
     .get(`/api/v2/meta/tables/${table.id}`)
@@ -89,6 +98,7 @@ const updateTable = async (
 export {
   createTable,
   getTable,
+  getTableMeta,
   getAllTables,
   updateTable,
   getTableByAPI,

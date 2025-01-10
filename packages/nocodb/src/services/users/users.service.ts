@@ -64,17 +64,20 @@ export class UsersService {
     return user;
   }
 
-  async insert(param: {
-    token_version: string;
-    firstname: any;
-    password: any;
-    salt: any;
-    email_verification_token: any;
-    roles: string;
-    email: string;
-    lastname: any;
-  }) {
-    return this.metaService.metaInsert2(
+  async insert(
+    param: {
+      token_version: string;
+      firstname: any;
+      password: any;
+      salt: any;
+      email_verification_token: any;
+      roles: string;
+      email: string;
+      lastname: any;
+    },
+    ncMeta = this.metaService || Noco.ncMeta,
+  ) {
+    return ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
@@ -105,24 +108,27 @@ export class UsersService {
     return user;
   }
 
-  async registerNewUserIfAllowed({
-    email,
-    salt,
-    password,
-    email_verification_token,
-    req,
-  }: {
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
-    req: NcRequest;
-  }) {
+  async registerNewUserIfAllowed(
+    {
+      email,
+      salt,
+      password,
+      email_verification_token,
+      req,
+    }: {
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     this.validateEmailPattern(email);
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    const isFirstUser = await User.isFirst();
+    const isFirstUser = await User.isFirst(ncMeta);
 
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
@@ -135,7 +141,9 @@ export class UsersService {
     } else {
       let settings: { invite_only_signup?: boolean } = {};
       try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+        settings = JSON.parse(
+          (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
+        );
       } catch {}
 
       if (settings?.invite_only_signup) {
@@ -146,19 +154,26 @@ export class UsersService {
     }
 
     const token_version = randomTokenString();
-    const user = await User.insert({
-      email,
-      salt,
-      password,
-      email_verification_token,
-      roles,
-      token_version,
-    });
+    const user = await User.insert(
+      {
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+      },
+      ncMeta,
+    );
 
     // if first user and super admin, create a base
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       // todo: update swagger type
-      (user as any).createdProject = await this.createDefaultProject(user, req);
+      (user as any).createdProject = await this.createDefaultProject(
+        user,
+        req,
+        ncMeta,
+      );
     }
 
     // todo: update swagger type
@@ -584,12 +599,19 @@ export class UsersService {
     param.res.clearCookie('refresh_token');
   }
 
-  private async createDefaultProject(user: User, req: any) {
+  private async createDefaultProject(
+    user: User,
+    req: any,
+    ncMeta = Noco.ncMeta,
+  ) {
     // create new base for user
-    const base = await this.basesService.createDefaultBase({
-      user,
-      req,
-    });
+    const base = await this.basesService.createDefaultBase(
+      {
+        user,
+        req,
+      },
+      ncMeta,
+    );
 
     return base;
   }

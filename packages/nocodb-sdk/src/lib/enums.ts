@@ -452,3 +452,9 @@ export enum IconType {
   EMOJI = 'EMOJI',
   ICON = 'ICON',
 }
+
+export enum NcApiVersion {
+  V1,
+  V2,
+  V3,
+}

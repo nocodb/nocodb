@@ -29,9 +29,9 @@ export default class Base implements BaseType {
   public description: string;
   public meta: MetaType;
   public color: string;
-  public deleted: BoolType;
+  public deleted: BoolType | number;
   public order: number;
-  public is_meta = false;
+  public is_meta: boolean | number = false;
   public sources?: Source[];
   public linked_db_projects?: Base[];
 
@@ -348,6 +348,11 @@ export default class Base implements BaseType {
       'roles',
     ]);
 
+    // stringify meta
+    if (updateObj.meta) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -379,15 +384,13 @@ export default class Base implements BaseType {
       // set cache
       await NocoCache.set(key, o);
     }
-
-    // stringify meta
-    if (updateObj.meta) {
-      updateObj.meta = stringifyMetaProp(updateObj);
-    }
-
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
+
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
 
     // set meta
     return await ncMeta.metaUpdate(

@@ -39,7 +39,7 @@ const uiTypes: UiTypesType[] = [
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.cellLinks,
     virtual: 1,
-    deprecated: 1,
+    deprecated: 0,
   },
   {
     name: UITypes.Lookup,

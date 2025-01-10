@@ -195,4 +195,8 @@ async function onEditComment() {
   content: '';
   @apply absolute -top-4.5 left-5.75 w-[1px] h-4.5 bg-gray-200;
 }
+.nc-audit-comment-block::after {
+  content: '';
+  @apply absolute -bottom-4.5 left-5.75 w-[1px] h-4.5 bg-gray-200;
+}
 </style>

@@ -72,6 +72,11 @@ watch(isOpen, () => {
 const showClearButton = computed(() => {
   return !!emojiRef.value && clearable.value
 })
+
+useEventListener('keydown', (e) => {
+  if (!isOpen.value || e.key !== 'Escape') return
+  isOpen.value = false
+})
 </script>
 
 <template>

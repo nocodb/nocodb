@@ -55,72 +55,36 @@ const { getPossibleAttachmentSrc } = useAttachment()
       class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
     />
     <div class="mb-1 ml-6.5">
-      <template v-if="meta[columnKey]?.field_type === 'SingleLineText'">
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellText" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+      <div class="text-sm">
+        changed
+        <span
+          class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
+        >
+          <SmartsheetHeaderCellIcon :column-meta="{ uidt: meta[columnKey]?.field_type}" class="!w-[12px] !h-[12px] !m-0" />
+          {{ columnKey }}
+        </span>
+        <template v-if="meta[columnKey]?.field_type === 'SingleLineText'">
           <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
           <span class="ml-2"> {{ newData[columnKey] }} </span>
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.field_type === 'LongText'">
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellLongText" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'LongText'">
           <span class="line-through">{{ oldData[columnKey] ?? '"empty"' }}</span>
           <!-- <span class="text-primary">...more</span> -->
           <span class="mx-2"> to </span>
           <span>{{ newData[columnKey] }}</span>
           <!-- <span class="text-primary">...more</span> -->
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.field_type === 'Email'">
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellEmail" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'Email'">
           <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
           <span class="mx-2"> to </span>
           <span> {{ newData[columnKey] }} </span>
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.field_type === 'Currency'">
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellCurrency" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'Currency'">
           <span class="line-through"> {{ formatCurrency(oldData[columnKey], meta[columnKey]) }} </span>
           <span class="mx-2"> to </span>
           <span> {{ formatCurrency(newData[columnKey], meta[columnKey]) }} </span>
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.field_type === 'SingleSelect'">
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellSingleSelect" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'SingleSelect'">
           <span
             class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through"
             :style="{
@@ -141,17 +105,8 @@ const { getPossibleAttachmentSrc } = useAttachment()
           >
             {{ newData[columnKey] }}
           </span>
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.field_type === 'Attachment'">
-        <div class="text-sm flex items-center flex-wrap">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellAttachment" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else-if="meta[columnKey]?.field_type === 'Attachment'">
           <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through">
             <template v-if="!oldData[columnKey]?.length">
               0 files
@@ -199,22 +154,13 @@ const { getPossibleAttachmentSrc } = useAttachment()
               </div>
             </template>
           </span>
-        </div>
-      </template>
-      <template v-else>
-        <div class="text-sm">
-          changed
-          <span
-            class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
-          >
-            <GeneralIcon icon="cellText" class="w-[12px] h-[12px]" />
-            {{ columnKey }}
-          </span>
+        </template>
+        <template v-else>
           <span class="line-through"> {{ oldData[columnKey] ?? '"empty"' }} </span>
           <span class="mx-2"> to </span>
           <span> {{ newData[columnKey] }} </span>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
   </div>
 </template>

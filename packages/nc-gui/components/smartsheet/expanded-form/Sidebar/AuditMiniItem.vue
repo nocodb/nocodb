@@ -100,6 +100,19 @@ function processNewDataFor(key: string) {
 
 }
 
+function safeJsonDiff(key: string) {
+
+  let odata = oldData.value[key];
+  let ndata = newData.value[key];
+
+  if (!odata && !ndata) {
+    return [];
+  }
+
+  return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2));
+
+}
+
 /* visibility */
 
 function isShowableValue(value: any) {
@@ -107,7 +120,7 @@ function isShowableValue(value: any) {
 }
 
 function shouldShowRaw(key: string) {
-  return [ 'SingleLineText', 'URL', 'PhoneNumber', 'Email' ].includes(meta.value?.[key]?.type);
+  return [ 'URL', 'PhoneNumber', 'Email' ].includes(meta.value?.[key]?.type);
 }
 
 </script>
@@ -179,7 +192,7 @@ function shouldShowRaw(key: string) {
           {{ newData[columnKey] }}
         </div>
       </template>
-      <template v-else-if="meta[columnKey]?.type === 'LongText'">
+      <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
         <div>
           <template v-for="block of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')">
             <span v-if="block.op === 'removed'" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone">
@@ -195,11 +208,12 @@ function shouldShowRaw(key: string) {
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
-        <div v-if="isShowableValue(oldData[columnKey])" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through w-full">
-          <pre class="!m-0 nc-scrollbar-thin">{{ oldData[columnKey] }}</pre>
-        </div>
-        <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 w-full">
-          <pre class="!m-0 nc-scrollbar-thin">{{ newData[columnKey] }}</pre>
+        <div class="overflow-x-auto nc-scrollbar-thin whitespace-nowrap">
+          <template v-for="block of safeJsonDiff(columnKey)">
+            <pre v-if="block.op === 'removed'" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline">{{ block.text }}</pre>
+            <pre v-else-if="block.op === 'added'" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline">{{ block.text }}</pre>
+            <pre v-else class="inline">{{ block.text }}</pre>
+          </template>
         </div>
       </template>
       <template v-else>
@@ -354,14 +368,14 @@ function shouldShowRaw(key: string) {
     @apply !text-green-700;
   }
 }
-:deep(.nc-audit-mini-item-header) {
+</style>
+
+<style lang="scss">
+.nc-audit-mini-item-header {
   svg {
     height: 12px;
   }
 }
-</style>
-
-<style lang="scss">
 .nc-audit-mini-item-cell:has(.nc-cell-user .ant-tag + .ant-tag) {
   @apply !p-1;
   .nc-cell-field > div {

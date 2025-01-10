@@ -17,7 +17,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import {CustomUrl} from "~/models";
+import type { CustomUrl } from '~/models';
 
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 

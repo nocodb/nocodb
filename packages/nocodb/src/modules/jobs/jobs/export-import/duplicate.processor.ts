@@ -2,8 +2,8 @@ import { Readable } from 'stream';
 import papaparse from 'papaparse';
 import debug from 'debug';
 import {
-  isAIPromptCol,
   AppEvents,
+  isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   RelationTypes,

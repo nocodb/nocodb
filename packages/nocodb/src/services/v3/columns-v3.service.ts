@@ -18,7 +18,7 @@ export class ColumnsV3Service {
   async columnUpdate(
     context: NcContext,
     param: {
-      req?: any;
+      req: any;
       columnId: string;
       column: ColumnReqType &
         ({ colOptions?: any; type?: UITypes } | { type?: any });
@@ -65,6 +65,7 @@ export class ColumnsV3Service {
       ...param,
       column: processedColumnReq,
       apiVersion: NcApiVersion.V3,
+      req: param.req,
     });
 
     column = await Column.get(context, { colId: param.columnId });

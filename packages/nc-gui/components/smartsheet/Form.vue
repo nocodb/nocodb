@@ -575,7 +575,7 @@ async function deleteColumnCallback() {
   reloadEventHook.trigger()
 }
 
-const onFormItemClick = (element: any, sidebarClick: boolean = false) => {
+const onFormItemClick = (element: any, sidebarClick = false) => {
   if (isLocked.value || !isEditable) return
 
   if (sidebarClick) {

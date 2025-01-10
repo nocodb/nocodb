@@ -1,11 +1,7 @@
 import dayjs from 'dayjs'
 import { dateFormats, timeFormats } from 'nocodb-sdk'
 
-export function parseStringDateTime(
-  v: string,
-  dateTimeFormat: string = `${dateFormats[0]} ${timeFormats[0]}`,
-  toLocal: boolean = true,
-) {
+export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0]} ${timeFormats[0]}`, toLocal = true) {
   const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v)
 
   if (dayjsObj.isValid()) {

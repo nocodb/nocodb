@@ -161,7 +161,7 @@ const addNewOption = () => {
   })
 }
 
-const syncOptions = (saveChanges: boolean = false, submit: boolean = false, payload?: Option) => {
+const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
@@ -211,7 +211,7 @@ const removeRenderedOption = (index: number) => {
   }
 }
 
-const optionChanged = (changedElement: Option, saveChanges: boolean = false) => {
+const optionChanged = (changedElement: Option, saveChanges = false) => {
   const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => {
     if (o.id !== undefined && changedElement.id !== undefined) {
       return o.id === changedElement.id

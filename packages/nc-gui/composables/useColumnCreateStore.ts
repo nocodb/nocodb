@@ -438,7 +438,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
-    function updateFieldName(updateFormState: boolean = true) {
+    function updateFieldName(updateFormState = true) {
       if (
         formState.value?.is_ai_field ||
         isEdit.value ||

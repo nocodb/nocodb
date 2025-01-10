@@ -30,7 +30,7 @@ const randomClass = `record_picker_${Math.floor(Math.random() * 99999)}`
 
 const isOpen = ref(false)
 
-const addOrRemoveClass = (add: boolean = false) => {
+const addOrRemoveClass = (add = false) => {
   const dropdownRoot = ncRecordPickerDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
   if (dropdownRoot) {
     if (add) {

@@ -277,7 +277,7 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
 const isColumnInvalid = (
   col: ColumnType,
   aiIntegrations: Partial<IntegrationType>[] = [],
-  isReadOnly: boolean = false,
+  isReadOnly = false,
 ): { isInvalid: boolean; tooltip: string } => {
   const result = {
     isInvalid: false,

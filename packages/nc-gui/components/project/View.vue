@@ -23,13 +23,6 @@ const { loadAutomations } = automationStore
 
 const { automations, isAutomationActive } = storeToRefs(automationStore)
 
-const scripts = computed(() => automations.value.get(currentBase.value?.id))
-
-const isAdminPanel = inject(IsAdminPanelInj, ref(false))
-
-const router = useRouter()
-const route = router.currentRoute
-
 const { $e, $api } = useNuxtApp()
 
 const currentBase = computedAsync(async () => {
@@ -43,6 +36,13 @@ const currentBase = computedAsync(async () => {
 
   return base
 })
+
+const scripts = computed(() => automations.value.get(currentBase.value?.id))
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const router = useRouter()
+const route = router.currentRoute
 
 const { isUIAllowed, baseRoles } = useRoles()
 

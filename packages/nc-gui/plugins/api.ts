@@ -3,6 +3,12 @@ const apiPlugin = (nuxtApp) => {
   nuxtApp.provide('api', useApi().api)
 }
 
+declare module '#app' {
+  interface NuxtApp {
+    $api: ReturnType<typeof createApiInstance>
+  }
+}
+
 export { apiPlugin }
 
 export default defineNuxtPlugin(function (nuxtApp) {

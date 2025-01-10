@@ -57,7 +57,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode && !activeAutomationId" />
 
         <NcButton
-          v-if="!isSharedBase && !activeAutomationId && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view' && !isMobileMode"
+          v-if="
+            !isSharedBase &&
+            !activeAutomationId &&
+            isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) &&
+            openedViewsTab === 'view' &&
+            !isMobileMode
+          "
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"

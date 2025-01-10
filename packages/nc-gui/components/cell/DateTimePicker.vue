@@ -304,7 +304,7 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = (e: MouseEvent, _isDatePicker: boolean = false) => {
+const clickHandler = (e: MouseEvent, _isDatePicker = false) => {
   isDatePicker.value = _isDatePicker
 
   if (cellClickHook) {
@@ -313,7 +313,7 @@ const clickHandler = (e: MouseEvent, _isDatePicker: boolean = false) => {
   cellClickHandler()
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker: boolean = false) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }

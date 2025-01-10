@@ -8,8 +8,6 @@ export const NC_REDIS_TTL = +process.env.NC_REDIS_TTL || 60 * 60 * 24 * 3; // 3 
 export const NC_REDIS_GRACE_TTL =
   +process.env.NC_REDIS_GRACE_TTL || 60 * 60 * 24 * 1; // 1 day
 
-export const throttlerEnabled = () => !!process.env.NC_THROTTLER_REDIS;
-
 export const getRedisURL = (type?: NC_REDIS_TYPE) => {
   switch (type) {
     case NC_REDIS_TYPE.CACHE:

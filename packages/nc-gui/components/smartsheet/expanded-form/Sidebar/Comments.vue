@@ -262,10 +262,12 @@ const getUserRole = (email: string) => {
         <div
           v-for="(commentItem, index) of comments"
           :key="commentItem.id"
-          :class="{
-            [commentItem.id || '']: true,
-            'mt-auto': index === 0,
-          }"
+          :class="[
+            {
+              'mt-auto': index === 0,
+            },
+            commentItem.id
+          ]"
           class="nc-comment-item"
           @mouseover="handleResetHoverEffect"
         >

@@ -110,6 +110,14 @@ function safeJsonDiff(key: string) {
   return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2))
 }
 
+function shouldUseNormalizedPadding(key: string) {
+  return !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type) && !normalizeMeta(key).is_progress
+}
+
+function shouldUseUniformPadding(key: string) {
+  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type);
+}
+
 /* visibility */
 
 function isShowableValue(value: any) {
@@ -251,10 +259,8 @@ function shouldShowRaw(key: string) {
           v-if="isShowableValue(processOldDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
-            'px-1 py-0.25':
-              !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) &&
-              !normalizeMeta(columnKey).is_progress,
-            '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
+            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+            '!p-0.25': shouldUseUniformPadding(columnKey),
           }"
         >
           <SmartsheetCell
@@ -277,10 +283,8 @@ function shouldShowRaw(key: string) {
           v-if="isShowableValue(processNewDataFor(columnKey))"
           class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
           :class="{
-            'px-1 py-0.25':
-              !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type) &&
-              !normalizeMeta(columnKey).is_progress,
-            '!p-0.25': ['SingleSelect', 'MultiSelect'].includes(meta[columnKey]?.type),
+            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+            '!p-0.25': shouldUseUniformPadding(columnKey),
           }"
         >
           <SmartsheetCell
@@ -291,7 +295,7 @@ function shouldShowRaw(key: string) {
               colOptions: normalizeColOptions(columnKey),
             }"
             :model-value="processNewDataFor(columnKey)"
-            :edit-enabled="false"
+            edit-enabled
             :read-only="true"
             :class="{
               'min-w-[100px]': normalizeMeta(columnKey).is_progress,

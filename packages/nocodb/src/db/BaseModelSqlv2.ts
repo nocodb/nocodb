@@ -315,7 +315,6 @@ class BaseModelSqlv2 {
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
-
     let data;
 
     try {
@@ -6061,7 +6060,7 @@ class BaseModelSqlv2 {
       undo = false,
     }: {
       chunkSize?: number;
-      cookie?: any;
+      cookie?: NcRequest;
       foreign_key_checks?: boolean;
       skip_hooks?: boolean;
       raw?: boolean;
@@ -7792,9 +7791,6 @@ class BaseModelSqlv2 {
                     (col) => `${childTable.table_name}.${col.column_name}`,
                   ),
                 ),
-              )
-              .whereNotNull(
-                `${childTable.table_name}.${childColumn.column_name}`,
               )
               .where(_wherePk(childTable.primaryKeys, childId)),
             null,

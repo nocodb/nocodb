@@ -172,19 +172,19 @@ function shouldShowRaw(key: string) {
         </div>
       </template>
       <template v-else-if="shouldShowRaw(columnKey)">
-        <div v-if="isShowableValue(oldData[columnKey])" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through">
+        <div v-if="isShowableValue(oldData[columnKey])" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all">
           {{ oldData[columnKey] }}
         </div>
-        <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50">
+        <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all">
           {{ newData[columnKey] }}
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
         <div v-if="isShowableValue(oldData[columnKey])" class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through w-full">
-          <pre class="!m-0">{{ oldData[columnKey] }}</pre>
+          <pre class="!m-0 nc-scrollbar-thin">{{ oldData[columnKey] }}</pre>
         </div>
         <div v-if="isShowableValue(newData[columnKey])" class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 w-full">
-          <pre class="!m-0">{{ newData[columnKey] }}</pre>
+          <pre class="!m-0 nc-scrollbar-thin">{{ newData[columnKey] }}</pre>
         </div>
       </template>
       <template v-else>

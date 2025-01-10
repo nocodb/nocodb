@@ -82,6 +82,10 @@ interface Row {
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
     isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
 
     new?: boolean
     selected?: boolean

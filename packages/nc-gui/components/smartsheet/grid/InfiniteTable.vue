@@ -270,7 +270,15 @@ const visibleRows = computed(() => {
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const row = cachedRows.value.get(rowIndex)
+
+    if (!row) return { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    row.rowMeta.rowProgress = tableState.rowProgress.get(rowId)
+    return row
   })
 })
 
@@ -599,9 +607,14 @@ const dummyColumnDataForLoading = computed(() => {
 
 const cellMeta = computed(() => {
   return visibleRows.value?.map((row) => {
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    const cellStates = tableState.cellProgress.get(rowId)
+
     return fields.value.map((col) => {
       return {
         isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
+        cellProgress: cellStates?.get(col.id),
       }
     })
   })
@@ -1565,9 +1578,9 @@ const tableState = reactive<ViewActionState>({
 })
 
 const handleProgress = (payload: any) => {
+  console.log(payload.data)
   switch (payload.type) {
     case 'table':
-      console.log('table progress', payload.data)
       tableState.viewProgress = {
         progress: payload.data.progress,
         message: payload.data.message,
@@ -1599,11 +1612,14 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; rowId?: string
   switch (payload.type) {
     case 'table':
       tableState.viewProgress = null
+      tableState.cellProgress = null
+      tableState.rowProgress = null
       break
 
     case 'row':
       if (payload.rowId) {
         tableState.rowProgress.delete(payload.rowId)
+        tableState.rowProgress.set(payload.rowId, null)
       }
       break
 
@@ -2515,7 +2531,33 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 truncate overflow-x-hidden text-sm text-gray-500"
+                            style="font-style: italic; font-synthesis: initial"
+                          >
+                            {{ cellMeta[index][0]?.cellProgress.message }}
+
+                            <span class="inline-flex items-end ml-2">
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0s"
+                              >
+                              </span>
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0.2s"
+                              >
+                              </span>
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0.4s"
+                              >
+                              </span>
+                            </span>
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="fields[0] && colMeta[0].isVirtualCol && fields[0].title"
                             v-model="row.row[fields[0].title]"
@@ -2594,7 +2636,33 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 truncate overflow-x-hidden text-sm text-gray-500"
+                            style="font-style: italic; font-synthesis: initial"
+                          >
+                            {{ cellMeta[index][colIndex]?.cellProgress.message }}
+
+                            <span class="inline-flex items-end ml-2">
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0s"
+                              >
+                              </span>
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0.2s"
+                              >
+                              </span>
+                              <span
+                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
+                                style="animation: dotFade 1.4s infinite; animation-delay: 0.4s"
+                              >
+                              </span>
+                            </span>
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="colMeta[colIndex].isVirtualCol && columnObj.title"
                             v-model="row.row[columnObj.title]"
@@ -2960,6 +3028,24 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
 .is-dragging {
   @apply opacity-50;
+}
+@keyframes dotFade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes dotBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 </style>
 

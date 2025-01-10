@@ -21,10 +21,10 @@ enum AuditV1OperationTypes {
   TABLE_CREATE = 'TABLE_CREATE',
   TABLE_DELETE = 'TABLE_DELETE',
 
-  COLUMN_CREATE = 'COLUMN_CREATE',
-  COLUMN_UPDATE = 'COLUMN_UPDATE',
-  COLUMN_DELETE = 'COLUMN_DELETE',
-  COLUMN_RENAME = 'COLUMN_RENAME',
+  COLUMN_CREATE = 'FIELD_CREATE',
+  COLUMN_UPDATE = 'FIELD_UPDATE',
+  COLUMN_DELETE = 'FIELD_DELETE',
+  COLUMN_RENAME = 'FIELD_RENAME',
 
   ORG_USER_INVITE = 'ORG_USER_INVITE',
   ORG_USER_INVITE_RESEND = 'ORG_USER_INVITE_RESEND',
@@ -56,12 +56,6 @@ enum AuditV1OperationTypes {
   VIEW_UPDATE = 'VIEW_UPDATE',
   VIEW_DELETE = 'VIEW_DELETE',
   VIEW_RENAME = 'VIEW_RENAME',
-
-  FIELD_CREATE = 'FIELD_CREATE',
-  FIELD_UPDATE = 'FIELD_UPDATE',
-  FIELD_DELETE = 'FIELD_DELETE',
-  FIELD_RENAME = 'FIELD_RENAME',
-  FIELD_DUPLICATE = 'FIELD_DUPLICATE',
 
   HOOK_CREATE = 'HOOK_CREATE',
   HOOK_UPDATE = 'HOOK_UPDATE',
@@ -104,17 +98,17 @@ enum AuditV1OperationTypes {
   TABLE_DUPLICATE = 'TABLE_DUPLICATE',
   TABLE_DUPLICATE_ERROR = 'TABLE_DUPLICATE_ERROR',
 
-  COLUMN_DUPLICATE = 'COLUMN_DUPLICATE',
-  COLUMN_DUPLICATE_ERROR = 'COLUMN_DUPLICATE_ERROR',
+  COLUMN_DUPLICATE = 'FIELD_DUPLICATE',
+  COLUMN_DUPLICATE_ERROR = 'FIELD_DUPLICATE_ERROR',
 
   VIEW_DUPLICATE = 'VIEW_DUPLICATE',
   VIEW_DUPLICATE_ERROR = 'VIEW_DUPLICATE_ERROR',
 
-  FORM_COLUMN_UPDATE = 'FORM_COLUMN_UPDATE',
+  FORM_COLUMN_UPDATE = 'FORM_FIELD_UPDATE',
   USER_SIGNOUT = 'USER_SIGNOUT',
   TABLE_UPDATE = 'TABLE_UPDATE',
   TABLE_RENAME = 'TABLE_RENAME',
-  VIEW_COLUMN_UPDATE = 'VIEW_COLUMN_UPDATE',
+  VIEW_COLUMN_UPDATE = 'VIEW_FIELD_UPDATE',
   UI_ACL = 'UI_ACL',
   AIRTABLE_IMPORT = 'AIRTABLE_IMPORT',
   AIRTABLE_IMPORT_ERROR = 'AIRTABLE_IMPORT_ERROR',
@@ -778,15 +772,6 @@ const descriptionTemplates = {
     `User '${audit.user}' created table '${audit.details.table_title}'`,
   [AuditV1OperationTypes.TABLE_DELETE]: (audit: AuditV1<TableDeletePayload>) =>
     `User '${audit.user}' deleted table '${audit.details.table_title}'`,
-  [AuditV1OperationTypes.COLUMN_CREATE]: (
-    audit: AuditV1<ColumnCreatePayload>
-  ) => `User '${audit.user}' created column '${audit.details.field_title}'`,
-  [AuditV1OperationTypes.COLUMN_UPDATE]: (
-    audit: AuditV1<ColumnUpdatePayload>
-  ) => `User '${audit.user}' updated column '${audit.details.field_title}'`,
-  [AuditV1OperationTypes.COLUMN_DELETE]: (
-    audit: AuditV1<ColumnDeletePayload>
-  ) => `User '${audit.user}' deleted column '${audit.details.field_title}'`,
   [AuditV1OperationTypes.ORG_USER_INVITE]: (
     audit: AuditV1<OrgUserInvitePayload>
   ) => `User '${audit.user}' invited '${audit.details.email}' to organization`,
@@ -867,15 +852,15 @@ const descriptionTemplates = {
     `${m.details.view_type.replace(/^\w/, (m) => m.toUpperCase())} '${
       m.details.source_view_title
     }' has been duplicated`,
-  [AuditV1OperationTypes.FIELD_CREATE]: (audit: AuditV1<ViewCreatePayload>) =>
+  [AuditV1OperationTypes.COLUMN_CREATE]: (audit: AuditV1<ViewCreatePayload>) =>
     `Field '${audit.details.view_title}' has been created`,
-  [AuditV1OperationTypes.FIELD_UPDATE]: (audit: AuditV1<ViewUpdatePayload>) =>
+  [AuditV1OperationTypes.COLUMN_UPDATE]: (audit: AuditV1<ViewUpdatePayload>) =>
     `Field '${audit.details.view_title}' has been updated`,
-  [AuditV1OperationTypes.FIELD_DELETE]: (audit: AuditV1<ViewDeletePayload>) =>
+  [AuditV1OperationTypes.COLUMN_DELETE]: (audit: AuditV1<ViewDeletePayload>) =>
     `Field '${audit.details.view_title}' has been deleted`,
-  [AuditV1OperationTypes.FIELD_RENAME]: (audit: AuditV1<ViewRenamePayload>) =>
+  [AuditV1OperationTypes.COLUMN_RENAME]: (audit: AuditV1<ViewRenamePayload>) =>
     `Field '${audit.details.old_view_title}' has been renamed to '${audit.details.new_view_title}'`,
-  [AuditV1OperationTypes.FIELD_DUPLICATE]: (
+  [AuditV1OperationTypes.COLUMN_DUPLICATE]: (
     audit: AuditV1<ColumnDuplicatePayload>
   ) => `Field '${audit.details.source_field_title}' has been duplicated`,
   [AuditV1OperationTypes.HOOK_CREATE]: (audit: AuditV1<HookCreatePayload>) =>

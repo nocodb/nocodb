@@ -312,7 +312,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
         case UITypes.SingleSelect:
         case UITypes.MultiSelect:
           {
-            const choices = data.colOptions.options.map((opt) => {
+            const choices = (data.colOptions.options || []).map((opt) => {
               const res: { title: string; color?: string; id?: string } = {
                 title: opt.title,
                 color: opt.color,
@@ -335,7 +335,10 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
     }
 
     if (data.type === UITypes.Checkbox) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+      const { icon, iconIdx, ...rest } = (data.options || {}) as Record<
+        string,
+        any
+      >;
 
       // extract option meta and include only label and color
       options = rest;
@@ -348,7 +351,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
         )?.label;
       }
     } else if (data.type === UITypes.Rating) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+      const { icon, iconIdx, ...rest } = (data.options || {}) as Record<string, any>;
 
       // extract option meta and include only label and color
       options = rest;
@@ -361,10 +364,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
         )?.label;
       }
     } else if (data.type === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = data.options as Record<
-        string,
-        any
-      >;
+      const { duration, duration_format, ...rest } = (data.options ||
+        {}) as Record<string, any>;
       const durationFormat = duration ?? duration_format;
       // extract option meta and include only label and color
       options = rest;
@@ -462,7 +463,7 @@ export const columnV3ToV2Builder = builderGenerator({
     }
 
     if (data.uidt === UITypes.Checkbox) {
-      const { icon, ...rest } = data.meta as Record<string, any>;
+      const { icon, ...rest } = (data.meta || {}) as Record<string, any>;
 
       if (icon) {
         const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);
@@ -473,7 +474,7 @@ export const columnV3ToV2Builder = builderGenerator({
         }
       }
     } else if (data.uidt === UITypes.Rating) {
-      const { icon, ...rest } = data.meta as Record<string, any>;
+      const { icon, ...rest } = (data.meta || {}) as Record<string, any>;
 
       if (icon) {
         const iconIdx = ratingIconList.findIndex((ic) => ic.label === icon);
@@ -484,7 +485,7 @@ export const columnV3ToV2Builder = builderGenerator({
         }
       }
     } else if (data.uidt === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = data.meta as Record<
+      const { duration, duration_format, ...rest } = (data.meta || {}) as Record<
         string,
         any
       >;

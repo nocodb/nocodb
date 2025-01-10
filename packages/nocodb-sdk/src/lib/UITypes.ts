@@ -268,7 +268,6 @@ export function isOrderCol(
 export function isActionButtonCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
-    system?: number | boolean;
   }
 ) {
   return (

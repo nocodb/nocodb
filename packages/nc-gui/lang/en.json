@@ -680,6 +680,8 @@
     "limitRecordSelectionToFilters": "Limit record selection to filters",
     "addedBy": "Added by",
     "whatsNew": "What's New!",
+    "newAction": "New Action",
+    "actionLogs": "Action Logs",
     "runScript": "Run Script",
     "scriptName": "Script name",
     "enableSnowFall": "Enable Snowfall",

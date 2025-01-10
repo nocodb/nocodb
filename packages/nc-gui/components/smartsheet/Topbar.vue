@@ -4,7 +4,7 @@ const route = router.currentRoute
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { activeAutomation } = storeToRefs(useAutomation())
+const { activeAutomation, isAutomationActive } = storeToRefs(useAutomation())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -54,7 +54,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
       </div>
 
       <div class="flex items-center justify-end gap-2 flex-1">
-        <GeneralApiLoader v-if="!isMobileMode" />
+        <GeneralApiLoader v-if="!isMobileMode && !activeAutomation" />
+
         <NcButton
           v-if="!isSharedBase && !activeAutomation && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view' && !isMobileMode"
           v-e="['c:extension-toggle']"
@@ -84,7 +85,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           <LazySmartsheetTopbarCmdK />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomation" />
         </div>
-        <LazySmartsheetTopbarShareProject v-if="!activeAutomation" />
+        <LazySmartsheetTopbarShareProject v-if="!activeAutomation && !isAutomationActive" />
 
         <div v-if="isSharedBase && (!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE))">
           <LazyGeneralLanguage class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />

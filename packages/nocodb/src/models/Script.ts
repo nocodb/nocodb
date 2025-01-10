@@ -24,7 +24,7 @@ export default class Script {
   }
 
   static async delete(_context: NcContext, _param1: any, _ncMeta = Noco.ncMeta) {
-    return true
+    return Promise.resolve(true)
   }
 
   public static async update(

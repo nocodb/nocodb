@@ -591,7 +591,7 @@ export class ColumnsService {
               NcError.badRequest('Script not found');
             }
 
-            const script = await Script.get(context, context.base_id, colBody.fk_script_id);
+            const script = await Script.get(context,colBody.fk_script_id);
 
             if (!script) {
               NcError.badRequest('Script not found');
@@ -2093,7 +2093,7 @@ export class ColumnsService {
             colBody.fk_script_id = null;
           }
 
-          const script = await Script.get(context, context.base_id, colBody.fk_script_id);
+          const script = await Script.get(context,colBody.fk_script_id);
 
           if (!script) {
             colBody.fk_script_id = null;

@@ -198,6 +198,9 @@ export class ExportService {
               case 'fk_webhook_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
+              case 'fk_script_id':
+                column.colOptions[k] = idMap.get(v as string);
+                break;
               case 'id':
               case 'created_at':
               case 'updated_at':

@@ -175,6 +175,8 @@ export function transformFieldConfig(field: Field): Field {
       break;
 
     case UITypes.DateTime:
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedBy:
       newField.options = {
         ...newField.options,
         date_format: metaObj.date_format || 'YYYY/MM/DD',
@@ -193,7 +195,7 @@ export function transformFieldConfig(field: Field): Field {
     case UITypes.Time:
       newField.options = {
         ...newField.options,
-        time_format: metaObj.time_format || 'HH:mm:ss',
+        time_format: metaObj.time_format || 'HH:mm',
         ['12hr_format']: metaObj.is12hrFormat || false,
       };
       break;

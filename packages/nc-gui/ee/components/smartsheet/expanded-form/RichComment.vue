@@ -4,17 +4,8 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
-import { Markdown } from 'tiptap-markdown'
-import {
-  HardBreak,
-  Italic,
-  Link,
-  NcMarkdownParser,
-  Strike,
-  UserMention,
-  UserMentionList,
-  suggestion,
-} from '~/helpers/tiptap/extensions'
+import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
+import { HardBreak, Italic, Link, Strike, UserMention, UserMentionList, Markdown } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{

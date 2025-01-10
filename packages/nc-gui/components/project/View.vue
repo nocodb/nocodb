@@ -125,11 +125,14 @@ watch(
   },
 )
 
-onMounted(() => {
+onMounted(async () => {
   if (props.tab) {
     projectPageTab.value = props.tab
   }
-  loadAutomations({ baseId: currentBase.value?.id })
+
+  await until(() => !!currentBase.value?.id).toBeTruthy()
+
+  await loadAutomations({ baseId: currentBase.value?.id })
 })
 </script>
 
@@ -185,7 +188,10 @@ onMounted(() => {
           </template>
           <ProjectAllTables />
         </a-tab-pane>
-        <a-tab-pane v-if="!isAdminPanel && isAutomationEnabled && isEeUI" key="allScripts">
+        <a-tab-pane
+          v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"
+          key="allScripts"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />

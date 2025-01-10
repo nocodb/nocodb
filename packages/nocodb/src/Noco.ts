@@ -19,6 +19,7 @@ import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
 import { Integration } from '~/models';
 import { getAppUrl } from '~/utils/appUrl';
+import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
 
@@ -121,7 +122,7 @@ export default class Noco {
     }
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      if (!process.env.NC_REDIS_URL) {
+      if (!getRedisURL()) {
         throw new Error('NC_REDIS_URL is required');
       }
       process.env.NC_DISABLE_TELE = 'true';

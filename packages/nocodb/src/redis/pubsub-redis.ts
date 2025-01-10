@@ -1,10 +1,11 @@
 import { Logger } from '@nestjs/common';
 import Redis from 'ioredis';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 export class PubSubRedis {
   static initialized = false;
 
-  static available = process.env.NC_REDIS_JOB_URL ? true : false;
+  static available = getRedisURL(NC_REDIS_TYPE.JOB) ? true : false;
 
   protected static logger = new Logger(PubSubRedis.name);
 
@@ -16,8 +17,8 @@ export class PubSubRedis {
       return;
     }
 
-    PubSubRedis.redisClient = new Redis(process.env.NC_REDIS_JOB_URL);
-    PubSubRedis.redisSubscriber = new Redis(process.env.NC_REDIS_JOB_URL);
+    PubSubRedis.redisClient = new Redis(getRedisURL(NC_REDIS_TYPE.JOB));
+    PubSubRedis.redisSubscriber = new Redis(getRedisURL(NC_REDIS_TYPE.JOB));
 
     PubSubRedis.initialized = true;
   }

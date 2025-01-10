@@ -2,6 +2,7 @@ import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
 import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
+import { getRedisURL } from '~/helpers/redisHelpers';
 
 export default class NocoCache {
   private static client: CacheMgr;
@@ -13,8 +14,8 @@ export default class NocoCache {
     if (this.cacheDisabled) {
       return;
     }
-    if (process.env.NC_REDIS_URL) {
-      this.client = new RedisCacheMgr(process.env.NC_REDIS_URL);
+    if (getRedisURL()) {
+      this.client = new RedisCacheMgr(getRedisURL());
     } else {
       this.client = new RedisMockCacheMgr();
     }

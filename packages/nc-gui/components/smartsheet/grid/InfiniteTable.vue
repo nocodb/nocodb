@@ -2575,29 +2575,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
                         <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
-                          <div
-                            class="opacity-0.4 truncate overflow-x-hidden text-sm text-gray-500"
-                            style="font-style: italic; font-synthesis: initial"
-                          >
-                            {{ cellMeta[index][0]?.cellProgress.message }}
 
-                            <span class="inline-flex items-end ml-2">
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0s"
-                              >
-                              </span>
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0.2s"
-                              >
-                              </span>
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0.4s"
-                              >
-                              </span>
-                            </span>
+                          <div
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
+                          >
+                            <GeneralIcon class="w-4 h-4" icon="ncGithub" />
+                            {{ cellMeta[index][0]?.cellProgress.message }}
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
                           </div>
                         </template>
                         <div v-else-if="!switchingTab" class="w-full">
@@ -2681,28 +2666,12 @@ watch(vSelectedAllRecords, (selectedAll) => {
                       >
                         <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
                           <div
-                            class="opacity-0.4 truncate overflow-x-hidden text-sm text-gray-500"
-                            style="font-style: italic; font-synthesis: initial"
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
                           >
+                            <GeneralIcon class="w-4 h-4" icon="ncGithub" />
                             {{ cellMeta[index][colIndex]?.cellProgress.message }}
-
-                            <span class="inline-flex items-end ml-2">
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0s"
-                              >
-                              </span>
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0.2s"
-                              >
-                              </span>
-                              <span
-                                class="w-1 h-1 bg-blue-500 ml-1 rounded-full"
-                                style="animation: dotFade 1.4s infinite; animation-delay: 0.4s"
-                              >
-                              </span>
-                            </span>
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
                           </div>
                         </template>
                         <div v-else-if="!switchingTab" class="w-full">

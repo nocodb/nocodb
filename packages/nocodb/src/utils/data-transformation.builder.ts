@@ -323,7 +323,6 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
           break;
         default:
           {
-            console.log(data.colOptions);
             const additionalOptions =
               colOptionBuilder().build(data.colOptions) || {};
             Object.assign(options, additionalOptions);
@@ -506,7 +505,6 @@ export const columnV3ToV2Builder = builderGenerator({
         columnOptionsV3ToV2Builder().build(data.meta) || {};
       meta = {};
     }
-    console.log(additionalPayloadData);
 
     return {
       ...data,

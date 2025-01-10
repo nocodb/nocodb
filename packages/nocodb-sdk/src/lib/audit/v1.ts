@@ -225,7 +225,7 @@ export interface ViewColumnUpdatePayload extends UpdatePayload {
 export interface ColumnDeletePayload {
   field_id: string;
   field_title: string;
-  type: UITypes;
+  field_type: UITypes;
   required?: boolean;
 }
 
@@ -265,7 +265,9 @@ export interface DataBulkInsertPayloadRecord {}
 
 export interface DataBulkUpdatePayload {}
 
-export interface DataBulkDeletePayload {}
+export interface DataBulkDeletePayload {
+
+}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;

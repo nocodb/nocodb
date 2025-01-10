@@ -1,13 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { viewTypeAlias, ViewTypes } from 'nocodb-sdk';
-import type { FilterType, SortType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { GridViewColumn } from '~/models';
-import { Filter, Sort, View } from '~/models';
+import { View } from '~/models';
 import {
   builderGenerator,
-  filterBuilder,
-  sortBuilder,
   viewColumnBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';

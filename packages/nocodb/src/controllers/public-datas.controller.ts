@@ -127,6 +127,7 @@ export class PublicDatasController {
       body: req.body?.data,
       siteUrl: (req as any).ncSiteUrl,
       files: req.files as any[],
+      req,
     });
 
     return insertResult;

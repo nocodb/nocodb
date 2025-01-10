@@ -56,8 +56,20 @@ let hookRef = reactive<
     payload: {
       method: 'POST',
       body: '{{ json event }}',
-      headers: [{}],
-      parameters: [{}],
+      headers: [
+        {
+          enabled: false,
+          name: '',
+          value: '',
+        },
+      ],
+      parameters: [
+        {
+          enabled: false,
+          name: '',
+          value: '',
+        },
+      ],
       path: '',
     },
   },
@@ -270,7 +282,7 @@ function onNotificationTypeChange(reset = false) {
     hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
     hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
     hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
-    hookRef.notification.payload.auth = hookRef.notification.payload.auth || ''
+    hookRef.notification.payload.auth = hookRef.notification.payload.auth
   }
 }
 

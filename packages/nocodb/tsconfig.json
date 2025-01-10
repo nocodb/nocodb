@@ -7,6 +7,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
+    "lib": ["es2019"],
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",

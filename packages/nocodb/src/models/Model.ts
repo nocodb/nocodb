@@ -7,6 +7,7 @@ import {
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { Logger } from '@nestjs/common';
+import type { NcRequest } from 'nocodb-sdk';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -93,6 +94,15 @@ export default class Model implements TableType {
     }, {});
 
     return this.columns;
+  }
+
+  // get columns cached under the instance or fetch from db/redis cache
+  public async getCachedColumns(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column[]> {
+    if (this.columns) return this.columns;
+    return this.getColumns(context, ncMeta);
   }
 
   // @ts-ignore
@@ -200,17 +210,20 @@ export default class Model implements TableType {
     await View.insertMetaOnly(
       context,
       {
-        fk_model_id: id,
-        title: model.title || model.table_name,
-        is_default: true,
-        type: ViewTypes.GRID,
-        base_id: baseId,
-        source_id: sourceId,
-        created_by: model.user_id,
-        owned_by: model.user_id,
-      },
-      {
-        getColumns: async () => insertedColumns,
+        view: {
+          fk_model_id: id,
+          title: model.title || model.table_name,
+          is_default: true,
+          type: ViewTypes.GRID,
+          base_id: baseId,
+          source_id: sourceId,
+          created_by: model.user_id,
+          owned_by: model.user_id,
+        },
+        model: {
+          getColumns: async () => insertedColumns,
+        },
+        req: { user: {} } as unknown as NcRequest,
       },
       ncMeta,
     );

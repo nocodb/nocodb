@@ -1,6 +1,6 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp, checkboxIconList, ratingIconList } from 'nocodb-sdk'
 
 export interface UiTypesType {
   name: UITypes | string
@@ -316,59 +316,6 @@ const isColumnInvalid = (
 }
 
 // cater existing v1 cases
-const checkboxIconList = [
-  {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  {
-    checked: 'mdi-check-circle-outline',
-    unchecked: 'mdi-checkbox-blank-circle-outline',
-  },
-  {
-    checked: 'mdi-star',
-    unchecked: 'mdi-star-outline',
-  },
-  {
-    checked: 'mdi-heart',
-    unchecked: 'mdi-heart-outline',
-  },
-  {
-    checked: 'mdi-moon-full',
-    unchecked: 'mdi-moon-new',
-  },
-  {
-    checked: 'mdi-thumb-up',
-    unchecked: 'mdi-thumb-up-outline',
-  },
-  {
-    checked: 'mdi-flag',
-    unchecked: 'mdi-flag-outline',
-  },
-]
-
-const ratingIconList = [
-  {
-    full: 'mdi-star',
-    empty: 'mdi-star-outline',
-  },
-  {
-    full: 'mdi-heart',
-    empty: 'mdi-heart-outline',
-  },
-  {
-    full: 'mdi-moon-full',
-    empty: 'mdi-moon-new',
-  },
-  {
-    full: 'mdi-thumb-up',
-    empty: 'mdi-thumb-up-outline',
-  },
-  {
-    full: 'mdi-flag',
-    empty: 'mdi-flag-outline',
-  },
-]
 
 function extractCheckboxIcon(meta: string | Record<string, any> = null) {
   const parsedMeta = parseProp(meta)

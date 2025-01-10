@@ -75,6 +75,7 @@ import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
 import AutomationIcon from '~icons/nc-icons/automations'
+import AiPlayIcon from '~icons/nc-icons/ai-play'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -1615,6 +1616,7 @@ export const iconMap = {
   ncLogoZendesk: h(NcLogoZendesk, { stroke: 'transparent' }),
   ncLogoZohoColored: h(NcLogoZohoColored, { stroke: 'transparent' }),
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
+  ncAiPlay: AiPlayIcon,
 }
 
 export const getMdiIcon = (type: string): any => {

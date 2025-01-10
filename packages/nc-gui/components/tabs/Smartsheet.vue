@@ -29,7 +29,8 @@ const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, isActionPaneActive, actionPaneSize } =
+  useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
 
@@ -81,6 +82,8 @@ useProvideSmartsheetLtarHelpers(meta)
 const grid = ref()
 
 const extensionPaneRef = ref()
+
+const actionPaneRef = ref()
 
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
@@ -168,13 +171,15 @@ const { isPanelExpanded, extensionPanelSize } = useExtensions()
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {
     return 100 - extensionPanelSize.value
+  } else if (isActionPaneActive.value && actionPaneSize.value) {
+    return 100 - actionPaneSize.value
   } else {
     return 100
   }
 })
 
 const contentMaxSize = computed(() => {
-  if (!isPanelExpanded.value) {
+  if (!isPanelExpanded.value && !isActionPaneActive.value) {
     return 100
   } else {
     return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
@@ -184,7 +189,8 @@ const contentMaxSize = computed(() => {
 const onResize = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
-    extensionPanelSize.value = sizes[1].size
+    if (isPanelExpanded.value) extensionPanelSize.value = sizes[1].size
+    else if (isActionPaneActive.value) actionPaneSize.value = sizes[1].size
   }
 }
 
@@ -193,6 +199,13 @@ const onReady = () => {
     // wait until extension pane animation complete
     setTimeout(() => {
       extensionPaneRef.value?.onReady()
+    }, 300)
+  }
+
+  if (isActionPaneActive.value && actionPaneRef.value) {
+    // wait until action pane animation complete
+    setTimeout(() => {
+      actionPaneRef.value?.onReady()
     }, 300)
   }
 }
@@ -238,7 +251,8 @@ const onReady = () => {
             </Transition>
           </div>
         </Pane>
-        <ExtensionsPane ref="extensionPaneRef" />
+        <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+        <SmartsheetAutomationActionPane v-else ref="actionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

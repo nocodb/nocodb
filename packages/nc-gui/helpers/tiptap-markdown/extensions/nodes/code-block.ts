@@ -9,7 +9,7 @@ export const CodeBlock = Node.create<any, { markdown: MarkdownNodeSpec }>({
     return {
       markdown: {
         serialize(state, node) {
-          state.write('```' + (node.attrs.language || '') + '\n')
+          state.write(`\`\`\`${node.attrs.language || ''}\n`)
           state.text(node.textContent, false)
           state.ensureNewLine()
           state.write('```')

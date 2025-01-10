@@ -21,7 +21,7 @@ export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
             state.write('<br />\n\n ')
           }
 
-          state.renderList(node, '  ', () => (this.editor.storage.markdown.options.bulletListMarker || '-') + ' ')
+          state.renderList(node, '  ', () => `${this.editor.storage.markdown.options.bulletListMarker || '-'} `)
         },
 
         parse: {

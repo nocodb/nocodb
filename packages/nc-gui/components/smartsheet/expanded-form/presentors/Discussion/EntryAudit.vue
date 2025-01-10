@@ -8,12 +8,6 @@ const props = defineProps<{
   auditGroup: any
 }>()
 
-/* formatting */
-
-function formatDateToRelative(date: string) {
-  return dayjs(date).fromNow()
-}
-
 </script>
 
 <template>
@@ -23,8 +17,8 @@ function formatDateToRelative(date: string) {
       <p class="text-sm font-medium mb-0">
         {{ props.auditGroup.displayName }} {{ props.auditGroup.audits[0]?.op_sub_type === 'UPDATE' ? 'Updated' : 'Created' }} {{ props.auditGroup.audits.length }} fields
       </p>
-      <div class="text-xs text-gray-500 ml-4">
-        {{ formatDateToRelative(props.auditGroup.audits[0]?.created_at) }}
+      <div class="text-xs text-gray-500 ml-3">
+        {{ timeAgo(props.auditGroup.audits[0]?.created_at) }}
       </div>
     </div>
     <div v-for="audit in props.auditGroup.audits" :key="audit.id" class="relative">

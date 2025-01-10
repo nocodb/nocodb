@@ -1,7 +1,5 @@
 <script setup lang="ts">
 
-import dayjs from 'dayjs'
-
 /* interface */
 
 const props = defineProps<{
@@ -24,12 +22,6 @@ const showRightSections = computed(() => !isNew.value && commentsDrawer.value &&
 onMounted(async () => {
   await loadAudits()
 })
-
-/* formatting */
-
-function formatDateToRelative(date: string) {
-  return dayjs(date).fromNow()
-}
 
 /* new comment */
 
@@ -71,20 +63,16 @@ export default {
             <GeneralUserIcon email="yooneskh@gmail.com" class="w-[32px] aspect-square" />
           </div>
           <div class="w-0 flex-1 border-l border-gray-200 pl-6">
-            <div class="bg-white p-1 rounded-lg -ml-8 border border-gray-300 border-1 shadow-sm relative group">
-              <input type="text" placeholder="Comment..." class="text-sm w-full border-0 focus:outline-none focus:ring-0" v-model="newCommentText" />
-              <div class="text-right p-1">
-                <NcButton
-                  class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
-                  size="xsmall"
-                  type="secondary"
-                  :disabled="!newCommentText"
-                  @click="saveComment(newCommentText); newCommentText = ''"
-                >
-                  <GeneralIcon class="text-md" icon="send" />
-                </NcButton>
-              </div>
-            </div>
+            <SmartsheetExpandedFormRichComment
+              v-model:value="newCommentText"
+              :hide-options="false"
+              placeholder="Comment..."
+              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] -ml-8 bg-white !w-auto"
+              data-testid="expanded-form-comment-input"
+              @keydown.stop
+              @save="saveComment(newCommentText); newCommentText = ''"
+              @keydown.enter.exact.prevent="saveComment(newCommentText); newCommentText = ''"
+            />
           </div>
         </div>
       </div>
@@ -100,3 +88,18 @@ export default {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+:deep(.expanded-form-comment-input) {
+  @apply transition-all duration-150 min-h-8;
+  box-shadow: none;
+  &:focus,
+  &:focus-within {
+    @apply min-h-16 !bg-white border-brand-500;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+  }
+  &::placeholder {
+    @apply !text-gray-400;
+  }
+}
+</style>

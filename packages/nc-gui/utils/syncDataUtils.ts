@@ -16,10 +16,6 @@ export interface IntegrationItemType {
   dynamic?: boolean
   hidden?: boolean
   form?: FormDefinition
-  meta?: {
-    configSchema?: Record<string, any>
-    exposedEndpoints?: string[]
-  }
 }
 
 export interface IntegrationCategoryItemType {

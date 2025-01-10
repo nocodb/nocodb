@@ -125,6 +125,10 @@ const componentProps = computed(() => {
         !column.value.colOptions.fk_webhook_id ||
         !cellValue.value?.fk_webhook_id,
     }
+  } else if (column.value.colOptions.type === ButtonActionsType.Script) {
+    return {
+      disabled: isPublic.value || !isUIAllowed('dataEdit') || isLoading.value,
+    }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:

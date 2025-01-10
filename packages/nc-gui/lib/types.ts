@@ -328,6 +328,30 @@ type SordDirectionType = 'asc' | 'desc' | undefined
 
 type NestedArray<T> = T | NestedArray<T>[]
 
+interface ViewActionState {
+  viewProgress: {
+    progress: number
+    message?: string
+  } | null
+  rowProgress: Map<
+    string,
+    {
+      progress: number
+      message?: string
+    }
+  >
+  cellProgress: Map<
+    string,
+    Map<
+      string,
+      {
+        progress: number
+        message?: string
+      }
+    >
+  >
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -365,4 +389,5 @@ export type {
   ProductFeedItem,
   Attachment,
   NestedArray,
+  ViewActionState,
 }

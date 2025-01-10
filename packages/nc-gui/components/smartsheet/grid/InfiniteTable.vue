@@ -19,7 +19,7 @@ import {
 import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
-import { type CellRange, NavigateDir, type Row } from '#imports'
+import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
 
 const props = defineProps<{
   totalRows: number
@@ -1558,6 +1558,69 @@ watch(
   },
 )
 
+const tableState = reactive<ViewActionState>({
+  viewProgress: null,
+  rowProgress: new Map(),
+  cellProgress: new Map(),
+})
+
+const handleProgress = (payload: any) => {
+  switch (payload.type) {
+    case 'table':
+      console.log('table progress', payload.data)
+      tableState.viewProgress = {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      }
+      break
+
+    case 'row':
+      tableState.rowProgress.set(payload.data.rowId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      })
+      break
+
+    case 'cell': {
+      if (!tableState.cellProgress.has(payload.data.rowId)) {
+        tableState.cellProgress.set(payload.data.rowId, new Map())
+      }
+      const rowCells = tableState.cellProgress.get(payload.data.rowId)!
+      rowCells.set(payload.data.cellId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      })
+      break
+    }
+  }
+}
+
+const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; rowId?: string; cellId?: string }) => {
+  switch (payload.type) {
+    case 'table':
+      tableState.viewProgress = null
+      break
+
+    case 'row':
+      if (payload.rowId) {
+        tableState.rowProgress.delete(payload.rowId)
+      }
+      break
+
+    case 'cell':
+      if (payload.rowId && payload.cellId) {
+        const rowCells = tableState.cellProgress.get(payload.rowId)
+        if (rowCells) {
+          rowCells.delete(payload.cellId)
+          if (rowCells.size === 0) {
+            tableState.cellProgress.delete(payload.rowId)
+          }
+        }
+      }
+      break
+  }
+}
+
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
@@ -1569,6 +1632,13 @@ eventBus.on(async (event, payload) => {
     activeCell.col = null
 
     removeRowIfNew?.(payload)
+  }
+
+  if (event === SmartsheetStoreEvents.UPDATE_PROGRESS) {
+    handleProgress(payload)
+  }
+  if (event === SmartsheetStoreEvents.RESET_PROGRESS) {
+    resetProgress(payload)
   }
 })
 
@@ -1944,9 +2014,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
       ></div>
     </div>
     <div
-      v-if="isBulkOperationInProgress"
+      v-if="isBulkOperationInProgress || tableState.viewProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/50"
     >
+      <div class="flex gap-2 items-center">
+        {{ tableState.viewProgress?.progress }}
+        {{ tableState.viewProgress?.message }}
+      </div>
       <GeneralLoader size="regular" />
     </div>
 

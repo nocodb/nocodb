@@ -78,6 +78,9 @@ export enum SmartsheetStoreEvents {
   GROUP_BY_REMOVE = 'group-by-remove',
   FILTER_ADD = 'filter-add',
   CELL_SELECTED = 'cell-selected',
+
+  UPDATE_PROGRESS = 'update-progress',
+  RESET_PROGRESS = 'reset-progress',
 }
 
 export enum DataSourcesSubTab {

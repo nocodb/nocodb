@@ -46,7 +46,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 function safeJsonParse(json: string) {
@@ -101,11 +101,16 @@ function safeJsonParse(json: string) {
             <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
               <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
-                  <SmartsheetHeaderVirtualCellIcon :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }" class="!m-0" />
+                  <SmartsheetHeaderVirtualCellIcon
+                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    class="!m-0"
+                  />
                   {{ safeJsonParse(audit.details).ref_table_title }}
                 </div>
                 <div class="!border-none">
-                  <span class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50">
+                  <span
+                    class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50"
+                  >
                     {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
                   </span>
                   was linked
@@ -115,7 +120,10 @@ function safeJsonParse(json: string) {
             <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
               <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
-                  <SmartsheetHeaderVirtualCellIcon :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }" class="!m-0" />
+                  <SmartsheetHeaderVirtualCellIcon
+                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    class="!m-0"
+                  />
                   {{ safeJsonParse(audit.details).ref_table_title }}
                 </div>
                 <div class="!border-none">

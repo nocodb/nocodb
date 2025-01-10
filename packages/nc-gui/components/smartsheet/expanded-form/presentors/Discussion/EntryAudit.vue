@@ -1,17 +1,28 @@
 <script setup lang="ts">
+import type { AuditType } from 'nocodb-sdk'
+
 /* interface */
 
 const props = defineProps<{
-  auditGroup: any
+  auditGroup: { audit: AuditType; user: string; displayName: string }
 }>()
 
 const fieldsChanged = computed(() => {
   try {
-    return Object.keys(JSON.parse(props.auditGroup.audit.details).data).length
+    return Object.keys(JSON.parse(props.auditGroup.audit.details || '').data).length
   } catch {
     return '-'
   }
 })
+
+function safeGetFromAuditDetails(audit: AuditType, key: string) {
+  try {
+    return JSON.parse(audit.details || '')[key]
+  } catch {
+    return '-'
+  }
+}
+
 </script>
 
 <template>
@@ -32,9 +43,9 @@ const fieldsChanged = computed(() => {
         </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'">
           linked table
-          "{{ JSON.parse(props.auditGroup.audit.details)?.table_title }}"
+          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'table_title') }}"
           to
-          "{{ JSON.parse(props.auditGroup.audit.details)?.ref_table_title }}"
+          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_table_title') }}"
         </span>
       </p>
       <div class="text-xs text-gray-500">
@@ -62,11 +73,11 @@ const fieldsChanged = computed(() => {
           class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5">
-          "{{ JSON.parse(props.auditGroup.audit.details)?.link_field_title }}"
+          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}"
           field was linked to row
-          {{ JSON.parse(props.auditGroup.audit.details)?.ref_row_id }}
+          {{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_row_id') }}
           with value
-          "{{ JSON.parse(props.auditGroup.audit.details)?.ref_display_value }}"
+          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_display_value') }}"
         </p>
       </div>
     </template>

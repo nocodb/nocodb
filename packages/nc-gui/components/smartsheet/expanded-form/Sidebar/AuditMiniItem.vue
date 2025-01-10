@@ -1,12 +1,15 @@
 <script setup lang="ts">
 
+import type { AuditType } from 'nocodb-sdk';
+
+
 const props =defineProps<{
-  audit: any
+  audit: AuditType
 }>()
 
 const details = computed(() => {
   try {
-    return JSON.parse(props.audit.details)
+    return JSON.parse(props.audit.details || '')
   } catch (e) {
     return {}
   }

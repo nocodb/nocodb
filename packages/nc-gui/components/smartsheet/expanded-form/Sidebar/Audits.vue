@@ -41,9 +41,12 @@ watch(
     nextTick(() => {
       setTimeout(() => {
         scrollToAudit(audits.value[auditCount - 1]?.id)
-      }, 1000)
+      }, 500)
     })
   },
+  {
+    immediate: true,
+  }
 )
 </script>
 
@@ -86,12 +89,19 @@ watch(
                 </div>
               </div>
             </div>
-            <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created a record.</div>
+            <div v-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
             <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
-              linked table "{{ JSON.parse(audit.details)?.table_title }}" to "{{ JSON.parse(audit.details)?.ref_table_title }}"
+              <span class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50">
+                Record with ID: {{ JSON.parse(audit.details)?.ref_row_id }} was linked
+              </span>
+            </div>
+            <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
+              <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
+                Record with ID: {{ JSON.parse(audit.details)?.ref_row_id }} was unlinked
+              </span>
             </div>
             <template v-else-if="audit?.op_type === 'DATA_UPDATE'">
-              <div class="ml-9 rounded-lg border-1 border-gray-300 bg-gray-50 divide-y">
+              <div class="ml-9 rounded-lg border-1 border-gray-200 bg-gray-50 divide-y">
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>
             </template>

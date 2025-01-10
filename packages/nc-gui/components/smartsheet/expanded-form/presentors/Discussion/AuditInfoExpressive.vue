@@ -42,6 +42,10 @@ function formatCurrency(value: string, currencyMeta: any) {
   }).format(Number(value))
 }
 
+/* attachment */
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
 </script>
 
 <template>
@@ -140,7 +144,7 @@ function formatCurrency(value: string, currencyMeta: any) {
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.field_type === 'Attachment'">
-        <div class="text-sm">
+        <div class="text-sm flex items-center flex-wrap">
           changed
           <span
             class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 bg-gray-200 inline-flex items-center gap-1 ml-1 mr-3"
@@ -149,10 +153,51 @@ function formatCurrency(value: string, currencyMeta: any) {
             {{ columnKey }}
           </span>
           <span class="text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1 line-through">
-            {{ oldData[columnKey]?.length ?? 0 }} files
+            <template v-if="!oldData[columnKey]?.length">
+              0 files
+            </template>
+            <template v-else>
+              <div class="flex items-center gap-1">
+                <template v-for="(item, i) of oldData[columnKey]" :key="item.url || item.title">
+                  <div class="w-8 aspect-square">
+                    <LazyCellAttachmentPreviewImage
+                      v-if="isImage(item.title, item.mimetype ?? item.type)"
+                      :alt="item.title || `#${i}`"
+                      class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
+                      :srcs="getPossibleAttachmentSrc(item, 'small')"
+                    />
+                    <div v-else class="nc-attachment h-full w-full flex items-center justify-center">
+                      <CellAttachmentIconView :item="item" class="max-h-full max-w-full" />
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </span>
+          <span class="ml-2 text-xs">
+            to
           </span>
           <span class="ml-2 text-xs border-1 border-gray-300 rounded-md px-1 py-0.25 inline-flex items-center gap-1">
-            {{ newData[columnKey]?.length ?? 0 }} files
+            <template v-if="!newData[columnKey]?.length">
+              0 files
+            </template>
+            <template v-else>
+              <div class="flex items-center gap-1">
+                <template v-for="(item, i) of newData[columnKey]" :key="item.url || item.title">
+                  <div class="w-8 aspect-square">
+                    <LazyCellAttachmentPreviewImage
+                      v-if="isImage(item.title, item.mimetype ?? item.type)"
+                      :alt="item.title || `#${i}`"
+                      class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
+                      :srcs="getPossibleAttachmentSrc(item, 'small')"
+                    />
+                    <div v-else class="nc-attachment h-full w-full flex items-center justify-center">
+                      <CellAttachmentIconView :item="item" class="max-h-full max-w-full" />
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
           </span>
         </div>
       </template>

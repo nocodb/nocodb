@@ -1,9 +1,7 @@
 <script setup lang="ts">
+import type { AuditType } from 'nocodb-sdk'
 
-import type { AuditType } from 'nocodb-sdk';
-
-
-const props =defineProps<{
+const props = defineProps<{
   audit: AuditType
 }>()
 
@@ -47,7 +45,6 @@ function formatCurrency(value: string, currencyMeta: any) {
 /* attachment */
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
 </script>
 
 <template>
@@ -60,9 +57,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
       <div class="flex items-center gap-2 mt-2 flex-wrap">
         <template v-if="meta[columnKey]?.field_type === 'Attachment'">
           <div class="text-sm text-red-500 border-1 border-red-500 rounded-md px-1 py-1 bg-red-50 w-full">
-            <template v-if="!oldData[columnKey]?.length">
-              0 files
-            </template>
+            <template v-if="!oldData[columnKey]?.length"> 0 files </template>
             <template v-else>
               <div class="flex flex-col items-start gap-2">
                 <template v-for="(item, i) of oldData[columnKey]" :key="item.url || item.title">
@@ -87,9 +82,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
             </template>
           </div>
           <div class="text-sm text-green-700 border-1 border-green-500 rounded-md px-1 py-1 bg-green-50 w-full">
-            <template v-if="!newData[columnKey]?.length">
-              0 files
-            </template>
+            <template v-if="!newData[columnKey]?.length"> 0 files </template>
             <template v-else>
               <div class="flex flex-col items-start gap-2">
                 <template v-for="(item, i) of newData[columnKey]" :key="item.url || item.title">

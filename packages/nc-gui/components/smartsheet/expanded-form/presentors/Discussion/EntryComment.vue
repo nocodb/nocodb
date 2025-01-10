@@ -109,7 +109,6 @@ function onCommentBlur() {
   isEditing.value = false
   editCommentValue.value = undefined
 }
-
 </script>
 
 <template>

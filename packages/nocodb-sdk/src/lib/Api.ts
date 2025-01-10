@@ -225,6 +225,8 @@ export interface AuditType {
    * @example <span class="">Date</span>   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">2023-03-12</span>   <span class="black--text green lighten-4 px-2"></span>
    */
   details?: string;
+  /** Version of the audit */
+  version?: number;
 }
 
 /**

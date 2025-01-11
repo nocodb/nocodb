@@ -429,22 +429,37 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const last = result[result.length - 1]
           const details = JSON.parse(current.details)
           if (!last) {
-            details.consolidated_ref_display_values = [details.ref_display_value]
+            if (current.op_type === 'DATA_LINK') {
+              details.consolidated_ref_display_values_links = [details.ref_display_value]
+              details.consolidated_ref_display_values_unlinks = [];
+            } else {
+              details.consolidated_ref_display_values_links = [];
+              details.consolidated_ref_display_values_unlinks = [details.ref_display_value]
+            }
             current.details = JSON.stringify(details)
             result.push(current)
           } else {
             const lastDetails = JSON.parse(last.details)
             if (
-              last.op_type === current.op_type &&
               last.user === current.user &&
               dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30 &&
               lastDetails.link_field_id === details.link_field_id &&
               lastDetails.ref_table_title === details.ref_table_title
             ) {
-              lastDetails.consolidated_ref_display_values.push(details.ref_display_value)
+              if (current.op_type === 'DATA_LINK') {
+                lastDetails.consolidated_ref_display_values_links.push(details.ref_display_value)
+              } else {
+                lastDetails.consolidated_ref_display_values_unlinks.push(details.ref_display_value)
+              }
               last.details = JSON.stringify(lastDetails)
             } else {
-              details.consolidated_ref_display_values = [details.ref_display_value]
+              if (current.op_type === 'DATA_LINK') {
+                details.consolidated_ref_display_values_links = [details.ref_display_value]
+                details.consolidated_ref_display_values_unlinks = [];
+              } else {
+                details.consolidated_ref_display_values_links = [];
+                details.consolidated_ref_display_values_unlinks = [details.ref_display_value]
+              }
               current.details = JSON.stringify(details)
               result.push(current)
             }

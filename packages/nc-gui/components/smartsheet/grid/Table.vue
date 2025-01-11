@@ -31,7 +31,7 @@ const props = defineProps<{
   ) => Promise<any>
   selectedAllRecords?: boolean
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
-  rowHeight?: number
+  rowHeightEnum?: number
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, groupKey?: string) => void
   deleteSelectedRows?: () => Promise<void>
   removeRowIfNew?: (row: Row) => void
@@ -169,6 +169,8 @@ const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(t
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 const resizingColumn = ref(false)
+
+const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 // #Permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -1065,11 +1067,11 @@ function scrollToCell(row?: number | null, col?: number | null, _scrollBehaviour
   if (row !== null && col !== null && scrollWrapper.value) {
     // calculate cell position
     const td = {
-      top: row * rowHeightInPx[`${props.rowHeight}`],
+      top: row * rowHeight.value,
       left: colPositions.value[col],
       right:
         col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 180 : colPositions.value[col + 1],
-      bottom: (row + 1) * rowHeightInPx[`${props.rowHeight}`],
+      bottom: (row + 1) * rowHeight.value,
     }
 
     const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, {
@@ -1254,7 +1256,7 @@ const maxGridWidth = computed(() => {
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`])
+  return dataRef.value.length * rowHeight.value
 })
 
 const colSlice = ref({
@@ -1335,11 +1337,10 @@ const calculateSlices = () => {
   }
 
   if (disableVirtualY.value !== true) {
-    const rowHeight = rowHeightInPx[`${props.rowHeight}`]
-    const rowRenderStart = Math.max(0, Math.floor(scrollWrapper.value.scrollTop / rowHeight) - VIRTUAL_MARGIN)
+    const rowRenderStart = Math.max(0, Math.floor(scrollWrapper.value.scrollTop / rowHeight.value) - VIRTUAL_MARGIN)
     const rowRenderEnd = Math.min(
       dataRef.value.length,
-      rowRenderStart + Math.ceil(gridWrapper.value.clientHeight / rowHeight) + VIRTUAL_MARGIN,
+      rowRenderStart + Math.ceil(gridWrapper.value.clientHeight / rowHeight.value) + VIRTUAL_MARGIN,
     )
 
     rowSlice.value = {
@@ -1405,13 +1406,13 @@ const totalMaxPlaceholderRows = computed(() => {
     return 0
   }
 
-  return parseInt(`${gridWrapper.value?.clientHeight / (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`] || 32)}`)
+  return parseInt(`${gridWrapper.value?.clientHeight / rowHeight.value}`)
 })
 
 const placeholderStartRows = computed(() => {
   const result = {
     length: rowSlice.value.start > 1 ? Math.min(rowSlice.value.start - 1, totalMaxPlaceholderRows.value) : 0,
-    rowHeight: isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`]!,
+    rowHeight: rowHeight.value,
     totalRowHeight: 0,
   }
 
@@ -1426,7 +1427,7 @@ const placeholderEndRows = computed(() => {
       rowSlice.value.end < (paginationDataRef.value?.pageSize ?? 25) - 1
         ? Math.min((paginationDataRef.value?.pageSize ?? 25) - 1 - rowSlice.value.end, totalMaxPlaceholderRows.value)
         : 0,
-    rowHeight: isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`]!,
+    rowHeight: rowHeight.value,
     totalRowHeight: 0,
   }
 
@@ -1436,7 +1437,7 @@ const placeholderEndRows = computed(() => {
 })
 
 const topOffset = computed(() => {
-  return rowHeightInPx[`${props.rowHeight}`]! * (rowSlice.value.start - placeholderStartRows.value.length)
+  return rowHeight.value * (rowSlice.value.start - placeholderStartRows.value.length)
 })
 
 // #Fill Handle
@@ -1452,7 +1453,7 @@ function refreshFillHandle() {
       if (!scrollWrapper.value || !gridWrapper.value) return
 
       // 32 for the header
-      fillHandleTop.value = (rowIndex + 1) * rowHeightInPx[`${props.rowHeight}`] + (hideHeader.value ? 0 : 32)
+      fillHandleTop.value = (rowIndex + 1) * rowHeight.value + (hideHeader.value ? 0 : 32)
       // 64 for the row number column
       fillHandleLeft.value =
         64 +
@@ -2167,7 +2168,7 @@ onKeyStroke('ArrowDown', onDown)
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected,
                       }"
-                      :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
+                      :style="{ height: rowHeight ? `${rowHeight}px` : `${rowHeightInPx['1']}px` }"
                       :data-testid="`grid-row-${rowIndex}`"
                     >
                       <td
@@ -2241,8 +2242,8 @@ onKeyStroke('ArrowDown', onDown)
                             (activeCell.row === rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell': cellMeta[rowIndex][0].isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeight || rowHeight === 1,
-                          'align-top': rowHeight && rowHeight !== 1,
+                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
+                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
@@ -2313,8 +2314,8 @@ onKeyStroke('ArrowDown', onDown)
                             (activeCell.row === rowIndex && activeCell.col === colIndex) ||
                             (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex),
                           'nc-required-cell': cellMeta[rowIndex][colIndex].isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeight || rowHeight === 1,
-                          'align-top': rowHeight && rowHeight !== 1,
+                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
+                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
                           'filling': fillRangeMap[`${rowIndex}-${colIndex}`],
                           'readonly':
                             colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],

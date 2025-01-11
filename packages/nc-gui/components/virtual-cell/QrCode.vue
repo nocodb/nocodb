@@ -93,17 +93,22 @@ const copyAsPng = () => {
       </div>
     </template>
     <template #footer>
-      <div class="flex flex-row items-center mt-4">
-        <div class="flex flex-row flex-grow mr-2 !overflow-y-auto py-2" data-testid="nc-qr-code-large-value-label">
+      <div class="flex flex-row items-center justify-end mt-4">
+        <div class="flex flex-row flex-grow mr-2 !overflow-y-auto py-2 hidden" data-testid="nc-qr-code-large-value-label">
           {{ qrValue }}
         </div>
-        <div v-if="showQrCode" class="flex justify-end gap-2">
-          <NcButton size="small" type="secondary" @click="copyAsPng">
-            <template #icon>
-              <GeneralIcon icon="copy" class="w-4 h-4" />
+        <div v-if="showQrCode" class="flex gap-2">
+          <NcTooltip>
+            <template #title>
+              {{ $t('labels.clickToCopy') }}
             </template>
-            {{ $t('labels.copyAsPNG') }}
-          </NcButton>
+            <NcButton size="small" type="secondary" @click="copyAsPng">
+              <template #icon>
+                <GeneralIcon icon="copy" class="w-4 h-4" />
+              </template>
+              {{ $t('general.copy') }}
+            </NcButton>
+          </NcTooltip>
           <a :href="qrCodeLarge" :download="`${qrValue}.png`">
             <NcTooltip>
               <template #title>
@@ -113,7 +118,7 @@ const copyAsPng = () => {
                 <template #icon>
                   <GeneralIcon icon="download" class="w-4 h-4" />
                 </template>
-                {{ $t('labels.downloadAsPNG') }}
+                {{ $t('general.download') }}
               </NcButton>
             </NcTooltip>
           </a>

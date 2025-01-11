@@ -858,6 +858,7 @@
     "clickToHide": "Click to hide",
     "clickToDownload": "Click to download",
     "forRole": "for role",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
@@ -1093,9 +1094,7 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility ",
-    "copyAsPNG": "Copy as .png",
-    "downloadAsPNG": "Download as .png"
+    "viewHide": "View visibility "
   },
   "activity": {
     "clickToResolve": "Click to resolve",

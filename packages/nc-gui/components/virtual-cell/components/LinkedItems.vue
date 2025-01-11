@@ -197,7 +197,10 @@ const relation = computed(() => {
 watch(
   () => props.cellValue,
   () => {
-    if (isNew.value) loadChildrenList()
+    if (isNew.value) loadChildrenList(false, state.value)
+  },
+  {
+    immediate: true,
   },
 )
 
@@ -321,15 +324,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
     }
   }
 }
-
-const filteredStateLinkedItems = computed(() => {
-  const list = state.value?.[colTitle.value] ?? []
-  const query = childrenListPagination.query.toLocaleLowerCase()
-  if (!query || !list.length) return list
-  return list.filter((record: Record<string, any>) =>
-    `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
-  )
-})
 </script>
 
 <template>
@@ -391,7 +385,7 @@ const filteredStateLinkedItems = computed(() => {
             </template>
             <template v-else>
               <LazyVirtualCellComponentsListItem
-                v-for="(refRow, id) in childrenList?.list ?? filteredStateLinkedItems"
+                v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
                 :key="id"
                 :attachment="attachmentCol"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"

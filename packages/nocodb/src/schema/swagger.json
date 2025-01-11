@@ -26858,6 +26858,10 @@
               "$ref": "#/components/schemas/ColumnType"
             }
           },
+          "columnsHash": {
+            "description": "Hash of columns",
+            "type": "string"
+          },
           "deleted": {
             "$ref": "#/components/schemas/Bool"
           },

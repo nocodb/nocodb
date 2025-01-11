@@ -9,6 +9,12 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'link_to_another_record',
+    title: 'Link To Another Record',
+    description: 'Enable LTAR for links',
+    enabled: false,
+  },
+  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',

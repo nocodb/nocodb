@@ -1259,6 +1259,8 @@
     "downloadCSV": "Download CSV",
     "downloadExcel": "Download Excel",
     "uploadCSV": "Upload CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Import",
     "importMetadata": "Import Metadata",
     "exportMetadata": "Export Metadata",

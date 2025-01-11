@@ -15,11 +15,11 @@ export class BarcodeOverlay extends BasePage {
   }
 
   async verifyBarcodeSvgValue(expectedValue: string) {
-    const foundBarcodeSvg = await this.get().getByTestId('barcode').innerHTML();
-    expect(foundBarcodeSvg).toContain(expectedValue);
+    const foundBarcodeSvg = await this.get().getByTestId('barcode');
+    await expect(foundBarcodeSvg).toHaveAttribute('data-barcode-value', expectedValue);
   }
 
   async clickCloseButton() {
-    await this.get().locator('.ant-modal-close-x').click();
+    await this.get().locator('.nc-barcode-close').click();
   }
 }

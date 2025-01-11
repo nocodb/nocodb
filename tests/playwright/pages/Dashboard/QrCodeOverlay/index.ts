@@ -22,6 +22,6 @@ export class QrCodeOverlay extends BasePage {
   }
 
   async clickCloseButton() {
-    await this.get().locator('.ant-modal-close-x').click();
+    await this.get().locator('.nc-qrcode-close').click();
   }
 }

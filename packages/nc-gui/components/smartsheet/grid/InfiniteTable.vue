@@ -222,7 +222,7 @@ const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
-const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
+const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 const rowSlice = reactive({
   start: 0,
@@ -279,13 +279,13 @@ const totalMaxPlaceholderRows = computed(() => {
     return 0
   }
 
-  return parseInt(`${gridWrapper.value?.clientHeight / (isMobileMode.value ? 56 : rowHeight.value || 32)}`)
+  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`)
 })
 
 const placeholderStartRows = computed(() => {
   const result = {
     length: rowSlice.start > 1 ? Math.min(rowSlice.start - 1, totalMaxPlaceholderRows.value) : 0,
-    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    rowHeight: rowHeight.value!,
     totalRowHeight: 0,
   }
 
@@ -297,7 +297,7 @@ const placeholderStartRows = computed(() => {
 const placeholderEndRows = computed(() => {
   const result = {
     length: rowSlice.end < totalRows.value - 1 ? Math.min(totalRows.value - 1 - rowSlice.end, totalMaxPlaceholderRows.value) : 0,
-    rowHeight: isMobileMode.value ? 56 : rowHeight.value!,
+    rowHeight: rowHeight.value!,
     totalRowHeight: 0,
   }
   result.totalRowHeight = result.length * result.rowHeight
@@ -306,7 +306,7 @@ const placeholderEndRows = computed(() => {
 })
 
 const topOffset = computed(() => {
-  return (isMobileMode.value ? 56 : rowHeight.value!) * (rowSlice.start - placeholderStartRows.value.length)
+  return rowHeight.value! * (rowSlice.start - placeholderStartRows.value.length)
 })
 
 const updateVisibleRows = async () => {
@@ -1844,7 +1844,7 @@ const maxGridWidth = computed(() => {
 })
 
 const maxGridHeight = computed(() => {
-  return totalRows.value * (isMobileMode.value ? 56 : rowHeight.value)
+  return totalRows.value * rowHeight.value
 })
 
 const { width, height } = useWindowSize()
@@ -2280,7 +2280,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
                       class="absolute z-30 left-0 w-full flex"
@@ -2302,7 +2302,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
                       class="absolute transform z-30 left-0 w-full flex"

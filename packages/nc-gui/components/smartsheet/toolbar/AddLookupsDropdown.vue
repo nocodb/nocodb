@@ -4,7 +4,6 @@ import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   column: ColumnType
-  columnsHash?: string
   value?: boolean
   disabled?: boolean
 }
@@ -105,7 +104,7 @@ const createLookups = async () => {
     }
 
     await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: props.columnsHash,
+      hash: meta.value?.columnsHash,
       ops: bulkOpsCols,
     })
 

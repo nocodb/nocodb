@@ -22,8 +22,6 @@ const column = toRef(props, 'column')
 
 const value = useVModel(props, 'value')
 
-const columnsHash = ref()
-
 const isLoading = ref(false)
 
 const searchField = ref('')
@@ -104,7 +102,7 @@ const createLookups = async () => {
     }
 
     await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
+      hash: meta.value?.columnsHash,
       ops: bulkOpsCols,
     })
 
@@ -130,8 +128,6 @@ watch([relatedModel, searchField], async () => {
 
 onMounted(async () => {
   relatedModel.value = await getMeta(fkRelatedModelId.value)
-
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

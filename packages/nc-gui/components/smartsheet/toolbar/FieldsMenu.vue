@@ -19,8 +19,6 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const columnsHash = ref()
-
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
@@ -495,10 +493,6 @@ const onAddColumnDropdownVisibilityChange = () => {
     addColumnDropdown.value = false
   }
 }
-
-onMounted(async () => {
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
-})
 </script>
 
 <template>
@@ -733,7 +727,6 @@ onMounted(async () => {
                   <SmartsheetToolbarAddLookupsDropdown
                     v-if="metas"
                     :key="lookupDropdownsTickle"
-                    :columns-hash="columnsHash"
                     :column="meta?.columnsById?.[field.fk_column_id!]!"
                     :disabled="!!(isLocked || isLocalMode || !(isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value))"
                     @created="lookupDropdownsTickle++"

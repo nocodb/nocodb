@@ -41,7 +41,8 @@ const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const useForm = Form.useForm
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
+const baseURL = $api.instance.defaults.baseURL
 
 const { addTab } = useTabs()
 
@@ -447,18 +448,18 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const res = await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData, {
-                query: {
-                  operation_id: operationId,
-                },
-                wrapped: true,
+              const res = await $fetch.raw(`/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${operationId ? `&operation_id=${operationId}` : ''}`, {
+                baseURL,
+                method: 'POST',
                 headers: {
+                  'xc-auth': $state.token.value as string,
                   'nc-operation-id': operationId,
                   'nc-import-type': quickImportType,
                 },
-              })
+                body: batchData,
+              });
 
-              operationId = res.headers['nc-operation-id']
+              operationId = res.headers?.['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
             }

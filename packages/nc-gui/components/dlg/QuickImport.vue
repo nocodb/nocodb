@@ -78,7 +78,7 @@ const defaultImportState = {
     importDataOnly: true,
   },
 }
-const importState = reactive(defaultImportState)
+const importState = reactive(structuredClone(defaultImportState))
 
 const { token } = useGlobal()
 
@@ -125,6 +125,12 @@ const importMeta = computed(() => {
 })
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
+
+watch(dialogShow, (newValue) => {
+  if (newValue) {
+    Object.assign(importState, structuredClone(defaultImportState))
+  }
+})
 
 // watch dialogShow to init or terminate worker
 if (isWorkerSupport && process.env.NODE_ENV === 'production') {
@@ -587,7 +593,7 @@ watch(
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
     :closable="false"
-    width="448px"
+    :width="(templateEditorModal && importDataOnly) ? '640px' : '448px'"
     class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
     :transition-name="transition"

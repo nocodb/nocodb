@@ -171,6 +171,7 @@ watch(inputWrapperRef, () => {
   <component
     :is="isExpanded ? NcModal : 'div'"
     v-model:visible="isExpanded"
+    width="auto"
     :closable="false"
     centered
     :footer="null"
@@ -207,7 +208,7 @@ watch(inputWrapperRef, () => {
       <LazyMonacoEditor
         ref="inputWrapperRef"
         :model-value="localValue || ''"
-        class="min-w-full w-80"
+        class="min-w-full w-[40rem] min-w-80 resize overflow-auto"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
         :disable-deep-compare="true"

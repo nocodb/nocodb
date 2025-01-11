@@ -187,7 +187,18 @@ const uiFilters = (t: UiTypesType) => {
   const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
-  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField && isAllowToAddInFormView && showAiFields
+  const showLTAR =
+    t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
+
+  return (
+    systemFiledNotEdited &&
+    geoDataToggle &&
+    !specificDBType &&
+    showDeprecatedField &&
+    isAllowToAddInFormView &&
+    showAiFields &&
+    showLTAR
+  )
 }
 
 const extraIcons = ref<Record<string, string>>({})

@@ -3,7 +3,7 @@ import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { audits, isAuditLoading } = useExpandedFormStoreOrThrow()
+const { consolidatedAudits, isAuditLoading } = useExpandedFormStoreOrThrow()
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
 
@@ -36,11 +36,11 @@ const createdByAudit = (
 }
 
 watch(
-  () => audits.value.length,
+  () => consolidatedAudits.value.length,
   (auditCount) => {
     nextTick(() => {
       setTimeout(() => {
-        scrollToAudit(audits.value[auditCount - 1]?.id)
+        scrollToAudit(consolidatedAudits.value[auditCount - 1]?.id)
       }, 500)
     })
   },
@@ -72,12 +72,12 @@ function isV0Audit(audit: AuditType) {
 
 <template>
   <div class="h-full">
-    <div v-if="isAuditLoading && audits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
+    <div v-if="isAuditLoading && consolidatedAudits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
       <GeneralLoader size="xlarge" />
     </div>
 
     <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
-      <template v-if="audits.length === 0">
+      <template v-if="consolidatedAudits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-600">
             <MdiHistory />
@@ -87,7 +87,7 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-for="audit of audits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+        <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-gray-100">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
@@ -130,10 +130,13 @@ function isV0Audit(audit: AuditType) {
                   {{ safeJsonParse(audit.details).ref_table_title }}
                 </div>
                 <div class="!border-none">
-                  <span
-                    class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50"
-                  >
-                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  <span class="space-x-1">
+                    <span
+                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values"
+                      class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone"
+                    >
+                      {{ name }}
+                    </span>
                   </span>
                   was linked
                 </div>
@@ -149,8 +152,10 @@ function isV0Audit(audit: AuditType) {
                   {{ safeJsonParse(audit.details).ref_table_title }}
                 </div>
                 <div class="!border-none">
-                  <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
-                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  <span class="space-x-1">
+                    <span v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values" class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone">
+                      {{ name }}
+                    </span>
                   </span>
                   was unlinked
                 </div>

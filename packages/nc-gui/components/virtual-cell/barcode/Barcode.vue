@@ -53,15 +53,26 @@ const cellIcon = (column: ColumnType) =>
     wrap-class-name="nc-barcode-large barcode-modal"
     :body-style="{ padding: '0px' }"
     :footer="null"
+    :closable="false"
     @ok="handleModalOkClick"
   >
     <template #title>
-      <div class="flex gap-2">
-        <h1 class="font-weight-700">{{ column?.title }}</h1>
-        <div class="h-5 mt-[1px] px-1 bg-[#e7e7e9] rounded-md justify-center items-center flex">
+      <div class="flex gap-2 items-center w-full">
+        <h1 class="font-weight-700 m-0">{{ column?.title }}</h1>
+        <div class="h-5 px-1 bg-[#e7e7e9] rounded-md justify-center items-center flex">
           <component :is="cellIcon(metaColumnById?.[valueFieldId])" class="h-4" />
           <div class="text-[#4a5268] text-sm font-medium">{{ metaColumnById?.[valueFieldId]?.title }}</div>
         </div>
+        <div class="flex-1"></div>
+        <NcButton
+          class="nc-expand-form-close-btn !w-7 !h-7"
+          data-testid="nc-expanded-form-close"
+          type="text"
+          size="xsmall"
+          @click="modalVisible = false"
+        >
+          <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+        </NcButton>
       </div>
     </template>
     <JsBarcodeWrapper
@@ -134,14 +145,20 @@ const cellIcon = (column: ColumnType) =>
 }
 </style>
 
-<style>
-.barcode-modal .ant-modal-header {
-  position: relative;
-  top: -20px;
-  width: calc(100% + 24px * 2);
-  left: -24px;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  border-bottom: 1px solid #e7e7e9;
+<style lang="scss">
+.barcode-modal .ant-modal-content {
+  padding: 0 !important;
+  .ant-modal-header {
+    position: relative;
+    padding: 8px 16px;
+    border-top-left-radius: 1em;
+    border-top-right-radius: 1em;
+    border-bottom: 1px solid #e7e7e9;
+    .ant-modal-title {
+      height: 30px;
+      display: flex;
+      align-items: center;
+    }
+  }
 }
 </style>

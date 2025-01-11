@@ -23,6 +23,7 @@ const generate = () => {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
       displayValue: false,
+      margin: 0,
     })
     if (props.customStyle) {
       if (barcodeSvgRef.value) {
@@ -71,12 +72,13 @@ onMounted(generate)
       :class="{
         'w-full': !isGallery,
         'w-auto': isGallery,
+        'mt-8 mb-4': showDownload,
       }"
       data-testid="barcode"
       @click="onBarcodeClick"
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
-    <div v-if="props.showDownload" class="flex justify-end gap-2 mt-8">
+    <div v-if="props.showDownload" class="flex justify-end gap-2 py-2 px-3">
       <NcTooltip>
         <template #title>
           {{ $t('labels.clickToCopy') }}

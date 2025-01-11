@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
+import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { nocoExecute } from '~/utils';
@@ -378,6 +379,7 @@ export class PublicDatasService {
       body: any;
       files: any[];
       siteUrl: string;
+      req: NcRequest;
     },
   ) {
     const view = await View.getByUUID(context, param.sharedViewUuid);
@@ -449,6 +451,7 @@ export class PublicDatasService {
         attachments[fieldName].push(
           ...(await this.attachmentsService.upload({
             files: [file],
+            req: param.req,
           })),
         );
       }
@@ -476,6 +479,7 @@ export class PublicDatasService {
       attachments[file.fieldName].unshift(
         ...(await this.attachmentsService.uploadViaURL({
           urls: [file.url],
+          req: param.req,
         })),
       );
     }
@@ -484,7 +488,7 @@ export class PublicDatasService {
       insertObject[column] = JSON.stringify(data);
     }
 
-    return await baseModel.nestedInsert(insertObject, null);
+    return await baseModel.nestedInsert(insertObject, param.req, null);
   }
 
   async relDataList(

@@ -357,8 +357,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
 
+          // ignore filters from payload since it's not required
+          const { filters: _, ...updateData } = formState.value;
+
           try {
-            await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+            await $api.dbTableColumn.update(column.value?.id as string, updateData)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'

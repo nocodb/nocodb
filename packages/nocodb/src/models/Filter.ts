@@ -1039,4 +1039,33 @@ export default class Filter implements FilterType {
       await Filter.update(context, child.id, { logical_op: logicalOp }, ncMeta);
     }
   }
+
+  async extractRelatedParentMetas(context, ncMeta = Noco.ncMeta) {
+    let parentData:
+      | {
+          view: View;
+        }
+      | {
+          hook: Hook;
+        }
+      | {
+          linkColumn: Column;
+        };
+
+    if (this.fk_view_id) {
+      parentData = { view: await View.get(context, this.fk_view_id, ncMeta) };
+    } else if (this.fk_hook_id) {
+      parentData = { hook: await Hook.get(context, this.fk_hook_id, ncMeta) };
+    } else if (this.fk_link_col_id) {
+      parentData = {
+        linkColumn: await Column.get(
+          context,
+          { colId: this.fk_link_col_id },
+          ncMeta,
+        ),
+      };
+    }
+
+    return parentData;
+  }
 }

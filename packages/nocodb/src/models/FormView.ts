@@ -71,6 +71,8 @@ export default class FormView implements FormViewType {
       if (view) {
         view.meta = deserializeJSON(view.meta);
         await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+      } else {
+        return null;
       }
     }
 

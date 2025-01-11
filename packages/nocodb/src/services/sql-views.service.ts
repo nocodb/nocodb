@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  ModelTypes,
-} from 'nocodb-sdk';
+import { ModelTypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -13,7 +9,7 @@ import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Audit, Base, Column, Model } from '~/models';
+import { Base, Column, Model } from '~/models';
 
 @Injectable()
 export class SqlViewsService {
@@ -129,16 +125,6 @@ export class SqlViewsService {
       base_id: base.id,
       source_id: source.id,
     });
-
-    await Audit.insert({
-      base_id: base.id,
-      source_id: source.id,
-      op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.CREATE,
-      user: param?.user?.email,
-      description: `created view ${body.view_name} with alias ${body.title}  `,
-      ip: param.clientIp,
-    }).then(() => {});
 
     mapDefaultDisplayValue(columns);
 

@@ -39,13 +39,16 @@ export enum AppEvents {
 
   WELCOME = 'app.welcome',
 
+  WORKSPACE_USER_INVITE = 'workspace.invite',
+  WORKSPACE_USER_UPDATE = 'workspace.user.update',
+  WORKSPACE_USER_DELETE = 'workspace.user.delete',
   WORKSPACE_CREATE = 'workspace.create',
-  WORKSPACE_INVITE = 'workspace.invite',
   WORKSPACE_DELETE = 'workspace.delete',
   WORKSPACE_UPDATE = 'workspace.update',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
+  USER_INVITE = 'user.invite',
   USER_UPDATE = 'user.update',
   USER_PASSWORD_RESET = 'user.password.reset',
   USER_PASSWORD_CHANGE = 'user.password.change',
@@ -89,11 +92,8 @@ export enum AppEvents {
 
   API_TOKEN_CREATE = 'api.token.create',
   API_TOKEN_DELETE = 'api.token.delete',
+  API_TOKEN_UPDATE = 'api.token.update',
   IMAGE_UPLOAD = 'image.upload',
-
-  BASE_CREATE = 'source.create',
-  BASE_DELETE = 'source.delete',
-  BASE_UPDATE = 'source.update',
 
   FORM_COLUMN_UPDATE = 'form.column.update',
 
@@ -103,11 +103,12 @@ export enum AppEvents {
   GALLERY_CREATE = 'gallery.create',
   GALLERY_UPDATE = 'gallery.update',
 
-  KANBAN_CREATE = 'kanban.create',
-  KANBAN_UPDATE = 'kanban.update',
-
   MAP_CREATE = 'map.create',
   MAP_UPDATE = 'map.update',
+  MAP_DELETE = 'map.delete',
+
+  KANBAN_CREATE = 'kanban.create',
+  KANBAN_UPDATE = 'kanban.update',
 
   META_DIFF_SYNC = 'meta.diff.sync',
 
@@ -126,6 +127,7 @@ export enum AppEvents {
 
   ORG_API_TOKEN_CREATE = 'org.api.token.create',
   ORG_API_TOKEN_DELETE = 'org.api.token.delete',
+  ORG_API_TOKEN_UPDATE = 'org.api.token.update',
 
   PLUGIN_TEST = 'plugin.test',
   PLUGIN_INSTALL = 'plugin.install',
@@ -157,6 +159,49 @@ export enum AppEvents {
   INTEGRATION_UPDATE = 'integration.update',
 
   ROW_USER_MENTION = 'row.user.mention',
+  CALENDAR_CREATE = 'calendar.create',
+  FORM_DUPLICATE = 'form.duplicate',
+  CALENDAR_UPDATE = 'calendar.update',
+  CALENDAR_DELETE = 'calendar.delete',
+  FORM_DELETE = 'form.delete',
+
+  SOURCE_CREATE = 'source.create',
+  SOURCE_UPDATE = 'source.update',
+  SOURCE_DELETE = 'source.delete',
+  SHARED_BASE_REVOKE_LINK = 'shared.base.revoke.link',
+  GRID_DELETE = 'grid.delete',
+  GRID_DUPLICATE = 'grid.duplicate',
+  KANBAN_DELETE = 'kanban.delete',
+  KANBAN_DUPLICATE = 'kanban.duplicate',
+  GALLERY_DELETE = 'gallery.delete',
+  GALLERY_DUPLICATE = 'gallery.duplicate',
+
+  BASE_DUPLICATE_START = 'base.duplicate.start',
+  BASE_DUPLICATE_COMPLETE = 'base.duplicate.complete',
+  BASE_DUPLICATE_FAIL = 'base.duplicate.fail',
+
+  TABLE_DUPLICATE_START = 'table.duplicate.start',
+  TABLE_DUPLICATE_COMPLETE = 'table.duplicate.complete',
+  TABLE_DUPLICATE_FAIL = 'table.duplicate.fail',
+
+  COLUMN_DUPLICATE_START = 'column.duplicate.start',
+  COLUMN_DUPLICATE_COMPLETE = 'column.duplicate.complete',
+  COLUMN_DUPLICATE_FAIL = 'column.duplicate.fail',
+
+  VIEW_DUPLICATE_START = 'view.duplicate.start',
+  VIEW_DUPLICATE_COMPLETE = 'view.duplicate.complete',
+  VIEW_DUPLICATE_FAIL = 'view.duplicate.fail',
+  USER_SIGNOUT = 'user.signout',
+  PROJECT_USER_DELETE = 'base.user.delete',
+  UI_ACL = 'model.role.ui.acl',
+
+  SNAPSHOT_CREATE = 'snapshot.create',
+  SNAPSHOT_DELETE = 'snapshot.delete',
+  SNAPSHOT_RESTORE = 'snapshot.restore',
+
+  DATA_EXPORT = 'data.export',
+  DATA_IMPORT = 'data.import',
+  USER_PROFILE_UPDATE = 'user.profile.update',
 }
 
 export enum ClickhouseTables {

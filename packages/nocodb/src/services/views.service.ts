@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles } from 'nocodb-sdk';
+import { AppEvents, ProjectRoles, ViewTypes } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -14,6 +14,7 @@ import {
   CustomUrl,
   Model,
   ModelRoleVisibility,
+  User,
   View,
 } from '~/models';
 
@@ -133,6 +134,7 @@ export class ViewsService {
       user: param.user,
       view,
       req: param.req,
+      context,
     });
 
     return res;
@@ -225,14 +227,22 @@ export class ViewsService {
       includeCreatedByAndUpdateBy,
     );
 
+    let owner = param.req.user;
+
+    if (ownedBy && ownedBy !== param.req.user?.id) {
+      owner = await User.get(ownedBy);
+    }
+
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: {
         ...oldView,
         ...param.view,
       },
+      oldView,
       user: param.user,
-
       req: param.req,
+      context,
+      owner,
     });
     return result;
   }
@@ -249,10 +259,33 @@ export class ViewsService {
 
     await View.delete(context, param.viewId);
 
-    this.appHooksService.emit(AppEvents.VIEW_DELETE, {
+    let deleteEvent = AppEvents.GRID_DELETE;
+
+    //  decide event based on type
+    if (view.type === ViewTypes.FORM) {
+      deleteEvent = AppEvents.FORM_DELETE;
+    } else if (view.type === ViewTypes.CALENDAR) {
+      deleteEvent = AppEvents.CALENDAR_DELETE;
+    } else if (view.type === ViewTypes.GALLERY) {
+      deleteEvent = AppEvents.GALLERY_DELETE;
+    } else if (view.type === ViewTypes.KANBAN) {
+      deleteEvent = AppEvents.KANBAN_DELETE;
+    } else if (view.type === ViewTypes.MAP) {
+      deleteEvent = AppEvents.MAP_DELETE;
+    }
+
+    let owner = param.req.user;
+
+    if (view.owned_by && view.owned_by !== param.req.user?.id) {
+      owner = await User.get(view.owned_by);
+    }
+
+    this.appHooksService.emit(deleteEvent, {
       view,
       user: param.user,
+      owner,
       req: param.req,
+      context,
     });
 
     return true;
@@ -330,8 +363,11 @@ export class ViewsService {
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
+      sharedView: { ...view, ...param.sharedView },
+      oldSharedView: { ...view },
       view,
       req: param.req,
+      context,
     });
 
     return result;
@@ -357,6 +393,7 @@ export class ViewsService {
       user: param.user,
       view,
       req: param.req,
+      context,
     });
 
     return true;

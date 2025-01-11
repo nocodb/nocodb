@@ -6,9 +6,10 @@ import isDocker from 'is-docker';
 import { packageVersion } from '~/utils/packageVersion';
 import TeleBatchProcessor from '~/utils/TeleBatchProcessor';
 import { isEE } from '~/utils';
+import { getRedisURL } from '~/helpers/redisHelpers';
 
 const isDisabled = !!process.env.NC_DISABLE_TELE;
-const cache = !!process.env.NC_REDIS_URL;
+const cache = !!getRedisURL();
 const executable = !!process.env.NC_BINARY_BUILD;
 const litestream = !!(
   process.env.LITESTREAM_S3_BUCKET &&

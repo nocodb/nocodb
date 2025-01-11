@@ -52,9 +52,9 @@ export class OrgTokensService {
     });
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {
-      tokenBody: param.apiToken,
+      tokenTitle: apiToken.description,
       userId: param.user?.id,
-
+      tokenId: apiToken.id,
       req: param.req,
     });
 
@@ -74,6 +74,7 @@ export class OrgTokensService {
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
       tokenId: param.tokenId,
+      tokenTitle: apiToken.description,
       userId: param.user?.id,
       req: param['req'],
     });

@@ -5,7 +5,6 @@ import type {
   SupportedExportCharset,
   UserType,
 } from 'nocodb-sdk';
-
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 

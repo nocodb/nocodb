@@ -60,6 +60,8 @@ import * as nc_070_data_reflection from '~/meta/migrations/v2/nc_070_data_reflec
 import * as nc_071_add_meta_in_users from '~/meta/migrations/v2/nc_071_add_meta_in_users';
 import * as nc_072_col_button_pk from '~/meta/migrations/v2/nc_072_col_button_pk';
 import * as nc_073_file_reference_indexes from '~/meta/migrations/v2/nc_073_file_reference_indexes';
+import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_missing_context_indexes';
+import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -131,6 +133,8 @@ export default class XcMigrationSourcev2 {
       'nc_071_add_meta_in_users',
       'nc_072_col_button_pk',
       'nc_073_file_reference_indexes',
+      'nc_074_missing_context_indexes',
+      'nc_075_audit_refactor',
     ]);
   }
 
@@ -264,6 +268,10 @@ export default class XcMigrationSourcev2 {
         return nc_072_col_button_pk;
       case 'nc_073_file_reference_indexes':
         return nc_073_file_reference_indexes;
+      case 'nc_074_missing_context_indexes':
+        return nc_074_missing_context_indexes;
+      case 'nc_075_audit_refactor':
+        return nc_075_audit_refactor;
     }
   }
 }

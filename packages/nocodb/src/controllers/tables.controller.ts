@@ -8,10 +8,11 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { extractRolesObj, TableReqType } from 'nocodb-sdk';
+import { extractRolesObj, NcRequest, TableReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TablesService } from '~/services/tables.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -69,6 +70,7 @@ export class TablesController {
       sourceId: sourceId,
       table: body,
       user: req.user,
+      req,
     });
 
     return result;
@@ -136,10 +138,12 @@ export class TablesController {
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: { order: number },
+    @Req() req: NcRequest,
   ) {
     return this.tablesService.reorderTable(context, {
       tableId,
       order: body.order,
+      req,
     });
   }
 }

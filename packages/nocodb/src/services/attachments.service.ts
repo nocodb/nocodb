@@ -55,7 +55,7 @@ export class AttachmentsService {
 
   async upload(param: {
     files: FileType[];
-    req?: NcRequest;
+    req: NcRequest;
     path?: string;
     scope?: PublicAttachmentScope;
   }) {
@@ -67,7 +67,7 @@ export class AttachmentsService {
       NcError.invalidAttachmentUploadScope();
     }
 
-    const userId = param.req?.user.id || 'anonymous';
+    const userId = param.req?.user?.id || 'anonymous';
 
     param.path = param.scope
       ? `${hash(userId)}`
@@ -219,7 +219,7 @@ export class AttachmentsService {
   @UseWorker()
   async uploadViaURL(param: {
     urls: AttachmentReqType[];
-    req?: NcRequest;
+    req: NcRequest;
     path?: string;
     scope?: PublicAttachmentScope;
   }) {
@@ -231,7 +231,7 @@ export class AttachmentsService {
       NcError.invalidAttachmentUploadScope();
     }
 
-    const userId = param.req?.user.id || 'anonymous';
+    const userId = param.req?.user?.id || 'anonymous';
 
     param.path = param.scope
       ? `${hash(userId)}`

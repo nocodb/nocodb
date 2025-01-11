@@ -1,20 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -27,23 +17,6 @@ export class AuditsController {
     return new PagedResponseImpl(
       await this.auditsService.auditOnlyList({ query: req.query as any }),
     );
-  }
-
-  @Post([
-    '/api/v1/db/meta/audits/rows/:rowId/update',
-    '/api/v2/meta/audits/rows/:rowId/update',
-  ])
-  @HttpCode(200)
-  @Acl('auditRowUpdate')
-  async auditRowUpdate(
-    @TenantContext() context: NcContext,
-    @Param('rowId') rowId: string,
-    @Body() body: any,
-  ) {
-    return await this.auditsService.auditRowUpdate(context, {
-      rowId,
-      body,
-    });
   }
 
   @Get([

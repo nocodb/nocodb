@@ -9,6 +9,7 @@ import {
 import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
+import { fromEntries } from '~/utils';
 import { nocoExecute } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -72,7 +73,7 @@ export class PublicDatasExportController {
 
     const data = XLSX.utils.json_to_sheet(
       dbRows.map((o: Record<string, any>) =>
-        Object.fromEntries(fields.map((f) => [f, o[f]])),
+        fromEntries(fields.map((f) => [f, o[f]])),
       ),
       { header: fields },
     );

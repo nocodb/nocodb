@@ -63,6 +63,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -102,7 +104,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   })
 
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
-    if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
+    if (
+      !isUIAllowed('auditListRow') ||
+      (!row.value && !_rowId) ||
+      (isEeUI && !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))
+    )
+      return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -387,6 +394,29 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
+  const auditCommentGroups = computed(() => {
+    const adts = [...audits.value].map((it) => ({
+      user: it.user,
+      displayName: it.created_display_name,
+      created_at: it.created_at,
+      type: 'audit',
+      audit: it,
+    }))
+
+    const cmnts = [...comments.value].map((it) => ({
+      ...it,
+      user: it.created_by_email,
+      displayName: it.created_display_name,
+      type: 'comment',
+    }))
+
+    const groups = [...adts, ...cmnts]
+
+    return groups.sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
+    })
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -410,6 +440,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     saveRowAndStay,
     updateComment,
     clearColumns,
+    auditCommentGroups,
   }
 }, 'expanded-form-store')
 

@@ -43,6 +43,7 @@ export class CommentsService {
       comment: res,
       rowId: param.body.row_id,
       req: param.req,
+      context,
     });
 
     return res;
@@ -75,6 +76,7 @@ export class CommentsService {
       comment: comment,
       rowId: comment.row_id,
       req: param.req,
+      context,
     });
     return res;
   }
@@ -139,6 +141,7 @@ export class CommentsService {
       },
       rowId: comment.row_id,
       req: param.req,
+      context,
     });
 
     return res;

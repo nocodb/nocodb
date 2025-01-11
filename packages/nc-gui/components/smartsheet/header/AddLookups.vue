@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -12,15 +12,11 @@ const props = defineProps<Props>()
 
 const { $api } = useNuxtApp()
 
-const baseStore = useBase()
-
 const { getMeta, metas } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
-
-const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')
 
@@ -49,22 +45,9 @@ const getIcon = (c: ColumnType) =>
 
 const isLoadingModel = ref(false)
 
-const relatedModel = computedAsync(async () => {
-  const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
+const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
-  if (fkRelatedModelId) {
-    let table = tables.value.find((t) => t.id === fkRelatedModelId)
-
-    if (!table?.columns) {
-      isLoadingModel.value = true
-      await getMeta(fkRelatedModelId, true)
-      table = tables.value.find((t) => t.id === fkRelatedModelId)
-      isLoadingModel.value = false
-    }
-    return table
-  }
-  return null
-})
+const relatedModel = ref<TableType | null>()
 
 const clearAll = () => {
   Object.keys(selectedFields.value).forEach((k) => (selectedFields.value[k] = false))
@@ -146,6 +129,8 @@ watch([relatedModel, searchField], async () => {
 })
 
 onMounted(async () => {
+  relatedModel.value = await getMeta(fkRelatedModelId.value)
+
   columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>

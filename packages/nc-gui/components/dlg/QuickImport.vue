@@ -97,7 +97,7 @@ const { validate, validateInfos } = useForm(importState, validators)
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
-      header: `${t('title.quickImportExcel')}`,
+      header: importDataOnly ? t('activity.uploadExcel') : t('title.quickImportExcel'),
       icon: 'importExcel',
       uploadHint: '',
       urlInputLabel: t('msg.info.excelURL'),
@@ -106,7 +106,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeCsv.value) {
     return {
-      header: `${t('title.quickImportCSV')}`,
+      header: importDataOnly ? t('activity.uploadCSV') : t('title.quickImportCSV'),
       icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
@@ -796,7 +796,7 @@ watch(
           :disabled="disablePreImportButton"
           @click="handlePreImport"
         >
-          {{ $t('activity.import') }}
+          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
         </nc-button>
 
         <nc-button
@@ -807,7 +807,7 @@ watch(
           :disabled="disableImportButton"
           @click="handleImport"
         >
-          {{ $t('activity.import') }}
+          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
         </nc-button>
       </div>
     </template>

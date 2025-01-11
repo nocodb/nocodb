@@ -82,10 +82,6 @@ test.describe('Preview Mode', () => {
 
   test('Preview Mode', async () => {
     if (!isEE()) test.skip();
-
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     // configure ACL
     // configure access control
     await dashboard.treeView.openProject({ title: context.base.title, context });

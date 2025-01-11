@@ -50,8 +50,6 @@ test.describe('Expanded form URL', () => {
   }
 
   async function viewTestSakila(viewType: string) {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     let viewObj: GridPage | GalleryPage = dashboard.grid;
@@ -137,7 +135,6 @@ test.describe('Expanded record duplicate & delete options', () => {
   });
 
   test('Grid', async () => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Actor' });
 
     // create filter to narrow down the number of records

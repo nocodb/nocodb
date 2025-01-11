@@ -114,7 +114,6 @@ async function verifyFilter(param: {
 test.describe('Filter Tests: Numerical', () => {
   if (enableQuickRun()) test.skip();
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // Enable NULL & EMPTY filters
@@ -304,7 +303,6 @@ test.describe('Filter Tests: Numerical', () => {
 test.describe('Filter Tests: Text based', () => {
   if (enableQuickRun()) test.skip();
   async function textBasedFilterTest(dataType, eqString, isLikeString) {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'textBased' });
 
     // Enable NULL & EMPTY filters
@@ -425,7 +423,6 @@ test.describe('Filter Tests: Text based', () => {
 test.describe('Filter Tests: Select based', () => {
   if (enableQuickRun()) test.skip();
   async function selectBasedFilterTest(dataType, is, anyof, allof) {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectBased' });
 
     // Enable NULL & EMPTY filters
@@ -558,7 +555,6 @@ test.describe('Filter Tests: Date based', () => {
   const oneYearFromNow = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() + 1)));
 
   async function dateTimeBasedFilterTest(dataType, setCount) {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'dateTimeBased' });
 
     // Enable NULL & EMPTY filters
@@ -863,7 +859,6 @@ test.describe('Filter Tests: Date based', () => {
 test.describe('Filter Tests: AddOn', () => {
   if (enableQuickRun()) test.skip();
   async function addOnFilterTest(dataType) {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
 
     // Enable NULL & EMPTY filters
@@ -970,7 +965,6 @@ test.describe('Filter Tests: AddOn', () => {
 test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   if (enableQuickRun()) test.skip();
   async function linkToAnotherRecordFilterTest() {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
@@ -1001,7 +995,6 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   async function lookupFilterTest() {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
     // Create LookUp column
     await dashboard.grid.column.create({
@@ -1040,7 +1033,6 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   async function rollupFilterTest() {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
     // Create LookUp column
     await dashboard.grid.column.create({
@@ -1145,7 +1137,6 @@ test.describe('Filter Tests: Toggle button', () => {
   });
 
   test('Filter: Toggle NULL & EMPTY button', async () => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     // Verify filter options
@@ -1230,7 +1221,6 @@ test.describe('Filter Tests: Filter groups', () => {
   });
 
   test('Filter: Empty filters', async () => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     await toolbar.clickFilter({ networkValidation: false });

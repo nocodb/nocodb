@@ -274,6 +274,7 @@ export default defineNuxtConfig({
         'markdown-it',
         'markdown-it-task-lists',
         'markdown-it-regexp',
+        'diff'
       ],
       esbuildOptions: {
         define: {

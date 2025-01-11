@@ -306,7 +306,7 @@ const placeholderEndRows = computed(() => {
 })
 
 const topOffset = computed(() => {
-  return (isMobileMode.value ? 56 : rowHeight.value!) * (rowSlice.start - placeholderStartRows.value.length)
+  return rowHeight.value! * (rowSlice.start - placeholderStartRows.value.length)
 })
 
 const updateVisibleRows = async () => {
@@ -2280,7 +2280,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
                       class="absolute z-30 left-0 w-full flex"
@@ -2302,7 +2302,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
                       class="absolute transform z-30 left-0 w-full flex"

@@ -1436,9 +1436,7 @@ const placeholderEndRows = computed(() => {
 })
 
 const topOffset = computed(() => {
-  return (
-    (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`]!) * (rowSlice.value.start - placeholderStartRows.value.length)
-  )
+  return rowHeightInPx[`${props.rowHeight}`]! * (rowSlice.value.start - placeholderStartRows.value.length)
 })
 
 // #Fill Handle

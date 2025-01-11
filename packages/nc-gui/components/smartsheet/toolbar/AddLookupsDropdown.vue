@@ -4,6 +4,7 @@ import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   column: ColumnType
+  columnsHash?: string
   value?: boolean
   disabled?: boolean
 }
@@ -31,8 +32,6 @@ const activeView = inject(ActiveViewInj, ref())
 const { tables } = toRefs(baseStore)
 
 const column = toRef(props, 'column')
-
-const columnsHash = ref()
 
 const isLoading = ref(false)
 
@@ -124,7 +123,7 @@ const createLookups = async () => {
     }
 
     await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
+      hash: props.columnsHash,
       ops: bulkOpsCols,
     })
 
@@ -165,12 +164,6 @@ watch(isOpened, (val) => {
     isInSearchMode.value = false
     searchField.value = ''
   }
-})
-
-onMounted(async () => {
-  if (props.disabled) return
-
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

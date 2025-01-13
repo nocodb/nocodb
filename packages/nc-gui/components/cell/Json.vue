@@ -54,6 +54,14 @@ const localValue = computed<ModelValueType>({
   },
 })
 
+function openJSONEditor() {
+  isExpanded.value = true
+}
+
+function closeJSONEditor() {
+  isExpanded.value = false
+}
+
 const formatJson = (json: string) => {
   try {
     return JSON.stringify(JSON.parse(json))
@@ -74,7 +82,7 @@ function setLocalValue(val: any) {
 const clear = () => {
   error.value = undefined
 
-  isExpanded.value = false
+  closeJSONEditor()
 
   editEnabled.value = false
 
@@ -82,7 +90,7 @@ const clear = () => {
 }
 
 const onSave = () => {
-  isExpanded.value = false
+  closeJSONEditor()
 
   editEnabled.value = false
 
@@ -113,7 +121,7 @@ watch([localValue, editEnabled], () => {
 })
 
 watch(editEnabled, () => {
-  isExpanded.value = false
+  closeJSONEditor()
 
   setLocalValue(vModel.value)
 })
@@ -126,7 +134,7 @@ useSelectedCellKeyupListener(active, (e) => {
       if (e.shiftKey) {
         return true
       }
-      isExpanded.value = true
+      openJSONEditor()
       break
     case e.metaKey:
     case e.altKey:
@@ -139,7 +147,7 @@ useSelectedCellKeyupListener(active, (e) => {
       break
     default:
       // Otherwise it's a printing character, open the JSON modal for editing
-      isExpanded.value = true
+      openJSONEditor()
   }
 })
 
@@ -174,6 +182,28 @@ watch(inputWrapperRef, () => {
     modal.parentElement.removeEventListener('mouseup', stopPropagation)
   }
 })
+
+const el = useCurrentElement()
+
+onMounted(() => {
+  const gridCell = el.value?.closest('td')
+  if (gridCell) {
+    gridCell.addEventListener('dblclick', openJSONEditor)
+    return
+  }
+  const formCell = el.value?.closest('.nc-data-cell')
+  if (formCell) formCell.addEventListener('click', openJSONEditor)
+})
+
+onUnmounted(() => {
+  const gridCell = el.value?.closest('td')
+  if (gridCell) {
+    gridCell.removeEventListener('dblclick', openJSONEditor)
+    return
+  }
+  const formCell = el.value?.closest('.nc-data-cell')
+  if (formCell) formCell.removeEventListener('click', openJSONEditor)
+})
 </script>
 
 <template>
@@ -189,7 +219,7 @@ watch(inputWrapperRef, () => {
   >
     <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-2 nc-json-action" @mousedown.stop>
-        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="isExpanded = false">
+        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="closeJSONEditor">
           <component :is="iconMap.minimize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
         </NcButton>
 
@@ -229,7 +259,7 @@ watch(inputWrapperRef, () => {
     <div v-else class="h-5 relative">
       <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute right-0">
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="isExpanded = true">
+        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
           <component :is="iconMap.maximize" class="hover:text-grey-800 text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>

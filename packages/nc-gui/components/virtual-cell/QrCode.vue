@@ -3,7 +3,7 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { message } from 'ant-design-vue'
 import type QRCode from 'qrcode'
 import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
-import { base64ToPNG } from '~/utils/svgToPng'
+import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
 
 const { t } = useI18n()
 
@@ -58,20 +58,15 @@ const cellIcon = (column: ColumnType) =>
     columnMeta: column,
   })
 
-const copyAsPng = () => {
+const copyAsPng = async () => {
   if (!qrCodeLarge.value) return
-  base64ToPNG(qrCodeLarge.value).then((blob) => {
-    try {
-      navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob,
-        }),
-      ])
-      message.success(t('msg.info.copiedToClipboard'))
-    } catch {
-      message.error(t('msg.error.notSupported'))
-    }
-  })
+  const blob = await base64ToBlob(qrCodeLarge.value)
+  const success = await copyPNGToClipboard(blob)
+  if (success) {
+    message.success(t('msg.info.copiedToClipboard'))
+  } else {
+    message.error(t('msg.error.notSupported'))
+  }
 }
 </script>
 

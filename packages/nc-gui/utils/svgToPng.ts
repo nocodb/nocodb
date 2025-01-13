@@ -65,9 +65,25 @@ function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
       const imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
       triggerDownload(imgURI, fileName)
     }
-    console.log(canvas)
-    // TODO: Somehow canvas dom element is getting deleted
-    // document.removeChild(canvas)
+  })
+}
+
+function copyPNGToClipboard(blob: Blob | null) {
+  return new Promise<boolean>((resolve) => {
+    if (!blob) {
+      resolve(false)
+      return
+    }
+    try {
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob,
+        }),
+      ])
+      resolve(true)
+    } catch {
+      resolve(false)
+    }
   })
 }
 
@@ -75,28 +91,15 @@ function copySVGToClipboard(svg: SVGGraphicsElement) {
   return new Promise<boolean>((resolve) => {
     processSVG(svg, (canvas) => {
       canvas.toBlob((blob) => {
-        if (!blob) {
-          resolve(false)
-          return
-        }
-        try {
-          navigator.clipboard.write([
-            new ClipboardItem({
-              'image/png': blob,
-            }),
-          ])
-          resolve(true)
-        } catch {
-          resolve(false)
-        }
+        copyPNGToClipboard(blob).then(resolve)
       })
     })
   })
 }
 
-async function base64ToPNG(base64String: string): Promise<Blob> {
+async function base64ToBlob(base64String: string): Promise<Blob> {
   const blob = await fetch(base64String).then((res) => res.blob())
   return blob
 }
 
-export { downloadSvg, copySVGToClipboard, base64ToPNG }
+export { downloadSvg, copySVGToClipboard, copyPNGToClipboard, base64ToBlob }

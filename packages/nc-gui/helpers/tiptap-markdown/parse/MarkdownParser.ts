@@ -22,7 +22,7 @@ export class MarkdownParser {
 
     /**
      * Todo: Remove this once we enable proper image support in the rich text editor.
-     * Also, replace its usage in other places such as: 
+     * Also, replace its usage in other places such as:
      * 1. packages/nc-gui/helpers/tiptap/functionality/markdown/markdown.ts
      * 2. packages/nc-gui/helpers/tiptap-markdown/extensions/nodes/image.ts
      */

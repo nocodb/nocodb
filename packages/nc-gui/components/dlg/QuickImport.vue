@@ -593,7 +593,7 @@ watch(
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
     :closable="false"
-    :width="(templateEditorModal && importDataOnly) ? '640px' : '448px'"
+    :width="templateEditorModal && importDataOnly ? '640px' : '448px'"
     class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
     :transition-name="transition"

@@ -219,18 +219,13 @@ onUnmounted(() => {
   >
     <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-2 nc-json-action" @mousedown.stop>
-        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="closeJSONEditor">
-          <component :is="iconMap.minimize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+        <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="closeJSONEditor">
+          <component :is="iconMap.minimize" class="w-3 h-3" />
         </NcButton>
 
-        <div v-if="!isForm || isExpanded" class="flex flex-row my-1 space-x-1">
+        <div class="flex flex-row my-1 space-x-1">
           <NcButton type="secondary" size="small" @click="clear">{{ $t('general.cancel') }}</NcButton>
-          <NcButton
-            :type="!isExpanded ? 'text' : 'primary'"
-            size="small"
-            :disabled="!!error || localValue === vModel"
-            @click="onSave"
-          >
+          <NcButton type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
             {{ $t('general.save') }}
           </NcButton>
         </div>
@@ -239,8 +234,7 @@ onUnmounted(() => {
       <LazyMonacoEditor
         ref="inputWrapperRef"
         :model-value="localValue || ''"
-        class="min-w-full w-[40rem] min-w-80 resize overflow-auto"
-        :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
+        class="min-w-full w-[40rem] min-w-80 resize-x overflow-auto expanded-editor"
         :hide-minimap="true"
         :disable-deep-compare="true"
         :auto-focus="true"
@@ -253,17 +247,15 @@ onUnmounted(() => {
         {{ error.toString() }}
       </span>
     </div>
-
-    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-
     <div v-else class="h-5 relative">
       <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute right-0">
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
-          <component :is="iconMap.maximize" class="hover:text-grey-800 text-gray-700 w-3 h-3" />
+        <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
+          <component :is="iconMap.maximize" class="w-3 h-3" />
         </NcButton>
       </NcTooltip>
-      <LazyCellClampedText :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
+      <span v-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+      <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
     </div>
   </component>
 </template>
@@ -271,10 +263,6 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .expanded-editor {
   min-height: min(600px, 80vh);
-}
-
-.editor {
-  min-height: min(200px, 10vh);
 }
 </style>
 

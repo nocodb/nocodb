@@ -16,6 +16,11 @@ import type {
 import type { Sort } from '~/models';
 import type { Filter } from '~/models';
 
+// Utility type to map input type to corresponding output type
+type MatchInputToOutput<TInput, TOutput> = TInput extends any[]
+  ? TOutput[]
+  : TOutput;
+
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
@@ -143,19 +148,19 @@ export class ApiV3DataTransformationBuilder<
     return this;
   }
 
-  build(data: Input | Input[]): Output | Output[] {
+  build(data: Input | Input[]): MatchInputToOutput<Input, Output> {
     if (Array.isArray(data)) {
       return data.map((item) =>
         this.transformations.reduce(
           (result, transform) => transform(result),
           item,
         ),
-      ) as Output[];
+      ) as MatchInputToOutput<Input, Output>;
     }
     return this.transformations.reduce(
       (result, transform) => transform(result),
       data,
-    ) as Output;
+    ) as MatchInputToOutput<Input, Output>;
   }
 
   excludeNulls<S = Input, T = Output>() {

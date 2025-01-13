@@ -16,7 +16,12 @@ const swagger = {
     ...swaggerCE.components,
     ...swaggerEE.components,
     schemas: {
-      ...swaggerV3.components.schemas,
+      ...Object.entries(swaggerV3.components.schemas).reduce((acc, [key, value]) => {
+        return {
+          [key + 'V3']: value,
+          ...acc
+        }
+      }, {}),
       ...swaggerCE.components.schemas,
       ...swaggerEE.components.schemas,
     },

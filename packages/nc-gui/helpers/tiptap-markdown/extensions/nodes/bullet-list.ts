@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({

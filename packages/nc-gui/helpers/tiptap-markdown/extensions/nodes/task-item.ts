@@ -1,7 +1,7 @@
 import type { KeyboardShortcutCommand } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 
 export interface TaskItemOptions {
   onReadOnlyChecked?: (node: ProseMirrorNode, checked: boolean) => boolean

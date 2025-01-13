@@ -1,5 +1,5 @@
 import TiptapHardBreak, { type HardBreakOptions } from '@tiptap/extension-hard-break'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 import { HTMLNode } from './html'
 
 export const HardBreak = TiptapHardBreak.extend<HardBreakOptions, { markdown: MarkdownNodeSpec }>({

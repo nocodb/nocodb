@@ -1,6 +1,6 @@
 import { Fragment } from '@tiptap/pm/model'
 import { Mark, getHTMLFromFragment } from '@tiptap/core'
-import type { MarkdownMarkSpec } from '../../index'
+import type { MarkdownMarkSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const HTMLMark = Mark.create<any, { markdown: MarkdownMarkSpec }>({

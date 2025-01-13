@@ -1,6 +1,6 @@
 import { Node } from '@tiptap/core'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const Blockquote = Node.create<any, { markdown: MarkdownNodeSpec }>({

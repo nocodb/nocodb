@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
-import { message } from 'ant-design-vue'
 import type QRCode from 'qrcode'
 import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'

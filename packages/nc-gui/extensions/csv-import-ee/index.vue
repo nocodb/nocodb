@@ -381,7 +381,7 @@ const onUpsertColumnChange = (columnId: string) => {
   updateHistory()
 }
 
-const filterOption = (input: string = '', params: { key: string }) => {
+const filterOption = (input = '', params: { key: string }) => {
   return params.key?.toLowerCase().includes(input?.toLowerCase())
 }
 

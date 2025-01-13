@@ -80,6 +80,7 @@ export enum MetaTable {
   SNAPSHOT = 'nc_snapshots',
   DATA_REFLECTION = 'nc_data_reflection',
   CUSTOM_URLS = 'nc_custom_urls_v2',
+  SCRIPTS = 'nc_scripts',
 }
 
 export const orderedMetaTables = [
@@ -212,6 +213,7 @@ export enum CacheScope {
   SNAPSHOT = 'snapshot',
   DATA_REFLECTION = 'dataReflection',
   CUSTOM_URLS = 'customUrls',
+  SCRIPTS = 'scripts',
 }
 
 export const RootScopeTables = {

@@ -171,6 +171,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
         oldRow: { ...record },
         rowMeta: {
           ...row.rowMeta,
+          new: false,
         },
       })
     }

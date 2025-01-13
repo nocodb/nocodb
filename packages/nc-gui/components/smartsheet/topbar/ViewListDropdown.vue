@@ -64,7 +64,7 @@ const handleNavigateToView = async (view: ViewType) => {
  * It checks if the input string matches either the default view title (translated) or the view's title.
  * The matching is case-insensitive.
  */
-const filterOption = (input: string = '', view: ViewType) => {
+const filterOption = (input = '', view: ViewType) => {
   if (view.is_default && t('title.defaultView').toLowerCase().includes(input)) {
     return true
   }

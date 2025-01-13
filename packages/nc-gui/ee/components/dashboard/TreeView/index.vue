@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -80,6 +80,26 @@ function openViewDescriptionDialog(view: ViewType) {
   }
 }
 
+function openAutomationDescriptionDialog(script: ScriptType) {
+  if (!script?.id) return
+
+  $e('c:script:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgAutomationDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'script': script,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 /**
  * tableRenameId is combination of tableId & sourceId
  * @example `${tableId}:${sourceId}`
@@ -91,7 +111,7 @@ async function handleTableRename(
   title: string,
   originalTitle: string,
   updateTitle: (title: string) => void,
-  undo: boolean = false,
+  undo = false,
   disableTitleDiffCheck?: boolean,
 ) {
   if (!table || !table.source_id) return
@@ -293,6 +313,7 @@ provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
   openViewDescriptionDialog,
+  openAutomationDescriptionDialog,
   openTableDescriptionDialog,
   handleTableRename,
   contextMenuTarget,

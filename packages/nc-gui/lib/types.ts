@@ -82,6 +82,10 @@ interface Row {
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
     isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
 
     new?: boolean
     selected?: boolean
@@ -328,6 +332,31 @@ type SordDirectionType = 'asc' | 'desc' | undefined
 
 type NestedArray<T> = T | NestedArray<T>[]
 
+interface ViewActionState {
+  viewProgress: {
+    progress: number
+    message?: string
+  } | null
+  rowProgress: Map<
+    string,
+    {
+      progress: number
+      message?: string
+    }
+  >
+  cellProgress: Map<
+    string,
+    Map<
+      string,
+      {
+        progress: number
+        message?: string
+        icon?: keyof typeof iconMap
+      }
+    >
+  >
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -365,4 +394,5 @@ export type {
   ProductFeedItem,
   Attachment,
   NestedArray,
+  ViewActionState,
 }

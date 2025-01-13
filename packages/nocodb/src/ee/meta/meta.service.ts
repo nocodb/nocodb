@@ -90,6 +90,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.CUSTOM_URLS]: 'cu',
+      [MetaTable.SCRIPTS]: 'scr',
     };
 
     const prefix = prefixMap[target] || 'nc';

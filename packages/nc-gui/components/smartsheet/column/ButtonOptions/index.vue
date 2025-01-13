@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type { ButtonType, ColumnType, HookType, ScriptType } from 'nocodb-sdk'
 import {
+  ButtonActionsType,
   FormulaError,
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import { ButtonActionsType, type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
-import { searchIcons } from '../../../utils/iconUtils'
+import { searchIcons } from '~/utils/iconUtils'
 
 const props = defineProps<{
   value: any
@@ -22,8 +23,6 @@ const buttonActionsType = {
 
 const { t } = useI18n()
 
-const { isUIAllowed } = useRoles()
-
 const { getMeta } = useMetas()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -32,8 +31,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, isAiMode } =
-  useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode } = useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -41,15 +39,23 @@ const webhooksStore = useWebhooksStore()
 
 const { loadHooksList } = webhooksStore
 
-await loadHooksList()
-
 const { hooks } = toRefs(webhooksStore)
+
+const automationStore = useAutomationStore()
+
+const { loadAutomations } = automationStore
+
+const bases = useBases()
+
+const { openedProject } = storeToRefs(bases)
+
+await Promise.all([loadHooksList(), loadAutomations({ baseId: openedProject.value!.id, force: true })])
+
+const { activeBaseAutomations } = toRefs(automationStore)
 
 const selectedWebhook = ref<HookType>()
 
-const manualHooks = computed(() => {
-  return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
-})
+const selectedScript = ref<ScriptType>()
 
 const isAiButtonEnabled = computed(() => {
   if (isEdit.value) {
@@ -57,6 +63,14 @@ const isAiButtonEnabled = computed(() => {
   }
 
   return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+})
+
+const isScriptButtonEnabled = computed(() => {
+  if (isEdit.value) {
+    return true
+  }
+
+  return isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)
 })
 
 const buttonTypes = computed(() => [
@@ -74,6 +88,14 @@ const buttonTypes = computed(() => [
           label: t('labels.generateFieldDataUsingAi'),
           value: ButtonActionsType.Ai,
           tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
+        },
+      ]
+    : []),
+  ...(isEeUI && isScriptButtonEnabled.value
+    ? [
+        {
+          label: t('labels.runScript'),
+          value: ButtonActionsType.Script,
         },
       ]
     : []),
@@ -131,6 +153,19 @@ const validators = {
       validator: (_: any, fk_webhook_id: any) => {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === ButtonActionsType.Webhook && !fk_webhook_id) {
+            reject(new Error(t('general.required')))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  fk_script_id: [
+    {
+      required: vModel.value.type === ButtonActionsType.Script,
+      validator: (_: any, fk_script_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === ButtonActionsType.Script && !fk_script_id) {
             reject(new Error(t('general.required')))
           }
           resolve()
@@ -219,8 +254,10 @@ if (isEdit.value) {
   vModel.value.label = colOptions?.label
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
+  vModel.value.fk_script_id = colOptions?.fk_script_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
+  selectedScript.value = activeBaseAutomations.value.find((script) => script.id === vModel.value?.fk_script_id)
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.formula_raw = colOptions?.formula_raw || ''
@@ -310,8 +347,6 @@ const updateButtonTheme = (type: string, name: string) => {
   isDropdownOpen.value = false
 }
 
-const isWebHookSelectionDropdownOpen = ref(false)
-
 const isButtonIconDropdownOpen = ref(false)
 
 const iconSearchQuery = ref('')
@@ -320,44 +355,9 @@ const icons = computed(() => {
   return searchIcons(iconSearchQuery.value)
 })
 
-const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
-])
-
-const isWebhookModal = ref(false)
-
-const newWebhook = () => {
-  selectedWebhook.value = undefined
-  isWebhookModal.value = true
-  isWebhookCreateModalOpen.value = true
-}
-
-const onClose = (hook: HookType) => {
-  selectedWebhook.value = hook.id ? hook : undefined
-  vModel.value.fk_webhook_id = hook.id
-  isWebhookModal.value = false
-  setTimeout(() => {
-    isWebhookCreateModalOpen.value = false
-  }, 500)
-}
-
-const onSelectWebhook = (hook: HookType) => {
-  vModel.value.fk_webhook_id = hook.id
-  selectedWebhook.value = hook
-  isWebHookSelectionDropdownOpen.value = false
-  isWebhookModal.value = false
-}
-
 const removeIcon = () => {
   vModel.value.icon = null
   isButtonIconDropdownOpen.value = false
-}
-
-const editWebhook = () => {
-  if (selectedWebhook.value) {
-    isWebhookCreateModalOpen.value = true
-    isWebhookModal.value = true
-  }
 }
 
 const selectIcon = (icon: string) => {
@@ -368,14 +368,6 @@ const selectIcon = (icon: string) => {
 const handleUpdateActionType = () => {
   vModel.value.formula_raw = ''
 }
-
-watch(isWebhookModal, (newVal) => {
-  if (!newVal) {
-    setTimeout(() => {
-      isWebhookCreateModalOpen.value = false
-    }, 500)
-  }
-})
 </script>
 
 <template>
@@ -532,131 +524,22 @@ watch(isWebhookModal, (newVal) => {
         :error="validateInfos.formula_raw?.validateStatus === 'error'"
       />
     </div>
-
-    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook">
-      <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
-        {{ $t('labels.webhook') }}
-        <a
-          class="font-medium"
-          href="https://docs.nocodb.com/fields/field-types/custom-types/button#create-a-button-field"
-          target="_blank"
-        >
-          Docs
-        </a>
-      </div>
-      <div class="flex rounded-lg">
-        <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']">
-          <template #overlay>
-            <NcListWithSearch
-              v-if="isWebHookSelectionDropdownOpen"
-              :is-parent-open="isWebHookSelectionDropdownOpen"
-              :search-input-placeholder="$t('placeholder.searchFields')"
-              :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
-              :options="manualHooks"
-              :selected-option-id="selectedWebhook?.id"
-              disable-mascot
-              class="max-h-72 max-w-85"
-              filter-field="title"
-              show-selected-option
-              @selected="onSelectWebhook"
-            >
-              <template v-if="isUIAllowed('hookCreate')" #bottom>
-                <a-divider style="margin: 4px 0" />
-                <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
-                  <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
-                    {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
-                    <GeneralIcon icon="plus" class="flex-none" />
-                  </div>
-                </div>
-              </template>
-            </NcListWithSearch>
-          </template>
-          <div
-            :class="{
-              'nc-button-style-dropdown shadow-dropdown-open remove-right-shadow': isWebHookSelectionDropdownOpen,
-            }"
-            class="nc-button-webhook-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-l-lg"
-          >
-            <div class="flex w-full items-center gap-2">
-              <div
-                :key="selectedWebhook?.id"
-                class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
-              >
-                <NcTooltip
-                  :class="{
-                    'text-gray-500': !selectedWebhook?.title,
-                  }"
-                  class="truncate max-w-full"
-                  show-on-truncate-only
-                >
-                  <template #title>
-                    {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-                  </template>
-                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-                </NcTooltip>
-              </div>
-              <GeneralIcon
-                icon="arrowDown"
-                :class="{
-                  'transform rotate-180': isWebHookSelectionDropdownOpen,
-                }"
-                class="text-gray-500 transition-all transition-transform"
-              />
-            </div>
-          </div>
-        </NcDropdown>
-        <NcButton
-          size="small"
-          type="secondary"
-          class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-white nc-button-style-dropdown"
-          :class="{
-            'nc-button-style-dropdown shadow-dropdown-open remove-left-shadow': isWebHookSelectionDropdownOpen,
-          }"
-          @click="editWebhook"
-        >
-          <GeneralIcon
-            :class="{
-              'text-gray-400': !selectedWebhook,
-              'text-gray-700': selectedWebhook,
-            }"
-            icon="ncEdit"
-          />
-        </NcButton>
-      </div>
-    </a-form-item>
-
-    <Webhook
-      v-if="isWebhookModal"
-      v-model:value="isWebhookModal"
-      :hook="selectedWebhook"
-      :event-list="eventList"
-      @close="onClose"
+    <SmartsheetColumnButtonOptionsWebhook
+      v-if="vModel?.type === buttonActionsType.Webhook"
+      v-model:model-value="vModel"
+      v-model:selected-webhook="selectedWebhook"
+    />
+    <SmartsheetColumnButtonOptionsScript
+      v-if="vModel?.type === buttonActionsType.Script"
+      v-model:model-value="vModel"
+      v-model:selected-script="selectedScript"
     />
   </div>
 </template>
 
 <style scoped lang="scss">
-.shadow-dropdown-open {
-  @apply transition-all duration-0.3s;
-
-  &:not(:focus-within) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-  }
-}
-
 :deep(.ant-form-item-label > label) {
   @apply !text-small !leading-[18px] mb-2 !text-gray-800 flex;
-}
-
-.nc-list-with-search {
-  @apply w-full;
-}
-.remove-right-shadow {
-  clip-path: inset(-2px 0px -2px -2px) !important;
-}
-
-.remove-left-shadow {
-  clip-path: inset(-2px -2px -2px 0px) !important;
 }
 
 .mono-font {

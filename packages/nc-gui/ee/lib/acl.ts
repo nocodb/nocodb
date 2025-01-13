@@ -156,6 +156,10 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
       reAssignViewOwner: true,
+
+      extensionList: true,
+      // Scripts
+      scriptCreateOrEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -168,6 +172,10 @@ const rolePermissions = {
       viewFieldEdit: true,
       csvTableImport: true,
       hookTrigger: true,
+
+      // Scripts
+      scriptExecute: true,
+      scriptList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

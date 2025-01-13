@@ -853,17 +853,22 @@ export async function extractColumn({
               getAs(column),
             ]),
           );
-        } else if (buttonCol.type === ButtonActionsType.Webhook) {
+        } else if (
+          [ButtonActionsType.Webhook, ButtonActionsType.Script].includes(
+            buttonCol.type,
+          )
+        ) {
+          const key =
+            buttonCol.type === ButtonActionsType.Webhook
+              ? 'fk_webhook_id'
+              : 'fk_script_id';
           qb.select(
-            knex.raw(
-              `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
-              [
-                buttonCol.type,
-                `${buttonCol.label}`,
-                buttonCol.fk_webhook_id,
-                getAs(column),
-              ],
-            ),
+            knex.raw(`JSON_OBJECT('type', ?, 'label', ?, '${key}', ?) as ??`, [
+              buttonCol.type,
+              `${buttonCol.label}`,
+              buttonCol[key],
+              getAs(column),
+            ]),
           );
         }
       }

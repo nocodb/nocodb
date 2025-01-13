@@ -158,7 +158,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
@@ -298,7 +298,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async (resetOffset: boolean = false) => {
+    const loadChildrenList = async (resetOffset = false) => {
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return

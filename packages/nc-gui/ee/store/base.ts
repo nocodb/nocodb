@@ -239,10 +239,12 @@ export const useBase = defineStore('baseStore', () => {
     id,
     type: _type,
     isSharedBase,
+    isAutomation,
   }: {
     id: string
     type: 'database' | 'documentation'
     isSharedBase?: boolean
+    isAutomation?: boolean
   }) => {
     if (isSharedBase) {
       const typeOrId = route.value.params.typeOrId as string
@@ -252,7 +254,13 @@ export const useBase = defineStore('baseStore', () => {
     }
 
     const workspaceId = workspaceStore.activeWorkspaceId
-    return `/${workspaceId}/${id}`
+    const basUrl = `/${workspaceId}/${id}`
+
+    if (isAutomation) {
+      return `${basUrl}/automations`
+    }
+
+    return basUrl
   }
 
   watch(

@@ -1,10 +1,7 @@
 import { type CoreMessage, generateObject, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { type Schema } from 'zod';
-import { Logger } from '@nestjs/common';
 import OpenAiIntegration from '~/integrations/ai/openai/entry';
-
-const logger = new Logger('NocoAiIntegration');
 
 const modelMap = {
   high: 'gpt-4o',

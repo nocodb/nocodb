@@ -109,7 +109,7 @@ const juncTableColumns = computed(() => {
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
-const resetSelectedColumns = (isJunction: boolean = false, resetOnChangeDataType: boolean = false) => {
+const resetSelectedColumns = (isJunction = false, resetOnChangeDataType = false) => {
   if (isJunction) {
     if (vModel.value.custom.junc_column_id) {
       if (resetOnChangeDataType) {
@@ -142,7 +142,7 @@ const resetSelectedColumns = (isJunction: boolean = false, resetOnChangeDataType
     }
   }
 }
-const onModelIdChange = async (modelId: string, isJunctionModel: boolean = false) => {
+const onModelIdChange = async (modelId: string, isJunctionModel = false) => {
   // todo: optimise
   await getMeta(modelId, false, false, vModel.value.custom.base_id)
   await getMeta(modelId)
@@ -150,7 +150,7 @@ const onModelIdChange = async (modelId: string, isJunctionModel: boolean = false
   resetSelectedColumns(isJunctionModel)
 }
 
-const _onBaseChange = async (baseId: string, isJunctionBase: boolean = false) => {
+const _onBaseChange = async (baseId: string, isJunctionBase = false) => {
   await tablesStore.loadProjectTables(baseId)
 
   if (isJunctionBase) {

@@ -5,6 +5,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { isEE } from '~/utils';
 
 export default class ButtonColumn {
   type: ButtonActionsType;
@@ -21,6 +22,7 @@ export default class ButtonColumn {
   error?: string;
 
   fk_integration_id?: string;
+  fk_script_id?: string;
   model?: string;
   output_column_ids?: string;
 
@@ -41,6 +43,8 @@ export default class ButtonColumn {
 
     const webhookProps = ['fk_webhook_id'];
 
+    const scriptProps = ['fk_script_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -55,6 +59,8 @@ export default class ButtonColumn {
         ? urlProps
         : buttonColumn.type === ButtonActionsType.Webhook
         ? webhookProps
+        : buttonColumn.type === ButtonActionsType.Script && isEE
+        ? scriptProps
         : buttonColumn.type === ButtonActionsType.Ai
         ? aiProps
         : []),
@@ -127,6 +133,8 @@ export default class ButtonColumn {
 
     const webhookProps = ['fk_webhook_id'];
 
+    const scriptProps = ['fk_script_id'];
+
     const aiProps = [
       'formula_raw',
       'formula',
@@ -141,6 +149,8 @@ export default class ButtonColumn {
         ? urlProps
         : button.type === ButtonActionsType.Webhook
         ? webhookProps
+        : button.type === ButtonActionsType.Script && isEE
+        ? scriptProps
         : button.type === ButtonActionsType.Ai
         ? aiProps
         : []),

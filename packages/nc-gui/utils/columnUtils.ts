@@ -8,7 +8,6 @@ import {
   checkboxIconList,
   ratingIconList,
 } from 'nocodb-sdk'
-import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp, checkboxIconList, ratingIconList } from 'nocodb-sdk'
 
 export interface UiTypesType {
   name: UITypes | string
@@ -277,7 +276,7 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
 const isColumnInvalid = (
   col: ColumnType,
   aiIntegrations: Partial<IntegrationType>[] = [],
-  isReadOnly: boolean = false,
+  isReadOnly = false,
 ): { isInvalid: boolean; tooltip: string } => {
   const result = {
     isInvalid: false,

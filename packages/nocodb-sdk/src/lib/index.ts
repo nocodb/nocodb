@@ -20,6 +20,7 @@ export {
   isCreatedOrLastModifiedByCol,
   isHiddenCol,
   getEquivalentUIType,
+  isActionButtonCol,
   isSelectTypeCol,
   isOrderCol,
   getUITypesForFormulaDataType,

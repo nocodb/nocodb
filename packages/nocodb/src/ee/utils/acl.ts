@@ -241,6 +241,12 @@ const permissionScopes = {
     // Snapshots
 
     'manageSnapshots',
+
+    // Scripts
+
+    'editOrCreateScript',
+    'listScripts',
+    'baseSchema',
   ],
 };
 
@@ -481,12 +487,17 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+
+      // Scripts
+      listScripts: true,
+      baseSchema: true,
     },
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
       createBase: true,
       manageSnapshots: true,
+      editOrCreateScript: true,
     },
   },
   [ProjectRoles.OWNER]: {

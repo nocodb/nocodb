@@ -23,3 +23,4 @@ export { default as LinkToAnotherRecordColumn } from './LinkToAnotherRecordColum
 export { default as Audit } from './Audit';
 export { default as Integration } from './Integration';
 export { default as CustomUrl } from './CustomUrl';
+export { default as Script } from './Script';

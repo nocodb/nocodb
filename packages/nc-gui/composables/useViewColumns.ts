@@ -269,12 +269,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (
-      field: any,
-      index: number,
-      disableDataReload: boolean = false,
-      updateDefaultViewColMeta: boolean = false,
-    ) => {
+    const saveOrUpdate = async (field: any, index: number, disableDataReload = false, updateDefaultViewColMeta = false) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {

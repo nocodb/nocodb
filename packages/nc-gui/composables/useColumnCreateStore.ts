@@ -56,6 +56,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isWebhookCreateModalOpen = ref(false)
 
+    const isScriptCreateModalOpen = ref(false)
+
     const isAiButtonConfigModalOpen = ref(false)
 
     const isEdit = computed(() => !!column?.value?.id)
@@ -358,7 +360,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           // ignore filters from payload since it's not required
-          const { filters: _, ...updateData } = formState.value;
+          const { filters: _, ...updateData } = formState.value
 
           try {
             await $api.dbTableColumn.update(column.value?.id as string, updateData)
@@ -436,7 +438,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
-    function updateFieldName(updateFormState: boolean = true) {
+    function updateFieldName(updateFormState = true) {
       if (
         formState.value?.is_ai_field ||
         isEdit.value ||
@@ -498,6 +500,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       loadData,
       tableExplorerColumns,
       defaultFormState,
+      isScriptCreateModalOpen,
     }
   },
 )

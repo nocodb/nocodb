@@ -103,7 +103,7 @@ async function handleTableRename(
   title: string,
   originalTitle: string,
   updateTitle: (title: string) => void,
-  undo: boolean = false,
+  undo = false,
   disableTitleDiffCheck?: boolean,
 ) {
   if (!table || !table.source_id) return

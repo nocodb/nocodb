@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import Automation from './Automation.vue'
 
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
@@ -584,6 +585,10 @@ watch(
   },
 )
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
 }
@@ -1080,6 +1085,7 @@ const shouldOpenContextMenu = computed(() => {
             </div>
           </div>
         </template>
+        <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
       </div>
     </div>
     <template v-if="shouldOpenContextMenu" #overlay>

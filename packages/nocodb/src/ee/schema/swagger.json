@@ -3790,16 +3790,73 @@
         }
       ]
     },
+    "/api/v2/workspaces/{workspaceId}/remote-fetch": {
+      "post": {
+        "summary": "Remote Fetch",
+        "operationId": "remote-fetch",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Remote Fetch",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "POST",
+                      "PUT",
+                      "DELETE"
+                    ]
+                  },
+                  "headers": {
+                    "schema": {
+                      "type": "object"
+                    }
+                  },
+                  "body": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/meta/user/delete": {
       "delete": {
         "summary": "Delete user",
         "operationId": "user-delete",
         "responses": {
-          "200": {
-            "schema": {
-              "type": "object"
-            }
-          }
+          "200": {}
         },
         "tags": [
           "User"
@@ -3823,6 +3880,147 @@
           "required": false
         }
       ]
+    },
+    "/api/v2/meta/bases/{baseId}/schema": {
+      "get": {
+        "summary": "Get Base Schema",
+        "description": "Get the complete base schema",
+        "operationId": "base-schema",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v2/meta/bases/{baseId}/scripts": {
+      "get": {
+        "summary": "List scripts",
+        "description": "List scripts for a given base",
+        "operationId": "script-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Script"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Script"
+        ]
+      },
+      "post": {
+        "summary": "Create script",
+        "description": "Create script for a given base",
+        "operationId": "script-create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Name of the script"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Script"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Script"
+        ]
+      }
+    },
+    "/api/v2/meta/bases/{baseId}/scripts/{scriptId}": {
+      "delete": {
+        "summary": "Delete script",
+        "description": "Delete script in a given base",
+        "operationId": "script-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Script"
+        ]
+      },
+      "patch": {
+        "summary": "Update script",
+        "description": "Update script in a given base",
+        "operationId": "script-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Script"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Script"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get script",
+        "description": "Get script in a given base by ID",
+        "operationId": "script-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Script"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Script"
+              }
+            }
+          }
+        }
+      }
     },
     "/api/v2/meta/bases/{baseId}/snapshots": {
       "get": {
@@ -5690,6 +5888,70 @@
           "title",
           "type"
         ]
+      },
+      "Script": {
+        "description": "Model for Script",
+        "title": "Script Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Script"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Script"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Meta data for the Script"
+          },
+          "config": {
+            "type": "object",
+            "description": "Config for the Script"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the Script"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "code": {
+            "type": "string",
+            "description": "Code of the script"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        },
+        "x-stoplight": {
+          "id": "4zvzrppfjxrqb"
+        }
       },
       "SSOClient": {
         "description": "Model for SSO Client",

@@ -121,6 +121,7 @@ export default defineNuxtConfig({
     '~/assets/css/global.css',
     '~/assets/style.scss',
     '~/assets/css/typesense-docsearch.css',
+    'vue-json-pretty/lib/styles.css',
   ],
 
   runtimeConfig: {
@@ -285,6 +286,11 @@ export default defineNuxtConfig({
         'youtube-vue3',
         'vuedraggable',
         'jsbarcode',
+        'vue-json-pretty',
+        'acorn-loose',
+        'acorn-walk',
+        '@ckpack/vue-color',
+        'locale-codes',
         '@tiptap/pm/model',
         '@tiptap/extension-hard-break',
         '@tiptap/extension-strike',

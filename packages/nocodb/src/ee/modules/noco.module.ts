@@ -55,6 +55,10 @@ import { MailService } from '~/services/mail/mail.service';
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
 
+/* Scripts */
+import { ScriptsController } from '~/controllers/scripts.controller';
+import { ScriptsService } from '~/services/scripts.service';
+
 export const nocoModuleEeMetadata = {
   imports: [...nocoModuleMetadata.imports, NocoAiModule],
   providers: [
@@ -96,6 +100,9 @@ export const nocoModuleEeMetadata = {
 
     /* Snapshot */
     SnapshotService,
+
+    /* Scripts */
+    ScriptsService,
   ],
   controllers: [
     ...nocoModuleMetadata.controllers,
@@ -125,6 +132,9 @@ export const nocoModuleEeMetadata = {
 
     /* Snapshot */
     SnapshotController,
+
+    /* Scripts */
+    ScriptsController,
   ],
   exports: [
     ...nocoModuleMetadata.exports,

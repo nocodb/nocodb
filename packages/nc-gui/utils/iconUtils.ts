@@ -74,6 +74,8 @@ import TableCurrent from '~icons/nc-icons/table-current'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
+import AutomationIcon from '~icons/nc-icons/automations'
+import AiPlayIcon from '~icons/nc-icons/ai-play'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
@@ -290,6 +292,7 @@ import NcOpenai from '~icons/nc-icons/openai'
 import NcClaude from '~icons/nc-icons/claude'
 import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
+import NcPosthog from '~icons/nc-icons/posthog'
 
 // Buttons Icons V2
 
@@ -1226,6 +1229,7 @@ export const iconMap = {
   claude: NcClaude,
   ollama: NcOllama,
   groq: NcGroq,
+  posthog: h(NcPosthog, { stroke: 'transparent' }),
   refreshCw: NcRefreshCW,
   iconReddit: NcRedditIcon,
   iconTwitter: NcTwitterIcon,
@@ -1524,6 +1528,7 @@ export const iconMap = {
   ncHeading2: NcHeading2,
   ncHeading3: NcHeading3,
   ncQuote: NcQuote,
+  ncAutomation: AutomationIcon,
   ncWebhook: NcWebhook,
   ncLogoAsanaColored: h(NcLogoAsanaColored, { stroke: 'transparent' }),
   ncLogoAsana: h(NcLogoAsana, { stroke: 'transparent' }),
@@ -1613,6 +1618,7 @@ export const iconMap = {
   ncLogoZendesk: h(NcLogoZendesk, { stroke: 'transparent' }),
   ncLogoZohoColored: h(NcLogoZohoColored, { stroke: 'transparent' }),
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
+  ncAiPlay: AiPlayIcon,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { IntegrationCategoryType } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
-/* eslint-disable @typescript-eslint/consistent-type-imports */
+
 import { type IntegrationItemType, SyncDataType } from '#imports'
 
 const props = withDefaults(
@@ -46,7 +46,6 @@ const {
   integrationsRefreshKey,
   integrationsCategoryFilter,
   activeViewTab,
-  integrations,
   loadDynamicIntegrations,
 } = useIntegrationStore()
 

@@ -146,6 +146,33 @@ onClickOutside(datePickerRef, (e) => {
   open.value = false
 })
 
+const handleUpdateValue = (e: Event, save = false) => {
+  let targetValue = (e.target as HTMLInputElement).value
+
+  if (!targetValue) {
+    tempDate.value = undefined
+    return
+  }
+
+  targetValue = parseProp(column.value.meta).is12hrFormat
+    ? targetValue
+        .trim()
+        .toUpperCase()
+        .replace(/(AM|PM)$/, ' $1')
+        .replace(/\s+/g, ' ')
+    : targetValue.trim()
+
+  const parsedDate = dayjs(targetValue, parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+
+  if (parsedDate.isValid()) {
+    tempDate.value = dayjs(`${dayjs().format('YYYY-MM-DD')} ${parsedDate.format('HH:mm')}`)
+
+    if (save) {
+      saveChanges(tempDate.value)
+    }
+  }
+}
+
 const onBlur = (e) => {
   handleUpdateValue(e, true)
 

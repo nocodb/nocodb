@@ -154,10 +154,6 @@ export default class Integration implements IntegrationType {
       ncMeta,
     );
 
-    const wrapper = await int.getIntegrationWrapper();
-
-    await wrapper?.onCreateIntegration?.();
-
     return int;
   }
 
@@ -229,10 +225,6 @@ export default class Integration implements IntegrationType {
 
     // call before reorder to update cache
     const int = await this.get(context, oldIntegration.id, false, ncMeta);
-
-    const wrapper = await int.getIntegrationWrapper();
-
-    await wrapper?.onUpdateIntegration();
 
     return int;
   }
@@ -475,10 +467,6 @@ export default class Integration implements IntegrationType {
         fk_integration_id: this.id,
       },
     );
-
-    const wrapper = await this.getIntegrationWrapper();
-
-    await wrapper?.onCreateIntegration?.();
 
     return await ncMeta.metaDelete(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,

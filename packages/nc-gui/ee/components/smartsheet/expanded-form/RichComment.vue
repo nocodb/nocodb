@@ -146,7 +146,6 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     focusEditor()
-    // setEditorContent(vModel.value, true)
   }
 }
 
@@ -155,12 +154,6 @@ function focusEditor() {
 
   nextTick(() => {
     editor.value?.chain().focus().run()
-  })
-}
-
-if (props.syncValueChange) {
-  watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
   })
 }
 

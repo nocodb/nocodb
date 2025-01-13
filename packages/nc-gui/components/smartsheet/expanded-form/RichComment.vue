@@ -123,12 +123,6 @@ function focusEditor() {
   })
 }
 
-if (props.syncValueChange) {
-  watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
-  })
-}
-
 useEventListener(
   editorDom,
   'focusout',

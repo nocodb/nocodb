@@ -17,7 +17,7 @@ const ncLinksDropdownRef = ref<HTMLDivElement>()
 
 const randomClass = `link-records_${Math.floor(Math.random() * 99999)}`
 
-const addOrRemoveClass = (add: boolean = false) => {
+const addOrRemoveClass = (add = false) => {
   const dropdownRoot = ncLinksDropdownRef.value?.parentElement?.parentElement?.parentElement?.parentElement as HTMLElement
   if (dropdownRoot) {
     if (add) {

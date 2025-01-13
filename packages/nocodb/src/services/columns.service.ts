@@ -43,6 +43,7 @@ import {
   Hook,
   KanbanView,
   Model,
+  Script,
   Source,
   View,
 } from '~/models';
@@ -455,6 +456,7 @@ export class ColumnsService {
       colOptions?: any;
       fk_webhook_id?: string;
       type?: ButtonActionsType;
+      fk_script_id?: string;
       prompt?: string;
       prompt_raw?: string;
       fk_integration_id?: string;
@@ -583,6 +585,16 @@ export class ColumnsService {
 
             if (!hook || !hook.active || hook.event !== 'manual') {
               NcError.badRequest('Webhook not found');
+            }
+          } else if (colBody.type === ButtonActionsType.Script) {
+            if (!colBody.fk_script_id) {
+              NcError.badRequest('Script not found');
+            }
+
+            const script = await Script.get(context, colBody.fk_script_id);
+
+            if (!script) {
+              NcError.badRequest('Script not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
             /*
@@ -2074,6 +2086,16 @@ export class ColumnsService {
 
           if (!hook || !hook.active || hook.event !== 'manual') {
             colBody.fk_webhook_id = null;
+          }
+        } else if (colBody.type === ButtonActionsType.Script) {
+          if (!colBody.fk_script_id) {
+            colBody.fk_script_id = null;
+          }
+
+          const script = await Script.get(context, colBody.fk_script_id);
+
+          if (!script) {
+            colBody.fk_script_id = null;
           }
         } else if (colBody.type === ButtonActionsType.Ai) {
           /*

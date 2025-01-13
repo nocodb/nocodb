@@ -4503,16 +4503,24 @@ class BaseModelSqlv2 {
                 default:
                   qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
               }
-            } else if (colOption.type === ButtonActionsType.Webhook) {
+            } else if (
+              [ButtonActionsType.Webhook, ButtonActionsType.Script].includes(
+                colOption.type,
+              )
+            ) {
+              const key =
+                colOption.type === ButtonActionsType.Webhook
+                  ? 'fk_webhook_id'
+                  : 'fk_script_id';
               switch (this.dbDriver.client.config.client) {
                 case 'mysql2':
                   qb.select(
                     this.dbDriver.raw(
-                      `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      `JSON_OBJECT('type', ?, 'label', ?, '${key}', ?) as ??`,
                       [
                         colOption.type,
                         `${colOption.label}`,
-                        colOption.fk_webhook_id,
+                        colOption[key],
                         getAs(column),
                       ],
                     ),
@@ -4521,11 +4529,11 @@ class BaseModelSqlv2 {
                 case 'pg':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      `json_build_object('type', ?, 'label', ?, '${key}', ?) as ??`,
                       [
                         colOption.type,
                         `${colOption.label}`,
-                        colOption.fk_webhook_id,
+                        colOption[key],
                         getAs(column),
                       ],
                     ),
@@ -4534,11 +4542,11 @@ class BaseModelSqlv2 {
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      `json_object('type', ?, 'label', ?, '${key}', ?) as ??`,
                       [
                         colOption.type,
                         `${colOption.label}`,
-                        colOption.fk_webhook_id,
+                        colOption[key],
                         getAs(column),
                       ],
                     ),

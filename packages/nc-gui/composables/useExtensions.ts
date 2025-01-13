@@ -77,6 +77,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const { $api, $e } = useNuxtApp()
 
+  const { isUIAllowed } = useRoles()
+
   const { base } = storeToRefs(useBase())
 
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
@@ -270,7 +272,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const loadExtensionsForBase = async (baseId: string) => {
-    if (!baseId) {
+    if (!baseId || !isUIAllowed('extensionList')) {
       return
     }
 

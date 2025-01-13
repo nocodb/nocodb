@@ -8,6 +8,10 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isLocalMode } = useViewColumnsOrThrow()
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isSharedBase } = useBase()
+
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -20,6 +24,12 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
+
+const { isUIAllowed } = useRoles()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const isToolbarIconMode = computed(() => {
   if (width.value < 768) {
@@ -67,6 +77,9 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+        <LazySmartsheetToolbarBulkAction
+          v-if="(isGrid || isGallery) && !isPublic && isAutomationEnabled && !isSharedBase && isUIAllowed('scriptExecute')"
+        />
 
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>

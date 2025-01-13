@@ -126,7 +126,7 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string, isBulkEmailCopyPaste: boolean = false): boolean => {
+const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
   if (!input.length) {
     if (isBulkEmailCopyPaste) return false
 

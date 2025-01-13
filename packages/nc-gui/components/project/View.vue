@@ -4,6 +4,7 @@ import NcLayout from '~icons/nc-icons/layout'
 
 const props = defineProps<{
   baseId?: string
+  tab?: string
 }>()
 
 const { integrations } = useProvideIntegrationViewStore()
@@ -14,12 +15,13 @@ const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesSt
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { navigateToProjectPage, isSharedBase } = useBase()
+const { isSharedBase } = useBase()
 
-const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+const automationStore = useAutomationStore()
 
-const router = useRouter()
-const route = router.currentRoute
+const { loadAutomations } = automationStore
+
+const { automations, isAutomationActive } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
@@ -35,6 +37,13 @@ const currentBase = computedAsync(async () => {
   return base
 })
 
+const scripts = computed(() => automations.value.get(currentBase.value?.id))
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const router = useRouter()
+const route = router.currentRoute
+
 const { isUIAllowed, baseRoles } = useRoles()
 
 const { base } = storeToRefs(useBase())
@@ -49,6 +58,10 @@ const userCount = computed(() =>
   activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
 )
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
@@ -60,12 +73,13 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
+      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
+        projectPageTab.value = 'allScripts'
       } else {
         projectPageTab.value = 'base-settings'
       }
       return
     }
-
     if (isAdminPanel.value) {
       projectPageTab.value = 'collaborator'
     } else {
@@ -75,14 +89,16 @@ watch(
   { immediate: true },
 )
 
+const { navigateToProjectPage } = useBase()
+
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  if (projectPageTab.value) {
-    navigateToProjectPage({
-      page: projectPageTab.value as any,
-    })
-  }
+  if (isAutomationActive.value) return
+
+  navigateToProjectPage({
+    page: projectPageTab.value as any,
+  })
 })
 
 watch(
@@ -108,6 +124,16 @@ watch(
     integrations.value = []
   },
 )
+
+onMounted(async () => {
+  if (props.tab) {
+    projectPageTab.value = props.tab
+  }
+
+  await until(() => !!currentBase.value?.id).toBeTruthy()
+
+  await loadAutomations({ baseId: currentBase.value?.id })
+})
 </script>
 
 <template>
@@ -161,6 +187,27 @@ watch(
             </div>
           </template>
           <ProjectAllTables />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"
+          key="allScripts"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__all-tables">
+              <NcLayout />
+              <div>{{ $t('labels.allScripts') }}</div>
+              <div
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'allScripts',
+                  'bg-gray-50': projectPageTab !== 'allScripts',
+                }"
+              >
+                {{ scripts?.length }}
+              </div>
+            </div>
+          </template>
+          <ProjectAllScripts />
         </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
           <ErdView :source-id="defaultBase!.id" class="!h-full" />

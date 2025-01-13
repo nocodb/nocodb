@@ -22,8 +22,8 @@ const reloadMetaAndData = async () => {
 }
 
 async function onSubmit(
-  submit: boolean = false,
-  saveChanges: boolean = true,
+  submit = false,
+  saveChanges = true,
   payload: Partial<{ color: string; title: string; [key: string]: any }>,
 ) {
   if (!saveChanges && submit) {

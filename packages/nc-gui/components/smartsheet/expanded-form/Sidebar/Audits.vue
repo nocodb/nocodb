@@ -112,8 +112,8 @@ function isV0Audit(audit: AuditType) {
             <div v-if="isV0Audit(audit)" class="pl-9">
               <div
                 v-if="audit.details"
-                class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3"
                 v-dompurify-html="audit.details"
+                class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3"
               ></div>
               <div v-else class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 {{ audit.description }}

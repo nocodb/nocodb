@@ -47,7 +47,7 @@ const activeIntegrationType = computed(() => {
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
     <div
-      v-if="activeIntegrationType === IntegrationCategoryType.DATABASE && activeIntegration.sub_type !== SyncDataType.NOCODB"
+      v-if="activeIntegrationType === IntegrationCategoryType.DATABASE && activeIntegration?.sub_type !== SyncDataType.NOCODB"
       class="h-full"
     >
       <WorkspaceIntegrationsFormsEditOrAddDatabase

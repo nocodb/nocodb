@@ -110,7 +110,7 @@ onMounted(async () => {
       </div>
       <div class="flex items-center gap-3">
         <NcButton
-          v-if="activeIntegration.sub_type !== SyncDataType.NOCODB"
+          v-if="activeIntegration?.sub_type !== SyncDataType.NOCODB"
           size="small"
           type="primary"
           :disabled="isLoading"
@@ -130,14 +130,14 @@ onMounted(async () => {
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
         <div class="w-full gap-4 max-w-[784px]">
           <div
-            v-if="activeIntegration.dynamic"
+            v-if="activeIntegrationItem?.dynamic"
             class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full"
           >
             <NcFormBuilder class="px-2" />
             <div class="mt-10"></div>
           </div>
           <div v-else class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
-            <template v-if="activeIntegration.sub_type === SyncDataType.NOCODB">
+            <template v-if="activeIntegration?.sub_type === SyncDataType.NOCODB">
               <WorkspaceIntegrationsConnect />
             </template>
           </div>

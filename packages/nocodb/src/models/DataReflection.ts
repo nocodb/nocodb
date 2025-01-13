@@ -162,7 +162,7 @@ export default class DataReflection {
     return;
   }
 
-  async grantBase(
+  public static async grantBase(
     fk_workspace_id: string,
     base_id: string,
     _ncMeta = Noco.ncMeta,
@@ -170,7 +170,7 @@ export default class DataReflection {
     return;
   }
 
-  async revokeBase(
+  public static async revokeBase(
     fk_workspace_id: string,
     base_id: string,
     _ncMeta = Noco.ncMeta,

@@ -43,6 +43,7 @@ const FEATURES = [
     description: 'Enable data reflection.',
     enabled: false,
     isEngineering: true,
+    isEE: true,
   },
   {
     id: 'geodata_column',

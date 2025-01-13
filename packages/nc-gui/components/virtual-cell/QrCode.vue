@@ -103,8 +103,12 @@ const copyAsPng = async () => {
             </template>
             <NcButton size="small" type="secondary" @click="performCopy(copyAsPng)">
               <template #icon>
-                <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4" />
-                <GeneralIcon v-else icon="copy" class="h-4 w-4" />
+                <div class="flex children:flex-none relative h-4 w-4">
+                  <Transition name="icon-fade" :duration="200">
+                    <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4 opacity-80" />
+                    <GeneralIcon v-else icon="copy" class="h-4 w-4 opacity-80" />
+                  </Transition>
+                </div>
               </template>
               {{ isCopied ? $t('general.copied') : $t('general.copy') }}
             </NcButton>

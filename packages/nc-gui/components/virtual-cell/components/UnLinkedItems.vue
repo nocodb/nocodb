@@ -224,6 +224,7 @@ const addNewRecord = () => {
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
 }
 
 const onCreatedRecord = (record: any) => {

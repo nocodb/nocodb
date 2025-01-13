@@ -76,6 +76,14 @@ export class CleanUpProcessor {
         logger.log(
           `Deleting base ${base.id} ${+i + 1} of ${cleanUpBases.length}`,
         );
+
+        if (!base.fk_workspace_id) {
+          logger.log(
+            `Base ${base.id} does not have workspace. Skipping deletion.`,
+          );
+          continue;
+        }
+
         await Base.delete(
           {
             workspace_id: base.fk_workspace_id,

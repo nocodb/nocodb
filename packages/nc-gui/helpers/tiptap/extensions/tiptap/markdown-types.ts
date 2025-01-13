@@ -1,7 +1,7 @@
-import { Editor, Extension } from '@tiptap/core'
+import { Editor } from '@tiptap/core'
 import { MarkdownSerializer, MarkdownSerializerState } from 'prosemirror-markdown'
-import * as Prosemirror from 'prosemirror-model'
-import * as MarkdownIt from 'markdown-it'
+import { Node, Mark } from 'prosemirror-model'
+import MarkdownIt from 'markdown-it'
 
 export interface MarkdownOptions {
   html?: boolean
@@ -25,13 +25,7 @@ type SpecContext<Options> = {
 }
 
 export type MarkdownNodeSpec<O = any> = {
-  serialize(
-    this: SpecContext<O>,
-    state: MarkdownSerializerState,
-    node: Prosemirror.Node,
-    parent: Prosemirror.Node,
-    index: number,
-  ): void
+  serialize(this: SpecContext<O>, state: MarkdownSerializerState, node: Node, parent: Node, index: number): void
   parse?: {
     setup?(this: SpecContext<O>, markdownit: MarkdownIt): void
     updateDOM?(this: SpecContext<O>, element: HTMLElement): void
@@ -40,24 +34,8 @@ export type MarkdownNodeSpec<O = any> = {
 
 export type MarkdownMarkSpec<O = any> = {
   serialize: (typeof MarkdownSerializer.prototype.marks)[string] & {
-    open:
-      | string
-      | ((
-          this: SpecContext<O>,
-          state: MarkdownSerializerState,
-          mark: Prosemirror.Mark,
-          parent: Prosemirror.Node,
-          index: number,
-        ) => string)
-    close:
-      | string
-      | ((
-          this: SpecContext<O>,
-          state: MarkdownSerializerState,
-          mark: Prosemirror.Mark,
-          parent: Prosemirror.Node,
-          index: number,
-        ) => string)
+    open: string | ((this: SpecContext<O>, state: MarkdownSerializerState, mark: Mark, parent: Node, index: number) => string)
+    close: string | ((this: SpecContext<O>, state: MarkdownSerializerState, mark: Mark, parent: Node, index: number) => string)
   }
   parse?: {
     setup?(this: SpecContext<O>, markdownit: MarkdownIt): void

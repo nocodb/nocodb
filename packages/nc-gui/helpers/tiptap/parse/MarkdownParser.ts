@@ -1,17 +1,17 @@
-import markdownit from 'markdown-it'
+import MarkdownIt from 'markdown-it'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
 import { Editor } from '@tiptap/core'
 
 export class MarkdownParser {
-  editor: Editor | null = null
+  editor: Editor
 
-  md: markdownit | null = null
+  md: MarkdownIt
 
-  constructor(editor, { html, linkify, breaks }) {
+  constructor(editor: Editor, { html, linkify, breaks }: Partial<MarkdownIt.Options>) {
     this.editor = editor
     this.md = this.withPatchedRenderer(
-      markdownit({
+      MarkdownIt({
         html,
         linkify,
         breaks,
@@ -19,34 +19,32 @@ export class MarkdownParser {
     )
   }
 
-  parse(content, { inline } = {}) {
-    if (typeof content === 'string') {
-      this.editor.extensionManager.extensions.forEach((extension) =>
-        getMarkdownSpec(extension)?.parse?.setup?.call({ editor: this.editor, options: extension.options }, this.md),
-      )
+  parse<T>(content: T, { inline }: { inline?: boolean } = {}): T | string {
+    if (!ncIsString(content)) return content
 
-      const renderedHTML = this.md.render(content)
-      const element = elementFromString(renderedHTML)
+    this.editor.extensionManager.extensions.forEach((extension) =>
+      getMarkdownSpec(extension)?.parse?.setup?.call({ editor: this.editor, options: extension.options }, this.md),
+    )
 
-      this.editor.extensionManager.extensions.forEach((extension) =>
-        getMarkdownSpec(extension)?.parse?.updateDOM?.call({ editor: this.editor, options: extension.options }, element),
-      )
+    const renderedHTML = this.md.render(content)
+    const element = elementFromString(renderedHTML)
 
-      this.normalizeDOM(element, { inline, content })
+    this.editor.extensionManager.extensions.forEach((extension) =>
+      getMarkdownSpec(extension)?.parse?.updateDOM?.call({ editor: this.editor, options: extension.options }, element),
+    )
 
-      return element.innerHTML
-    }
+    this.normalizeDOM(element, { inline, content })
 
-    return content
+    return element.innerHTML
   }
 
-  normalizeDOM(node, { inline, content }) {
+  normalizeDOM(node: HTMLElement, { inline, content }: { inline?: boolean; content: string }) {
     this.normalizeBlocks(node)
 
     // remove all \n appended by markdown-it
     node.querySelectorAll('*').forEach((el) => {
       if (el.nextSibling?.nodeType === Node.TEXT_NODE && !el.closest('pre')) {
-        el.nextSibling.textContent = el.nextSibling.textContent.replace(/^\n/, '')
+        el.nextSibling.textContent = el.nextSibling.textContent?.replace(/^\n/, '') ?? ''
       }
     })
 
@@ -57,7 +55,7 @@ export class MarkdownParser {
     return node
   }
 
-  normalizeBlocks(node) {
+  normalizeBlocks(node: HTMLElement) {
     const blocks = Object.values(this.editor.schema.nodes).filter((node) => node.isBlock)
 
     const selector = blocks
@@ -71,13 +69,13 @@ export class MarkdownParser {
     }
 
     ;[...node.querySelectorAll(selector)].forEach((el) => {
-      if (el.parentElement.matches('p')) {
+      if (el.parentElement?.matches('p')) {
         extractElement(el)
       }
     })
   }
 
-  normalizeInline(node, content) {
+  normalizeInline(node: HTMLElement, content: string) {
     if (node.firstElementChild?.matches('p')) {
       const firstParagraph = node.firstElementChild
       const { nextElementSibling } = firstParagraph
@@ -95,10 +93,7 @@ export class MarkdownParser {
     }
   }
 
-  /**
-   * @param {markdownit} md
-   */
-  withPatchedRenderer(md) {
+  withPatchedRenderer(md: MarkdownIt) {
     const withoutNewLine =
       (renderer) =>
       (...args) => {

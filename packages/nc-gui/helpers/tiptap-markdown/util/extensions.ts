@@ -1,13 +1,13 @@
-import type { AnyExtension, Mark, Node } from '@tiptap/core'
+import type { AnyExtension } from '@tiptap/core'
 import { Bold, Code, HTMLMark, Italic, Link, Strike, Underline } from '../extensions/marks'
 import {
   Blockquote,
   BulletList,
   CodeBlock,
+  HTMLNode,
   HardBreak,
   Heading,
   HorizontalRule,
-  HTMLNode,
   Image,
   ListItem,
   OrderedList,

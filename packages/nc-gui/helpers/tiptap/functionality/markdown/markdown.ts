@@ -1,8 +1,8 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
-import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
 import { mdLinkRuleSetupExt } from '.'
+import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
 
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'

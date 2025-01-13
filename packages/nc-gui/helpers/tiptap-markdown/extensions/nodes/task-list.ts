@@ -1,7 +1,7 @@
 import taskListPlugin from 'markdown-it-task-lists'
 import { Node } from '@tiptap/core'
-import { BulletList } from './bullet-list'
 import type { MarkdownNodeSpec } from '../../index'
+import { BulletList } from './bullet-list'
 
 // TODO: Extend from tiptap extension
 export const TaskList = Node.create<any, { markdown: MarkdownNodeSpec }>({
@@ -10,7 +10,7 @@ export const TaskList = Node.create<any, { markdown: MarkdownNodeSpec }>({
   addStorage() {
     return {
       markdown: {
-        serialize: function (state: any, node: any, parent: any, index: number) {
+        serialize(state: any, node: any, parent: any, index: number) {
           // Get the previous sibling node
           const previousNode = parent && index > 0 ? parent.child(index - 1) : null
 

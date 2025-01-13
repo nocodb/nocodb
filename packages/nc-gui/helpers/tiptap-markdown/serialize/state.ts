@@ -1,4 +1,4 @@
-import { Node, Mark } from '@tiptap/pm/model'
+import type { Mark, Node } from '@tiptap/pm/model'
 import { MarkdownSerializerState as BaseMarkdownSerializerState } from '@tiptap/pm/markdown'
 import { trimInline } from '../util/markdown'
 
@@ -52,7 +52,7 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
   }
 
   normalizeInline(inline) {
-    let { start, end } = inline
+    let { start } = inline
     while (this.out.charAt(start).match(/\s/)) {
       start++
     }

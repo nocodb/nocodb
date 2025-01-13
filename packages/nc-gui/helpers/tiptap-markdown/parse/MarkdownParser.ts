@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it'
+import type { Editor } from '@tiptap/core'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
-import { Editor } from '@tiptap/core'
 
 export class MarkdownParser {
   editor: Editor

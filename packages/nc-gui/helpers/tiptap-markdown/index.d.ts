@@ -1,7 +1,7 @@
-import { Editor } from '@tiptap/core'
-import { MarkdownSerializer, MarkdownSerializerState } from '@tiptap/pm/markdown'
-import { Node, Mark } from '@tiptap/pm/model'
-import MarkdownIt from 'markdown-it'
+import type { Editor } from '@tiptap/core'
+import type { MarkdownSerializer, MarkdownSerializerState } from '@tiptap/pm/markdown'
+import type { Mark, Node } from '@tiptap/pm/model'
+import type MarkdownIt from 'markdown-it'
 
 export interface MarkdownOptions {
   html?: boolean
@@ -19,12 +19,12 @@ export interface MarkdownStorage {
   getMarkdown(): string
 }
 
-type SpecContext<Options> = {
+interface SpecContext<Options> {
   options: Options
   editor: Editor
 }
 
-export type MarkdownNodeSpec<O = any> = {
+export interface MarkdownNodeSpec<O = any> {
   serialize(this: SpecContext<O>, state: MarkdownSerializerState, node: Node, parent: Node, index: number): void
   parse?: {
     setup?(this: SpecContext<O>, markdownit: MarkdownIt): void
@@ -32,7 +32,7 @@ export type MarkdownNodeSpec<O = any> = {
   }
 }
 
-export type MarkdownMarkSpec<O = any> = {
+export interface MarkdownMarkSpec<O = any> {
   serialize: (typeof MarkdownSerializer.prototype.marks)[string] & {
     open: string | ((this: SpecContext<O>, state: MarkdownSerializerState, mark: Mark, parent: Node, index: number) => string)
     close: string | ((this: SpecContext<O>, state: MarkdownSerializerState, mark: Mark, parent: Node, index: number) => string)

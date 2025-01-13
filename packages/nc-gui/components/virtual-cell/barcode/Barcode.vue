@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
+import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
@@ -9,6 +10,9 @@ const cellValue = inject(CellValueInj)
 const column = inject(ColumnInj)
 
 const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value ?? ''))
+
+const { metaColumnById } = useViewColumnsOrThrow()
+const valueFieldId = computed(() => column?.value.colOptions?.fk_barcode_value_column_id)
 
 const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNumberOfAllowedCharsForBarcodeValue)
 
@@ -33,20 +37,33 @@ const showBarcode = computed(
   () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
 )
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
+const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter: showBarcodeModal })
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+const cellIcon = (column: ColumnType) =>
+  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: column,
+  })
 </script>
 
 <template>
   <a-modal
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
-    wrap-class-name="nc-barcode-large"
+    wrap-class-name="nc-barcode-large barcode-modal"
     :body-style="{ padding: '0px' }"
     :footer="null"
     @ok="handleModalOkClick"
   >
+    <template #title>
+      <div class="flex gap-2">
+        <h1 class="font-weight-700">{{ column?.title }}</h1>
+        <div class="h-5 mt-[1px] px-1 bg-[#e7e7e9] rounded-md justify-center items-center flex">
+          <component :is="cellIcon(metaColumnById?.[valueFieldId])" class="h-4" />
+          <div class="text-[#4a5268] text-sm font-medium">{{ metaColumnById?.[valueFieldId]?.title }}</div>
+        </div>
+      </div>
+    </template>
     <JsBarcodeWrapper
       v-if="showBarcode"
       :barcode-value="barcodeValue"
@@ -104,9 +121,6 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
   <div v-if="tooManyCharsForBarcode" class="nc-cell-field text-left text-wrap text-[#e65100] text-xs">
     {{ $t('labels.barcodeValueTooLong') }}
   </div>
-  <div v-if="showEditNonEditableFieldWarning" class="nc-cell-field text-left text-wrap mt-2 text-[#e65100] text-xs">
-    {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
-  </div>
   <div v-if="showClearNonEditableFieldWarning" class="nc-cell-field text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.barcodeFieldsCannotBeDirectlyChanged') }}
   </div>
@@ -117,5 +131,17 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
   & > div {
     @apply max-w-8.2rem;
   }
+}
+</style>
+
+<style>
+.barcode-modal .ant-modal-header {
+  position: relative;
+  top: -20px;
+  width: calc(100% + 24px * 2);
+  left: -24px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border-bottom: 1px solid #e7e7e9;
 }
 </style>

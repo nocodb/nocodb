@@ -1107,7 +1107,9 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "copyAsPNG": "Copy as .png",
+    "downloadAsPNG": "Download as .png"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1943,7 +1945,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

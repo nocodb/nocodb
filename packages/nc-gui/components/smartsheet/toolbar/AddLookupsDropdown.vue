@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -20,19 +20,13 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const baseStore = useBase()
-
 const { getMeta, metas } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { tables } = toRefs(baseStore)
-
 const column = toRef(props, 'column')
-
-const columnsHash = ref()
 
 const isLoading = ref(false)
 
@@ -53,23 +47,9 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-const initiatedTableLoad = ref(false)
+const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
-const relatedModel = computedAsync(async () => {
-  const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
-
-  if (fkRelatedModelId && !props.disabled) {
-    let table = tables.value.find((t) => t.id === fkRelatedModelId)
-
-    if (!table?.columns && !initiatedTableLoad.value) {
-      await getMeta(fkRelatedModelId, true)
-      table = tables.value.find((t) => t.id === fkRelatedModelId)
-      initiatedTableLoad.value = true
-    }
-    return table
-  }
-  return null
-})
+const relatedModel = ref<TableType | null>()
 
 const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
 
@@ -124,7 +104,7 @@ const createLookups = async () => {
     }
 
     await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
+      hash: meta.value?.columnsHash,
       ops: bulkOpsCols,
     })
 
@@ -160,17 +140,12 @@ function switchToSearchMode() {
   }, 500)
 }
 
-watch(isOpened, (val) => {
+watch(isOpened, async (val) => {
   if (val) {
+    relatedModel.value = await getMeta(fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
   }
-})
-
-onMounted(async () => {
-  if (props.disabled) return
-
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 })
 </script>
 

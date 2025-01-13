@@ -7,6 +7,7 @@ import {
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { Logger } from '@nestjs/common';
+import hash from 'object-hash';
 import type { NcRequest } from 'nocodb-sdk';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
@@ -67,6 +68,7 @@ export default class Model implements TableType {
 
   columns?: Column[];
   columnsById?: { [id: string]: Column };
+  columnsHash?: string;
   views?: View[];
   meta?: Record<string, any> | string;
 
@@ -94,6 +96,15 @@ export default class Model implements TableType {
     }, {});
 
     return this.columns;
+  }
+
+  public async getColumnsHash(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string> {
+    this.columns = await this.getColumns(context, ncMeta);
+
+    return (this.columnsHash = hash(this.columns));
   }
 
   // get columns cached under the instance or fetch from db/redis cache
@@ -479,6 +490,8 @@ export default class Model implements TableType {
       const defaultViewId = m.views.find((view) => view.is_default).id;
 
       await m.getColumns(context, ncMeta, defaultViewId);
+
+      m.columnsHash = hash(m.columns);
 
       return m;
     }

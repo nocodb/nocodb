@@ -140,6 +140,7 @@ useSelectedCellKeyupListener(active, (e) => {
     case e.altKey:
     case e.ctrlKey:
     case e.key === 'Backspace':
+    case e.key === 'Spacebar' || e.key === ' ':
     case [...e.key].length > 1:
       // The string iterator that is used here iterates over characters, not mere code units
       // If a key is a modifier key or navigation key or function key or any of the
@@ -215,6 +216,7 @@ onUnmounted(() => {
     centered
     :footer="null"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
+    class="relative"
     :class="{ 'json-modal min-w-80': isExpanded }"
   >
     <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
@@ -247,16 +249,14 @@ onUnmounted(() => {
         {{ error.toString() }}
       </span>
     </div>
-    <div v-else class="h-5 relative">
-      <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute right-0">
-        <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
-          <component :is="iconMap.maximize" class="w-3 h-3" />
-        </NcButton>
-      </NcTooltip>
-      <span v-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-      <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
-    </div>
+    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+    <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
+    <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
+      <template #title>{{ $t('title.expand') }}</template>
+      <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
+        <component :is="iconMap.maximize" class="w-3 h-3" />
+      </NcButton>
+    </NcTooltip>
   </component>
 </template>
 
@@ -267,8 +267,17 @@ onUnmounted(() => {
 </style>
 
 <style lang="scss">
-.cell:hover .nc-json-expand-btn,
-.nc-cell:hover .nc-json-expand-btn {
+.nc-cell-json:hover .nc-json-expand-btn,
+.nc-grid-cell:hover .nc-json-expand-btn {
   @apply block;
+}
+.nc-grid-cell .nc-cell-json {
+  min-height: 20px !important;
+}
+.nc-expanded-cell .nc-cell-json .nc-cell-field {
+  margin: 8px 0;
+}
+.nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
+  min-height: 38px;
 }
 </style>

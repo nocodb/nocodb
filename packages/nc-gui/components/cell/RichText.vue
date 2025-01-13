@@ -4,6 +4,7 @@ import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
+import { Markdown } from '~/helpers/tiptap-markdown'
 import {
   HardBreak,
   Italic,
@@ -13,7 +14,6 @@ import {
   Underline,
   UserMention,
   UserMentionList,
-  Markdown,
 } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(

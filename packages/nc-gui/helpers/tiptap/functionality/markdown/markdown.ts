@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
-import { parseUserMention } from '../../nodes/mention/user'
+import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
 import { mdLinkRuleSetupExt } from '.'
 
 declare module 'markdown-it-task-lists' {

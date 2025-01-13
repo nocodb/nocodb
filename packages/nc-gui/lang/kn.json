@@ -858,6 +858,7 @@
     "clickToHide": "ಮರೆಯಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToDownload": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "forRole": "ಭೂಮಿಕೆಯವರಿಗೆ",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "ಕೋಷ್ಟಕ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "viewMode": "ನೋಟ ಸ್ಥಿತಿ",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV ಅನ್ನು ಡೌನ್ಲೋಡ್ ಮಾಡಿ",
     "downloadExcel": "Excel ಅನ್ನು ಡೌನ್ಲೋಡ್ ಮಾಡಿ",
     "uploadCSV": "CSV ಅಪ್ಲೋಡ್ ಮಾಡಿ",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "ಐತಿಹಾಸಿಕ ದಾಖಲೆ",
     "importMetadata": "ಮೆಟಾಆದಾ ಮಾಹಿತಿಯನ್ನು ಆಮದು ಮಾಡಿ",
     "exportMetadata": "ಮೆಟಾಆದಾ ಮಾಹಿತಿಯನ್ನು ರಫ್ತು ಮಾಡಿ",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "ಕೋಷ್ಟಕವನ್ನು ಅಗತ್ಯವಲ್ಲದ ರೂಪದಲ್ಲಿ ಖಾಲಿ ಮಾಡಲಾಗಿದೆ",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

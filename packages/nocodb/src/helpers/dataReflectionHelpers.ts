@@ -13,28 +13,24 @@ const genPassword = () => nanoid(128);
 
 const grantAccessToSchema = async (knex, schema, username) => {
   const query = `
-  GRANT USAGE ON SCHEMA ?? TO ??;
-  GRANT SELECT ON ALL TABLES IN SCHEMA ?? TO ??;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA ?? GRANT SELECT ON TABLES TO ??;
+  GRANT USAGE ON SCHEMA :schema: TO :username:;
+  GRANT SELECT ON ALL TABLES IN SCHEMA :schema: TO :username:;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: GRANT SELECT ON TABLES TO :username:;
   `;
 
-  const preparedQuery = knex
-    .raw(query, [schema, username, schema, username, schema, username])
-    .toQuery();
+  const preparedQuery = knex.raw(query, { schema, username }).toQuery();
 
   await knex.raw(preparedQuery);
 };
 
 const revokeAccessToSchema = async (knex, schema, username) => {
   const query = `
-  REVOKE ALL ON SCHEMA ?? FROM ??;
-  REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA ?? FROM ??;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA ?? REVOKE ALL ON TABLES FROM ??;
+  REVOKE ALL ON SCHEMA :schema: FROM :username:;
+  REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA :schema: FROM :username:;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: REVOKE ALL ON TABLES FROM :username:;
   `;
 
-  const preparedQuery = knex
-    .raw(query, [schema, username, schema, username, schema, username])
-    .toQuery();
+  const preparedQuery = knex.raw(query, { schema, username }).toQuery();
 
   await knex.raw(preparedQuery);
 };
@@ -45,14 +41,14 @@ const createDatabaseUser = async (knex, username, password) => {
   const database = (dataConfig.connection as any).database;
 
   const query = `
-  CREATE USER ?? WITH PASSWORD ?;
-  REVOKE ALL ON SCHEMA public FROM ??;
-  REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM ??;
-  GRANT CONNECT ON DATABASE ?? TO ??;
+  CREATE USER :username: WITH PASSWORD :password;
+  REVOKE ALL ON SCHEMA public FROM :username:;
+  REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM :username:;
+  GRANT CONNECT ON DATABASE :database: TO :username:;
   `;
 
   const preparedQuery = knex
-    .raw(query, [username, password, username, username, database, username])
+    .raw(query, { username, password, database })
     .toQuery();
 
   await knex.raw(preparedQuery);
@@ -64,13 +60,11 @@ const dropDatabaseUser = async (knex, username) => {
   const database = (dataConfig.connection as any).database;
 
   const query = `
-  REVOKE ALL ON DATABASE ?? FROM ??;
-  DROP USER IF EXISTS ??;
+  REVOKE ALL ON DATABASE :database: FROM :username:;
+  DROP USER IF EXISTS :username:;
   `;
 
-  const preparedQuery = knex
-    .raw(query, [database, username, username])
-    .toQuery();
+  const preparedQuery = knex.raw(query, { username, database }).toQuery();
 
   await knex.raw(preparedQuery);
 };

@@ -156,7 +156,7 @@ export default class Integration implements IntegrationType {
 
     const wrapper = await int.getIntegrationWrapper();
 
-    await wrapper?.onCreateIntegration();
+    await wrapper?.onCreateIntegration?.();
 
     return int;
   }
@@ -478,7 +478,7 @@ export default class Integration implements IntegrationType {
 
     const wrapper = await this.getIntegrationWrapper();
 
-    await wrapper?.onCreateIntegration();
+    await wrapper?.onCreateIntegration?.();
 
     return await ncMeta.metaDelete(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,

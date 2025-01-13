@@ -115,7 +115,7 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="Connection name">
-                            <a-input :value="'NocoDB Default'" disabled />
+                            <a-input value="NocoDB" disabled />
                           </a-form-item>
                         </a-col>
                       </a-row>

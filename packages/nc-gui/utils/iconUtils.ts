@@ -224,6 +224,7 @@ import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
 import NcNocoDB from '~icons/nc-icons/nocodb'
+import NcNocoDB1 from '~icons/nc-icons/nocodb1'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -909,7 +910,8 @@ export const iconMap = {
   cellAi: h(NcCellAi, { stroke: 'transparent' }),
   camera: NcCamera,
   megaPhone: NcMegaPhone,
-  nocodb: NcNocoDB,
+  nocodb: h(NcNocoDB, { stroke: 'transparent' }),
+  nocodb1: h(NcNocoDB1, { stroke: 'transparent' }),
   bulb: NcBulb,
   snow: NcSnow,
 

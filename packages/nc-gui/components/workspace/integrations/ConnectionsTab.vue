@@ -446,7 +446,13 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <NcTooltip :disabled="!isUserDeleted(integration.created_by)" class="w-full">
+                    <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
+                      <div class="h-8 w-8 grid place-items-center">
+                        <GeneralIcon icon="nocodb1" />
+                      </div>
+                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Clould</div>
+                    </div>
+                    <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
                       <template #title>
                         {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
                       </template>

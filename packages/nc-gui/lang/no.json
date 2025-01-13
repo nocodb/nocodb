@@ -858,6 +858,7 @@
     "clickToHide": "Klikk for å skjule",
     "clickToDownload": "Klikk for å laste ned",
     "forRole": "for rolle",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klikk for å kopiere tabell ID",
     "clickToCopyViewID": "Klikk for å kopiere visnings-ID",
     "viewMode": "Visningsmodus",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Last ned som CSV.",
     "downloadExcel": "Last ned som XLSX",
     "uploadCSV": "Last opp CSV.",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importer",
     "importMetadata": "Importer metadata",
     "exportMetadata": "Eksporter metadata",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Noen av de nødvendige feltene er tomme",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",

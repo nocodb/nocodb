@@ -1,6 +1,7 @@
 import type { KeyboardShortcutCommand } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import type { MarkdownNodeSpec } from '../tiptap'
 
 export interface TaskItemOptions {
   onReadOnlyChecked?: (node: ProseMirrorNode, checked: boolean) => boolean
@@ -11,7 +12,8 @@ export interface TaskItemOptions {
 
 export const inputRegex = /^\s*\[( |x)?\]\s$/i
 
-export const TaskItem = Node.create<TaskItemOptions>({
+// TODO: Extend from tiptap extension
+export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpec }>({
   name: 'taskItem',
 
   addOptions() {
@@ -183,5 +185,29 @@ export const TaskItem = Node.create<TaskItemOptions>({
         }),
       }),
     ]
+  },
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state, node) {
+          const check = node.attrs.checked ? '[x]' : '[ ]'
+          state.write(`${check} `)
+          state.renderContent(node)
+        },
+        parse: {
+          updateDOM(element) {
+            ;[...element.querySelectorAll('.task-list-item')].forEach((item) => {
+              const input = item.querySelector('input')
+              item.setAttribute('data-type', 'taskItem')
+              if (input) {
+                item.setAttribute('data-checked', input.checked)
+                input.remove()
+              }
+            })
+          },
+        },
+      },
+    }
   },
 })

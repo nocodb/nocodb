@@ -1,7 +1,8 @@
-import TipTapMention from '@tiptap/extension-mention'
+import TipTapMention, { type MentionNodeAttrs, type MentionOptions } from '@tiptap/extension-mention'
 import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
+import type { MarkdownNodeSpec } from '../../../tiptap'
 
 const USER_ID_REGEXP = /@\(([^)]+)\)/
 
@@ -36,7 +37,7 @@ export const parseUserMention = (
   })
 }
 
-export const UserMention = TipTapMention.extend({
+export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeAttrs>, { markdown: MarkdownNodeSpec }>({
   addOptions() {
     return {
       ...this.parent?.(),

@@ -49,7 +49,7 @@ const { isCopied, performCopy } = useIsCopied()
 const copyAsPng = async () => {
   if (!barcodeSvgRef.value) return
   const success = await copySVGToClipboard(barcodeSvgRef.value)
-  if (!success) message.error(t('msg.error.notSupported'))
+  if (!success) throw new Error(t('msg.error.notSupported'))
 }
 
 const onBarcodeClick = (ev: MouseEvent) => {

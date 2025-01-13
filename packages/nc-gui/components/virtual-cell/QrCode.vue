@@ -65,7 +65,7 @@ const copyAsPng = async () => {
   if (!qrCodeLarge.value) return
   const blob = await base64ToBlob(qrCodeLarge.value)
   const success = await copyPNGToClipboard(blob)
-  if (!success) message.error(t('msg.error.notSupported'))
+  if (!success) throw new Error(t('msg.error.notSupported'))
 }
 </script>
 

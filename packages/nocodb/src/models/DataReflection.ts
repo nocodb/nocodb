@@ -9,7 +9,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
 import NocoCache from '~/cache/NocoCache';
-import { NC_DATA_REFLECTION_PORT } from '~/helpers/dataReflectionHelpers';
+import { NC_DATA_REFLECTION_SETTINGS } from '~/helpers/dataReflectionHelpers';
 
 export default class DataReflection {
   id?: string;
@@ -85,11 +85,8 @@ export default class DataReflection {
         return null;
       }
 
-      dataReflection.host = `${process.env.NC_PUBLIC_URL?.replace(
-        /(^\w+:|^)\/\//,
-        '',
-      ).replace(/\/$/, '')}`;
-      dataReflection.port = NC_DATA_REFLECTION_PORT;
+      dataReflection.host = NC_DATA_REFLECTION_SETTINGS.host;
+      dataReflection.port = NC_DATA_REFLECTION_SETTINGS.port;
 
       if (dataReflection) {
         await NocoCache.set(

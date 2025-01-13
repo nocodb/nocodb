@@ -1,7 +1,12 @@
 import { customAlphabet, nanoid } from 'nanoid';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
-const NC_DATA_REFLECTION_PORT = +process.env.NC_DATA_REFLECTION_PORT || 5433;
+const NC_DATA_REFLECTION_SETTINGS = {
+  host:
+    process.env.NC_DATA_REFLECTION_HOST ||
+    process.env.NC_PUBLIC_URL?.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, ''),
+  port: +process.env.NC_DATA_REFLECTION_PORT || 5433,
+};
 
 const genSuffix = customAlphabet('1234567890abcdef', 6);
 const genPassword = () => nanoid(128);
@@ -71,7 +76,7 @@ const dropDatabaseUser = async (knex, username) => {
 };
 
 export {
-  NC_DATA_REFLECTION_PORT,
+  NC_DATA_REFLECTION_SETTINGS,
   grantAccessToSchema,
   revokeAccessToSchema,
   createDatabaseUser,

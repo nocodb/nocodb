@@ -1,6 +1,6 @@
 import { Node } from '@tiptap/core'
 import { escapeHTML } from '../../util/dom'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const Text = Node.create<any, { markdown: MarkdownNodeSpec }>({

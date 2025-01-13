@@ -1,6 +1,6 @@
 import taskListPlugin from 'markdown-it-task-lists'
 import { Node } from '@tiptap/core'
-import type { MarkdownNodeSpec } from '../../index'
+import type { MarkdownNodeSpec } from '../../types'
 import { BulletList } from './bullet-list'
 
 // TODO: Extend from tiptap extension

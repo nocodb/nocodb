@@ -2,7 +2,7 @@ import TipTapMention, { type MentionNodeAttrs, type MentionOptions } from '@tipt
 import type MarkdownIt from 'markdown-it'
 import regexp from 'markdown-it-regexp'
 import type { UserType } from 'nocodb-sdk'
-import type { MarkdownNodeSpec } from '../../../../index'
+import type { MarkdownNodeSpec } from '../../../../types'
 
 const USER_ID_REGEXP = /@\(([^)]+)\)/
 

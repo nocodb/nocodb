@@ -1,6 +1,6 @@
 import { Mark } from '@tiptap/core'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownMarkSpec } from '../../index'
+import type { MarkdownMarkSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
 export const Bold = Mark.create<any, { markdown: MarkdownMarkSpec }>({

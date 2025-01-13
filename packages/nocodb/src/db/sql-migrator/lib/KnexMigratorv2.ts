@@ -386,6 +386,20 @@ export default class KnexMigratorv2 {
   async _initDbWithSql(source: Source) {
     const sqlClient = await this.getSqlClient(source);
     const connectionConfig = await source.getConnectionConfig();
+
+    try {
+      const dbExists = await sqlClient.hasDatabase({
+        databaseName: connectionConfig.connection.database,
+      });
+
+      if (dbExists) {
+        this.emit(
+          `${connectionConfig.client}: DB already exists ${connectionConfig.connection.database}`,
+        );
+        return;
+      }
+    } catch (e) {}
+
     if (connectionConfig.client === 'oracledb') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`,

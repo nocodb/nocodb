@@ -22,6 +22,7 @@ const generate = () => {
   try {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
+      displayValue: false,
     })
     if (props.customStyle) {
       if (barcodeSvgRef.value) {
@@ -76,12 +77,17 @@ onMounted(generate)
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
     <div v-if="props.showDownload" class="flex justify-end gap-2 mt-8">
-      <NcButton size="small" type="secondary" @click="copyAsPng">
-        <template #icon>
-          <GeneralIcon icon="copy" class="w-4 h-4" />
+      <NcTooltip>
+        <template #title>
+          {{ $t('labels.clickToCopy') }}
         </template>
-        {{ $t('labels.copyAsPNG') }}
-      </NcButton>
+        <NcButton size="small" type="secondary" @click="copyAsPng">
+          <template #icon>
+            <GeneralIcon icon="copy" class="w-4 h-4" />
+          </template>
+          {{ $t('general.copy') }}
+        </NcButton>
+      </NcTooltip>
       <NcTooltip>
         <template #title>
           {{ $t('labels.clickToDownload') }}
@@ -90,7 +96,7 @@ onMounted(generate)
           <template #icon>
             <GeneralIcon icon="download" class="w-4 h-4" />
           </template>
-          {{ $t('labels.downloadAsPNG') }}
+          {{ $t('general.download') }}
         </NcButton>
       </NcTooltip>
     </div>

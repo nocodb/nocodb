@@ -51,8 +51,7 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
     <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
         <div class="w-full gap-4 max-w-[784px]">
-          <slot name="leftPanel" class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
-          </slot>
+          <slot name="leftPanel" class="nc-edit-or-add-integration relative flex flex-col justify-center gap-2 w-full"> </slot>
         </div>
       </div>
 

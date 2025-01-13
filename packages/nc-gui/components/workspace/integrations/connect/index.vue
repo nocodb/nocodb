@@ -82,7 +82,7 @@ onMounted(async () => {
       <div :class="leftPanelClass">
         <div
           v-if="!activeWorkspace.data_reflection_enabled"
-          class="flex flex-col gap-8 w-full h-full items-center justify-center text-center mt-10"
+          class="nc-nocodb-connection-details-placeholder flex flex-col gap-8 w-full h-full items-center justify-center text-center mt-10"
         >
           <img
             src="~assets/img/placeholder/nocodb-pg-integration.png"
@@ -340,6 +340,14 @@ onMounted(async () => {
     & > .ant-col {
       @apply !px-1.5;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-edit-or-add-integration-left-panel {
+  &:has(.nc-nocodb-connection-details-placeholder) {
+    @apply bg-nc-bg-gray-extralight;
   }
 }
 </style>

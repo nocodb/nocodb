@@ -64,13 +64,7 @@ const cellIcon = (column: ColumnType) =>
           <div class="text-[#4a5268] text-sm font-medium">{{ metaColumnById?.[valueFieldId]?.title }}</div>
         </div>
         <div class="flex-1"></div>
-        <NcButton
-          class="nc-expand-form-close-btn !w-7 !h-7"
-          data-testid="nc-expanded-form-close"
-          type="text"
-          size="xsmall"
-          @click="modalVisible = false"
-        >
+        <NcButton class="nc-barcode-close !w-7 !h-7" type="text" size="xsmall" @click="modalVisible = false">
           <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
         </NcButton>
       </div>

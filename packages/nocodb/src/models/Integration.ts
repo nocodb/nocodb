@@ -147,12 +147,18 @@ export default class Integration implements IntegrationType {
       insertObj,
     );
 
-    return await this.get(
+    const int = await this.get(
       { workspace_id: insertObj.fk_workspace_id },
       id,
       false,
       ncMeta,
     );
+
+    const wrapper = await int.getIntegrationWrapper();
+
+    await wrapper?.onCreateIntegration();
+
+    return int;
   }
 
   public static async updateIntegration(
@@ -222,14 +228,13 @@ export default class Integration implements IntegrationType {
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(
-      context,
-      oldIntegration.id,
-      false,
-      ncMeta,
-    );
+    const int = await this.get(context, oldIntegration.id, false, ncMeta);
 
-    return returnBase;
+    const wrapper = await int.getIntegrationWrapper();
+
+    await wrapper?.onUpdateIntegration();
+
+    return int;
   }
 
   public static async setDefault(
@@ -494,6 +499,10 @@ export default class Integration implements IntegrationType {
         fk_integration_id: this.id,
       },
     );
+
+    const wrapper = await this.getIntegrationWrapper();
+
+    await wrapper?.onCreateIntegration();
 
     return await ncMeta.metaDelete(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,

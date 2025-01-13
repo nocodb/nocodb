@@ -390,9 +390,14 @@ export default class KnexMigratorv2 {
     try {
       const dbExists = await sqlClient.hasDatabase({
         databaseName: connectionConfig.connection.database,
+        ...(source.getConfig()?.schema
+          ? { schema: source.getConfig()?.schema }
+          : source.type === 'databricks'
+          ? { schema: connectionConfig.connection.schema }
+          : {}),
       });
 
-      if (dbExists) {
+      if (dbExists.data.value) {
         this.emit(
           `${connectionConfig.client}: DB already exists ${connectionConfig.connection.database}`,
         );

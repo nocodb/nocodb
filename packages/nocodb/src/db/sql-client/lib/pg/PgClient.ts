@@ -674,7 +674,16 @@ class PGClient extends KnexClient {
         `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
         [args.databaseName],
       );
+
       result.data.value = rows.length > 0;
+
+      if (result.data.value && args.schema) {
+        const { rows: rows2 } = await this.sqlClient.raw(
+          `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
+          [args.schema],
+        );
+        result.data.value = rows.length > 0 && rows2.length > 0;
+      }
     } catch (e) {
       log.ppe(e, _func);
       throw e;

@@ -168,6 +168,7 @@ const integrationsMapByCategory = computed(() => {
           list: IntegrationItemType[]
           isAvailable?: boolean
           teleEventName?: IntegrationCategoryType
+          value: IntegrationCategoryType
         }
       >,
     )
@@ -415,11 +416,11 @@ watch(activeViewTab, (value) => {
                               <div class="name">{{ $t(integration.title) }}</div>
                               <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
                             </div>
-                            <div v-if="integration?.sub_type === SyncDataType.NOCODB">
+                            <div v-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
                               <template v-if="dataReflectionEnabled">
                                 <GeneralIcon icon="check" class="text-primary text-lg" />
                               </template>
-                              <template v-else>+</template>
+                              <div v-else class="action-btn !block">+</div>
                             </div>
                             <div v-else-if="integration?.isAvailable" class="action-btn">+</div>
                             <div v-else class="">
@@ -584,7 +585,7 @@ watch(activeViewTab, (value) => {
         }
 
         .action-btn {
-          @apply hidden text-2xl text-gray-500 w-7 h-7 text-center;
+          @apply hidden text-2xl text-gray-500 w-7 h-7 text-center flex-none;
         }
 
         &.is-available {

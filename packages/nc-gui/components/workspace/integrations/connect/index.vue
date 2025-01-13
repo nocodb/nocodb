@@ -85,6 +85,22 @@ onMounted(async () => {
             class="flex flex-col gap-5.5"
           >
             <div class="nc-form-section">
+              <div class="nc-form-section-title">General</div>
+              <div class="nc-form-section-body">
+                <a-row :gutter="24">
+                  <a-col :span="12">
+                    <a-form-item label="Connection name">
+                      <a-input :value="'NocoDB Default'" disabled />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </div>
+            </div>
+            <div class="nc-form-section">
+              <div class="flex items-center justify-between">
+                <div class="nc-form-section-title">Connection details</div>
+              </div>
+
               <div class="nc-form-section-body">
                 <a-row :gutter="24">
                   <a-col :span="24">

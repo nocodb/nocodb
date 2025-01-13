@@ -155,7 +155,9 @@ export default class Noco {
 
     await Integration.init();
 
-    await DataReflection.init();
+    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+      await DataReflection.init();
+    }
 
     return nestApp.getHttpAdapter().getInstance();
   }

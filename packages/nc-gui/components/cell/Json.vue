@@ -119,18 +119,27 @@ watch(editEnabled, () => {
 })
 
 useSelectedCellKeyupListener(active, (e) => {
-  switch (e.key) {
-    case 'Enter':
+  switch (true) {
+    case e.key === 'Enter':
+      e.preventDefault()
       e.stopPropagation()
       if (e.shiftKey) {
         return true
       }
-      if (editEnabled.value) {
-        onSave()
-      } else {
-        editEnabled.value = true
-      }
+      isExpanded.value = true
       break
+    case e.metaKey:
+    case e.altKey:
+    case e.ctrlKey:
+    case e.key === 'Backspace':
+    case [...e.key].length > 1:
+      // The string iterator that is used here iterates over characters, not mere code units
+      // If a key is a modifier key or navigation key or function key or any of the
+      // non-printing keys, ignore them
+      break
+    default:
+      // Otherwise it's a printing character, open the JSON modal for editing
+      isExpanded.value = true
   }
 })
 
@@ -176,32 +185,24 @@ watch(inputWrapperRef, () => {
     centered
     :footer="null"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
+    :class="{ 'json-modal min-w-80': isExpanded }"
   >
-    <div v-if="editEnabled && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
-      <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
-        <a-button type="text" size="small" @click="isExpanded = !isExpanded">
-          <CilFullscreenExit v-if="isExpanded" class="h-2.5" />
-
-          <CilFullscreen v-else class="h-2.5" />
-        </a-button>
+    <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
+      <div class="flex flex-row justify-between items-center -mt-2 pb-2 nc-json-action" @mousedown.stop>
+        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="isExpanded = false">
+          <component :is="iconMap.minimize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+        </NcButton>
 
         <div v-if="!isForm || isExpanded" class="flex flex-row my-1 space-x-1">
-          <a-button type="text" size="small" class="!rounded-lg" @click="clear"
-            ><div class="text-xs">{{ $t('general.cancel') }}</div></a-button
-          >
-
-          <a-button
+          <NcButton type="secondary" size="small" @click="clear">{{ $t('general.cancel') }}</NcButton>
+          <NcButton
             :type="!isExpanded ? 'text' : 'primary'"
             size="small"
-            class="nc-save-json-value-btn !rounded-lg"
-            :class="{
-              'nc-edit-modal': !isExpanded,
-            }"
             :disabled="!!error || localValue === vModel"
             @click="onSave"
           >
-            <div class="text-xs">{{ $t('general.save') }}</div>
-          </a-button>
+            {{ $t('general.save') }}
+          </NcButton>
         </div>
       </div>
 
@@ -212,7 +213,7 @@ watch(inputWrapperRef, () => {
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
         :disable-deep-compare="true"
-        :auto-focus="!isForm && !isEditColumn"
+        :auto-focus="true"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
         @keydown.alt.stop
@@ -225,7 +226,15 @@ watch(inputWrapperRef, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
+    <div v-else>
+      <NcTooltip placement="bottom" class="float-right nc-json-expand-btn hidden">
+        <template #title>{{ $t('title.expand') }}</template>
+        <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="isExpanded = true">
+          <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+        </NcButton>
+      </NcTooltip>
+      <LazyCellClampedText :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
+    </div>
   </component>
 </template>
 
@@ -237,10 +246,10 @@ watch(inputWrapperRef, () => {
 .editor {
   min-height: min(200px, 10vh);
 }
+</style>
 
-.nc-save-json-value-btn {
-  &.nc-edit-modal:not(:disabled) {
-    @apply !text-brand-500 !hover:text-brand-600;
-  }
+<style lang="scss">
+.cell:hover .nc-json-expand-btn {
+  @apply block cursor-pointer;
 }
 </style>

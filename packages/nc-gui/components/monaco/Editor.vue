@@ -140,7 +140,9 @@ onMounted(async () => {
       new PlaceholderContentWidget(placeholder, editor)
     }
 
-    if (!isDrawerOrModalExist() && autoFocus) {
+    const activeDrawerOrModal = isDrawerOrModalExist()
+
+    if ((!activeDrawerOrModal || activeDrawerOrModal?.classList.contains('json-modal')) && autoFocus) {
       // auto focus on json cells only
       editor.focus()
     }

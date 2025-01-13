@@ -11,7 +11,7 @@ const column = inject(ColumnInj)
 
 const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value ?? ''))
 
-const { metaColumnById } = useViewColumnsOrThrow()
+const meta = inject(MetaInj)
 const valueFieldId = computed(() => column?.value.colOptions?.fk_barcode_value_column_id)
 
 const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNumberOfAllowedCharsForBarcodeValue)
@@ -19,10 +19,6 @@ const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNum
 const modalVisible = ref(false)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
-
-const showBarcodeModal = () => {
-  modalVisible.value = true
-}
 
 const barcodeMeta = computed(() => {
   return {
@@ -36,6 +32,11 @@ const handleModalOkClick = () => (modalVisible.value = false)
 const showBarcode = computed(
   () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
 )
+
+const showBarcodeModal = () => {
+  if (!showBarcode.value) return
+  modalVisible.value = true
+}
 
 const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter: showBarcodeModal })
 
@@ -59,12 +60,12 @@ const cellIcon = (column: ColumnType) =>
     <template #title>
       <div class="flex gap-2 items-center w-full">
         <h1 class="font-weight-700 m-0">{{ column?.title }}</h1>
-        <div class="h-5 px-1 bg-[#e7e7e9] rounded-md justify-center items-center flex">
-          <component :is="cellIcon(metaColumnById?.[valueFieldId])" class="h-4" />
-          <div class="text-[#4a5268] text-sm font-medium">{{ metaColumnById?.[valueFieldId]?.title }}</div>
+        <div class="h-5 px-1 bg-nc-bg-gray-medium text-nc-content-gray-subtle2 rounded-md justify-center items-center flex">
+          <component :is="cellIcon(meta?.columnsById?.[valueFieldId])" class="h-4" />
+          <div class="text-sm font-medium">{{ meta?.columnsById?.[valueFieldId]?.title }}</div>
         </div>
         <div class="flex-1"></div>
-        <NcButton class="nc-barcode-close !w-7 !h-7" type="text" size="xsmall" @click="modalVisible = false">
+        <NcButton class="nc-barcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
           <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
         </NcButton>
       </div>

@@ -75,8 +75,7 @@ onMounted(generate)
         'mt-8 mb-4': showDownload,
       }"
       data-testid="barcode"
-      :data-barcode-value="barcodeValue"
-    @click="onBarcodeClick"
+      @click="onBarcodeClick"
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
     <div v-if="props.showDownload" class="flex justify-end gap-2 py-2 px-3">

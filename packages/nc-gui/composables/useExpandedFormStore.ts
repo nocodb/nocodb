@@ -420,6 +420,25 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const consolidatedAudits = computed(() => {
     const result = []
 
+    const applyAuditValue = (detail: any, value: string, type: 'link' | 'unlink') => {
+      if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = [];
+      if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = [];
+
+      if (type === 'link') {
+        if (!detail.consolidated_ref_display_values_unlinks.includes(value)) {
+          detail.consolidated_ref_display_values_links.push(value)
+        } else {
+          detail.consolidated_ref_display_values_unlinks.splice(detail.consolidated_ref_display_values_unlinks.indexOf(value), 1)
+        }
+      } else {
+        if (!detail.consolidated_ref_display_values_links.includes(value)) {
+          detail.consolidated_ref_display_values_unlinks.push(value)
+        } else {
+          detail.consolidated_ref_display_values_links.splice(detail.consolidated_ref_display_values_links.indexOf(value), 1)
+        }
+      }
+    }
+
     try {
       const allAudits = JSON.parse(JSON.stringify(audits.value))
 
@@ -429,13 +448,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const last = result[result.length - 1]
           const details = JSON.parse(current.details)
           if (!last) {
-            if (current.op_type === 'DATA_LINK') {
-              details.consolidated_ref_display_values_links = [details.ref_display_value]
-              details.consolidated_ref_display_values_unlinks = [];
-            } else {
-              details.consolidated_ref_display_values_links = [];
-              details.consolidated_ref_display_values_unlinks = [details.ref_display_value]
-            }
+            applyAuditValue(details, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
             current.details = JSON.stringify(details)
             result.push(current)
           } else {
@@ -446,20 +459,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               lastDetails.link_field_id === details.link_field_id &&
               lastDetails.ref_table_title === details.ref_table_title
             ) {
-              if (current.op_type === 'DATA_LINK') {
-                lastDetails.consolidated_ref_display_values_links.push(details.ref_display_value)
-              } else {
-                lastDetails.consolidated_ref_display_values_unlinks.push(details.ref_display_value)
-              }
+              applyAuditValue(lastDetails, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
               last.details = JSON.stringify(lastDetails)
             } else {
-              if (current.op_type === 'DATA_LINK') {
-                details.consolidated_ref_display_values_links = [details.ref_display_value]
-                details.consolidated_ref_display_values_unlinks = [];
-              } else {
-                details.consolidated_ref_display_values_links = [];
-                details.consolidated_ref_display_values_unlinks = [details.ref_display_value]
-              }
+              applyAuditValue(details, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
               current.details = JSON.stringify(details)
               result.push(current)
             }

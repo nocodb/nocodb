@@ -11,15 +11,8 @@ const emit = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emit)
 
-const {
-  isFromIntegrationPage,
-  pageMode,
-  IntegrationsPageMode,
-  activeIntegration,
-  activeIntegrationItem,
-  saveIntegration,
-  updateIntegration,
-} = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem, saveIntegration, updateIntegration } =
+  useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
@@ -86,69 +79,32 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="activeIntegration" class="h-full">
-    <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
-      <div class="flex-1 flex items-center gap-3">
-        <NcButton
-          v-if="!isEditMode && !isFromIntegrationPage"
-          type="text"
-          size="small"
-          @click="pageMode = IntegrationsPageMode.LIST"
-        >
-          <GeneralIcon icon="arrowLeft" />
-        </NcButton>
-        <div
-          v-if="activeIntegrationItem?.sub_type"
-          class="bg-nc-bg-gray-light rounded-md h-8 w-8 flex-none flex items-center justify-center children:flex-none"
-        >
-          <GeneralIntegrationIcon
-            :type="activeIntegrationItem.sub_type"
-            :size="activeIntegrationItem.sub_type === SyncDataType.NOCODB ? 'lg' : 'sm'"
-          />
-        </div>
-        <div class="flex-1 text-base font-weight-700">{{ activeIntegration?.title }}</div>
+  <WorkspaceIntegrationsFormsEditOrAddCommonWrapper
+    v-if="activeIntegration && activeIntegrationItem?.dynamic"
+    v-bind="props"
+    @update:open="vOpen = $event"
+  >
+    <template #headerRight>
+      <NcButton
+        size="small"
+        type="primary"
+        :disabled="isLoading"
+        :loading="isLoading"
+        class="nc-extdb-btn-submit"
+        @click="submit"
+      >
+        {{ pageMode === IntegrationsPageMode.ADD ? 'Create integration' : 'Update integration' }}
+      </NcButton>
+    </template>
+    <template #leftPanel="{ class: leftPanelClass }">
+      <div :class="leftPanelClass">
+        <NcFormBuilder class="px-2" />
+        <div class="mt-10"></div>
       </div>
-      <div class="flex items-center gap-3">
-        <NcButton
-          v-if="activeIntegration?.sub_type !== SyncDataType.NOCODB"
-          size="small"
-          type="primary"
-          :disabled="isLoading"
-          :loading="isLoading"
-          class="nc-extdb-btn-submit"
-          @click="submit"
-        >
-          {{ pageMode === IntegrationsPageMode.ADD ? 'Create integration' : 'Update integration' }}
-        </NcButton>
-        <NcButton size="small" type="text" @click="vOpen = false">
-          <GeneralIcon icon="close" class="text-gray-600" />
-        </NcButton>
-      </div>
-    </div>
-
-    <div class="h-[calc(100%_-_66px)] flex">
-      <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
-        <div class="w-full gap-4 max-w-[784px]">
-          <div
-            v-if="activeIntegrationItem?.dynamic"
-            class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full"
-          >
-            <NcFormBuilder class="px-2" />
-            <div class="mt-10"></div>
-          </div>
-          <div v-else class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
-            <template v-if="activeIntegration?.sub_type === SyncDataType.NOCODB">
-              <WorkspaceIntegrationsConnect />
-            </template>
-          </div>
-        </div>
-      </div>
-      <div class="nc-edit-or-add-integration-right-panel">
-        <WorkspaceIntegrationsSupportedDocs />
-        <NcDivider />
-      </div>
-    </div>
-  </div>
+    </template>
+  </WorkspaceIntegrationsFormsEditOrAddCommonWrapper>
+  <WorkspaceIntegrationsConnect v-if="activeIntegration" v-bind="props" @update:open="vOpen = $event" />
+  <div v-else></div>
 </template>
 
 <style lang="scss" scoped>

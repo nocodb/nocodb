@@ -523,11 +523,11 @@ onKeyStroke('ArrowDown', onDown)
                             v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
                             @click="setDefaultIntegration(integration)"
                           >
-                            <GeneralIcon class="text-gray-800" icon="star" />
+                            <GeneralIcon class="text-current opacity-80" icon="star" />
                             <span>Set as default</span>
                           </NcMenuItem>
                           <NcMenuItem @click="editIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="edit" />
+                            <GeneralIcon class="text-current opacity-80" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
                           <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
@@ -546,13 +546,7 @@ onKeyStroke('ArrowDown', onDown)
                               "
                               @click="duplicateIntegration(integration)"
                             >
-                              <GeneralIcon
-                                :class="{
-                                  'text-current': integration?.sub_type === ClientType.SQLITE,
-                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
-                                }"
-                                icon="duplicate"
-                              />
+                              <GeneralIcon class="text-current opacity-80" icon="duplicate" />
                               <span>{{ $t('general.duplicate') }}</span>
                             </NcMenuItem>
                           </NcTooltip>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import JsBarcode from 'jsbarcode'
-import { message } from 'ant-design-vue'
 import { downloadSvg as _downloadSvg, copySVGToClipboard } from '~/utils/svgToPng'
 
 const props = defineProps({

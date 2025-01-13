@@ -21,9 +21,11 @@ const copyValue = async () => {
 </script>
 
 <template>
-  <div class="relative inline-flex items-center w-full h-full" @click="copyValue">
+  <div class="relative inline-flex items-center w-full h-full group" @click="copyValue">
     <a-input :value="modelValue" disabled :type="password ? 'password' : 'input'" class="!pr-8 !truncate" />
-    <div class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer text-nc-content-gray-subtle">
+    <div
+      class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer transition-colors text-nc-content-gray-muted group-hover:text-nc-content-gray-subtle"
+    >
       <GeneralIcon v-if="copied" class="max-h-4 min-w-4 !text-current" icon="check" />
       <GeneralIcon v-else class="max-h-4 min-w-4 !text-current" icon="copy" />
     </div>

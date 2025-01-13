@@ -308,6 +308,7 @@ onKeyStroke('ArrowDown', onDown)
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
+
               <th
                 class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
@@ -420,22 +421,20 @@ onKeyStroke('ArrowDown', onDown)
                     </span>
                   </div>
                 </td>
+
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
-                      <GeneralIntegrationIcon :type="integration.sub_type" />
-                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
-                        <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+                    <NcTooltip placement="bottom" class="h-8 w-8 flex-none flex items-center justify-center children:flex-none">
+                      <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
-                        {{
-                          integration.sub_type && clientTypesMap[integration.sub_type]
-                            ? clientTypesMap[integration.sub_type]?.text
-                            : integration.sub_type
-                        }}
-                      </NcTooltip>
-                    </NcBadge>
+                      <GeneralIntegrationIcon
+                        :type="integration.sub_type"
+                        :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
+                      />
+                    </NcTooltip>
                   </div>
                 </td>
+
                 <td class="cell-created-date">
                   <div>
                     <NcTooltip placement="bottom" show-on-truncate-only>
@@ -850,9 +849,9 @@ onKeyStroke('ArrowDown', onDown)
         }
 
         &.cell-type {
-          @apply basis-[20%];
+          @apply w-[120px];
           & > div {
-            @apply min-w-[178px];
+            @apply min-w-[98px];
           }
         }
 

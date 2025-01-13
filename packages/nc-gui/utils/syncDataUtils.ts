@@ -107,7 +107,7 @@ export const allIntegrations: IntegrationItemType[] = [
   {
     title: 'objects.syncData.nocodb',
     sub_type: SyncDataType.NOCODB,
-    icon: iconMap.nocodb,
+    icon: iconMap.nocodbPg,
     type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
     iconStyle: {

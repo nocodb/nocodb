@@ -181,7 +181,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .connection-details-left-panel {
-  @apply p-6 flex-1 flex justify-center;
+  @apply flex-1 flex justify-center;
 }
 
 :deep(.ant-collapse-header) {
@@ -220,6 +220,10 @@ onMounted(async () => {
   :deep(.ant-input),
   :deep(.ant-select) {
     @apply !appearance-none border-solid rounded-md;
+
+    &:disabled {
+      @apply bg-nc-bg-gray-extralight text-nc-content-gray-muted border-nc-border-gray-medium;
+    }
   }
 
   :deep(.ant-input-password) {

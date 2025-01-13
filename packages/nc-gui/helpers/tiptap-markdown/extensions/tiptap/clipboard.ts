@@ -26,9 +26,6 @@ export const MarkdownClipboard = Extension.create({
               context,
             })
           },
-          /**
-           * @param {import('@tiptap/pm/model').Slice} slice
-           */
           clipboardTextSerializer: (slice) => {
             if (!this.options.transformCopiedText) {
               return null

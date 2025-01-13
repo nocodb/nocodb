@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
-import { mdLinkRuleSetupExt } from '.'
+import { mdLinkRuleSetupExt, mdImageAsText } from '.'
 import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
 
 declare module 'markdown-it-task-lists' {
@@ -58,6 +58,14 @@ export class NcMarkdownParser {
     if (enableMention) {
       this.md.use(this.mentionExt, { users, currentUser })
     }
+
+    /**
+     * Todo: Remove this once we enable proper image support in the rich text editor.
+     * Also, replace its usage in other places such as:
+     * 1. packages/nc-gui/helpers/tiptap-markdown/parse/MarkdownParser.ts
+     * 2. packages/nc-gui/helpers/tiptap-markdown/extensions/nodes/image.ts
+     */
+    this.md.use(mdImageAsText)
 
     // Apply custom extensions passed during instantiation
     this.applyCustomExtensions(extensions)

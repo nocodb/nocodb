@@ -2,6 +2,7 @@ import MarkdownIt from 'markdown-it'
 import type { Editor } from '@tiptap/core'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
+import { mdImageAsText } from '~/helpers/tiptap/functionality'
 
 export class MarkdownParser {
   editor: Editor
@@ -10,6 +11,7 @@ export class MarkdownParser {
 
   constructor(editor: Editor, { html, linkify, breaks }: Partial<MarkdownIt.Options>) {
     this.editor = editor
+
     this.md = this.withPatchedRenderer(
       MarkdownIt({
         html,
@@ -17,6 +19,14 @@ export class MarkdownParser {
         breaks,
       }),
     )
+
+    /**
+     * Todo: Remove this once we enable proper image support in the rich text editor.
+     * Also, replace its usage in other places such as: 
+     * 1. packages/nc-gui/helpers/tiptap/functionality/markdown/markdown.ts
+     * 2. packages/nc-gui/helpers/tiptap-markdown/extensions/nodes/image.ts
+     */
+    this.md.use(mdImageAsText)
   }
 
   parse<T>(content: T, { inline }: { inline?: boolean } = {}): T | string {

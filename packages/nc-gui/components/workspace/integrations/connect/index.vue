@@ -7,11 +7,7 @@ const { appInfo } = useGlobal()
 
 const { base: activeBase } = storeToRefs(useBase())
 
-const { loadIntegrations } = useIntegrationStore()
-
 const connectionDetails = ref()
-
-const isLoading = ref(false)
 
 const getConnectionDetails = async () => {
   if (!activeWorkspace.value?.id) return
@@ -27,7 +23,6 @@ const createConnectionDetails = async () => {
   if (!activeWorkspace.value?.id) return
 
   try {
-    isLoading.value = true
     const res = await $api.internal.postOperation(
       activeWorkspace.value.id,
       'nc',
@@ -37,13 +32,24 @@ const createConnectionDetails = async () => {
       {},
     )
     connectionDetails.value = res
-
-    await loadIntegrations()
+    ;(activeWorkspace.value as any).data_reflection_enabled = true
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
 
-  isLoading.value = false
+const deleteConnectionDetails = async () => {
+  if (!activeWorkspace.value?.id) return
+
+  try {
+    await $api.internal.postOperation(activeWorkspace.value.id, 'nc', {
+      operation: 'deleteDataReflection',
+    })
+    connectionDetails.value = null
+    ;(activeWorkspace.value as any).data_reflection_enabled = false
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const host = computed(() =>
@@ -60,7 +66,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!connectionDetails" class="flex flex-col gap-8 w-full h-full items-center justify-center">
+  <div v-if="!activeWorkspace.data_reflection_enabled" class="flex flex-col gap-8 w-full h-full items-center justify-center">
     <span class="text-lg font-bold">Connect with your favorite tools</span>
     <span class="text-sm text-neutral-500">Integrate with your favourite tools by bypassing our APIs</span>
     <NcButton class="!rounded-md" type="primary" @click="createConnectionDetails"> Get Connection Details </NcButton>
@@ -68,7 +74,7 @@ onMounted(async () => {
   <div v-else class="connection-details bg-white relative h-full flex flex-col w-full">
     <div class="h-full max-h-[calc(100%_-_65px)] flex">
       <div class="connection-details-left-panel nc-scrollbar-thin relative">
-        <div class="h-full w-[768px] mx-auto">
+        <div v-if="connectionDetails" class="h-full w-[768px] mx-auto">
           <a-form
             ref="form"
             :model="connectionDetails"
@@ -137,6 +143,9 @@ onMounted(async () => {
                   </a-col>
                 </a-row>
               </div>
+              <div class="w-full flex items-center justify-center mt-4">
+                <NcButton class="w-1/2" type="danger" @click="deleteConnectionDetails">Disable Connection</NcButton>
+              </div>
             </div>
 
             <div>
@@ -144,7 +153,7 @@ onMounted(async () => {
             </div>
           </a-form>
         </div>
-        <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+        <general-overlay v-else :model-value="true" inline transition class="!bg-opacity-15">
           <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
             <a-spin size="large" />
           </div>

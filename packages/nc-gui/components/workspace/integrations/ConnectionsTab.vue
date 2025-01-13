@@ -134,11 +134,6 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   isDeleteIntegrationModalOpen.value = true
   toBeDeletedIntegration.value = source
 
-  if (source.sub_type === SyncDataType.NOCODB) {
-    isLoadingGetLinkedSources.value = false
-    return
-  }
-
   const connectionDetails = await getIntegration(source, {
     includeSources: true,
   })
@@ -562,11 +557,13 @@ onKeyStroke('ArrowDown', onDown)
                               <span>{{ $t('general.duplicate') }}</span>
                             </NcMenuItem>
                           </NcTooltip>
-                          <NcDivider />
-                          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
-                            <GeneralIcon icon="delete" />
-                            {{ $t('general.delete') }}
-                          </NcMenuItem>
+                          <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.delete') }}
+                            </NcMenuItem>
+                          </template>
                         </NcMenu>
                       </template>
                     </NcDropdown>

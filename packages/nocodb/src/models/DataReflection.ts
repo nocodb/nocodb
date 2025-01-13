@@ -10,7 +10,7 @@ import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 
-const NC_DATA_REFLECTION_PORT = process.env.NC_DATA_REFLECTION_PORT || '5432';
+const NC_DATA_REFLECTION_PORT = process.env.NC_DATA_REFLECTION_PORT || '4000';
 
 export default class DataReflection {
   id?: string;

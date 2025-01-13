@@ -30,6 +30,8 @@ const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { activeWorkspace } = storeToRefs(useWorkspace())
+
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
 const router = useRouter()
@@ -231,7 +233,7 @@ onMounted(() => {
 })
 
 const dataReflectionEnabled = computed(() => {
-  return !!integrations.value.find((i) => i.sub_type === SyncDataType.NOCODB)
+  return !!activeWorkspace.value?.data_reflection_enabled
 })
 
 watch(activeViewTab, (value) => {

@@ -3,19 +3,18 @@ import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
+import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import {
   HardBreak,
   Italic,
   Link,
-  NcMarkdownParser,
   Strike,
   TaskItem,
   Underline,
   UserMention,
   UserMentionList,
-  suggestion,
   Markdown,
-} from '~/helpers/tiptap/extensions'
+} from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{

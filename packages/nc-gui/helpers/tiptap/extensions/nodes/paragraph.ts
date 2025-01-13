@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core'
-import { defaultMarkdownSerializer } from 'prosemirror-markdown'
+import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 import type { MarkdownNodeSpec } from '../tiptap'
 
 // TODO: Extend from tiptap extension

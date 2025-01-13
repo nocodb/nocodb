@@ -1,6 +1,6 @@
 import { Editor } from '@tiptap/core'
-import { MarkdownSerializer, MarkdownSerializerState } from 'prosemirror-markdown'
-import { Node, Mark } from 'prosemirror-model'
+import { MarkdownSerializer, MarkdownSerializerState } from '@tiptap/pm/markdown'
+import { Node, Mark } from '@tiptap/pm/model'
 import MarkdownIt from 'markdown-it'
 
 export interface MarkdownOptions {

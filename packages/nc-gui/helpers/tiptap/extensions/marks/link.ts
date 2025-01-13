@@ -1,8 +1,8 @@
 import TiptapLink, { type LinkOptions } from '@tiptap/extension-link'
 import { mergeAttributes } from '@tiptap/core'
-import { Plugin, TextSelection } from 'prosemirror-state'
-import type { AddMarkStep, Step } from 'prosemirror-transform'
-import { defaultMarkdownSerializer } from 'prosemirror-markdown'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
+import type { AddMarkStep, Step } from '@tiptap/pm/transform'
+import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 
 export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {

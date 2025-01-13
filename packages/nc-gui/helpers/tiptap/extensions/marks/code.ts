@@ -1,5 +1,5 @@
 import TiptapCode, { type CodeOptions } from '@tiptap/extension-code'
-import { defaultMarkdownSerializer } from 'prosemirror-markdown'
+import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 import type { MarkdownMarkSpec } from '../tiptap'
 
 export const Code = TiptapCode.extend<CodeOptions, { markdown: MarkdownMarkSpec }>({

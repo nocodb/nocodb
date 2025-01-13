@@ -1,5 +1,5 @@
-import { Node, Mark } from 'prosemirror-model'
-import { MarkdownSerializerState as BaseMarkdownSerializerState } from 'prosemirror-markdown'
+import { Node, Mark } from '@tiptap/pm/model'
+import { MarkdownSerializerState as BaseMarkdownSerializerState } from '@tiptap/pm/markdown'
 import { trimInline } from '../util/markdown'
 
 interface InlineState {

@@ -31,7 +31,7 @@ onMounted(() => {
   <div
     class="relative group w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-8 flex items-center text-nc-content-gray-muted"
   >
-    <NcDropdown v-model:visible="isOpen" placement="bottomRight" overlay-class-name="overflow-hidden max-w-[320px]">
+    <NcDropdown v-model:visible="isOpen" overlay-class-name="overflow-hidden max-w-[320px]">
       <div @click.stop class="h-full flex-1 px-3 mr-8 flex items-center gap-2 cursor-pointer">
         <div>
           {{ activeSchemaId }}
@@ -53,6 +53,7 @@ onMounted(() => {
           option-label-key="title"
           option-value-key="id"
           :close-on-select="true"
+          :item-height="56"
           class="!w-full"
           container-class-name="!max-h-[171px]"
         >

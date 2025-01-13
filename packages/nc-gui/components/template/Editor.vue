@@ -448,16 +448,21 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const res = await $fetch.raw(`/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${operationId ? `&operation_id=${operationId}` : ''}`, {
-                baseURL,
-                method: 'POST',
-                headers: {
-                  'xc-auth': $state.token.value as string,
-                  'nc-operation-id': operationId,
-                  'nc-import-type': quickImportType,
+              const res = await $fetch.raw(
+                `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
+                  operationId ? `&operation_id=${operationId}` : ''
+                }`,
+                {
+                  baseURL,
+                  method: 'POST',
+                  headers: {
+                    'xc-auth': $state.token.value as string,
+                    'nc-operation-id': operationId,
+                    'nc-import-type': quickImportType,
+                  },
+                  body: batchData,
                 },
-                body: batchData,
-              });
+              )
 
               operationId = res.headers?.['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)

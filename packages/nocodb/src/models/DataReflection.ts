@@ -9,8 +9,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
 import NocoCache from '~/cache/NocoCache';
-
-const NC_DATA_REFLECTION_PORT = process.env.NC_DATA_REFLECTION_PORT || '5433';
+import { NC_DATA_REFLECTION_PORT } from '~/helpers/dataReflectionHelpers';
 
 export default class DataReflection {
   id?: string;
@@ -29,7 +28,7 @@ export default class DataReflection {
 
   public static async init() {}
 
-  public static async insert(
+  protected static async insert(
     dataReflection: Partial<DataReflection>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -108,7 +107,7 @@ export default class DataReflection {
     return new DataReflection(dataReflection);
   }
 
-  public static async delete(
+  protected static async delete(
     params: {
       id?: string;
       fk_workspace_id?: string;
@@ -147,5 +146,35 @@ export default class DataReflection {
     const data = await Base.list(fk_workspace_id, ncMeta);
 
     return data.map((base) => base.id);
+  }
+
+  public static async create(
+    fk_workspace_id: string,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<DataReflection> {
+    throw NcError.notImplemented('Data Reflection');
+  }
+
+  public static async destroy(
+    fk_workspace_id: string,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    return;
+  }
+
+  async grantBase(
+    fk_workspace_id: string,
+    base_id: string,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return;
+  }
+
+  async revokeBase(
+    fk_workspace_id: string,
+    base_id: string,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return;
   }
 }

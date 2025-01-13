@@ -399,12 +399,14 @@ watch(
                   <slot name="listItemExtraLeft" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
                   </slot>
 
-                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                    <template #title>
+                  <slot name="listItemContent" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                    <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                      <template #title>
+                        {{ option[optionLabelKey] }}
+                      </template>
                       {{ option[optionLabelKey] }}
-                    </template>
-                    {{ option[optionLabelKey] }}
-                  </NcTooltip>
+                    </NcTooltip>
+                  </slot>
 
                   <slot name="listItemExtraRight" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
                   </slot>

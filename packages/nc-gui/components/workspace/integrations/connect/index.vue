@@ -15,8 +15,6 @@ const { $api } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { base: activeBase } = storeToRefs(useBase())
-
 const connectionDetails = ref()
 
 const getConnectionDetails = async () => {
@@ -78,7 +76,7 @@ onMounted(async () => {
 <template>
   <WorkspaceIntegrationsFormsEditOrAddCommonWrapper v-bind="props" @update:open="emits('update:open', $event)">
     <template #headerRightExtra v-if="activeWorkspace.data_reflection_enabled">
-      <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable Connection</NcButton>
+      <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable connection</NcButton>
     </template>
     <template #leftPanel="{ class: leftPanelClass }">
       <div :class="leftPanelClass">
@@ -184,7 +182,7 @@ onMounted(async () => {
                         </a-col>
                         <a-col :span="12">
                           <a-form-item label="Schema">
-                            <LazyWorkspaceIntegrationsConnectCopyInput v-model="activeBase.id" class="nc-connection-schema" />
+                            <LazyWorkspaceIntegrationsConnectSchemaInput class="nc-connection-schema" />
                           </a-form-item>
                         </a-col>
                       </a-row>

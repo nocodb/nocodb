@@ -57,7 +57,7 @@ onMounted(() => {
           option-label-key="title"
           search-input-placeholder="Search"
           option-value-key="id"
-          :close-on-select="true"
+          close-on-select
           :item-height="56"
           class="!w-full"
           container-class-name="!max-h-[171px]"
@@ -100,5 +100,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

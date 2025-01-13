@@ -111,7 +111,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
         return {
           success: true,
-          ...{ result },
+          result,
         }
       } catch (e) {
         return {

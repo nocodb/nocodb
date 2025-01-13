@@ -395,11 +395,10 @@ watch(
                 @click="handleSelectOption(option, idx)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>
-                <slot name="listItem" :option="option" :is-selected="() => compareVModel(option[optionValueKey])" :index="idx">
-                  <slot name="listItemExtraLeft" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
-                  </slot>
+                <slot name="listItem" :option="option" :is-selected="compareVModel(option[optionValueKey])" :index="idx">
+                  <slot name="listItemExtraLeft" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>
 
-                  <slot name="listItemContent" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                  <slot name="listItemContent" :option="option" :is-selected="compareVModel(option[optionValueKey])">
                     <NcTooltip class="truncate flex-1" show-on-truncate-only>
                       <template #title>
                         {{ option[optionLabelKey] }}
@@ -408,10 +407,9 @@ watch(
                     </NcTooltip>
                   </slot>
 
-                  <slot name="listItemExtraRight" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
-                  </slot>
+                  <slot name="listItemExtraRight" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>
 
-                  <slot name="listItemSelectedIcon" :option="option" :is-selected="() => compareVModel(option[optionValueKey])">
+                  <slot name="listItemSelectedIcon" :option="option" :is-selected="compareVModel(option[optionValueKey])">
                     <GeneralIcon
                       v-if="showSelectedOption && compareVModel(option[optionValueKey])"
                       id="nc-selected-item-icon"

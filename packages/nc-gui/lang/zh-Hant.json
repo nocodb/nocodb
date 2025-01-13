@@ -858,6 +858,7 @@
     "clickToHide": "點擊隱藏",
     "clickToDownload": "點擊下載",
     "forRole": "針對角色",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "點擊以複製表格ID",
     "clickToCopyViewID": "點擊以複製檢視 ID",
     "viewMode": "檢視模式",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "下載為 CSV",
     "downloadExcel": "下載為 XLSX",
     "uploadCSV": "上傳 CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "匯入",
     "importMetadata": "匯入中繼資料",
     "exportMetadata": "匯出中繼資料",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "部分必填欄位為空",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

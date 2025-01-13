@@ -858,6 +858,7 @@
     "clickToHide": "Click to hide",
     "clickToDownload": "Click to download",
     "forRole": "for role",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
@@ -1921,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

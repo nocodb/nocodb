@@ -20,6 +20,6 @@ export class BarcodeOverlay extends BasePage {
   }
 
   async clickCloseButton() {
-    await this.get().locator('.ant-modal-close-x').click();
+    await this.get().locator('.nc-barcode-close').click();
   }
 }

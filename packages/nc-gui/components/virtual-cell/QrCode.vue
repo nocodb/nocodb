@@ -59,15 +59,13 @@ const cellIcon = (column: ColumnType) =>
     columnMeta: column,
   })
 
+const { isCopied, performCopy } = useIsCopied()
+
 const copyAsPng = async () => {
   if (!qrCodeLarge.value) return
   const blob = await base64ToBlob(qrCodeLarge.value)
   const success = await copyPNGToClipboard(blob)
-  if (success) {
-    message.success(t('msg.info.copiedToClipboard'))
-  } else {
-    message.error(t('msg.error.notSupported'))
-  }
+  if (!success) message.error(t('msg.error.notSupported'))
 }
 </script>
 
@@ -103,11 +101,12 @@ const copyAsPng = async () => {
             <template #title>
               {{ $t('labels.clickToCopy') }}
             </template>
-            <NcButton size="small" type="secondary" @click="copyAsPng">
+            <NcButton size="small" type="secondary" @click="performCopy(copyAsPng)">
               <template #icon>
-                <GeneralIcon icon="copy" class="w-4 h-4" />
+                <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4" />
+                <GeneralIcon v-else icon="copy" class="h-4 w-4" />
               </template>
-              {{ $t('general.copy') }}
+              {{ isCopied ? $t('general.copied') : $t('general.copy') }}
             </NcButton>
           </NcTooltip>
           <a :href="qrCodeLarge" :download="`${qrValue}.png`">

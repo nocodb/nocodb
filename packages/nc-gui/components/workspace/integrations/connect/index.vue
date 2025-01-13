@@ -9,64 +9,16 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:open'])
 
-const { activeWorkspace } = storeToRefs(useWorkspace())
-
-const { $api } = useNuxtApp()
-
-const { appInfo } = useGlobal()
-
-const connectionDetails = ref()
-
-const getConnectionDetails = async () => {
-  if (!activeWorkspace.value?.id) return
-
-  const res = await $api.internal.getOperation(activeWorkspace.value.id, 'nc', {
-    operation: 'getDataReflection',
-  })
-
-  connectionDetails.value = res
-}
-
-const createConnectionDetails = async () => {
-  if (!activeWorkspace.value?.id) return
-
-  try {
-    const res = await $api.internal.postOperation(
-      activeWorkspace.value.id,
-      'nc',
-      {
-        operation: 'createDataReflection',
-      },
-      {},
-    )
-    connectionDetails.value = res
-    ;(activeWorkspace.value as any).data_reflection_enabled = true
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const deleteConnectionDetails = async () => {
-  if (!activeWorkspace.value?.id) return
-
-  try {
-    await $api.internal.postOperation(activeWorkspace.value.id, 'nc', {
-      operation: 'deleteDataReflection',
-    })
-    connectionDetails.value = null
-    ;(activeWorkspace.value as any).data_reflection_enabled = false
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const host = computed(() =>
-  connectionDetails.value?.host || appInfo.value.ncSiteUrl ? `${new URL(appInfo.value.ncSiteUrl).hostname}` : '',
-)
-
-const connectionUrl = computed(() => {
-  return `postgresql://${connectionDetails.value.username}:${connectionDetails.value.password}@${host.value}:${connectionDetails.value.port}/${connectionDetails.value.database}`
-})
+const {
+  connectionDetails,
+  connectionUrl,
+  connectionHost,
+  selectedBase,
+  createConnectionDetails,
+  getConnectionDetails,
+  deleteConnectionDetails,
+  dataReflectionEnabled,
+} = useDataReflection()
 
 onMounted(async () => {
   await getConnectionDetails()
@@ -75,13 +27,13 @@ onMounted(async () => {
 
 <template>
   <WorkspaceIntegrationsFormsEditOrAddCommonWrapper v-bind="props" @update:open="emits('update:open', $event)">
-    <template #headerRightExtra v-if="activeWorkspace.data_reflection_enabled">
+    <template v-if="dataReflectionEnabled" #headerRightExtra>
       <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable connection</NcButton>
     </template>
     <template #leftPanel="{ class: leftPanelClass }">
       <div :class="leftPanelClass">
         <div
-          v-if="!activeWorkspace.data_reflection_enabled"
+          v-if="!dataReflectionEnabled"
           class="nc-nocodb-connection-details-placeholder flex flex-col gap-8 w-full h-full items-center justify-center text-center mt-10"
         >
           <img
@@ -138,7 +90,7 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="Host">
-                            <LazyWorkspaceIntegrationsConnectCopyInput v-model="host" class="nc-connection-host" />
+                            <LazyWorkspaceIntegrationsConnectCopyInput v-model="connectionHost" class="nc-connection-host" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
@@ -182,7 +134,7 @@ onMounted(async () => {
                         </a-col>
                         <a-col :span="12">
                           <a-form-item label="Schema">
-                            <LazyWorkspaceIntegrationsConnectSchemaInput class="nc-connection-schema" />
+                            <LazyWorkspaceIntegrationsConnectSchemaInput v-model="selectedBase" class="nc-connection-schema" />
                           </a-form-item>
                         </a-col>
                       </a-row>
@@ -204,7 +156,7 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-    <template v-if="!activeWorkspace.data_reflection_enabled" #rightPanel> </template>
+    <template v-if="!dataReflectionEnabled" #rightPanel> </template>
   </WorkspaceIntegrationsFormsEditOrAddCommonWrapper>
 </template>
 

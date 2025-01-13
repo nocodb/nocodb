@@ -1,9 +1,15 @@
 <script lang="ts" setup>
+const props = defineProps<{
+  modelValue: string
+}>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const vModel = useVModel(props, 'modelValue', emit)
+
 const { basesList } = storeToRefs(useBases())
 
 const isOpen = ref<boolean>(false)
-
-const activeSchemaId = ref<string | undefined>()
 
 const { copy } = useCopy()
 
@@ -12,7 +18,7 @@ const { t } = useI18n()
 const copied = ref(false)
 
 const copyValue = async () => {
-  await copy(activeSchemaId.value ?? '')
+  await copy(vModel.value ?? '')
   message.info(t('msg.info.copiedToClipboard'))
   copied.value = true
   setTimeout(() => {
@@ -21,8 +27,8 @@ const copyValue = async () => {
 }
 
 onMounted(() => {
-  if (basesList.value?.length) {
-    activeSchemaId.value = basesList.value[0]?.id
+  if (basesList.value?.length && basesList.value[0]?.id) {
+    vModel.value = basesList.value[0].id
   }
 })
 </script>
@@ -32,9 +38,9 @@ onMounted(() => {
     class="relative group w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-8 flex items-center text-nc-content-gray-muted"
   >
     <NcDropdown v-model:visible="isOpen" overlay-class-name="overflow-hidden max-w-[320px]">
-      <div @click.stop class="h-full flex-1 px-3 mr-8 flex items-center gap-2 cursor-pointer">
+      <div class="h-full flex-1 px-3 mr-8 flex items-center gap-2 cursor-pointer" @click.stop>
         <div>
-          {{ activeSchemaId }}
+          {{ vModel }}
         </div>
         <GeneralIcon
           icon="chevronDown"
@@ -45,17 +51,17 @@ onMounted(() => {
 
       <template #overlay>
         <NcList
-          v-model:value="activeSchemaId"
+          v-model:value="vModel"
           v-model:open="isOpen"
-          @update:value="copyValue"
           :list="basesList"
-          search-input-placeholder="Search"
           option-label-key="title"
+          search-input-placeholder="Search"
           option-value-key="id"
           :close-on-select="true"
           :item-height="56"
           class="!w-full"
           container-class-name="!max-h-[171px]"
+          @update:value="copyValue"
         >
           <template #listItemContent="{ option }">
             <div class="flex-1 flex flex-col truncate">
@@ -86,8 +92,8 @@ onMounted(() => {
     </NcDropdown>
 
     <div
-      @click="copyValue"
       class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer transition-colors text-nc-content-gray-muted group-hover:text-nc-content-gray-subtle"
+      @click="copyValue"
     >
       <GeneralIcon v-if="copied" class="max-h-4 min-w-4 !text-current" icon="check" />
       <GeneralIcon v-else class="max-h-4 min-w-4 !text-current" icon="copy" />

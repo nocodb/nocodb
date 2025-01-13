@@ -209,6 +209,10 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
     return
   }
 
+  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
+    return
+  }
+
   await addIntegration(integration)
 }
 
@@ -416,7 +420,12 @@ watch(activeViewTab, (value) => {
                               <div class="name">{{ $t(integration.title) }}</div>
                               <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
                             </div>
-                            <div v-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
+                            <div
+                              v-if="
+                                !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration?.sub_type === SyncDataType.NOCODB
+                              "
+                            ></div>
+                            <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
                               <template v-if="dataReflectionEnabled">
                                 <GeneralIcon icon="check" class="text-primary text-lg" />
                               </template>

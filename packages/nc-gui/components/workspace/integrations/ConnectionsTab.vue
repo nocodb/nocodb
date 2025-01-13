@@ -26,6 +26,8 @@ const { allCollaborators } = storeToRefs(useWorkspace())
 
 const { bases } = storeToRefs(useBases())
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -140,6 +142,14 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
 
   isLoadingGetLinkedSources.value = false
+}
+
+const openEditIntegration = (integration: IntegrationType) => {
+  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
+    return
+  }
+
+  editIntegration(integration)
 }
 
 const onDeleteConfirm = async () => {
@@ -402,7 +412,7 @@ onKeyStroke('ArrowDown', onDown)
         <template v-if="filteredIntegrations?.length">
           <table class="h-full max-h-[calc(100%_-_55px)] w-full">
             <tbody>
-              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
+              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="openEditIntegration(integration)">
                 <td class="cell-title">
                   <div
                     class="gap-3"
@@ -450,7 +460,7 @@ onKeyStroke('ArrowDown', onDown)
                       <div class="h-8 w-8 grid place-items-center">
                         <GeneralIcon icon="nocodb1" />
                       </div>
-                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Clould</div>
+                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
                     </div>
                     <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
                       <template #title>
@@ -532,7 +542,12 @@ onKeyStroke('ArrowDown', onDown)
                             <GeneralIcon class="text-current opacity-80" icon="star" />
                             <span>Set as default</span>
                           </NcMenuItem>
-                          <NcMenuItem @click="editIntegration(integration)">
+                          <NcMenuItem
+                            :disabled="
+                              !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB
+                            "
+                            @click="openEditIntegration(integration)"
+                          >
                             <GeneralIcon class="text-current opacity-80" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>

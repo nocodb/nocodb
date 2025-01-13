@@ -1,6 +1,6 @@
 import { Extension, extensions } from '@tiptap/core'
-import { MarkdownSerializer } from '../../serialize/MarkdownSerializer'
-import { MarkdownParser } from '../../parse/MarkdownParser'
+import { MarkdownSerializer } from '../../serialize'
+import { MarkdownParser } from '../../parse'
 import { MarkdownClipboard, MarkdownTightLists } from '.'
 import type { MarkdownOptions, MarkdownStorage } from '.'
 

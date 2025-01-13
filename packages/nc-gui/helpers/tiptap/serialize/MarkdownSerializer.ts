@@ -1,20 +1,17 @@
+import type { Editor, AnyExtension } from '@tiptap/core'
+import prosemirror from 'prosemirror-model'
 import { MarkdownSerializerState } from './state'
-import HTMLMark from '../extensions/marks/html'
-import HTMLNode from '../extensions/nodes/html'
+import { HTMLMark, HTMLNode, HardBreak } from '../extensions'
 import { getMarkdownSpec } from '../util/extensions'
-import HardBreak from '../extensions/nodes/hard-break'
 
 export class MarkdownSerializer {
-  /**
-   * @type {import('@tiptap/core').Editor}
-   */
-  editor = null
+  editor: Editor
 
-  constructor(editor) {
+  constructor(editor: Editor) {
     this.editor = editor
   }
 
-  serialize(content) {
+  serialize(content: prosemirror.Node) {
     const state = new MarkdownSerializerState(this.nodes, this.marks, {
       hardBreakNodeName: HardBreak.name,
     })
@@ -46,11 +43,11 @@ export class MarkdownSerializer {
     }
   }
 
-  serializeNode(node) {
+  serializeNode(node: AnyExtension) {
     return getMarkdownSpec(node)?.serialize?.bind({ editor: this.editor, options: node.options })
   }
 
-  serializeMark(mark) {
+  serializeMark(mark: AnyExtension) {
     const serialize = getMarkdownSpec(mark)?.serialize
     return serialize
       ? {

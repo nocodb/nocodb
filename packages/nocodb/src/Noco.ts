@@ -17,8 +17,8 @@ import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
-import { Integration } from '~/models';
 import { getAppUrl } from '~/utils/appUrl';
+import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
@@ -154,6 +154,8 @@ export default class Noco {
     }
 
     await Integration.init();
+
+    await DataReflection.init();
 
     return nestApp.getHttpAdapter().getInstance();
   }

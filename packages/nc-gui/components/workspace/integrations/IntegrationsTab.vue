@@ -44,6 +44,7 @@ const {
   integrationsRefreshKey,
   integrationsCategoryFilter,
   activeViewTab,
+  integrations,
   loadDynamicIntegrations,
 } = useIntegrationStore()
 
@@ -202,7 +203,7 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
 
 const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
-    handleUpvote(category, integration.subType)
+    handleUpvote(category, integration.sub_type)
     return
   }
 
@@ -227,6 +228,10 @@ onMounted(() => {
   if (!integrationsCategoryFilter.value.length) {
     integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
   }
+})
+
+const dataReflectionEnabled = computed(() => {
+  return !!integrations.value.find((i) => i.sub_type === SyncDataType.NOCODB)
 })
 
 watch(activeViewTab, (value) => {
@@ -386,7 +391,7 @@ watch(activeViewTab, (value) => {
                       >
                     </div>
                     <div v-if="category.list.length" class="integration-type-list">
-                      <template v-for="integration of category.list" :key="integration.subType">
+                      <template v-for="integration of category.list" :key="integration.sub_type">
                         <NcTooltip
                           v-if="easterEggToggle || integration.isAvailable"
                           :disabled="integration?.isAvailable"
@@ -409,14 +414,20 @@ watch(activeViewTab, (value) => {
                               <div class="name">{{ $t(integration.title) }}</div>
                               <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
                             </div>
-                            <div v-if="integration?.isAvailable" class="action-btn">+</div>
+                            <div v-if="integration?.sub_type === SyncDataType.NOCODB">
+                              <template v-if="dataReflectionEnabled">
+                                <GeneralIcon icon="check" class="text-primary text-lg" />
+                              </template>
+                              <template v-else>+</template>
+                            </div>
+                            <div v-else-if="integration?.isAvailable" class="action-btn">+</div>
                             <div v-else class="">
                               <NcButton
                                 type="secondary"
                                 size="xs"
                                 class="integration-upvote-btn !rounded-lg !px-1 !py-0"
                                 :class="{
-                                  selected: upvotesData.has(integration.subType),
+                                  selected: upvotesData.has(integration.sub_type),
                                 }"
                               >
                                 <div class="flex items-center gap-2">

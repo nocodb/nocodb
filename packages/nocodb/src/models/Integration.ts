@@ -30,7 +30,7 @@ import { IntegrationStore, Source } from '~/models';
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
     type: IntegrationsType;
-    subType: string;
+    sub_type: string;
     form?: FormDefinition;
     wrapper?: typeof IntegrationWrapper;
     meta?: {
@@ -294,20 +294,11 @@ export default class Integration implements IntegrationType {
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
       sub_type?: string | ClientType;
-      limit?: number;
-      offset?: number;
       includeSourceCount?: boolean;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {
-    const { offset } = args;
-    let { limit } = args;
-
-    if (offset !== undefined && !limit) {
-      limit = 25;
-    }
-
     const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
 
     // exclude integrations which are private and not created by user
@@ -353,10 +344,10 @@ export default class Integration implements IntegrationType {
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
 
-    const integrationList = await listQb
-      .limit(limit)
-      .offset(offset)
-      .orderBy(`${MetaTable.INTEGRATIONS}.order`, 'asc');
+    const integrationList = await listQb.orderBy(
+      `${MetaTable.INTEGRATIONS}.order`,
+      'asc',
+    );
 
     // parse JSON metadata
     for (const integration of integrationList) {
@@ -380,21 +371,6 @@ export default class Integration implements IntegrationType {
           ['searchPath'],
         ]);
       }
-    }
-
-    if (limit) {
-      const count =
-        +(
-          await qb
-            .count(`${MetaTable.INTEGRATIONS}.id`, { as: 'count' })
-            .first()
-        )?.['count'] || 0;
-
-      return new PagedResponseImpl(integrations, {
-        count,
-        limit,
-        offset,
-      });
     }
 
     return new PagedResponseImpl(integrations, {
@@ -642,7 +618,7 @@ export default class Integration implements IntegrationType {
   getIntegrationWrapper<T extends IntegrationWrapper>() {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
-        (el) => el.type === this.type && el.subType === this.sub_type,
+        (el) => el.type === this.type && el.sub_type === this.sub_type,
       );
 
       if (!integrationWrapper) {
@@ -657,7 +633,7 @@ export default class Integration implements IntegrationType {
 
   getIntegrationMeta() {
     const integrationMeta = Integration.availableIntegrations.find(
-      (el) => el.type === this.type && el.subType === this.sub_type,
+      (el) => el.type === this.type && el.sub_type === this.sub_type,
     );
 
     if (!integrationMeta) {

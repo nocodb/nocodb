@@ -47,13 +47,13 @@ async function registerIntegrations(EE = false) {
     if (!integrationSubType) continue;
 
     let integration = availableIntegrations.find((el) => {
-      return integrationType === el.type && integrationSubType === el.subType;
+      return integrationType === el.type && integrationSubType === el.sub_type;
     });
 
     if (!integration) {
       integration = {
         type: integrationType,
-        subType: integrationSubType,
+        sub_type: integrationSubType,
       };
       availableIntegrations.push(integration);
     }
@@ -95,21 +95,21 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
     if (integration.entry) {
       integrationsEntry += `import ${prepareComponentName(
         integration.type,
-      )}${prepareComponentName(integration.subType)}Entry from '${
+      )}${prepareComponentName(integration.sub_type)}Entry from '${
         integration.entry
       }';\n`;
     }
     if (integration.form) {
       integrationsEntry += `import ${prepareComponentName(
         integration.type,
-      )}${prepareComponentName(integration.subType)}Form from '${
+      )}${prepareComponentName(integration.sub_type)}Form from '${
         integration.form
       }';\n`;
     }
     if (integration.manifest) {
       integrationsEntry += `import ${prepareComponentName(
         integration.type,
-      )}${prepareComponentName(integration.subType)}Manifest from '${
+      )}${prepareComponentName(integration.sub_type)}Manifest from '${
         integration.manifest
       }';\n`;
     }
@@ -122,22 +122,22 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
     for (const integration of availableIntegrations) {
       integrationsEntry += `  {\n`;
       integrationsEntry += `    type: '${integration.type}',\n`;
-      integrationsEntry += `    subType: '${integration.subType}',\n`;
+      integrationsEntry += `    sub_type: '${integration.sub_type}',\n`;
       if (integration.entry) {
         integrationsEntry += `    wrapper: ${prepareComponentName(
           integration.type,
-        )}${prepareComponentName(integration.subType)}Entry,\n`;
+        )}${prepareComponentName(integration.sub_type)}Entry,\n`;
       }
       if (integration.form) {
         integrationsEntry += `    form: ${prepareComponentName(
           integration.type,
-        )}${prepareComponentName(integration.subType)}Form,\n`;
+        )}${prepareComponentName(integration.sub_type)}Form,\n`;
       }
       if (integration.manifest) {
         integrationsEntry += `    meta: {
       ...${prepareComponentName(integration.type)}CommonManifest,
       ...${prepareComponentName(integration.type)}${prepareComponentName(
-          integration.subType,
+          integration.sub_type,
         )}Manifest,
     },\n`;
       }
@@ -146,7 +146,7 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
 
     integrationsEntry += `] as {
   type: IntegrationsType;
-  subType: string;
+  sub_type: string;
   form?: FormDefinition;
   wrapper?: typeof IntegrationWrapper;
   meta?: {
@@ -160,7 +160,7 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
   } else {
     integrationsEntry += `export default [] as {
   type: IntegrationsType;
-  subType: string;
+  sub_type: string;
   form?: FormDefinition;
   wrapper?: typeof IntegrationWrapper;
   meta?: {

@@ -134,6 +134,11 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   isDeleteIntegrationModalOpen.value = true
   toBeDeletedIntegration.value = source
 
+  if (source.sub_type === SyncDataType.NOCODB) {
+    isLoadingGetLinkedSources.value = false
+    return
+  }
+
   const connectionDetails = await getIntegration(source, {
     includeSources: true,
   })
@@ -542,7 +547,9 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem
-                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                              :disabled="
+                                integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB
+                              "
                               @click="duplicateIntegration(integration)"
                             >
                               <GeneralIcon

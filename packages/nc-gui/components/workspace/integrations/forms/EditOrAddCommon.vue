@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { IntegrationCategoryType, SyncDataType } from '#imports'
-import { clientTypes as _clientTypes } from '#imports'
+import { type IntegrationCategoryType, SyncDataType, clientTypes as _clientTypes } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -103,6 +102,7 @@ onMounted(async () => {
       </div>
       <div class="flex items-center gap-3">
         <NcButton
+          v-if="activeIntegration.sub_type !== SyncDataType.NOCODB"
           size="small"
           type="primary"
           :disabled="isLoading"
@@ -121,9 +121,17 @@ onMounted(async () => {
     <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative !px-4">
         <div class="w-full gap-4 max-w-[784px]">
-          <div class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
+          <div
+            v-if="activeIntegration.dynamic"
+            class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full"
+          >
             <NcFormBuilder class="px-2" />
             <div class="mt-10"></div>
+          </div>
+          <div v-else class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
+            <template v-if="activeIntegration.sub_type === SyncDataType.NOCODB">
+              <WorkspaceIntegrationsConnect />
+            </template>
           </div>
         </div>
       </div>

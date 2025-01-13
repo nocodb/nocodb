@@ -1,11 +1,23 @@
-import TiptapStrike from '@tiptap/extension-strike'
+import TiptapStrike, { type StrikeOptions } from '@tiptap/extension-strike'
 import { markInputRule, markPasteRule } from '@tiptap/core'
+import type { MarkdownMarkSpec } from '../tiptap'
 
-export const Strike = TiptapStrike.extend({
+/**
+ * Matches a strike to a ~strike~ on input.
+ */
+export const inputSingleTildeRegex = /(?:^|\s)(~(?!\s+~)([^~]+)~(?!\s+~))$/
+
+/**
+ * Matches a strike to a ~strike~ on paste.
+ */
+export const pasteSingleTildeRegex = /(?:^|\s)(~(?!\s+~)([^~]+)~(?!\s+~))/g
+
+export const Strike = TiptapStrike.extend<StrikeOptions, { markdown: MarkdownMarkSpec }>({
   addInputRules() {
     return [
+      ...(this.parent?.() ?? []),
       markInputRule({
-        find: /(?:^|\s)(~{1,2})(?!\s+~{1,2})((?:[^~]+))\1(?!\s+~{1,2})$/,
+        find: inputSingleTildeRegex,
         type: this.type,
       }),
     ]
@@ -13,8 +25,9 @@ export const Strike = TiptapStrike.extend({
 
   addPasteRules() {
     return [
+      ...(this.parent?.() ?? []),
       markPasteRule({
-        find: /(?:^|\s)(~{1,2})(?!\s+~{1,2})((?:[^~]+))\1(?!\s+~{1,2})/g,
+        find: pasteSingleTildeRegex,
         type: this.type,
       }),
     ]

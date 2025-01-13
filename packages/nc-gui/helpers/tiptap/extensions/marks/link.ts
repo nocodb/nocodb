@@ -1,9 +1,10 @@
-import TiptapLink from '@tiptap/extension-link'
+import TiptapLink, { type LinkOptions } from '@tiptap/extension-link'
 import { mergeAttributes } from '@tiptap/core'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import type { AddMarkStep, Step } from 'prosemirror-transform'
+import { defaultMarkdownSerializer } from 'prosemirror-markdown'
 
-export const Link = TiptapLink.extend({
+export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {
     return {
       ...this.parent?.(),
@@ -136,6 +137,17 @@ export const Link = TiptapLink.extend({
         },
       }),
     ]
+  },
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize: defaultMarkdownSerializer.marks.link,
+        parse: {
+          // handled by markdown-it
+        },
+      },
+    }
   },
 }).configure({
   openOnClick: false,

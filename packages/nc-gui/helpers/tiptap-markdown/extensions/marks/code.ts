@@ -1,6 +1,6 @@
 import TiptapCode, { type CodeOptions } from '@tiptap/extension-code'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownMarkSpec } from '../tiptap'
+import type { MarkdownMarkSpec } from '../../index'
 
 export const Code = TiptapCode.extend<CodeOptions, { markdown: MarkdownMarkSpec }>({
   addStorage() {

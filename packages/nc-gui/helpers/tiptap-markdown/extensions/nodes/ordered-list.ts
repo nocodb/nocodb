@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core'
-import type { MarkdownNodeSpec } from '../tiptap'
+import type { MarkdownNodeSpec } from '../../index'
 
 // TODO: Extend from tiptap extension
 export const OrderedList = Node.create<any, { markdown: MarkdownNodeSpec }>({

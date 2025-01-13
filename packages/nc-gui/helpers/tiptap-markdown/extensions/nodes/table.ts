@@ -1,7 +1,7 @@
 import { Node } from '@tiptap/core'
 import { childNodes } from '../../util/prosemirror'
 import { HTMLNode } from './html'
-import type { MarkdownNodeSpec } from '../tiptap'
+import type { MarkdownNodeSpec } from '../../index'
 
 export const Table = Node.create<any, { markdown: MarkdownNodeSpec }>({
   name: 'table',

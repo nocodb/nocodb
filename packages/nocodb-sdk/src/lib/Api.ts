@@ -1172,6 +1172,8 @@ export interface ButtonType {
   parsed_tree?: object;
   /** Webhook ID */
   fk_webhook_id?: IdType;
+  /** Script ID */
+  fk_script_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Comma separated column ids to be updated with the generated value */
@@ -2734,6 +2736,8 @@ export interface TableType {
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
   columnsById?: Record<string, any>;
+  /** Hash of columns */
+  columnsHash?: string;
   /** Model for Bool */
   deleted?: BoolType;
   /** Is this table enabled? */
@@ -3392,6 +3396,7 @@ export enum ButtonActionsType {
   Webhook = 'webhook',
   Url = 'url',
   Ai = 'ai',
+  Script = 'script',
 }
 
 /**

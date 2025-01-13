@@ -29,7 +29,7 @@ function triggerDownload(imgURI: string, fileName: string) {
   a.dispatchEvent(evt)
 }
 
-function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
+function processSVG(svg: SVGGraphicsElement, callback: (canvas: HTMLCanvasElement) => void) {
   const copy = svg.cloneNode(true)
 
   copyStylesInline(copy, svg)
@@ -51,6 +51,13 @@ function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
   img.onload = function () {
     ctx.drawImage(img, 0, 0)
     DOMURL.revokeObjectURL(url)
+    callback(canvas)
+  }
+  img.src = url
+}
+
+function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
+  processSVG(svg, (canvas) => {
     if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
       const blob = canvas.msToBlob()
       navigator.msSaveOrOpenBlob(blob, fileName)
@@ -58,12 +65,41 @@ function downloadSvg(svg: SVGGraphicsElement, fileName: string) {
       const imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
       triggerDownload(imgURI, fileName)
     }
-    console.log(canvas)
-
-    // TODO: Somehow canvas dom element is getting deleted
-    // document.removeChild(canvas)
-  }
-  img.src = url
+  })
 }
 
-export { downloadSvg }
+function copyPNGToClipboard(blob: Blob | null) {
+  return new Promise<boolean>((resolve) => {
+    if (!blob) {
+      resolve(false)
+      return
+    }
+    try {
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob,
+        }),
+      ])
+      resolve(true)
+    } catch {
+      resolve(false)
+    }
+  })
+}
+
+function copySVGToClipboard(svg: SVGGraphicsElement) {
+  return new Promise<boolean>((resolve) => {
+    processSVG(svg, (canvas) => {
+      canvas.toBlob((blob) => {
+        copyPNGToClipboard(blob).then(resolve)
+      })
+    })
+  })
+}
+
+async function base64ToBlob(base64String: string): Promise<Blob> {
+  const blob = await fetch(base64String).then((res) => res.blob())
+  return blob
+}
+
+export { downloadSvg, copySVGToClipboard, copyPNGToClipboard, base64ToBlob }

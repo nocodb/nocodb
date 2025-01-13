@@ -11,8 +11,8 @@ export function useDataReflection() {
 
   const dataReflectionEnabled = computed(() => activeWorkspace.value?.data_reflection_enabled)
 
-  const connectionHost = computed(() =>
-    connectionDetails.value?.host || appInfo.value.ncSiteUrl ? `${new URL(appInfo.value.ncSiteUrl).hostname}` : '',
+  const connectionHost = computed(
+    () => connectionDetails.value?.host || (appInfo.value.ncSiteUrl ? `${new URL(appInfo.value.ncSiteUrl).hostname}` : ''),
   )
 
   const connectionUrl = computed(() => {

@@ -226,11 +226,11 @@ watch(inputWrapperRef, () => {
 
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <div v-else>
-      <NcTooltip placement="bottom" class="float-right nc-json-expand-btn hidden">
+    <div v-else class="h-5 relative">
+      <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute right-0">
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="isExpanded = true">
-          <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+          <component :is="iconMap.maximize" class="hover:text-grey-800 text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>
       <LazyCellClampedText :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
@@ -249,7 +249,8 @@ watch(inputWrapperRef, () => {
 </style>
 
 <style lang="scss">
-.cell:hover .nc-json-expand-btn {
-  @apply block cursor-pointer;
+.cell:hover .nc-json-expand-btn,
+.nc-cell:hover .nc-json-expand-btn {
+  @apply block;
 }
 </style>

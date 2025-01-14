@@ -858,6 +858,7 @@
     "clickToHide": "Noklikšķiniet, lai paslēptu",
     "clickToDownload": "Noklikšķiniet, lai lejupielādētu",
     "forRole": "par lomu",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Noklikšķiniet, lai kopētu Tabulas ID",
     "clickToCopyViewID": "Noklikšķiniet, lai kopētu Skata ID",
     "viewMode": "Skata režīms",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Lejupielādēt kā CSV",
     "downloadExcel": "Lejupielādēt kā XLSX",
     "uploadCSV": "Augšupielādēt CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importēt",
     "importMetadata": "Importēt metadatus",
     "exportMetadata": "Eksportēt metadatus",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Daži no nepieciešamajiem laukiem ir tukši",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

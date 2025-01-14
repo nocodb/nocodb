@@ -858,6 +858,7 @@
     "clickToHide": "Klikkaa piilottaaksesi",
     "clickToDownload": "Klikkaa ladataksesi",
     "forRole": "roolille",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Napsauta kopioidaksesi taulukon ID",
     "clickToCopyViewID": "Klikkaa kopioidaksesi näkymän ID",
     "viewMode": "Näyttötila",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Lataa CSV",
     "downloadExcel": "Lataa XLSX",
     "uploadCSV": "Lataa CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Tuonti",
     "importMetadata": "Tuo metatieto",
     "exportMetadata": "Vie Metatieto",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Jotkut vaaditut kentät ovat tyhjiä",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",

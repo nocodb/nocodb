@@ -858,6 +858,7 @@
     "clickToHide": "انقر لإخفاء",
     "clickToDownload": "انقر للتنزيل",
     "forRole": "للدور",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "انقر لنسخ معرف الجدول",
     "clickToCopyViewID": "انقر لنسخ معرف العرض",
     "viewMode": "وضعية العرض",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "تحميل كـ CSV",
     "downloadExcel": "تحميل كـ XLSX",
     "uploadCSV": "رفع كـ CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "استيراد",
     "importMetadata": "استيراد البيانات الوصفية",
     "exportMetadata": "تصدير البيانات الوصفية",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "بعض الحقول المطلوبة فارغة",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

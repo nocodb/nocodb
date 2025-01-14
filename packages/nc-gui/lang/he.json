@@ -858,6 +858,7 @@
     "clickToHide": "לחץ כדי להסתיר",
     "clickToDownload": "לחץ כדי להוריד",
     "forRole": "עבור תפקיד",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "לחץ כדי להעתיק את מזהה הטבלה",
     "clickToCopyViewID": "לחץ כדי להעתיק את מזהה התצוגה",
     "viewMode": "מצב תצוגה",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "הורד כקובץ CSV",
     "downloadExcel": "הורד כקובץ XLSX",
     "uploadCSV": "העלה קובץ CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "ייבא",
     "importMetadata": "ייבא מטא נתונים",
     "exportMetadata": "יצא מטא נתונים",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "חלק מהשדות הדרושים ריקים",
       "columnVisibilityUpdateFailed": "עדכון נראות השדה נכשלה",
       "unsupportedCharacter": "תו לא נתמך: {char}",
-      "unsupportedCharacters": "תווים לא נתמכים: {char}"
+      "unsupportedCharacters": "תווים לא נתמכים: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

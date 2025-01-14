@@ -858,6 +858,7 @@
     "clickToHide": "คลิกเพื่อซ่อน",
     "clickToDownload": "คลิกเพื่อดาวน์โหลด",
     "forRole": "สำหรับบทบาท",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "คลิกเพื่อคัดลอก TABLE ID",
     "clickToCopyViewID": "คลิกเพื่อคัดลอก VIEW ID",
     "viewMode": "โหมดดู",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "ดาวน์โหลดเป็น CSV",
     "downloadExcel": "ดาวน์โหลดเป็น XLSX",
     "uploadCSV": "อัปโหลด CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "นำเข้า",
     "importMetadata": "เมทาดานำเข้า",
     "exportMetadata": "ข้อมูลเมตาส่งออก",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "ช่องที่จำเป็นบางช่องว่าง",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

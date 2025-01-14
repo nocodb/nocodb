@@ -858,6 +858,7 @@
     "clickToHide": "Klik om te verbergen",
     "clickToDownload": "Klik om te downloaden",
     "forRole": "voor rol",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klik om Tabel ID te kopiëren",
     "clickToCopyViewID": "Klik om View ID te kopiëren",
     "viewMode": "Weergavemodus",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Download als CSV",
     "downloadExcel": "Download als XLSX",
     "uploadCSV": "CSV uploaden",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importeren",
     "importMetadata": "Importeer Metadata",
     "exportMetadata": "Exporteer Metadata",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Enkele verplichte velden zijn leeg",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

@@ -858,6 +858,7 @@
     "clickToHide": "Kliknite na skrytie",
     "clickToDownload": "Kliknite na stiahnutie",
     "forRole": "pre úlohu",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Kliknite pre skopírovanie ID tabuľky",
     "clickToCopyViewID": "Kliknite na kopírovanie ID zobrazenia",
     "viewMode": "Režim zobrazenia",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Stiahnuť ako CSV",
     "downloadExcel": "Stiahnuť ako XLSX",
     "uploadCSV": "Odoslanie CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Import",
     "importMetadata": "Importovanie metaúdajov",
     "exportMetadata": "Export metaúdajov",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Niektoré z povinných polí sú prázdne",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",

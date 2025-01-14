@@ -858,6 +858,7 @@
     "clickToHide": "Click to hide",
     "clickToDownload": "Click to download",
     "forRole": "for role",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "টেবিল আইডি কপি করতে ক্লিক করুন",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "দর্শন মোড",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "সিএসভি হিসাবে ডাউনলোড করুন",
     "downloadExcel": "সিএসভি হিসাবে ডাউনলোড করুন",
     "uploadCSV": "সিএসভি আপলোড করুন",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "আমদানি",
     "importMetadata": "আমদানি মেটাডেটা",
     "exportMetadata": "রফতানি মেটাডেটা",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "কিছু প্রয়োজনীয় ক্ষেত্র খালি",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

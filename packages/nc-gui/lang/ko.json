@@ -858,6 +858,7 @@
     "clickToHide": "클릭하여 숨김",
     "clickToDownload": "클릭하여 다운로드",
     "forRole": "역할",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "클릭하여 테이블 ID 복사",
     "clickToCopyViewID": "클릭하여 뷰 ID 복사",
     "viewMode": "보기 모드",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV 다운로드",
     "downloadExcel": "XLSX 다운로드",
     "uploadCSV": "CSV 업로드",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "가져오기",
     "importMetadata": "메타 데이터 가져오기",
     "exportMetadata": "메타 데이터 내보내기",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "필수 필드 중 일부가 비어 있습니다",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "지원되지 않는 문자: {char}",
-      "unsupportedCharacters": "지원되지 않는 문자: {char}"
+      "unsupportedCharacters": "지원되지 않는 문자: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

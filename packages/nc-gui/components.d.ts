@@ -72,8 +72,6 @@ declare module 'vue' {
     ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
-    CilFullscreen: typeof import('~icons/cil/fullscreen')['default']
-    CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']

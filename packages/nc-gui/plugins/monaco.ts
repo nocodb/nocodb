@@ -1,6 +1,6 @@
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
+import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&inline'
 
 export default defineNuxtPlugin(() => {
   /**

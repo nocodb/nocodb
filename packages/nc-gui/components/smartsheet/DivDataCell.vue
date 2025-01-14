@@ -1,9 +1,12 @@
 <script lang="ts" setup>
-withDefaults(defineProps<{
-  isDataCell?: boolean
-}>(), {
-  isDataCell: true
-})
+withDefaults(
+  defineProps<{
+    isDataCell?: boolean
+  }>(),
+  {
+    isDataCell: true,
+  },
+)
 
 const el = ref()
 

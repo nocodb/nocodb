@@ -425,7 +425,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "ការរួមបញ្ចូលទាំងអស់",

@@ -4,7 +4,6 @@ import { type ColumnType } from 'nocodb-sdk'
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   rowId?: string
   fields: ColumnType[]
   hiddenFields: ColumnType[]
@@ -28,7 +27,7 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 /* stores */
 
-const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
@@ -56,7 +55,6 @@ export default {
       }"
     >
       <SmartsheetExpandedFormPresentorsFieldsColumns
-        :store="props.store"
         :fields="fields"
         :hidden-fields="hiddenFields"
         :is-loading="isLoading"
@@ -132,7 +130,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar :store="store" />
+      <SmartsheetExpandedFormSidebar />
     </div>
   </div>
 </template>

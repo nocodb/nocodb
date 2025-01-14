@@ -14,347 +14,6 @@
     }
   ],
   "paths": {
-    "/api/v3/meta/views/{viewId}/columns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "description": "View ID"
-        }
-      ],
-      "patch": {
-        "summary": "Set view column metas",
-        "operationId": "db-view-columns-set",
-        "tags": [
-          "DB View Columns"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "fields": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "oneOf": [
-                        {
-                          "$ref": "#/components/schemas/GridColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/GalleryColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/FormColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/KanbanColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/MapColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/CalendarColumnReq"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/xc-auth"
-            }
-          ]
-        }
-      },
-      "get": {
-        "summary": "Get view column metas",
-        "operationId": "db-view-columns-get",
-        "tags": [
-          "DB View Columns"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "fields": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "oneOf": [
-                          {
-                            "$ref": "#/components/schemas/GridColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/GalleryColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/FormColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/KanbanColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/MapColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/CalendarColumn"
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            }
-          },
-          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/xc-auth"
-            }
-          ]
-        }
-      }
-    },
-    "/api/v3/meta/bases/{base_id}/users": {
-      "get": {
-        "summary": "List users for a base",
-        "description": "Retrieve a list of users associated with a specific base.",
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of users for the base.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseUserList"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Invite users to a base",
-        "description": "Invite new users to a specific base using their email address.",
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BaseUserInviteRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Users invited successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "invited_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserInviteRequest"
-                      },
-                      "description": "List of successfully invited users."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body or parameters."
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update users in a base",
-        "description": "Update roles for existing users in a base.",
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BaseUserUpdateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Users updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "updated_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserUpdateRequest"
-                      },
-                      "description": "List of successfully updated users."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body or parameters."
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete users from a base",
-        "description": "Remove users from a specific base using their IDs.",
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BaseUserDeleteRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Users deleted successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "deleted_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
-                      },
-                      "description": "List of successfully deleted users."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body or parameters."
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
     "/api/v3/meta/bases": {
       "get": {
         "summary": "List all bases",
@@ -515,6 +174,206 @@
         }
       }
     },
+    "/api/v3/meta/bases/{base_id}/users": {
+      "get": {
+        "summary": "List users for a base",
+        "description": "Retrieve a list of users associated with a specific base.",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of users for the base.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseUserList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Invite users to a base",
+        "description": "Invite new users to a specific base using their email address.",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseUserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users invited successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/BaseUser"
+                    },
+                    "description": "List of successfully invited users."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or parameters."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update users in a base",
+        "description": "Update roles for existing users in a base.",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseUserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/BaseUser"
+                    },
+                    "description": "List of successfully updated users."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or parameters."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete users from a base",
+        "description": "Remove users from a specific base using their IDs.",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseUserDelete"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the operation was successful."
+                    },
+                    "deleted_users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
+                      },
+                      "description": "List of successfully deleted users."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or parameters."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/meta/bases/{base_id}/tables": {
       "get": {
         "summary": "List tables in a base",
@@ -568,7 +427,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TableCreateUpdate"
+                "$ref": "#/components/schemas/TableCreate"
               }
             }
           }
@@ -700,264 +559,6 @@
         }
       }
     },
-    "/api/v3/meta/filters/{filterId}": {
-      "patch": {
-        "summary": "Update a filter or group",
-        "description": "Update the details of an existing filter or group.",
-        "parameters": [
-          {
-            "name": "filterId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the filter or group."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filter or group updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a filter or group",
-        "description": "Delete an existing filter or group.",
-        "parameters": [
-          {
-            "name": "filterId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the filter or group."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Filter or group deleted successfully."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/views/{viewId}/filters": {
-      "get": {
-        "summary": "List filters for a view",
-        "description": "Retrieve a list of all filters and groups for a specific view.",
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of filters and groups retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "View not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new filter or group",
-        "description": "Create a new filter or group for a specific view.",
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Filter or group created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/views/{viewId}/sorts": {
-      "get": {
-        "summary": "List sorts for a view",
-        "description": "Retrieve a list of all sorts for a specific view.",
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of sorts retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SortListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "View not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new sort",
-        "description": "Create a new sort for a specific view.",
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SortCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Sort created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Sort"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/sorts/{sortId}": {
-      "delete": {
-        "summary": "Delete a sort",
-        "description": "Delete an existing sort.",
-        "parameters": [
-          {
-            "name": "sortId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the sort."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Sort deleted successfully."
-          },
-          "404": {
-            "description": "Sort not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
     "/api/v3/meta/tables/{tableId}/fields": {
       "post": {
         "summary": "Create a new column",
@@ -1074,6 +675,435 @@
           "500": {
             "description": "Server error."
           }
+        }
+      }
+    },
+    "/api/v3/meta/views/{viewId}/filters": {
+      "get": {
+        "summary": "List filters for a view",
+        "description": "Retrieve a list of all filters and groups for a specific view.",
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of filters and groups retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new filter or group",
+        "description": "Create a new filter or group for a specific view.",
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Filter or group created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a filter or group",
+        "description": "Update the details of an existing filter or group.",
+        "parameters": [
+          {
+            "name": "filterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the filter or group."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filter or group updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a filter or group",
+        "description": "Delete an existing filter or group.",
+        "parameters": [
+          {
+            "name": "filterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the filter or group."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Filter or group deleted successfully."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/views/{viewId}/sorts": {
+      "get": {
+        "summary": "List sorts for a view",
+        "description": "Retrieve a list of all sorts for a specific view.",
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sorts retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SortListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new sort",
+        "description": "Create a new sort for a specific view.",
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sort created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a sort",
+        "description": "Delete an existing sort.",
+        "parameters": [
+          {
+            "name": "sortId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the sort."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sort deleted successfully."
+          },
+          "404": {
+            "description": "Sort not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a sort",
+        "description": "Update the details of an existing sort.",
+        "parameters": [
+          {
+            "name": "sortId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the sort."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sort updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Sort not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/views/{viewId}/columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID"
+        }
+      ],
+      "patch": {
+        "summary": "Set view column metas",
+        "operationId": "db-view-columns-set",
+        "tags": [
+          "DB View Columns"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/GridColumnReq"
+                        },
+                        {
+                          "$ref": "#/components/schemas/GalleryColumnReq"
+                        },
+                        {
+                          "$ref": "#/components/schemas/FormColumnReq"
+                        },
+                        {
+                          "$ref": "#/components/schemas/KanbanColumnReq"
+                        },
+                        {
+                          "$ref": "#/components/schemas/MapColumnReq"
+                        },
+                        {
+                          "$ref": "#/components/schemas/CalendarColumnReq"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/xc-auth"
+            }
+          ]
+        }
+      },
+      "get": {
+        "summary": "Get view column metas",
+        "operationId": "db-view-columns-get",
+        "tags": [
+          "DB View Columns"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/GridColumn"
+                          },
+                          {
+                            "$ref": "#/components/schemas/GalleryColumn"
+                          },
+                          {
+                            "$ref": "#/components/schemas/FormColumn"
+                          },
+                          {
+                            "$ref": "#/components/schemas/KanbanColumn"
+                          },
+                          {
+                            "$ref": "#/components/schemas/MapColumn"
+                          },
+                          {
+                            "$ref": "#/components/schemas/CalendarColumn"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            }
+          },
+          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/xc-auth"
+            }
+          ]
         }
       }
     },
@@ -2033,6 +2063,497 @@
   },
   "components": {
     "schemas": {
+      "BaseMeta": {
+        "type": "object",
+        "properties": {
+          "icon_color": {
+            "type": "string",
+            "format": "color",
+            "description": "Color for the base icon."
+          }
+        },
+        "required": [
+          "icon_color"
+        ]
+      },
+      "BaseCreate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Name of the base."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the base. Can include rich text."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMeta"
+          }
+        },
+        "required": [
+          "title",
+          "meta"
+        ]
+      },
+      "BaseUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Name of the base."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the base. Can include rich text."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMeta"
+          }
+        },
+        "required": [
+          "title",
+          "meta"
+        ]
+      },
+      "Base": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the base. Can include rich text."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMeta"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was last updated."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the source."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the source."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of the source (e.g., pg, mysql)."
+                },
+                "is_schema_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the schema is read-only."
+                },
+                "is_data_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the data is read-only."
+                },
+                "integration_id": {
+                  "type": "string",
+                  "description": "Integration ID for the source."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "is_schema_readonly",
+                "is_data_readonly",
+                "integration_id"
+              ]
+            },
+            "description": "List of sources associated with the base."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "meta",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "BaseUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user."
+          },
+          "user_name": {
+            "type": "string",
+            "description": "Full name of the user."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the user was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the user was last updated."
+          },
+          "base_role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "admin",
+              "editor",
+              "viewer",
+              "no-access",
+              null
+            ],
+            "description": "Role of the user for the base. Can be null if not assigned."
+          },
+          "workspace_role": {
+            "type": "string",
+            "enum": [
+              "workspace-level-owner",
+              "workspace-level-admin",
+              "workspace-level-member",
+              "workspace-level-no-access"
+            ],
+            "description": "Role of the user at the workspace level."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace."
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "created_at",
+          "updated_at",
+          "workspace_role",
+          "workspace_id"
+        ]
+      },
+      "BaseUserList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BaseUser"
+            }
+          }
+        },
+        "required": [
+          "users"
+        ]
+      },
+      "BaseUserCreate": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the user. Can be provided optionally during creation."
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
+            },
+            "user_name": {
+              "type": "string",
+              "description": "Full name of the user."
+            },
+            "base_role": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "admin",
+                "editor",
+                "viewer",
+                "no-access",
+                null
+              ],
+              "description": "Role of the user for the base. Can be null if not assigned."
+            }
+          },
+          "required": [
+            "base_role"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "id"
+              ]
+            },
+            {
+              "required": [
+                "email"
+              ]
+            }
+          ],
+          "description": "An object representing a new user to be created."
+        },
+        "description": "Array of users to be created."
+      },
+      "BaseUserUpdate": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the user. Used as a primary identifier if provided."
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
+            },
+            "base_role": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "admin",
+                "editor",
+                "viewer",
+                "no-access",
+                null
+              ],
+              "description": "New role of the user for the base. Can be null if unassigning the role."
+            }
+          },
+          "required": [
+            "base_role"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "id"
+              ]
+            },
+            {
+              "required": [
+                "email"
+              ]
+            }
+          ],
+          "description": "An object representing updates for an existing user."
+        },
+        "description": "Array of user updates."
+      },
+      "BaseUserDelete": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user."
+            }
+          }
+        }
+      },
+      "Table": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "base_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "display_field_id": {
+            "type": "string"
+          },
+          "workspace_id": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          }
+        }
+      },
+      "TableCreate": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "TableUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "meta": {
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "title"
+            ]
+          },
+          {
+            "required": [
+              "meta"
+            ]
+          }
+        ]
+      },
+      "TableListResponse": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "source_id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "base_id": {
+                  "type": "string"
+                },
+                "display_field_id": {
+                  "type": "string",
+                  "description": "Field ID of the field that is used as the display field for the table"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Field"
+                  }
+                },
+                "views": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "view_type": {
+                        "type": "string",
+                        "enum": [
+                          "table",
+                          "kanban",
+                          "calendar",
+                          "gallery",
+                          "timeline",
+                          "form"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "source_id",
+                "title",
+                "base_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -2735,144 +3256,7 @@
         ],
         "description": "At least one of the properties (`id` or `email`) must be provided."
       },
-      "BaseV3Req": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "example": "My Base",
-            "description": "The name of the base."
-          },
-          "description": {
-            "type": "string",
-            "example": "This is my base.",
-            "description": "The description of the base."
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "icon_color": {
-                "type": "string",
-                "example": "#36BFFF",
-                "description": "The color of the icon associated with the base."
-              }
-            }
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "TableV3Req": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "example": "My Table",
-            "description": "The name of the table."
-          },
-          "description": {
-            "type": "string",
-            "example": "This is my table.",
-            "description": "The description of the table."
-          },
-          "source_id": {
-            "type": "string",
-            "example": "ds_1",
-            "description": "The ID of the source associated with the table."
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "Filter": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the filter."
-          },
-          "fk_view_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the associated view."
-          },
-          "fk_hook_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the associated hook."
-          },
-          "fk_link_col_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the linked column."
-          },
-          "fk_value_col_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the value column."
-          },
-          "fk_parent_column_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the parent column."
-          },
-          "fk_column_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the column."
-          },
-          "comparison_op": {
-            "type": "string",
-            "description": "The primary comparison operator (e.g., '=', '!=', '<', '>')."
-          },
-          "comparison_sub_op": {
-            "type": "string",
-            "description": "The secondary comparison operator (e.g., 'LIKE', 'IN')."
-          },
-          "value": {
-            "type": "string",
-            "description": "Value to compare against."
-          },
-          "fk_parent_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Foreign key to the parent object."
-          },
-          "is_group": {
-            "type": "boolean",
-            "description": "Indicates if the filter is part of a group."
-          },
-          "logical_op": {
-            "type": "string",
-            "description": "Logical operator (e.g., 'AND', 'OR') used in group filters."
-          },
-          "base_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier for the base context of the filter."
-          },
-          "source_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier for the source context of the filter."
-          },
-          "order": {
-            "type": "integer",
-            "description": "Order of the filter in the sequence."
-          }
-        },
-        "required": [
-          "id",
-          "fk_view_id",
-          "comparison_op",
-          "value",
-          "logical_op"
-        ]
-      },
-      "FilterCreateRequest": {
+      "FilterCreate": {
         "type": "object",
         "properties": {
           "fk_hook_id": {
@@ -2940,7 +3324,7 @@
           "logical_op"
         ]
       },
-      "FilterUpdateRequest": {
+      "FilterUpdate": {
         "type": "object",
         "properties": {
           "fk_hook_id": {
@@ -3027,7 +3411,7 @@
           "direction"
         ]
       },
-      "SortCreateRequest": {
+      "SortCreate": {
         "type": "object",
         "properties": {
           "field_id": {
@@ -3049,7 +3433,7 @@
           "direction"
         ]
       },
-      "SortUpdateRequest": {
+      "SortUpdate": {
         "type": "object",
         "properties": {
           "field_id": {
@@ -3407,228 +3791,6 @@
           }
         ]
       },
-      "BaseUser": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the user."
-          },
-          "usetemail": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the user."
-          },
-          "name": {
-            "type": "string",
-            "description": "Full name of the user."
-          },
-          "display_name": {
-            "type": "string",
-            "description": "Display name of the user (if different from name)."
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user was created."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user was last updated."
-          },
-          "base_role": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "admin",
-              "editor",
-              "viewer",
-              "no-access",
-              null
-            ],
-            "description": "Role of the user for the base. Can be null if not assigned."
-          },
-          "workspace_role": {
-            "type": "string",
-            "enum": [
-              "workspace-level-owner",
-              "workspace-level-admin",
-              "workspace-level-member",
-              "workspace-level-no-access"
-            ],
-            "description": "Role of the user at the workspace level."
-          },
-          "workspace_id": {
-            "type": "string",
-            "description": "Unique identifier for the workspace."
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "created_at",
-          "updated_at",
-          "workspace_role",
-          "workspace_id"
-        ]
-      },
-      "BaseUserList": {
-        "type": "object",
-        "properties": {
-          "users": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BaseUser"
-            }
-          }
-        },
-        "required": [
-          "users"
-        ]
-      },
-      "BaseMeta": {
-        "type": "object",
-        "properties": {
-          "icon_color": {
-            "type": "string",
-            "format": "color",
-            "description": "Color for the base icon."
-          }
-        },
-        "required": [
-          "icon_color"
-        ]
-      },
-      "BaseCreate": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Name of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
-          }
-        },
-        "required": [
-          "title",
-          "meta"
-        ]
-      },
-      "BaseUpdate": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Name of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
-          }
-        },
-        "required": [
-          "title",
-          "meta"
-        ]
-      },
-      "Base": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the base."
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the base was created."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the base was last updated."
-          },
-          "sources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "Unique identifier for the source."
-                },
-                "title": {
-                  "type": "string",
-                  "description": "Title of the source."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "Type of the source (e.g., pg, mysql)."
-                },
-                "is_schema_readonly": {
-                  "type": "boolean",
-                  "description": "Indicates if the schema is read-only."
-                },
-                "is_data_readonly": {
-                  "type": "boolean",
-                  "description": "Indicates if the data is read-only."
-                },
-                "integration_id": {
-                  "type": "string",
-                  "description": "Integration ID for the source."
-                }
-              },
-              "required": [
-                "id",
-                "title",
-                "type",
-                "is_schema_readonly",
-                "is_data_readonly",
-                "integration_id"
-              ]
-            },
-            "description": "List of sources associated with the base."
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "meta",
-          "created_at",
-          "updated_at"
-        ]
-      },
       "FieldBase": {
         "type": "object",
         "properties": {
@@ -3867,6 +4029,40 @@
           }
         }
       },
+      "FieldOptions_Links": {
+        "type": "object",
+        "properties": {
+          "relation_type": {
+            "type": "string",
+            "description": "Type of relationship (e.g., many-to-many, one-to-one)."
+          },
+          "linked_table_id": {
+            "type": "string",
+            "description": "Identifier of the linked table."
+          }
+        },
+        "required": [
+          "relation_type",
+          "linked_table_id"
+        ]
+      },
+      "FieldOptions_LinkToAnotherRecord": {
+        "type": "object",
+        "properties": {
+          "relation_type": {
+            "type": "string",
+            "description": "Type of relationship (e.g., many-to-many, one-to-one)."
+          },
+          "linked_table_id": {
+            "type": "string",
+            "description": "Identifier of the linked table."
+          }
+        },
+        "required": [
+          "relation_type",
+          "linked_table_id"
+        ]
+      },
       "Field": {
         "allOf": [
           {
@@ -4036,126 +4232,100 @@
                     "$ref": "#/components/schemas/FieldOptions_Lookup"
                   }
                 }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Links"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Links"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Link to another record"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
+                  }
+                }
               }
             ]
           }
         ]
       },
-      "View": {
+      "FieldUpdate": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
+          "name": {
+            "type": "string",
+            "description": "Field name."
           },
-          "title": {
-            "type": "string"
-          },
-          "view_type": {
-            "type": "string"
-          }
-        }
-      },
-      "Table": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "source_id": {
-            "type": "string"
-          },
-          "base_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
+          "default_value": {
+            "type": "string",
+            "description": "Default value for the field."
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "description": "Field description."
           },
-          "display_field_id": {
-            "type": "string"
-          },
-          "workspace_id": {
-            "type": "string"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Field"
-            }
-          },
-          "views": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/View"
-            }
-          }
-        }
-      },
-      "TableCreateUpdate": {
-        "type": "object",
-        "properties": {
-          "source_id": {
-            "type": "string"
-          },
-          "table_name": {
-            "type": "string"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "source_id",
-          "table_name"
-        ]
-      },
-      "TableListResponse": {
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "source_id": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "base_id": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
+          "options": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions_LongText"
               },
-              "required": [
-                "id",
-                "source_id",
-                "title",
-                "base_id"
-              ]
-            }
+              {
+                "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Number"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Currency"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Percent"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Duration"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_DateTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Select"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Rating"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Barcode"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Formula"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_User"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Lookup"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_Links"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
+              }
+            ]
           }
-        },
-        "required": [
-          "list"
-        ]
+        }
       },
       "FilterGroup": {
         "type": "object",
@@ -4296,31 +4466,6 @@
           "list"
         ]
       },
-      "Sort": {
-        "type": "object",
-        "properties": {
-          "sort_id": {
-            "type": "string",
-            "description": "Unique identifier for the sort."
-          },
-          "field_id": {
-            "type": "string",
-            "description": "Field ID to which the sort applies."
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "description": "Direction of sorting (ascending or descending)."
-          }
-        },
-        "required": [
-          "field_id",
-          "direction"
-        ]
-      },
       "SortListResponse": {
         "type": "object",
         "properties": {
@@ -4333,27 +4478,6 @@
         },
         "required": [
           "list"
-        ]
-      },
-      "SortCreate": {
-        "type": "object",
-        "properties": {
-          "field_id": {
-            "type": "string",
-            "description": "Field ID to which the sort applies."
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "description": "Direction of sorting (ascending or descending)."
-          }
-        },
-        "required": [
-          "field_id",
-          "direction"
         ]
       },
       "Paginated": {
@@ -4384,64 +4508,6 @@
         },
         "title": "Paginated Model",
         "type": "object"
-      },
-      "BaseUserDeleteRequest": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "user_id": {
-              "type": "string",
-              "description": "Unique identifier for the user."
-            }
-          }
-        }
-      },
-      "BaseUserUpdateRequest": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "user_id": {
-              "type": "string",
-              "description": "Unique identifier for the user."
-            },
-            "base_role": {
-              "type": "string",
-              "enum": [
-                "admin",
-                "editor",
-                "viewer",
-                "no-access",
-                null
-              ],
-              "description": "Role of the user for the base. Can be null if not assigned."
-            }
-          }
-        }
-      },
-      "BaseUserInviteRequest": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "user_id": {
-              "type": "string",
-              "description": "Unique identifier for the user."
-            },
-            "base_role": {
-              "type": "string",
-              "enum": [
-                "admin",
-                "editor",
-                "viewer",
-                "no-access",
-                null
-              ],
-              "description": "Role of the user for the base. Can be null if not assigned."
-            }
-          }
-        }
       }
     },
     "responses": {

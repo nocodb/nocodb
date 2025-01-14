@@ -156,8 +156,16 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
-const onCreatedRecord = (record: any) => {
+const onCreatedRecord = async (record: any) => {
   if (!isNewRecord.value) return
+
+  if (!isNew.value) {
+    vModel.value = false
+  } else {
+    await addLTARRef(record, injectedColumn?.value as ColumnType)
+
+    loadChildrenList(false, state.value)
+  }
 
   const msgVNode = h(
     'div',

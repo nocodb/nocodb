@@ -104,7 +104,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: RootScopes.BYPASS,
     };
 
-    if (params.baseId) {
+    if (params.baseId && params.baseId !== 'nc') {
       req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
       req.ncBaseId = params.dashboardId;
@@ -427,7 +427,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       } else {
         NcError.baseNotFound(params.baseName);
       }
-    } else if (req.ncBaseId) {
+    } else if (req.ncBaseId && req.ncBaseId !== 'nc') {
       const base = await Base.get(context, req.ncBaseId);
       if (base) {
         req.ncWorkspaceId = (base as Base).fk_workspace_id;
@@ -554,30 +554,22 @@ function getUserRoleForScope(user: any, scope: string) {
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
-  async intercept(
+  async aclFn(
+    permissionName: string,
+    {
+      scope = 'base',
+      allowedRoles,
+      blockApiTokenAccess,
+      extendedScope,
+    }: {
+      scope?: string;
+      allowedRoles?: (OrgUserRoles | string)[];
+      blockApiTokenAccess?: boolean;
+      extendedScope?: string;
+    } = {},
     context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const permissionName = this.reflector.get<string>(
-      'permission',
-      context.getHandler(),
-    );
-    const allowedRoles = this.reflector.get<(OrgUserRoles | string)[]>(
-      'allowedRoles',
-      context.getHandler(),
-    );
-    const blockApiTokenAccess = this.reflector.get<boolean>(
-      'blockApiTokenAccess',
-      context.getHandler(),
-    );
-    const scope = this.reflector.get<string>('scope', context.getHandler());
-    const extendedScope = this.reflector.get<string>(
-      'extendedScope',
-      context.getHandler(),
-    );
-
-    const req = context.switchToHttp().getRequest();
-
+    req,
+  ) {
     // limit user access to organization
     if (
       req.ncWorkspaceId &&
@@ -750,6 +742,43 @@ export class AclMiddleware implements NestInterceptor {
         NcError.sourceDataReadOnly(source.alias);
       }
     }
+  }
+
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
+    const permissionName = this.reflector.get<string>(
+      'permission',
+      context.getHandler(),
+    );
+    const allowedRoles = this.reflector.get<(OrgUserRoles | string)[]>(
+      'allowedRoles',
+      context.getHandler(),
+    );
+    const blockApiTokenAccess = this.reflector.get<boolean>(
+      'blockApiTokenAccess',
+      context.getHandler(),
+    );
+    const scope = this.reflector.get<string>('scope', context.getHandler());
+    const extendedScope = this.reflector.get<string>(
+      'extendedScope',
+      context.getHandler(),
+    );
+
+    const req = context.switchToHttp().getRequest();
+
+    await this.aclFn(
+      permissionName,
+      {
+        scope,
+        allowedRoles,
+        blockApiTokenAccess,
+        extendedScope,
+      },
+      context,
+      req,
+    );
 
     return next.handle().pipe(
       map((data) => {

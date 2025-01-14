@@ -33,7 +33,7 @@ import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
 export default [
   {
     type: 'ai',
-    subType: 'amazon-bedrock',
+    sub_type: 'amazon-bedrock',
     wrapper: AiAmazonBedrockEntry,
     form: AiAmazonBedrockForm,
     meta: {
@@ -43,7 +43,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'azure',
+    sub_type: 'azure',
     wrapper: AiAzureEntry,
     form: AiAzureForm,
     meta: {
@@ -53,7 +53,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'claude',
+    sub_type: 'claude',
     wrapper: AiClaudeEntry,
     form: AiClaudeForm,
     meta: {
@@ -63,7 +63,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'google',
+    sub_type: 'google',
     wrapper: AiGoogleEntry,
     form: AiGoogleForm,
     meta: {
@@ -73,7 +73,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'groq',
+    sub_type: 'groq',
     wrapper: AiGroqEntry,
     form: AiGroqForm,
     meta: {
@@ -83,7 +83,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'nocodb',
+    sub_type: 'nocodb',
     wrapper: AiNocodbEntry,
     form: AiNocodbForm,
     meta: {
@@ -93,7 +93,7 @@ export default [
   },
   {
     type: 'ai',
-    subType: 'openai',
+    sub_type: 'openai',
     wrapper: AiOpenaiEntry,
     form: AiOpenaiForm,
     meta: {
@@ -103,7 +103,7 @@ export default [
   },
 ] as {
   type: IntegrationsType;
-  subType: string;
+  sub_type: string;
   form?: FormDefinition;
   wrapper?: typeof IntegrationWrapper;
   meta?: {

@@ -142,12 +142,14 @@ export default class Integration extends IntegrationCE {
       insertObj,
     );
 
-    return await this.get(
+    const int = await this.get(
       { workspace_id: insertObj.fk_workspace_id },
       id,
       false,
       ncMeta,
     );
+
+    return int;
   }
 
   public static async updateIntegration(
@@ -211,7 +213,8 @@ export default class Integration extends IntegrationCE {
       oldIntegration.id,
     );
 
-    return this.get(context, oldIntegration.id, false, ncMeta);
+    const int = await this.get(context, oldIntegration.id, false, ncMeta);
+    return int;
   }
 
   static async list(
@@ -221,21 +224,11 @@ export default class Integration extends IntegrationCE {
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
       sub_type?: string | ClientType;
-      limit?: number;
-      offset?: number;
       includeSourceCount?: boolean;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {
-    // TODO: remove offset & limit / limit maximum per workspace instead
-    const { offset } = args;
-    let { limit } = args;
-
-    if (offset !== undefined && !limit) {
-      limit = 25;
-    }
-
     const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
 
     // exclude integrations which are private and not created by user
@@ -277,10 +270,10 @@ export default class Integration extends IntegrationCE {
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
 
-    const integrationList = await listQb
-      .limit(limit)
-      .offset(offset)
-      .orderBy(`${MetaTable.INTEGRATIONS}.order`, 'asc');
+    const integrationList = await listQb.orderBy(
+      `${MetaTable.INTEGRATIONS}.order`,
+      'asc',
+    );
 
     // parse JSON metadata
     for (const integration of integrationList) {
@@ -311,21 +304,6 @@ export default class Integration extends IntegrationCE {
       if (globals.length) {
         integrations.push(...globals);
       }
-    }
-
-    if (limit) {
-      const count =
-        +(
-          await qb
-            .count(`${MetaTable.INTEGRATIONS}.id`, { as: 'count' })
-            .first()
-        )?.['count'] || 0;
-
-      return new PagedResponseImpl(integrations, {
-        count,
-        limit,
-        offset,
-      });
     }
 
     return new PagedResponseImpl(integrations, {

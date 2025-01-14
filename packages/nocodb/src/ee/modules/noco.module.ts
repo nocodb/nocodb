@@ -7,6 +7,7 @@ import { ProducerProvider } from '~/services/producer';
 import { ActionsController } from '~/controllers/actions.controller';
 import { CustomUrlsController } from '~/controllers/custom-urls.controller';
 import { CustomUrlsService } from '~/services/custom-urls.service';
+import { InternalController } from '~/controllers/internal.controller';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
@@ -16,6 +17,7 @@ import { OrgWorkspacesService } from '~/services/org-workspaces.service';
 import { OrgWorkspacesController } from '~/controllers/org-workspaces.controller';
 import { OrgsService } from '~/services/orgs.service';
 import { OrgsController } from '~/controllers/orgs.controller';
+import { DataReflectionService } from '~/services/data-reflection.service';
 // import { PageDao } from '~/daos/page.dao';
 // import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
 // import { DocsPagesHistoryController } from '~/controllers/docs/docs-pages-history.controller';
@@ -59,6 +61,9 @@ import { SnapshotService } from '~/services/snapshot.service';
 import { ScriptsController } from '~/controllers/scripts.controller';
 import { ScriptsService } from '~/services/scripts.service';
 
+/* ACL */
+import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+
 export const nocoModuleEeMetadata = {
   imports: [...nocoModuleMetadata.imports, NocoAiModule],
   providers: [
@@ -76,6 +81,7 @@ export const nocoModuleEeMetadata = {
     OrgWorkspacesService,
     OrgSSOClientService,
     OrgsService,
+    DataReflectionService,
 
     /** DAOs */
     // PageDao,
@@ -103,11 +109,15 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsService,
+
+    /* ACL */
+    AclMiddleware,
   ],
   controllers: [
     ...nocoModuleMetadata.controllers,
 
     ActionsController,
+    InternalController,
 
     /* Generic */
     CustomUrlsController,

@@ -131,8 +131,6 @@ export class IntegrationsService extends IntegrationsServiceCE {
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,
-      limit: param.limit,
-      offset: param.offset,
       includeSourceCount: true,
       query: param.query,
     });

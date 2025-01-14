@@ -120,6 +120,9 @@ const permissionScopes = {
     'integrationUpdate',
     'integrationList',
     'aiSchema',
+    'createDataReflection',
+    'deleteDataReflection',
+    'getDataReflection',
   ],
   base: [
     'formViewGet',

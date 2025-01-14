@@ -44,6 +44,11 @@ function getStaticInitializor(type: IntegrationsSubType) {
           'class': 'logo',
         }),
       }
+    case SyncDataType.NOCODB:
+      return {
+        ...allIntegrations.find((i) => i.sub_type === SyncDataType.NOCODB),
+        title: 'NocoDB',
+      }
   }
 }
 
@@ -55,11 +60,13 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const { api } = useApi()
   const pageMode = ref<IntegrationsPageMode | null>(null)
-  const activeIntegration = ref<IntegrationType | null>(null)
+  const activeIntegration = ref<(IntegrationType & { dynamic: boolean }) | null>(null)
   const activeIntegrationItem = ref<IntegrationItemType | null>(null)
 
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+  const { basesList } = storeToRefs(useBases())
 
   const integrations = ref<IntegrationType[]>([])
 
@@ -141,8 +148,18 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       )
 
       integrations.value = list
+
+      integrations.value.unshift({
+        id: 'nc-data-reflection',
+        title: 'NocoDB',
+        sub_type: SyncDataType.NOCODB,
+        type: IntegrationsType.Database,
+        fk_workspace_id: activeWorkspaceId.value,
+        source_count: basesList.value.length,
+      })
+
       if (!databaseOnly) {
-        integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+        integrationPaginationData.value.totalRows = (pageInfo.totalRows ?? 0) + 1
       }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -155,19 +172,19 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const addIntegration = async (integration: IntegrationItemType) => {
-    activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.subType)
+    activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.sub_type)
     activeIntegrationItem.value = integration
 
-    if (integration.dynamic === true && !(integration.subType in integrationForms)) {
-      const integrationInfo = await $api.integrations.info(integration.type, integration.subType)
+    if (integration.dynamic === true && !(integration.sub_type in integrationForms)) {
+      const integrationInfo = await $api.integrations.info(integration.type, integration.sub_type)
 
       if (integrationInfo?.form) {
-        integrationForms[integration.subType] = integrationInfo.form
+        integrationForms[integration.sub_type] = integrationInfo.form
 
         activeIntegrationItem.value.form = integrationInfo.form
       }
     } else if (integration.dynamic === true) {
-      activeIntegrationItem.value.form = integrationForms[integration.subType]
+      activeIntegrationItem.value.form = integrationForms[integration.sub_type]
     }
 
     pageMode.value = IntegrationsPageMode.ADD
@@ -376,25 +393,38 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     if (!integration?.id) return
 
     try {
+      if (integration.sub_type === SyncDataType.NOCODB) {
+        pageMode.value = IntegrationsPageMode.EDIT
+
+        activeIntegration.value = integration
+
+        const integrationItem = allIntegrations.find(
+          (item) => item.type === integration.type && item.sub_type === integration.sub_type,
+        )!
+
+        activeIntegrationItem.value = integrationItem
+        return
+      }
+
       const integrationWithConfig = await getIntegration(integration, { includeConfig: true })
       activeIntegration.value = integrationWithConfig
 
       const integrationItem = allIntegrations.find(
-        (item) => item.type === integration.type && item.subType === integration.sub_type,
+        (item) => item.type === integration.type && item.sub_type === integration.sub_type,
       )!
 
       activeIntegrationItem.value = integrationItem
 
-      if (integrationItem.dynamic === true && !(integrationItem.subType in integrationForms)) {
-        const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.subType)
+      if (integrationItem.dynamic === true && !(integrationItem.sub_type in integrationForms)) {
+        const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.sub_type)
 
         if (integrationInfo?.form) {
-          integrationForms[integrationItem.subType] = integrationInfo.form
+          integrationForms[integrationItem.sub_type] = integrationInfo.form
 
           activeIntegrationItem.value.form = integrationInfo.form
         }
       } else if (integrationItem.dynamic === true) {
-        activeIntegrationItem.value.form = integrationForms[integrationItem.subType]
+        activeIntegrationItem.value.form = integrationForms[integrationItem.sub_type]
       }
 
       pageMode.value = IntegrationsPageMode.EDIT
@@ -441,10 +471,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     try {
       const dynamicIntegrations = (await $api.integrations.list()) as {
         type: IntegrationsType
-        subType: string
+        sub_type: string
         meta: {
           title?: string
           icon?: string
+          iconStyle?: any
           description?: string
           order?: number
           hidden?: boolean
@@ -463,7 +494,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
             if (isValidURL(di.meta.icon)) {
               icon = h('img', {
                 src: di.meta.icon,
-                alt: di.meta.title || di.subType,
+                alt: di.meta.title || di.sub_type,
               })
             }
           }
@@ -472,10 +503,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
 
         const integration: IntegrationItemType = {
-          title: di.meta.title || di.subType,
-          subType: di.subType,
+          title: di.meta.title || di.sub_type,
+          sub_type: di.sub_type,
           icon,
           type: di.type,
+          iconStyle: di.meta.iconStyle,
           isAvailable: true,
           dynamic: true,
           hidden: di.meta?.hidden ?? false,
@@ -497,11 +529,26 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     const map: Record<string, any> = {}
 
     for (const integration of allIntegrations) {
-      map[integration.subType] = integration.icon
+      map[integration.sub_type] = integration.icon
     }
 
     return map
   })
+
+  function updateDataReflectionIntegration() {
+    const dataReflectionIntegration = integrations.value.find((i) => i.sub_type === SyncDataType.NOCODB)
+
+    if (dataReflectionIntegration) {
+      dataReflectionIntegration.source_count = basesList.value.length ?? 0
+    }
+  }
+
+  watch(
+    () => basesList.value?.length,
+    () => {
+      updateDataReflectionIntegration()
+    },
+  )
 
   return {
     IntegrationsPageMode,

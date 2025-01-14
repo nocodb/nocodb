@@ -22383,6 +22383,7 @@
             "formula_raw": "CONCAT(\"FOO\", {Title})",
             "id": "fm_1lo8wqtvvipdns",
             "base_id": "pj34mdkvjfdnkf",
+            "fk_script_id": "sc_1lo8wqtvvipdns",
             "label": "Click Me",
             "theme": "solid",
             "color": "green",
@@ -22454,6 +22455,10 @@
           "fk_webhook_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Webhook ID"
+          },
+          "fk_script_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Script ID"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
@@ -28670,7 +28675,8 @@
         "enum": [
           "webhook",
           "url",
-          "ai"
+          "ai",
+          "script"
         ]
       },
       "CustomUrl": {

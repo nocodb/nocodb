@@ -858,6 +858,7 @@
     "clickToHide": "点击隐藏",
     "clickToDownload": "点击下载",
     "forRole": "为角色",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "点击复制表格ID",
     "clickToCopyViewID": "点击复制视图ID",
     "viewMode": "视图模式",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "下载为 CSV",
     "downloadExcel": "下载为 XLSX",
     "uploadCSV": "上传 CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "导入",
     "importMetadata": "导入元数据",
     "exportMetadata": "导出元数据",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "必填字段不能为空",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

@@ -115,7 +115,7 @@ function shouldUseNormalizedPadding(key: string) {
 }
 
 function shouldUseUniformPadding(key: string) {
-  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type);
+  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type)
 }
 
 /* visibility */
@@ -218,7 +218,7 @@ function shouldShowRaw(key: string) {
       </template>
       <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
         <div>
-          <template v-for="block of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')">
+          <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
               class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone"
@@ -239,7 +239,7 @@ function shouldShowRaw(key: string) {
       </template>
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
         <div class="overflow-x-auto nc-scrollbar-thin whitespace-nowrap">
-          <template v-for="block of safeJsonDiff(columnKey)">
+          <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
               class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"

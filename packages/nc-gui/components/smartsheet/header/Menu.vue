@@ -265,7 +265,7 @@ const getViewId = () => {
   return view.value?.id
 }
 
-const updateDefaultViewColVisibility = (columnId?: string, show: boolean = false) => {
+const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
   //  Don't update meta if it is not default view
   if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !view.value?.is_default) return
 

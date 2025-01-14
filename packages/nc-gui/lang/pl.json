@@ -858,6 +858,7 @@
     "clickToHide": "Kliknij, aby ukryć",
     "clickToDownload": "Kliknij, aby pobrać",
     "forRole": "dla roli",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Kliknij, aby skopiować identyfikator tabeli",
     "clickToCopyViewID": "Kliknij, aby skopiować ID widoku",
     "viewMode": "Tryb widoku",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Pobierz jako CSV",
     "downloadExcel": "Pobierz jako XLSX",
     "uploadCSV": "Prześlij CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importuj",
     "importMetadata": "Importuj metadane",
     "exportMetadata": "Eksportuj metadane",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Niektóre z wymaganych pól są puste",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

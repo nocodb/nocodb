@@ -858,6 +858,7 @@
     "clickToHide": "Nhấp để ẩn",
     "clickToDownload": "Nhấp để tải xuống",
     "forRole": "cho vai trò",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Nhấn để sao chép ID Bảng",
     "clickToCopyViewID": "Nhấp để sao chép ID xem",
     "viewMode": "Chế độ xem",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Tải về dưới dạng CSV.",
     "downloadExcel": "Tải về dưới dạng XLSX",
     "uploadCSV": "Tải lên CSV.",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Nhập khẩu",
     "importMetadata": "Nhập siêu dữ liệu",
     "exportMetadata": "XUẤT KHẨU METADATA.",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Một số trường bắt buộc đang để trống",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

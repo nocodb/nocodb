@@ -858,6 +858,7 @@
     "clickToHide": "Нажмите, чтобы скрыть",
     "clickToDownload": "Нажмите, чтобы загрузить",
     "forRole": "для роли",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Нажмите, чтобы скопировать ИД таблицы",
     "clickToCopyViewID": "Нажмите, чтобы скопировать ID вида",
     "viewMode": "Режим просмотра",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Скачать как CSV",
     "downloadExcel": "Скачать как XLSX",
     "uploadCSV": "Загрузить CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Импортировать",
     "importMetadata": "Импорт метаданных",
     "exportMetadata": "Экспорт метаданных",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Некоторые из обязательных полей пусты",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

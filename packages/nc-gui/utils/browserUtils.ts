@@ -14,6 +14,9 @@ export const isActiveInputElementExist = () => {
     !!document.activeElement?.getAttribute('contenteditable')
   )
 }
+
+export const isNcDropdownOpen = () => document.querySelector('.nc-dropdown.active')
+
 export const isFieldEditOrAddDropdownOpen = () => document.querySelector('.nc-dropdown-edit-column.active')
 export const getScrollbarWidth = () => {
   const outer = document.createElement('div')

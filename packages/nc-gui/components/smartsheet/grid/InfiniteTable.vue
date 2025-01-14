@@ -19,7 +19,7 @@ import {
 import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
-import { type CellRange, NavigateDir, type Row } from '#imports'
+import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
 
 const props = defineProps<{
   totalRows: number
@@ -265,12 +265,26 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
+const tableState = reactive<ViewActionState>({
+  viewProgress: null,
+  rowProgress: new Map(),
+  cellProgress: new Map(),
+})
+
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const row = cachedRows.value.get(rowIndex)
+
+    if (!row) return { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    row.rowMeta.rowProgress = tableState.rowProgress.get(String(rowId))
+    return row
   })
 })
 
@@ -599,9 +613,14 @@ const dummyColumnDataForLoading = computed(() => {
 
 const cellMeta = computed(() => {
   return visibleRows.value?.map((row) => {
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    const cellStates = tableState.cellProgress.get(rowId)
+
     return fields.value.map((col) => {
       return {
         isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
+        cellProgress: cellStates?.get(col.id),
       }
     })
   })
@@ -1092,6 +1111,40 @@ const isSelectedOnlyAI = computed(() => {
   }
 })
 
+const isSelectedOnlyScript = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: isScriptButton(field),
+      disabled: false,
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const { runScript } = useScriptExecutor()
+
+const bulkExecuteScript = () => {
+  if (!isSelectedOnlyScript.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  for (const row of rows) {
+    const pk = extractPkFromRow(row.row, meta.value.columns)
+    runScript((field.colOptions as ButtonType).fk_script_id!, row.row, {
+      pk,
+      fieldId: field.id,
+    })
+  }
+}
+
 const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
 
 const generateAIBulk = async () => {
@@ -1558,6 +1611,68 @@ watch(
   },
 )
 
+const handleProgress = (payload: any) => {
+  switch (payload.type) {
+    case 'table':
+      tableState.viewProgress = {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      }
+      break
+
+    case 'row':
+      tableState.rowProgress.set(payload.data.rowId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      })
+      break
+
+    case 'cell': {
+      if (!tableState.cellProgress.has(payload.data.rowId)) {
+        tableState.cellProgress.set(payload.data.rowId, new Map())
+      }
+      const rowCells = tableState.cellProgress.get(payload.data.rowId)!
+      rowCells.set(payload.data.cellId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+        icon: payload.data?.icon,
+      })
+      break
+    }
+  }
+}
+
+const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?: string; cellId?: string } }) => {
+  switch (payload.type) {
+    case 'table':
+      tableState.viewProgress = null
+      tableState.cellProgress = new Map()
+      tableState.rowProgress = new Map()
+      break
+
+    case 'row':
+      if (payload.data.rowId) {
+        tableState.rowProgress.delete(payload.data.rowId)
+        tableState.rowProgress.set(payload.data.rowId, null)
+      }
+      break
+
+    case 'cell':
+      if (payload.data.rowId && payload.data.cellId) {
+        const rowCells = tableState.cellProgress.get(payload.data.rowId)
+        if (rowCells) {
+          rowCells.delete(payload.data.cellId)
+          if (rowCells.size === 0) {
+            tableState.cellProgress.delete(payload.data.rowId)
+          } else {
+            tableState.cellProgress.set(payload.data.rowId, rowCells)
+          }
+        }
+      }
+      break
+  }
+}
+
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
@@ -1607,6 +1722,19 @@ const reloadViewDataHookHandler = async (param) => {
 }
 
 let requestAnimationFrameId: null | number = null
+const { eventBus: scriptEventBus } = useScriptExecutor()
+
+scriptEventBus.on(async (event, payload) => {
+  if (event === SmartsheetScriptActions.UPDATE_PROGRESS) {
+    handleProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.RESET_PROGRESS) {
+    resetProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.RELOAD_VIEW) {
+    await reloadViewDataHookHandler()
+  }
+})
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
@@ -1944,9 +2072,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
       ></div>
     </div>
     <div
-      v-if="isBulkOperationInProgress"
+      v-if="isBulkOperationInProgress || tableState.viewProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/50"
     >
+      <div class="flex gap-2 items-center">
+        {{ tableState.viewProgress?.progress }}
+        {{ tableState.viewProgress?.message }}
+      </div>
       <GeneralLoader size="regular" />
     </div>
 
@@ -2441,7 +2573,21 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
+                          >
+                            <GeneralIcon
+                              v-if="cellMeta[index][0]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][0]?.cellProgress?.icon"
+                            />
+                            {{ cellMeta[index][0]?.cellProgress.message }}
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="fields[0] && colMeta[0].isVirtualCol && fields[0].title"
                             v-model="row.row[fields[0].title]"
@@ -2520,7 +2666,21 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
+                          >
+                            <GeneralIcon
+                              v-if="cellMeta[index][colIndex]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][colIndex]?.cellProgress?.icon"
+                            />
+                            {{ cellMeta[index][colIndex]?.cellProgress.message }}
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="colMeta[colIndex].isVirtualCol && columnObj.title"
                             v-model="row.row[columnObj.title]"
@@ -2706,6 +2866,20 @@ watch(vSelectedAllRecords, (selectedAll) => {
             </NcTooltip>
 
             <NcMenuItem
+              v-if="isSelectedOnlyScript.enabled"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-bulk-script"
+              :disabled="isSelectedOnlyScript.disabled"
+              @click="bulkExecuteScript"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncScript" class="h-4 w-4" />
+                <!-- Generate All -->
+                Execute {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
               v-if="contextMenuTarget"
               class="nc-base-menu-item"
               data-testid="context-menu-item-copy"
@@ -2886,6 +3060,24 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
 .is-dragging {
   @apply opacity-50;
+}
+@keyframes dotFade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes dotBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 </style>
 

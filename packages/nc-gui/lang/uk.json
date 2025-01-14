@@ -858,6 +858,7 @@
     "clickToHide": "Натисніть, щоб приховати",
     "clickToDownload": "Натисніть, щоб завантажити",
     "forRole": "для ролі",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Натисніть, щоб скопіювати ідентифікатор таблиці",
     "clickToCopyViewID": "Натисніть, щоб скопіювати ідентифікатор перегляду",
     "viewMode": "Режим перегляду",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Завантажити як CSV",
     "downloadExcel": "Завантажити як XLSX",
     "uploadCSV": "Завантажити CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Імпортувати",
     "importMetadata": "Імпорт метаданих",
     "exportMetadata": "Експорт метаданих",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Деякі обов’язкові поля залишились порожніми",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

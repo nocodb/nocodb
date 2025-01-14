@@ -74,6 +74,7 @@ export const TreeViewInj: InjectionKey<{
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
+  openAutomationDescriptionDialog?: (automation: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>

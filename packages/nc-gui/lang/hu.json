@@ -858,6 +858,7 @@
     "clickToHide": "Kattintással elrejthető",
     "clickToDownload": "Letöltéshez kattintson",
     "forRole": "szerepkörhöz",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Kattintson a Tábla ID másolásához",
     "clickToCopyViewID": "Kattintással View ID másolása",
     "viewMode": "Nézet mód",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV letöltése",
     "downloadExcel": "Excel letöltése",
     "uploadCSV": "CSV feltöltése",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importál",
     "importMetadata": "Metaadatok importálása",
     "exportMetadata": "Metaadatok exportálása",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Néhány szükséges mező üresen maradt",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

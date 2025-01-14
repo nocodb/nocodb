@@ -40,6 +40,8 @@ export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
 export const isAiButton = (column: ColumnType) =>
   column.uidt === UITypes.Button && (column?.colOptions as any)?.type === ButtonActionsType.Ai
+export const isScriptButton = (column: ColumnType) =>
+  column.uidt === UITypes.Button && (column?.colOptions as any)?.type === ButtonActionsType.Script
 export const isAI = (column: ColumnType) =>
   column.uidt === UITypes.LongText && parseProp(column?.meta)?.[LongTextAiMetaProp] === true
 

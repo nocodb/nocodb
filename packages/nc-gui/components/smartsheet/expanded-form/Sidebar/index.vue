@@ -9,7 +9,7 @@ const isAuditsEnabled = computed(() => !isEeUI || isFeatureEnabled(FEATURE_FLAG.
 
 const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
 
-watch(tab, newValue => {
+watch(tab, (newValue) => {
   if (newValue === 'audits') {
     props.store.loadAudits()
   }

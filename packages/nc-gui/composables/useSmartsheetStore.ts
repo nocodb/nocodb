@@ -60,6 +60,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return where
     })
 
+    const isActionPaneActive = ref(false)
+
+    const actionPaneSize = ref(40)
+
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
@@ -107,6 +111,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       sqlUi,
       allFilters,
       isDefaultView,
+      actionPaneSize,
+      isActionPaneActive,
     }
   },
   'smartsheet-store',

@@ -858,6 +858,7 @@
     "clickToHide": "മറയ്ക്കാൻ ക്ലിക്കുചെയ്യുക",
     "clickToDownload": "ഡൌൺലോഡുചെയ്യാൻ ക്ലിക്കുചെയ്യുക",
     "forRole": "വേഷത്തിന്",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "ടേബിൾ ഐഡി പകർപ്പെടുക്കുവാൻ ക്ലിക്ക് ചെയ്യുക",
     "clickToCopyViewID": "കാഴ്ച്ച ID പകർത്താൻ ക്ലിക്കൽ ചെയ്യുക",
     "viewMode": "കാഴ്ച മോഡ്",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV ഡൗൺലോഡ് ചെയ്യുക",
     "downloadExcel": "എക്സ്സെൽ ഡൗൺലോഡ് ചെയ്യുക",
     "uploadCSV": "CSV അപ്ലോഡ് ചെയ്യുക",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "ഇമ്പോർട്ട് ചെയ്യുക",
     "importMetadata": "മെറ്റാഡാറ്റ ഇമ്പോർട്ട് ചെയ്യുക",
     "exportMetadata": "മെറ്റാഡാറ്റ എക്സ്‌പോർട്ട് ചെയ്യുക",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "ആവശ്യമായ ചില കളങ്ങൾ ശൂന്യമാണ്",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

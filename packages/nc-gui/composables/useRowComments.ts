@@ -1,4 +1,5 @@
 import type { ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const isCommentsLoading = ref(false)
@@ -17,6 +18,20 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       }
     >
   >([])
+
+  const parsedHtmlComments = computed(() => {
+    return comments.value.reduce((acc, comment) => {
+      if (comment.id) {
+        let commentValue = unref(comment.comment)
+        if (comment.updated_at !== comment.created_at && comment.updated_at) {
+          const str = timeAgo(comment.updated_at).replace(' ', '_')
+          commentValue += ` [(edited)](a~~~###~~~Edited_${str}) `
+        }
+        acc[comment.id] = NcMarkdownParser.parse(commentValue) ?? ''
+      }
+      return acc
+    }, {} as Record<string, any>)
+  })
 
   const basesStore = useBases()
 
@@ -226,6 +241,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     deleteComment,
     isCommentsLoading,
     primaryKey,
+    parsedHtmlComments,
   }
 })
 

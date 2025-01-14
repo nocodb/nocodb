@@ -21,7 +21,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     where?: ComputedRef<string | undefined>,
     isPublic = false,
   ) => {
-    const groupByLimit: number = 3
+    const groupByLimit = 3
 
     const { api } = useApi()
 

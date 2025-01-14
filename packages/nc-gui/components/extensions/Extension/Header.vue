@@ -57,7 +57,7 @@ const expandExtension = () => {
  * @param open - Optional. If true, the duplicated extension will be opened.
  */
 
-const handleDuplicateExtension = async (id: string, open: boolean = false) => {
+const handleDuplicateExtension = async (id: string, open = false) => {
   const duplicatedExt = await duplicateExtension(id)
 
   if (duplicatedExt?.id && open) {

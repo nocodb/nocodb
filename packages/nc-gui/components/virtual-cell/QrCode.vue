@@ -76,7 +76,7 @@ const height = computed(() => {
     return '1.8rem'
   }
 
-  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight}`]! - 20}px`
+  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight.value}`]! - 20}px`
 })
 </script>
 

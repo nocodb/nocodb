@@ -302,8 +302,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
+
     const loadChildrenList = async (resetOffset: boolean = false, activeState: any = undefined) => {
       if (activeState) newRowState.state = activeState
+
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return

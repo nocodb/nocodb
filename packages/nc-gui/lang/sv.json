@@ -858,6 +858,7 @@
     "clickToHide": "Klicka för att dölja",
     "clickToDownload": "Klicka för att ladda ner",
     "forRole": "för roll",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klicka för att kopiera bord ID",
     "clickToCopyViewID": "Klicka för att kopiera vy-ID",
     "viewMode": "Visningsläge",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Hämta som CSV",
     "downloadExcel": "Hämta som XLSX",
     "uploadCSV": "Ladda upp CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importera",
     "importMetadata": "Importera metadata",
     "exportMetadata": "Exportera metadata",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Vissa av de obligatoriska fälten är tomma",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

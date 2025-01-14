@@ -858,6 +858,7 @@
     "clickToHide": "Klik egin ezkutatzeko",
     "clickToDownload": "Klik egin deskargatzeko",
     "forRole": "rolarentzat",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klik egin Taula ID kopiatzeko",
     "clickToCopyViewID": "Klik egin Ikuspegi IDa kopiatzeko",
     "viewMode": "Ikusi modua",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Download as CSV",
     "downloadExcel": "Download as XLSX",
     "uploadCSV": "Igo CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Inportatu",
     "importMetadata": "Metadatuak inportatu",
     "exportMetadata": "Metadatuak esportatu",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Beharrezko eremuetako batzuk hutsik daude",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

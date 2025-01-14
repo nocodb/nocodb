@@ -682,7 +682,7 @@ class PGClient extends KnexClient {
           `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
           [args.schema],
         );
-        result.data.value = rows.length > 0 && rows2.length > 0;
+        result.data.value = rows2.length > 0;
       }
     } catch (e) {
       log.ppe(e, _func);

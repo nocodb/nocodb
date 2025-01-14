@@ -858,6 +858,7 @@
     "clickToHide": "छिपाने के लिए क्लिक करें",
     "clickToDownload": "डाउनलोड करने के लिए क्लिक करें",
     "forRole": "भूमिका के लिए",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "टेबल आईडी कॉपी करने के लिए क्लिक करें",
     "clickToCopyViewID": "व्यू आईडी कॉपी करने के लिए क्लिक करें",
     "viewMode": "दृश्य मोड",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV के रूप में डाउनलोड करें",
     "downloadExcel": "XLSX के रूप में डाउनलोड करें",
     "uploadCSV": "Upload CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Import",
     "importMetadata": "Import Metadata",
     "exportMetadata": "Export Metadata",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "कुछ आवश्यक फ़ील्ड खाली हैं",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",

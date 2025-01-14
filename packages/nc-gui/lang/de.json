@@ -97,7 +97,7 @@
     "usage": "Nutzung",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
-    "baseSnapshots": "Base Snapshots",
+    "baseSnapshots": "Projekt-Snapshots",
     "featurePreview": "Vorschau neuer Funktionen",
     "scripts": "Skripte",
     "configure": "Konfigurieren",
@@ -1573,7 +1573,7 @@
       "cantBeNull": "Auswahloptionen dürfen nicht leer sein",
       "multiSelectCantHaveCommas": "Auswahloptionen dürfen keine Kommas (\",\") enthalten",
       "cantHaveDuplicates": "Auswahloptionen dürfen keine Duplikate enthalten",
-      "createNewOptionNamed": "Neue Option erstellen namens "
+      "createNewOptionNamed": "Neue Option erstellen namens"
     },
     "plsEnterANumber": "Bitte geben Sie eine Zahl ein",
     "plsInputEmail": "Bitte E-Mail-Adresse eingeben",
@@ -1661,7 +1661,7 @@
       "noSaml": "Es sind keine SAML-Authentifizierungen konfiguriert.",
       "noOIDC": "Es sind keine konfigurierten OpenID-Authentifizierungen vorhanden.",
       "disabledAsViewLocked": "Deaktiviert, da die Ansicht gesperrt ist",
-      "basesMigrated": "Datenbanken wurden migriert. Bitte versuchen Sie es erneut.",
+      "basesMigrated": "Datenbanken werden migriert. Bitte versuchen Sie es erneut.",
       "pasteNotSupported": "Einfügen in aktive Zelle nicht möglich",
       "roles": {
         "orgCreator": "Ersteller können neue Projekte erstellen und auf alle Projekte zugreifen, zu denen sie eingeladen wurden.",
@@ -1801,7 +1801,7 @@
       "noColumnsToUpdate": "Keine Spalten zu aktualisieren",
       "tableDeleted": "Tabelle erfolgreich gelöscht",
       "layoutDeleted": "Layout erfolgreich gelöscht",
-      "generatePublicShareableReadonlyBase": "Öffentlich lesbare Basis generieren",
+      "generatePublicShareableReadonlyBase": "Öffentlich teilbares Projekt generieren",
       "deleteViewConfirmation": "Sind Sie sicher, dass Sie diese Ansicht löschen möchten?",
       "deleteLayoutConfirmation": "Sind Sie sicher, dass Sie dieses Layout löschen möchten?",
       "deleteTableConfirmation": "Möchten Sie die Tabelle löschen",

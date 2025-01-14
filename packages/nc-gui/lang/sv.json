@@ -840,7 +840,7 @@
     "icon": "Ikon",
     "max": "Max",
     "enableRichText": "Aktivera rik text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopierad post-URL",
     "copyRecordURL": "Kopiera post-URL",
     "duplicateRecord": "Dubbla poster",

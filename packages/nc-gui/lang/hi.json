@@ -840,7 +840,7 @@
     "icon": "आइकन",
     "max": "अधिकतम",
     "enableRichText": "रिच टेक्स्ट सक्षम करें",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "कॉपी किए गए रिकॉर्ड URL",
     "copyRecordURL": "रिकॉर्ड URL कॉपी करें",
     "duplicateRecord": "डुप्लिकेट रिकॉर्ड",

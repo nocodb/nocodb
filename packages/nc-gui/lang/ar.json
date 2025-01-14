@@ -840,7 +840,7 @@
     "icon": "أيقونة",
     "max": "الحد الأقصى",
     "enableRichText": "تمكين النص الغني",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "عنوان URL للسجل المنسوخ",
     "copyRecordURL": "نسخ عنوان URL للسجل",
     "duplicateRecord": "سجل مكرر",

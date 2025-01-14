@@ -840,7 +840,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "রিচ টেক্সট সক্রিয় করুন",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",

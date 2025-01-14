@@ -840,7 +840,7 @@
     "icon": "Ikon",
     "max": "Max",
     "enableRichText": "Enable Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Rekord URL másolva",
     "copyRecordURL": "Rekord URL másolása",
     "duplicateRecord": "Rekord duplikálása",

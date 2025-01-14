@@ -840,7 +840,7 @@
     "icon": "Ikonoa",
     "max": "Max",
     "enableRichText": "Testu aberatsa gaitu",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Erregistroaren URL-a kopiatu da",
     "copyRecordURL": "Erregistroaren URL-a kopiatu",
     "duplicateRecord": "Bikoiztu errenkada",

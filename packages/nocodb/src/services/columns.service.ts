@@ -20,7 +20,9 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
+import rfdc from 'rfdc';
 import { parseMetaProp } from 'src/utils/modelUtils';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -41,6 +43,7 @@ import {
   Hook,
   KanbanView,
   Model,
+  Script,
   Source,
   View,
 } from '~/models';
@@ -74,6 +77,8 @@ import {
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
 import { extractProps } from '~/helpers/extractProps';
+
+const deepClone = rfdc();
 
 // todo: move
 export enum Altered {
@@ -279,18 +284,21 @@ export class ColumnsService {
   async columnUpdate(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
       column: ColumnReqType & { colOptions?: any };
-      cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const reuse = param.reuse || {};
 
-    const { cookie } = param;
+    const { req } = param;
+
     const column = await Column.get(context, { colId: param.columnId });
+
+    const oldColumn = deepClone(column);
 
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(context, {
@@ -331,12 +339,18 @@ export class ColumnsService {
       */
       await table.getColumns(context);
 
+      const updatedColumn = await Column.get(context, {
+        colId: param.columnId,
+      });
+
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
         table,
-        column,
-        user: param.req?.user,
-        ip: param.req?.clientIp,
+        oldColumn,
+        column: updatedColumn,
+        columnId: column.id,
         req: param.req,
+        context,
+        columns: table.columns,
       });
 
       return table;
@@ -442,6 +456,7 @@ export class ColumnsService {
       colOptions?: any;
       fk_webhook_id?: string;
       type?: ButtonActionsType;
+      fk_script_id?: string;
       prompt?: string;
       prompt_raw?: string;
       fk_integration_id?: string;
@@ -570,6 +585,16 @@ export class ColumnsService {
 
             if (!hook || !hook.active || hook.event !== 'manual') {
               NcError.badRequest('Webhook not found');
+            }
+          } else if (colBody.type === ButtonActionsType.Script) {
+            if (!colBody.fk_script_id) {
+              NcError.badRequest('Script not found');
+            }
+
+            const script = await Script.get(context, colBody.fk_script_id);
+
+            if (!script) {
+              NcError.badRequest('Script not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
             /*
@@ -992,7 +1017,7 @@ export class ColumnsService {
                     skipValidationAndHooks: true,
                   },
                   { [column.column_name]: null },
-                  { cookie },
+                  { cookie: req },
                 );
               }
             } else if (column.uidt === UITypes.MultiSelect) {
@@ -1147,7 +1172,7 @@ export class ColumnsService {
                     skipValidationAndHooks: true,
                   },
                   { [column.column_name]: newOp.title },
-                  { cookie },
+                  { cookie: req },
                 );
               }
             } else if (column.uidt === UITypes.MultiSelect) {
@@ -1236,7 +1261,7 @@ export class ColumnsService {
                   skipValidationAndHooks: true,
                 },
                 { [column.column_name]: newOp.title },
-                { cookie },
+                { cookie: req },
               );
             }
           } else if (column.uidt === UITypes.MultiSelect) {
@@ -1693,13 +1718,21 @@ export class ColumnsService {
     // Get all the columns in the table and return
     await table.getColumns(context);
 
+    const updatedColumn = await Column.get(context, { colId: param.columnId });
+
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
       table,
-      column,
-      user: param.req?.user,
-      ip: param.req?.clientIp,
+      oldColumn,
+      column: updatedColumn,
+      columnId: param.columnId,
       req: param.req,
+      context,
+      columns: table.columns,
     });
+
+    if (param.apiVersion === NcApiVersion.V3) {
+      return column;
+    }
 
     return table;
   }
@@ -1708,12 +1741,53 @@ export class ColumnsService {
     return Column.get(context, { colId: param.columnId });
   }
 
-  async columnSetAsPrimary(context: NcContext, param: { columnId: string }) {
+  async columnSetAsPrimary(
+    context: NcContext,
+    param: { columnId: string; req: NcRequest },
+  ) {
+    const oldColumn = await Column.get(context, { colId: param.columnId });
+    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
+      .then((model) => model.getColumns(context))
+      .then((columns) => columns.find((c) => c.pv));
+    if (!oldColumn) {
+      NcError.notFound(`Column with id ${param.columnId} not found`);
+    }
+    const result = await Model.updatePrimaryColumn(
+      context,
+      oldColumn.fk_model_id,
+      oldColumn.id,
+    );
+
     const column = await Column.get(context, { colId: param.columnId });
-    return Model.updatePrimaryColumn(context, column.fk_model_id, column.id);
+
+    const table = await Model.get(context, column.fk_model_id);
+
+    if (oldPrimaryColumn) {
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        oldColumn: oldPrimaryColumn,
+        column: { ...oldPrimaryColumn, pv: false },
+        columnId: column.id,
+        req: param.req,
+        context,
+        columns: table.columns,
+      });
+    }
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      oldColumn,
+      column,
+      columnId: column.id,
+      req: param.req,
+      context,
+      columns: table.columns,
+    });
+
+    return result;
   }
 
-  async columnAdd(
+  async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
       req: NcRequest;
@@ -1722,8 +1796,10 @@ export class ColumnsService {
       user: UserType;
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
+      apiVersion?: T;
     },
-  ) {
+  ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
+    let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -1843,7 +1919,7 @@ export class ColumnsService {
         {
           await validateRollupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1853,7 +1929,7 @@ export class ColumnsService {
         {
           await validateLookupPayload(context, param.column);
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -1862,7 +1938,7 @@ export class ColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-        await this.createLTARColumn(context, {
+        savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
           base,
@@ -1878,13 +1954,14 @@ export class ColumnsService {
             source_id: source.id,
           },
           req: param.req,
+          context,
         });
         break;
 
       case UITypes.QrCode:
         validateParams(['fk_qr_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1892,7 +1969,7 @@ export class ColumnsService {
       case UITypes.Barcode:
         validateParams(['fk_barcode_value_column_id'], param.column);
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -1946,7 +2023,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2010,6 +2087,16 @@ export class ColumnsService {
           if (!hook || !hook.active || hook.event !== 'manual') {
             colBody.fk_webhook_id = null;
           }
+        } else if (colBody.type === ButtonActionsType.Script) {
+          if (!colBody.fk_script_id) {
+            colBody.fk_script_id = null;
+          }
+
+          const script = await Script.get(context, colBody.fk_script_id);
+
+          if (!script) {
+            colBody.fk_script_id = null;
+          }
         } else if (colBody.type === ButtonActionsType.Ai) {
           /*
             Substitute column alias with id in prompt
@@ -2032,7 +2119,7 @@ export class ColumnsService {
           }
         }
 
-        await Column.insert(context, {
+        savedColumn = await Column.insert(context, {
           ...colBody,
           fk_model_id: table.id,
         });
@@ -2124,7 +2211,7 @@ export class ColumnsService {
           } else {
             columnName = existingColumn.column_name;
           }
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
             column_name: null,
@@ -2372,7 +2459,7 @@ export class ColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
-          await Column.insert(context, {
+          savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
@@ -2382,18 +2469,41 @@ export class ColumnsService {
 
     await table.getColumns(context);
 
-    this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
-      table,
-      column: {
-        ...colBody,
-        fk_model_id: table.id,
-      },
-      user: param.req?.user,
-      ip: param.req?.clientIp,
-      req: param.req,
-    });
+    const columnId = table.columns.find(
+      (c) => c.title === param.column.title,
+    )?.id;
 
-    return table;
+    if (!isLinksOrLTAR(param.column)) {
+      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table,
+        column: {
+          ...param.column,
+          fk_model_id: table.id,
+          id: columnId,
+        },
+        columnId,
+        req: param.req,
+        context,
+        columns: table.columns,
+      });
+    }
+
+    if (param.apiVersion === NcApiVersion.V3) {
+      if (savedColumn)
+        return (await Column.get(context, {
+          colId: savedColumn.id,
+        })) as T extends NcApiVersion.V3 ? Column<any> : never;
+
+      if (param.column.title) {
+        return (await Column.get(context, {
+          colId: table.columns.find((c) => c.title === param.column.title)?.id,
+        })) as T extends NcApiVersion.V3 ? Column<any> : never;
+      }
+    }
+
+    return table as T extends NcApiVersion.V3 | null | undefined
+      ? never
+      : Model;
   }
 
   async columnDelete(
@@ -2593,6 +2703,7 @@ export class ColumnsService {
                   sqlMgr,
                   ncMeta,
                   custom,
+                  req: param.req,
                 });
               }
               break;
@@ -2600,6 +2711,7 @@ export class ColumnsService {
               {
                 await this.deleteOoRelation(context, {
                   relationColOpt,
+                  req: param.req,
                   source,
                   childColumn,
                   childTable,
@@ -2639,6 +2751,7 @@ export class ColumnsService {
                       source,
                       ncMeta,
                       virtual: !!relationColOpt.virtual,
+                      req: param.req,
                     },
                     true,
                   );
@@ -2655,13 +2768,17 @@ export class ColumnsService {
                       source,
                       ncMeta,
                       virtual: !!relationColOpt.virtual,
+                      req: param.req,
                     },
                     true,
                   );
                 }
-                const columnsInRelatedTable: Column[] = await relationColOpt
-                  .getRelatedTable(context, ncMeta)
-                  .then((m) => m.getColumns(context, ncMeta));
+                const refTable = await relationColOpt.getRelatedTable(
+                  context,
+                  ncMeta,
+                );
+                const columnsInRelatedTable: Column[] =
+                  await refTable.getColumns(context, ncMeta);
 
                 for (const c of columnsInRelatedTable) {
                   if (!isLinksOrLTAR(c.uidt)) continue;
@@ -2681,6 +2798,16 @@ export class ColumnsService {
                       relationColOpt.fk_mm_parent_column_id
                   ) {
                     await Column.delete(context, c.id, ncMeta);
+                    if (!c.system) {
+                      this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+                        table: refTable,
+                        column: c,
+                        req: param.req,
+                        context,
+                        columnId: c.id,
+                        columns: await refTable.getCachedColumns(context),
+                      });
+                    }
                     break;
                   }
                 }
@@ -2690,6 +2817,18 @@ export class ColumnsService {
                   relationColOpt.fk_column_id,
                   ncMeta,
                 );
+                const table =
+                  column.fk_model_id === parentTable.id
+                    ? parentTable
+                    : childTable;
+                this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+                  table,
+                  column: column,
+                  req: param.req,
+                  context,
+                  columnId: column.id,
+                  columns: await table.getCachedColumns(context),
+                });
 
                 if (!custom) {
                   if (mmTable) {
@@ -2763,6 +2902,7 @@ export class ColumnsService {
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column,
           req: param.req,
+          context,
         });
         break;
       case UITypes.ForeignKey: {
@@ -2844,13 +2984,16 @@ export class ColumnsService {
       ncMeta,
     );
 
-    this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
-      table,
-      column,
-      user: param.req?.user,
-      ip: param.req?.clientIp,
-      req: param.req,
-    });
+    if (!isLinksOrLTAR(column)) {
+      this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+        table,
+        column,
+        req: param.req,
+        context,
+        columnId: column.id,
+        columns: table.columns,
+      });
+    }
 
     return table;
   }
@@ -2868,6 +3011,7 @@ export class ColumnsService {
       ncMeta = Noco.ncMeta,
       virtual,
       custom = false,
+      req,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -2879,6 +3023,7 @@ export class ColumnsService {
       ncMeta?: MetaService;
       virtual?: boolean;
       custom?: boolean;
+      req: NcRequest;
     },
     ignoreFkDelete = false,
   ) => {
@@ -2928,9 +3073,11 @@ export class ColumnsService {
     }
 
     if (!relationColOpt) return;
-    const columnsInRelatedTable: Column[] = await relationColOpt
-      .getRelatedTable(context, ncMeta)
-      .then((m) => m.getColumns(context, ncMeta));
+    const refTable = await relationColOpt.getRelatedTable(context, ncMeta);
+    const columnsInRelatedTable: Column[] = await refTable.getColumns(
+      context,
+      ncMeta,
+    );
     const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
     for (const c of columnsInRelatedTable) {
       if (!isLinksOrLTAR(c.uidt)) continue;
@@ -2943,13 +3090,47 @@ export class ColumnsService {
         colOpt.fk_child_column_id === childColumn.id &&
         colOpt.type === relType
       ) {
+        const colInRefTable = await Column.get(
+          context,
+          { colId: c.id },
+          ncMeta,
+        );
         await Column.delete(context, c.id, ncMeta);
+
+        if (!colInRefTable.system) {
+          this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+            table: refTable,
+            column: colInRefTable,
+            req,
+            context,
+            columnId: colInRefTable.id,
+            columns: await refTable.getColumns(context),
+          });
+        }
+
         break;
       }
     }
 
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
+
+    const col =
+      childColumn.id === relationColOpt.fk_column_id
+        ? childColumn
+        : parentColumn;
+    const table =
+      childColumn.id === relationColOpt.fk_column_id ? childTable : parentTable;
+    if (!col.system) {
+      this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+        table,
+        column: col,
+        req: req,
+        context,
+        columnId: col.id,
+        columns: await table.getColumns(context),
+      });
+    }
 
     if (custom) return;
     if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
@@ -3024,6 +3205,7 @@ export class ColumnsService {
       ncMeta = Noco.ncMeta,
       virtual,
       custom = false,
+      req,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3035,6 +3217,7 @@ export class ColumnsService {
       ncMeta?: MetaService;
       virtual?: boolean;
       custom?: boolean;
+      req: NcRequest;
     },
     ignoreFkDelete = false,
   ) => {
@@ -3088,10 +3271,14 @@ export class ColumnsService {
     }
 
     if (!relationColOpt) return;
-    const columnsInRelatedTable: Column[] = await relationColOpt
-      .getRelatedTable(context, ncMeta)
-      .then((m) => m.getColumns(context, ncMeta));
+
+    const refTable = await relationColOpt.getRelatedTable(context, ncMeta);
+    const columnsInRelatedTable: Column[] = await refTable.getCachedColumns(
+      context,
+    );
+
     const relType = RelationTypes.ONE_TO_ONE;
+
     for (const c of columnsInRelatedTable) {
       if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
@@ -3103,13 +3290,46 @@ export class ColumnsService {
         colOpt.fk_child_column_id === childColumn.id &&
         colOpt.type === relType
       ) {
+        const colInRefTable = await Column.get(
+          context,
+          { colId: c.id },
+          ncMeta,
+        );
+
         await Column.delete(context, c.id, ncMeta);
+
+        if (!colInRefTable.system) {
+          this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+            table: refTable,
+            column: colInRefTable,
+            req,
+            context,
+            columnId: colInRefTable.id,
+            columns: await refTable.getColumns(context),
+          });
+        }
         break;
       }
     }
 
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
+    const col =
+      childColumn.id === relationColOpt.fk_column_id
+        ? childColumn
+        : parentColumn;
+    const table =
+      childColumn.id === relationColOpt.fk_column_id ? childTable : parentTable;
+    if (!col.system) {
+      this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+        table,
+        column: col,
+        req: req,
+        context,
+        columnId: col.id,
+        columns: await table.getColumns(context),
+      });
+    }
 
     if (custom) return;
 
@@ -3182,8 +3402,11 @@ export class ColumnsService {
       reuse?: ReusableParams;
       colExtra?: any;
       user: UserType;
+      req: NcRequest;
     },
   ) {
+    let savedColumn: Column;
+
     validateParams(['parentId', 'childId', 'type'], param.column);
 
     const reuse = param.reuse ?? {};
@@ -3305,8 +3528,9 @@ export class ColumnsService {
         }
       }
 
-      await createHmAndBtColumn(
+      savedColumn = await createHmAndBtColumn(
         context,
+        param.req,
         child,
         parent,
         childColumn,
@@ -3404,8 +3628,9 @@ export class ColumnsService {
           });
         }
       }
-      await createOOColumn(
+      savedColumn = await createOOColumn(
         context,
+        param.req,
         child,
         parent,
         childColumn,
@@ -3526,6 +3751,7 @@ export class ColumnsService {
 
       await createHmAndBtColumn(
         context,
+        param.req,
         assocModel,
         child,
         childCol,
@@ -3541,6 +3767,7 @@ export class ColumnsService {
       );
       await createHmAndBtColumn(
         context,
+        param.req,
         assocModel,
         parent,
         parentCol,
@@ -3555,7 +3782,7 @@ export class ColumnsService {
         param.colExtra,
       );
 
-      await Column.insert(context, {
+      savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await child.getColumns(context),
           pluralize(parent.title),
@@ -3583,7 +3810,7 @@ export class ColumnsService {
         // if self referencing treat it as system field to hide from ui
         system: parent.id === child.id,
       });
-      await Column.insert(context, {
+      const parentRelCol = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await parent.getColumns(context),
           param.column.title ?? pluralize(child.title),
@@ -3613,6 +3840,24 @@ export class ColumnsService {
         ...param.colExtra,
       });
 
+      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: parent,
+        column: parentRelCol,
+        columnId: parentRelCol.id,
+        req: param.req,
+        context,
+        columns: await parent.getCachedColumns(context),
+      });
+
+      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: child,
+        column: savedColumn,
+        columnId: savedColumn.id,
+        req: param.req,
+        context,
+        columns: await child.getCachedColumns(context),
+      });
+
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
       if (param.source.type === 'pg') {
@@ -3635,6 +3880,8 @@ export class ColumnsService {
           sqlMgr,
         });
       }
+
+      return savedColumn;
     }
   }
 
@@ -3807,13 +4054,13 @@ export class ColumnsService {
 
       if (op.op === 'add') {
         try {
-          const tableMeta = await this.columnAdd(context, {
+          const tableMeta = (await this.columnAdd(context, {
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
-          });
+          })) as Model;
 
           await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {

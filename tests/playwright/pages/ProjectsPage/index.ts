@@ -164,10 +164,6 @@ export class ProjectsPage extends BasePage {
 
     await responsePromise;
 
-    const dashboard = new DashboardPage(this.rootPage, base);
-
-    if (waitForAuthTab) await dashboard.waitForTabRender({ title: 'Team & Auth' });
-
     return base;
   }
 

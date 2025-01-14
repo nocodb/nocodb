@@ -146,7 +146,7 @@ const recordsToDisplay = computed<{
     }
   } = {}
 
-  const findAvailableLane = (dateKey: string, duration: number = 1): number => {
+  const findAvailableLane = (dateKey: string, duration = 1): number => {
     if (!recordsInDay[dateKey]) {
       recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0, lanes: [] }
     }
@@ -169,7 +169,7 @@ const recordsToDisplay = computed<{
     return -1 // No available lane
   }
 
-  const occupyLane = (dateKey: string, lane: number, duration: number = 1) => {
+  const occupyLane = (dateKey: string, lane: number, duration = 1) => {
     for (let i = 0; i < duration; i++) {
       const occupyDate = dayjs(dateKey).add(i, 'day').format('YYYY-MM-DD')
       if (!recordsInDay[occupyDate]) {

@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { type AuditType, ProjectRoles } from 'nocodb-sdk'
+import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
-
-const { isUIAllowed } = useRoles()
-
-const basesStore = useBases()
-
-const { basesUser } = storeToRefs(basesStore)
-
-const meta = inject(MetaInj, ref())
-
-const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
 
 const { audits, isAuditLoading } = useExpandedFormStoreOrThrow()
 
@@ -45,31 +35,48 @@ const createdByAudit = (
   }
 }
 
-const getUserRole = (email: string) => {
-  const user = baseUsers.value.find((user) => user.email === email)
-  if (!user) return ProjectRoles.NO_ACCESS
-
-  return user.roles || ProjectRoles.NO_ACCESS
-}
 watch(
   () => audits.value.length,
   (auditCount) => {
     nextTick(() => {
       setTimeout(() => {
         scrollToAudit(audits.value[auditCount - 1]?.id)
-      }, 100)
+      }, 500)
     })
   },
+  {
+    immediate: true,
+  },
 )
+
+function safeJsonParse(json: string) {
+  try {
+    return JSON.parse(json)
+  } catch (e) {
+    return {}
+  }
+}
+
+function isV0Audit(audit: AuditType) {
+  if (audit.version === 0) {
+    return true
+  }
+
+  if (['LINK_RECORD', 'UNLINK_RECORD'].includes(audit?.op_sub_type || '') && audit.details?.startsWith('<span')) {
+    return true
+  }
+
+  return false
+}
 </script>
 
 <template>
-  <div class="h-full pb-1">
-    <div v-if="isAuditLoading" class="flex flex-col items-center justify-center w-full h-full">
+  <div class="h-full">
+    <div v-if="isAuditLoading && audits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
       <GeneralLoader size="xlarge" />
     </div>
 
-    <div v-else ref="auditsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
+    <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
       <template v-if="audits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-600">
@@ -78,65 +85,85 @@ watch(
           <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
         </div>
       </template>
-
-      <div v-for="audit of audits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
-        <div class="group gap-3 overflow-hidden px-3 py-2 hover:bg-gray-100">
-          <div class="flex items-start justify-between">
-            <div class="flex items-start gap-3 flex-1 w-full">
-              <GeneralUserIcon
-                :user="{
-                  display_name: audit?.created_display_name,
-                  email: audit?.created_by_email,
-                  meta: audit?.created_by_meta,
-                }"
-                class="mt-0.5"
-                size="medium"
-              />
-              <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
-                <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
+      <template v-else>
+        <div class="mt-auto" />
+        <div v-for="audit of audits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+          <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-gray-100">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-3 flex-1 w-full">
+                <GeneralUserIcon
+                  :user="{
+                    email: audit?.created_by_email || audit?.user,
+                    display_name: audit?.created_display_name || audit?.user,
+                  }"
+                  class="mt-0.5"
+                  size="medium"
+                />
+                <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
                   <div class="truncate text-gray-800 font-medium !text-small !leading-[18px] overflow-hidden">
                     {{ createdByAudit(audit) }}
                   </div>
-
-                  <template #overlay>
-                    <div class="bg-white rounded-lg">
-                      <div class="flex items-center gap-4 py-3 px-2">
-                        <GeneralUserIcon
-                          class="border-1 border-gray-200 rounded-full"
-                          :user="{
-                            display_name: audit?.created_display_name,
-                            email: audit?.created_by_email,
-                            meta: audit?.created_by_meta,
-                          }"
-                        />
-                        <div class="flex flex-col">
-                          <div class="font-semibold text-gray-800">
-                            {{ createdByAudit(audit) }}
-                          </div>
-                          <div class="text-xs text-gray-600">
-                            {{ audit.created_by_email }}
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        v-if="isUIAllowed('dataEdit')"
-                        class="px-3 rounded-b-lg !text-[13px] items-center text-gray-600 flex gap-1 bg-gray-100 py-1.5"
-                      >
-                        Has <RolesBadge size="sm" :border="false" :role="getUserRole(audit.created_by_email!)" />
-                        role in base
-                      </div>
-                    </div>
-                  </template>
-                </NcDropdown>
-                <div class="text-xs text-gray-500">
-                  {{ timeAgo(audit.created_at!) }}
+                  <div class="text-xs text-gray-500">
+                    {{ timeAgo(audit.created_at!) }}
+                  </div>
                 </div>
               </div>
             </div>
+            <div v-if="isV0Audit(audit)" class="pl-9">
+              <div
+                v-if="audit.details"
+                v-dompurify-html="audit.details"
+                class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3"
+              ></div>
+              <div v-else class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                {{ audit.description }}
+              </div>
+            </div>
+            <div v-else-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
+            <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
+              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
+                  <SmartsheetHeaderVirtualCellIcon
+                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    class="!m-0"
+                  />
+                  {{ safeJsonParse(audit.details).ref_table_title }}
+                </div>
+                <div class="!border-none">
+                  <span
+                    class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50"
+                  >
+                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  </span>
+                  was linked
+                </div>
+              </div>
+            </div>
+            <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
+              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
+                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
+                  <SmartsheetHeaderVirtualCellIcon
+                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
+                    class="!m-0"
+                  />
+                  {{ safeJsonParse(audit.details).ref_table_title }}
+                </div>
+                <div class="!border-none">
+                  <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
+                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
+                  </span>
+                  was unlinked
+                </div>
+              </div>
+            </div>
+            <template v-else-if="audit?.op_type === 'DATA_UPDATE'">
+              <div class="ml-9 rounded-lg border-1 border-gray-200 bg-gray-50 divide-y">
+                <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
+              </div>
+            </template>
           </div>
-          <div v-dompurify-html="audit.details" class="!text-[13px] text-gray-500 !leading-5 !pl-9"></div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>

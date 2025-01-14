@@ -312,7 +312,7 @@ const pGoToPreviousRow = () => {
       :bulk-update-rows="pBulkUpdateRows"
       :expand-form="expandForm"
       :remove-row-if-new="pRemoveRowIfNew"
-      :row-height="rowHeight"
+      :row-height-enum="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />

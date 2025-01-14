@@ -17,6 +17,8 @@ const { showNull } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const rawReadOnly = inject(RawReadonlyInj, ref(false))
+
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
@@ -334,6 +336,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
       class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
+        v-if="!rawReadOnly"
         ref="datePickerRef"
         type="text"
         :value="cellValue"
@@ -348,6 +351,9 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
         @click="clickHandler"
         @input="handleUpdateValue"
       />
+      <span v-else>
+        {{ cellValue }}
+      </span>
 
       <GeneralIcon
         v-if="localState && !readOnly"

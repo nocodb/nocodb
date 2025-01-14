@@ -9,6 +9,7 @@ import {
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import { NcApiVersion } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
@@ -195,6 +196,9 @@ export class ExportService {
                 );
                 break;
               case 'fk_webhook_id':
+                column.colOptions[k] = idMap.get(v as string);
+                break;
+              case 'fk_script_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'id':
@@ -907,6 +911,7 @@ export class ExportService {
           baseModel,
           ignoreViewFilterAndSort: true,
           limitOverride: limit,
+          apiVersion: NcApiVersion.V1,
         })
         .then((result) => {
           try {

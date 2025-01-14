@@ -140,9 +140,22 @@ onMounted(async () => {
       new PlaceholderContentWidget(placeholder, editor)
     }
 
-    if (!isDrawerOrModalExist() && autoFocus) {
+    const activeDrawerOrModal = isDrawerOrModalExist()
+
+    if (!activeDrawerOrModal && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (activeDrawerOrModal?.classList.contains('json-modal') && autoFocus) {
+      setTimeout(() => {
+        const lineCount = editor.getModel()?.getLineCount() ?? 0
+        const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
+        const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
+        editor.setPosition(endPosition)
+        editor.revealPositionInCenter(endPosition)
+        editor.focus()
+      }, 200)
     }
 
     if (lang === 'json') {

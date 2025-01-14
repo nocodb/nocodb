@@ -128,32 +128,27 @@ watch(
 
 const isNewAttachmentModalOpen = ref(false)
 
+const openAttachmentModal = (e: Event) => {
+  e?.stopPropagation()
+  isNewAttachmentModalOpen.value = true
+}
+
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return
     e.stopPropagation()
-    if (!modalVisible.value && !isMobileMode.value) {
+    if (!isMobileMode.value && visibleItems.value.length) {
       modalRendered.value = true
       modalVisible.value = true
     } else {
-      // click Attach File button
-      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+      // open attachment modal
+      openAttachmentModal(e)
     }
   }
 })
 
 const rowHeight = inject(RowHeightInj, ref())
-
-const openAttachmentModal = () => {
-  isNewAttachmentModalOpen.value = true
-}
-
-const open = (e: Event) => {
-  e?.stopPropagation()
-
-  openAttachmentModal()
-}
 
 const onExpand = () => {
   if (isMobileMode.value) return
@@ -171,13 +166,13 @@ const onFileClick = (item: any) => {
 
 const keydownEnter = (e: KeyboardEvent) => {
   if (!isSurveyForm.value) {
-    open(e)
+    openAttachmentModal(e)
     e.stopPropagation()
   }
 }
 const keydownSpace = (e: KeyboardEvent) => {
   if (isSurveyForm.value) {
-    open(e)
+    openAttachmentModal(e)
     e.stopPropagation()
   }
 }
@@ -222,7 +217,7 @@ const attachmentSize = computed(() => {
 })
 
 defineExpose({
-  openFilePicker: open,
+  openFilePicker: openAttachmentModal,
   downloadAttachment,
   renameAttachment: renameFile,
   removeAttachment: onRemoveFileClick,
@@ -232,7 +227,7 @@ defineExpose({
 
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
-    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="open">
+    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="openAttachmentModal">
       <div class="flex items-center !text-xs gap-1 justify-center">
         <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
         <span class="text-[10px]">
@@ -352,7 +347,7 @@ defineExpose({
           size="xs"
           data-testid="attachment-cell-file-picker-button"
           class="!px-2 !h-6 !min-w-[fit-content]"
-          @click.stop="open"
+          @click.stop="openAttachmentModal"
         >
           <div class="flex items-center gap-1 justify-center">
             <GeneralIcon icon="upload" class="text-gray-500 text-tiny" />
@@ -443,7 +438,7 @@ defineExpose({
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
           class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
-          @click.stop="open"
+          @click.stop="openAttachmentModal"
         >
           <MaterialSymbolsAttachFile class="text-gray-500 text-tiny group-hover:(!text-grey-800) text-gray-700" />
         </NcButton>

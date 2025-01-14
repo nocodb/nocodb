@@ -20,7 +20,7 @@ const tablesRef = computedAsync<TableType[]>(async () => {
     tables = activeTables.value
   }
   if (props.filterTable) {
-    return tables.filter(props.filterTable)
+    tables = tables.filter(props.filterTable)
   }
   return tables
 })

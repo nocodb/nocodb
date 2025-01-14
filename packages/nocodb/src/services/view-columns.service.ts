@@ -17,7 +17,7 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { CalendarViewColumn, View } from '~/models';
+import { CalendarViewColumn, Column, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 
@@ -51,10 +51,11 @@ export class ViewColumnsService {
         show: param.column.show,
       },
     );
-    this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
-      viewColumn,
-      req: param.req,
-    });
+    // this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
+    //   viewColumn,
+    //   req: param.req,
+    //   context,
+    // });
 
     return viewColumn;
   }
@@ -66,12 +67,29 @@ export class ViewColumnsService {
       columnId: string;
       column: ViewColumnUpdateReqType;
       req: NcRequest;
+      internal?: boolean;
     },
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',
       param.column,
     );
+
+    const view = await View.get(context, param.viewId);
+
+    if (!view) {
+      NcError.viewNotFound(param.viewId);
+    }
+
+    const oldViewColumn = await View.getColumn(
+      context,
+      param.viewId,
+      param.columnId,
+    );
+
+    const column = await Column.get(context, {
+      colId: oldViewColumn.fk_column_id,
+    });
 
     const result = await View.updateColumn(
       context,
@@ -80,9 +98,20 @@ export class ViewColumnsService {
       param.column,
     );
 
+    const viewColumn = await View.getColumn(
+      context,
+      param.viewId,
+      param.columnId,
+    );
+
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
-      viewColumn: param.column,
+      viewColumn,
+      oldViewColumn,
+      view,
+      column,
+      internal: param.internal,
       req: param.req,
+      context,
     });
 
     return result;

@@ -411,11 +411,19 @@ export async function handleHttpWebHook(
   prevData,
   newData,
 ): Promise<any> {
+  if (!apiMeta) {
+    apiMeta = {};
+  }
+
   const contentType = apiMeta.headers?.find(
     (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
   );
 
   if (!contentType) {
+    if (!apiMeta.headers) {
+      apiMeta.headers = [];
+    }
+
     apiMeta.headers.push({
       name: 'Content-Type',
       enabled: true,
@@ -731,7 +739,11 @@ export async function invokeWebhook(
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime),
       );
-      HookLog.insert(context, { ...hookLog, test_call: testHook });
+      HookLog.insert(context, { ...hookLog, test_call: testHook }).catch(
+        (e) => {
+          logger.error(e.message, e.stack);
+        },
+      );
     }
   }
 }

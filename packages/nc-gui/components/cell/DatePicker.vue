@@ -20,6 +20,8 @@ const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const rawReadOnly = inject(RawReadonlyInj, ref(false))
+
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -331,6 +333,7 @@ const currentDate = ($event) => {
       class="nc-date-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
+        v-if="!rawReadOnly"
         ref="datePickerRef"
         type="text"
         :value="localState?.format(dateFormat) ?? ''"
@@ -345,6 +348,9 @@ const currentDate = ($event) => {
         @click="clickHandler"
         @input="handleUpdateValue"
       />
+      <span v-else>
+        {{ localState?.format(dateFormat) ?? '' }}
+      </span>
 
       <GeneralIcon
         v-if="localState && !readOnly"

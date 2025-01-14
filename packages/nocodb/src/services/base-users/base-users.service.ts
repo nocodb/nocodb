@@ -9,7 +9,11 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
-import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
+import type {
+  ProjectUserReqType,
+  ProjectUserUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -53,6 +57,7 @@ export class BaseUsersService {
       baseUser: ProjectUserReqType;
       req: NcRequest;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
@@ -99,9 +104,9 @@ export class BaseUsersService {
 
     for (const email of emails) {
       // add user to base if user already exist
-      const user = await User.getByEmail(email);
+      const user = await User.getByEmail(email, ncMeta);
 
-      const base = await Base.get(context, param.baseId);
+      const base = await Base.get(context, param.baseId, ncMeta);
 
       if (!base) {
         return NcError.baseNotFound(param.baseId);
@@ -109,9 +114,14 @@ export class BaseUsersService {
 
       if (user) {
         // check if this user has been added to this base
-        const baseUser = await BaseUser.get(context, param.baseId, user.id);
+        const baseUser = await BaseUser.get(
+          context,
+          param.baseId,
+          user.id,
+          ncMeta,
+        );
 
-        const base = await Base.get(context, param.baseId);
+        const base = await Base.get(context, param.baseId, ncMeta);
 
         if (!base) {
           return NcError.baseNotFound(param.baseId);
@@ -130,73 +140,93 @@ export class BaseUsersService {
             param.baseId,
             user.id,
             param.baseUser.roles,
+            ncMeta,
           );
         } else {
-          await BaseUser.insert(context, {
-            base_id: param.baseId,
-            fk_user_id: user.id,
-            roles: param.baseUser.roles || 'editor',
-            invited_by: param.req?.user?.id,
-          });
+          await BaseUser.insert(
+            context,
+            {
+              base_id: param.baseId,
+              fk_user_id: user.id,
+              roles: param.baseUser.roles || 'editor',
+              invited_by: param.req?.user?.id,
+            },
+            ncMeta,
+          );
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
           base,
           user,
-          invitedBy: param.req.user,
-          ip: param.req.clientIp,
+          role: param.baseUser.roles,
+          invitedBy: param.req?.user,
           req: param.req,
+          context,
         });
       } else {
         try {
           // create new user with invite token
-          const user = await User.insert({
-            invite_token,
-            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            email,
-            roles: OrgUserRoles.VIEWER,
-            token_version: randomTokenString(),
-          });
+          const user = await User.insert(
+            {
+              invite_token,
+              invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              email,
+              roles: OrgUserRoles.VIEWER,
+              token_version: randomTokenString(),
+            },
+            ncMeta,
+          );
 
           // add user to base
-          await BaseUser.insert(context, {
-            base_id: param.baseId,
-            fk_user_id: user.id,
-            roles: param.baseUser.roles,
-            invited_by: param.req?.user?.id,
-          });
+          await BaseUser.insert(
+            context,
+            {
+              base_id: param.baseId,
+              fk_user_id: user.id,
+              roles: param.baseUser.roles,
+              invited_by: param.req?.user?.id,
+            },
+            ncMeta,
+          );
 
           this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
             base,
             user,
-            invitedBy: param.req.user,
-            ip: param.req.clientIp,
+            role: param.baseUser.roles,
             req: param.req,
+            invitedBy: param.req?.user,
+            context,
           });
 
           // in case of single user check for smtp failure
           // and send back token if email not configured
           if (emails.length === 1) {
             // variable to keep invite mail send status
-            const mailSendStatus = await this.sendInviteEmail({
-              email,
-              token: invite_token,
-              req: param.req,
-              baseName: base.title,
-              roles: param.baseUser.roles || 'editor',
-            });
+            const mailSendStatus = await this.sendInviteEmail(
+              {
+                email,
+                token: invite_token,
+                req: param.req,
+                baseName: base.title,
+                roles: param.baseUser.roles || 'editor',
+              },
+              ncMeta,
+            );
 
             if (!mailSendStatus) {
               return { invite_token, email };
             }
           } else {
-            await this.sendInviteEmail({
-              email,
-              token: invite_token,
-              req: param.req,
-              baseName: base.title,
-              roles: param.baseUser.roles || 'editor',
-            });
+            await this.sendInviteEmail(
+              {
+                email,
+                token: invite_token,
+                req: param.req,
+                baseName: base.title,
+                roles: param.baseUser.roles || 'editor',
+              },
+              ncMeta,
+            );
           }
         } catch (e) {
           this.logger.error(e.message, e.stack);
@@ -222,15 +252,14 @@ export class BaseUsersService {
     context: NcContext,
     param: {
       userId: string;
-      // todo: update swagger
-      baseUser: ProjectUserReqType & { base_id: string };
-      // todo: refactor
-      req: any;
+      baseUser: ProjectUserUpdateReqType;
+      req: NcRequest;
       baseId: string;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     validatePayload(
-      'swagger.json#/components/schemas/ProjectUserReq',
+      'swagger.json#/components/schemas/ProjectUserUpdateReq',
       param.baseUser,
     );
 
@@ -238,7 +267,7 @@ export class BaseUsersService {
       NcError.badRequest('Missing base id');
     }
 
-    const base = await Base.get(context, param.baseId);
+    const base = await Base.get(context, param.baseId, ncMeta);
 
     if (!base) {
       return NcError.baseNotFound(param.baseId);
@@ -257,16 +286,21 @@ export class BaseUsersService {
       NcError.badRequest('Invalid role');
     }
 
-    const user = await User.get(param.userId);
+    const user = await User.get(param.userId, ncMeta);
 
     if (!user) {
       NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
     }
 
-    const targetUser = await User.getWithRoles(context, param.userId, {
-      user,
-      baseId: param.baseId,
-    });
+    const targetUser = await User.getWithRoles(
+      context,
+      param.userId,
+      {
+        user,
+        baseId: param.baseId,
+      },
+      ncMeta,
+    );
 
     if (!targetUser) {
       NcError.badRequest(
@@ -276,9 +310,13 @@ export class BaseUsersService {
 
     // if old role is owner and there is only one owner then restrict to update
     if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      });
+      const baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: param.baseId,
+        },
+        ncMeta,
+      );
       if (
         baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
           .length === 1
@@ -290,20 +328,23 @@ export class BaseUsersService {
       NcError.badRequest(`Insufficient privilege to update user`);
     }
 
+    const oldBaseUser = await BaseUser.get(context, param.baseId, param.userId);
+
     await BaseUser.updateRoles(
       context,
       param.baseId,
       param.userId,
       param.baseUser.roles,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,
       user,
-      updatedBy: param.req.user,
-      ip: param.req.clientIp,
       baseUser: param.baseUser,
+      oldBaseUser: oldBaseUser as Partial<ProjectUserReqType>,
       req: param.req,
+      context,
     });
 
     return {
@@ -327,6 +368,8 @@ export class BaseUsersService {
     }
 
     const user = await User.get(param.userId);
+
+    const base = await Base.get(context, base_id);
 
     if (!user) {
       NcError.userNotFound(param.userId);
@@ -372,6 +415,13 @@ export class BaseUsersService {
     }
 
     await BaseUser.delete(context, base_id, param.userId);
+
+    this.appHooksService.emit(AppEvents.PROJECT_USER_DELETE, {
+      base,
+      user,
+      req: param.req,
+      context,
+    });
     return true;
   }
 
@@ -433,30 +483,32 @@ export class BaseUsersService {
     this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {
       base,
       user,
-      invitedBy: param.req.user,
-      ip: param.req.clientIp,
       baseUser: param.baseUser,
       req: param.req,
+      context,
     });
 
     return true;
   }
 
-  async sendInviteEmail({
-    email,
-    token,
-    req,
-    baseName,
-    roles,
-    useOrgTemplate,
-  }: {
-    email: string;
-    token: string;
-    req: NcRequest;
-    baseName?: string;
-    roles: string;
-    useOrgTemplate?: boolean;
-  }): Promise<any> {
+  async sendInviteEmail(
+    {
+      email,
+      token,
+      req,
+      baseName,
+      roles,
+      useOrgTemplate,
+    }: {
+      email: string;
+      token: string;
+      req: NcRequest;
+      baseName?: string;
+      roles: string;
+      useOrgTemplate?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
     try {
       let template: string;
 
@@ -470,7 +522,7 @@ export class BaseUsersService {
           await import('~/services/base-users/ui/emailTemplates/invite')
         ).default;
       }
-      const emailAdapter = await NcPluginMgrv2.emailAdapter();
+      const emailAdapter = await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
 
       if (emailAdapter) {
         await emailAdapter.mailSend({
@@ -507,6 +559,7 @@ export class BaseUsersService {
       body: any;
       baseId: string;
       user: UserType;
+      req: NcRequest;
     },
   ) {
     // update base user data
@@ -516,15 +569,29 @@ export class BaseUsersService {
       'hidden',
     ]);
 
+    const base = await Base.get(context, param.baseId);
+
     if (Object.keys(baseUserData).length) {
+      const existingBaseUserData = await BaseUser.get(
+        context,
+        param.baseId,
+        param.user?.id,
+      );
+
       // create new base user if it doesn't exist
-      if (
-        !(await BaseUser.get(context, param.baseId, param.user?.id))?.is_mapped
-      ) {
+      if (!existingBaseUserData?.is_mapped) {
         await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,
           fk_user_id: param.user?.id,
+        });
+        this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
+          base: base,
+          updateObj: baseUserData,
+          oldBaseObj: { ...base, ...existingBaseUserData },
+          user: param.user,
+          req: param.req,
+          context,
         });
       } else {
         await BaseUser.update(
@@ -533,6 +600,14 @@ export class BaseUsersService {
           param.user?.id,
           baseUserData,
         );
+        this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
+          base: base,
+          updateObj: baseUserData,
+          oldBaseObj: { ...base, ...existingBaseUserData },
+          user: param.user,
+          req: param.req,
+          context,
+        });
       }
     }
 

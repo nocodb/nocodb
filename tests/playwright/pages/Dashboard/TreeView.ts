@@ -118,7 +118,6 @@ export class TreeViewPage extends BasePage {
         requestUrlPathToMatch: `/api/v1/db/data/noco`,
         responseJsonMatcher: json => json.pageInfo,
       });
-      await this.dashboard.waitForTabRender({ title, mode });
     } else {
       await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
         // x:10, y:10
@@ -135,7 +134,6 @@ export class TreeViewPage extends BasePage {
   async createTable({
     title,
     skipOpeningModal,
-    mode,
     baseTitle,
   }: {
     title: string;
@@ -159,9 +157,6 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
-
-    // Tab render is slow for playwright
-    await this.dashboard.waitForTabRender({ title, mode });
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {

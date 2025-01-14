@@ -30,6 +30,12 @@ const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
+const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
+
+const automationStore = useAutomationStore()
+
+const { loadAutomation } = automationStore
+
 const isLoading = ref(false)
 
 const pk = computed(() => {
@@ -80,6 +86,14 @@ const generate = async () => {
   generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
+const isExecutingId = ref('')
+
+const isExecuting = computed(
+  () =>
+    activeExecutions.value.get(isExecutingId.value)?.status === 'running' ||
+    fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
+)
+
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
@@ -96,6 +110,24 @@ const triggerAction = async () => {
     }
   } else if (colOptions.type === ButtonActionsType.Ai) {
     await generate()
+  } else if (colOptions.type === ButtonActionsType.Script) {
+    try {
+      isLoading.value = true
+
+      const script = await loadAutomation(colOptions.fk_script_id)
+
+      const id = await runScript(script, currentRow.value.row, {
+        pk: pk.value,
+        fieldId: column.value.id,
+      })
+
+      isExecutingId.value = id
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
   }
 }
 
@@ -124,6 +156,10 @@ const componentProps = computed(() => {
         isLoading.value ||
         !column.value.colOptions.fk_webhook_id ||
         !cellValue.value?.fk_webhook_id,
+    }
+  } else if (column.value.colOptions.type === ButtonActionsType.Script) {
+    return {
+      disabled: isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
@@ -164,7 +200,11 @@ const componentProps = computed(() => {
         @click="triggerAction"
       >
         <GeneralLoader
-          v-if="isLoading || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))"
+          v-if="
+            isLoading ||
+            isExecuting ||
+            (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
+          "
           :class="{
             solid: column.colOptions.theme === 'solid',
             text: column.colOptions.theme === 'text',

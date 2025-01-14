@@ -575,7 +575,7 @@ async function deleteColumnCallback() {
   reloadEventHook.trigger()
 }
 
-const onFormItemClick = (element: any, sidebarClick: boolean = false) => {
+const onFormItemClick = (element: any, sidebarClick = false) => {
   if (isLocked.value || !isEditable) return
 
   if (sidebarClick) {
@@ -1992,7 +1992,7 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 
   &.nc-cell-json {
-    @apply h-auto;
+    @apply min-h-[38px] h-auto;
     & > div {
       @apply w-full;
     }

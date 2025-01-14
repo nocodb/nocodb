@@ -1,6 +1,17 @@
 import type { ComputedRef, Ref } from 'vue'
 import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
-import type { Api, ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type PaginatedType,
+  type RelationTypes,
+  type TableType,
+  type ViewType,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -12,7 +23,7 @@ const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, param
       row: { ...row },
       oldRow: { ...row },
       rowMeta: {
-        rowIndex: (pageInfo.page - 1) * pageInfo.pageSize + index,
+        rowIndex: (pageInfo.page! - 1) * pageInfo.pageSize! + index,
       },
     }))
   }
@@ -35,10 +46,11 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
   }
   where?: ComputedRef<string | undefined>
+  disableSmartsheet?: boolean
 }) {
   const NOCO = 'noco'
 
-  const { meta, viewMeta, callbacks, where } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet } = args
 
   const { $api } = useNuxtApp()
 
@@ -66,7 +78,13 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, sorts } = disableSmartsheet
+    ? {
+        nestedFilters: ref([]),
+        allFilters: ref([]),
+        sorts: ref([]),
+      }
+    : useSmartsheetStoreOrThrow()
 
   const selectedAllRecords = ref(false)
 
@@ -88,7 +106,7 @@ export function useInfiniteData(args: {
   })
 
   const computedWhereFilter = computed(() => {
-    const filter = extractFilterFromXwhere(xWhere.value ?? '', columnsByAlias.value)
+    const filter = extractFilterFromXwhere(where?.value ?? '', columnsByAlias.value)
 
     return filter.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
@@ -1074,18 +1092,22 @@ export function useInfiniteData(args: {
         UITypes.Attachment,
       ])
 
-      metaValue?.columns?.forEach((col: ColumnType) => {
-        if (
-          col.title &&
-          col.title in updatedRowData &&
-          (columnsToUpdate.has(col.uidt as UITypes) ||
-            isAIPromptCol(col) ||
-            col.au ||
-            (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
-        ) {
-          toUpdate.row[col.title] = updatedRowData[col.title]
-        }
-      })
+      Object.assign(
+        toUpdate.row,
+        metaValue?.columns?.reduce<Record<string, any>>((acc, col: ColumnType) => {
+          if (
+            col.title &&
+            col.title in updatedRowData &&
+            (columnsToUpdate.has(col.uidt as UITypes) ||
+              isAIPromptCol(col) ||
+              col.au ||
+              (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
+          ) {
+            acc[col.title] = updatedRowData[col.title]
+          }
+          return acc
+        }, {}),
+      )
 
       Object.assign(toUpdate.oldRow, updatedRowData)
 
@@ -1125,9 +1147,7 @@ export function useInfiniteData(args: {
     }
 
     row.rowMeta.changed = false
-
-    let cachedRow: Row
-
+    let cachedRow
     await until(() => {
       cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
       if (!cachedRow) return true
@@ -1136,20 +1156,36 @@ export function useInfiniteData(args: {
 
     let data
 
+    const fieldsToOverwrite = meta.value?.columns?.filter(
+      (c) =>
+        isSystemColumn(c) ||
+        isCreatedOrLastModifiedByCol(c) ||
+        isCreatedOrLastModifiedTimeCol(c) ||
+        [
+          UITypes.Formula,
+          UITypes.QrCode,
+          UITypes.Barcode,
+          UITypes.Rollup,
+          UITypes.Checkbox,
+          UITypes.User,
+          UITypes.Lookup,
+          UITypes.Button,
+          UITypes.Attachment,
+        ].includes(c.uidt),
+    )
+
     if (row.rowMeta.new) {
       data = await insertRow(row, ltarState, args, false, true, beforeRowID)
     } else if (property) {
-      data = await updateRowProperty(
-        {
-          ...(cachedRow || row),
-          row: {
-            ...(cachedRow?.row ? cachedRow.row : row.row),
-            [property]: row.row[property],
-          },
-        },
-        property,
-        args,
-      )
+      if (cachedRow) {
+        Object.assign(row.row, {
+          ...(fieldsToOverwrite?.reduce((acc, col) => {
+            acc[col.title!] = cachedRow.row[col.title!]
+            return acc
+          }, {}) ?? {}),
+        })
+      }
+      data = await updateRowProperty(row, property, args)
     }
 
     row.rowMeta.isValidationFailed = !validateRowFilters(
@@ -1252,6 +1288,8 @@ export function useInfiniteData(args: {
   }
 
   async function syncCount(): Promise<void> {
+    if (!isPublic.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+
     try {
       const { count } = isPublic.value
         ? await fetchCount({

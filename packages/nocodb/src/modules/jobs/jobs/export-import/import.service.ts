@@ -2,6 +2,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
+  NcApiVersion,
   RelationTypes,
   UITypes,
   ViewTypes,
@@ -196,6 +197,7 @@ export class ImportService {
             ...modelData,
             columns: reducedColumnSet.map((a) => withoutId(a)),
           }),
+          req: param.req,
         }));
 
       idMap.set(modelData.id, table.id);
@@ -203,7 +205,7 @@ export class ImportService {
       if (param.existingModel) {
         if (reducedColumnSet.length) {
           for (const col of reducedColumnSet) {
-            const freshModelData = await this.columnsService.columnAdd(
+            const freshModelData = (await this.columnsService.columnAdd(
               context,
               {
                 tableId: getIdOrExternalId(getParentIdentifier(col.id)),
@@ -213,7 +215,7 @@ export class ImportService {
                 req: param.req,
                 user: param.user,
               },
-            );
+            )) as Model;
 
             for (const nColumn of freshModelData.columns) {
               if (nColumn.title === col.title) {
@@ -347,7 +349,7 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd(
+                const freshModelData = (await this.columnsService.columnAdd(
                   context,
                   {
                     tableId: table.id,
@@ -372,7 +374,7 @@ export class ImportService {
                     req: param.req,
                     user: param.user,
                   },
-                );
+                )) as Model;
 
                 for (const nColumn of freshModelData.columns) {
                   if (nColumn.title === col.title) {
@@ -441,6 +443,7 @@ export class ImportService {
                           title: childColumn.title,
                         },
                         user: param.user,
+                        req: param.req,
                       });
                     }
                     break;
@@ -454,7 +457,7 @@ export class ImportService {
               // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
               delete col.column_name;
 
-              const freshModelData = await this.columnsService.columnAdd(
+              const freshModelData = (await this.columnsService.columnAdd(
                 context,
                 {
                   tableId: table.id,
@@ -479,7 +482,7 @@ export class ImportService {
                   req: param.req,
                   user: param.user,
                 },
-              );
+              )) as Model;
 
               for (const nColumn of freshModelData.columns) {
                 if (nColumn.title === col.title) {
@@ -550,6 +553,7 @@ export class ImportService {
                         title: childColumn.title,
                       },
                       user: param.user,
+                      req: param.req,
                     });
                   }
                 }
@@ -587,6 +591,7 @@ export class ImportService {
                           title: relatedCol.title,
                         },
                         user: param.user,
+                        req: param.req,
                       });
                     }
                   }
@@ -599,7 +604,7 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd(
+                const freshModelData = (await this.columnsService.columnAdd(
                   context,
                   {
                     tableId: table.id,
@@ -624,7 +629,7 @@ export class ImportService {
                     req: param.req,
                     user: param.user,
                   },
-                );
+                )) as Model;
 
                 for (const nColumn of freshModelData.columns) {
                   if (nColumn.title === col.title) {
@@ -711,6 +716,7 @@ export class ImportService {
                           title: childColumn.title,
                         },
                         user: param.user,
+                        req: param.req,
                       });
                     }
                     break;
@@ -729,7 +735,7 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd(
+                const freshModelData = (await this.columnsService.columnAdd(
                   context,
                   {
                     tableId: table.id,
@@ -753,8 +759,9 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    apiVersion: NcApiVersion.V2,
                   },
-                );
+                )) as Model;
 
                 linkMap.set(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -849,6 +856,7 @@ export class ImportService {
                           title: childColumn.title,
                         },
                         user: param.user,
+                        req: param.req,
                       });
                     }
 
@@ -887,6 +895,7 @@ export class ImportService {
                               title: relatedCol.title,
                             },
                             user: param.user,
+                            req: param.req,
                           });
                         }
                       }
@@ -906,7 +915,7 @@ export class ImportService {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
 
-                const freshModelData = await this.columnsService.columnAdd(
+                const freshModelData = (await this.columnsService.columnAdd(
                   context,
                   {
                     tableId: table.id,
@@ -931,7 +940,7 @@ export class ImportService {
                     req: param.req,
                     user: param.user,
                   },
-                );
+                )) as Model;
 
                 linkMap.set(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -1026,6 +1035,7 @@ export class ImportService {
                           title: childColumn.title,
                         },
                         user: param.user,
+                        req: param.req,
                       });
                     }
                   }
@@ -1065,6 +1075,7 @@ export class ImportService {
                             title: relatedCol.title,
                           },
                           user: param.user,
+                          req: param.req,
                         });
                       }
                     }
@@ -1176,7 +1187,7 @@ export class ImportService {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1191,7 +1202,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1201,7 +1212,7 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Rollup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1217,7 +1228,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1226,7 +1237,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Formula) {
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1239,7 +1250,7 @@ export class ImportService {
           req: param.req,
           user: param.user,
           suppressFormulaError: true,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1254,7 +1265,7 @@ export class ImportService {
           colOptions.model = null;
         }
 
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1280,7 +1291,7 @@ export class ImportService {
           req: param.req,
           user: param.user,
           suppressFormulaError: true,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1295,7 +1306,7 @@ export class ImportService {
           colOptions.model = null;
         }
 
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1307,7 +1318,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1322,7 +1333,7 @@ export class ImportService {
         col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1333,7 +1344,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1342,7 +1353,7 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.QrCode) {
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1354,7 +1365,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1364,7 +1375,7 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Barcode) {
         flatCol.validate = null;
-        const freshModelData = await this.columnsService.columnAdd(context, {
+        const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
@@ -1376,7 +1387,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
-        });
+        })) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1477,6 +1488,7 @@ export class ImportService {
               order: fcl.order,
               ...calendarColProperties,
             },
+            internal: true,
             req: param.req,
           });
         }

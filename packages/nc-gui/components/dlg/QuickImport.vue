@@ -78,7 +78,7 @@ const defaultImportState = {
     importDataOnly: true,
   },
 }
-const importState = reactive(defaultImportState)
+const importState = reactive(structuredClone(defaultImportState))
 
 const { token } = useGlobal()
 
@@ -97,7 +97,7 @@ const { validate, validateInfos } = useForm(importState, validators)
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
-      header: `${t('title.quickImportExcel')}`,
+      header: importDataOnly ? t('activity.uploadExcel') : t('title.quickImportExcel'),
       icon: 'importExcel',
       uploadHint: '',
       urlInputLabel: t('msg.info.excelURL'),
@@ -106,7 +106,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeCsv.value) {
     return {
-      header: `${t('title.quickImportCSV')}`,
+      header: importDataOnly ? t('activity.uploadCSV') : t('title.quickImportCSV'),
       icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
@@ -125,6 +125,12 @@ const importMeta = computed(() => {
 })
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
+
+watch(dialogShow, (newValue) => {
+  if (newValue) {
+    Object.assign(importState, structuredClone(defaultImportState))
+  }
+})
 
 // watch dialogShow to init or terminate worker
 if (isWorkerSupport && process.env.NODE_ENV === 'production') {
@@ -587,7 +593,7 @@ watch(
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
     :closable="false"
-    width="448px"
+    :width="templateEditorModal && importDataOnly ? '640px' : '448px'"
     class="!top-[12.5vh]"
     wrap-class-name="nc-modal-quick-import"
     :transition-name="transition"
@@ -790,7 +796,7 @@ watch(
           :disabled="disablePreImportButton"
           @click="handlePreImport"
         >
-          {{ $t('activity.import') }}
+          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
         </nc-button>
 
         <nc-button
@@ -801,7 +807,7 @@ watch(
           :disabled="disableImportButton"
           @click="handleImport"
         >
-          {{ $t('activity.import') }}
+          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
         </nc-button>
       </div>
     </template>

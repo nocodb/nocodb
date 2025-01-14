@@ -122,6 +122,9 @@ watch(activeViewMode, async (v) => {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
     await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
+  // else if (v === 'discussion') {
+  //   await setCurrentViewExpandedFormMode(viewId, v)
+  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
@@ -693,21 +696,21 @@ export default {
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate w-[128px]">
+              <span class="truncate w-[120px] md:w-[300px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
         </div>
-        <div class="ml-auto md:mx-auto">
+        <div class="ml-auto">
           <NcSelectTab
             v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             v-model="activeViewMode"
@@ -717,6 +720,7 @@ export default {
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment' },
+              // { icon: 'ncMessageSquare', value: 'discussion' },
             ]"
           />
         </div>
@@ -860,6 +864,12 @@ export default {
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === 'discussion'">
+          <SmartsheetExpandedFormPresentorsDiscussion
+            :store="expandedFormStore"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
           />
         </template>
       </div>

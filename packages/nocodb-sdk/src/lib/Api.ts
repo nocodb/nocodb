@@ -225,6 +225,8 @@ export interface AuditType {
    * @example <span class="">Date</span>   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">2023-03-12</span>   <span class="black--text green lighten-4 px-2"></span>
    */
   details?: string;
+  /** Version of the audit */
+  version?: number;
 }
 
 /**
@@ -1170,6 +1172,8 @@ export interface ButtonType {
   parsed_tree?: object;
   /** Webhook ID */
   fk_webhook_id?: IdType;
+  /** Script ID */
+  fk_script_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Comma separated column ids to be updated with the generated value */
@@ -2167,6 +2171,20 @@ export interface PaginatedType {
 }
 
 /**
+ * Model for Paginated
+ */
+export interface PaginatedV3Type {
+  /** URL to access next page */
+  next?: string;
+  /** URL to access previous page */
+  prev?: string;
+  /** URL to access current page data with next set of nested fields data */
+  nestedNext?: string;
+  /** URL to access current page data with previous set of nested fields data */
+  nestedPrev?: string;
+}
+
+/**
  * Model for Password
  * @example password123456789
  */
@@ -2419,6 +2437,26 @@ export interface ProjectUpdateReqType {
 export interface ProjectUserReqType {
   /** Base User Email */
   email: string;
+  /** Base User Role */
+  roles:
+    | 'no-access'
+    | 'commenter'
+    | 'editor'
+    | 'guest'
+    | 'owner'
+    | 'viewer'
+    | 'creator';
+}
+
+/**
+ * Model for Base User Request
+ */
+export interface ProjectUserUpdateReqType {
+  /**
+   * Base User Email
+   * @format email
+   */
+  email?: string;
   /** Base User Role */
   roles:
     | 'no-access'
@@ -2698,6 +2736,8 @@ export interface TableType {
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
   columnsById?: Record<string, any>;
+  /** Hash of columns */
+  columnsHash?: string;
   /** Model for Bool */
   deleted?: BoolType;
   /** Is this table enabled? */
@@ -3356,6 +3396,7 @@ export enum ButtonActionsType {
   Webhook = 'webhook',
   Url = 'url',
   Ai = 'ai',
+  Script = 'script',
 }
 
 /**

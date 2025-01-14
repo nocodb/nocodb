@@ -23,6 +23,7 @@ export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbo
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
+export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
@@ -73,6 +74,7 @@ export const TreeViewInj: InjectionKey<{
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
+  openAutomationDescriptionDialog?: (automation: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>

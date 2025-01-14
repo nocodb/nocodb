@@ -12,12 +12,14 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
+  TableType,
   UserType,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
@@ -76,6 +78,13 @@ export class TablesService {
     // todo: allow user to update meta  and other prop in single api call
     if ('meta' in param.table || 'description' in param.table) {
       await Model.updateMeta(context, param.tableId, param.table);
+
+      this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+        table: param.table,
+        prevTable: model,
+        req: param.req,
+        context,
+      });
 
       return true;
     }
@@ -174,16 +183,34 @@ export class TablesService {
     );
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
-      table: model,
-      user: param.user,
+      table: param.table,
+      prevTable: model,
       req: param.req,
+      context,
     });
 
     return true;
   }
 
-  reorderTable(context: NcContext, param: { tableId: string; order: any }) {
-    return Model.updateOrder(context, param.tableId, param.order);
+  async reorderTable(
+    context: NcContext,
+    param: { tableId: string; order: any; req: NcRequest },
+  ) {
+    const model = await Model.get(context, param.tableId);
+
+    const res = await Model.updateOrder(context, param.tableId, param.order);
+
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      prevTable: model as TableType,
+      table: {
+        ...model,
+        order: param.order,
+      } as TableType,
+      req: param.req,
+      context,
+    } as any);
+
+    return res;
   }
 
   async tableDelete(
@@ -322,8 +349,8 @@ export class TablesService {
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
         table,
         user: param.user,
-        ip: param.req?.clientIp,
         req: param.req,
+        context,
       });
 
       result = await table.delete(context, ncMeta);
@@ -466,7 +493,8 @@ export class TablesService {
       sourceId?: string;
       table: TableReqType;
       user: User | UserType;
-      req?: any;
+      req: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -501,6 +529,7 @@ export class TablesService {
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
       for (const uidt of [
+        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : []),
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
         UITypes.CreatedBy,
@@ -533,6 +562,11 @@ export class TablesService {
           case UITypes.Order:
             columnTitle = 'nc_order';
             columnName = 'nc_order';
+            break;
+          case UITypes.ID:
+            columnTitle = 'id';
+            columnName = 'id';
+            break;
         }
 
         const colName = getUniqueColumnName(
@@ -545,7 +579,7 @@ export class TablesService {
           columnTitle,
         );
 
-        if (!col || !col.system) {
+        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
           tableCreatePayLoad.columns.push({
             ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
             column_name: colName,
@@ -664,14 +698,14 @@ export class TablesService {
 
     mapDefaultDisplayValue(param.table.columns);
 
+    const virtualColumns = [];
+
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
         (isCreatedOrLastModifiedByCol(column) && (column as any).system)
       ) {
-        const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
-
         // set column name using title if not present
         if (!column.column_name && column.title) {
           column.column_name = column.title;
@@ -692,10 +726,10 @@ export class TablesService {
           column.column_name = targetColumnName;
         }
         uniqueColumnNameCount[column.column_name] = 1;
-      }
 
-      if (column.column_name.length > mxColumnLength) {
-        column.column_name = column.column_name.slice(0, mxColumnLength);
+        if (column.column_name.length > mxColumnLength) {
+          column.column_name = column.column_name.slice(0, mxColumnLength);
+        }
       }
 
       if (column.title && column.title.length > 255) {
@@ -709,12 +743,17 @@ export class TablesService {
       param.table.columns
         // exclude alias columns from column list
         ?.filter((c) => {
-          return (
-            !isCreatedOrLastModifiedTimeCol(c) ||
-            !isCreatedOrLastModifiedByCol(c) ||
-            !isOrderCol(c) ||
-            (c as any).system
-          );
+          const allowed =
+            (!isCreatedOrLastModifiedTimeCol(c) &&
+              !isCreatedOrLastModifiedByCol(c)) ||
+            (c as any).system ||
+            isOrderCol(c);
+
+          if (!allowed) {
+            virtualColumns.push(c);
+          }
+
+          return allowed;
         })
         .map(async (c) => ({
           ...(await getColumnPropsFromUIDT(c as any, source)),
@@ -752,17 +791,25 @@ export class TablesService {
     // todo: type correction
     const result = await Model.insert(context, base.id, source.id, {
       ...tableCreatePayLoad,
-      columns: tableCreatePayLoad.columns.map((c, i) => {
-        const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
-        return {
+      columns: [
+        ...tableCreatePayLoad.columns.map((c, i) => {
+          const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
+          return {
+            ...c,
+            uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+            ...(colMetaFromDb || {}),
+            title: c.title || getColumnNameAlias(c.cn, source),
+            column_name: colMetaFromDb?.cn || c.cn || c.column_name,
+            order: i + 1,
+          } as NormalColumnRequestType;
+        }),
+        ...virtualColumns.map((c, i) => ({
           ...c,
-          uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
-          ...(colMetaFromDb || {}),
+          uidt: c.uidt || getColumnUiType(source, c),
           title: c.title || getColumnNameAlias(c.cn, source),
-          column_name: colMetaFromDb?.cn || c.cn || c.column_name,
-          order: i + 1,
-        } as NormalColumnRequestType;
-      }),
+          order: tableCreatePayLoad.columns.length + i + 1,
+        })),
+      ],
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
 
@@ -803,10 +850,14 @@ export class TablesService {
     }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
-      table: result,
+      table: {
+        ...param.table,
+        id: result.id,
+      },
+      source,
       user: param.user,
-      ip: param.req?.clientIp,
       req: param.req,
+      context,
     });
 
     return result;

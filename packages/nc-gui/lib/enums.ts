@@ -80,6 +80,15 @@ export enum SmartsheetStoreEvents {
   CELL_SELECTED = 'cell-selected',
 }
 
+export enum SmartsheetScriptActions {
+  UPDATE_PROGRESS = 'update-progress',
+  RESET_PROGRESS = 'reset-progress',
+  ACTION = 'action',
+
+  RELOAD_VIEW = 'reload-view',
+  RELOAD_ROW = 'reload-row',
+}
+
 export enum DataSourcesSubTab {
   New = 'New',
   Metadata = 'Metadata',
@@ -181,7 +190,7 @@ export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
 }
 
-export enum IconType {
+export enum WorkspaceIconType {
   IMAGE = 'IMAGE',
   EMOJI = 'EMOJI',
   ICON = 'ICON',

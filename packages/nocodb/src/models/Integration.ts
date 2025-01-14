@@ -6,6 +6,7 @@ import {
   type IntegrationType,
   type SourceType,
 } from 'nocodb-sdk';
+import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type IntegrationWrapper from '~/integrations/integration.wrapper';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -287,7 +288,7 @@ export default class Integration implements IntegrationType {
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
-      sub_type?: string | ClientTypes;
+      sub_type?: string | ClientType;
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;

@@ -16,9 +16,6 @@ test.describe('Virtual columns', () => {
   });
 
   test('Lookup', async () => {
-    // close 'Team & Auth' tab
-    // await dashboard.closeTab({ title: "Team & Auth" });
-
     const countryList = ['Spain', 'Saudi Arabia', 'United Arab Emirates', 'Mexico', 'Turkey'];
     const cityCount = ['1', '3', '1', '2', '1'];
 
@@ -37,7 +34,6 @@ test.describe('Virtual columns', () => {
         value: countryList[i],
       });
     }
-    await dashboard.closeTab({ title: 'City' });
 
     await dashboard.treeView.openTable({ title: 'Country' });
     // Create Rollup column
@@ -55,6 +51,5 @@ test.describe('Virtual columns', () => {
         value: cityCount[i],
       });
     }
-    await dashboard.closeTab({ title: 'Country' });
   });
 });

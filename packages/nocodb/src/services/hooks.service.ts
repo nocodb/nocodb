@@ -70,6 +70,8 @@ export class HooksService {
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
       req: param.req,
+      context,
+      tableId: hook.fk_model_id,
     });
 
     return hook;
@@ -97,9 +99,12 @@ export class HooksService {
     }
 
     await Hook.delete(context, param.hookId);
+
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,
       req: param.req,
+      context,
+      tableId: hook.fk_model_id,
     });
     return true;
   }
@@ -144,7 +149,10 @@ export class HooksService {
         ...hook,
         ...param.hook,
       },
+      oldHook: hook,
+      tableId: hook.fk_model_id,
       req: param.req,
+      context,
     });
 
     return res;
@@ -185,6 +193,7 @@ export class HooksService {
         prevData: null,
         newData: row,
         user: param.req.user,
+        context,
       });
     } catch (e) {
       throw e;
@@ -237,6 +246,8 @@ export class HooksService {
       this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
         hook,
         req: param.req,
+        context,
+        tableId: hook.fk_model_id,
       });
     }
 

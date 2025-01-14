@@ -98,8 +98,12 @@ export class ColumnsController {
   async columnSetAsPrimary(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
+    @Req() req: NcRequest,
   ) {
-    return await this.columnsService.columnSetAsPrimary(context, { columnId });
+    return await this.columnsService.columnSetAsPrimary(context, {
+      columnId,
+      req,
+    });
   }
 
   @Get([

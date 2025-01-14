@@ -1,4 +1,4 @@
-import { ColumnReqType, ColumnType, TableType } from './Api';
+import { ButtonActionsType, ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
@@ -265,6 +265,21 @@ export function isOrderCol(
   );
 }
 
+export function isActionButtonCol(
+  col: (ColumnReqType | ColumnType) & {
+    colOptions?: any;
+  }
+) {
+  return (
+    col.uidt === UITypes.Button &&
+    [
+      ButtonActionsType.Script,
+      ButtonActionsType.Webhook,
+      ButtonActionsType.Ai,
+    ].includes((col?.colOptions as any)?.type)
+  );
+}
+
 export function isHiddenCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
@@ -416,3 +431,103 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
     }
   }
 };
+
+
+export const checkboxIconList = [
+  {
+    checked: 'mdi-check-bold',
+    unchecked: 'mdi-crop-square',
+    label: 'square',
+  },
+  {
+    checked: 'mdi-check-circle-outline',
+    unchecked: 'mdi-checkbox-blank-circle-outline',
+    label: 'circle-check',
+  },
+  {
+    checked: 'mdi-star',
+    unchecked: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    checked: 'mdi-heart',
+    unchecked: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    checked: 'mdi-moon-full',
+    unchecked: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    checked: 'mdi-thumb-up',
+    unchecked: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    checked: 'mdi-flag',
+    unchecked: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];
+
+export const ratingIconList = [
+  {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+    label: 'star',
+  },
+  {
+    full: 'mdi-heart',
+    empty: 'mdi-heart-outline',
+    label: 'heart',
+  },
+  {
+    full: 'mdi-moon-full',
+    empty: 'mdi-moon-new',
+    label: 'circle-filled',
+  },
+  {
+    full: 'mdi-thumb-up',
+    empty: 'mdi-thumb-up-outline',
+    label: 'thumbs-up',
+  },
+  {
+    full: 'mdi-flag',
+    empty: 'mdi-flag-outline',
+    label: 'flag',
+  },
+];
+
+export const durationOptions = [
+  {
+    id: 0,
+    title: 'h:mm',
+    example: '(e.g. 1:23)',
+    regex: /(\d+)(?::(\d+))?/,
+  },
+  {
+    id: 1,
+    title: 'h:mm:ss',
+    example: '(e.g. 3:45, 1:23:40)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?/,
+  },
+  {
+    id: 2,
+    title: 'h:mm:ss.s',
+    example: '(e.g. 3:34.6, 1:23:40.0)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 3,
+    title: 'h:mm:ss.ss',
+    example: '(e.g. 3.45.67, 1:23:40.00)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+  {
+    id: 4,
+    title: 'h:mm:ss.sss',
+    example: '(e.g. 3.45.678, 1:23:40.000)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
+  },
+]

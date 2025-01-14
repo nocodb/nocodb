@@ -19,7 +19,7 @@ import {
 import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
-import { type CellRange, NavigateDir, type Row } from '#imports'
+import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
 
 const props = defineProps<{
   totalRows: number
@@ -222,7 +222,7 @@ const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
-const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
+const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 const rowSlice = reactive({
   start: 0,
@@ -265,13 +265,62 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
+const tableState = reactive<ViewActionState>({
+  viewProgress: null,
+  rowProgress: new Map(),
+  cellProgress: new Map(),
+})
+
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const row = cachedRows.value.get(rowIndex)
+
+    if (!row) return { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    row.rowMeta.rowProgress = tableState.rowProgress.get(String(rowId))
+    return row
   })
+})
+
+const totalMaxPlaceholderRows = computed(() => {
+  if (!gridWrapper.value || rowSlice.start <= 1) {
+    return 0
+  }
+
+  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`)
+})
+
+const placeholderStartRows = computed(() => {
+  const result = {
+    length: rowSlice.start > 1 ? Math.min(rowSlice.start - 1, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: rowHeight.value!,
+    totalRowHeight: 0,
+  }
+
+  result.totalRowHeight = result.length * result.rowHeight
+
+  return result
+})
+
+const placeholderEndRows = computed(() => {
+  const result = {
+    length: rowSlice.end < totalRows.value - 1 ? Math.min(totalRows.value - 1 - rowSlice.end, totalMaxPlaceholderRows.value) : 0,
+    rowHeight: rowHeight.value!,
+    totalRowHeight: 0,
+  }
+  result.totalRowHeight = result.length * result.rowHeight
+
+  return result
+})
+
+const topOffset = computed(() => {
+  return rowHeight.value! * (rowSlice.start - placeholderStartRows.value.length)
 })
 
 const updateVisibleRows = async () => {
@@ -564,9 +613,14 @@ const dummyColumnDataForLoading = computed(() => {
 
 const cellMeta = computed(() => {
   return visibleRows.value?.map((row) => {
+    const rowId = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
+    const cellStates = tableState.cellProgress.get(rowId)
+
     return fields.value.map((col) => {
       return {
         isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
+        cellProgress: cellStates?.get(col.id),
       }
     })
   })
@@ -1057,6 +1111,40 @@ const isSelectedOnlyAI = computed(() => {
   }
 })
 
+const isSelectedOnlyScript = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: isScriptButton(field),
+      disabled: false,
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const { runScript } = useScriptExecutor()
+
+const bulkExecuteScript = () => {
+  if (!isSelectedOnlyScript.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  for (const row of rows) {
+    const pk = extractPkFromRow(row.row, meta.value.columns)
+    runScript((field.colOptions as ButtonType).fk_script_id!, row.row, {
+      pk,
+      fieldId: field.id,
+    })
+  }
+}
+
 const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
 
 const generateAIBulk = async () => {
@@ -1223,7 +1311,7 @@ const colPositions = computed(() => {
   return fields.value
     .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
     .map((col) => {
-      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
+      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 180
     })
     .reduce(
       (acc, width, i) => {
@@ -1248,7 +1336,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
       top: row * rowHeight.value,
       left: colPositions.value[col],
       right:
-        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 200 : colPositions.value[col + 1],
+        col === fields.value.length - 1 ? colPositions.value[colPositions.value.length - 1] + 180 : colPositions.value[col + 1],
       bottom: (row + 1) * rowHeight.value,
     }
 
@@ -1446,8 +1534,29 @@ const visibleFields = computed(() => {
   return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
 })
 
-const leftOffset = computed(() => {
-  return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
+const placeholderStartFields = computed(() => {
+  const result = {
+    length: colSlice.value.start > 0 ? colSlice.value.start - 1 : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[colSlice.value.start]! - colPositions.value[1]! : 0
+
+  return result
+})
+
+const placeholderEndFields = computed(() => {
+  const result = {
+    length: colSlice.value.end < fields.value.length - 1 ? fields.value.length - colSlice.value.end : 0,
+    width: 0,
+  }
+  result.width = result.length ? colPositions.value[fields.value.length]! - colPositions.value[colSlice.value.end]! : 0
+
+  return result
+})
+
+const totalRenderedColLength = computed(() => {
+  // number col + display col = 2
+  return 2 + visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
 })
 
 // Fill Handle
@@ -1502,6 +1611,68 @@ watch(
   },
 )
 
+const handleProgress = (payload: any) => {
+  switch (payload.type) {
+    case 'table':
+      tableState.viewProgress = {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      }
+      break
+
+    case 'row':
+      tableState.rowProgress.set(payload.data.rowId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+      })
+      break
+
+    case 'cell': {
+      if (!tableState.cellProgress.has(payload.data.rowId)) {
+        tableState.cellProgress.set(payload.data.rowId, new Map())
+      }
+      const rowCells = tableState.cellProgress.get(payload.data.rowId)!
+      rowCells.set(payload.data.cellId, {
+        progress: payload.data.progress,
+        message: payload.data.message,
+        icon: payload.data?.icon,
+      })
+      break
+    }
+  }
+}
+
+const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?: string; cellId?: string } }) => {
+  switch (payload.type) {
+    case 'table':
+      tableState.viewProgress = null
+      tableState.cellProgress = new Map()
+      tableState.rowProgress = new Map()
+      break
+
+    case 'row':
+      if (payload.data.rowId) {
+        tableState.rowProgress.delete(payload.data.rowId)
+        tableState.rowProgress.set(payload.data.rowId, null)
+      }
+      break
+
+    case 'cell':
+      if (payload.data.rowId && payload.data.cellId) {
+        const rowCells = tableState.cellProgress.get(payload.data.rowId)
+        if (rowCells) {
+          rowCells.delete(payload.data.cellId)
+          if (rowCells.size === 0) {
+            tableState.cellProgress.delete(payload.data.rowId)
+          } else {
+            tableState.cellProgress.set(payload.data.rowId, rowCells)
+          }
+        }
+      }
+      break
+  }
+}
+
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
@@ -1550,19 +1721,37 @@ const reloadViewDataHookHandler = async (param) => {
   })
 }
 
-let scrollRaf = false
+let requestAnimationFrameId: null | number = null
+const { eventBus: scriptEventBus } = useScriptExecutor()
+
+scriptEventBus.on(async (event, payload) => {
+  if (event === SmartsheetScriptActions.UPDATE_PROGRESS) {
+    handleProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.RESET_PROGRESS) {
+    resetProgress(payload)
+  }
+  if (event === SmartsheetScriptActions.RELOAD_VIEW) {
+    await reloadViewDataHookHandler()
+  }
+})
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
-    if (scrollRaf) return
+    // Cancel the previous animation frame if it exists
+    if (requestAnimationFrameId) {
+      cancelAnimationFrame(requestAnimationFrameId)
+    }
 
-    scrollRaf = true
-    requestAnimationFrame(() => {
+    // Request a new animation frame
+    requestAnimationFrameId = requestAnimationFrame(() => {
       scrollLeft.value = e.target?.scrollLeft
       scrollTop.value = e.target?.scrollTop
       calculateSlices()
       refreshFillHandle()
-      scrollRaf = false
+
+      // Clear the frame ID after execution
+      requestAnimationFrameId = null
     })
   },
   throttle: 100,
@@ -1783,7 +1972,7 @@ const maxGridWidth = computed(() => {
 })
 
 const maxGridHeight = computed(() => {
-  return totalRows.value * (isMobileMode.value ? 56 : rowHeight.value)
+  return totalRows.value * rowHeight.value
 })
 
 const { width, height } = useWindowSize()
@@ -1883,9 +2072,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
       ></div>
     </div>
     <div
-      v-if="isBulkOperationInProgress"
+      v-if="isBulkOperationInProgress || tableState.viewProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/50"
     >
+      <div class="flex gap-2 items-center">
+        {{ tableState.viewProgress?.progress }}
+        {{ tableState.viewProgress?.message }}
+      </div>
       <GeneralLoader size="regular" />
     </div>
 
@@ -1924,21 +2117,8 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   />
                 </td>
               </tr>
-              <tr
-                v-show="!isViewColumnsLoading"
-                :style="{
-                  transform: `translateX(${leftOffset}px)`,
-                }"
-                class="nc-grid-header transform"
-              >
-                <th
-                  ref="numColHeader"
-                  class="w-[80px] min-w-[80px]"
-                  :style="{
-                    left: `-${leftOffset}px`,
-                  }"
-                  data-testid="grid-id-column"
-                >
+              <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
+                <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
                   <div
                     v-if="!readOnly"
                     data-testid="nc-check-all"
@@ -1971,11 +2151,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
                     'width': gridViewCols[fields[0].id]?.width || '180px',
-                    ...(leftOffset > 0
-                      ? {
-                          left: `-${leftOffset - 80}px`,
-                        }
-                      : {}),
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2000,6 +2175,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <LazySmartsheetHeaderCell v-else :column="fields[0]" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
+                <th
+                  v-if="placeholderStartFields.length"
+                  :colspan="placeholderStartFields.length"
+                  :style="{
+                    minWidth: `${placeholderStartFields.width}px`,
+                    maxWidth: `${placeholderStartFields.width}px`,
+                    width: `${placeholderStartFields.width}px`,
+                  }"
+                  class="nc-grid-column-header"
+                ></th>
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
@@ -2034,6 +2219,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || !!isMobileMode" />
                   </div>
                 </th>
+                <th
+                  v-if="placeholderEndFields.length"
+                  :colspan="placeholderEndFields.length"
+                  :style="{
+                    minWidth: `${placeholderEndFields.width}px`,
+                    maxWidth: `${placeholderEndFields.width}px`,
+                    width: `${placeholderEndFields.width}px`,
+                  }"
+                  class="nc-grid-column-header"
+                ></th>
                 <th
                   v-if="isAddingColumnAllowed"
                   v-e="['c:column:add']"
@@ -2175,11 +2370,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             </thead>
           </table>
 
-          <div
-            v-show="isDragging"
-            class="dragging-record"
-            :style="{ left: `${leftOffset}px`, width: `${width}px`, top: `${targetTop}px` }"
-          ></div>
+          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
 
           <div
             class="table-overlay"
@@ -2202,9 +2393,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 ref="tableBodyEl"
                 class="xc-row-table"
                 :style="{
-                  transform: `translateX(${leftOffset}px) translateY(${rowSlice.start * rowHeight}px)`,
+                  transform: `translateY(${topOffset}px)`,
                 }"
               >
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderStartRows.length"
+                  :row-count="placeholderStartRows.length"
+                  :row-height="placeholderStartRows.rowHeight"
+                  :total-row-height="placeholderStartRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
                   :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
@@ -2214,7 +2412,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
                       class="absolute z-30 left-0 w-full flex"
@@ -2236,7 +2434,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 6}px`,
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
                       class="absolute transform z-30 left-0 w-full flex"
@@ -2272,9 +2470,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         key="row-index"
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
-                        :style="{
-                          left: `-${leftOffset}px`,
-                        }"
                         @contextmenu="contextMenuTarget = null"
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
@@ -2317,27 +2512,29 @@ watch(vSelectedAllRecords, (selectedAll) => {
                               :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                             />
 
-                            <span
-                              v-if="row.rowMeta?.commentCount && expandForm"
-                              v-e="['c:expanded-form:open']"
-                              :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                              class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
-                              @click="expandAndLooseFocus(row, state)"
-                            >
-                              {{ row.rowMeta.commentCount }}
-                            </span>
-                            <div
-                              v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
-                              class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
-                            >
-                              <component
-                                :is="iconMap.maximize"
-                                v-if="expandForm"
-                                v-e="['c:row-expand:open']"
-                                class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                            <template v-else>
+                              <span
+                                v-if="row.rowMeta?.commentCount && expandForm"
+                                v-e="['c:expanded-form:open']"
+                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
                                 @click="expandAndLooseFocus(row, state)"
-                              />
-                            </div>
+                              >
+                                {{ row.rowMeta.commentCount }}
+                              </span>
+                              <div
+                                v-else
+                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                              >
+                                <component
+                                  :is="iconMap.maximize"
+                                  v-if="expandForm"
+                                  v-e="['c:row-expand:open']"
+                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                                  @click="expandAndLooseFocus(row, state)"
+                                />
+                              </div>
+                            </template>
                           </div>
                         </div>
                       </td>
@@ -2363,11 +2560,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
-                          ...(leftOffset > 0
-                            ? {
-                                left: `-${leftOffset - 80}px`,
-                              }
-                            : {}),
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"
@@ -2381,7 +2573,21 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
+                          >
+                            <GeneralIcon
+                              v-if="cellMeta[index][0]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][0]?.cellProgress?.icon"
+                            />
+                            {{ cellMeta[index][0]?.cellProgress.message }}
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="fields[0] && colMeta[0].isVirtualCol && fields[0].title"
                             v-model="row.row[fields[0].title]"
@@ -2413,6 +2619,16 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           />
                         </div>
                       </SmartsheetTableDataCell>
+                      <td
+                        v-if="placeholderStartFields.length"
+                        :colspan="placeholderStartFields.length"
+                        :style="{
+                          minWidth: `${placeholderStartFields.width}px`,
+                          maxWidth: `${placeholderStartFields.width}px`,
+                          width: `${placeholderStartFields.width}px`,
+                        }"
+                        class="nc-grid-cell"
+                      ></td>
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
@@ -2450,7 +2666,21 @@ watch(vSelectedAllRecords, (selectedAll) => {
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
                       >
-                        <div v-if="!switchingTab" class="w-full">
+                        <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
+                          <div
+                            class="opacity-0.4 gap-2 truncate flex items-center overflow-x-hidden text-sm text-nc-content-gray-muted"
+                          >
+                            <GeneralIcon
+                              v-if="cellMeta[index][colIndex]?.cellProgress?.icon"
+                              class="w-4 h-4"
+                              :icon="cellMeta[index][colIndex]?.cellProgress?.icon"
+                            />
+                            {{ cellMeta[index][colIndex]?.cellProgress.message }}
+                            <div class="flex-1" />
+                            <GeneralSpinner class="w-4 h-4" />
+                          </div>
+                        </template>
+                        <div v-else-if="!switchingTab" class="w-full">
                           <LazySmartsheetVirtualCell
                             v-if="colMeta[colIndex].isVirtualCol && columnObj.title"
                             v-model="row.row[columnObj.title]"
@@ -2481,9 +2711,26 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           />
                         </div>
                       </SmartsheetTableDataCell>
+                      <td
+                        v-if="placeholderEndFields.length"
+                        :colspan="placeholderEndFields.length"
+                        :style="{
+                          minWidth: `${placeholderEndFields.width}px`,
+                          maxWidth: `${placeholderEndFields.width}px`,
+                          width: `${placeholderEndFields.width}px`,
+                        }"
+                        class="nc-grid-cell"
+                      ></td>
                     </tr>
                   </template>
                 </LazySmartsheetRow>
+                <LazySmartsheetGridPlaceholderRow
+                  v-if="placeholderEndRows.length"
+                  :row-count="placeholderEndRows.length"
+                  :row-height="placeholderEndRows.rowHeight"
+                  :total-row-height="placeholderEndRows.totalRowHeight"
+                  :col-count="totalRenderedColLength"
+                />
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
@@ -2497,9 +2744,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   @click="addEmptyRow()"
                 >
                   <td
-                    :style="{
-                      left: `-${leftOffset}px`,
-                    }"
                     class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                   >
                     <component
@@ -2620,6 +2864,20 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 </div>
               </NcMenuItem>
             </NcTooltip>
+
+            <NcMenuItem
+              v-if="isSelectedOnlyScript.enabled"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-bulk-script"
+              :disabled="isSelectedOnlyScript.disabled"
+              @click="bulkExecuteScript"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncScript" class="h-4 w-4" />
+                <!-- Generate All -->
+                Execute {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+              </div>
+            </NcMenuItem>
 
             <NcMenuItem
               v-if="contextMenuTarget"
@@ -2802,6 +3060,24 @@ watch(vSelectedAllRecords, (selectedAll) => {
 
 .is-dragging {
   @apply opacity-50;
+}
+@keyframes dotFade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes dotBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 </style>
 

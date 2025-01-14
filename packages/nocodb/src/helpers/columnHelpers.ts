@@ -1,5 +1,6 @@
 import { customAlphabet } from 'nanoid';
 import {
+  AppEvents,
   getAvailableRollupForUiType,
   RelationTypes,
   UITypes,
@@ -10,6 +11,7 @@ import type {
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
+  NcRequest,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
@@ -23,6 +25,7 @@ import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
 import { DriverClient } from '~/utils/nc-config';
+import Noco from '~/Noco';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -31,6 +34,7 @@ export const randomID = customAlphabet(
 
 export async function createHmAndBtColumn(
   context: NcContext,
+  req: NcRequest,
   child: Model,
   parent: Model,
   childColumn: Column,
@@ -46,35 +50,48 @@ export async function createHmAndBtColumn(
   parentColumn?: Column,
   isCustom = false,
 ) {
+  let savedColumn: Column;
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(context),
       (type === 'bt' && alias) || `${parent.title}`,
     );
-    await Column.insert<LinkToAnotherRecordColumn>(context, {
-      title,
+    const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
+      context,
+      {
+        title,
 
-      fk_model_id: child.id,
-      // ref_db_alias
-      uidt: UITypes.LinkToAnotherRecord,
-      type: 'bt',
-      // db_type:
+        fk_model_id: child.id,
+        // ref_db_alias
+        uidt: UITypes.LinkToAnotherRecord,
+        type: 'bt',
+        // db_type:
 
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
-      fk_related_model_id: parent.id,
-      virtual,
-      // if self referencing treat it as system field to hide from ui
-      system: isSystemCol || parent.id === child.id,
-      fk_col_name: fkColName,
-      fk_index_name: fkColName,
-      ...(type === 'bt' ? colExtra : {}),
-      meta: {
-        ...(colExtra?.meta || {}),
-        custom: isCustom,
+        fk_child_column_id: childColumn.id,
+        fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
+        fk_related_model_id: parent.id,
+        virtual,
+        // if self referencing treat it as system field to hide from ui
+        system: isSystemCol || parent.id === child.id,
+        fk_col_name: fkColName,
+        fk_index_name: fkColName,
+        ...(type === 'bt' ? colExtra : {}),
+        meta: {
+          ...(colExtra?.meta || {}),
+          custom: isCustom,
+        },
       },
-    });
+    );
+    if (!isSystemCol)
+      Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: child,
+        column: childRelCol,
+        columnId: childRelCol.id,
+        req,
+        context,
+        columns: await child.getCachedColumns(context),
+      });
   }
   // save hm column
   {
@@ -89,7 +106,7 @@ export async function createHmAndBtColumn(
       custom: isCustom,
     };
 
-    await Column.insert(context, {
+    savedColumn = await Column.insert(context, {
       title,
       fk_model_id: parent.id,
       uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -105,7 +122,17 @@ export async function createHmAndBtColumn(
       meta,
       ...(type === 'hm' ? colExtra : {}),
     });
+    if (!isSystemCol)
+      Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: parent,
+        column: savedColumn,
+        columnId: savedColumn.id,
+        req: req,
+        context,
+        columns: await parent.getCachedColumns(context),
+      });
   }
+  return savedColumn;
 }
 
 /**
@@ -124,6 +151,7 @@ export async function createHmAndBtColumn(
  */
 export async function createOOColumn(
   context: NcContext,
+  req: NcRequest,
   child: Model,
   parent: Model,
   childColumn: Column,
@@ -138,36 +166,49 @@ export async function createOOColumn(
   parentColumn?: Column,
   isCustom = false,
 ) {
+  let savedColumn: Column;
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(context),
       `${parent.title}`,
     );
-    await Column.insert<LinkToAnotherRecordColumn>(context, {
-      title,
-      fk_model_id: child.id,
-      // ref_db_alias
-      uidt: UITypes.LinkToAnotherRecord,
-      type: RelationTypes.ONE_TO_ONE,
-      // Child View ID is given for relation from parent to child. not for child to parent
-      fk_target_view_id: null,
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
-      fk_related_model_id: parent.id,
-      virtual,
-      // if self referencing treat it as system field to hide from ui
-      system: isSystemCol || parent.id === child.id,
-      fk_col_name: fkColName,
-      fk_index_name: fkColName,
-      // ...(colExtra || {}),
-      meta: {
-        ...(colExtra?.meta || {}),
-        // one-to-one relation is combination of both hm and bt to identify table which have
-        // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
-        bt: true,
-        custom: isCustom,
+    const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
+      context,
+      {
+        title,
+        fk_model_id: child.id,
+        // ref_db_alias
+        uidt: UITypes.LinkToAnotherRecord,
+        type: RelationTypes.ONE_TO_ONE,
+        // Child View ID is given for relation from parent to child. not for child to parent
+        fk_target_view_id: null,
+        fk_child_column_id: childColumn.id,
+        fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
+        fk_related_model_id: parent.id,
+        virtual,
+        // if self referencing treat it as system field to hide from ui
+        system: isSystemCol || parent.id === child.id,
+        fk_col_name: fkColName,
+        fk_index_name: fkColName,
+        // ...(colExtra || {}),
+        meta: {
+          ...(colExtra?.meta || {}),
+          // one-to-one relation is combination of both hm and bt to identify table which have
+          // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
+          bt: true,
+          custom: isCustom,
+        },
       },
+    );
+
+    Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+      table: child,
+      column: childRelCol,
+      columnId: childRelCol.id,
+      req,
+      context,
+      columns: await child.getCachedColumns(context),
     });
   }
   // save hm column
@@ -189,7 +230,7 @@ export async function createOOColumn(
       custom: isCustom,
     };
 
-    await Column.insert(context, {
+    savedColumn = await Column.insert(context, {
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -205,7 +246,17 @@ export async function createOOColumn(
       meta,
       ...(colExtra || {}),
     });
+
+    Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+      table: parent,
+      column: savedColumn,
+      columnId: savedColumn.id,
+      req,
+      context,
+      columns: await parent.getCachedColumns(context),
+    });
   }
+  return savedColumn;
 }
 
 export async function validateRollupPayload(
@@ -299,6 +350,11 @@ export async function validateLookupPayload(
   const column = await Column.get(context, {
     colId: (payload as LookupColumnReqType).fk_relation_column_id,
   });
+
+  if (!column) {
+    throw new Error('Relation column not found');
+  }
+
   const relation = await column.getColOptions<LinkToAnotherRecordType>(context);
 
   if (!relation) {

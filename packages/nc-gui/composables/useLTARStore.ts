@@ -9,7 +9,7 @@ import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats }
 import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
-  list: Record<string, any>
+  list: Record<string, any>[]
   pageInfo: PaginatedType
 }
 
@@ -158,7 +158,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
@@ -223,6 +223,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               linkRowData: JSON.stringify(row.value.row),
             } as any,
           )
+          const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
+          if (childrenExcludedList.value.list && ids.size) {
+            childrenExcludedList.value.list = childrenExcludedList.value.list.filter((item) => !ids.has(item.Id))
+          }
         } else {
           // extract changed data and include with the api call if any
           let changedRowData
@@ -298,11 +302,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async (resetOffset: boolean = false) => {
+
+    const loadChildrenList = async (resetOffset: boolean = false, activeState: any = undefined) => {
+      if (activeState) newRowState.state = activeState
+
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
-        if (!rowId.value || !column.value) return
+        if (!column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
           offset = 0
@@ -312,7 +319,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           offset = 0
         }
 
-        if (isPublic.value) {
+        if (isNewRow?.value || !rowId.value) {
+          const colTitle = column.value?.title || ''
+          const rawList = newRowState.state?.[colTitle] ?? []
+          const query = childrenListPagination.query.toLocaleLowerCase()
+          const list = query
+            ? rawList.filter((record: Record<string, any>) =>
+                `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
+              )
+            : rawList
+          childrenList.value = {
+            list,
+            pageInfo: {
+              isFirstPage: true,
+              isLastPage: list.length <= 10,
+              page: 1,
+              pageSize: 10,
+              totalRows: list.length,
+            },
+          }
+        } else if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
             encodeURIComponent(rowId.value),
@@ -545,7 +571,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     watch(childrenListPagination, async () => {
-      await loadChildrenList()
+      await loadChildrenList(false, newRowState.state)
     })
 
     watch(childrenList, async () => {

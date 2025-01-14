@@ -4,9 +4,16 @@ const props = defineProps<{
   showFieldsTab?: boolean
 }>()
 
-const { appInfo } = useGlobal()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+const isAuditsEnabled = computed(() => !isEeUI || isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))
 
 const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
+
+watch(tab, (newValue) => {
+  if (newValue === 'audits') {
+    props.store.loadAudits()
+  }
+})
 </script>
 
 <template>
@@ -32,9 +39,9 @@ const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields'
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
-      <a-tab-pane key="audits" class="w-full" :disabled="appInfo.ee">
+      <a-tab-pane key="audits" :disabled="!isAuditsEnabled" class="w-full">
         <template #tab>
-          <NcTooltip v-if="appInfo.ee" class="tab flex-1">
+          <NcTooltip v-if="!isAuditsEnabled" class="tab flex-1">
             <template #title>{{ $t('title.comingSoon') }}</template>
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">

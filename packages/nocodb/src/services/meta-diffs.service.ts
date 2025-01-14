@@ -929,6 +929,7 @@ export class MetaDiffsService {
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
       base,
       req: param.req,
+      context,
     });
 
     return true;
@@ -956,6 +957,7 @@ export class MetaDiffsService {
       base,
       source,
       req: param.req,
+      context,
     });
 
     return true;

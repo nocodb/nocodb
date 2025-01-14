@@ -213,7 +213,7 @@ export const filterNullOrUndefinedObjectProperties = <T extends Record<string, a
  *                        existing names like 'Token-1', 'Token-2', etc., will be considered.
  * @returns The next default name with an incremented number based on existing namesData.
  */
-export const extractNextDefaultName = (namesData: string[], defaultName: string, splitOperator: string = '-'): string => {
+export const extractNextDefaultName = (namesData: string[], defaultName: string, splitOperator = '-'): string => {
   // Extract and sort numbers associated with the provided defaultName
   const extractedSortedNumbers =
     (namesData

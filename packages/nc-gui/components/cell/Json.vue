@@ -147,7 +147,12 @@ useSelectedCellKeyupListener(active, (e) => {
       // non-printing keys, ignore them
       break
     default:
-      // Otherwise it's a printing character, open the JSON modal for editing
+      // Otherwise it's a printing character, append it and open the JSON modal for editing
+      if (typeof localValue.value === 'string') {
+        localValue.value += e.key
+      } else if (!localValue.value) {
+        localValue.value = e.key
+      }
       openJSONEditor()
   }
 })

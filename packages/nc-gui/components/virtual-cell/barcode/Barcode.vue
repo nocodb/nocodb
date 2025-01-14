@@ -41,6 +41,19 @@ const showBarcodeModal = () => {
 const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter: showBarcodeModal })
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const height = computed(() => {
+  if (isExpandedFormOpen.value) {
+    return '44px'
+  }
+
+  if (!rowHeight.value) {
+    return '1.8rem'
+  }
+
+  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight}`]! - 20}px`
+})
+
 const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
@@ -90,10 +103,8 @@ const cellIcon = (column: ColumnType) =>
       :barcode-value="barcodeValue"
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="!isExpandedFormOpen ? {
-        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
-      } : {
-        height: '44px',
+      :custom-style="{
+        height,
       }"
       class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"

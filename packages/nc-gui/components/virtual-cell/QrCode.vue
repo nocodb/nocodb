@@ -66,6 +66,18 @@ const copyAsPng = async () => {
   const success = await copyPNGToClipboard(blob)
   if (!success) throw new Error(t('msg.error.notSupported'))
 }
+
+const height = computed(() => {
+  if (isExpandedFormOpen.value) {
+    return undefined
+  }
+
+  if (!rowHeight.value) {
+    return '1.8rem'
+  }
+
+  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight}`]! - 20}px`
+})
 </script>
 
 <template>
@@ -140,15 +152,9 @@ const copyAsPng = async () => {
   >
     <img
       v-if="rowHeight"
-      :style="
-        !isExpandedFormOpen
-          ? {
-              height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
-            }
-          : {}
-      "
+      :style="{ height }"
       :class="{
-        'border-1': isExpandedFormOpen
+        'border-1': isExpandedFormOpen,
       }"
       :src="qrCode"
       :alt="$t('title.qrCode')"

@@ -3,18 +3,9 @@ import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import tippy from 'tippy.js'
-import { Markdown } from 'tiptap-markdown'
-import {
-  HardBreak,
-  Italic,
-  Link,
-  NcMarkdownParser,
-  Strike,
-  UserMention,
-  UserMentionList,
-  suggestion,
-} from '~/helpers/tiptap/extensions'
+import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
+import { Markdown } from '~/helpers/tiptap-markdown'
+import { HardBreak, Italic, Link, Strike, UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -155,7 +146,6 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     focusEditor()
-    // setEditorContent(vModel.value, true)
   }
 }
 
@@ -164,12 +154,6 @@ function focusEditor() {
 
   nextTick(() => {
     editor.value?.chain().focus().run()
-  })
-}
-
-if (props.syncValueChange) {
-  watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
   })
 }
 
@@ -289,25 +273,6 @@ const saveComment = (e) => {
 defineExpose({
   setEditorContent,
 })
-
-onMounted(() => {
-  if (!props.readOnly) return
-
-  setTimeout(() => {
-    document.querySelectorAll('.nc-rich-link-tooltip').forEach((el) => {
-      const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
-      if (!tooltip) return
-      tippy(el, {
-        content: `<span class="tooltip">${tooltip.value}</span>`,
-        placement: 'top',
-        allowHTML: true,
-        arrow: true,
-        animation: 'fade',
-        duration: 0,
-      })
-    })
-  }, 1000)
-})
 </script>
 
 <template>
@@ -362,13 +327,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.tooltip {
-  @apply text-xs bg-gray-800 text-white px-2 py-1 rounded-lg;
-}
 .nc-rich-text-comment {
-  .mention span {
-    display: none;
-  }
   .readonly {
     .nc-comment-rich-editor {
       .ProseMirror {

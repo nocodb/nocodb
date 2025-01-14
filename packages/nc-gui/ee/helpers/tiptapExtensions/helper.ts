@@ -1,4 +1,4 @@
-import type { EditorState, Transaction } from 'prosemirror-state'
+import type { EditorState, Transaction } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
 export const nonTextLeafNodes = [

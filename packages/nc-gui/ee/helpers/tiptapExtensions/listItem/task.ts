@@ -1,8 +1,8 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
-import type { Node as ProseMirrorNode } from 'prosemirror-model'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 

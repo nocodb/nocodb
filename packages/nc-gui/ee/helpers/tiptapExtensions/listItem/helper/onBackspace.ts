@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/vue-3'
-import { TextSelection } from 'prosemirror-state'
+import { TextSelection } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from '.'
 

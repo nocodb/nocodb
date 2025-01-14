@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { NodeSelection, Plugin } from 'prosemirror-state'
-import { Slice } from 'prosemirror-model'
+import { NodeSelection, Plugin } from '@tiptap/pm/state'
+import { Slice } from '@tiptap/pm/model'
 import { getPositionOfSection, nodeTypesContainingSection } from '../helper'
 
 declare module '@tiptap/core' {

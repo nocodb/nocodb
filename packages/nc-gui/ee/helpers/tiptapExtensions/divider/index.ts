@@ -1,5 +1,5 @@
 import HorizontalTiptapRule from '@tiptap/extension-horizontal-rule'
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfPreviousSection, getPositionOfSection } from '../helper'
 

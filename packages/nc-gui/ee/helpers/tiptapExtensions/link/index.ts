@@ -1,7 +1,7 @@
 import TiptapLink from '@tiptap/extension-link'
 import { mergeAttributes } from '@tiptap/core'
-import { Plugin, TextSelection } from 'prosemirror-state'
-import type { AddMarkStep, Step } from 'prosemirror-transform'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
+import type { AddMarkStep, Step } from '@tiptap/pm/transform'
 import { TiptapMarksTypes } from 'nocodb-sdk'
 
 export const Link = ({ isPublic }: { isPublic?: boolean }) =>

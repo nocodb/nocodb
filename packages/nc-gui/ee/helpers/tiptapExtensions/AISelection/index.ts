@@ -3,12 +3,12 @@
 // in the user interaction part of table selections (so that you
 // actually get such selections when you select across cells).
 
-import type { Node, ResolvedPos } from 'prosemirror-model'
-import { Slice } from 'prosemirror-model'
-import type { Transaction } from 'prosemirror-state'
-import { Selection } from 'prosemirror-state'
+import type { Node, ResolvedPos } from '@tiptap/pm/model'
+import { Slice } from '@tiptap/pm/model'
+import type { Transaction } from '@tiptap/pm/state'
+import { Selection } from '@tiptap/pm/state'
 
-import type { Mappable } from 'prosemirror-transform'
+import type { Mappable } from '@tiptap/pm/transform'
 
 /**
  * @public

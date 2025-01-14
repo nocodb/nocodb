@@ -2,11 +2,11 @@
 import { h } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, generateHTML } from '@tiptap/vue-3'
-import { Slice } from 'prosemirror-model'
+import { Slice } from '@tiptap/pm/model'
 import { generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { undo } from 'prosemirror-history'
+import { undo } from '@tiptap/pm/history'
 import { AISelection } from '@/helpers/tiptapExtensions/AISelection'
 
 interface Props {

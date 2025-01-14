@@ -1,8 +1,8 @@
 import type { Editor, Range } from '@tiptap/core'
-import type { EditorState } from 'prosemirror-state'
-import { Plugin, PluginKey } from 'prosemirror-state'
-import type { EditorView } from 'prosemirror-view'
-import { Decoration, DecorationSet } from 'prosemirror-view'
+import type { EditorState } from '@tiptap/pm/state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import type { EditorView } from '@tiptap/pm/view'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 import { findSuggestionMatch } from './findSuggestionMatch'
 

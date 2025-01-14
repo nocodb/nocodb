@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import type { Mark } from 'prosemirror-model'
+import type { Mark } from '@tiptap/pm/model'
 import { CellSelection } from '@tiptap/pm/tables'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'

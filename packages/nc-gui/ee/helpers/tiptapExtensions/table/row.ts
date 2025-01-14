@@ -1,5 +1,5 @@
 import TiptapTableRow from '@tiptap/extension-table-row'
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
 const TableRow = TiptapTableRow.extend({

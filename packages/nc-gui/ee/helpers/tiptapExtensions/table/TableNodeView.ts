@@ -1,5 +1,5 @@
-import type { Node as ProseMirrorNode } from 'prosemirror-model'
-import type { NodeView } from 'prosemirror-view'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import type { NodeView } from '@tiptap/pm/view'
 
 function updateColumns(
   node: ProseMirrorNode,

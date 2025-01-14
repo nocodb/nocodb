@@ -282,7 +282,7 @@ function onNotificationTypeChange(reset = false) {
     hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
     hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
     hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
-    hookRef.notification.payload.auth = hookRef.notification.payload.auth
+    hookRef.notification.payload.auth = hookRef.notification.payload.auth ?? ''
   }
 }
 

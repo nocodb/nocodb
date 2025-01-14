@@ -2,9 +2,9 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { ChainedCommands } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import { Plugin, TextSelection } from 'prosemirror-state'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
 import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfSelectedNode } from '../helper'
 import CollapsableComponent from './collapsable.vue'
 export interface CollapsableOptions {

@@ -6,7 +6,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
-import { TextSelection } from 'prosemirror-state'
+import { TextSelection } from '@tiptap/pm/state'
 import { tiptapBgColor } from '../helper'
 import CollapsableH1Icon from './custom-icons/CollapsableH1.vue'
 import CollapsableH2Icon from './custom-icons/CollapsableH2.vue'

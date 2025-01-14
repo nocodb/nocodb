@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AIRecordType } from 'nocodb-sdk'
-import { NcMarkdownParser } from '~/helpers/tiptap/extensions'
+import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const props = defineProps<{
   modelValue?: string | number

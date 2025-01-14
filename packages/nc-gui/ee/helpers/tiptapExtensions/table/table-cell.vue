@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import type { EditorState, Transaction } from 'prosemirror-state'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
+import type { EditorState, Transaction } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import {
   CellSelection,
   addColumnAfter,

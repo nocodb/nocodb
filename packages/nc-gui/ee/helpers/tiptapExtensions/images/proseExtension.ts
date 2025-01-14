@@ -1,5 +1,5 @@
-import type { EditorView } from 'prosemirror-view'
-import { NodeSelection, Plugin } from 'prosemirror-state'
+import type { EditorView } from '@tiptap/pm/view'
+import { NodeSelection, Plugin } from '@tiptap/pm/state'
 import { getPositionOfSection, removeUploadingPlaceHolderOnUndo } from '../helper'
 
 export type UploadFn = (image: File) => Promise<string>

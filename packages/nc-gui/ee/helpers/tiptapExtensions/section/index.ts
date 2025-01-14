@@ -1,8 +1,8 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
-import type { EditorState } from 'prosemirror-state'
-import { Plugin, TextSelection } from 'prosemirror-state'
+import type { EditorState } from '@tiptap/pm/state'
+import { Plugin, TextSelection } from '@tiptap/pm/state'
 import {
   getPositionOfNextSection,
   getPositionOfPreviousSection,

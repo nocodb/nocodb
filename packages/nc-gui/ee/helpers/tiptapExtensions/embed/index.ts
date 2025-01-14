@@ -1,5 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core'
-import { Plugin } from 'prosemirror-state'
+import { Plugin } from '@tiptap/pm/state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfPreviousSection, isCursorAtStartOfSelectedNode } from '../helper'
 import { getEmbedContentType, urlToEmbedUrl } from './urlHelper'

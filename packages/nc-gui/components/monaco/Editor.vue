@@ -151,8 +151,9 @@ onMounted(async () => {
       setTimeout(() => {
         const lineCount = editor.getModel()?.getLineCount() ?? 0
         const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
-        editor.setPosition({ lineNumber: lineCount, column: lastLineLength + 1 })
-        editor.revealPositionInCenter({ lineNumber: lineCount, column: lastLineLength + 1 })
+        const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
+        editor.setPosition(endPosition)
+        editor.revealPositionInCenter(endPosition)
         editor.focus()
       }, 200)
     }

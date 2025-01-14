@@ -17,7 +17,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
-      for (const item of formSchema) {
+      for (const item of formSchema || []) {
         item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
 
         if (!categorizedItems[item.category]) {
@@ -49,7 +49,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const defaultFormState = () => {
       const defaultState: Record<string, any> = {}
 
-      for (const field of formSchema) {
+      for (const field of formSchema || []) {
         if (!field.model) continue
 
         if (field.type === FormBuilderInputType.Switch) {
@@ -69,7 +69,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
 
-      for (const field of formSchema) {
+      for (const field of formSchema || []) {
         if (!field.model) continue
 
         if (field.validators) {
@@ -111,7 +111,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
         return {
           success: true,
-          ...({ result } || {}),
+          result,
         }
       } catch (e) {
         return {

@@ -26,6 +26,8 @@ const { allCollaborators } = storeToRefs(useWorkspace())
 
 const { bases } = storeToRefs(useBases())
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -140,6 +142,14 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
 
   isLoadingGetLinkedSources.value = false
+}
+
+const openEditIntegration = (integration: IntegrationType) => {
+  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
+    return
+  }
+
+  editIntegration(integration)
 }
 
 const onDeleteConfirm = async () => {
@@ -308,6 +318,7 @@ onKeyStroke('ArrowDown', onDown)
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
+
               <th
                 class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
@@ -401,7 +412,7 @@ onKeyStroke('ArrowDown', onDown)
         <template v-if="filteredIntegrations?.length">
           <table class="h-full max-h-[calc(100%_-_55px)] w-full">
             <tbody>
-              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
+              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="openEditIntegration(integration)">
                 <td class="cell-title">
                   <div
                     class="gap-3"
@@ -420,22 +431,20 @@ onKeyStroke('ArrowDown', onDown)
                     </span>
                   </div>
                 </td>
+
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
-                      <GeneralIntegrationIcon :type="integration.sub_type" />
-                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
-                        <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+                    <NcTooltip placement="bottom" class="h-8 w-8 flex-none flex items-center justify-center children:flex-none">
+                      <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
-                        {{
-                          integration.sub_type && clientTypesMap[integration.sub_type]
-                            ? clientTypesMap[integration.sub_type]?.text
-                            : integration.sub_type
-                        }}
-                      </NcTooltip>
-                    </NcBadge>
+                      <GeneralIntegrationIcon
+                        :type="integration.sub_type"
+                        :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
+                      />
+                    </NcTooltip>
                   </div>
                 </td>
+
                 <td class="cell-created-date">
                   <div>
                     <NcTooltip placement="bottom" show-on-truncate-only>
@@ -447,7 +456,13 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <NcTooltip :disabled="!isUserDeleted(integration.created_by)" class="w-full">
+                    <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
+                      <div class="h-8 w-8 grid place-items-center">
+                        <GeneralIcon icon="nocodb1" />
+                      </div>
+                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
+                    </div>
+                    <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
                       <template #title>
                         {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
                       </template>
@@ -524,11 +539,16 @@ onKeyStroke('ArrowDown', onDown)
                             v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
                             @click="setDefaultIntegration(integration)"
                           >
-                            <GeneralIcon class="text-gray-800" icon="star" />
+                            <GeneralIcon class="text-current opacity-80" icon="star" />
                             <span>Set as default</span>
                           </NcMenuItem>
-                          <NcMenuItem @click="editIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="edit" />
+                          <NcMenuItem
+                            :disabled="
+                              !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB
+                            "
+                            @click="openEditIntegration(integration)"
+                          >
+                            <GeneralIcon class="text-current opacity-80" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
                           <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
@@ -542,24 +562,22 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem
-                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                              :disabled="
+                                integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB
+                              "
                               @click="duplicateIntegration(integration)"
                             >
-                              <GeneralIcon
-                                :class="{
-                                  'text-current': integration?.sub_type === ClientType.SQLITE,
-                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
-                                }"
-                                icon="duplicate"
-                              />
+                              <GeneralIcon class="text-current opacity-80" icon="duplicate" />
                               <span>{{ $t('general.duplicate') }}</span>
                             </NcMenuItem>
                           </NcTooltip>
-                          <NcDivider />
-                          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
-                            <GeneralIcon icon="delete" />
-                            {{ $t('general.delete') }}
-                          </NcMenuItem>
+                          <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.delete') }}
+                            </NcMenuItem>
+                          </template>
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -846,9 +864,9 @@ onKeyStroke('ArrowDown', onDown)
         }
 
         &.cell-type {
-          @apply basis-[20%];
+          @apply w-[120px];
           & > div {
-            @apply min-w-[178px];
+            @apply min-w-[98px];
           }
         }
 

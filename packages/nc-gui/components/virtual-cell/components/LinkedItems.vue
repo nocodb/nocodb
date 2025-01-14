@@ -156,8 +156,16 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
-const onCreatedRecord = (record: any) => {
+const onCreatedRecord = async (record: any) => {
   if (!isNewRecord.value) return
+
+  if (!isNew.value) {
+    vModel.value = false
+  } else {
+    await addLTARRef(record, injectedColumn?.value as ColumnType)
+
+    loadChildrenList(false, state.value)
+  }
 
   const msgVNode = h(
     'div',
@@ -197,7 +205,10 @@ const relation = computed(() => {
 watch(
   () => props.cellValue,
   () => {
-    if (isNew.value) loadChildrenList()
+    if (isNew.value) loadChildrenList(false, state.value)
+  },
+  {
+    immediate: true,
   },
 )
 
@@ -327,7 +338,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-        <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
           <a-input
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
@@ -345,7 +356,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </a-input>
         </div>
-        <div v-else>&nbsp;</div>
         <LazyVirtualCellComponentsHeader
           data-testid="nc-link-count-info"
           :linked-records="totalItemsToShow"

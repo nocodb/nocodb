@@ -1,6 +1,4 @@
-import { createSharedComposable } from '@vueuse/core'
 import type { SnapshotType, WorkspaceType } from 'nocodb-sdk'
-import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 
 export type SnapshotExtendedType = SnapshotType & {
@@ -13,10 +11,9 @@ export type SnapshotExtendedType = SnapshotType & {
 export const useBaseSettings = createSharedComposable(() => {
   const { $api, $poller } = useNuxtApp()
 
-  const baseStore = useBase()
-  const { base } = storeToRefs(baseStore)
-
   const basesStore = useBases()
+
+  const { activeProjectId } = storeToRefs(basesStore)
 
   const { loadProjects } = basesStore
 
@@ -24,17 +21,13 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
-  const _projectId = inject(ProjectIdInj, undefined)
-
   const isCreatingSnapshot = ref(false)
 
   const isRestoringSnapshot = ref(false)
 
-  const baseId = computed(() => _projectId?.value ?? base.value?.id)
-
   const { basesUser, bases } = storeToRefs(basesStore)
 
-  const baseUsers = computed(() => (baseId.value ? basesUser.value.get(baseId.value) || [] : []))
+  const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
 
   const snapshots = ref<SnapshotExtendedType[]>([] as SnapshotExtendedType[])
 
@@ -62,7 +55,7 @@ export const useBaseSettings = createSharedComposable(() => {
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
       snapshot.loading = true
-      await $api.snapshot.update(baseId.value, snapshot.id!, {
+      await $api.snapshot.update(activeProjectId.value, snapshot.id!, {
         title: snapshot.title,
       })
       snapshot.loading = false
@@ -74,9 +67,9 @@ export const useBaseSettings = createSharedComposable(() => {
   }
 
   const deleteSnapshot = async (snapshot: SnapshotExtendedType) => {
-    if (!baseId.value) return
+    if (!activeProjectId.value) return
     try {
-      await $api.snapshot.delete(baseId.value, snapshot.id!)
+      await $api.snapshot.delete(activeProjectId.value, snapshot.id!)
       snapshots.value = snapshots.value.filter((s) => s.id !== snapshot.id)
 
       checkIfCooldownPeriodReached()
@@ -88,7 +81,7 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const listSnapshots = async () => {
     try {
-      const response = await $api.snapshot.list(baseId.value)
+      const response = await $api.snapshot.list(activeProjectId.value)
       snapshots.value = response.map((snapshot) => {
         const user = baseUsers.value.find((u) => u.id === snapshot.created_by)
         return {
@@ -110,9 +103,9 @@ export const useBaseSettings = createSharedComposable(() => {
   }
 
   const createSnapshot = async (snapshot: Partial<SnapshotExtendedType>) => {
-    if (!baseId.value) return
+    if (!activeProjectId.value) return
     try {
-      const response = await $api.snapshot.create(baseId.value, {
+      const response = await $api.snapshot.create(activeProjectId.value, {
         ...snapshot,
         title: newSnapshotTitle.value,
       })
@@ -158,10 +151,10 @@ export const useBaseSettings = createSharedComposable(() => {
     workspace?: WorkspaceType,
     onRestoreSuccess?: () => void | Promise<void>,
   ) => {
-    if (!baseId.value) return
+    if (!activeProjectId.value) return
     try {
       isRestoringSnapshot.value = true
-      const response = await $api.snapshot.restore(baseId.value, snapshot.id!, { workspaceId: workspace?.id ?? '' })
+      const response = await $api.snapshot.restore(activeProjectId.value, snapshot.id!, { workspaceId: workspace?.id ?? '' })
 
       $poller.subscribe(
         { id: response.id! },

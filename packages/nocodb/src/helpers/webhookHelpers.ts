@@ -739,7 +739,11 @@ export async function invokeWebhook(
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime),
       );
-      HookLog.insert(context, { ...hookLog, test_call: testHook });
+      HookLog.insert(context, { ...hookLog, test_call: testHook }).catch(
+        (e) => {
+          logger.error(e.message, e.stack);
+        },
+      );
     }
   }
 }

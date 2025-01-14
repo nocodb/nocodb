@@ -858,6 +858,7 @@
     "clickToHide": "クリックして非表示",
     "clickToDownload": "クリックしてダウンロード",
     "forRole": "役割のため",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "テーブルIDをコピーするにはクリック",
     "clickToCopyViewID": "クリックしてView IDをコピー",
     "viewMode": "ビュー モード",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSVをダウンロード",
     "downloadExcel": "XLSXをダウンロード",
     "uploadCSV": "CSVをアップロード",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "インポート",
     "importMetadata": "メタデータをインポート",
     "exportMetadata": "メタデータをエクスポート",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "必須フィールドのいくつかが空です",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

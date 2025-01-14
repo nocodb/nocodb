@@ -411,11 +411,19 @@ export async function handleHttpWebHook(
   prevData,
   newData,
 ): Promise<any> {
+  if (!apiMeta) {
+    apiMeta = {};
+  }
+
   const contentType = apiMeta.headers?.find(
     (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
   );
 
   if (!contentType) {
+    if (!apiMeta.headers) {
+      apiMeta.headers = [];
+    }
+
     apiMeta.headers.push({
       name: 'Content-Type',
       enabled: true,

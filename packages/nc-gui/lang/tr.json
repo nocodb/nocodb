@@ -858,6 +858,7 @@
     "clickToHide": "Gizlemek için tıklayın",
     "clickToDownload": "İndirmek için tıklayın",
     "forRole": "rol için",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Tablo ID'sini kopyalamak için tıklayın",
     "clickToCopyViewID": "Görünüm ID'sini kopyalamak için tıklayın",
     "viewMode": "Görünüm Modu",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "CSV olarak indir",
     "downloadExcel": "XLSX olarak indir",
     "uploadCSV": "CSV yükle",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "İçe aktar",
     "importMetadata": "Metaverileri içe aktar",
     "exportMetadata": "Metaverileri dışa aktar",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Gerekli alanların bazıları boş",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

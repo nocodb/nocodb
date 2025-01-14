@@ -858,6 +858,7 @@
     "clickToHide": "Klik untuk menyembunyikan",
     "clickToDownload": "Klik untuk mengunduh",
     "forRole": "untuk peran",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klik untuk menyalin ID Tabel",
     "clickToCopyViewID": "Klik untuk menyalin View ID",
     "viewMode": "Mode tampilan",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Unduh sebagai CSV.",
     "downloadExcel": "Unduh sebagai XLSX",
     "uploadCSV": "Unggah CSV.",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Impor",
     "importMetadata": "Impor Metadata.",
     "exportMetadata": "Ekspor metadata.",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Beberapa bidang wajib masih kosong",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

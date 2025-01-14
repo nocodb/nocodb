@@ -858,6 +858,7 @@
     "clickToHide": "Kliknite za skrivanje",
     "clickToDownload": "Kliknite za preuzimanje",
     "forRole": "za ulogu",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Kliknite za kopiranje ID-a Tabllice",
     "clickToCopyViewID": "Kliknite za kopiranje ID pogleda",
     "viewMode": "Način prikaza",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Preuzmite kao CSV",
     "downloadExcel": "Preuzmite kao XLSX",
     "uploadCSV": "Prenesite CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Uvoz",
     "importMetadata": "Uvoz metapodataka",
     "exportMetadata": "Izvoz metapodataka",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Neka od obaveznih polja su prazna",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

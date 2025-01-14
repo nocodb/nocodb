@@ -858,6 +858,7 @@
     "clickToHide": "Click pentru a ascunde",
     "clickToDownload": "Click pentru a descărca",
     "forRole": "pentru rol",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Dă clic pentru a copia ID-ul tabelului",
     "clickToCopyViewID": "Click pentru a copia ID-ul Vederii",
     "viewMode": "Mod vizualizare",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Descarcă CSV",
     "downloadExcel": "Descarcă Excel",
     "uploadCSV": "Încarcă CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importă",
     "importMetadata": "Importă Metadate",
     "exportMetadata": "Exportă Metadate",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Unele câmpuri obligatorii sunt necompletate",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

@@ -858,6 +858,7 @@
     "clickToHide": "ចុចដើម្បីលាក់",
     "clickToDownload": "ចុចដើម្បីទាញយក",
     "forRole": "សម្រាប់តួការងារ",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "ចុចដើម្បីចម្លងអត្តលេខតារាង",
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
     "viewMode": "មើលមុខ",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "ទាញយក CSV",
     "downloadExcel": "ទាញយក Excel",
     "uploadCSV": "ផ្ទុកឡើង CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "នាំចូល",
     "importMetadata": "នាំចូល Metadata",
     "exportMetadata": "នាំចេញ Metadata",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "ខ្លះនៃវាលដែលត្រូវការគឺទទេ",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",

@@ -858,6 +858,7 @@
     "clickToHide": "Klicken, um auszublenden",
     "clickToDownload": "Klicken, um herunterzuladen",
     "forRole": "für Rolle",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Klicken, um die Tabellen-ID zu kopieren",
     "clickToCopyViewID": "Klicken, um Ansichts-ID zu kopieren",
     "viewMode": "Ansichtsmodus",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "Download als CSV",
     "downloadExcel": "Download als XLSX",
     "uploadCSV": "CSV hochladen",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "Importieren",
     "importMetadata": "Metadaten importieren",
     "exportMetadata": "Metadaten exportieren",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "Einige der erforderlichen Felder sind leer",
       "columnVisibilityUpdateFailed": "Fehler beim Aktualisieren der Feldsichtbarkeit",
       "unsupportedCharacter": "Nicht unterstütztes Zeichen: {char}",
-      "unsupportedCharacters": "Nicht unterstützte Zeichen: {char}"
+      "unsupportedCharacters": "Nicht unterstützte Zeichen: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",

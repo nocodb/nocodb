@@ -840,7 +840,7 @@
     "icon": "Ikona",
     "max": "Max",
     "enableRichText": "Enable Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Kopírovaná URL záznamu",
     "copyRecordURL": "Kopírovat URL záznamu",
     "duplicateRecord": "Duplikovat řádek",

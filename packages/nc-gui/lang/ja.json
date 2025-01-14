@@ -840,7 +840,7 @@
     "icon": "アイコン",
     "max": "最大値",
     "enableRichText": "リッチテキストを有効にする",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "レコードURLをコピー済み",
     "copyRecordURL": "レコードURLをコピー",
     "duplicateRecord": "レコード重複",

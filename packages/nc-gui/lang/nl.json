@@ -840,7 +840,7 @@
     "icon": "Icoon",
     "max": "Max",
     "enableRichText": "Rijke tekst inschakelen",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Gekopieerde Record URL",
     "copyRecordURL": "Kopieer Record URL",
     "duplicateRecord": "Duplicaatrecord",

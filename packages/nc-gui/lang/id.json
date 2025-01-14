@@ -840,7 +840,7 @@
     "icon": "Ikon",
     "max": "Maksimal",
     "enableRichText": "Aktifkan teks kaya",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL Rekaman Tersalin",
     "copyRecordURL": "Salin URL Rekaman",
     "duplicateRecord": "Duplikat rekaman",

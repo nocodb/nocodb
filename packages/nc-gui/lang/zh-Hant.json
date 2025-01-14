@@ -840,7 +840,7 @@
     "icon": "圖示",
     "max": "最大值",
     "enableRichText": "啟用富文本",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "已複製記錄 URL",
     "copyRecordURL": "複製記錄 URL",
     "duplicateRecord": "複製記錄",

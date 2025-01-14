@@ -840,7 +840,7 @@
     "icon": "Icona",
     "max": "Massimo",
     "enableRichText": "Abilita Rich Text",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL del record copiato",
     "copyRecordURL": "Copia URL Record",
     "duplicateRecord": "Duplica record",

@@ -840,7 +840,7 @@
     "icon": "ಚಿಹ್ನೆ",
     "max": "ಅತ್ಯಂತ ಹೆಚ್ಚು",
     "enableRichText": "ಸಮೃದ್ಧ ಪಠ್ಯ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "ನಕಲಿ ದಾಖಲೆ URL",
     "copyRecordURL": "ದಾಖಲೆ URL ನಕಲು",
     "duplicateRecord": "ನಕಲಿ ದಾಖಲೆ",

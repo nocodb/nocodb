@@ -840,7 +840,7 @@
     "icon": "Iconiță",
     "max": "Maxim",
     "enableRichText": "Activează text îmbogățit",
-    "idColon": "Id: {id}",
+    "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "URL-ul Înregistrării Copiate",
     "copyRecordURL": "Copiază URL-ul Înregistrării",
     "duplicateRecord": "Înregistrare Duplicat",

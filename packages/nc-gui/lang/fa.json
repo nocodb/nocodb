@@ -858,6 +858,7 @@
     "clickToHide": "برای مخفی کردن کلیک کنید",
     "clickToDownload": "برای دانلود کلیک کنید",
     "forRole": "برای نقش",
+    "clickToCopy": "Click to copy",
     "clickToCopyTableID": "برای کپی کردن Table ID کلیک کنید",
     "clickToCopyViewID": "برای کپی کردن ID نمایش کلیک کنید",
     "viewMode": "حالت نمایش",
@@ -1259,6 +1260,8 @@
     "downloadCSV": "دانلود به‌عنوان CSV",
     "downloadExcel": "دانلود به‌عنوان XLSX",
     "uploadCSV": "بارگذاری CSV",
+    "uploadExcel": "Upload Excel",
+    "upload": "Upload",
     "import": "وارد کردن",
     "importMetadata": "وارد کردن فراداده",
     "exportMetadata": "دریافت خروجی فراداده",
@@ -1919,7 +1922,8 @@
       "someOfTheRequiredFieldsAreEmpty": "برخی از فیلدهای ضروری خالی هستند",
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
-      "unsupportedCharacters": "Unsupported characters: {char}"
+      "unsupportedCharacters": "Unsupported characters: {char}",
+      "notSupported": "Not supported"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

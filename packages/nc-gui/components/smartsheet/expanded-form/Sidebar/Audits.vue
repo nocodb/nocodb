@@ -104,7 +104,10 @@ function isV0Audit(audit: AuditType) {
                     {{ createdByAudit(audit) }}
                   </div>
                   <div class="text-xs text-gray-500">
-                    {{ timeAgo(audit.created_at!) }}
+                    <NcTooltip>
+                      <template #title>{{ parseStringDateTime(audit.created_at) }}</template>
+                      {{ timeAgo(audit.created_at!) }}
+                    </NcTooltip>
                   </div>
                 </div>
               </div>

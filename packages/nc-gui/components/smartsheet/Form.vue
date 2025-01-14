@@ -1992,7 +1992,7 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 
   &.nc-cell-json {
-    @apply h-auto;
+    @apply min-h-[38px] h-auto;
     & > div {
       @apply w-full;
     }

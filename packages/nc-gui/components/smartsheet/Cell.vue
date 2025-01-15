@@ -190,6 +190,10 @@ const showReadonlyField = computed(() => {
       return readOnly.value || !editEnabled.value
     }
 
+    case 'currency': {
+      return !((!readOnly.value && editEnabled.value) || (isForm && !isEditColumnMenu.value && editEnabled.value))
+    }
+
     default: {
       return readOnly.value || !editEnabled.value
     }
@@ -327,7 +331,12 @@ const cellClassName = computed(() => {
       </template>
 
       <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
-      <LazyCellCurrency v-else-if="cellType === 'currency'" v-model="vModel" @save="emit('save')" />
+
+      <template v-else-if="cellType === 'currency'">
+        <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
+      </template>
+
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
 
       <template v-else-if="cellType === 'decimal'">

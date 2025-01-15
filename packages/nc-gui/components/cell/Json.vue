@@ -54,7 +54,9 @@ const localValue = computed<ModelValueType>({
   },
 })
 
-function openJSONEditor() {
+function openJSONEditor(e?: Event) {
+  const target = e?.target as HTMLElement
+  if (target?.classList?.contains('default-value-clear')) return
   isExpanded.value = true
 }
 
@@ -197,8 +199,8 @@ onMounted(() => {
     gridCell.addEventListener('dblclick', openJSONEditor)
     return
   }
-  const formCell = el.value?.closest('.nc-data-cell')
-  if (formCell) formCell.addEventListener('click', openJSONEditor)
+  const container = el.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
+  if (container) container.addEventListener('click', openJSONEditor)
 })
 
 onUnmounted(() => {
@@ -207,8 +209,8 @@ onUnmounted(() => {
     gridCell.removeEventListener('dblclick', openJSONEditor)
     return
   }
-  const formCell = el.value?.closest('.nc-data-cell')
-  if (formCell) formCell.removeEventListener('click', openJSONEditor)
+  const container = el.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
+  if (container) container.removeEventListener('click', openJSONEditor)
 })
 </script>
 
@@ -225,12 +227,12 @@ onUnmounted(() => {
     :class="{ 'json-modal min-w-80': isExpanded }"
   >
     <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
-      <div class="flex flex-row justify-between items-center -mt-2 pb-2 nc-json-action" @mousedown.stop>
-        <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="closeJSONEditor">
-          <component :is="iconMap.minimize" class="w-3 h-3" />
+      <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>
+        <NcButton type="secondary" size="xsmall" class="!w-7 !h-7 !min-w-[fit-content]" @click.stop="closeJSONEditor">
+          <component :is="iconMap.minimize" class="w-4 h-4" />
         </NcButton>
 
-        <div class="flex flex-row my-1 space-x-1">
+        <div class="flex gap-2">
           <NcButton type="secondary" size="small" @click="clear">{{ $t('general.cancel') }}</NcButton>
           <NcButton type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
             {{ $t('general.save') }}
@@ -276,6 +278,7 @@ onUnmounted(() => {
 .nc-grid-cell:hover .nc-json-expand-btn {
   @apply block;
 }
+.nc-default-value-wrapper .nc-cell-json,
 .nc-grid-cell .nc-cell-json {
   min-height: 20px !important;
 }

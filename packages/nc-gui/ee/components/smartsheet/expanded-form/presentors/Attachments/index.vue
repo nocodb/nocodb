@@ -4,7 +4,6 @@ import { type ColumnType, type ViewType } from 'nocodb-sdk'
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   fields: ColumnType[]
   view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
@@ -17,7 +16,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 /* stores */
 
-const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -222,7 +221,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar :store="props.store" show-fields-tab />
+      <SmartsheetExpandedFormSidebar show-fields-tab />
     </div>
   </div>
 </template>

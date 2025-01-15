@@ -193,6 +193,7 @@ export class HooksService {
         prevData: null,
         newData: row,
         user: param.req.user,
+        context,
       });
     } catch (e) {
       throw e;

@@ -149,9 +149,6 @@ export class IntegrationsController {
       req,
       includeDatabaseInfo: includeDatabaseInfo === 'true',
       type,
-      // if limit/offset is not provided, then return all integrations
-      limit: limit && (+limit || 25),
-      offset: offset && (+offset || 0),
       query,
     });
 
@@ -168,10 +165,10 @@ export class IntegrationsController {
   async availableIntegrations() {
     return Integration.availableIntegrations
       .sort((a, b) => a.type.localeCompare(b.type))
-      .sort((a, b) => a.subType.localeCompare(b.subType))
+      .sort((a, b) => a.sub_type.localeCompare(b.sub_type))
       .map((i) => ({
         type: i.type,
-        subType: i.subType,
+        sub_type: i.sub_type,
         meta: i.meta,
       }));
   }
@@ -182,7 +179,7 @@ export class IntegrationsController {
     @Param('subType') subType: string,
   ) {
     const integration = Integration.availableIntegrations.find(
-      (i) => i.type === type && i.subType === subType,
+      (i) => i.type === type && i.sub_type === subType,
     );
 
     if (!integration) {
@@ -191,7 +188,7 @@ export class IntegrationsController {
 
     return {
       integrationType: integration.type,
-      integrationSubType: integration.subType,
+      integrationSubType: integration.sub_type,
       form: integration.form,
       meta: integration.meta,
     };

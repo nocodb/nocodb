@@ -19932,6 +19932,83 @@
           "required": false
         }
       ]
+    },
+    "/api/v2/internal/:workspaceId/:baseId": {
+      "post": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-post-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "tags": ["Internal"],
+        "description": "Trigger an internal operation"
+      },
+      "get": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-get-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Internal"],
+        "description": "Trigger an internal operation"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "operation",
+          "in": "query",
+          "description": "Operation to trigger",
+          "required": true
+        }
+      ]
     }
   },
   "components": {

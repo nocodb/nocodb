@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
-import { BaseUser, CustomUrl, Source } from '~/models';
+import { BaseUser, CustomUrl, DataReflection, Source } from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -104,6 +104,8 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
+
+    await DataReflection.grantBase(base.fk_workspace_id, base.id, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
@@ -287,20 +289,19 @@ export default class Base implements BaseType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
+    const base = (await this.get(context, baseId, ncMeta)) as Base;
+
     await this.clearConnectionPool(context, baseId, ncMeta);
 
-    // get existing cache
-    const key = `${CacheScope.PROJECT}:${baseId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
+    if (base) {
       // delete <scope>:<title>
       // delete <scope>:<uuid>
       // delete <scope>:ref:<titleOfId>
       await NocoCache.del([
-        `${CacheScope.PROJECT_ALIAS}:${o.title}`,
-        `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${o.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${o.id}`,
+        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
       ]);
     }
 
@@ -315,6 +316,8 @@ export default class Base implements BaseType {
     CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
+
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
@@ -444,6 +447,8 @@ export default class Base implements BaseType {
     for (const source of sources) {
       await source.delete(context, ncMeta);
     }
+
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
 
     if (base) {
       // delete <scope>:<uuid>

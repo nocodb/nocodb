@@ -829,7 +829,6 @@ export default {
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
         <template v-if="activeViewMode === 'field'">
           <SmartsheetExpandedFormPresentorsFields
-            :store="expandedFormStore"
             :row-id="rowId"
             :fields="fields ?? []"
             :hidden-fields="hiddenFields"
@@ -848,7 +847,6 @@ export default {
         </template>
         <template v-else-if="activeViewMode === 'attachment'">
           <SmartsheetExpandedFormPresentorsAttachments
-            :store="expandedFormStore"
             :row-id="rowId"
             :view="props.view"
             :fields="fields ?? []"
@@ -868,7 +866,6 @@ export default {
         </template>
         <template v-else-if="activeViewMode === 'discussion'">
           <SmartsheetExpandedFormPresentorsDiscussion
-            :store="expandedFormStore"
             :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
           />
         </template>

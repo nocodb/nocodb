@@ -8,7 +8,7 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
 
 export default [] as {
   type: IntegrationsType;
-  subType: string;
+  sub_type: string;
   form?: FormDefinition;
   wrapper?: typeof IntegrationWrapper;
   meta?: {

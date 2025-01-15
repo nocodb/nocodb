@@ -11,7 +11,6 @@ import {
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   fields: ColumnType[]
   hiddenFields: ColumnType[]
   isLoading: boolean
@@ -24,7 +23,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 /* stores */
 
-const { changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()

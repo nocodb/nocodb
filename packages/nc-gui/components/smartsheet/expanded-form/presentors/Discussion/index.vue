@@ -2,7 +2,6 @@
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   isUnsavedDuplicatedRecordExist: boolean
 }>()
 
@@ -10,7 +9,7 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups } = props.store
+const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -79,7 +78,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :store="props.store" />
+      <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
     </div>
   </div>
 </template>

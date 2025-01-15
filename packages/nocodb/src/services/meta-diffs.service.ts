@@ -329,7 +329,7 @@ export class MetaDiffsService {
 
       // many to many relation
       if (colOpt.type === RelationTypes.MANY_TO_MANY) {
-        const m2mModel = await colOpt.getMMModel(context);
+        const m2mModel = await colOpt.getMMModel(context) ;
 
         const relatedTable = tableList.find(
           (t) => t.tn === parentModel.table_name,
@@ -341,7 +341,7 @@ export class MetaDiffsService {
             .find((t) => t.table_name === childModel.table_name)
             .detectedChanges.push({
               type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
-              msg: `Many to many removed(${relatedTable.tn} removed)`,
+              msg: `Many to many removed(${parentModel.table_name} removed)`,
               colId: relationCol.id,
               column: relationCol,
             });

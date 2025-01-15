@@ -288,4 +288,12 @@ onUnmounted(() => {
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
   min-height: 38px;
 }
+
+.nc-default-value-wrapper,
+.nc-expanded-cell,
+.ant-form-item-control-input {
+  .nc-json-expand-btn {
+    @apply !block;
+  }
+}
 </style>

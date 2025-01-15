@@ -267,7 +267,8 @@ const cellType = computed(() => {
           ((isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
           !isAttachment(column) &&
           !isTextArea(column) &&
-          !isAI(column)
+          !isAI(column) &&
+          !isJSON(column)
         "
         class="nc-locked-overlay"
       />

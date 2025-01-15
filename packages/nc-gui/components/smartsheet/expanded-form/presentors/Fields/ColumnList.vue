@@ -5,6 +5,7 @@ const props = defineProps<{
   fields: ColumnType[]
   forceVerticalMode?: boolean
   isLoading: boolean
+  showColCallback?: (col: ColumnType) => boolean
 }>()
 
 const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -16,12 +17,16 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 const shouldApplyDataCell = (column: ColumnType) =>
   !(isBarcode(column) || isQrCode(column) || isBoolean(column) || isRating(column) || isJSON(column))
+
+const showCol = (col: ColumnType) => {
+  return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+}
 </script>
 
 <template>
   <div
     v-for="col of fields"
-    v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+    v-show="showCol(col)"
     :key="col.title"
     :class="`nc-expand-col-${col.title}`"
     :col-id="col.id"

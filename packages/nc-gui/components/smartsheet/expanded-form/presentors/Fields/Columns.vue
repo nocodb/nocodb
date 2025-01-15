@@ -46,6 +46,7 @@ const showHiddenFields = ref(false)
       :fields="hiddenFields"
       :force-vertical-mode="forceVerticalMode"
       :is-loading="isLoading"
+      :show-col-callback="(col) => isFormula(col)"
     />
   </div>
 </template>

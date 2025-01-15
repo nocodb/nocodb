@@ -425,7 +425,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "फ्रेशडेस्क"
+      "freshdesk": "फ्रेशडेस्क",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "सभी एकीकरण",

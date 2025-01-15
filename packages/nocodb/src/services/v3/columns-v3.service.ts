@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
-import type { ColumnReqType, FieldV3Type,FieldUpdateV3Type, UserType } from 'nocodb-sdk';
+import type {
+  ColumnReqType,
+  FieldUpdateV3Type,
+  FieldV3Type,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -10,7 +15,7 @@ import {
   columnBuilder,
   columnV3ToV2Builder,
 } from '~/utils/api-v3-data-transformation.builder';
-import {validatePayload} from "~/helpers";
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class ColumnsV3Service {
@@ -95,12 +100,7 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-
-
-    validatePayload(
-      'swagger-v3.json#/components/schemas/Field',
-      param.column,
-    );
+    validatePayload('swagger-v3.json#/components/schemas/Field', param.column);
 
     const column = columnV3ToV2Builder().build(
       param.column,

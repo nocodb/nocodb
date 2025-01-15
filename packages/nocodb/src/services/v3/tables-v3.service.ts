@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NcApiVersion, UITypes, viewTypeAlias } from 'nocodb-sdk';
-import { TableType } from 'knex';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import type {
   TableCreateV3Type,
   TableReqType,
   TableUpdateV3Type,
+  TableV3Type,
   UserType,
 } from 'nocodb-sdk';
 import type { User } from '~/models';
@@ -14,7 +14,6 @@ import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
-  builderGenerator,
   columnBuilder,
   columnV3ToV2Builder,
 } from '~/utils/api-v3-data-transformation.builder';
@@ -126,7 +125,7 @@ export class TablesV3Service {
         }
         return table;
       }),
-    );
+    ) as TableV3Type[];
   }
 
   async tableCreate(

@@ -4,7 +4,14 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
-import type { ColumnType, FieldV3Type, FilterType, SortType } from 'nocodb-sdk';
+import type {
+  ColumnType,
+  FieldV3Type,
+  FilterGroupV3Type,
+  FilterType,
+  FilterV3Type,
+  SortType,
+} from 'nocodb-sdk';
 import type {
   CalendarViewColumn,
   Column,
@@ -293,120 +300,130 @@ export const colOptionBuilder = builderGenerator({
   },
 });
 
-export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>({
-  allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
-  mappings: {
-    uidt: 'type',
-    cdf: 'default_value',
-    meta: 'options',
-  },
-  excludeNullProps: true,
-  meta: {
-    snakeCase: true,
-    metaProps: ['meta'],
+export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
+  {
+    allowed: [
+      'id',
+      'title',
+      'uidt',
+      'cdf',
+      'description',
+      'meta',
+      'colOptions',
+    ],
     mappings: {
-      is12hrFormat: '12hr_format',
-      isLocaleString: 'locale_string',
-      richMode: 'rich_text',
-      // duration: 'duration_format',
+      uidt: 'type',
+      cdf: 'default_value',
+      meta: 'options',
     },
-    excluded: [
-      'defaultViewColOrder',
-      'defaultViewColVisibility',
-      'singular',
-      'plural',
-    ],
-    skipTransformFor: [
-      'currency_locale',
-      'currency_code',
-      'icon',
-      'iconIdx',
-      'duration',
-    ],
+    excludeNullProps: true,
+    meta: {
+      snakeCase: true,
+      metaProps: ['meta'],
+      mappings: {
+        is12hrFormat: '12hr_format',
+        isLocaleString: 'locale_string',
+        richMode: 'rich_text',
+        // duration: 'duration_format',
+      },
+      excluded: [
+        'defaultViewColOrder',
+        'defaultViewColVisibility',
+        'singular',
+        'plural',
+      ],
+      skipTransformFor: [
+        'currency_locale',
+        'currency_code',
+        'icon',
+        'iconIdx',
+        'duration',
+      ],
+    },
+    transformFn: (data) => {
+      let options: Record<string, any> = data.options || {};
+      if (data.colOptions) {
+        switch (data.type) {
+          case UITypes.SingleSelect:
+          case UITypes.MultiSelect:
+            {
+              const choices = data.colOptions.options.map((opt) => {
+                const res: Record<string, unknown> = {
+                  title: opt.title,
+                  color: opt.color,
+                };
+                if (opt.id) res.id = opt.id;
+                return res;
+              });
+              options.choices = choices;
+            }
+            break;
+          default:
+            {
+              console.log(data.colOptions);
+              const additionalOptions =
+                colOptionBuilder().build(data.colOptions) || {};
+              Object.assign(options, additionalOptions);
+            }
+            break;
+        }
+      }
+
+      if (data.type === UITypes.Checkbox) {
+        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (iconIdx) {
+          options.icon = checkboxIconList[iconIdx]?.label;
+        } else if (icon) {
+          options.icon = checkboxIconList.find(
+            (ic) => ic.checked === icon?.['checked'],
+          )?.label;
+        }
+      } else if (data.type === UITypes.Rating) {
+        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (iconIdx !== undefined && iconIdx !== null) {
+          options.icon = ratingIconList[iconIdx]?.label;
+        } else if (icon) {
+          options.icon = ratingIconList.find(
+            (ic) => ic.full === icon?.['full'],
+          )?.label;
+        }
+      } else if (data.type === UITypes.Duration) {
+        const { duration, duration_format, ...rest } = data.options as Record<
+          string,
+          any
+        >;
+        const durationFormat = duration ?? duration_format;
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (durationFormat !== undefined && durationFormat !== null) {
+          options.duration_format = durationOptions[durationFormat]?.title;
+        }
+      }
+
+      options = options || data.options;
+
+      // exclude rollup function if Links
+      if (data.type === UITypes.Links && options && options.rollup_function) {
+        options.rollup_function = undefined;
+      }
+
+      return {
+        ...data,
+        colOptions: undefined,
+        options: options && Object.keys(options)?.length ? options : undefined,
+      };
+    },
   },
-  transformFn: (data) => {
-    let options: Record<string, any> = data.options || {};
-    if (data.colOptions) {
-      switch (data.type) {
-        case UITypes.SingleSelect:
-        case UITypes.MultiSelect:
-          {
-            const choices = data.colOptions.options.map((opt) => {
-              const res: Record<string, unknown> = {
-                title: opt.title,
-                color: opt.color,
-              };
-              if (opt.id) res.id = opt.id;
-              return res;
-            });
-            options.choices = choices;
-          }
-          break;
-        default:
-          {
-            console.log(data.colOptions);
-            const additionalOptions =
-              colOptionBuilder().build(data.colOptions) || {};
-            Object.assign(options, additionalOptions);
-          }
-          break;
-      }
-    }
-
-    if (data.type === UITypes.Checkbox) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
-
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (iconIdx) {
-        options.icon = checkboxIconList[iconIdx]?.label;
-      } else if (icon) {
-        options.icon = checkboxIconList.find(
-          (ic) => ic.checked === icon?.['checked'],
-        )?.label;
-      }
-    } else if (data.type === UITypes.Rating) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
-
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (iconIdx !== undefined && iconIdx !== null) {
-        options.icon = ratingIconList[iconIdx]?.label;
-      } else if (icon) {
-        options.icon = ratingIconList.find(
-          (ic) => ic.full === icon?.['full'],
-        )?.label;
-      }
-    } else if (data.type === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = data.options as Record<
-        string,
-        any
-      >;
-      const durationFormat = duration ?? duration_format;
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (durationFormat !== undefined && durationFormat !== null) {
-        options.duration_format = durationOptions[durationFormat]?.title;
-      }
-    }
-
-    options = options || data.options;
-
-    // exclude rollup function if Links
-    if (data.type === UITypes.Links && options && options.rollup_function) {
-      options.rollup_function = undefined;
-    }
-
-    return {
-      ...data,
-      colOptions: undefined,
-      options: options && Object.keys(options)?.length ? options : undefined,
-    };
-  },
-});
+);
 
 export const columnOptionsV3ToV2Builder = builderGenerator({
   allowed: [
@@ -580,7 +597,10 @@ export const filterBuilder = builderGenerator<FilterType | Filter>({
   booleanProps: ['is_group'],
 });
 
-export const filterRevBuilder = builderGenerator<Filter | FilterType>({
+export const filterRevBuilder = builderGenerator<
+  FilterGroupV3Type | FilterV3Type,
+  FilterType
+>({
   allowed: [
     'id',
     'field_id',

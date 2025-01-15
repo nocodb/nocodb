@@ -2759,10 +2759,7 @@
             "format": "color",
             "description": "Color for the base icon."
           }
-        },
-        "required": [
-          "icon_color"
-        ]
+        }
       },
       "BaseCreate": {
         "type": "object",
@@ -2783,8 +2780,7 @@
           }
         },
         "required": [
-          "title",
-          "meta"
+          "title"
         ]
       },
       "BaseUpdate": {
@@ -2804,11 +2800,7 @@
           "meta": {
             "$ref": "#/components/schemas/BaseMeta"
           }
-        },
-        "required": [
-          "title",
-          "meta"
-        ]
+        }
       },
       "Base": {
         "type": "object",
@@ -2918,28 +2910,10 @@
             "description": "Timestamp of when the user was last updated."
           },
           "base_role": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "admin",
-              "editor",
-              "viewer",
-              "no-access",
-              null
-            ],
-            "description": "Role of the user for the base. Can be null if not assigned."
+            "$ref": "#/components/schemas/BaseRoles"
           },
           "workspace_role": {
-            "type": "string",
-            "enum": [
-              "workspace-level-owner",
-              "workspace-level-admin",
-              "workspace-level-member",
-              "workspace-level-no-access"
-            ],
-            "description": "Role of the user at the workspace level."
+            "$ref": "#/components/schemas/WorkspaceRoles"
           },
           "workspace_id": {
             "type": "string",
@@ -2988,18 +2962,7 @@
               "description": "Full name of the user."
             },
             "base_role": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "enum": [
-                "admin",
-                "editor",
-                "viewer",
-                "no-access",
-                null
-              ],
-              "description": "Role of the user for the base. Can be null if not assigned."
+              "$ref": "#/components/schemas/BaseRoles"
             }
           },
           "required": [
@@ -3036,18 +2999,7 @@
               "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
             },
             "base_role": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "enum": [
-                "admin",
-                "editor",
-                "viewer",
-                "no-access",
-                null
-              ],
-              "description": "New role of the user for the base. Can be null if unassigning the role."
+              "$ref": "#/components/schemas/BaseRoles"
             }
           },
           "required": [
@@ -3241,66 +3193,6 @@
         "required": [
           "list"
         ]
-      },
-      "ProjectUserV3Req": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "The ID of the user.",
-            "example": "user_1"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "user@nocodb.com",
-            "description": "The email address of the user."
-          },
-          "base_role": {
-            "type": "string",
-            "example": "base-level-owner",
-            "description": "The base role assigned to the user, if any. Can be null."
-          },
-          "workspace_role": {
-            "type": "string",
-            "example": "workspace-level-owner",
-            "nullable": true,
-            "description": "The role assigned to the user at the workspace level."
-          }
-        },
-        "required": [
-          "email",
-          "base_role"
-        ]
-      },
-      "ProjectUserDeleteV3Req": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "usg4t1a5sdb3eesf",
-            "description": "The unique identifier for the user."
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "user@nocodb.com",
-            "description": "The email address of the user."
-          }
-        },
-        "oneOf": [
-          {
-            "required": [
-              "id"
-            ]
-          },
-          {
-            "required": [
-              "email"
-            ]
-          }
-        ],
-        "description": "At least one of the properties (`id` or `email`) must be provided."
       },
       "Sort": {
         "type": "object",
@@ -4645,6 +4537,28 @@
         },
         "title": "Paginated Model",
         "type": "object"
+      },
+      "BaseRoles": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "creator",
+            "editor",
+            "viewer",
+          "commenter",
+          "no-access"
+        ]
+      },
+      "WorkspaceRoles": {
+        "type": "string",
+        "enum": [
+          "workspace-level-owner",
+          "workspace-level-creator",
+          "workspace-level-editor",
+          "workspace-level-viewer",
+          "workspace-level-commenter",
+          "workspace-level-no-access"
+        ]
       }
     },
     "responses": {

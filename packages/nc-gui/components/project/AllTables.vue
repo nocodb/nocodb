@@ -2,6 +2,9 @@
 import type { SourceType, TableType, ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcTooltip from '~/components/nc/Tooltip.vue'
+import NocoDBIcon from '@/assets/img/dashboards/source-icons/nocodb.svg'
+import MysqlIcon from '@/assets/img/dashboards/source-icons/mysql.svg'
+import PostgresIcon from '@/assets/img/dashboards/source-icons/postgres.svg'
 
 const { activeTables } = storeToRefs(useTablesStore())
 
@@ -183,6 +186,18 @@ const onCreateBaseClick = () => {
 
   isNewBaseModalOpen.value = true
 }
+
+function getSourceIcon(type: SourceType['type']) {
+  switch (type) {
+    case 'mysql':
+    case 'mysql2':
+      return MysqlIcon
+    case 'pg':
+      return PostgresIcon
+    default:
+      return NocoDBIcon
+  }
+}
 </script>
 
 <template>
@@ -329,22 +344,10 @@ const onCreateBaseClick = () => {
           </div>
           <template v-if="column.key === 'sourceName'">
             <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
-            <div
-              v-else
-              class="capitalize w-full flex justify-center items-center gap-3 max-w-full"
-              data-testid="proj-view-list__item-type"
-            >
-              <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>
-              <template v-else>
-                <GeneralBaseLogo class="flex-none w-4" />
-
-                <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-                  <template #title>
-                    {{ sources.get(record.source_id!)?.alias }}
-                  </template>
-                  {{ sources.get(record.source_id!)?.alias }}
-                </NcTooltip>
-              </template>
+            <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
+              <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
+                <img :src="getSourceIcon(sources.get(record.source_id!)?.type)" class="w-6 h-6" />
+              </div>
             </div>
           </template>
           <div
@@ -412,5 +415,11 @@ const onCreateBaseClick = () => {
 
 :deep(.no-bottom-border) {
   border-color: transparent !important;
+}
+
+:deep(.nc-table-header-cell-3) {
+  > .gap-3 {
+    margin-left: 7px;
+  }
 }
 </style>

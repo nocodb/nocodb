@@ -224,7 +224,7 @@ onUnmounted(() => {
     :closable="false"
     centered
     :footer="null"
-    :class="{ 'group': isExpandedFormOpen || isForm, 'nc-data-cell': isExpandedFormOpen, 'json-modal min-w-80': isExpanded }"
+    :class="{ 'json-modal min-w-80': isExpanded }"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
     class="relative"
   >
@@ -289,11 +289,13 @@ onUnmounted(() => {
 .nc-grid-cell .nc-cell-json {
   min-height: 20px !important;
 }
-.nc-expanded-cell .nc-cell-json .nc-cell-field {
-  margin: 8px 0;
+.nc-expanded-cell .nc-cell-json {
+  .nc-cell-field {
+    margin: 4px 0;
+  }
 }
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
-  min-height: 38px;
+  min-height: 30px;
 }
 
 .nc-default-value-wrapper,

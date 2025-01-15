@@ -169,4 +169,15 @@ const cellIcon = (column: ColumnType) =>
     }
   }
 }
+
+.nc-data-cell {
+  &:has(.nc-virtual-cell-barcode) {
+    @apply !border-none;
+    box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
+  }
+}
 </style>

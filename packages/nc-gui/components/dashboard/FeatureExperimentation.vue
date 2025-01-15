@@ -23,10 +23,6 @@ onMounted(() => {
   selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
 })
 
-const isChanged = computed(() => {
-  return features.value.some((feature) => selectedFeatures.value[feature.id] !== feature.enabled)
-})
-
 watch(value, (val) => {
   if (val) {
     selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
@@ -86,7 +82,7 @@ onUnmounted(() => {
               <div class="text-gray-800 font-medium">
                 {{ feature.title }}
               </div>
-              <NcSwitch v-model:checked="selectedFeatures[feature.id]" />
+              <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
             </div>
 
             <div class="text-gray-500 leading-4 text-[13px]">
@@ -94,16 +90,6 @@ onUnmounted(() => {
             </div>
           </div>
         </template>
-      </div>
-
-      <div class="flex w-full gap-2 justify-end">
-        <NcButton type="secondary" size="small" @click="value = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-
-        <NcButton :disabled="!isChanged" size="small" @click="saveExperimentalFeatures">
-          {{ $t('general.save') }}
-        </NcButton>
       </div>
     </div>
   </NcModal>

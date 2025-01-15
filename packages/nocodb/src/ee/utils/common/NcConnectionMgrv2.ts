@@ -227,4 +227,12 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       return this.dataConfig;
     }
   }
+
+  public static async getDataKnex?() {
+    if (!this.dataKnex) {
+      await this.getDataConfig();
+      this.dataKnex = XKnex(this.dataConfig);
+    }
+    return this.dataKnex;
+  }
 }

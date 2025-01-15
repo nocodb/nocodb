@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { AppEvents, IntegrationsType } from 'nocodb-sdk';
-import type { ProjectReqType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import type { ProjectReqType, UserType } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import syncMigration from '~/helpers/syncMigration';
@@ -25,6 +25,7 @@ import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { DataReflectionService } from '~/services/data-reflection.service';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -75,6 +76,7 @@ export class BasesService extends BasesServiceCE {
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
     protected tablesService: TablesService,
+    protected dataReflectionService: DataReflectionService,
   ) {
     super(appHooksService, metaService, tablesService);
   }
@@ -301,6 +303,13 @@ export class BasesService extends BasesServiceCE {
     });
 
     return base;
+  }
+
+  async baseSoftDelete(
+    context: NcContext,
+    param: { baseId: any; user: UserType; req: NcRequest },
+  ) {
+    return super.baseSoftDelete(context, param);
   }
 
   protected async validateProjectTitle(

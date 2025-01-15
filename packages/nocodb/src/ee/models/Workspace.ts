@@ -17,7 +17,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base, CustomUrl, Integration } from '~/models';
+import { Base, CustomUrl, DataReflection, Integration } from '~/models';
 
 const logger = new Logger('Workspace');
 
@@ -239,6 +239,9 @@ export default class Workspace implements WorkspaceType {
       CacheDelDirection.PARENT_TO_CHILD,
     );
 
+    // Delete data reflection configuration if exists
+    await DataReflection.destroy(id, ncMeta);
+
     const bases = await Base.listByWorkspace(id, true, ncMeta);
 
     for (const base of bases) {
@@ -302,6 +305,9 @@ export default class Workspace implements WorkspaceType {
     const workspace = await this.get(id, false, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(id);
+
+    // Delete data reflection configuration if exists
+    await DataReflection.destroy(id, ncMeta);
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 

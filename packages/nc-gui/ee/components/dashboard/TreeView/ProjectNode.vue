@@ -26,6 +26,8 @@ const { isMobileMode, user } = useGlobal()
 
 const { api } = useApi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const base = inject(ProjectInj)!
 
 // For starred base we will have seperate isExpanded state
@@ -101,6 +103,8 @@ const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayou
 const { addNewPage, populatedNestedPages, baseUrl: docsProjectUrl } = useDocStore()
 
 const { $e } = useNuxtApp()
+
+const { copy } = useCopy()
 
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -585,8 +589,6 @@ watch(
   },
 )
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const openBaseSettings = async (baseId: string) => {
@@ -612,6 +614,53 @@ const shouldOpenContextMenu = computed(() => {
 
   return false
 })
+
+/* Data reflection */
+const { createConnectionDetails, getConnectionDetails, dataReflectionEnabled, connectionUrl } = useDataReflection()
+
+/*
+  0: Init
+  1: Loading
+  2: Success
+  3: Error
+*/
+const dataReflectionState = ref(0)
+const dataReflectionText = ref('Get Connection')
+
+const onDataReflection = async () => {
+  try {
+    dataReflectionState.value = 1
+
+    if (!dataReflectionEnabled.value) {
+      dataReflectionText.value = 'Creating...'
+      await createConnectionDetails(base.value.id)
+      await copy(connectionUrl.value)
+      dataReflectionState.value = 2
+      dataReflectionText.value = 'Copied!'
+    } else {
+      dataReflectionText.value = 'Copying...'
+      await getConnectionDetails(base.value.id)
+      await copy(connectionUrl.value)
+      dataReflectionState.value = 2
+      dataReflectionText.value = 'Copied!'
+    }
+  } catch (e: any) {
+    dataReflectionState.value = 3
+    dataReflectionText.value = 'Error!'
+  }
+
+  setTimeout(() => {
+    dataReflectionState.value = 0
+    dataReflectionText.value = 'Get Connection'
+  }, 2000)
+}
+
+const onClickMenu = (e: { key?: string }) => {
+  if (e?.key === 'connect') {
+    return
+  }
+  isOptionsOpen.value = false
+}
 </script>
 
 <template>
@@ -745,7 +794,7 @@ const shouldOpenContextMenu = computed(() => {
                     }"
                     :data-testid="`nc-sidebar-base-${base.title}-options`"
                     variant="small"
-                    @click="isOptionsOpen = false"
+                    @click="onClickMenu"
                   >
                     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
                       <GeneralIcon icon="rename" />
@@ -782,6 +831,24 @@ const shouldOpenContextMenu = computed(() => {
                     >
                       <GeneralIcon icon="ncErd" />
                       {{ $t('title.relations') }}
+                    </NcMenuItem>
+
+                    <!-- Get Connection -->
+                    <NcMenuItem
+                      v-if="
+                        isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
+                        isUIAllowed('createConnectionDetails') &&
+                        base?.sources?.[0]?.enabled
+                      "
+                      m-key="connect"
+                      data-testid="nc-sidebar-base-connect"
+                      @click="onDataReflection"
+                    >
+                      <GeneralLoader v-if="dataReflectionState === 1" />
+                      <GeneralIcon v-else-if="dataReflectionState === 2" icon="circleCheckSolid" class="text-success" />
+                      <GeneralIcon v-else-if="dataReflectionState === 3" icon="ncXCircle" />
+                      <GeneralIntegrationIcon v-else type="nocodb" class="group-hover:text-black" />
+                      {{ dataReflectionText }}
                     </NcMenuItem>
 
                     <!-- Audit -->

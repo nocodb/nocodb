@@ -24,6 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import {
   Base,
   BaseUser,
+  DataReflection,
   Integration,
   ModelStat,
   PresignedUrl,
@@ -449,14 +450,16 @@ export class WorkspacesService implements OnApplicationBootstrap {
       workspaceId: workspace.id,
       userId: param.user.id,
       includeDatabaseInfo: true,
-      limit: 100,
-      offset: 0,
       type: IntegrationsType.Ai,
     });
 
     const integrations = (rawIntegrations.list || []).map((i) =>
       extractProps(i, ['id', 'type', 'sub_type', 'title', 'is_default']),
     );
+
+    const dataReflection = await DataReflection.get({
+      fk_workspace_id: workspace.id,
+    });
 
     if (
       (workspace.meta as Record<string, any>)?.icon &&
@@ -476,6 +479,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       limits,
       stats,
       integrations: integrations,
+      data_reflection_enabled: !!dataReflection,
     } as Workspace;
   }
 

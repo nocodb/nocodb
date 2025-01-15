@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { IntegrationCategoryType, SyncDataType } from '#imports'
+
 const props = defineProps<{ loadDatasourceInfo?: boolean; baseId?: string }>()
 
 const { loadDatasourceInfo, baseId } = toRefs(props)
@@ -44,7 +46,10 @@ const activeIntegrationType = computed(() => {
     wrap-class-name="nc-modal-edit-or-add-integration"
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
-    <div v-if="activeIntegrationType === IntegrationCategoryType.DATABASE" class="h-full">
+    <div
+      v-if="activeIntegrationType === IntegrationCategoryType.DATABASE && activeIntegration?.sub_type !== SyncDataType.NOCODB"
+      class="h-full"
+    >
       <WorkspaceIntegrationsFormsEditOrAddDatabase
         v-model:open="isEditOrAddIntegrationModalOpen"
         :connection-type="activeIntegrationSubType"
@@ -52,11 +57,11 @@ const activeIntegrationType = computed(() => {
         :base-id="baseId"
       />
     </div>
-    <div v-else-if="activeIntegrationType === IntegrationCategoryType.AI" class="h-full">
+    <div v-else class="h-full">
       <WorkspaceIntegrationsFormsEditOrAddCommon
         v-model:open="isEditOrAddIntegrationModalOpen"
         :integration-type="activeIntegrationItem?.type"
-        :integration-sub-type="activeIntegrationItem?.subType"
+        :integration-sub-type="activeIntegrationItem?.sub_type"
         :load-datasource-info="loadDatasourceInfo"
         :base-id="baseId"
       />

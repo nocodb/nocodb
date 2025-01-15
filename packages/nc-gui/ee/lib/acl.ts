@@ -82,6 +82,7 @@ const rolePermissions = {
 
       // todo: temporary permission
       moveWorkspaceToOrg: true,
+      createConnectionDetails: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {

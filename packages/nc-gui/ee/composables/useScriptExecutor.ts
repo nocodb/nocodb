@@ -411,8 +411,10 @@ export const useScriptExecutor = createSharedComposable(() => {
     isFinished.value = true
   }
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   onMounted(async () => {
-    if (isPublic.value) return
+    if (isPublic.value || !isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)) return
 
     await loadAutomation(activeAutomationId.value)
 

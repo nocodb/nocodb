@@ -151,6 +151,8 @@ export enum NcErrorType {
 
 export const LongTextAiMetaProp = 'ai';
 
+export const NO_SCOPE = 'nc';
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

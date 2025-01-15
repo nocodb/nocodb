@@ -14,7 +14,7 @@ import {
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
-import { BaseUser, CustomUrl, Source } from '~/models';
+import { BaseUser, CustomUrl, DataReflection, Source } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
@@ -154,6 +154,8 @@ export default class Base extends BaseCE {
         ncMeta,
       );
     }
+
+    await DataReflection.grantBase(base.fk_workspace_id, base.id, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
@@ -317,6 +319,8 @@ export default class Base extends BaseCE {
       await source.delete(context, ncMeta, { force: true });
     }
 
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -394,6 +398,8 @@ export default class Base extends BaseCE {
     CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
+
+    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');

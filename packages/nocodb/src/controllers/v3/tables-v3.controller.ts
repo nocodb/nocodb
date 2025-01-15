@@ -94,14 +94,13 @@ export class TablesV3Controller {
     @Body() body: TableUpdateV3Type,
     @Request() req,
   ) {
-    await this.tablesV3Service.tableUpdate(context, {
+    return await this.tablesV3Service.tableUpdate(context, {
       tableId: tableId,
       table: body,
       baseId: req.ncBaseId,
-      user: req.ncBaseId,
+      user: req.user,
       req,
     });
-    return { msg: 'The table has been updated successfully' };
   }
 
   @Delete('/api/v3/meta/tables/:tableId')

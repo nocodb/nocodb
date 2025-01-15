@@ -47,17 +47,25 @@ export class TablesV3Service {
       param.table,
     );
 
+    const tableUpdateReq: Partial<TableReqType> = { ...param.table };
+
+    // if title includes then add table_name as well
+    if (tableUpdateReq.title) {
+      tableUpdateReq.table_name = tableUpdateReq.title;
+    }
+
     await this.tablesService.tableUpdate(context, {
       tableId: param.tableId,
-      table: param.table as TableReqType,
+      table: tableUpdateReq,
       baseId: param.baseId,
       user: param.user,
       req: param.req,
     });
 
-    const table = await Model.get(context, param.tableId);
-
-    return tableReadBuilder().build(table);
+    return await this.getTableWithAccessibleViews(context, {
+      tableId: param.tableId,
+      user: param.user,
+    });
   }
 
   async tableDelete(

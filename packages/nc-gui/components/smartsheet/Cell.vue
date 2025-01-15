@@ -321,7 +321,11 @@ const cellClassName = computed(() => {
       <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
       <LazyCellCurrency v-else-if="cellType === 'currency'" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellDecimal v-else-if="cellType === 'decimal'" v-model="vModel" />
+
+      <template v-else-if="cellType === 'decimal'">
+        <LazyCellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellDecimalEditor v-else v-model="vModel" />
+      </template>
 
       <template v-else-if="cellType === 'float'">
         <LazyCellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />

@@ -3,10 +3,6 @@ import { isSystemColumn } from 'nocodb-sdk'
 
 /* interface */
 
-const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
-}>()
-
 const meta = inject(MetaInj, ref())
 
 /* flags */
@@ -49,7 +45,6 @@ const hiddenFields = computed(() => {
 
 <template>
   <SmartsheetExpandedFormPresentorsFieldsColumns
-    :store="props.store"
     :fields="fields"
     :hidden-fields="hiddenFields"
     :is-loading="false"

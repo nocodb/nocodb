@@ -24,7 +24,6 @@ const active = inject(ActiveCellInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 

@@ -317,7 +317,12 @@ const cellClassName = computed(() => {
       </template>
 
       <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
-      <LazyCellPhoneNumber v-else-if="cellType === 'phoneNumber'" v-model="vModel" />
+
+      <template v-else-if="cellType === 'phoneNumber'">
+        <LazyCellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellPhoneNumberEditor v-else v-model="vModel" />
+      </template>
+
       <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
       <LazyCellCurrency v-else-if="cellType === 'currency'" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />

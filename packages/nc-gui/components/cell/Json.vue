@@ -129,6 +129,7 @@ watch(editEnabled, () => {
 })
 
 useSelectedCellKeyupListener(active, (e) => {
+  if (readOnly.value) return
   switch (true) {
     case e.key === 'Enter':
       e.preventDefault()
@@ -195,7 +196,7 @@ const el = useCurrentElement()
 
 onMounted(() => {
   const gridCell = el.value?.closest('td')
-  if (gridCell) {
+  if (gridCell && !readOnly.value) {
     gridCell.addEventListener('dblclick', openJSONEditor)
     return
   }
@@ -205,7 +206,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   const gridCell = el.value?.closest('td')
-  if (gridCell) {
+  if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)
     return
   }
@@ -226,27 +227,29 @@ onUnmounted(() => {
     class="relative"
     :class="{ 'json-modal min-w-80': isExpanded }"
   >
-    <div v-if="isExpanded && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
+    <div v-if="isExpanded" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>
         <NcButton type="secondary" size="xsmall" class="!w-7 !h-7 !min-w-[fit-content]" @click.stop="closeJSONEditor">
           <component :is="iconMap.minimize" class="w-4 h-4" />
         </NcButton>
 
-        <div class="flex gap-2">
+        <div v-if="!readOnly" class="flex gap-2">
           <NcButton type="secondary" size="small" @click="clear">{{ $t('general.cancel') }}</NcButton>
           <NcButton type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
             {{ $t('general.save') }}
           </NcButton>
         </div>
+        <div v-else></div>
       </div>
 
       <LazyMonacoEditor
         ref="inputWrapperRef"
         :model-value="localValue || ''"
-        class="min-w-full w-[40rem] min-w-80 resize-x overflow-auto expanded-editor"
+        class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
         :hide-minimap="true"
         :disable-deep-compare="true"
         :auto-focus="true"
+        :read-only="readOnly"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
         @keydown.alt.stop
@@ -269,7 +272,10 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .expanded-editor {
-  min-height: min(600px, 80vh);
+  height: min(600px, 80vh);
+  min-height: 300px;
+  max-height: 85vh;
+  max-width: 90vw;
 }
 </style>
 

@@ -14,7 +14,7 @@ const { showNull } = useGlobal()
   <span v-if="modelValue === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
   <LazyCellClampedText
     v-else
-    class="nc-cell-field"
+    class="nc-cell-field clamped-text"
     :value="modelValue"
     :lines="rowHeight"
     :style="{ 'word-break': 'break-word' }"

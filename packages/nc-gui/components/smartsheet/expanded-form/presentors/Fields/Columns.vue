@@ -23,7 +23,6 @@ const showHiddenFields = ref(false)
     class="flex flex-col flex-grow gap-5 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
   >
     <SmartsheetExpandedFormPresentorsFieldsColumnList
-      :store="store"
       :fields="fields"
       :force-vertical-mode="forceVerticalMode"
       :is-loading="isLoading"
@@ -44,7 +43,6 @@ const showHiddenFields = ref(false)
     </div>
     <SmartsheetExpandedFormPresentorsFieldsColumnList
       v-if="hiddenFields.length > 0 && showHiddenFields"
-      :store="store"
       :fields="hiddenFields"
       :force-vertical-mode="forceVerticalMode"
       :is-loading="isLoading"

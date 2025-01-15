@@ -121,19 +121,41 @@ function toggleTable(tableId: string) {
   else expandedTableIds.value.add(tableId)
 }
 
+const borderlessIndexRange = ref<[start: number, end: number][]>([])
+
 const sortedActiveTables = computed(() => [...activeTables.value].sort((a, b) => a.source_id!.localeCompare(b.source_id!) * 20))
 
 const tableAndViewData = computed(() => {
   const combined: Array<TableType | ViewType> = []
+  const indexRange: [start: number, end: number][] = []
+  let i = 0
   for (const table of sortedActiveTables.value) {
     const tableId = table?.id ?? ''
     combined.push(table)
     if (isTableExpanded(tableId)) {
       const views = (viewStore.viewsByTable.get(tableId) ?? []).filter((view) => !view.is_default)
-      if (views.length) combined.push(...views)
+      if (views.length) {
+        combined.push(...views)
+        indexRange.push([i, i + views.length])
+      }
+      i += views.length + 1
+    } else {
+      i++
     }
   }
+  borderlessIndexRange.value = indexRange
   return combined
+})
+
+const noBottomBorderClass = 'no-bottom-border'
+watch(borderlessIndexRange, (val) => {
+  document.querySelectorAll(`.${noBottomBorderClass}`).forEach((el) => el.classList.remove(noBottomBorderClass))
+  for (const [start, end] of val) {
+    for (let i = start; i < end; i++) {
+      const row = document.querySelector<HTMLElement>(`.nc-table-row-${i}`)
+      if (row) row.classList.add(noBottomBorderClass)
+    }
+  }
 })
 
 function isRecordAView(record: Record<string, any>) {
@@ -305,23 +327,26 @@ const onCreateBaseClick = () => {
               {{ record?.description }}
             </NcTooltip>
           </div>
-          <div
-            v-if="column.key === 'sourceName'"
-            class="capitalize w-full flex items-center gap-3 max-w-full"
-            data-testid="proj-view-list__item-type"
-          >
-            <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>
-            <template v-else>
-              <GeneralBaseLogo class="flex-none w-4" />
+          <template v-if="column.key === 'sourceName'">
+            <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+            <div
+              v-else
+              class="capitalize w-full flex justify-center items-center gap-3 max-w-full"
+              data-testid="proj-view-list__item-type"
+            >
+              <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>
+              <template v-else>
+                <GeneralBaseLogo class="flex-none w-4" />
 
-              <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-                <template #title>
+                <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                  <template #title>
+                    {{ sources.get(record.source_id!)?.alias }}
+                  </template>
                   {{ sources.get(record.source_id!)?.alias }}
-                </template>
-                {{ sources.get(record.source_id!)?.alias }}
-              </NcTooltip>
-            </template>
-          </div>
+                </NcTooltip>
+              </template>
+            </div>
+          </template>
           <div
             v-if="column.key === 'created_at'"
             class="flex items-center gap-2 max-w-full created_at"
@@ -383,5 +408,9 @@ const onCreateBaseClick = () => {
 .created_at {
   font-size: 13px;
   line-height: 18px;
+}
+
+:deep(.no-bottom-border) {
+  border-color: transparent !important;
 }
 </style>

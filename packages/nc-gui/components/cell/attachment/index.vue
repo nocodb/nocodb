@@ -55,6 +55,7 @@ const {
   selectedFile,
   isReadonly,
   storedFiles,
+  removeFile,
   updateAttachmentTitle,
 } = useProvideAttachmentCell(updateModelValue)
 
@@ -189,6 +190,13 @@ function onRemoveFileClick(title: any, i: number) {
   filetoDelete.title = title
 }
 
+const handleFileDelete = (i: number) => {
+  removeFile(i)
+  isConfirmModalOpen.value = false
+  filetoDelete.i = 0
+  filetoDelete.title = ''
+}
+
 const attachmentSize = computed(() => {
   if (isForm.value || isExpandedForm.value) {
     return 'small'
@@ -222,12 +230,12 @@ defineExpose({
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
-    <div v-if="visibleItems.length > 0" class="flex flex-wrap items-center mb-2 gap-2">
+    <div v-if="visibleItems.length > 0" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
         v-for="(item, i) in showAllAttachments ? visibleItems : visibleItems.slice(0, 3)"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
-        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px]"
+        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px] overflow-hidden"
         :attachment="item"
         :index="i"
         :allow-selection="false"
@@ -237,10 +245,11 @@ defineExpose({
         :rename-inline="false"
         :confirm-to-delete="true"
         @clicked="onFileClick(item)"
+        @on-delete="onRemoveFileClick(item.title, i)"
       />
     </div>
     <div v-if="visibleItems.length > 3" class="mb-2">
-      <NcButton class="!border-none !shadow-none" type="ghost" size="small" @click="showAllAttachments = !showAllAttachments">
+      <NcButton type="text" size="small" @click="showAllAttachments = !showAllAttachments">
         {{
           showAllAttachments ? `${$t('general.showLess')}` : `+ ${visibleItems.length - 3} ${$t('general.more').toLowerCase()}`
         }}
@@ -260,6 +269,26 @@ defineExpose({
         </span>
       </div>
     </NcButton>
+
+    <LazyGeneralDeleteModal
+      v-model:visible="isConfirmModalOpen"
+      entity-name="File"
+      :on-delete="async () => handleFileDelete(filetoDelete.i)"
+    >
+      <template #entity-preview>
+        <span>
+          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
+            <div
+              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            >
+              {{ filetoDelete.title }}
+            </div>
+          </div>
+        </span>
+      </template>
+    </LazyGeneralDeleteModal>
   </div>
   <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
     <LazyCellAttachmentCarousel v-if="selectedFile" />

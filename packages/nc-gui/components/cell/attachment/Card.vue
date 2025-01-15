@@ -29,6 +29,7 @@ const emits = defineEmits<{
   'clicked': []
   'update:selected': [boolean]
   'update:dragging': [boolean]
+  'onDelete': []
 }>()
 
 const isSelected = useVModel(props, 'selected', emits)
@@ -36,9 +37,6 @@ const isDragging = useVModel(props, 'dragging', emits)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile } = useAttachmentCell()!
-
-const isDeletingFile = ref(false)
-const deleteTitle = ref('')
 
 const isRenamingFile = ref(false)
 const renameTitle = ref('')
@@ -79,24 +77,13 @@ const handleFileRename = async () => {
   }
 }
 
-const handleResetFileDelete = () => {
-  isDeletingFile.value = false
-  deleteTitle.value = props.attachment.title
-}
-
-const handleFileDelete = () => {
-  removeFile(props.index)
-  handleResetFileDelete()
-  return Promise.resolve()
-}
-
 const handleFileDeleteStart = () => {
   if (!props.confirmToDelete) {
-    handleFileDelete()
+    removeFile(props.index)
     return
   }
-  isDeletingFile.value = true
-  deleteTitle.value = props.attachment.title
+
+  emits('onDelete')
 }
 </script>
 
@@ -201,25 +188,5 @@ const handleFileDeleteStart = () => {
         </NcTooltip>
       </div>
     </div>
-    <LazyGeneralDeleteModal
-      v-if="confirmToDelete"
-      v-model:visible="isDeletingFile"
-      entity-name="File"
-      :on-delete="handleFileDelete"
-    >
-      <template #entity-preview>
-        <span>
-          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-            <div
-              class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ deleteTitle }}
-            </div>
-          </div>
-        </span>
-      </template>
-    </LazyGeneralDeleteModal>
   </div>
 </template>

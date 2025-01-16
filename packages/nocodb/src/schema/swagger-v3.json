@@ -4,7 +4,7 @@
     "id": "qiz1rcfqd2jy6"
   },
   "info": {
-    "title": "NocoDB v2",
+    "title": "NocoDB v3",
     "version": "",
     "description": "NocoDB API Documentation"
   },
@@ -4826,6 +4826,36 @@
       }
     },
     "responses": {
+      "BadRequest": {
+        "description": "BadRequest",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "x-stoplight": {
+                    "id": "p9mk4oi0hbihm"
+                  },
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              },
+              "required": [
+                "msg"
+              ]
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            }
+          }
+        },
+        "headers": {}
+      }
     },
     "securitySchemes": {
       "xc-auth": {
@@ -4848,14 +4878,14 @@
       }
     },
     "parameters": {
-      "xc-auth": {
-        "name": "xc-auth",
+      "xc-token": {
+        "name": "xc-token",
         "in": "header",
-        "required": false,
+        "required": true,
         "schema": {
           "type": "string"
         },
-        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
       }
     }
   }

@@ -1168,7 +1168,7 @@
       "get": {
         "summary": "List Table Records",
         "operationId": "db-data-table-row-list",
-        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of rows available for the specified conditions (if any).\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of records on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of records in the dataset.\n\nThe `pageInfo` attributes are particularly valuable when dealing with large datasets that are divided into multiple pages. They enable you to determine whether additional pages of records are available for retrieval or if you've reached the end of the dataset.",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- **next**: Contains the URL to retrieve the next page of records. For example, `\"https://staging.noco.to/api/v3/tables/medhonywr18cysz/records?page=2\"` points to the next page of records.\n- If there are no more records available (you are on the last page), this attribute will be _null_.\n\nThe `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.",
         "tags": [
           "Table Records"
         ],
@@ -1213,7 +1213,7 @@
             },
             "in": "query",
             "name": "nestedPage",
-            "description": "Enables you to control the pagination of your nested data in API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset. By nested data we mean Linked records data list."
+            "description": "Enables you to control the pagination of your nested data (linked records) in API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of nested data records in the dataset."
           },
           {
             "schema": {
@@ -1268,74 +1268,107 @@
                       "list": [
                         {
                           "Id": 1,
-                          "SingleLineText": "David",
-                          "Year": 2023,
+                          "SingleLineText": "record #1",
+                          "MultiLineText": "sample long text",
+                          "Email": "user@nocodb.com",
+                          "PhoneNumber": "1234567890",
                           "URL": "www.google.com",
-                          "SingleSelect": "Jan",
-                          "Email": "a@b.com",
-                          "Duration": 74040,
-                          "Decimal": 23.658,
-                          "Currency": 23,
-                          "JSON": {
-                            "name": "John Doe",
-                            "age": 30,
-                            "email": "johndoe@example.com",
-                            "isSubscribed": true,
-                            "address": {
-                              "street": "123 Main Street",
-                              "city": "Anytown",
-                              "zipCode": "12345"
-                            },
-                            "hobbies": [
-                              "Reading",
-                              "Hiking",
-                              "Cooking"
-                            ],
-                            "scores": {
-                              "math": 95,
-                              "science": 88,
-                              "history": 75
-                            }
-                          },
-                          "Date": "2023-10-16",
-                          "Time": "06:02:00",
-                          "Rating": 1,
-                          "Percent": 55,
+                          "Number": 1234,
+                          "Decimal": 100.88,
+                          "Currency": 100,
+                          "Percent": 10,
+                          "Duration": 1010,
+                          "Rating": 3,
+                          "Year": 2020,
+                          "Time": "20:20:00",
                           "Checkbox": true,
+                          "Date": "2020-01-01",
                           "Attachment": [
                             {
-                              "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
-                              "title": "2 be loved.jpeg",
-                              "mimetype": "image/jpeg",
-                              "size": 146143,
-                              "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                              "url": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice notes_XoKRs.png",
+                              "title": "voice notes.png",
+                              "mimetype": "image/png",
+                              "size": 812244,
+                              "width": 1150,
+                              "height": 1150,
+                              "id": "at0qb41okjqrkl0y",
+                              "thumbnails": {
+                                "tiny": {
+                                  "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/tiny.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=a2db413c8cd1fb0a4df7019604d572045ecdeb9815b8d34d81d6c83a9a3984dc&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                                },
+                                "small": {
+                                  "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/small.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=e71c6b8acc8837750fb216cbe960d5aa60bc308a843563dab471374cfb42632d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                                },
+                                "card_cover": {
+                                  "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/card_cover.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=30d2c3a5e368cb215ce8e0e4ac9f2f6f7622c776f8e207516819f8428350c3f0&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                                }
+                              },
+                              "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=698fd5876dda5570f4943d5cf18755b5cb0bf0fd7e59a8d8fc7884fc05e7dc07&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fpng&x-id=GetObject"
                             }
                           ],
-                          "MultiSelect": "Jan,Feb",
-                          "DateTime": "2023-10-16 08:56:32+00:00",
-                          "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
-                          "Geometry": "23.23, 36.54",
-                          "PhoneNumber": "123456789",
-                          "Number": 5248,
-                          "Barcode": "David",
-                          "QRCode": "David",
-                          "Formula": "10",
-                          "Lookup": "a",
-                          "Links:belongs-to": {
-                            "Id": 1,
-                            "Title": "a"
+                          "JSON": {
+                            "x": 1,
+                            "y": 2
                           },
-                          "Links:has-many": 2,
+                          "Geometry": "POINT(1, 1)",
+                          "User": [
+                            {
+                              "id": "usg0kjqhj5unp9go",
+                              "email": "robert@nocodb.com",
+                              "display_name": "Robert"
+                            }
+                          ],
+                          "SingleSelect": "Jan",
+                          "MultiSelect": [
+                            "Jan",
+                            "Feb",
+                            "Mar"
+                          ],
+                          "DateTime": "2022-02-02 00:00:00+00:00",
+                          "CreatedBy": {
+                            "id": "usg0kjqhj5unp9go",
+                            "email": "robert@nocodb.com",
+                            "display_name": "Robert"
+                          },
+                          "LastModifiedBy": {
+                            "id": "usg0kjqhj5unp9go",
+                            "email": "robert@nocodb.com",
+                            "display_name": "Robert"
+                          },
+                          "Barcode": "record #1",
+                          "QRCode": "record #1",
+                          "Lookup": [
+                            "record #2",
+                            "record #3",
+                            "record #1"
+                          ],
+                          "Button": {
+                            "type": "url",
+                            "label": "Button",
+                            "url": "www.google.com"
+                          },
+                          "Formula": 101.88,
                           "Rollup": 3,
-                          "Links:many-many": 3
+                          "hmLinks": 3,
+                          "mmLinks": 3,
+                          "LTAR": [
+                            {
+                              "SingleLineText": "record #1",
+                              "Id": 1
+                            },
+                            {
+                              "SingleLineText": "record #2",
+                              "Id": 2
+                            },
+                            {
+                              "SingleLineText": "record #3",
+                              "Id": 3
+                            }
+                          ]
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 5,
-                        "page": 1,
-                        "pageSize": 1,
-                        "isFirstPage": true,
-                        "isLastPage": false
+                        "next": "https://staging.noco.to/api/v3/tables/medhonywr18cysz/records?page=2"
                       }
                     }
                   }
@@ -1399,57 +1432,49 @@
                 "Example 1": {
                   "value": [
                     {
-                      "SingleLineText": "David",
-                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
-                      "CreatedAt": "2023-10-16 08:27:59+00:00",
-                      "UpdatedAt": "2023-10-16 08:56:32+00:00",
-                      "Decimal": 23.658,
+                      "Number": 1,
+                      "Decimal": 100.88,
+                      "Currency": 100,
+                      "Percent": 100,
+                      "Duration": 1010,
+                      "Rating": 3,
+                      "Year": 2020,
+                      "Time": "20:20:00",
+                      "SingleLineText": "record #1",
+                      "MultiLineText": "sample text",
+                      "Email": "user@nocodb.com",
+                      "PhoneNumber": "1234567890",
+                      "URL": "www.google.com",
+                      "SingleSelect": "jan",
                       "Checkbox": true,
-                      "Attachment": [
+                      "Date": "2020-01-01",
+                      "JSON": {
+                        "x": 1,
+                        "y": 2
+                      },
+                      "Geometry": "POINT(1, 1)",
+                      "User": [
                         {
-                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
-                          "title": "2 be loved.jpeg",
-                          "mimetype": "image/jpeg",
-                          "size": 146143,
-                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                          "email": "raju@nocodb.com"
                         }
                       ],
-                      "MultiSelect": "Jan,Feb",
-                      "SingleSelect": "Jan",
-                      "Date": "2023-10-16",
-                      "Year": 2023,
-                      "Time": "06:02:00",
-                      "PhoneNumber": "123456789",
-                      "Email": "a@b.com",
-                      "URL": "www.google.com",
-                      "Currency": 23,
-                      "Percent": 55,
-                      "Duration": 74040,
-                      "Rating": 1,
-                      "JSON": {
-                        "name": "John Doe",
-                        "age": 30,
-                        "email": "johndoe@example.com",
-                        "isSubscribed": true,
-                        "address": {
-                          "street": "123 Main Street",
-                          "city": "Anytown",
-                          "zipCode": "12345"
+                      "MultiSelect": [
+                        "jan",
+                        "feb",
+                        "mar"
+                      ],
+                      "DateTime": "2022-02-02 05:30:00+00:00",
+                      "LTAR": [
+                        {
+                          "Id": 1
                         },
-                        "hobbies": [
-                          "Reading",
-                          "Hiking",
-                          "Cooking"
-                        ],
-                        "scores": {
-                          "math": 95,
-                          "science": 88,
-                          "history": 75
+                        {
+                          "Id": 2
+                        },
+                        {
+                          "Id": 3
                         }
-                      },
-                      "DateTime": "2023-10-16 08:56:32+00:00",
-                      "Geometry": "23.23, 36.54",
-                      "Number": 5248
+                      ]
                     }
                   ]
                 }
@@ -1457,7 +1482,7 @@
             }
           }
         },
-        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'",
+        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
         "parameters": [
           {
             "required": true,
@@ -1517,17 +1542,49 @@
                   "value": [
                     {
                       "Id": 6,
-                      "SingleLineText": "Updated text-1",
-                      "DateTime": "2023-10-19 08:56:32+00:00",
-                      "Geometry": "23.232, 36.542",
-                      "Number": 52482
-                    },
-                    {
-                      "Id": 7,
-                      "SingleLineText": "Updated text-2",
-                      "DateTime": "2023-10-19 08:56:32+00:00",
-                      "Geometry": "23.232, 36.542",
-                      "Number": 52482
+                      "Number": 1,
+                      "Decimal": 100.88,
+                      "Currency": 100,
+                      "Percent": 100,
+                      "Duration": 1010,
+                      "Rating": 3,
+                      "Year": 2020,
+                      "Time": "20:20:00",
+                      "SingleLineText": "record #1",
+                      "MultiLineText": "sample text",
+                      "Email": "user@nocodb.com",
+                      "PhoneNumber": "1234567890",
+                      "URL": "www.google.com",
+                      "SingleSelect": "jan",
+                      "Checkbox": true,
+                      "Date": "2020-01-01",
+                      "JSON": {
+                        "x": 1,
+                        "y": 2
+                      },
+                      "Geometry": "POINT(1, 1)",
+                      "User": [
+                        {
+                          "email": "raju@nocodb.com"
+                        }
+                      ],
+                      "MultiSelect": [
+                        "jan",
+                        "feb",
+                        "mar"
+                      ],
+                      "DateTime": "2022-02-02 05:30:00+00:00",
+                      "LTAR": [
+                        {
+                          "Id": 1
+                        },
+                        {
+                          "Id": 2
+                        },
+                        {
+                          "Id": 3
+                        }
+                      ]
                     }
                   ]
                 }
@@ -1535,7 +1592,7 @@
             }
           }
         },
-        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
+        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Link to another record** field type if specified, all the existing links will be removed & the one's specified in this payload will be inserted. \n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record insert API will be added soon.\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
         "parameters": [
           {
             "required": true,
@@ -1668,68 +1725,103 @@
                   "Example 1": {
                     "value": {
                       "Id": 1,
-                      "SingleLineText": "David",
-                      "CreatedAt": "2023-10-16 08:27:59+00:00",
-                      "UpdatedAt": "2023-10-16 10:05:41+00:00",
-                      "Year": 2023,
+                      "SingleLineText": "record #1",
+                      "MultiLineText": "sample long text",
+                      "Email": "user@nocodb.com",
+                      "PhoneNumber": "1234567890",
                       "URL": "www.google.com",
-                      "SingleSelect": "Jan",
-                      "Email": "a@b.com",
-                      "Duration": 74040,
-                      "Decimal": 23.658,
-                      "Currency": 23,
-                      "Barcode": "David",
-                      "JSON": {
-                        "name": "John Doe",
-                        "age": 30,
-                        "email": "johndoe@example.com",
-                        "isSubscribed": true,
-                        "address": {
-                          "street": "123 Main Street",
-                          "city": "Anytown",
-                          "zipCode": "12345"
-                        },
-                        "hobbies": [
-                          "Reading",
-                          "Hiking",
-                          "Cooking"
-                        ],
-                        "scores": {
-                          "math": 95,
-                          "science": 88,
-                          "history": 75
-                        }
-                      },
-                      "QRCode": "David",
-                      "Rollup": 3,
-                      "Date": "2023-10-16",
-                      "Time": "06:02:00",
-                      "Rating": 1,
-                      "Percent": 55,
-                      "Formula": 10,
+                      "Number": 1234,
+                      "Decimal": 100.88,
+                      "Currency": 100,
+                      "Percent": 10,
+                      "Duration": 1010,
+                      "Rating": 3,
+                      "Year": 2020,
+                      "Time": "20:20:00",
                       "Checkbox": true,
+                      "Date": "2020-01-01",
                       "Attachment": [
                         {
-                          "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
-                          "title": "2 be loved.jpeg",
-                          "mimetype": "image/jpeg",
-                          "size": 146143,
-                          "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+                          "url": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice notes_XoKRs.png",
+                          "title": "voice notes.png",
+                          "mimetype": "image/png",
+                          "size": 812244,
+                          "width": 1150,
+                          "height": 1150,
+                          "id": "at0qb41okjqrkl0y",
+                          "thumbnails": {
+                            "tiny": {
+                              "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/tiny.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=a2db413c8cd1fb0a4df7019604d572045ecdeb9815b8d34d81d6c83a9a3984dc&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                            },
+                            "small": {
+                              "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/small.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=e71c6b8acc8837750fb216cbe960d5aa60bc308a843563dab471374cfb42632d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                            },
+                            "card_cover": {
+                              "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/card_cover.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=30d2c3a5e368cb215ce8e0e4ac9f2f6f7622c776f8e207516819f8428350c3f0&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                            }
+                          },
+                          "signedUrl": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATUJCOBWTKOMQ5JMU%2F20250111%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=698fd5876dda5570f4943d5cf18755b5cb0bf0fd7e59a8d8fc7884fc05e7dc07&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fpng&x-id=GetObject"
                         }
                       ],
-                      "MultiSelect": "Jan,Feb",
-                      "DateTime": "2023-10-19 08:56:32+00:00",
-                      "LongText": "The sunsets in the small coastal town were a breathtaking sight. The sky would transform from a vibrant blue to warm hues of orange and pink as the day came to an end. Locals and tourists alike would gather at the beach, sipping on cool drinks and watching in awe as the sun dipped below the horizon.",
-                      "Geometry": "23.232, 36.542",
-                      "PhoneNumber": "123456789",
-                      "Number": 52482,
-                      "Links:has-many": 2,
-                      "Links:many-many": 3,
-                      "Links:belongs-to": {
-                        "Id": 1,
-                        "Title": "a"
+                      "JSON": {
+                        "x": 1,
+                        "y": 2
                       },
-                      "Lookup": "a"
+                      "Geometry": "POINT(1, 1)",
+                      "User": [
+                        {
+                          "id": "usg0kjqhj5unp9go",
+                          "email": "robert@nocodb.com",
+                          "display_name": "Robert"
+                        }
+                      ],
+                      "SingleSelect": "Jan",
+                      "MultiSelect": [
+                        "Jan",
+                        "Feb",
+                        "Mar"
+                      ],
+                      "DateTime": "2022-02-02 00:00:00+00:00",
+                      "CreatedBy": {
+                        "id": "usg0kjqhj5unp9go",
+                        "email": "robert@nocodb.com",
+                        "display_name": "Robert"
+                      },
+                      "LastModifiedBy": {
+                        "id": "usg0kjqhj5unp9go",
+                        "email": "robert@nocodb.com",
+                        "display_name": "Robert"
+                      },
+                      "Barcode": "record #1",
+                      "QRCode": "record #1",
+                      "Lookup": [
+                        "record #2",
+                        "record #3",
+                        "record #1"
+                      ],
+                      "Button": {
+                        "type": "url",
+                        "label": "Button",
+                        "url": "www.google.com"
+                      },
+                      "Formula": 101.88,
+                      "Rollup": 3,
+                      "hmLinks": 3,
+                      "mmLinks": 3,
+                      "LTAR": [
+                        {
+                          "SingleLineText": "record #1",
+                          "Id": 1
+                        },
+                        {
+                          "SingleLineText": "record #2",
+                          "Id": 2
+                        },
+                        {
+                          "SingleLineText": "record #3",
+                          "Id": 3
+                        }
+                      ]
                     }
                   }
                 }
@@ -1833,15 +1925,15 @@
           "name": "linkFieldId",
           "in": "path",
           "required": true,
-          "description": "**Links Field Identifier** corresponding to the relation field `Links` established between tables."
+          "description": "**Links Field Identifier** corresponding to the relation field `Link to another record` established between tables."
         }
       ],
       "get": {
         "summary": "List Linked Records",
         "operationId": "db-data-table-row-nested-list",
-        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
+        "description": "This API endpoint allows you to retrieve list of linked records for a specific `Link to another record field` and `Record ID`. The response is an array of objects containing Primary Key and its corresponding display value.",
         "tags": [
-          "Table Records"
+          "Linked Records"
         ],
         "parameters": [
           {
@@ -1930,28 +2022,24 @@
                     "value": {
                       "list": [
                         {
-                          "Id": 1,
-                          "SingleLineText": "David"
+                          "Id": 5,
+                          "SingleLineText": "London"
                         },
                         {
-                          "Id": 2,
-                          "SingleLineText": "Jane"
+                          "Id": 6,
+                          "SingleLineText": "Manchester"
                         },
                         {
-                          "Id": 3,
-                          "SingleLineText": "Dave"
+                          "Id": 7,
+                          "SingleLineText": "Poole"
                         },
                         {
-                          "Id": 4,
-                          "SingleLineText": "Martin"
+                          "Id": 8,
+                          "SingleLineText": "Bristol"
                         }
                       ],
                       "pageInfo": {
-                        "totalRows": 4,
-                        "page": 1,
-                        "pageSize": 25,
-                        "isFirstPage": true,
-                        "isLastPage": true
+                        "next": "https://staging.noco.to/api/v3/tables/mqw22nwcc3c7tfp/links/cq0bdlyfreqoea0/records/4?page=2"
                       }
                     }
                   }
@@ -1986,7 +2074,7 @@
           }
         },
         "tags": [
-          "Table Records"
+          "Linked Records"
         ],
         "requestBody": {
           "content": {
@@ -2058,7 +2146,7 @@
           }
         },
         "tags": [
-          "Table Records"
+          "Linked Records"
         ],
         "requestBody": {
           "content": {

@@ -8,13 +8,7 @@ interface Props {
   modelValue?: number | null | string
 }
 
-interface Emits {
-  (event: 'update:modelValue', model: number): void
-}
-
 const props = defineProps<Props>()
-
-const emits = defineEmits<Emits>()
 
 const column = inject(ColumnInj, null)!
 

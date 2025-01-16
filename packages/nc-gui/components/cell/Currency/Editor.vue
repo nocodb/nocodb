@@ -42,7 +42,6 @@ const currencyMeta = computed(() => {
   }
 })
 
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!

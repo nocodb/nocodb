@@ -5,8 +5,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
 const column = inject(ColumnInj)
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)

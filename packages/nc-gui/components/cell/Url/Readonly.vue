@@ -5,8 +5,6 @@ interface Props {
 
 const { modelValue: value } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
 const { t } = useI18n()
 
 const column = inject(ColumnInj)!

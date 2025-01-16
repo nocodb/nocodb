@@ -11,7 +11,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import {extractRolesObj, TableCreateV3Type, TableReqType, TableUpdateV3Type, TableV3Type} from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  TableCreateV3Type,
+  TableUpdateV3Type,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

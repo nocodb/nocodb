@@ -135,18 +135,20 @@ function isV0Audit(audit: AuditType) {
                 <div class="!border-none audit-link-container">
                   <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0" class="audit-link-removal">
                     <span
-                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
+                      :key="entry.refRowId"
                       class="audit-link-item"
                     >
-                      {{ name }}
+                      {{ entry.value }}
                     </span>
                   </div>
                   <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0" class="audit-link-addition">
                     <span
-                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values_links"
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_links"
+                      :key="entry.refRowId"
                       class="audit-link-item"
                     >
-                      {{ name }}
+                      {{ entry.value }}
                     </span>
                   </div>
                 </div>
@@ -179,13 +181,13 @@ function isV0Audit(audit: AuditType) {
 .audit-link-container {
   @apply flex flex-row flex-wrap gap-2;
   .audit-link-addition {
-    @apply flex gap-1 flex-wrap;
+    @apply flex gap-2 flex-wrap;
     span {
       @apply !text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
     }
   }
   .audit-link-removal {
-    @apply flex gap-1 flex-wrap;
+    @apply flex gap-2 flex-wrap;
     span {
       @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
     }

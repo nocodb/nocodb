@@ -420,21 +420,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const consolidatedAudits = computed(() => {
     const result = []
 
-    const applyAuditValue = (detail: any, value: string, type: 'link' | 'unlink') => {
+    const applyAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
       if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = [];
       if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = [];
 
       if (type === 'link') {
-        if (!detail.consolidated_ref_display_values_unlinks.includes(value)) {
-          detail.consolidated_ref_display_values_links.push(value)
+        if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
+          detail.consolidated_ref_display_values_links.push({ refRowId, value })
         } else {
-          detail.consolidated_ref_display_values_unlinks.splice(detail.consolidated_ref_display_values_unlinks.indexOf(value), 1)
+          detail.consolidated_ref_display_values_unlinks.splice(detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId), 1)
         }
       } else {
-        if (!detail.consolidated_ref_display_values_links.includes(value)) {
-          detail.consolidated_ref_display_values_unlinks.push(value)
+        if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
+          detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
         } else {
-          detail.consolidated_ref_display_values_links.splice(detail.consolidated_ref_display_values_links.indexOf(value), 1)
+          detail.consolidated_ref_display_values_links.splice(detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId), 1)
         }
       }
     }
@@ -448,7 +448,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const last = result[result.length - 1]
           const details = JSON.parse(current.details)
           if (!last) {
-            applyAuditValue(details, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
+            applyAuditValue(details, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
             current.details = JSON.stringify(details)
             result.push(current)
           } else {
@@ -459,7 +459,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               lastDetails.link_field_id === details.link_field_id &&
               lastDetails.ref_table_title === details.ref_table_title
             ) {
-              applyAuditValue(lastDetails, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
+              applyAuditValue(lastDetails, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
               if (lastDetails.consolidated_ref_display_values_links?.length > 0 || lastDetails.consolidated_ref_display_values_unlinks?.length) {
                 last.details = JSON.stringify(lastDetails)
               }
@@ -467,7 +467,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 result.pop();
               }
             } else {
-              applyAuditValue(details, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
+              applyAuditValue(details, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
               current.details = JSON.stringify(details)
               result.push(current)
             }

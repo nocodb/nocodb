@@ -14,26 +14,80 @@
     }
   ],
   "paths": {
-    "/api/v3/meta/bases": {
+    "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
-        "description": "Retrieve a list of all bases.",
+        "description": "Retrieve a list of bases associated with a specific workspace.",
         "tags": [
           "Bases"
         ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of bases retrieved successfully.",
+            "description": "The request was successful, and a list of bases is returned.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BaseListResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Base"
+                  },
+                  "description": "List of bases."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "pgfqcp0ocloo1j3",
+                          "title": "Getting Started",
+                          "meta": {
+                            "icon_color": "#36BFFF"
+                          },
+                          "created_at": "2025-01-16 06:04:18+00:00",
+                          "updated_at": "2025-01-16 06:04:18+00:00",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "p1go4ju5jcwqf8v",
+                          "title": "Base2",
+                          "meta": {
+                            "icon_color": "#36BFFF"
+                          },
+                          "created_at": "2025-01-16 06:04:48+00:00",
+                          "updated_at": "2025-01-16 06:04:48+00:00",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "pho1grz3alkye0t",
+                          "title": "Base3",
+                          "meta": {
+                            "icon_color": "#FA8231"
+                          },
+                          "created_at": "2025-01-16 06:04:52+00:00",
+                          "updated_at": "2025-01-16 06:04:52+00:00",
+                          "workspace_id": "w6dw3fo0"
+                        }
+                      ]
+                    }
+
+                  }
                 }
               }
             }
           },
           "500": {
-            "description": "Server error."
+            "description": "The server encountered an unexpected error while processing the request."
           }
         }
       },
@@ -42,6 +96,17 @@
         "description": "Create a new base with the provided details.",
         "tags": [
           "Bases"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace identifier."
+          }
         ],
         "requestBody": {
           "required": true,
@@ -76,7 +141,7 @@
     "/api/v3/meta/bases/{baseId}": {
       "get": {
         "summary": "Get base schema",
-        "description": "Retrieve the details of a specific base.",
+        "description": "Retrieve schema details of a specific base.",
         "tags": [
           "Bases"
         ],
@@ -88,7 +153,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the base."
+            "description": "Unique identifier of the base."
           }
         ],
         "responses": {
@@ -2267,9 +2332,122 @@
       }
     }
   },
-
   "components": {
     "schemas": {
+      "Base": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMetaRes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was last updated."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace to which this base belongs to."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the data source."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the data source."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of the data source (e.g., pg, mysql)."
+                },
+                "is_schema_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the schema in this data source is read-only."
+                },
+                "is_data_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the data (records) in this data source is read-only."
+                },
+                "integration_id": {
+                  "type": "string",
+                  "description": "Integration ID for the data source."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "is_schema_readonly",
+                "is_data_readonly",
+                "integration_id"
+              ]
+            },
+            "description": "List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "meta",
+          "created_at",
+          "updated_at",
+          "workspace_id"
+        ]
+      },
+      "BaseMetaRes": {
+        "type": "object",
+        "properties": {
+          "icon_color": {
+            "type": "string",
+            "format": "color",
+            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)"
+          }
+        }
+      },
+      "BaseMetaReq": {
+        "type": "object",
+        "properties": {
+          "icon_color": {
+            "type": "string",
+            "format": "color",
+            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).\n\n**Constraints**:\n- Must be a valid 6-character hexadecimal color code preceded by a `#`.\n- Optional field; defaults to a standard color if not provided."
+          }
+        }
+      },
+      "BaseCreate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMetaReq"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -2912,38 +3090,6 @@
           "id": "psbv6c6y9qvbu"
         }
       },
-      "BaseMeta": {
-        "type": "object",
-        "properties": {
-          "icon_color": {
-            "type": "string",
-            "format": "color",
-            "description": "Color for the base icon."
-          }
-        }
-      },
-      "BaseCreate": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Name of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
       "BaseUpdate": {
         "type": "object",
         "properties": {
@@ -2959,90 +3105,9 @@
             "description": "Description of the base. Can include rich text."
           },
           "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
+            "$ref": "#/components/schemas/BaseMetaReq"
           }
         }
-      },
-      "Base": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the base."
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMeta"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the base was created."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the base was last updated."
-          },
-          "sources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "Unique identifier for the source."
-                },
-                "title": {
-                  "type": "string",
-                  "description": "Title of the source."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "Type of the source (e.g., pg, mysql)."
-                },
-                "is_schema_readonly": {
-                  "type": "boolean",
-                  "description": "Indicates if the schema is read-only."
-                },
-                "is_data_readonly": {
-                  "type": "boolean",
-                  "description": "Indicates if the data is read-only."
-                },
-                "integration_id": {
-                  "type": "string",
-                  "description": "Integration ID for the source."
-                }
-              },
-              "required": [
-                "id",
-                "title",
-                "type",
-                "is_schema_readonly",
-                "is_data_readonly",
-                "integration_id"
-              ]
-            },
-            "description": "List of sources associated with the base."
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "meta",
-          "created_at",
-          "updated_at"
-        ]
       },
       "BaseUser": {
         "type": "object",
@@ -3195,7 +3260,6 @@
           }
         }
       },
-      "BaseListResponse": {},
       "Table": {
         "type": "object",
         "properties": {

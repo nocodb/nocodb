@@ -3091,7 +3091,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: ['UpdatedAt'],
+      exclude: this.model.columns.filter((col) => isSystemColumn(col)),
       excludeNull: false,
       excludeBlanks: false,
     }) as UpdatePayload;
@@ -3111,7 +3111,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               old_data: updateDiff.previous_state,
               data: updateDiff.modifications,
               column_meta: extractColsMetaForAudit(
-                this.model.columns,
+                this.model.columns.filter(
+                  (c) => c.title in updateDiff.modifications,
+                ),
                 data,
                 oldData,
               ),
@@ -3178,7 +3180,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: ['UpdatedAt'],
+              exclude: this.model.columns.filter((col) => isSystemColumn(col)),
               excludeNull: false,
               excludeBlanks: false,
             }) as UpdatePayload;
@@ -3197,7 +3199,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     old_data: updateDiff.previous_state,
                     data: updateDiff.modifications,
                     column_meta: extractColsMetaForAudit(
-                      this.model.columns,
+                      this.model.columns.filter(
+                        (c) => c.title in updateDiff.modifications,
+                      ),
                       d,
                       prevData?.[i],
                     ),

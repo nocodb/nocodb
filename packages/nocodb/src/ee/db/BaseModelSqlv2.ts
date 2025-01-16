@@ -3091,7 +3091,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: ['UpdatedAt']
+      exclude: ['UpdatedAt'],
+      excludeNull: false,
+      excludeBlanks: false,
     }) as UpdatePayload;
 
     if (updateDiff) {
@@ -3176,7 +3178,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: ['UpdatedAt']
+              exclude: ['UpdatedAt'],
+              excludeNull: false,
+              excludeBlanks: false,
             }) as UpdatePayload;
 
             if (updateDiff) {

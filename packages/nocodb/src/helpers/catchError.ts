@@ -894,6 +894,12 @@ export class NcError {
       ...args,
     });
   }
+  static invalidPageValue(page: string | number, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
+      params: `${page}`,
+      ...args,
+    });
+  }
 
   static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {

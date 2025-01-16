@@ -80,7 +80,6 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
-import { extractLimitAndOffset } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
@@ -4178,36 +4177,11 @@ class BaseModelSqlv2 {
       nested?: boolean;
     } = {},
   ): XcFilter {
-
-   return  getListArgs(args, this.model ,{
+    return getListArgs(args, this.model, {
       ignoreAssigningWildcardSelect: true,
-     apiVersion,
-     nested
-    })
-
-    // const obj: XcFilter = extractLimitAndOffset(args);
-    // obj.where = args.filter || args.where || args.w || '';
-    // obj.having = args.having || args.h || '';
-    // obj.shuffle = args.shuffle || args.r || '';
-    // obj.condition = args.condition || args.c || {};
-    // obj.conditionGraph = args.conditionGraph || {};
-    // obj.limit = Math.max(
-    //   Math.min(
-    //     Math.max(+(args.limit || args.l), 0) ||
-    //       (nested && apiVersion === NcApiVersion.V3
-    //         ? BaseModelSqlv2.config.ltarV3Limit
-    //         : BaseModelSqlv2.config.limitDefault),
-    //     BaseModelSqlv2.config.limitMax,
-    //   ),
-    //   BaseModelSqlv2.config.limitMin,
-    // );
-    // obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    // obj.fields = args.fields || args.f;
-    // obj.sort = args.sort || args.s;
-    // obj.pks = args.pks;
-    // obj.aggregation = args.aggregation || [];
-    // obj.column_name = args.column_name;
-    // return obj;
+      apiVersion,
+      nested,
+    });
   }
 
   public async shuffle({ qb }: { qb: Knex.QueryBuilder }): Promise<void> {
@@ -11739,28 +11713,26 @@ export function getListArgs(
   obj.conditionGraph = args.conditionGraph || {};
   obj.page = args.page || args.p;
   if (apiVersion === NcApiVersion.V3 && nested) {
-
-    if(obj.nestedLimit){
-      obj.limit =   obj.limit = Math.max(
+    if (obj.nestedLimit) {
+      obj.limit = obj.limit = Math.max(
         Math.min(
-          Math.max(+(obj.nestedLimit), 0) ||
-          BaseModelSqlv2.config.limitDefault,
+          Math.max(+obj.nestedLimit, 0) || BaseModelSqlv2.config.limitDefault,
           BaseModelSqlv2.config.limitMax,
         ),
         BaseModelSqlv2.config.limitMin,
       );
-    }else {
-      obj.limit = BaseModelSqlv2.config.ltarV3Limit
+    } else {
+      obj.limit = BaseModelSqlv2.config.ltarV3Limit;
     }
   } else {
     obj.limit = Math.max(
-        Math.min(
-          Math.max(+(args?.limit || args?.l), 0) ||
+      Math.min(
+        Math.max(+(args?.limit || args?.l), 0) ||
           BaseModelSqlv2.config.limitDefault,
-          BaseModelSqlv2.config.limitMax,
-        ),
-        BaseModelSqlv2.config.limitMin,
-      );
+        BaseModelSqlv2.config.limitMax,
+      ),
+      BaseModelSqlv2.config.limitMin,
+    );
   }
   obj.offset = Math.max(+(args?.offset || args?.o) || 0, 0);
   if (obj.page) {
@@ -11770,6 +11742,8 @@ export function getListArgs(
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
   obj.pks = args?.pks;
+  obj.aggregation = args.aggregation || [];
+  obj.column_name = args.column_name;
   return obj;
 }
 

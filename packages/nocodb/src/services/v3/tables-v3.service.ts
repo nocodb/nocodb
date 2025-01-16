@@ -9,7 +9,7 @@ import type {
 } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Base, Model } from '~/models';
+import { Base } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

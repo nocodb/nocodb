@@ -67,7 +67,7 @@ const { cellUrlOptions } = useCellUrlConfig(url)
       <NcTooltip class="flex items-center">
         <template #title> {{ t('msg.error.invalidURL') }} </template>
 
-        <GeneralIcon icon="info" class="text-red-400 h-4 w-4 flex-none" />
+        <GeneralIcon icon="info" class="text-red-400 h-4 w-4 flex-none relative z-3" />
       </NcTooltip>
     </div>
   </div>

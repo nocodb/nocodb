@@ -16,7 +16,7 @@ const { t } = useI18n()
 
 const { showNull } = useGlobal()
 
-const editEnabled = inject(EditModeInj)!
+const editEnabled = inject(EditModeInj, ref(false))
 
 const column = inject(ColumnInj)!
 

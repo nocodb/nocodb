@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue', 'save'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)!
+const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 

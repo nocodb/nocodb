@@ -4,7 +4,7 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
-import type { ColumnType, FilterType, SortType } from 'nocodb-sdk';
+import type { ColumnType, FieldV3Type, FilterType, SortType } from 'nocodb-sdk';
 import type {
   CalendarViewColumn,
   Column,
@@ -293,7 +293,7 @@ export const colOptionBuilder = builderGenerator({
   },
 });
 
-export const columnBuilder = builderGenerator<Column | ColumnType>({
+export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>({
   allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
   mappings: {
     uidt: 'type',
@@ -436,9 +436,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
   },
 });
 
-export const columnV3ToV2Builder = builderGenerator<
-  (Column | ColumnType) & { type?: UITypes | string }
->({
+export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
   allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
   mappings: {
     type: 'uidt',

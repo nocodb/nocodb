@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NcApiVersion, UITypes, viewTypeAlias } from 'nocodb-sdk';
-import type { TableReqType, UserType } from 'nocodb-sdk';
+import { TableType } from 'knex';
+import type {
+  TableCreateV3Type,
+  TableReqType,
+  TableUpdateV3Type,
+  UserType,
+} from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Model } from '~/models';
@@ -13,72 +19,38 @@ import {
   columnV3ToV2Builder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { TablesService } from '~/services/tables.service';
+import { tableReadBuilder, tableViewBuilder } from '~/utils/builders/table';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class TablesV3Service {
   protected logger = new Logger(TablesV3Service.name);
-  protected tableReadBuilder;
-  protected viewBuilder;
 
   constructor(
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
     protected readonly tablesService: TablesService,
-  ) {
-    this.tableReadBuilder = builderGenerator({
-      allowed: [
-        'id',
-        'source_id',
-        'base_id',
-        'title',
-        'description',
-        'fk_workspace_id',
-        'source_id',
-        'meta',
-      ],
-      mappings: {
-        fk_workspace_id: 'workspace_id',
-      },
-      transformFn: (table) => {
-        // if description is empty, set it to undefined
-        if (table.description === '') {
-          table.description = undefined;
-        }
-        return table;
-      },
-      meta: {
-        snakeCase: true,
-        metaProps: ['meta'],
-        allowed: ['icon_color'],
-      },
-    });
-
-    this.viewBuilder = builderGenerator({
-      allowed: ['id', 'title', 'type'],
-      transformFn: (view) => {
-        return {
-          ...view,
-          view_type: viewTypeAlias[view.type],
-          type: undefined,
-        };
-      },
-    });
-  }
+  ) {}
 
   async tableUpdate(
     context: NcContext,
     param: {
       tableId: any;
-      table: TableReqType & { base_id?: string };
+      table: TableUpdateV3Type;
       baseId?: string;
       user: UserType;
       req: NcRequest;
     },
   ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/TableUpdate',
+      param.table,
+    );
+
     await this.tablesService.tableUpdate(context, {
       tableId: param.tableId,
-      table: param.table,
+      table: param.table as TableReqType,
       baseId: param.baseId,
       user: param.user,
       req: param.req,
@@ -86,7 +58,7 @@ export class TablesV3Service {
 
     const table = await Model.get(context, param.tableId);
 
-    return this.tableReadBuilder().build(table);
+    return tableReadBuilder().build(table);
   }
 
   async tableDelete(
@@ -113,9 +85,9 @@ export class TablesV3Service {
       context,
       param,
     );
-    const result = this.tableReadBuilder().build(table);
+    const result = tableReadBuilder().build(table);
 
-    const viewBuilder = this.viewBuilder();
+    const viewBuilder = tableViewBuilder();
     result.views = table.views.map((view) => {
       return viewBuilder.build(view);
     });
@@ -146,7 +118,7 @@ export class TablesV3Service {
       await Base.get(context, param.baseId).then((base) => base?.getSources())
     )?.find((source) => source.isMeta)?.id;
 
-    return this.tableReadBuilder().build(
+    return tableReadBuilder().build(
       tables.map((table) => {
         // exclude source_id for tables from meta source
         if (metaSourceId && table.source_id === metaSourceId) {
@@ -161,12 +133,17 @@ export class TablesV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      table: TableReqType;
+      table: TableCreateV3Type;
       user: User | UserType;
       req?: any;
       sourceId?: string;
     },
   ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/TableCreate',
+      param.table,
+    );
+
     const tableCreateReq: any = param.table;
 
     // remap the columns if provided
@@ -187,7 +164,7 @@ export class TablesV3Service {
       sourceId: param.sourceId,
     });
 
-    const result = this.tableReadBuilder().build(tableCreateOutput);
+    const result = tableReadBuilder().build(tableCreateOutput);
 
     result.display_field_id = tableCreateOutput.columns.find(
       (column) => column.pv,

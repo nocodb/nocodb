@@ -329,7 +329,7 @@
     "/api/v3/meta/bases/{base_id}/tables": {
       "get": {
         "summary": "List tables",
-        "description": "Retrieve a list of all tables within the specified base.",
+        "description": "Retrieve list of all tables within the specified base.",
         "tags": [
           "Tables"
         ],
@@ -346,11 +346,44 @@
         ],
         "responses": {
           "200": {
-            "description": "List of tables retrieved successfully.",
+            "description": "List of tables retrieved.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TableListResponse"
+                  "$ref": "#/components/schemas/TableList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "mq31p5ngbwj5o7u",
+                          "title": "Features",
+                          "description": "Sample table description.",
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "mwmlsgaek7932m4",
+                          "title": "Table-1",
+                          "meta": {
+                            "icon": "🚞"
+                          },
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "m56zsedzrpz6p9w",
+                          "title": "Table-2",
+                          "meta": {
+                            "icon": "🏞️"
+                          },
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -365,7 +398,7 @@
       },
       "post": {
         "summary": "Create table",
-        "description": "Create a new table within the specified base.",
+        "description": "Create a new table within the specified base by providing the required table details in the request body.",
         "parameters": [
           {
             "name": "base_id",
@@ -2532,6 +2565,319 @@
           }
         }
       },
+
+      "TableList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the table."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the table."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the table."
+                },
+                "meta": {
+                  "$ref": "#/components/schemas/TableMeta"
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base to which this table belongs to."
+                },
+                "source_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the data source. This information will be included only if the table is associated with an external data source."
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace to which this base belongs to."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "base_id",
+                "workspace_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "TableMeta": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
+          }
+        }
+      },
+      "TableCreate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the table."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the table."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/TableMeta"
+          },
+          "source_id": {
+            "type": "string",
+            "description": "Unique identifier for the data source. Include this information only if the table being created is part of a data source."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TableCreateField"
+            }
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+
+      "TableCreateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBaseReq"
+          },
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "LongText"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_LongText"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "PhoneNumber",
+                      "URL",
+                      "Email"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Number",
+                      "Decimal"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Number"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "JSON"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_JSON"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Currency"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Currency"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Percent"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Percent"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Duration"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Duration"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Date",
+                      "DateTime",
+                      "Time"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_DateTime"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Single select",
+                      "Multi select"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Select"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rating",
+                      "Checkbox"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Rating"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "User"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_User"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "FieldBaseReq": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the field."
+          },
+          "type": {
+            "type": "string",
+            "description": "Field data type."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the field."
+          },
+          "default_value": {
+            "type": "string",
+            "description": "Default value for the field."
+          }
+        },
+        "required": [
+          "title",
+          "type"
+        ]
+      },
+
+
+      "Table": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "base_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "display_field_id": {
+            "type": "string"
+          },
+          "workspace_id": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          }
+        }
+      },
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -3325,70 +3671,6 @@
           }
         }
       },
-      "Table": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "source_id": {
-            "type": "string"
-          },
-          "base_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "display_field_id": {
-            "type": "string"
-          },
-          "workspace_id": {
-            "type": "string"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Field"
-            }
-          },
-          "views": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/View"
-            }
-          }
-        }
-      },
-      "TableCreate": {
-        "type": "object",
-        "properties": {
-          "source_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TableCreateField"
-            }
-          },
-          "description": {
-            "type": "string"
-          },
-          "meta": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
       "TableUpdate": {
         "type": "object",
         "properties": {
@@ -3409,81 +3691,6 @@
               "meta"
             ]
           }
-        ]
-      },
-      "TableListResponse": {
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "source_id": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "base_id": {
-                  "type": "string"
-                },
-                "display_field_id": {
-                  "type": "string",
-                  "description": "Field ID of the field that is used as the display field for the table"
-                },
-                "description": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "fields": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Field"
-                  }
-                },
-                "views": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "view_type": {
-                        "type": "string",
-                        "enum": [
-                          "table",
-                          "kanban",
-                          "calendar",
-                          "gallery",
-                          "timeline",
-                          "form"
-                        ]
-                      }
-                    }
-                  }
-                }
-              },
-              "required": [
-                "id",
-                "source_id",
-                "title",
-                "base_id"
-              ]
-            }
-          }
-        },
-        "required": [
-          "list"
         ]
       },
       "Sort": {
@@ -4378,156 +4585,6 @@
                   },
                   "options": {
                     "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "TableCreateField": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/FieldBase"
-          },
-          {
-            "oneOf": [
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "LongText"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_LongText"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "PhoneNumber",
-                      "URL",
-                      "Email"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Number",
-                      "Decimal"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Number"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "JSON"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_JSON"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Currency"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Currency"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Percent"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Percent"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Duration"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Duration"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Date",
-                      "DateTime",
-                      "Time"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_DateTime"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Single select",
-                      "Multi select"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Select"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Rating",
-                      "Checkbox"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Rating"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "User"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_User"
                   }
                 }
               }

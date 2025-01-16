@@ -11,8 +11,6 @@ const { t } = useI18n()
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)!
-
 const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
@@ -65,13 +63,12 @@ const { cellUrlOptions } = useCellUrlConfig(url)
       <LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field" />
     </span>
 
-    <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
-      <a-tooltip placement="top">
+    <div v-if="column.meta?.validate && !isValid && value?.length" class="mr-1 w-4">
+      <NcTooltip class="flex items-center">
         <template #title> {{ t('msg.error.invalidURL') }} </template>
-        <div class="flex flex-row items-center">
-          <MiCircleWarning class="text-red-400 h-4" />
-        </div>
-      </a-tooltip>
+
+        <GeneralIcon icon="info" class="text-red-400 h-4 w-4 flex-none" />
+      </NcTooltip>
     </div>
   </div>
 </template>

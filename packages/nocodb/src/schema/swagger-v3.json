@@ -29,7 +29,7 @@
         "summary": "Set view column metas",
         "operationId": "db-view-columns-set",
         "tags": [
-          "DB View Columns"
+          "View Fields"
         ],
         "responses": {
           "200": {
@@ -67,9 +67,6 @@
                           "$ref": "#/components/schemas/KanbanColumnReq"
                         },
                         {
-                          "$ref": "#/components/schemas/MapColumnReq"
-                        },
-                        {
                           "$ref": "#/components/schemas/CalendarColumnReq"
                         }
                       ]
@@ -82,7 +79,7 @@
           "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
           "parameters": [
             {
-              "$ref": "#/components/parameters/xc-auth"
+              "$ref": "#/components/parameters/xc-token"
             }
           ]
         }
@@ -91,7 +88,7 @@
         "summary": "Get view column metas",
         "operationId": "db-view-columns-get",
         "tags": [
-          "DB View Columns"
+          "View Fields"
         ],
         "responses": {
           "200": {
@@ -118,9 +115,6 @@
                             "$ref": "#/components/schemas/KanbanColumn"
                           },
                           {
-                            "$ref": "#/components/schemas/MapColumn"
-                          },
-                          {
                             "$ref": "#/components/schemas/CalendarColumn"
                           }
                         ]
@@ -137,7 +131,7 @@
           "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
           "parameters": [
             {
-              "$ref": "#/components/parameters/xc-auth"
+              "$ref": "#/components/parameters/xc-token"
             }
           ]
         }
@@ -147,6 +141,9 @@
       "get": {
         "summary": "List all bases",
         "description": "Retrieve a list of all bases.",
+        "tags": [
+          "Bases"
+        ],
         "responses": {
           "200": {
             "description": "List of bases retrieved successfully.",
@@ -166,6 +163,9 @@
       "post": {
         "summary": "Create a new base",
         "description": "Create a new base with the provided details.",
+        "tags": [
+          "Bases"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -200,6 +200,9 @@
       "get": {
         "summary": "Retrieve a base",
         "description": "Retrieve the details of a specific base.",
+        "tags": [
+          "Bases"
+        ],
         "parameters": [
           {
             "name": "baseId",
@@ -244,6 +247,9 @@
             "description": "Unique identifier for the base."
           }
         ],
+        "tags": [
+          "Bases"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -279,6 +285,9 @@
       "delete": {
         "summary": "Delete a base",
         "description": "Delete a specific base.",
+        "tags": [
+          "Bases"
+        ],
         "parameters": [
           {
             "name": "baseId",
@@ -307,6 +316,9 @@
       "get": {
         "summary": "List users for a base",
         "description": "Retrieve a list of users associated with a specific base.",
+        "tags": [
+          "Base Users"
+        ],
         "parameters": [
           {
             "name": "base_id",
@@ -350,6 +362,9 @@
             },
             "description": "Unique identifier for the base."
           }
+        ],
+        "tags": [
+          "Base Users"
         ],
         "requestBody": {
           "required": true,
@@ -404,6 +419,9 @@
             "description": "Unique identifier for the base."
           }
         ],
+        "tags": [
+          "Base Users"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -457,6 +475,9 @@
             "description": "Unique identifier for the base."
           }
         ],
+        "tags": [
+          "Base Users"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -507,6 +528,9 @@
       "get": {
         "summary": "List tables in a base",
         "description": "Retrieve a list of all tables within the specified base.",
+        "tags": [
+          "Tables"
+        ],
         "parameters": [
           {
             "name": "base_id",
@@ -551,6 +575,9 @@
             "description": "Unique identifier for the base."
           }
         ],
+        "tags": [
+          "Tables"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -585,6 +612,9 @@
       "get": {
         "summary": "Retrieve table details",
         "description": "Retrieve the details of a specific table.",
+        "tags": [
+          "Tables"
+        ],
         "parameters": [
           {
             "name": "tableId",
@@ -618,6 +648,9 @@
       "patch": {
         "summary": "Update a table",
         "description": "Update the details of a specific table.",
+        "tags": [
+          "Tables"
+        ],
         "parameters": [
           {
             "name": "tableId",
@@ -664,6 +697,9 @@
       "delete": {
         "summary": "Delete a table",
         "description": "Delete a specific table.",
+        "tags": [
+          "Tables"
+        ],
         "parameters": [
           {
             "name": "tableId",
@@ -692,6 +728,9 @@
       "post": {
         "summary": "Create a new column",
         "description": "Create a new column within the specified table.",
+        "tags": [
+          "Fields"
+        ],
         "parameters": [
           {
             "name": "tableId",
@@ -737,6 +776,9 @@
       "patch": {
         "summary": "Update a column",
         "description": "Update the details of a specific column.",
+        "tags": [
+          "Fields"
+        ],
         "parameters": [
           {
             "name": "fieldId",
@@ -783,6 +825,9 @@
       "delete": {
         "summary": "Delete a column",
         "description": "Delete a specific column.",
+        "tags": [
+          "Fields"
+        ],
         "parameters": [
           {
             "name": "fieldId",
@@ -811,6 +856,9 @@
       "get": {
         "summary": "List filters for a view",
         "description": "Retrieve a list of all filters and groups for a specific view.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
             "name": "viewId",
@@ -844,6 +892,9 @@
       "post": {
         "summary": "Create a new filter or group",
         "description": "Create a new filter or group for a specific view.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
             "name": "viewId",
@@ -887,6 +938,9 @@
       "patch": {
         "summary": "Update a filter or group",
         "description": "Update the details of an existing filter or group.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
             "name": "filterId",
@@ -933,6 +987,9 @@
       "delete": {
         "summary": "Delete a filter or group",
         "description": "Delete an existing filter or group.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
             "name": "filterId",
@@ -959,6 +1016,9 @@
       "put": {
         "summary": "Recreate filters",
         "description": "Recreate filters for a specific view.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
             "name": "viewId",
@@ -1006,6 +1066,9 @@
     "/api/v3/meta/views/{viewId}/sorts": {
       "get": {
         "summary": "List sorts for a view",
+        "tags": [
+          "View Sorts"
+        ],
         "description": "Retrieve a list of all sorts for a specific view.",
         "parameters": [
           {
@@ -1040,6 +1103,9 @@
       "post": {
         "summary": "Create a new sort",
         "description": "Create a new sort for a specific view.",
+        "tags": [
+          "View Sorts"
+        ],
         "parameters": [
           {
             "name": "viewId",
@@ -1083,6 +1149,9 @@
       "delete": {
         "summary": "Delete a sort",
         "description": "Delete an existing sort.",
+        "tags": [
+          "View Sorts"
+        ],
         "parameters": [
           {
             "name": "sortId",
@@ -1109,6 +1178,9 @@
       "patch": {
         "summary": "Update a sort",
         "description": "Update the details of an existing sort.",
+        "tags": [
+          "View Sorts"
+        ],
         "parameters": [
           {
             "name": "sortId",
@@ -3017,6 +3089,7 @@
           "workspace_id"
         ]
       },
+      "BaseUserDeleteRequest": {},
       "BaseUserList": {
         "type": "object",
         "properties": {
@@ -3121,6 +3194,7 @@
           }
         }
       },
+      "BaseListResponse": {},
       "Table": {
         "type": "object",
         "properties": {
@@ -4331,6 +4405,7 @@
           }
         ]
       },
+      "FilterCreateUpdate": {},
       "FieldUpdate": {
         "allOf": [
           {
@@ -4807,8 +4882,8 @@
         "enum": [
           "owner",
           "creator",
-            "editor",
-            "viewer",
+          "editor",
+          "viewer",
           "commenter",
           "no-access"
         ]
@@ -4858,7 +4933,7 @@
       }
     },
     "securitySchemes": {
-      "xc-auth": {
+      "xc-token": {
         "name": "Auth Token ",
         "type": "apiKey",
         "in": "header",

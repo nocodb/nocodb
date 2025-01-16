@@ -56,7 +56,7 @@ export class TablesService {
     context: NcContext,
     param: {
       tableId: any;
-      table: TableReqType & { base_id?: string };
+      table: Partial<TableReqType> & { base_id?: string };
       baseId?: string;
       user: UserType;
       req: NcRequest;

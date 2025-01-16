@@ -80,7 +80,6 @@
                         }
                       ]
                     }
-
                   }
                 }
               }
@@ -684,129 +683,6 @@
           "500": {
             "description": "Server error."
           }
-        }
-      }
-    },
-    "/api/v3/meta/views/{viewId}/columns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewId",
-          "in": "query",
-          "description": "View ID"
-        }
-      ],
-      "patch": {
-        "summary": "Set view column metas",
-        "operationId": "db-view-columns-set",
-        "tags": [
-          "View Fields"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "fields": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "oneOf": [
-                        {
-                          "$ref": "#/components/schemas/GridColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/GalleryColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/FormColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/KanbanColumnReq"
-                        },
-                        {
-                          "$ref": "#/components/schemas/CalendarColumnReq"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/xc-token"
-            }
-          ]
-        }
-      },
-      "get": {
-        "summary": "Get view column metas",
-        "operationId": "db-view-columns-get",
-        "tags": [
-          "View Fields"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "fields": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "oneOf": [
-                          {
-                            "$ref": "#/components/schemas/GridColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/GalleryColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/FormColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/KanbanColumn"
-                          },
-                          {
-                            "$ref": "#/components/schemas/CalendarColumn"
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "$ref": "#/components/responses/BadRequest"
-            }
-          },
-          "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
-          "parameters": [
-            {
-              "$ref": "#/components/parameters/xc-token"
-            }
-          ]
         }
       }
     },
@@ -2565,7 +2441,6 @@
           }
         }
       },
-
       "TableList": {
         "type": "object",
         "properties": {
@@ -2659,7 +2534,404 @@
           "title"
         ]
       },
-
+      "FieldOptions": {
+        "SingleLineText": {
+          "title": "SingleLineText",
+          "properties": {
+            "type": {
+              "enum": [
+                "SingleLineText"
+              ]
+            }
+          }
+        },
+        "LongText": {
+          "title": "LongText",
+          "properties": {
+            "type": {
+              "enum": [
+                "LongText"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_LongText"
+            }
+          }
+        },
+        "PhoneNumber": {
+          "title": "PhoneNumber",
+          "properties": {
+            "type": {
+              "enum": [
+                "PhoneNumber"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
+            }
+          }
+        },
+        "URL": {
+          "title": "URL",
+          "properties": {
+            "type": {
+              "enum": [
+                "URL"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_URL"
+            }
+          }
+        },
+        "Email": {
+          "title": "Email",
+          "properties": {
+            "type": {
+              "enum": [
+                "Email"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Email"
+            }
+          }
+        },
+        "Number": {
+          "title": "Number",
+          "properties": {
+            "type": {
+              "enum": [
+                "Number"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Number"
+            }
+          }
+        },
+        "Decimal": {
+          "title": "Decimal",
+          "properties": {
+            "type": {
+              "enum": [
+                "Decimal"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Decimal"
+            }
+          }
+        },
+        "Currency": {
+          "title": "Currency",
+          "properties": {
+            "type": {
+              "enum": [
+                "Currency"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Currency"
+            }
+          }
+        },
+        "Percent": {
+          "title": "Percent",
+          "properties": {
+            "type": {
+              "enum": [
+                "Percent"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Percent"
+            }
+          }
+        },
+        "Duration": {
+          "title": "Duration",
+          "properties": {
+            "type": {
+              "enum": [
+                "Duration"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Duration"
+            }
+          }
+        },
+        "Date": {
+          "title": "Date",
+          "properties": {
+            "type": {
+              "enum": [
+                "Date"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Date"
+            }
+          }
+        },
+        "DateTime": {
+          "title": "DateTime",
+          "properties": {
+            "type": {
+              "enum": [
+                "DateTime"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
+            }
+          }
+        },
+        "Time": {
+          "title": "Time",
+          "properties": {
+            "type": {
+              "enum": [
+                "Time"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Time"
+            }
+          }
+        },
+        "SingleSelect": {
+          "title": "SingleSelect",
+          "properties": {
+            "type": {
+              "enum": [
+                "SingleSelect"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Select"
+            }
+          }
+        },
+        "MultiSelect": {
+          "title": "MultiSelect",
+          "properties": {
+            "type": {
+              "enum": [
+                "MultiSelect"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Select"
+            }
+          }
+        },
+        "Rating": {
+          "title": "Rating",
+          "properties": {
+            "type": {
+              "enum": [
+                "Rating"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Rating"
+            }
+          }
+        },
+        "Checkbox": {
+          "title": "Checkbox",
+          "properties": {
+            "type": {
+              "enum": [
+                "Checkbox"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Checkbox"
+            }
+          }
+        },
+        "Attachment": {
+          "title": "Attachment",
+          "properties": {
+            "type": {
+              "enum": [
+                "Attachment"
+              ]
+            }
+          }
+        },
+        "Geometry": {
+          "title": "Geometry",
+          "properties": {
+            "type": {
+              "enum": [
+                "Geometry"
+              ]
+            }
+          }
+        },
+        "Links": {
+          "title": "Links",
+          "properties": {
+            "type": {
+              "enum": [
+                "Links"
+              ]
+            }
+          }
+        },
+        "Lookup": {
+          "title": "Lookup",
+          "properties": {
+            "type": {
+              "enum": [
+                "Lookup"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Lookup"
+            }
+          }
+        },
+        "Rollup": {
+          "title": "Rollup",
+          "properties": {
+            "type": {
+              "enum": [
+                "Rollup"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Rollup"
+            }
+          }
+        },
+        "Button": {
+          "title": "Button",
+          "properties": {
+            "type": {
+              "enum": [
+                "Button"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Button"
+            }
+          }
+        },
+        "Formula": {
+          "title": "Formula",
+          "properties": {
+            "type": {
+              "enum": [
+                "Formula"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Formula"
+            }
+          }
+        },
+        "Barcode": {
+          "title": "Barcode",
+          "properties": {
+            "type": {
+              "enum": [
+                "Barcode"
+              ]
+            }
+          }
+        },
+        "QRCode": {
+          "title": "QRCode",
+          "properties": {
+            "type": {
+              "enum": [
+                "QRCode"
+              ]
+            }
+          }
+        },
+        "CreatedAt": {
+          "title": "CreatedAt",
+          "properties": {
+            "type": {
+              "enum": [
+                "CreatedAt"
+              ]
+            }
+          }
+        },
+        "LastModifiedAt": {
+          "title": "LastModifiedAt",
+          "properties": {
+            "type": {
+              "enum": [
+                "LastModifiedAt"
+              ]
+            }
+          }
+        },
+        "CreatedBy": {
+          "title": "CreatedBy",
+          "properties": {
+            "type": {
+              "enum": [
+                "CreatedBy"
+              ]
+            }
+          }
+        },
+        "LastModifiedBy": {
+          "title": "LastModifiedBy",
+          "properties": {
+            "type": {
+              "enum": [
+                "LastModifiedBy"
+              ]
+            }
+          }
+        },
+        "LinkToAnotherRecord": {
+          "title": "LinkToAnotherRecord",
+          "properties": {
+            "type": {
+              "enum": [
+                "LinkToAnotherRecord"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_LinkToAnotherRecord"
+            }
+          }
+        },
+        "User": {
+          "title": "User",
+          "properties": {
+            "type": {
+              "enum": [
+                "User"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_User"
+            }
+          }
+        },
+        "JSON": {
+          "title": "JSON",
+          "properties": {
+            "type": {
+              "enum": [
+                "JSON"
+              ]
+            }
+          }
+        }
+      },
       "TableCreateField": {
         "allOf": [
           {
@@ -2668,143 +2940,103 @@
           {
             "oneOf": [
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "LongText"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_LongText"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "PhoneNumber",
-                      "URL",
-                      "Email"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_PhoneNumber"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/LongText"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Number",
-                      "Decimal"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Number"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/PhoneNumber"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "JSON"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_JSON"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/URL"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Currency"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Currency"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Email"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Percent"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Percent"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Number"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Duration"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Duration"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Decimal"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Date",
-                      "DateTime",
-                      "Time"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_DateTime"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Currency"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Single select",
-                      "Multi select"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Select"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Percent"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "Rating",
-                      "Checkbox"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_Rating"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Duration"
               },
               {
-                "properties": {
-                  "type": {
-                    "enum": [
-                      "User"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_User"
-                  }
-                }
+                "$ref": "#/components/schemas/FieldOptions/Date"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/DateTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Time"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/MultiSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rating"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Checkbox"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Attachment"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/JSON"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Geometry"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Links"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Lookup"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rollup"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Button"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Formula"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Barcode"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/QRCode"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedAt"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedAt"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LinkToAnotherRecord"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/User"
               }
             ]
           }
@@ -2838,8 +3070,6 @@
           "type"
         ]
       },
-
-
       "Table": {
         "type": "object",
         "properties": {
@@ -2876,648 +3106,6 @@
               "$ref": "#/components/schemas/View"
             }
           }
-        }
-      },
-      "FormColumn": {
-        "description": "Model for Form Column",
-        "examples": [
-          {
-            "id": "fvc_1m9b0aub791d4m",
-            "description": null,
-            "fk_column_id": "cl_ah9zavkn25ihyd",
-            "fk_view_id": "vw_6fqln9vdytdv8q",
-            "help": "This is a help text",
-            "label": "Form Label",
-            "meta": null,
-            "order": 1,
-            "required": 0,
-            "show": 0,
-            "uuid": null
-          }
-        ],
-        "title": "Form Column Model",
-        "type": "object",
-        "x-examples": {
-          "example-1": {
-            "_cn": "first_name",
-            "alias": "first_name",
-            "created_at": "2022-02-15 12:39:04",
-            "description": "dsdsdsdsd",
-            "fk_column_id": "cl_yvyhsl9u81tokc",
-            "fk_view_id": "vw_s1pf4umdnikoyn",
-            "help": null,
-            "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
-            "order": 1,
-            "required": false,
-            "show": 1,
-            "enable_scanner": true,
-            "updated_at": "2022-02-15 12:39:16",
-            "uuid": null
-          }
-        },
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "description": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Description"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "fk_view_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to View"
-          },
-          "help": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Help Text (Not in use)"
-          },
-          "label": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Label"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta Info"
-          },
-          "order": {
-            "type": "number",
-            "description": "The order among all the columns in the form",
-            "example": 1
-          },
-          "required": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this form column required in submission?"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this column shown in Form?"
-          },
-          "enable_scanner": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
-            "example": true
-          },
-          "uuid": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column UUID (Not in use)"
-          }
-        },
-        "x-stoplight": {
-          "id": "rs2uh5opf10q6"
-        }
-      },
-      "FormColumnReq": {
-        "description": "Model for Form Column Request",
-        "examples": [
-          {
-            "description": null,
-            "help": "This is a help text",
-            "label": "Form Label",
-            "meta": null,
-            "order": 1,
-            "required": 0,
-            "show": 0
-          }
-        ],
-        "title": "Form Column Request Model",
-        "type": "object",
-        "x-examples": {
-          "example-1": {
-            "_cn": "first_name",
-            "alias": "first_name",
-            "created_at": "2022-02-15 12:39:04",
-            "description": "dsdsdsdsd",
-            "fk_column_id": "cl_yvyhsl9u81tokc",
-            "fk_view_id": "vw_s1pf4umdnikoyn",
-            "help": null,
-            "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
-            "order": 1,
-            "required": false,
-            "show": 1,
-            "updated_at": "2022-02-15 12:39:16",
-            "uuid": null
-          }
-        },
-        "properties": {
-          "description": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Description"
-          },
-          "help": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Help Text (Not in use)"
-          },
-          "label": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Form Column Label"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta Info"
-          },
-          "order": {
-            "type": "number",
-            "description": "The order among all the columns in the form"
-          },
-          "required": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this form column required in submission?"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this column shown in Form?"
-          }
-        },
-        "x-stoplight": {
-          "id": "a1vgymjna1ose"
-        }
-      },
-      "GalleryColumn": {
-        "description": "Model for Gallery Column",
-        "examples": [
-          {
-            "fk_col_id": "string",
-            "fk_gallery_id": "string",
-            "help": "string",
-            "id": "string",
-            "label": "string"
-          }
-        ],
-        "properties": {
-          "fk_col_id": {
-            "type": "string"
-          },
-          "fk_gallery_id": {
-            "type": "string"
-          },
-          "help": {
-            "type": "string"
-          },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "label": {
-            "type": "string"
-          }
-        },
-        "title": "Gallery Column Model",
-        "type": "object",
-        "x-stoplight": {
-          "id": "auloy6128iwh9"
-        }
-      },
-      "GridColumn": {
-        "description": "Model for Grid Column",
-        "examples": [
-          {
-            "id": "nc_c8jz4kxe6xvh11",
-            "fk_view_id": "vw_p2jcatxz4mvcfw",
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "base_id": "p_xm3thidrblw4n7",
-            "source_id": "ds_g4ccx6e77h1dmi",
-            "show": 0,
-            "order": 1,
-            "width": "200px",
-            "help": null,
-            "group_by": 0,
-            "group_by_order": null,
-            "group_by_sort": null,
-            "aggregation": "sum"
-          }
-        ],
-        "title": "Grid Column Model",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID",
-            "x-stoplight": {
-              "id": "jc14yojp52rqj"
-            }
-          },
-          "fk_view_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to View",
-            "x-stoplight": {
-              "id": "vl18dbt5c2r8r"
-            }
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column",
-            "x-stoplight": {
-              "id": "2drg88fmodf3v"
-            }
-          },
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Base ID",
-            "x-stoplight": {
-              "id": "2drg88fmodf3v"
-            }
-          },
-          "source_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Source ID",
-            "x-stoplight": {
-              "id": "2drg88fmodf3v"
-            }
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "d47eer13oa8yr"
-            }
-          },
-          "order": {
-            "type": "number",
-            "x-stoplight": {
-              "id": "d47eer13oa8yr"
-            },
-            "example": 1,
-            "description": "Grid Column Order"
-          },
-          "width": {
-            "type": "string",
-            "description": "Column Width",
-            "example": "200px"
-          },
-          "help": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Column Help Text",
-            "x-stoplight": {
-              "id": "azwh6zn37qzkc"
-            }
-          },
-          "group_by": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Group By"
-          },
-          "group_by_order": {
-            "type": "number",
-            "description": "Group By Order",
-            "example": 1
-          },
-          "group_by_sort": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Group By Sort",
-            "example": "asc"
-          },
-          "aggregation": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Aggregation",
-            "example": "sum"
-          }
-        },
-        "x-stoplight": {
-          "id": "195gzd7s6p7nv"
-        }
-      },
-      "GridColumnReq": {
-        "description": "Model for Grid Column Request",
-        "examples": [
-          {
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "label": "My Column",
-            "width": "200px"
-          }
-        ],
-        "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "help": {
-            "maxLength": 255,
-            "type": "string"
-          },
-          "label": {
-            "description": "The label of the column",
-            "example": "My Column",
-            "maxLength": 255,
-            "type": "string"
-          },
-          "width": {
-            "description": "The width of the column",
-            "example": "200px",
-            "maxLength": 255,
-            "pattern": "^[0-9]+(px|%)$",
-            "type": "string"
-          },
-          "group_by": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Group By"
-          },
-          "group_by_order": {
-            "type": "number",
-            "description": "Group By Order",
-            "example": 1
-          },
-          "group_by_sort": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Group By Sort",
-            "example": "asc"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show"
-          },
-          "order": {
-            "type": "number",
-            "description": "Order",
-            "example": 1
-          },
-          "aggregation": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Aggregation",
-            "example": "sum"
-          }
-        },
-        "title": "Grid Column Request Model",
-        "type": "object",
-        "x-stoplight": {
-          "id": "9yhalgmix6d0m"
-        }
-      },
-      "KanbanColumn": {
-        "description": "Model for Kanban Column",
-        "examples": [
-          {
-            "id": "kvc_2skkg5mi1eb37f",
-            "fk_column_id": "cl_hzos4ghyncqi4k",
-            "fk_view_id": "vw_wqs4zheuo5lgdy",
-            "source_id": "ds_hd4ojj0xpquaam",
-            "base_id": "p_kzfl5lb0t3tcok",
-            "title": "string",
-            "show": 0,
-            "order": "1"
-          }
-        ],
-        "title": "Kanban Column Model",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "fk_view_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "t1fy4zy561ih8"
-            },
-            "description": "Foreign Key to View"
-          },
-          "source_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Baes ID\n"
-          },
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Base ID"
-          },
-          "title": {
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Base ID",
-            "type": "string"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown?"
-          },
-          "order": {
-            "type": "number",
-            "x-stoplight": {
-              "id": "pbnchzgci5dwa"
-            },
-            "example": 1,
-            "description": "Column Order"
-          }
-        },
-        "x-stoplight": {
-          "id": "psbv6c6y9qvbu"
-        }
-      },
-      "KanbanColumnReq": {
-        "description": "Model for Kanban Column Request",
-        "examples": [
-          {
-            "title": "string",
-            "show": 0,
-            "order": "1"
-          }
-        ],
-        "title": "Kanban Column Model Request",
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this column shown?"
-          },
-          "order": {
-            "type": "number",
-            "example": 1,
-            "description": "Column Order"
-          }
-        }
-      },
-      "GalleryColumnReq": {
-        "description": "Model for Gallery Column Request",
-        "examples": [
-          {
-            "label": "My Column",
-            "width": "200px"
-          }
-        ],
-        "properties": {
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show"
-          },
-          "order": {
-            "type": "number",
-            "description": "Order",
-            "example": 1
-          }
-        }
-      },
-      "CalendarColumn": {
-        "description": "Model for Calendar Column",
-        "examples": [
-          {
-            "id": "kvc_2skkg5mi1eb37f",
-            "fk_column_id": "cl_hzos4ghyncqi4k",
-            "fk_view_id": "vw_wqs4zheuo5lgdy",
-            "source_id": "ds_hd4ojj0xpquaam",
-            "base_id": "p_kzfl5lb0t3tcok",
-            "title": "string",
-            "show": 0,
-            "bold": 0,
-            "italic": 0,
-            "underline": 0,
-            "order": "1"
-          }
-        ],
-        "title": "Calendar Column Model",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "fk_view_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "t1fy4zy561ih8"
-            },
-            "description": "Foreign Key to View"
-          },
-          "source_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Baes ID\n"
-          },
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Base ID"
-          },
-          "title": {
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Base ID",
-            "type": "string"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown?"
-          },
-          "bold": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown as bold?"
-          },
-          "italic": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown as italic?"
-          },
-          "underline": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown underlines?"
-          },
-          "order": {
-            "type": "number",
-            "x-stoplight": {
-              "id": "pbnchzgci5dwa"
-            },
-            "example": 1,
-            "description": "Column Order"
-          }
-        },
-        "x-stoplight": {
-          "id": "psbv6c6y9qvbu"
-        }
-      },
-      "CalendarColumnReq": {
-        "description": "Model for Calendar Column Request",
-        "examples": [
-          {
-            "title": "string",
-            "show": 0,
-            "bold": 0,
-            "italic": 0,
-            "underline": 0,
-            "order": "1"
-          }
-        ],
-        "title": "Calendar Column Model",
-        "type": "object",
-        "properties": {
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown?"
-          },
-          "bold": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown as bold?"
-          },
-          "italic": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown as italic?"
-          },
-          "underline": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "uqq8xmyz97t1u"
-            },
-            "description": "Is this column shown underlines?"
-          },
-          "order": {
-            "type": "number",
-            "x-stoplight": {
-              "id": "pbnchzgci5dwa"
-            },
-            "example": 1,
-            "description": "Column Order"
-          }
-        },
-        "x-stoplight": {
-          "id": "psbv6c6y9qvbu"
         }
       },
       "BaseUser": {
@@ -4146,7 +3734,7 @@
           },
           "generate_text_using_ai": {
             "type": "boolean",
-            "description": "Allow AI-generated text."
+            "description": "Enable text generation for this field using NocoAI."
           }
         }
       },
@@ -4159,29 +3747,238 @@
           }
         }
       },
+      "FieldOptions_URL": {
+        "type": "object",
+        "properties": {
+          "validation": {
+            "type": "boolean",
+            "description": "Enable validation for URL."
+          }
+        }
+      },
+      "FieldOptions_Email": {
+        "type": "object",
+        "properties": {
+          "validation": {
+            "type": "boolean",
+            "description": "Enable validation for Email."
+          }
+        }
+      },
       "FieldOptions_Number": {
         "type": "object",
         "properties": {
-          "precision": {
-            "type": "integer",
-            "description": "Number of decimal places allowed."
-          },
-          "allow_negative": {
+          "locale_string": {
             "type": "boolean",
-            "description": "Allow negative numbers."
+            "description": "Show thousand separator on the UI."
+          }
+        }
+      },
+      "FieldOptions_Decimal": {
+        "type": "object",
+        "properties": {
+          "precision": {
+            "type": "number",
+            "description": "Decimal field precision. Defaults to 0"
           }
         }
       },
       "FieldOptions_Currency": {
         "type": "object",
+        "description": "Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`",
         "properties": {
           "locale": {
             "type": "string",
-            "description": "Locale for currency formatting."
+            "description": "Locale for currency formatting. Refer https://simplelocalize.io/data/locales/"
           },
           "code": {
             "type": "string",
-            "description": "Currency code (e.g., USD)."
+            "description": "Currency code. Refer https://simplelocalize.io/data/locales/",
+            "enum": [
+              "AED",
+              "AFN",
+              "ALL",
+              "AMD",
+              "ANG",
+              "AOA",
+              "ARS",
+              "AUD",
+              "AWG",
+              "AZN",
+              "BAM",
+              "BBD",
+              "BDT",
+              "BGN",
+              "BHD",
+              "BIF",
+              "BMD",
+              "BND",
+              "BOB",
+              "BOV",
+              "BRL",
+              "BSD",
+              "BTN",
+              "BWP",
+              "BYR",
+              "BZD",
+              "CAD",
+              "CDF",
+              "CHE",
+              "CHF",
+              "CHW",
+              "CLF",
+              "CLP",
+              "CNY",
+              "COP",
+              "COU",
+              "CRC",
+              "CUP",
+              "CVE",
+              "CYP",
+              "CZK",
+              "DJF",
+              "DKK",
+              "DOP",
+              "DZD",
+              "EEK",
+              "EGP",
+              "ERN",
+              "ETB",
+              "EUR",
+              "FJD",
+              "FKP",
+              "GBP",
+              "GEL",
+              "GHC",
+              "GIP",
+              "GMD",
+              "GNF",
+              "GTQ",
+              "GYD",
+              "HKD",
+              "HNL",
+              "HRK",
+              "HTG",
+              "HUF",
+              "IDR",
+              "ILS",
+              "INR",
+              "IQD",
+              "IRR",
+              "ISK",
+              "JMD",
+              "JOD",
+              "JPY",
+              "KES",
+              "KGS",
+              "KHR",
+              "KMF",
+              "KPW",
+              "KRW",
+              "KWD",
+              "KYD",
+              "KZT",
+              "LAK",
+              "LBP",
+              "LKR",
+              "LRD",
+              "LSL",
+              "LTL",
+              "LVL",
+              "LYD",
+              "MAD",
+              "MDL",
+              "MGA",
+              "MKD",
+              "MMK",
+              "MNT",
+              "MOP",
+              "MRO",
+              "MTL",
+              "MUR",
+              "MVR",
+              "MWK",
+              "MXN",
+              "MXV",
+              "MYR",
+              "MZN",
+              "NAD",
+              "NGN",
+              "NIO",
+              "NOK",
+              "NPR",
+              "NZD",
+              "OMR",
+              "PAB",
+              "PEN",
+              "PGK",
+              "PHP",
+              "PKR",
+              "PLN",
+              "PYG",
+              "QAR",
+              "ROL",
+              "RON",
+              "RSD",
+              "RUB",
+              "RWF",
+              "SAR",
+              "SBD",
+              "SCR",
+              "SDD",
+              "SEK",
+              "SGD",
+              "SHP",
+              "SIT",
+              "SKK",
+              "SLL",
+              "SOS",
+              "SRD",
+              "STD",
+              "SYP",
+              "SZL",
+              "THB",
+              "TJS",
+              "TMM",
+              "TND",
+              "TOP",
+              "TRY",
+              "TTD",
+              "TWD",
+              "TZS",
+              "UAH",
+              "UGX",
+              "USD",
+              "USN",
+              "USS",
+              "UYU",
+              "UZS",
+              "VEB",
+              "VND",
+              "VUV",
+              "WST",
+              "XAF",
+              "XAG",
+              "XAU",
+              "XBA",
+              "XBB",
+              "XBC",
+              "XBD",
+              "XCD",
+              "XDR",
+              "XFO",
+              "XFU",
+              "XOF",
+              "XPD",
+              "XPF",
+              "XPT",
+              "XTS",
+              "XXX",
+              "YER",
+              "ZAR",
+              "ZMK",
+              "ZWD"
+            ]
           }
         }
       },
@@ -4203,7 +4000,14 @@
         "properties": {
           "format": {
             "type": "string",
-            "description": "Duration format (e.g., h:mm)."
+            "description": "Duration format.",
+            "enum": [
+              "h:mm",
+              "h:mm:ss",
+              "h:mm:ss.S",
+              "h:mm:ss.SS",
+              "h:mm:ss.SSS"
+            ]
           }
         }
       },
@@ -4212,11 +4016,69 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format (e.g., YYYY/MM/DD)."
+            "description": "Date format.",
+            "enum": [
+              "YYYY/MM/DD",
+              "YYYY-MM-DD",
+              "YYYY MM DD",
+              "DD/MM/YYYY",
+              "DD-MM-YYYY",
+              "DD MM YYYY",
+              "MM/DD/YYYY",
+              "MM-DD-YYYY",
+              "MM DD YYYY",
+              "YYYY-MM",
+              "YYYY MM"
+            ]
           },
           "time_format": {
             "type": "string",
-            "description": "Time format (e.g., HH:mm:ss)."
+            "description": "Time format",
+            "enum": [
+              "HH:mm",
+              "HH:mm:ss",
+              "HH:mm:ss.SSS"
+            ]
+          },
+          "12hr_format": {
+            "type": "boolean",
+            "description": "Use 12-hour time format."
+          }
+        }
+      },
+      "FieldOptions_Date": {
+        "type": "object",
+        "properties": {
+          "date_format": {
+            "type": "string",
+            "description": "Date format.",
+            "enum": [
+              "YYYY/MM/DD",
+              "YYYY-MM-DD",
+              "YYYY MM DD",
+              "DD/MM/YYYY",
+              "DD-MM-YYYY",
+              "DD MM YYYY",
+              "MM/DD/YYYY",
+              "MM-DD-YYYY",
+              "MM DD YYYY",
+              "YYYY-MM",
+              "YYYY MM"
+            ]
+          }
+        }
+      },
+      "FieldOptions_Time": {
+        "type": "object",
+        "properties": {
+          "time_format": {
+            "type": "string",
+            "description": "Time format",
+            "enum": [
+              "HH:mm",
+              "HH:mm:ss",
+              "HH:mm:ss.SSS"
+            ]
           },
           "12hr_format": {
             "type": "boolean",
@@ -4232,19 +4094,19 @@
             "items": {
               "type": "object",
               "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "Choice identifier."
-                },
                 "title": {
                   "type": "string",
                   "description": "Choice title."
                 },
                 "color": {
                   "type": "string",
-                  "description": "Choice color."
+                  "format": "color",
+                  "description": "Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`)."
                 }
-              }
+              },
+              "required": [
+                "title"
+              ]
             }
           }
         }
@@ -4254,6 +4116,32 @@
         "properties": {
           "icon": {
             "type": "string",
+            "enum": [
+              "star",
+              "heart"
+            ],
+            "description": "Icon to use for ratings."
+          },
+          "max_value": {
+            "type": "integer",
+            "description": "Maximum value for the rating. Allowed range: 1-10."
+          },
+          "color": {
+            "type": "string",
+            "format": "color",
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`)."
+          }
+        }
+      },
+      "FieldOptions_Checkbox": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "enum": [
+              "check",
+              "cross"
+            ],
             "description": "Icon to use for ratings."
           },
           "max_value": {
@@ -4262,7 +4150,8 @@
           },
           "color": {
             "type": "string",
-            "description": "Color for the rating display."
+            "format": "color",
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`)."
           }
         }
       },
@@ -4285,25 +4174,6 @@
           "formula": {
             "type": "string",
             "description": "Formula expression."
-          },
-          "reference_field_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Field IDs used in the formula."
-          },
-          "result": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "description": "Result type."
-              },
-              "options": {
-                "$ref": "#/components/schemas/FieldOptions_Number"
-              }
-            }
           }
         }
       },
@@ -4330,21 +4200,23 @@
           "linked_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
-          },
-          "result": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "description": "Result type."
-              },
-              "options": {
-                "$ref": "#/components/schemas/FieldOptions_Number"
-              }
-            }
           }
         }
       },
+      "FieldOptions_Rollup": {
+        "type": "object",
+        "properties": {
+          "link_field_id": {
+            "type": "string",
+            "description": "Linked field ID."
+          },
+          "linked_table_rollup_field_id": {
+            "type": "string",
+            "description": "Rollup field ID in the linked table."
+          }
+        }
+      },
+      "FieldOptions_Button": {},
       "FieldOptions_Links": {
         "type": "object",
         "properties": {
@@ -4378,9 +4250,6 @@
           "relation_type",
           "linked_table_id"
         ]
-      },
-      "FieldOptions_JSON": {
-        "type": "object"
       },
       "Field": {
         "allOf": [
@@ -4434,9 +4303,6 @@
                     "enum": [
                       "JSON"
                     ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_JSON"
                   }
                 }
               },
@@ -4645,9 +4511,6 @@
                     "enum": [
                       "JSON"
                     ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/FieldOptions_JSON"
                   }
                 }
               },

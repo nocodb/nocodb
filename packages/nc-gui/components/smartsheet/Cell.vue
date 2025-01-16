@@ -55,6 +55,8 @@ const { sqlUis } = storeToRefs(useBase())
 
 const { generatingRows, generatingColumns } = useNocoAi()
 
+const { showNull } = useGlobal()
+
 const pk = computed(() => {
   if (!meta.value?.columns) return
   return extractPkFromRow(currentRow.value?.row, meta.value.columns)
@@ -180,7 +182,7 @@ const cellType = computed(() => {
 })
 
 const showNullComponent = computed(() => {
-  return (readOnly.value || !editEnabled.value) && vModel.value === null && isShowNullField(column.value)
+  return (readOnly.value || !editEnabled.value) && vModel.value === null && isShowNullField(column.value) && showNull.value
 })
 
 const showReadonlyField = computed(() => {

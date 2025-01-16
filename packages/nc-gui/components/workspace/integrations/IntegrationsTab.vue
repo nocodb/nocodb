@@ -215,10 +215,6 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
     return
   }
 
-  if (!isDataReflectionEnabled.value && integration.sub_type === SyncDataType.NOCODB) {
-    return
-  }
-
   await addIntegration(integration)
 }
 

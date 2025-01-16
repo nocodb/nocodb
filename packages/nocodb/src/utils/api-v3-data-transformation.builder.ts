@@ -208,6 +208,29 @@ export class ApiV3DataTransformationBuilder<
       return result as unknown as T;
     });
   }
+
+  orderProps<S = Input | Output, T = Output>(order: string[]) {
+    // order props by order column and missing one keep at the end
+    this.transformations.push((data: S) => {
+      // Initialize the ordered object with properties based on the order array
+      const ordered = order.reduce((acc, key) => {
+        if (key in (data as object)) {
+          acc[key] = data[key];
+        }
+        return acc;
+      }, {} as T);
+
+      // Add remaining properties from data that are not in the order array
+      Object.keys(data).forEach((key) => {
+        if (!order.includes(key)) {
+          ordered[key as keyof T] = data[key];
+        }
+      });
+
+      return ordered;
+    });
+    return this;
+  }
 }
 
 // builder which does the reverse of the above
@@ -229,6 +252,7 @@ export const builderGenerator = <
   nestedExtract?: Record<string, string[]>;
   excludeNullProps?: boolean;
   booleanProps?: string[];
+  orderProps?: string[];
   meta?: {
     snakeCase?: boolean;
     camelCase?: boolean;
@@ -256,6 +280,10 @@ export const builderGenerator = <
 
     if ('allowed' in rest || 'excluded' in rest) {
       builder.filterColumns(rest);
+    }
+
+    if ('orderProps' in rest) {
+      builder.orderProps(rest.orderProps);
     }
     if (meta) {
       builder.metaTransform(meta);

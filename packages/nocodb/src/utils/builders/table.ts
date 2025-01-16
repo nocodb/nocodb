@@ -5,13 +5,21 @@ import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 export const tableReadBuilder = builderGenerator<TableType, TableV3Type>({
   allowed: [
     'id',
+    'title',
+    'meta',
+    'description',
     'source_id',
     'base_id',
-    'title',
-    'description',
     'fk_workspace_id',
-    'source_id',
+  ],
+  orderProps: [
+    'id',
+    'title',
     'meta',
+    'description',
+    'source_id',
+    'base_id',
+    'workspace_id',
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
@@ -26,7 +34,7 @@ export const tableReadBuilder = builderGenerator<TableType, TableV3Type>({
   meta: {
     snakeCase: true,
     metaProps: ['meta'],
-    allowed: ['icon_color'],
+    allowed: ['icon_color', 'icon'],
   },
 });
 

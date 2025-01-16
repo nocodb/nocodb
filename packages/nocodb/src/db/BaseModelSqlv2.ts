@@ -644,7 +644,9 @@ class BaseModelSqlv2 {
 
     let data;
     try {
-      data = await this.execAndParse(qb);
+      data = await this.execAndParse(qb, undefined, {
+        apiVersion: args.apiVersion,
+      });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(columns)) throw e;
       logger.log(e);
@@ -9091,7 +9093,11 @@ class BaseModelSqlv2 {
 
     // update user fields
     if (!options.skipUserConversion) {
-      data = await this.convertUserFormat(data, dependencyColumns);
+      data = await this.convertUserFormat(
+        data,
+        dependencyColumns,
+        options?.apiVersion,
+      );
     }
 
     if (!options.skipJsonConversion) {
@@ -9237,6 +9243,7 @@ class BaseModelSqlv2 {
   protected async convertUserFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
+    apiVersion?: NcApiVersion,
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
@@ -9287,10 +9294,17 @@ class BaseModelSqlv2 {
 
         if (Array.isArray(data)) {
           data = await Promise.all(
-            data.map((d) => this._convertUserFormat(userColumns, baseUsers, d)),
+            data.map((d) =>
+              this._convertUserFormat(userColumns, baseUsers, d, apiVersion),
+            ),
           );
         } else {
-          data = await this._convertUserFormat(userColumns, baseUsers, data);
+          data = await this._convertUserFormat(
+            userColumns,
+            baseUsers,
+            data,
+            apiVersion,
+          );
         }
       }
     }
@@ -9301,6 +9315,7 @@ class BaseModelSqlv2 {
     userColumns: Column[],
     baseUsers: Partial<User>[],
     d: Record<string, any>,
+    apiVersion?: NcApiVersion,
   ) {
     try {
       if (d) {
@@ -9315,13 +9330,18 @@ class BaseModelSqlv2 {
               (u) => u.id === fid,
             );
 
+            let metaObj: any;
+            if (apiVersion !== NcApiVersion.V3) {
+              metaObj = ncIsObject(meta)
+                ? extractProps(meta, ['icon', 'iconType'])
+                : null;
+            }
+
             return {
               id,
               email,
               display_name: display_name?.length ? display_name : null,
-              meta: ncIsObject(meta)
-                ? extractProps(meta, ['icon', 'iconType'])
-                : null,
+              meta: metaObj,
             };
           });
 

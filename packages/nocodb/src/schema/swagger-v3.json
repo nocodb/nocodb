@@ -14,6 +14,509 @@
     }
   ],
   "paths": {
+    "/api/v3/meta/bases": {
+      "get": {
+        "summary": "List bases",
+        "description": "Retrieve a list of all bases.",
+        "tags": [
+          "Bases"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bases retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create base",
+        "description": "Create a new base with the provided details.",
+        "tags": [
+          "Bases"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Base created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}": {
+      "get": {
+        "summary": "Get base schema",
+        "description": "Retrieve the details of a specific base.",
+        "tags": [
+          "Bases"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Base details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update base",
+        "description": "Update the details of a specific base.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "tags": [
+          "Bases"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Base updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete base",
+        "description": "Delete a specific base.",
+        "tags": [
+          "Bases"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Base deleted successfully."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/tables": {
+      "get": {
+        "summary": "List tables",
+        "description": "Retrieve a list of all tables within the specified base.",
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tables retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create table",
+        "description": "Create a new table within the specified base.",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "tags": [
+          "Tables"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Table created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tables/{tableId}": {
+      "get": {
+        "summary": "Get table schema",
+        "description": "Retrieve the details of a specific table.",
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Table details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update table",
+        "description": "Update the details of a specific table.",
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Table updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete table",
+        "description": "Delete a specific table.",
+        "tags": [
+          "Tables"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Table deleted successfully."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tables/{tableId}/fields": {
+      "post": {
+        "summary": "Create field",
+        "description": "Create a new column within the specified table.",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Column created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/fields/{fieldId}": {
+      "patch": {
+        "summary": "Update field",
+        "description": "Update the details of a specific column.",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the column."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Column updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Column not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete field",
+        "description": "Delete a specific column.",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the column."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Column deleted successfully."
+          },
+          "404": {
+            "description": "Column not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/meta/views/{viewId}/columns": {
       "parameters": [
         {
@@ -137,23 +640,37 @@
         }
       }
     },
-    "/api/v3/meta/bases": {
+    "/api/v3/meta/views/{viewId}/filters": {
       "get": {
-        "summary": "List all bases",
-        "description": "Retrieve a list of all bases.",
+        "summary": "List view filters",
+        "description": "Retrieve a list of all filters and groups for a specific view.",
         "tags": [
-          "Bases"
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
         ],
         "responses": {
           "200": {
-            "description": "List of bases retrieved successfully.",
+            "description": "List of filters and groups retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BaseListResponse"
+                  "$ref": "#/components/schemas/FilterListResponse"
                 }
               }
             }
+          },
+          "404": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -161,72 +678,45 @@
         }
       },
       "post": {
-        "summary": "Create a new base",
-        "description": "Create a new base with the provided details.",
+        "summary": "Create filter",
+        "description": "Create a new filter or group for a specific view.",
         "tags": [
-          "Bases"
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseCreate"
+                "$ref": "#/components/schemas/FilterCreateUpdate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Base created successfully.",
+            "description": "Filter or group created successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base"
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
                 }
               }
             }
           },
           "400": {
             "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/bases/{baseId}": {
-      "get": {
-        "summary": "Retrieve a base",
-        "description": "Retrieve the details of a specific base.",
-        "tags": [
-          "Bases"
-        ],
-        "parameters": [
-          {
-            "name": "baseId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Base details retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Base"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Base not found."
           },
           "500": {
             "description": "Server error."
@@ -234,39 +724,39 @@
         }
       },
       "patch": {
-        "summary": "Update a base",
-        "description": "Update the details of a specific base.",
+        "summary": "Update filter",
+        "description": "Update the details of an existing filter or group.",
+        "tags": [
+          "View Filters"
+        ],
         "parameters": [
           {
-            "name": "baseId",
+            "name": "filterId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the base."
+            "description": "Unique identifier for the filter or group."
           }
-        ],
-        "tags": [
-          "Bases"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUpdate"
+                "$ref": "#/components/schemas/FilterCreateUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Base updated successfully.",
+            "description": "Filter or group updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base"
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
                 }
               }
             }
@@ -275,7 +765,7 @@
             "description": "Invalid request body."
           },
           "404": {
-            "description": "Base not found."
+            "description": "Filter or group not found."
           },
           "500": {
             "description": "Server error."
@@ -283,28 +773,239 @@
         }
       },
       "delete": {
-        "summary": "Delete a base",
-        "description": "Delete a specific base.",
+        "summary": "Delete filter",
+        "description": "Delete an existing filter or group.",
         "tags": [
-          "Bases"
+          "View Filters"
         ],
         "parameters": [
           {
-            "name": "baseId",
+            "name": "filterId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the base."
+            "description": "Unique identifier for the filter or group."
           }
         ],
         "responses": {
           "204": {
-            "description": "Base deleted successfully."
+            "description": "Filter or group deleted successfully."
           },
           "404": {
-            "description": "Base not found."
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace filter",
+        "description": "Recreate filters for a specific view.",
+        "tags": [
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view. It overwrites all existing filters."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filters reordered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/views/{viewId}/sorts": {
+      "get": {
+        "summary": "List view sorts",
+        "tags": [
+          "View Sorts"
+        ],
+        "description": "Retrieve a list of all sorts for a specific view.",
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sorts retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SortListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Add sort",
+        "description": "Create a new sort for a specific view.",
+        "tags": [
+          "View Sorts"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sort created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete sort",
+        "description": "Delete an existing sort.",
+        "tags": [
+          "View Sorts"
+        ],
+        "parameters": [
+          {
+            "name": "sortId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the sort."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sort deleted successfully."
+          },
+          "404": {
+            "description": "Sort not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update sort",
+        "description": "Update the details of an existing sort.",
+        "tags": [
+          "View Sorts"
+        ],
+        "parameters": [
+          {
+            "name": "sortId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the sort."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sort updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Sort not found."
           },
           "500": {
             "description": "Server error."
@@ -314,7 +1015,7 @@
     },
     "/api/v3/meta/bases/{base_id}/users": {
       "get": {
-        "summary": "List users for a base",
+        "summary": "List base users",
         "description": "Retrieve a list of users associated with a specific base.",
         "tags": [
           "Base Users"
@@ -517,707 +1218,6 @@
           },
           "404": {
             "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/bases/{base_id}/tables": {
-      "get": {
-        "summary": "List tables in a base",
-        "description": "Retrieve a list of all tables within the specified base.",
-        "tags": [
-          "Tables"
-        ],
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of tables retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TableListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new table",
-        "description": "Create a new table within the specified base.",
-        "parameters": [
-          {
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the base."
-          }
-        ],
-        "tags": [
-          "Tables"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TableCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Table created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/tables/{tableId}": {
-      "get": {
-        "summary": "Retrieve table details",
-        "description": "Retrieve the details of a specific table.",
-        "tags": [
-          "Tables"
-        ],
-        "parameters": [
-          {
-            "name": "tableId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the table."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Table details retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Table not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update a table",
-        "description": "Update the details of a specific table.",
-        "tags": [
-          "Tables"
-        ],
-        "parameters": [
-          {
-            "name": "tableId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the table."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TableUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Table updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Table not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a table",
-        "description": "Delete a specific table.",
-        "tags": [
-          "Tables"
-        ],
-        "parameters": [
-          {
-            "name": "tableId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the table."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Table deleted successfully."
-          },
-          "404": {
-            "description": "Table not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/tables/{tableId}/fields": {
-      "post": {
-        "summary": "Create a new column",
-        "description": "Create a new column within the specified table.",
-        "tags": [
-          "Fields"
-        ],
-        "parameters": [
-          {
-            "name": "tableId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the table."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Field"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Column created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Field"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/fields/{fieldId}": {
-      "patch": {
-        "summary": "Update a column",
-        "description": "Update the details of a specific column.",
-        "tags": [
-          "Fields"
-        ],
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the column."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Field"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Column updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Field"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Column not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a column",
-        "description": "Delete a specific column.",
-        "tags": [
-          "Fields"
-        ],
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the column."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Column deleted successfully."
-          },
-          "404": {
-            "description": "Column not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/views/{viewId}/filters": {
-      "get": {
-        "summary": "List filters for a view",
-        "description": "Retrieve a list of all filters and groups for a specific view.",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of filters and groups retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "View not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new filter or group",
-        "description": "Create a new filter or group for a specific view.",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Filter or group created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update a filter or group",
-        "description": "Update the details of an existing filter or group.",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "filterId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the filter or group."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filter or group updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a filter or group",
-        "description": "Delete an existing filter or group.",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "filterId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the filter or group."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Filter or group deleted successfully."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "put": {
-        "summary": "Recreate filters",
-        "description": "Recreate filters for a specific view.",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view. It overwrites all existing filters."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filters reordered successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterListResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "View not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      }
-    },
-    "/api/v3/meta/views/{viewId}/sorts": {
-      "get": {
-        "summary": "List sorts for a view",
-        "tags": [
-          "View Sorts"
-        ],
-        "description": "Retrieve a list of all sorts for a specific view.",
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of sorts retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SortListResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "View not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new sort",
-        "description": "Create a new sort for a specific view.",
-        "tags": [
-          "View Sorts"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SortCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Sort created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Sort"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a sort",
-        "description": "Delete an existing sort.",
-        "tags": [
-          "View Sorts"
-        ],
-        "parameters": [
-          {
-            "name": "sortId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the sort."
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Sort deleted successfully."
-          },
-          "404": {
-            "description": "Sort not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update a sort",
-        "description": "Update the details of an existing sort.",
-        "tags": [
-          "View Sorts"
-        ],
-        "parameters": [
-          {
-            "name": "sortId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the sort."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SortUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Sort updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Sort"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Sort not found."
           },
           "500": {
             "description": "Server error."
@@ -2267,6 +2267,7 @@
       }
     }
   },
+
   "components": {
     "schemas": {
       "FormColumn": {

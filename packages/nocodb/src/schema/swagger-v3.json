@@ -355,7 +355,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/": {
+    "/api/v3/meta/bases": {
       "get": {
         "summary": "List all bases",
         "description": "Retrieve a list of all bases.",
@@ -383,7 +383,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseCreateUpdate"
+                "$ref": "#/components/schemas/BaseCreate"
               }
             }
           }
@@ -461,7 +461,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseCreateUpdate"
+                "$ref": "#/components/schemas/BaseUpdate"
               }
             }
           }
@@ -3414,7 +3414,7 @@
             "type": "string",
             "description": "Unique identifier for the user."
           },
-          "email": {
+          "usetemail": {
             "type": "string",
             "format": "email",
             "description": "Email address of the user."
@@ -3502,10 +3502,10 @@
           "icon_color"
         ]
       },
-      "BaseCreateUpdate": {
+      "BaseCreate": {
         "type": "object",
         "properties": {
-          "base_name": {
+          "title": {
             "type": "string",
             "description": "Name of the base."
           },
@@ -3521,7 +3521,30 @@
           }
         },
         "required": [
-          "base_name",
+          "title",
+          "meta"
+        ]
+      },
+      "BaseUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Name of the base."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the base. Can include rich text."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMeta"
+          }
+        },
+        "required": [
+          "title",
           "meta"
         ]
       },
@@ -3604,20 +3627,6 @@
           "meta",
           "created_at",
           "updated_at"
-        ]
-      },
-      "BaseListResponse": {
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Base"
-            }
-          }
-        },
-        "required": [
-          "list"
         ]
       },
       "FieldBase": {

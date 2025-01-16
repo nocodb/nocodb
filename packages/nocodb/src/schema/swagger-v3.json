@@ -93,7 +93,7 @@
       },
       "post": {
         "summary": "Create base",
-        "description": "Create a new base with the provided details.",
+        "description": "Create a new base in a specified workspace. The request requires the workspace identifier in the path and base details in the request body.",
         "tags": [
           "Bases"
         ],
@@ -105,7 +105,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Workspace identifier."
+            "description": "Unique identifier for the workspace where the base will be created."
           }
         ],
         "requestBody": {
@@ -114,17 +114,41 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BaseCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "New Base",
+                    "meta": {
+                      "icon_color": "#36BFFF"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Base created successfully.",
+            "description": "Base was created.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Base"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "p7nwavd2gcdkzvd",
+                      "title": "New Base",
+                      "meta": {
+                        "icon_color": "#36BFFF"
+                      },
+                      "created_at": "2024-12-28 09:52:29+00:00",
+                      "updated_at": "2024-12-28 09:52:29+00:00",
+                      "workspace_id": "w6dw3fo0"
+                    }
+                  }
                 }
               }
             }
@@ -140,8 +164,8 @@
     },
     "/api/v3/meta/bases/{baseId}": {
       "get": {
-        "summary": "Get base schema",
-        "description": "Retrieve schema details of a specific base.",
+        "summary": "Get base meta",
+        "description": "Retrieve meta details of a specific base using its unique identifier.",
         "tags": [
           "Bases"
         ],
@@ -158,11 +182,35 @@
         ],
         "responses": {
           "200": {
-            "description": "Base details retrieved successfully.",
+            "description": "Base meta was retrieved.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Base"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "p7nwavd2gcdkzvd",
+                      "title": "Getting Started",
+                      "meta": {
+                        "icon_color": "#36BFFF"
+                      },
+                      "created_at": "2024-12-28 09:52:29+00:00",
+                      "updated_at": "2024-12-28 09:52:30+00:00",
+                      "workspace_id": "w6dw3fo0",
+                      "sources": [
+                        {
+                          "id": "biv0qz3hgg191s5",
+                          "title": "jango_fett",
+                          "type": "pg",
+                          "is_schema_readonly": false,
+                          "is_data_readonly": false,
+                          "integration_id": "biv0qz3hgg191s5"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -177,7 +225,7 @@
       },
       "patch": {
         "summary": "Update base",
-        "description": "Update the details of a specific base.",
+        "description": "Update properties of a specific base. You can modify fields such as the title and metadata of the base. The baseId parameter identifies the base to be updated, and the new details must be provided in the request body. At least one of title or meta must be provided.",
         "parameters": [
           {
             "name": "baseId",
@@ -198,17 +246,41 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BaseUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Updated Base Title",
+                    "meta": {
+                      "icon_color": "#36BFFF"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Base updated successfully.",
+            "description": "The base was updated.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Base"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "p7nwavd2gcdkzvd",
+                      "title": "Updated Base Title",
+                      "meta": {
+                        "icon_color": "#36BFFF"
+                      },
+                      "created_at": "2024-12-28 09:52:29+00:00",
+                      "updated_at": "2024-12-28 09:52:29+00:00",
+                      "workspace_id": "w6dw3fo0"
+                    }
+                  }
                 }
               }
             }
@@ -226,7 +298,7 @@
       },
       "delete": {
         "summary": "Delete base",
-        "description": "Delete a specific base.",
+        "description": "Delete a specific base using its unique identifier. Once deleted, the base and its associated data cannot be recovered.",
         "tags": [
           "Bases"
         ],
@@ -243,7 +315,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Base deleted successfully."
+            "description": "Base was deleted."
           },
           "404": {
             "description": "Base not found."
@@ -2448,6 +2520,18 @@
           "title"
         ]
       },
+      "BaseUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMetaReq"
+          }
+        }
+      },
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -3088,25 +3172,6 @@
         },
         "x-stoplight": {
           "id": "psbv6c6y9qvbu"
-        }
-      },
-      "BaseUpdate": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Name of the base."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the base. Can include rich text."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/BaseMetaReq"
-          }
         }
       },
       "BaseUser": {

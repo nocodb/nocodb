@@ -1,10 +1,13 @@
 {
   mkShell,
+  nocodb,
   nixfmt-rfc-style,
   shfmt,
   typescript-language-server,
   nodePackages,
 }: mkShell {
+  inputsFrom = [ nocodb ];
+
   buildInputs = [
     nixfmt-rfc-style
     shfmt

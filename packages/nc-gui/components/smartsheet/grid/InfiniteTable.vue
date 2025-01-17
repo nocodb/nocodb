@@ -1509,9 +1509,14 @@ const calculateSlices = () => {
     }
   }
 
-  colSlice.value = {
-    start: Math.max(0, renderStart - COL_VIRTUAL_MARGIN),
-    end: renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length,
+  const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
+  const colEnd = renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length
+
+  if (colSlice.value.start !== colStart || colSlice.value.end !== colEnd) {
+    colSlice.value = {
+      start: colStart,
+      end: colEnd,
+    }
   }
 
   if (gridWrapper.value.clientWidth === 0) {

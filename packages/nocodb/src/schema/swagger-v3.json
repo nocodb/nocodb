@@ -429,6 +429,195 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "title": "Sample Table20",
+                      "description": "Sample Description",
+                      "fields": [
+                        {
+                          "title": "SingleLineText",
+                          "type": "SingleLineText",
+                          "default_value": "Default Title"
+                        },
+                        {
+                          "title": "LongText",
+                          "type": "LongText",
+                          "default_value": "Default Description"
+                        },
+                        {
+                          "title": "RichText",
+                          "type": "LongText",
+                          "default_value": "**Default Description**",
+                          "options": {
+                            "rich_text": true
+                          }
+                        },
+                        {
+                          "title": "Email",
+                          "type": "Email",
+                          "default_value": "user@nocodb.com",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "title": "URL",
+                          "type": "URL",
+                          "default_value": "https://nocodb.com",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "title": "Phone",
+                          "type": "PhoneNumber",
+                          "default_value": "1234567890",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "title": "Number",
+                          "type": "Number",
+                          "default_value": "34",
+                          "options": {
+                            "locale_string": true
+                          }
+                        },
+                        {
+                          "title": "Decimal",
+                          "type": "Decimal",
+                          "default_value": "34.56",
+                          "options": {
+                            "precision": 2
+                          }
+                        },
+                        {
+                          "title": "Currency",
+                          "type": "Currency",
+                          "default_value": "34.56",
+                          "options": {
+                            "locale": "en-US",
+                            "code": "USD"
+                          }
+                        },
+                        {
+                          "title": "Percent",
+                          "type": "Percent",
+                          "default_value": "0.34",
+                          "options": {
+                            "precision": 2,
+                            "show_as_percent": true
+                          }
+                        },
+                        {
+                          "title": "Date",
+                          "type": "Date",
+                          "default_value": "2021-09-30",
+                          "options": {
+                            "date_format": "YYYY-MM-DD"
+                          }
+                        },
+                        {
+                          "title": "DateTime",
+                          "type": "DateTime",
+                          "default_value": "2021-09-30 12:34:56",
+                          "options": {
+                            "date_format": "YYYY-MM-DD HH:mm:ss",
+                            "time_format": "HH:mm:ss",
+                            "12hr_format": true
+                          }
+                        },
+                        {
+                          "title": "SingleSelect",
+                          "type": "SingleSelect",
+                          "default_value": "Option 1",
+                          "options": {
+                            "choices": [
+                              {
+                                "title": "Option 1",
+                                "color": "#36BFFF"
+                              },
+                              {
+                                "title": "Option 2",
+                                "color": "#36BFFF"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "title": "MultiSelect",
+                          "type": "MultiSelect",
+                          "default_value": "[\"Option 1\"]",
+                          "options": {
+                            "choices": [
+                              {
+                                "title": "Option 1",
+                                "color": "#36BFFF"
+                              },
+                              {
+                                "title": "Option 2",
+                                "color": "#36BFFF"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "title": "Checkbox",
+                          "type": "Checkbox",
+                          "default_value": true,
+                          "options": {
+                            "icon": "heart",
+                            "color": "#36BFFF"
+                          }
+                        },
+                        {
+                          "title": "Rating",
+                          "type": "Rating",
+                          "default_value": "3",
+                          "options": {
+                            "icon": "heart",
+                            "max_value": 5,
+                            "color": "#36BFFF"
+                          }
+                        },
+                        {
+                          "title": "Attachment",
+                          "type": "Attachment"
+                        },
+                        {
+                          "title": "JSON",
+                          "type": "JSON"
+                        },
+                        {
+                          "title": "User",
+                          "type": "User",
+                          "default_value": "uskfsbdfved8c03z",
+                          "options": {
+                            "allow_multiple_users": true
+                          }
+                        },
+                        {
+                          "title": "CreatedTime",
+                          "type": "CreatedTime"
+                        },
+                        {
+                          "title": "CreatedBy",
+                          "type": "CreatedBy"
+                        },
+                        {
+                          "title": "UpdatedBy",
+                          "type": "LastModifiedBy"
+                        },
+                        {
+                          "title": "UpdatedTime",
+                          "type": "LastModifiedTime"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -2865,7 +3054,7 @@
           "properties": {
             "type": {
               "enum": [
-                "CreatedAt"
+                "CreatedTime"
               ]
             }
           }
@@ -2875,7 +3064,7 @@
           "properties": {
             "type": {
               "enum": [
-                "LastModifiedAt"
+                "LastModifiedTime"
               ]
             }
           }

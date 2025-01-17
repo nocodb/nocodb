@@ -1440,7 +1440,18 @@ const lastScrollTop = ref()
 const lastScrollLeft = ref()
 const lastTotalRows = ref()
 
+let timer1: any
+let timer2: any
+
 const calculateSlices = () => {
+  if (timer1) {
+    clearTimeout(timer1)
+  }
+
+  if (timer2) {
+    clearTimeout(timer2)
+  }
+
   // if the grid is not rendered yet
   if (!gridWrapper.value || !gridWrapper.value) {
     colSlice.value = {
@@ -1449,7 +1460,7 @@ const calculateSlices = () => {
     }
 
     // try again until the grid is rendered
-    setTimeout(calculateSlices, 50)
+    timer1 = setTimeout(calculateSlices, 50)
     return
   }
 
@@ -1504,7 +1515,7 @@ const calculateSlices = () => {
   }
 
   if (gridWrapper.value.clientWidth === 0) {
-    setTimeout(calculateSlices, 50)
+    timer2 = setTimeout(calculateSlices, 50)
   }
 
   const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))

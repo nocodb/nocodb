@@ -2400,7 +2400,8 @@
           "icon_color": {
             "type": "string",
             "format": "color",
-            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)"
+            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           }
         }
       },
@@ -2410,7 +2411,8 @@
           "icon_color": {
             "type": "string",
             "format": "color",
-            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).\n\n**Constraints**:\n- Must be a valid 6-character hexadecimal color code preceded by a `#`.\n- Optional field; defaults to a standard color if not provided."
+            "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).\n\n**Constraints**:\n- Must be a valid 6-character hexadecimal color code preceded by a `#`.\n- Optional field; defaults to a standard color if not provided.",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           }
         }
       },
@@ -2780,6 +2782,9 @@
               "enum": [
                 "Links"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Links"
             }
           }
         },
@@ -3062,7 +3067,7 @@
           },
           "default_value": {
             "type": "string",
-            "description": "Default value for the field."
+            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
         "required": [
@@ -3685,7 +3690,8 @@
               "form_background_color": {
                 "type": "string",
                 "format": "color",
-                "description": "Background color for the form."
+                "description": "Background color for the form.",
+                "pattern": "^#[0-9A-Fa-f]{6}$"
               }
             },
             "required": [
@@ -3713,7 +3719,7 @@
           },
           "default_value": {
             "type": "string",
-            "description": "Default value for the field."
+            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           },
           "description": {
             "type": "string",
@@ -3779,7 +3785,9 @@
         "properties": {
           "precision": {
             "type": "number",
-            "description": "Decimal field precision. Defaults to 0"
+            "description": "Decimal field precision. Defaults to 0",
+            "minimum": 0,
+            "maximum": 5
           }
         }
       },
@@ -3987,7 +3995,9 @@
         "properties": {
           "precision": {
             "type": "integer",
-            "description": "Number of decimal places allowed."
+            "description": "Number of decimal places allowed.",
+            "minimum": 0,
+            "maximum": 5
           },
           "show_as_progress": {
             "type": "boolean",
@@ -4000,14 +4010,7 @@
         "properties": {
           "format": {
             "type": "string",
-            "description": "Duration format.",
-            "enum": [
-              "h:mm",
-              "h:mm:ss",
-              "h:mm:ss.S",
-              "h:mm:ss.SS",
-              "h:mm:ss.SSS"
-            ]
+            "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
           }
         }
       },
@@ -4016,29 +4019,11 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format.",
-            "enum": [
-              "YYYY/MM/DD",
-              "YYYY-MM-DD",
-              "YYYY MM DD",
-              "DD/MM/YYYY",
-              "DD-MM-YYYY",
-              "DD MM YYYY",
-              "MM/DD/YYYY",
-              "MM-DD-YYYY",
-              "MM DD YYYY",
-              "YYYY-MM",
-              "YYYY MM"
-            ]
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
           },
           "time_format": {
             "type": "string",
-            "description": "Time format",
-            "enum": [
-              "HH:mm",
-              "HH:mm:ss",
-              "HH:mm:ss.SSS"
-            ]
+            "description": "Time format. Supported options are listed below\n- `HH:mm`\n- `HH:mm:ss`\n- `HH:mm:ss.SSS`"
           },
           "12hr_format": {
             "type": "boolean",
@@ -4051,20 +4036,7 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format.",
-            "enum": [
-              "YYYY/MM/DD",
-              "YYYY-MM-DD",
-              "YYYY MM DD",
-              "DD/MM/YYYY",
-              "DD-MM-YYYY",
-              "DD MM YYYY",
-              "MM/DD/YYYY",
-              "MM-DD-YYYY",
-              "MM DD YYYY",
-              "YYYY-MM",
-              "YYYY MM"
-            ]
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
           }
         }
       },
@@ -4073,12 +4045,7 @@
         "properties": {
           "time_format": {
             "type": "string",
-            "description": "Time format",
-            "enum": [
-              "HH:mm",
-              "HH:mm:ss",
-              "HH:mm:ss.SSS"
-            ]
+            "description": "Time format. Supported options are listed below\n- `HH:mm`\n- `HH:mm:ss`\n- `HH:mm:ss.SSS`"
           },
           "12hr_format": {
             "type": "boolean",
@@ -4101,13 +4068,15 @@
                 "color": {
                   "type": "string",
                   "format": "color",
-                  "description": "Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`)."
+                  "description": "Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`).",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
                 }
               },
               "required": [
                 "title"
               ]
-            }
+            },
+            "uniqueItems": true
           }
         }
       },
@@ -4118,18 +4087,24 @@
             "type": "string",
             "enum": [
               "star",
-              "heart"
+              "heart",
+              "circle-filled",
+              "thumbs-up",
+              "flag"
             ],
-            "description": "Icon to use for ratings."
+            "description": "Icon to display rating on the UI. Supported options are listed below\n- `star`\n- `heart`\n- `circle-filled`\n- `thumbs-up`\n- `flag`"
           },
           "max_value": {
             "type": "integer",
-            "description": "Maximum value for the rating. Allowed range: 1-10."
+            "description": "Maximum value for the rating. Allowed range: 1-10.",
+            "minimum": 1,
+            "maximum": 10
           },
           "color": {
             "type": "string",
             "format": "color",
-            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`)."
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           }
         }
       },
@@ -4139,19 +4114,21 @@
           "icon": {
             "type": "string",
             "enum": [
-              "check",
-              "cross"
+              "square",
+              "circle-check",
+              "circle-filled",
+              "star",
+              "heart",
+              "thumbs-up",
+              "flag"
             ],
-            "description": "Icon to use for ratings."
-          },
-          "max_value": {
-            "type": "integer",
-            "description": "Maximum value for the rating."
+            "description": "Icon to display checkbox on the UI. Supported options are listed below\n- `square`\n- `circle-check`\n- `circle-filled`\n- `star`\n- `heart`\n- `thumbs-up`\n- `flag`"
           },
           "color": {
             "type": "string",
             "format": "color",
-            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`)."
+            "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
           }
         }
       },
@@ -4183,10 +4160,6 @@
           "allow_multiple_users": {
             "type": "boolean",
             "description": "Allow selecting multiple users."
-          },
-          "notify_user_when_added": {
-            "type": "boolean",
-            "description": "Notify user when they are added."
           }
         }
       },
@@ -4195,13 +4168,17 @@
         "properties": {
           "link_field_id": {
             "type": "string",
-            "description": "Linked field ID."
+            "description": "Linked field ID. Can be of type Links or LinkToAnotherRecord"
           },
           "linked_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
           }
-        }
+        },
+        "required": [
+          "link_field_id",
+          "linked_table_lookup_field_id"
+        ]
       },
       "FieldOptions_Rollup": {
         "type": "object",
@@ -4213,8 +4190,27 @@
           "linked_table_rollup_field_id": {
             "type": "string",
             "description": "Rollup field ID in the linked table."
+          },
+          "rollup_function": {
+            "type": "string",
+            "description": "Rollup function.",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "sum",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct"
+            ]
           }
-        }
+        },
+        "required": [
+          "link_field_id",
+          "linked_table_rollup_field_id",
+          "rollup_function"
+        ]
       },
       "FieldOptions_Button": {},
       "FieldOptions_Links": {
@@ -4222,7 +4218,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship (e.g., many-to-many, one-to-one)."
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
           "linked_table_id": {
             "type": "string",
@@ -4239,7 +4235,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship (e.g., many-to-many, one-to-one)."
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
           "linked_table_id": {
             "type": "string",

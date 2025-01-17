@@ -3091,7 +3091,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: this.model.columns.filter((col) => isSystemColumn(col)),
+      exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
       excludeNull: false,
       excludeBlanks: false,
     }) as UpdatePayload;
@@ -3180,7 +3185,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: this.model.columns.filter((col) => isSystemColumn(col)),
+              exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
               excludeNull: false,
               excludeBlanks: false,
             }) as UpdatePayload;

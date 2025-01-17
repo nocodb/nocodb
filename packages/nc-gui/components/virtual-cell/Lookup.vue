@@ -83,141 +83,278 @@ provide(CellUrlDisableOverlayInj, ref(true))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
+
+const search = ref('')
+
+const isSearchable = computed(() => {
+  if (!lookupColumn.value) return false
+
+  switch (lookupColumn.value.uidt!) {
+    case UITypes.ID:
+    case UITypes.SingleLineText:
+    case UITypes.LongText:
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+    case UITypes.Year:
+    case UITypes.PhoneNumber:
+    case UITypes.Email:
+    case UITypes.Number:
+    case UITypes.Decimal:
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Rating:
+    case UITypes.Formula:
+      return true
+    default:
+      return false
+  }
+})
+
+const disableDropdown = computed(() => {
+  if (!lookupColumn.value) return true
+  if (arrValue.value.length < 2) return true
+  return false
+})
+
+const filteredArrValues = computed(() => {
+  const query = search.value.toLowerCase()
+  return arrValue.value.filter((val) => {
+    return `${val}`.toLowerCase().includes(query)
+  })
+})
+
+const dropdownVisible = ref(false)
+
+const triggerRef = ref<HTMLDivElement>(null)
+
+const randomClass = `lookup-${Math.floor(Math.random() * 99999)}`
+
+onMounted(() => {
+  onClickOutside(triggerRef.value?.closest('td'), (e) => {
+    if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+    dropdownVisible.value = false
+  })
+})
 </script>
 
 <template>
-  <div
-    class="nc-cell-field h-full w-full nc-lookup-cell"
-    tabindex="-1"
-    :style="{
-      height:
-        isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
-          ? undefined
-          : rowHeight
-          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
-          : `2.85rem`,
-    }"
-    @dblclick="activateShowEditNonEditableFieldWarning"
-  >
+  <NcDropdown :disabled="disableDropdown" :visible="!disableDropdown && dropdownVisible" :auto-close="false">
     <div
-      class="h-full w-full flex gap-1"
-      :class="{
-        '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+      ref="triggerRef"
+      class="nc-cell-field h-full w-full nc-lookup-cell"
+      tabindex="-1"
+      :style="{
+        height:
+          isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
+            ? undefined
+            : rowHeight
+            ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+            : `2.85rem`,
       }"
+      @click="dropdownVisible = !dropdownVisible"
+      @dblclick="activateShowEditNonEditableFieldWarning"
     >
-      <template v-if="lookupColumn">
-        <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
-          <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
-          <template
-            v-if="
-              lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-              (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
-            "
-          >
+      <div
+        class="h-full w-full flex gap-1"
+        :class="{
+          '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+        }"
+      >
+        <template v-if="lookupColumn">
+          <!-- Render virtual cell -->
+          <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
+            <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
+            <template
+              v-if="
+                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
+                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                  [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+              "
+            >
+              <LazySmartsheetVirtualCell
+                v-for="(v, i) of arrValue"
+                :key="i"
+                :edit-enabled="false"
+                :model-value="v"
+                :column="lookupColumn"
+                :read-only="true"
+              />
+            </template>
+
             <LazySmartsheetVirtualCell
-              v-for="(v, i) of arrValue"
-              :key="i"
+              v-else
               :edit-enabled="false"
-              :model-value="v"
-              :column="lookupColumn"
               :read-only="true"
+              :model-value="arrValue"
+              :column="lookupColumn"
             />
-          </template>
-
-          <LazySmartsheetVirtualCell
-            v-else
-            :edit-enabled="false"
-            :read-only="true"
-            :model-value="arrValue"
-            :column="lookupColumn"
-          />
-        </div>
-
-        <!-- Render normal cell -->
-        <template v-else>
-          <div v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'">
-            <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
           </div>
-          <!-- For attachment cell avoid adding chip style -->
+
+          <!-- Render normal cell -->
           <template v-else>
             <div
-              class="max-h-full max-w-full w-full nc-cell-lookup-scroll"
-              :class="{
-                'nc-scrollbar-md ': rowHeight !== 1 && !isAttachment(lookupColumn),
-              }"
+              v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
             >
+              <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
+            </div>
+            <!-- For attachment cell avoid adding chip style -->
+            <template v-else>
               <div
-                class="flex gap-1.5 w-full h-full py-[3px]"
+                class="max-h-full max-w-full w-full nc-cell-lookup-scroll"
                 :class="{
-                  'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
-                  '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
-                    rowHeight === 1 || isAttachment(lookupColumn),
-                  'items-center': rowHeight === 1,
-                  'items-start': rowHeight !== 1,
+                  'nc-scrollbar-md ': rowHeight !== 1 && !isAttachment(lookupColumn),
                 }"
               >
                 <div
-                  v-for="(v, i) of arrValue"
-                  :key="i"
-                  class="flex-none"
+                  class="flex gap-1.5 w-full h-full py-[3px]"
                   :class="{
-                    'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
-                    'border-gray-200 rounded border-1': ![
-                      UITypes.Attachment,
-                      UITypes.MultiSelect,
-                      UITypes.SingleSelect,
-                      UITypes.User,
-                      UITypes.CreatedBy,
-                      UITypes.LastModifiedBy,
-                    ].includes(lookupColumn.uidt),
-                    'min-h-0 min-w-0': isAttachment(lookupColumn),
+                    'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
+                    '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
+                    'items-center': rowHeight === 1,
+                    'items-start': rowHeight !== 1,
                   }"
                 >
-                  <LazySmartsheetVirtualCell
-                    v-if="lookupColumn.uidt === UITypes.Rollup"
-                    :edit-enabled="false"
-                    :read-only="true"
-                    :model-value="v"
-                    :column="lookupColumn"
-                    class="px-2"
-                  />
-                  <LazySmartsheetCell
-                    v-else
-                    :model-value="v"
-                    :column="lookupColumn"
-                    :edit-enabled="false"
-                    :virtual="true"
-                    :read-only="true"
-                    :class="[
-                      `${
-                        [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
-                          ? 'pl-2'
-                          : !isAttachment(lookupColumn)
-                          ? 'px-2'
-                          : ''
-                      }`,
-                      {
-                        'min-h-0 min-w-0': isAttachment(lookupColumn),
-                        '!w-auto ': !isAttachment(lookupColumn),
-                      },
-                    ]"
-                  />
+                  <div
+                    v-for="(v, i) of arrValue"
+                    :key="i"
+                    class="flex-none"
+                    :class="{
+                      'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
+                      'border-gray-200 rounded border-1': ![
+                        UITypes.Attachment,
+                        UITypes.MultiSelect,
+                        UITypes.SingleSelect,
+                        UITypes.User,
+                        UITypes.CreatedBy,
+                        UITypes.LastModifiedBy,
+                      ].includes(lookupColumn.uidt),
+                      'min-h-0 min-w-0': isAttachment(lookupColumn),
+                    }"
+                  >
+                    <LazySmartsheetVirtualCell
+                      v-if="lookupColumn.uidt === UITypes.Rollup"
+                      :edit-enabled="false"
+                      :read-only="true"
+                      :model-value="v"
+                      :column="lookupColumn"
+                      class="px-2"
+                    />
+                    <LazySmartsheetCell
+                      v-else
+                      :model-value="v"
+                      :column="lookupColumn"
+                      :edit-enabled="false"
+                      :virtual="true"
+                      :read-only="true"
+                      :class="[
+                        `${
+                          [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
+                            ? 'pl-2'
+                            : !isAttachment(lookupColumn)
+                            ? 'px-2'
+                            : ''
+                        }`,
+                        {
+                          'min-h-0 min-w-0': isAttachment(lookupColumn),
+                          '!w-auto ': !isAttachment(lookupColumn),
+                        },
+                      ]"
+                    />
+                  </div>
+                </div>
+                <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                  {{ $t('msg.info.computedFieldEditWarning') }}
+                </div>
+                <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                  {{ $t('msg.info.computedFieldDeleteWarning') }}
                 </div>
               </div>
-              <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-                {{ $t('msg.info.computedFieldEditWarning') }}
-              </div>
-              <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-                {{ $t('msg.info.computedFieldDeleteWarning') }}
-              </div>
-            </div>
+            </template>
           </template>
         </template>
-      </template>
+      </div>
     </div>
-  </div>
+    <template #overlay>
+      <div class="w-[300px] max-w-[320px] flex flex-col rounded-sm" :class="[randomClass]" @click.stop>
+        <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')">
+          <template #prefix>
+            <GeneralIcon icon="search" />
+          </template>
+        </a-input>
+        <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
+          <template v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup">
+            <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
+            <template
+              v-if="
+                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
+                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                  [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+              "
+            >
+              <LazySmartsheetVirtualCell
+                v-for="(v, i) of filteredArrValues"
+                :key="i"
+                :edit-enabled="false"
+                :model-value="v"
+                :column="lookupColumn"
+                :read-only="true"
+              />
+            </template>
+          </template>
+          <template v-else>
+            <div
+              v-for="(v, i) of filteredArrValues"
+              :key="i"
+              class="flex-none"
+              :class="{
+                'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
+                'border-gray-200 rounded border-1': ![
+                  UITypes.Attachment,
+                  UITypes.MultiSelect,
+                  UITypes.SingleSelect,
+                  UITypes.User,
+                  UITypes.CreatedBy,
+                  UITypes.LastModifiedBy,
+                ].includes(lookupColumn.uidt),
+                'min-h-0 min-w-0': isAttachment(lookupColumn),
+              }"
+            >
+              <LazySmartsheetVirtualCell
+                v-if="lookupColumn.uidt === UITypes.Rollup"
+                :edit-enabled="false"
+                :read-only="true"
+                :model-value="v"
+                :column="lookupColumn"
+                class="px-2"
+              />
+              <LazySmartsheetCell
+                v-else
+                :model-value="v"
+                :column="lookupColumn"
+                :edit-enabled="false"
+                :virtual="true"
+                :read-only="true"
+                :class="[
+                  `${
+                    [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
+                      ? 'pl-2'
+                      : !isAttachment(lookupColumn)
+                      ? 'px-2'
+                      : ''
+                  }`,
+                  {
+                    'min-h-0 min-w-0': isAttachment(lookupColumn),
+                    '!w-auto ': !isAttachment(lookupColumn),
+                  },
+                ]"
+              />
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </NcDropdown>
 </template>
 
 <style lang="scss">

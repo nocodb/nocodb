@@ -42,6 +42,7 @@ import type {
   FilterType,
   NcRequest,
   SortType,
+  UpdatePayload,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
@@ -74,7 +75,11 @@ import {
   Source,
   View,
 } from '~/models';
-import { getAliasGenerator, nocoExecute } from '~/utils';
+import {
+  getAliasGenerator,
+  nocoExecute,
+  populateUpdatePayloadDiff,
+} from '~/utils';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
@@ -7275,42 +7280,69 @@ class BaseModelSqlv2 {
 
       await Audit.insert(
         await Promise.all(
-          newData.map((d, i) =>
-            generateAuditV1Payload<DataUpdatePayload>(
-              AuditV1OperationTypes.DATA_UPDATE,
-              {
-                context: {
-                  ...this.context,
-                  source_id: this.model.source_id,
-                  fk_model_id: this.model.id,
-                  row_id: this.extractPksValues(d, true),
-                },
-                details: {
-                  old_data: prevData?.[i]
-                    ? formatDataForAudit(
-                        removeBlankPropsAndMask(prevData?.[i], [
-                          'CreatedAt',
-                          'UpdatedAt',
-                        ]),
-                        this.model.columns,
-                      )
-                    : null,
-                  data: d
-                    ? formatDataForAudit(
-                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
-                        this.model.columns,
-                      )
-                    : null,
-                  column_meta: extractColsMetaForAudit(
+          newData.map(async (d, i) => {
+            const formattedOldData = formatDataForAudit(
+              prevData?.[i]
+                ? formatDataForAudit(
+                    removeBlankPropsAndMask(prevData?.[i], [
+                      'CreatedAt',
+                      'UpdatedAt',
+                    ]),
                     this.model.columns,
-                    d,
-                    prevData?.[i],
-                  ),
+                  )
+                : null,
+              this.model.columns,
+            );
+            const formattedData = formatDataForAudit(
+              d
+                ? formatDataForAudit(
+                    removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                    this.model.columns,
+                  )
+                : null,
+              this.model.columns,
+            );
+
+            const updateDiff = populateUpdatePayloadDiff({
+              keepUnderModified: true,
+              prev: formattedOldData,
+              next: formattedData,
+              exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
+              excludeNull: false,
+              excludeBlanks: false,
+            }) as UpdatePayload;
+
+            if (updateDiff) {
+              return await generateAuditV1Payload<DataUpdatePayload>(
+                AuditV1OperationTypes.DATA_UPDATE,
+                {
+                  context: {
+                    ...this.context,
+                    source_id: this.model.source_id,
+                    fk_model_id: this.model.id,
+                    row_id: this.extractPksValues(d, true),
+                  },
+                  details: {
+                    old_data: updateDiff.previous_state,
+                    data: updateDiff.modifications,
+                    column_meta: extractColsMetaForAudit(
+                      this.model.columns.filter(
+                        (c) => c.title in updateDiff.modifications,
+                      ),
+                      d,
+                      prevData?.[i],
+                    ),
+                  },
+                  req,
                 },
-                req,
-              },
-            ),
-          ),
+              );
+            }
+          }),
         ),
       );
     }
@@ -7355,29 +7387,50 @@ class BaseModelSqlv2 {
       Object.assign(data, newData);
     }
 
-    await Audit.insert(
-      await generateAuditV1Payload<DataUpdatePayload>(
-        AuditV1OperationTypes.DATA_UPDATE,
-        {
-          context: {
-            ...this.context,
-            source_id: this.model.source_id,
-            fk_model_id: this.model.id,
-            row_id: id,
+    const formattedOldData = formatDataForAudit(oldData, this.model.columns);
+    const formattedData = formatDataForAudit(data, this.model.columns);
+
+    const updateDiff = populateUpdatePayloadDiff({
+      keepUnderModified: true,
+      prev: formattedOldData,
+      next: formattedData,
+      exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
+      excludeNull: false,
+      excludeBlanks: false,
+    }) as UpdatePayload;
+
+    if (updateDiff) {
+      await Audit.insert(
+        await generateAuditV1Payload<DataUpdatePayload>(
+          AuditV1OperationTypes.DATA_UPDATE,
+          {
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: id,
+            },
+            details: {
+              old_data: updateDiff.previous_state,
+              data: updateDiff.modifications,
+              column_meta: extractColsMetaForAudit(
+                this.model.columns.filter(
+                  (c) => c.title in updateDiff.modifications,
+                ),
+                data,
+                oldData,
+              ),
+            },
+            req,
           },
-          details: {
-            old_data: formatDataForAudit(oldData, this.model.columns),
-            data: formatDataForAudit(data, this.model.columns),
-            column_meta: extractColsMetaForAudit(
-              this.model.columns,
-              data,
-              oldData,
-            ),
-          },
-          req,
-        },
-      ),
-    );
+        ),
+      );
+    }
 
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
@@ -8757,6 +8810,7 @@ class BaseModelSqlv2 {
       ),
     );
   }
+
   public async groupedList(
     args: {
       groupColumnId: string;

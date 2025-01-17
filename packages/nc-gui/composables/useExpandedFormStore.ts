@@ -417,8 +417,53 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   })
 
+  const processedAudits = computed(() => {
+    const result: typeof audits.value = []
+
+    try {
+      const allAudits = JSON.parse(JSON.stringify(audits.value))
+
+      for (const audit of allAudits) {
+        if (audit.op_type !== 'DATA_UPDATE') {
+          result.push(audit)
+          continue
+        }
+
+        const details = JSON.parse(audit.details)
+
+        for (const columnKey of Object.keys(details.data || {})) {
+
+          if (!details.column_meta?.[columnKey]) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+
+          if (['CreatedTime', 'CreatedBy', 'LastModifiedTime', 'LastModifiedBy'].includes(details.column_meta?.[columnKey]?.type)) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+
+        }
+
+        if (Object.values(details.column_meta || {}).length > 0) {
+          audit.details = JSON.stringify(details)
+          result.push(audit)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+    
+    return result;
+
+  })
+
   const consolidatedAudits = computed(() => {
-    const result = []
+    const result: typeof audits.value = []
 
     const applyAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
       if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = [];
@@ -440,7 +485,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
 
     try {
-      const allAudits = JSON.parse(JSON.stringify(audits.value))
+      const allAudits = JSON.parse(JSON.stringify(processedAudits.value))
 
       while (allAudits.length > 0) {
         const current = allAudits.shift()!

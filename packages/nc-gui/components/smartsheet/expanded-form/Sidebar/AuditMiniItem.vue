@@ -26,7 +26,7 @@ const meta = computed(() => {
 })
 
 const columnKeys = computed(() => {
-  return Object.keys(newData.value).filter(it => !['Id', 'CreatedAt', 'CreatedBy', 'LastModifiedAt', 'LastModifiedBy'].includes(it))
+  return Object.keys(newData.value)
 })
 
 /* provides */

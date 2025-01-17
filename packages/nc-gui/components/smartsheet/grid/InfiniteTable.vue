@@ -109,7 +109,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts } = useSmartsheetStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
@@ -143,11 +143,7 @@ const tableBodyEl = ref<HTMLElement>()
 
 const gridWrapper = ref<HTMLElement>()
 
-const tableHeadEl = ref<HTMLElement>()
-
 const fillHandle = ref<HTMLElement>()
-
-const { height: tableHeadHeight } = useElementBounding(tableHeadEl)
 
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
@@ -354,8 +350,6 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   tableBodyEl,
   gridWrapper,
 })
-
-const { allFilters, sorts } = useSmartsheetStoreOrThrow()
 
 const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -1316,7 +1310,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
 
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, {
       top: 9,
-      bottom: (tableHeadHeight.value || 40) + 9,
+      bottom: 32 + 9,
       right: 9,
     })
 
@@ -2048,6 +2042,13 @@ const handleTableEvents = (event: MouseEvent) => {
       break
   }
 }
+
+const cellAlignClass = computed(() => {
+  if (!props.rowHeightEnum || props.rowHeightEnum === 1) {
+    return 'align-middle'
+  }
+  return 'align-top'
+})
 </script>
 
 <template>
@@ -2096,7 +2097,7 @@ const handleTableEvents = (event: MouseEvent) => {
             }"
             class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
-            <thead ref="tableHeadEl">
+            <thead>
               <tr v-if="isViewColumnsLoading">
                 <td
                   v-for="(_col, colIndex) of dummyColumnDataForLoading"
@@ -2462,12 +2463,11 @@ const handleTableEvents = (event: MouseEvent) => {
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index]?.[0]?.isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
-                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-0`],
                           'readonly':
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          [cellAlignClass]: true,
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2543,14 +2543,14 @@ const handleTableEvents = (event: MouseEvent) => {
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index][colIndex].isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
-                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
+
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           'readonly':
                             colMeta[colIndex].isReadonly &&
                             hasEditPermission &&
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          [cellAlignClass]: true,
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',

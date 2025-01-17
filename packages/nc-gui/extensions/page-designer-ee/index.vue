@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import RecordSelector from './components/RecordSelector.vue'
 
 const { extension, fullscreen, getViewsForTable, getTableMeta, tables } = useExtensionHelperOrThrow()
 
 interface PageDesignerPayload {
   selectedTableId?: string
   selectedViewId?: string
+  selectedRecordPrimaryKey?: string
 }
 const KV_STORE_KEY = 'pageDesigner'
 
@@ -82,9 +84,8 @@ async function onTableSelect(tableId?: string) {
     await reloadViews()
     savedPayload.value.selectedViewId = views.value.find((view) => view.is_default)?.id
   }
-
+  savedPayload.value.selectedRecordPrimaryKey = ''
   await updateColumns()
-
   await saveChanges()
 }
 
@@ -108,76 +109,85 @@ onMounted(async () => {
       <NcButton> Header actions </NcButton>
     </template>
     <div
-      class="bulk-update-ee h-full flex flex-col"
+      class="flex flex-col"
       :class="{
         'gap-6 bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
-      <div v-if="!fullscreen" class="p-3 flex">
-        <div
-          class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-full"
-        >
-          <a-form-item class="!my-0 min-w-1/2">
-            <NcSelect
-              v-model:value="savedPayload.selectedTableId"
-              placeholder="-select table-"
-              class="nc-bulk-update-table-select nc-select-shadow"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
-              show-search
-              @change="onTableSelect"
-            >
-              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+      <div v-if="!fullscreen" class="flex flex-col gap-2">
+        <div class="p-3 flex">
+          <div
+            class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-full"
+          >
+            <a-form-item class="!my-0 min-w-1/2">
+              <NcSelect
+                v-model:value="savedPayload.selectedTableId"
+                placeholder="-select table-"
+                class="nc-bulk-update-table-select nc-select-shadow"
+                :filter-option="filterOption"
+                dropdown-class-name="w-[250px]"
+                show-search
+                @change="onTableSelect"
+              >
+                <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ table.label }}</template>
+                      <span>{{ table.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="savedPayload.selectedTableId === table.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ table.label }}</template>
-                    <span>{{ table.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="savedPayload.selectedTableId === table.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
 
-          <a-form-item class="!my-0 min-w-1/2">
-            <NcSelect
-              v-model:value="savedPayload.selectedViewId"
-              placeholder="-select view-"
-              class="nc-bulk-update-view-select nc-select-shadow"
-              dropdown-class-name="w-[250px]"
-              :filter-option="filterOption"
-              show-search
-              placement="bottomRight"
-              @change="onViewSelect"
-            >
-              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+            <a-form-item class="!my-0 min-w-1/2">
+              <NcSelect
+                v-model:value="savedPayload.selectedViewId"
+                placeholder="-select view-"
+                class="nc-bulk-update-view-select nc-select-shadow"
+                dropdown-class-name="w-[250px]"
+                :filter-option="filterOption"
+                show-search
+                placement="bottomRight"
+                @change="onViewSelect"
+              >
+                <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ view.label }}</template>
+                      <span>{{ view.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="savedPayload.selectedViewId === view.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ view.label }}</template>
-                    <span>{{ view.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="savedPayload.selectedViewId === view.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
         </div>
+        <RecordSelector
+          v-if="savedPayload.selectedTableId"
+          v-model="savedPayload.selectedRecordPrimaryKey"
+          :table-id="savedPayload.selectedTableId"
+          :view-id="savedPayload.selectedViewId"
+          @update:model-value="saveChanges"
+        />
       </div>
     </div>
   </ExtensionsExtensionWrapper>

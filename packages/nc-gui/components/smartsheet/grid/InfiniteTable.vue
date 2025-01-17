@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   type ButtonType,
-  type ColumnReqType,
   type ColumnType,
   type TableType,
   UITypes,
@@ -112,9 +111,7 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
-const { $e } = useNuxtApp()
-
-const { api } = useApi()
+const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -132,15 +129,6 @@ const {
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const {
-  predictingNextColumn,
-  predictedNextColumn,
-  predictingNextFormulas,
-  predictedNextFormulas,
-  predictNextColumn,
-  predictNextFormulas,
-} = useNocoEe().table
-
 const { paste } = usePaste()
 
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
@@ -150,9 +138,6 @@ const { loadViewAggregate } = useViewAggregateOrThrow()
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
-
-// Element refs
-const smartTable = ref(null)
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -380,19 +365,11 @@ const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.
 
 const addColumnDropdown = ref(false)
 
-const altModifier = ref(false)
-
-const persistMenu = ref(false)
-
 const disableUrlOverlay = ref(false)
-
-const preloadColumn = ref<any>()
 
 const scrolling = ref(false)
 
 const switchingTab = ref(false)
-
-const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const editEnabled = ref(false)
 
@@ -501,7 +478,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
               await syncLTARRefs(rowObj, rowObj.row)
             } else if (isMm(columnObj)) {
-              await api.dbDataTableRow.nestedLink(
+              await $api.dbDataTableRow.nestedLink(
                 meta.value?.id as string,
                 columnObj.id as string,
                 encodeURIComponent(rowId as string),
@@ -631,14 +608,11 @@ function openColumnCreate(data: any) {
 
   setTimeout(() => {
     addColumnDropdown.value = true
-    preloadColumn.value = data
   }, 500)
 }
 
 function closeAddColumnDropdownMenu(scrollToLastCol = false) {
-  columnOrder.value = null
   addColumnDropdown.value = false
-  preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
       scrollToAddNewColumnHeader('instant')
@@ -1409,23 +1383,10 @@ const saveOrUpdateRecords = async (
   }
 }
 
-const loadColumn = (title: string, tp: string, colOptions?: any) => {
-  preloadColumn.value = {
-    title,
-    uidt: tp,
-    colOptions,
-  }
-  persistMenu.value = false
-}
-
 const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
-  addColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
-    addColumnDropdown.value = false
-    // persistMenu.value = altModifier
-  }
+  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen()
 }
 
 const COL_VIRTUAL_MARGIN = 5
@@ -1691,7 +1652,6 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
 
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
-    columnOrder.value = payload
     addColumnDropdown.value = true
   }
   if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
@@ -1792,19 +1752,10 @@ useEventListener(document, 'mouseup', () => {
   }, 100)
 })
 
-useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  const isRichModalOpen = isExpandedCellInputExist()
-
-  if (e.key === 'Alt' && !isRichModalOpen) {
-    altModifier.value = true
-  }
-})
-
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   const isRichModalOpen = isExpandedCellInputExist()
 
   if (e.key === 'Alt' && !isRichModalOpen) {
-    altModifier.value = false
     disableUrlOverlay.value = false
   }
 
@@ -2065,6 +2016,36 @@ watch(vSelectedAllRecords, (selectedAll) => {
     }
   }
 })
+
+const handleTableEvents = (event: MouseEvent) => {
+  const cell = (event.target as HTMLElement).closest('.nc-grid-cell')
+
+  if (!cell) return
+
+  const attribute = cell.getAttribute('data-testid')
+
+  const [_, col, row] = (attribute ?? '').split('-')
+
+  if (!col || !row) return
+  switch (event.type) {
+    case 'mousedown':
+      handleMouseDown(event, +row, +col)
+      break
+    case 'mouseover':
+      if (!isFillMode.value) return
+      handleMouseOver(event, +row, +col)
+      break
+    case 'dblclick':
+      makeEditable(cachedRows.value.get(+row), fields.value[+col])
+      break
+    case 'contextmenu':
+      showContextMenu(event, { row: +row, col: +col })
+      break
+    case 'click':
+      handleCellClick(event, +row, +col)
+      break
+  }
+}
 </script>
 
 <template>
@@ -2161,8 +2142,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
-                  :data-col="fields[0].id"
-                  :data-title="fields[0].title"
                   :style="{
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2205,8 +2184,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
                   v-xc-ver-resize
-                  :data-col="col.id"
-                  :data-title="col.title"
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
@@ -2262,104 +2239,18 @@ watch(vSelectedAllRecords, (selectedAll) => {
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
-                      <template v-if="isEeUI && persistMenu" #overlay>
-                        <NcMenu>
-                          <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
-                            <template #title>
-                              <div class="flex flex-row items-center py-3">
-                                <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
-                                  {{ $t('activity.predictColumns') }}
-                                </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
-                              </div>
-                            </template>
-                            <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <NcMenuItem>
-                                  <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-
-                              <NcMenuItem>
-                                <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                                  <div class="text-red-500 text-xs pl-2">
-                                    <MdiReload />
-                                    Generate Again
-                                  </div>
-                                </div>
-                              </NcMenuItem>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Columns -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                              <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictColumns') }}
-                              </div>
-                            </div>
-                          </NcMenuItem>
-                          <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
-                            <template #title>
-                              <div class="flex flex-row items-center py-3">
-                                <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
-                                  {{ $t('activity.predictFormulas') }}
-                                </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
-                              </div>
-                            </template>
-                            <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <NcMenuItem>
-                                  <div
-                                    class="flex flex-row items-center py-3"
-                                    @click="
-                                      loadColumn(col.title, 'Formula', {
-                                        formula_raw: col.formula,
-                                      })
-                                    "
-                                  >
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Formulas -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                              <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                              <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictFormulas') }}
-                              </div>
-                            </div>
-                          </NcMenuItem>
-                        </NcMenu>
-                      </template>
-                      <template v-else #overlay>
+                      <template #overlay>
                         <div class="nc-edit-or-add-provider-wrapper">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
                             ref="editOrAddProviderRef"
-                            :preload="preloadColumn"
-                            :column-position="columnOrder"
                             :class="{ hidden: isJsonExpand }"
                             @submit="closeAddColumnDropdownMenu(true)"
                             @cancel="closeAddColumnDropdownMenu()"
                             @click.stop
                             @keydown.stop
-                            @mounted="preloadColumn = undefined"
                           />
                         </div>
                       </template>
@@ -2386,7 +2277,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             </thead>
           </table>
 
-          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
+          <div v-if="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
 
           <div
             class="table-overlay"
@@ -2396,7 +2287,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
             }"
           >
             <table
-              ref="smartTable"
               class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
               :class="{
                 'mobile': isMobileMode,
@@ -2411,6 +2301,10 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
+                @click="handleTableEvents"
+                @mousedown="handleTableEvents"
+                @dblclick="handleTableEvents"
+                @contextmenu="handleTableEvents"
               >
                 <LazySmartsheetGridPlaceholderRow
                   v-if="placeholderStartRows.length"
@@ -2577,17 +2471,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
                         }"
-                        :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
-                        :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"
-                        :data-col="fields[0].id"
-                        :data-title="fields[0].title"
-                        :data-row-index="row.rowMeta.rowIndex"
-                        :data-col-index="0"
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
-                        @dblclick="makeEditable(row, fields[0])"
-                        @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
-                        @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
+                        :data-testid="`cell-${0}-${row.rowMeta.rowIndex}`"
                       >
                         <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
                           <div
@@ -2670,17 +2554,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
                         }"
-                        :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
-                        :data-key="`data-key-${row.rowMeta.rowIndex}-${columnObj.id}`"
-                        :data-col="columnObj.id"
-                        :data-title="columnObj.title"
-                        :data-row-index="row.rowMeta.rowIndex"
-                        :data-col-index="colIndex"
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
-                        @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"
-                        @dblclick="makeEditable(row, columnObj)"
-                        @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
+                        :data-testid="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
                       >
                         <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
                           <div

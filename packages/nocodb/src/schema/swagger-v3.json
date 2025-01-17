@@ -418,13 +418,203 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TableCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Sample Table20",
+                    "description": "Sample Description",
+                    "fields": [
+                      {
+                        "title": "SingleLineText",
+                        "type": "SingleLineText",
+                        "default_value": "Default Title"
+                      },
+                      {
+                        "title": "LongText",
+                        "type": "LongText",
+                        "default_value": "Default Description"
+                      },
+                      {
+                        "title": "RichText",
+                        "type": "LongText",
+                        "default_value": "**Default Description**",
+                        "options": {
+                          "rich_text": true
+                        }
+                      },
+                      {
+                        "title": "Email",
+                        "type": "Email",
+                        "default_value": "user@nocodb.com",
+                        "options": {
+                          "validation": true
+                        }
+                      },
+                      {
+                        "title": "URL",
+                        "type": "URL",
+                        "default_value": "https://nocodb.com",
+                        "options": {
+                          "validation": true
+                        }
+                      },
+                      {
+                        "title": "Phone",
+                        "type": "PhoneNumber",
+                        "default_value": "1234567890",
+                        "options": {
+                          "validation": true
+                        }
+                      },
+                      {
+                        "title": "Number",
+                        "type": "Number",
+                        "default_value": "34",
+                        "options": {
+                          "locale_string": true
+                        }
+                      },
+                      {
+                        "title": "Decimal",
+                        "type": "Decimal",
+                        "default_value": "34.56",
+                        "options": {
+                          "precision": 2
+                        }
+                      },
+                      {
+                        "title": "Currency",
+                        "type": "Currency",
+                        "default_value": "34.56",
+                        "options": {
+                          "locale": "en-US",
+                          "code": "USD"
+                        }
+                      },
+                      {
+                        "title": "Percent",
+                        "type": "Percent",
+                        "default_value": "0.34",
+                        "options": {
+                          "precision": 2,
+                          "show_as_percent": true
+                        }
+                      },
+                      {
+                        "title": "Date",
+                        "type": "Date",
+                        "default_value": "2021-09-30",
+                        "options": {
+                          "date_format": "YYYY-MM-DD"
+                        }
+                      },
+                      {
+                        "title": "DateTime",
+                        "type": "DateTime",
+                        "default_value": "2021-09-30 12:34:56",
+                        "options": {
+                          "date_format": "YYYY-MM-DD HH:mm:ss",
+                          "time_format": "HH:mm:ss",
+                          "12hr_format": true
+                        }
+                      },
+                      {
+                        "title": "SingleSelect",
+                        "type": "SingleSelect",
+                        "default_value": "Option 1",
+                        "options": {
+                          "choices": [
+                            {
+                              "title": "Option 1",
+                              "color": "#36BFFF"
+                            },
+                            {
+                              "title": "Option 2",
+                              "color": "#36BFFF"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "title": "MultiSelect",
+                        "type": "MultiSelect",
+                        "default_value": "[\"Option 1\"]",
+                        "options": {
+                          "choices": [
+                            {
+                              "title": "Option 1",
+                              "color": "#36BFFF"
+                            },
+                            {
+                              "title": "Option 2",
+                              "color": "#36BFFF"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "title": "Checkbox",
+                        "type": "Checkbox",
+                        "default_value": true,
+                        "options": {
+                          "icon": "heart",
+                          "color": "#36BFFF"
+                        }
+                      },
+                      {
+                        "title": "Rating",
+                        "type": "Rating",
+                        "default_value": "3",
+                        "options": {
+                          "icon": "heart",
+                          "max_value": 5,
+                          "color": "#36BFFF"
+                        }
+                      },
+                      {
+                        "title": "Attachment",
+                        "type": "Attachment"
+                      },
+                      {
+                        "title": "JSON",
+                        "type": "JSON",
+                        "default_value": "{\"key\": \"value\"}"
+                      },
+                      {
+                        "title": "User",
+                        "type": "User",
+                        "default_value": "uskfsbdfved8c03z",
+                        "options": {
+                          "allow_multiple_users": true
+                        }
+                      },
+                      {
+                        "title": "CreatedTime",
+                        "type": "CreatedTime"
+                      },
+                      {
+                        "title": "CreatedBy",
+                        "type": "CreatedBy"
+                      },
+                      {
+                        "title": "UpdatedBy",
+                        "type": "LastModifiedBy"
+                      },
+                      {
+                        "title": "UpdatedTime",
+                        "type": "LastModifiedTime"
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Table created successfully.",
+            "description": "Table created.",
             "content": {
               "application/json": {
                 "schema": {
@@ -433,20 +623,28 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "title": "Sample Table20",
+                      "id": "mo0tpvd1hjvfbrx",
+                      "title": "Sample Table24",
                       "description": "Sample Description",
+                      "source_id": "bzyr9k9ui4oudwx",
+                      "base_id": "p13yxf5plzg73jm",
+                      "workspace_id": "wsdkr9ub",
+                      "display_field_id": "c455mde7px2yidt",
                       "fields": [
                         {
+                          "id": "c455mde7px2yidt",
                           "title": "SingleLineText",
                           "type": "SingleLineText",
                           "default_value": "Default Title"
                         },
                         {
+                          "id": "c9zh8dmi7710mao",
                           "title": "LongText",
                           "type": "LongText",
                           "default_value": "Default Description"
                         },
                         {
+                          "id": "c57o8n0cbyss84l",
                           "title": "RichText",
                           "type": "LongText",
                           "default_value": "**Default Description**",
@@ -455,6 +653,7 @@
                           }
                         },
                         {
+                          "id": "cnl62kaut6jp5rg",
                           "title": "Email",
                           "type": "Email",
                           "default_value": "user@nocodb.com",
@@ -463,6 +662,7 @@
                           }
                         },
                         {
+                          "id": "cx4mpq7zm4offr8",
                           "title": "URL",
                           "type": "URL",
                           "default_value": "https://nocodb.com",
@@ -471,6 +671,7 @@
                           }
                         },
                         {
+                          "id": "cx7i90tmjjbh50g",
                           "title": "Phone",
                           "type": "PhoneNumber",
                           "default_value": "1234567890",
@@ -479,6 +680,7 @@
                           }
                         },
                         {
+                          "id": "chcb0o99ricceek",
                           "title": "Number",
                           "type": "Number",
                           "default_value": "34",
@@ -487,6 +689,7 @@
                           }
                         },
                         {
+                          "id": "csumykirz5i02pg",
                           "title": "Decimal",
                           "type": "Decimal",
                           "default_value": "34.56",
@@ -495,6 +698,7 @@
                           }
                         },
                         {
+                          "id": "cs1tvrdevhwf4r2",
                           "title": "Currency",
                           "type": "Currency",
                           "default_value": "34.56",
@@ -504,6 +708,7 @@
                           }
                         },
                         {
+                          "id": "crpqkxsq8d1ljgz",
                           "title": "Percent",
                           "type": "Percent",
                           "default_value": "0.34",
@@ -513,6 +718,7 @@
                           }
                         },
                         {
+                          "id": "crnzx3dtlnjjr5z",
                           "title": "Date",
                           "type": "Date",
                           "default_value": "2021-09-30",
@@ -521,6 +727,7 @@
                           }
                         },
                         {
+                          "id": "c26ypextdeug3qd",
                           "title": "DateTime",
                           "type": "DateTime",
                           "default_value": "2021-09-30 12:34:56",
@@ -531,6 +738,7 @@
                           }
                         },
                         {
+                          "id": "cyllf65uowcvw1b",
                           "title": "SingleSelect",
                           "type": "SingleSelect",
                           "default_value": "Option 1",
@@ -538,16 +746,19 @@
                             "choices": [
                               {
                                 "title": "Option 1",
-                                "color": "#36BFFF"
+                                "color": "#36BFFF",
+                                "id": "spd7exnmjz5uch8"
                               },
                               {
                                 "title": "Option 2",
-                                "color": "#36BFFF"
+                                "color": "#36BFFF",
+                                "id": "sytp5rjfte78p8k"
                               }
                             ]
                           }
                         },
                         {
+                          "id": "clhlbmjw6dpz9ts",
                           "title": "MultiSelect",
                           "type": "MultiSelect",
                           "default_value": "[\"Option 1\"]",
@@ -555,43 +766,51 @@
                             "choices": [
                               {
                                 "title": "Option 1",
-                                "color": "#36BFFF"
+                                "color": "#36BFFF",
+                                "id": "ssig2048lvr9puw"
                               },
                               {
                                 "title": "Option 2",
-                                "color": "#36BFFF"
+                                "color": "#36BFFF",
+                                "id": "sz7etgbnhm84e9w"
                               }
                             ]
                           }
                         },
                         {
+                          "id": "c86vpwa0qzexf8i",
                           "title": "Checkbox",
                           "type": "Checkbox",
-                          "default_value": true,
+                          "default_value": "true",
                           "options": {
-                            "icon": "heart",
-                            "color": "#36BFFF"
+                            "color": "#36BFFF",
+                            "icon": "heart"
                           }
                         },
                         {
+                          "id": "c6h2p5nmlmynbiv",
                           "title": "Rating",
                           "type": "Rating",
                           "default_value": "3",
                           "options": {
-                            "icon": "heart",
                             "max_value": 5,
-                            "color": "#36BFFF"
+                            "color": "#36BFFF",
+                            "icon": "heart"
                           }
                         },
                         {
+                          "id": "cqh7kupxqaw7itc",
                           "title": "Attachment",
                           "type": "Attachment"
                         },
                         {
+                          "id": "cp1d7w6surl8juh",
                           "title": "JSON",
-                          "type": "JSON"
+                          "type": "JSON",
+                          "default_value": "{\"key\": \"value\"}"
                         },
                         {
+                          "id": "cebdv0v3uy7tyiy",
                           "title": "User",
                           "type": "User",
                           "default_value": "uskfsbdfved8c03z",
@@ -600,23 +819,42 @@
                           }
                         },
                         {
+                          "id": "cb4vptiuveysb5a",
+                          "title": "Links",
+                          "type": "Links",
+                          "options": {
+                            "relation_type": "mm",
+                            "linked_table_id": "mnkgbmqwkls36fg"
+                          }
+                        },
+                        {
+                          "id": "cavokt1gde5dy2m",
+                          "title": "id",
+                          "type": "ID"
+                        },
+                        {
+                          "id": "csiwamkqrm08slv",
                           "title": "CreatedTime",
                           "type": "CreatedTime"
                         },
                         {
+                          "id": "cczd61fh2m0mn8a",
                           "title": "CreatedBy",
                           "type": "CreatedBy"
                         },
                         {
+                          "id": "chshjlwe59glff7",
                           "title": "UpdatedBy",
                           "type": "LastModifiedBy"
                         },
                         {
+                          "id": "ctlyu6sbs77whvj",
                           "title": "UpdatedTime",
                           "type": "LastModifiedTime"
                         }
                       ]
                     }
+
                   }
                 }
               }
@@ -3129,7 +3367,7 @@
       "TableCreateField": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/FieldBaseReq"
+            "$ref": "#/components/schemas/FieldBase"
           },
           {
             "oneOf": [
@@ -3236,9 +3474,14 @@
           }
         ]
       },
-      "FieldBaseReq": {
+      "FieldBase": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the field.",
+            "readOnly": true
+          },
           "title": {
             "type": "string",
             "description": "Title of the field."
@@ -3268,39 +3511,57 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the table."
           },
           "source_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the data source. This information will be included only if the table is associated with an external data source."
           },
           "base_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the base to which this table belongs to."
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Title of the table."
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Description of the table."
           },
           "display_field_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the display field of the table. First non system field is set as display field by default."
           },
           "workspace_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier for the workspace to which this base belongs to."
           },
           "fields": {
             "type": "array",
+            "description": "List of fields associated with this table.",
             "items": {
-              "$ref": "#/components/schemas/Field"
+              "$ref": "#/components/schemas/TableCreateField"
             }
           },
           "views": {
             "type": "array",
+            "description": "List of views associated with this table.",
             "items": {
               "$ref": "#/components/schemas/View"
             }
           }
-        }
+        },
+        "required": [
+          "id",
+          "title",
+          "base_id",
+          "workspace_id",
+          "display_field_id",
+          "fields",
+          "views"
+        ]
       },
       "BaseUser": {
         "type": "object",

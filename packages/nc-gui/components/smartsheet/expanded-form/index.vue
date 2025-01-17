@@ -865,9 +865,7 @@ export default {
           />
         </template>
         <template v-else-if="activeViewMode === 'discussion'">
-          <SmartsheetExpandedFormPresentorsDiscussion
-            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
-          />
+          <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>
     </div>

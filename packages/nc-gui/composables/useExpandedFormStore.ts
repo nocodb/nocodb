@@ -432,7 +432,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         const details = JSON.parse(audit.details)
 
         for (const columnKey of Object.keys(details.data || {})) {
-
           if (!details.column_meta?.[columnKey]) {
             delete details.data[columnKey]
             delete details.old_data[columnKey]
@@ -440,13 +439,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             continue
           }
 
-          if (['CreatedTime', 'CreatedBy', 'LastModifiedTime', 'LastModifiedBy'].includes(details.column_meta?.[columnKey]?.type)) {
+          if (
+            ['CreatedTime', 'CreatedBy', 'LastModifiedTime', 'LastModifiedBy'].includes(details.column_meta?.[columnKey]?.type)
+          ) {
             delete details.data[columnKey]
             delete details.old_data[columnKey]
             delete details.column_meta[columnKey]
             continue
           }
-
         }
 
         if (Object.values(details.column_meta || {}).length > 0) {
@@ -457,29 +457,34 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     } catch (e) {
       console.error(e)
     }
-    
-    return result;
 
+    return result
   })
 
   const consolidatedAudits = computed(() => {
     const result: typeof audits.value = []
 
     const applyAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
-      if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = [];
-      if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = [];
+      if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = []
+      if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = []
 
       if (type === 'link') {
         if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
           detail.consolidated_ref_display_values_links.push({ refRowId, value })
         } else {
-          detail.consolidated_ref_display_values_unlinks.splice(detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId), 1)
+          detail.consolidated_ref_display_values_unlinks.splice(
+            detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
         }
       } else {
         if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
           detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
         } else {
-          detail.consolidated_ref_display_values_links.splice(detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId), 1)
+          detail.consolidated_ref_display_values_links.splice(
+            detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
         }
       }
     }
@@ -493,7 +498,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const last = result[result.length - 1]
           const details = JSON.parse(current.details)
           if (!last) {
-            applyAuditValue(details, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
+            applyAuditValue(
+              details,
+              details.ref_row_id,
+              details.ref_display_value,
+              current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+            )
             current.details = JSON.stringify(details)
             result.push(current)
           } else {
@@ -504,15 +514,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               lastDetails.link_field_id === details.link_field_id &&
               lastDetails.ref_table_title === details.ref_table_title
             ) {
-              applyAuditValue(lastDetails, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
-              if (lastDetails.consolidated_ref_display_values_links?.length > 0 || lastDetails.consolidated_ref_display_values_unlinks?.length) {
+              applyAuditValue(
+                lastDetails,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
+              if (
+                lastDetails.consolidated_ref_display_values_links?.length > 0 ||
+                lastDetails.consolidated_ref_display_values_unlinks?.length
+              ) {
                 last.details = JSON.stringify(lastDetails)
-              }
-              else {
-                result.pop();
+              } else {
+                result.pop()
               }
             } else {
-              applyAuditValue(details, details.ref_row_id, details.ref_display_value, current.op_type === 'DATA_LINK' ? 'link' : 'unlink')
+              applyAuditValue(
+                details,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
               current.details = JSON.stringify(details)
               result.push(current)
             }
@@ -527,35 +549,38 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const lastDetails = JSON.parse(last.details)
           for (const field of Object.values(details.column_meta ?? {}) as any[]) {
             if (field.type === 'MultiSelect' && lastDetails?.column_meta?.[field?.title]) {
-              lastDetails.data[field.title] = details.data[field.title];
+              lastDetails.data[field.title] = details.data[field.title]
               for (const option of details.column_meta[field.title]?.options?.choices ?? []) {
                 if (!lastDetails.column_meta[field.title]?.options.choices.find((it: any) => it.id === option.id)) {
                   lastDetails.column_meta[field.title].options.choices.push(option)
                 }
               }
-              last.details = JSON.stringify(lastDetails);
-              delete details.old_data[field.title];
-              delete details.data[field.title];
-              delete details.column_meta[field.title];
-              current.details = JSON.stringify(details);
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
             } else if (field.type === 'User' && lastDetails?.column_meta?.[field?.title] && field.options?.is_multi) {
-              lastDetails.data[field.title] = details.data[field.title];
-              last.details = JSON.stringify(lastDetails);
-              delete details.old_data[field.title];
-              delete details.data[field.title];
-              delete details.column_meta[field.title];
-              current.details = JSON.stringify(details);
-            } else if (['SingleLineText', 'LongText', 'Number', 'Decimal'].includes(field.type) && lastDetails?.column_meta?.[field?.title]) {
-              lastDetails.data[field.title] = details.data[field.title];
-              last.details = JSON.stringify(lastDetails);
-              delete details.old_data[field.title];
-              delete details.data[field.title];
-              delete details.column_meta[field.title];
-              current.details = JSON.stringify(details);
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            } else if (
+              ['SingleLineText', 'LongText', 'Number', 'Decimal'].includes(field.type) &&
+              lastDetails?.column_meta?.[field?.title]
+            ) {
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
             }
           }
           if (Object.values(details.column_meta).length > 0) {
-            result.push(current);
+            result.push(current)
           }
         } else {
           result.push(current)

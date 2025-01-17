@@ -3,7 +3,7 @@ import { AttachmentValidationType, InputType, SelectValidationType, StringValida
 import type { ColumnType, Validation } from 'nocodb-sdk'
 
 import DatePicker from '~/components/cell/DatePicker.vue'
-import YearPicker from '~/components/cell/YearPicker.vue'
+import YearPicker from '~/components/cell/Year/index.vue'
 import TimePicker from '~/components/cell/TimePicker.vue'
 import Duration from '~/components/cell/Duration/index.vue'
 import Percent from '~/components/cell/Percent/index.vue'

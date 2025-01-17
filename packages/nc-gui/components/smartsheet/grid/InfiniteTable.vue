@@ -2381,7 +2381,6 @@ const cellAlignClass = computed(() => {
                       }"
                     >
                       <td
-                        key="row-index"
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                         @contextmenu="contextMenuTarget = null"

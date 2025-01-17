@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import tinycolor from 'tinycolor2'
-import type { SelectOptionType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib/types'
+import { useSingleSelect } from './utils'
 
 interface Props {
   modelValue?: string | undefined
@@ -61,56 +59,7 @@ const isNewOptionCreateEnabled = computed(
   () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
 )
 
-const options = computed<(SelectOptionType & { value: string })[]>(() => {
-  if (column?.value.colOptions) {
-    const opts = column.value.colOptions
-      ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
-      : []
-    for (const op of opts.filter((el: any) => el.order === null)) {
-      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
-    }
-
-    let order = 1
-    const limitOptionsById =
-      ((parseProp(column.value.meta)?.limitOptions || []).reduce(
-        (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-          if (order < (f?.order ?? 0)) {
-            order = f.order
-          }
-          return {
-            ...o,
-            [f.id]: f,
-          }
-        },
-        {},
-      ) as Record<string, FormFieldsLimitOptionsType>) ?? {}
-
-    if (
-      !isEditColumn.value &&
-      isForm.value &&
-      parseProp(column.value.meta)?.isLimitOption &&
-      (parseProp(column.value.meta)?.limitOptions || []).length
-    ) {
-      return opts
-        .filter((o: SelectOptionType & { value: string }) => {
-          if (limitOptionsById[o.id]?.show !== undefined) {
-            return limitOptionsById[o.id]?.show
-          }
-          return false
-        })
-        .map((o: any) => ({
-          ...o,
-          value: o.title,
-          order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
-        }))
-        .sort((a, b) => a.order - b.order)
-    } else {
-      return opts.map((o: any) => ({ ...o, value: o.title }))
-    }
-  }
-  return []
-})
+const { options, getOptionTextColor } = useSingleSelect()
 
 const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
@@ -330,9 +279,7 @@ watch(
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                color: getOptionTextColor(op.color),
               }"
               class="text-small"
             >
@@ -368,9 +315,7 @@ watch(
         <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
           <span
             :style="{
-              color: tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              color: getOptionTextColor(selectedOpt.color),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
@@ -425,9 +370,7 @@ watch(
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                color: getOptionTextColor(op.color),
               }"
               :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >

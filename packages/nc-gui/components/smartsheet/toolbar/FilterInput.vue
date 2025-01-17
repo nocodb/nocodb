@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import SingleSelect from '~/components/cell/SingleSelect.vue'
+import SingleSelect from '~/components/cell/SingleSelect/index.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
 import YearPicker from '~/components/cell/YearPicker.vue'

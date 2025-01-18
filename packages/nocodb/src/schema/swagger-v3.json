@@ -861,6 +861,7 @@
                         }
                       ]
                     }
+
                   }
                 }
               }
@@ -1516,6 +1517,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FilterListResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "root",
+                          "group_operator": "AND",
+                          "filters": [
+                            {
+                              "id": "fiml6n8qzam4wmvl",
+                              "field_id": "c580jyan91qwrbx",
+                              "operator": "eq",
+                              "value": "Midmarket"
+                            },
+                            {
+                              "id": "fi3egizdiubzfo9u",
+                              "group_operator": "OR",
+                              "filters": [
+                                {
+                                  "id": "fih624x0srskaf1i",
+                                  "field_id": "caymvuj3az60wyk",
+                                  "operator": "eq",
+                                  "value": "Mexico"
+                                },
+                                {
+                                  "id": "fi1pjkf0f88r8s6l",
+                                  "field_id": "caymvuj3az60wyk",
+                                  "operator": "eq",
+                                  "value": "Canada"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -1530,7 +1569,7 @@
       },
       "post": {
         "summary": "Create filter",
-        "description": "Create a new filter or group for a specific view.",
+        "description": "Create a new filter or filter-group for a specific view.",
         "tags": [
           "View Filters"
         ],
@@ -1625,7 +1664,7 @@
       },
       "delete": {
         "summary": "Delete filter",
-        "description": "Delete an existing filter or group.",
+        "description": "Delete an existing filter or filter-group.",
         "tags": [
           "View Filters"
         ],
@@ -1654,7 +1693,7 @@
       },
       "put": {
         "summary": "Replace filter",
-        "description": "Recreate filters for a specific view.",
+        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
         "tags": [
           "View Filters"
         ],
@@ -1674,18 +1713,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilterCreate"
+                "$ref": "#/components/schemas/FilterCreateUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Filters reordered successfully.",
+            "description": "Filter or group updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilterListResponse"
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
                 }
               }
             }
@@ -1694,7 +1733,7 @@
             "description": "Invalid request body."
           },
           "404": {
-            "description": "View not found."
+            "description": "Filter or group not found."
           },
           "500": {
             "description": "Server error."
@@ -1727,6 +1766,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SortListResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "so3o7c6po0tktghc",
+                          "field_id": "c580jyan91qwrbx",
+                          "order": "asc"
+                        },
+                        {
+                          "id": "so1n4x4w7dou8p0v",
+                          "field_id": "caymvuj3az60wyk",
+                          "order": "desc"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -1762,6 +1819,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SortCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "field_id": "c580jyan91qwrbx",
+                    "order": "asc"
+                  }
+                }
               }
             }
           }
@@ -1837,6 +1902,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SortUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "id": "so3o7c6po0tktghc",
+                    "order": "desc"
+                  }
+                }
               }
             }
           }
@@ -1889,6 +1962,41 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BaseUserList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "us8kesqka9jb2sqp",
+                          "email": "user-1@nocodb.com",
+                          "created_at": "2025-01-18 10:40:10+00:00",
+                          "updated_at": "2025-01-18 10:40:10+00:00",
+                          "base_role": "creator",
+                          "workspace_role": "workspace-level-no-access",
+                          "workspace_id": "w6wqiisd"
+                        },
+                        {
+                          "id": "usd616ujr1l7e16l",
+                          "email": "user@nocodb.com",
+                          "created_at": "2025-01-18 03:02:47+00:00",
+                          "updated_at": "2025-01-18 03:02:47+00:00",
+                          "base_role": "owner",
+                          "workspace_role": "workspace-level-owner",
+                          "workspace_id": "w6wqiisd"
+                        },
+                        {
+                          "id": "usxq7usbujj2xll9",
+                          "email": "user-2@nocodb.com",
+                          "created_at": "2025-01-18 10:40:20+00:00",
+                          "updated_at": "2025-01-18 10:40:20+00:00",
+                          "base_role": "commenter",
+                          "workspace_role": "workspace-level-no-access",
+                          "workspace_id": "w6wqiisd"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -3877,17 +3985,7 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            ],
+            "type": "string",
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
@@ -3966,7 +4064,7 @@
           },
           "user_name": {
             "type": "string",
-            "description": "Full name of the user."
+            "description": "Display name of the user."
           },
           "created_at": {
             "type": "string",
@@ -3976,7 +4074,7 @@
           "updated_at": {
             "type": "string",
             "format": "date-time",
-            "description": "Timestamp of when the user was last updated."
+            "description": "Timestamp of when the user access was last updated."
           },
           "base_role": {
             "$ref": "#/components/schemas/BaseRoles"
@@ -3994,6 +4092,7 @@
           "email",
           "created_at",
           "updated_at",
+          "base_role",
           "workspace_role",
           "workspace_id"
         ]
@@ -4040,11 +4139,13 @@
           ],
           "oneOf": [
             {
+              "title": "Invite User with ID",
               "required": [
                 "id"
               ]
             },
             {
+              "title": "Invite User with Email",
               "required": [
                 "email"
               ]
@@ -4077,16 +4178,19 @@
           ],
           "oneOf": [
             {
+              "title": "Update User using ID",
               "required": [
                 "id"
               ]
             },
             {
+              "title": "Update User using Email",
               "required": [
                 "email"
               ]
             }
           ],
+
           "description": "An object representing updates for an existing user."
         },
         "description": "Array of user updates."
@@ -4165,7 +4269,8 @@
           "id": {
             "type": "string",
             "format": "uuid",
-            "description": "Unique identifier for the sort."
+            "description": "Unique identifier for the sort.",
+            "readOnly": true
           },
           "field_id": {
             "type": "string",
@@ -4230,17 +4335,8 @@
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
           }
         },
-        "oneOf": [
-          {
-            "required": [
-              "id"
-            ]
-          },
-          {
-            "required": [
-              "field_id"
-            ]
-          }
+        "required": [
+          "id"
         ]
       },
       "ViewSummary": {
@@ -4625,17 +4721,7 @@
             "description": "Field type."
           },
           "default_value": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            ],
+            "type": "string",
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           },
           "description": {
@@ -5371,7 +5457,16 @@
           }
         ]
       },
-      "FilterCreateUpdate": {},
+      "FilterCreateUpdate": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Filter"
+          },
+          {
+            "$ref": "#/components/schemas/FilterGroup"
+          }
+        ]
+      },
       "FieldUpdate": {
         "allOf": [
           {
@@ -5582,17 +5677,18 @@
       "Filter": {
         "type": "object",
         "properties": {
-          "filter_id": {
+          "id": {
             "type": "string",
-            "description": "Unique identifier for the filter."
+            "description": "Unique identifier for the filter.",
+            "readOnly": true
           },
           "parent_id": {
             "type": "string",
-            "description": "Parent ID of the filter, specifying its group."
+            "description": "Parent ID of the filter, specifying this filters group association."
           },
           "field_id": {
             "type": "string",
-            "description": "Field ID to which the filter applies."
+            "description": "Field ID to which this filter applies. Defaults to **root**."
           },
           "operator": {
             "type": "string",
@@ -5616,8 +5712,7 @@
           }
         },
         "required": [
-          "filter_id",
-          "parent_id",
+          "id",
           "field_id",
           "operator",
           "value"
@@ -5629,15 +5724,9 @@
           "list": {
             "type": "array",
             "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/FilterGroup"
-                },
-                {
-                  "$ref": "#/components/schemas/Filter"
-                }
-              ]
-            }
+              "$ref": "#/components/schemas/FilterGroup"
+            },
+            "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**."
           }
         },
         "required": [
@@ -5733,18 +5822,27 @@
       "FilterGroup": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the group.",
+            "readOnly": true
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent ID of this filter-group."
+          },
           "group_operator": {
             "type": "string",
             "enum": [
               "AND",
               "OR"
             ],
-            "description": "Logical operator for the group."
+            "description": "Logical operator for combining filters in the group."
           },
           "filters": {
             "type": "array",
             "items": {
-              "oneOf": [
+              "anyOf": [
                 {
                   "$ref": "#/components/schemas/Filter"
                 },
@@ -5753,10 +5851,11 @@
                 }
               ]
             },
-            "description": "List of filters or nested filter groups at level 1."
+            "description": "Nested filters or filter groups."
           }
         },
         "required": [
+          "id",
           "group_operator",
           "filters"
         ]
@@ -5842,6 +5941,7 @@
       },
       "BaseRoles": {
         "type": "string",
+        "description": "Base roles for the user.",
         "enum": [
           "owner",
           "creator",
@@ -5853,6 +5953,7 @@
       },
       "WorkspaceRoles": {
         "type": "string",
+        "description": "Workspace roles for the user.",
         "enum": [
           "workspace-level-owner",
           "workspace-level-creator",

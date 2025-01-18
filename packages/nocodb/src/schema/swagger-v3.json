@@ -4221,8 +4221,9 @@
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
           }
         },
-        "required": [
-          "id"
+        "oneOf": [
+          { "required": ["id"] },
+          { "required": ["field_id"] }
         ]
       },
       "ViewSummary": {

@@ -6,7 +6,7 @@ import type {
   SortUpdateV3Type,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Sort } from '~/models';
+import { Column, Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
 import {
   builderGenerator,
@@ -59,9 +59,17 @@ export class SortsV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortUpdate',
       param.sort,
+      true,
     );
 
-    const sort = await Sort.get(context, param.sortId ?? '');
+    let sort;
+
+    if (param.sortId) {
+      sort = await Sort.get(context, param.sortId);
+    } else {
+      const sorts = await Sort.list(context, { viewId: param.viewId });
+      sort = sorts.find((s) => s.fk_column_id === param.sort.field_id);
+    }
 
     if (!sort || sort.fk_view_id !== param.viewId) {
       NcError.notFound('Sort not found');
@@ -70,6 +78,7 @@ export class SortsV3Service {
     const updateObj = this.revBuilder().build(param.sort);
     await this.sortsService.sortUpdate(context, {
       ...param,
+      sortId: sort.id,
       sort: updateObj as SortReqType,
     });
     return this.sortGet(context, param);
@@ -82,7 +91,24 @@ export class SortsV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortCreate',
       param.sort,
+      true,
     );
+
+    // check for existing filter with same field
+    const sorts = await Sort.list(context, { viewId: param.viewId });
+    const existingSort = sorts.find(
+      (s) => s.fk_column_id === param.sort.field_id,
+    );
+    if (existingSort) {
+      NcError.badRequest('Sort already exists for this field');
+    }
+
+    // check column exists
+    const column = await Column.get(context, { colId: param.sort.field_id });
+
+    if (!column) {
+      NcError.notFound('Column not found');
+    }
 
     const sort = await this.sortsService.sortCreate(context, {
       ...param,

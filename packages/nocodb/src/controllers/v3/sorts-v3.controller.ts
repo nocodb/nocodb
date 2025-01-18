@@ -76,11 +76,11 @@ export class SortsV3Controller {
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
   ) {
-    const sort = await this.sortsV3Service.sortDelete(context, {
+    await this.sortsV3Service.sortDelete(context, {
       viewId,
       sortId: body.id,
       req,
     });
-    return { list: sort };
+    return {};
   }
 }

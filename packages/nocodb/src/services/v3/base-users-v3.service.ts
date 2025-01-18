@@ -67,6 +67,7 @@ export class BaseUsersV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseUserCreate',
       param.baseUsers,
+      true,
     );
 
     const ncMeta = await Noco.ncMeta.startTransaction();
@@ -128,6 +129,7 @@ export class BaseUsersV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseUserUpdate',
       param.baseUsers,
+      true,
     );
 
     const ncMeta = await Noco.ncMeta.startTransaction();

@@ -32,6 +32,16 @@ export const filterBuilder = builderGenerator<
   },
   excludeNullProps: true,
   booleanProps: ['is_group'],
+  transformFn(data) {
+    if (
+      'value' in data &&
+      data.value !== undefined &&
+      data.value !== null &&
+      typeof data.value !== 'string'
+    ) {
+      data.value = data.value?.toString?.();
+    }
+  },
 });
 
 export const filterRevBuilder = builderGenerator<

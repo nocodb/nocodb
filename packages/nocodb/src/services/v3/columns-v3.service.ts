@@ -35,6 +35,7 @@ export class ColumnsV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/FieldUpdate',
       param.column,
+      true,
     );
 
     let column = await Column.get(context, { colId: param.columnId });
@@ -100,7 +101,11 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
     },
   ) {
-    validatePayload('swagger-v3.json#/components/schemas/Field', param.column);
+    validatePayload(
+      'swagger-v3.json#/components/schemas/Field',
+      param.column,
+      true,
+    );
 
     const column = columnV3ToV2Builder().build(
       param.column,

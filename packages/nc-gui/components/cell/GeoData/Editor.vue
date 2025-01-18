@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isExpanded" overlay-class-name="overflow-hidden !min-w-64 !max-w-64" destroyPopupOnHide>
+  <NcDropdown v-model:visible="isExpanded" overlay-class-name="overflow-hidden !min-w-64 !max-w-64" destroy-popup-on-hide>
     <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto">
       <NcButton
         size="xsmall"

@@ -10,8 +10,6 @@ interface Props {
 
 const { modelValue, selectOptions } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!

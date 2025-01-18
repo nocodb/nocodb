@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { getOptions } from './utils'
 import type { SelectOptionType } from 'nocodb-sdk'
+import { getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined

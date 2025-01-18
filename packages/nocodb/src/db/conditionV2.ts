@@ -1284,7 +1284,7 @@ const parseConditionV2 = async (
             qb = qb.whereNotBetween(field, val.split(','));
             break;
           case 'isWithin': {
-            let now = dayjs(new Date()).format(dateFormat).toString();
+            let now = dayjs(new Date()).utc().format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
 
             // switch between arg based on customWhereClause(builder)

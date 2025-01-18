@@ -173,7 +173,7 @@ onUnmounted(() => {
           v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon"
+          class="nc-action-icon has-many-action-icon"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
@@ -201,11 +201,31 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.nc-action-icon {
+.has-many-action-icon {
   @apply hidden cursor-pointer;
 }
 
-.chips-wrapper:hover .nc-action-icon {
+.chips-wrapper:hover .has-many-action-icon {
   @apply flex;
+}
+</style>
+
+<style lang="scss">
+.nc-default-value-wrapper,
+.nc-expanded-cell,
+.ant-form-item-control-input {
+  .has-many-action-icon {
+    @apply !flex;
+  }
+}
+
+.ant-form-item-control-input .has-many-action-icon {
+  top: 4px;
+  right: 4px;
+}
+
+.nc-expanded-cell .has-many-action-icon {
+  top: 2px;
+  right: 2px;
 }
 </style>

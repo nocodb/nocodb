@@ -103,6 +103,24 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
+  const auditsInAPage = 5
+  const currentAuditPages = ref(1)
+  const mightHaveMoreAudits = ref(false)
+
+  const loadMoreAudits = async () => {
+    if (!mightHaveMoreAudits.value) {
+      return
+    }
+
+    currentAuditPages.value++
+    await loadAudits()
+  }
+
+  const resetAuditPages = async () => {
+    currentAuditPages.value = 1
+    await loadAudits()
+  }
+
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
     if (
       !isUIAllowed('auditListRow') ||
@@ -119,13 +137,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       if (showLoading) {
         isAuditLoading.value = true
       }
-      const res =
-        (
-          await $api.utils.auditList({
-            row_id: rowId,
-            fk_model_id: meta.value.id as string,
-          })
-        ).list?.reverse?.() || []
+
+      const response = await $api.utils.auditList({
+        row_id: rowId,
+        fk_model_id: meta.value.id as string,
+        offset: 0,
+        limit: currentAuditPages.value * auditsInAPage,
+      })
+
+      const res = response.list?.reverse?.() || []
 
       audits.value = res.map((audit) => {
         const user = baseUsers.value.find((u) => u.email === audit.user)
@@ -136,6 +156,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           created_by_meta: user?.meta,
         }
       })
+
+      mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
     } catch (e: any) {
       message.error(
         await extractSdkResponseErrorMsg(
@@ -601,6 +623,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     comments,
     audits,
     isAuditLoading,
+    clearColumns,
+    auditCommentGroups,
+    consolidatedAudits,
+    mightHaveMoreAudits,
+    loadMoreAudits,
+    resetAuditPages,
     resolveComment,
     isCommentsLoading,
     saveComment,
@@ -615,9 +643,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
-    clearColumns,
-    auditCommentGroups,
-    consolidatedAudits,
   }
 }, 'expanded-form-store')
 

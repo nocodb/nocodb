@@ -3,7 +3,7 @@ import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { consolidatedAudits, isAuditLoading } = useExpandedFormStoreOrThrow()
+const { consolidatedAudits, isAuditLoading, loadMoreAudits, mightHaveMoreAudits } = useExpandedFormStoreOrThrow()
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
 
@@ -35,9 +35,20 @@ const createdByAudit = (
   }
 }
 
+const shouldSkipAuditsScroll = ref(false);
+
+function initLoadMoreAudits() {
+  shouldSkipAuditsScroll.value = true
+  loadMoreAudits()
+}
+
 watch(
   () => consolidatedAudits.value.length,
   (auditCount) => {
+    if (shouldSkipAuditsScroll.value) {
+      shouldSkipAuditsScroll.value = true
+      return
+    }
     nextTick(() => {
       setTimeout(() => {
         scrollToAudit(consolidatedAudits.value[auditCount - 1]?.id)
@@ -87,6 +98,11 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
+        <div v-if="mightHaveMoreAudits" class="p-3 text-center">
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()">
+            Load earlier
+          </NcButton>
+        </div>
         <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-gray-100">
             <div class="flex items-start justify-between">

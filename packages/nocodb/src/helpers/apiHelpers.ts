@@ -8,13 +8,16 @@ import { swaggerV3 } from '~/schema';
 import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
 
+import addErrors from 'ajv-errors';
+
+
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;
 }
 
-const ajv = new Ajv({ strictSchema: false, strict: false }); // Initialize AJV
-
+const ajv = new Ajv({ strictSchema: false, strict: false,  allErrors: true  }); // Initialize AJV
+addErrors(ajv);
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);
@@ -57,20 +60,20 @@ export const validatePayload = (
       ajv.errors || validate.errors;
 
     if (humanReadableError) {
-      let extractedSchema;
-      // extract schema from swagger json
-      if (schema.startsWith('swagger-v3.json#/components/schemas/')) {
-        extractedSchema =
-          swaggerV3.components.schemas[
-            schema.split('swagger-v3.json#/components/schemas/')[1]
-          ];
-      }
+      // let extractedSchema;
+      // // extract schema from swagger json
+      // if (schema.startsWith('swagger-v3.json#/components/schemas/')) {
+      //   extractedSchema =
+      //     swaggerV3.components.schemas[
+      //       schema.split('swagger-v3.json#/components/schemas/')[1]
+      //     ];
+      // }
 
-      errors = betterAjvErrors({
-        schema: extractedSchema,
-        data: payload,
-        errors,
-      });
+      // errors = betterAjvErrors({
+      //   schema: validate.schema,
+      //   data: payload,
+      //   errors,
+      // });
     }
 
     // If the request body is invalid, throw error with error message  and errors

@@ -861,7 +861,6 @@
                         }
                       ]
                     }
-
                   }
                 }
               }
@@ -3878,7 +3877,17 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "type": "string",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
@@ -4222,8 +4231,16 @@
           }
         },
         "oneOf": [
-          { "required": ["id"] },
-          { "required": ["field_id"] }
+          {
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "required": [
+              "field_id"
+            ]
+          }
         ]
       },
       "ViewSummary": {
@@ -4608,7 +4625,17 @@
             "description": "Field type."
           },
           "default_value": {
-            "type": "string",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           },
           "description": {
@@ -5246,8 +5273,8 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "Single select",
-                      "Multi select"
+                      "SingleSelect",
+                      "MultiSelect"
                     ]
                   },
                   "options": {
@@ -5332,7 +5359,7 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "Link to another record"
+                      "LinkToAnotherRecord"
                     ]
                   },
                   "options": {
@@ -5454,8 +5481,8 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "Single select",
-                      "Multi select"
+                      "SingleSelect",
+                      "MultiSelect"
                     ]
                   },
                   "options": {
@@ -5540,7 +5567,7 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "Link to another record"
+                      "LinkToAnotherRecord"
                     ]
                   },
                   "options": {

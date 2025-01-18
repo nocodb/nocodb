@@ -14,7 +14,7 @@ import Decimal from '~/components/cell/Decimal/index.vue'
 import Integer from '~/components/cell/Integer/index.vue'
 import Float from '~/components/cell/Float/index.vue'
 import Text from '~/components/cell/Text/index.vue'
-import User from '~/components/cell/User.vue'
+import User from '~/components/cell/User/index.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created

@@ -2,7 +2,7 @@
 import type { ColumnType, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import SingleSelect from '~/components/cell/SingleSelect/index.vue'
-import MultiSelect from '~/components/cell/MultiSelect.vue'
+import MultiSelect from '~/components/cell/MultiSelect/index.vue'
 import DatePicker from '~/components/cell/Date/index.vue'
 import YearPicker from '~/components/cell/Year/index.vue'
 import TimePicker from '~/components/cell/TimePicker.vue'
@@ -34,11 +34,13 @@ const column = toRef(props, 'column')
 
 const editEnabled = ref(true)
 
+const readOnly = ref(!!props.filter.readOnly)
+
 provide(ColumnInj, column)
 
 provide(EditModeInj, readonly(editEnabled))
 
-provide(ReadonlyInj, ref(false))
+provide(ReadonlyInj, readOnly)
 
 const checkTypeFunctions = {
   isSingleSelect,
@@ -129,19 +131,19 @@ const componentProps = computed(() => {
   switch (filterType.value) {
     case 'isSingleSelect':
     case 'isMultiSelect': {
-      return { disableOptionCreation: true }
+      return { disableOptionCreation: true, showReadonlyField: props.filter?.readOnly }
     }
     case 'isPercent':
     case 'isDecimal':
     case 'isFloat':
     case 'isInt': {
-      return { class: 'h-32px' }
+      return { class: 'h-32px', showReadonlyField: props.filter?.readOnly }
     }
     case 'isDuration': {
-      return { showValidationError: false }
+      return { showValidationError: false, showReadonlyField: props.filter?.readOnly }
     }
     default: {
-      return {}
+      return { showReadonlyField: props.filter?.readOnly }
     }
   }
 })

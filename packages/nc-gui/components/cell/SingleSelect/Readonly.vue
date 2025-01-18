@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { useSingleSelect } from './utils'
+import type { SelectOptionType } from 'nocodb-sdk'
+import { getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
+  selectOptions?: (SelectOptionType & { value?: string })[]
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, selectOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -18,16 +20,29 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const { options, getOptionTextColor } = useSingleSelect()
+const isEditColumn = inject(EditModeInj, ref(false))
+
+const options = computed(() => {
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+})
+
+const optionsMap = computed(() => {
+  return options.value.reduce((acc, op) => {
+    if (op.value) {
+      acc[op.value.trim()] = op
+    }
+    return acc
+  }, {} as Record<string, (typeof options.value)[number]>)
+})
 
 const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === modelValue || o.value === modelValue?.toString()?.trim())
+  return modelValue ? optionsMap.value[modelValue.trim()] : undefined
 })
 </script>
 
 <template>
   <div
-    class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent readonly-ra"
+    class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent"
     :class="{ 'read-only': readOnly, 'max-w-full': isForm }"
   >
     <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
@@ -42,7 +57,7 @@ const selectedOpt = computed(() => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: getOptionTextColor(op.color),
+                color: getSelectTypeOptionTextColor(op.color),
               }"
               class="text-small"
             >
@@ -67,11 +82,11 @@ const selectedOpt = computed(() => {
       </a-radio-group>
     </div>
 
-    <div v-else class="w-full">
+    <div v-else class="w-full flex items-center">
       <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
         <span
           :style="{
-            color: getOptionTextColor(selectedOpt.color),
+            color: getSelectTypeOptionTextColor(selectedOpt.color),
           }"
           :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
         >

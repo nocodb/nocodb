@@ -210,7 +210,8 @@ const showReadonlyField = computed(() => {
       return readOnly.value || !active.value
     }
 
-    case 'singleSelect': {
+    case 'singleSelect':
+    case 'multiSelect': {
       return readOnly.value || !(active.value || editEnabled.value || isForm.value)
     }
 
@@ -341,22 +342,22 @@ const cellClassName = computed(() => {
         :row-index="props.rowIndex"
       />
 
-      <template v-else-if="cellType === 'singleSelect'">
-        <LazyCellSingleSelectReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="props.rowIndex" />
-        <LazyCellSingleSelectEditor
-          v-else
-          v-model="vModel"
-          :disable-option-creation="isEditColumnMenu"
-          :row-index="props.rowIndex"
-        />
-      </template>
+      <LazyCellSingleSelect
+        v-else-if="cellType === 'singleSelect'"
+        v-model="vModel"
+        :disable-option-creation="isEditColumnMenu"
+        :row-index="props.rowIndex"
+        :show-readonly-field="showReadonlyField"
+      />
 
       <LazyCellMultiSelect
         v-else-if="cellType === 'multiSelect'"
         v-model="vModel"
         :disable-option-creation="isEditColumnMenu"
         :row-index="props.rowIndex"
+        :show-readonly-field="showReadonlyField"
       />
+
       <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
 
       <template v-else-if="cellType === 'rating'">

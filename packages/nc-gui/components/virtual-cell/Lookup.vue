@@ -130,8 +130,10 @@ const triggerRef = ref<HTMLDivElement | null>(null)
 
 const randomClass = `lookup-${Math.floor(Math.random() * 99999)}`
 
+const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
+
 onMounted(() => {
-  onClickOutside(triggerRef.value?.closest('td'), (e) => {
+  onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
     dropdownVisible.value = false
   })
@@ -139,7 +141,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcDropdown :disabled="disableDropdown" :visible="!disableDropdown && dropdownVisible" :auto-close="false">
+  <NcDropdown
+    :disabled="disableDropdown"
+    :visible="!disableDropdown && dropdownVisible"
+    :auto-close="false"
+    overlay-class-name="!min-w-[300px]"
+  >
     <div
       ref="triggerRef"
       class="nc-cell-field h-full w-full nc-lookup-cell"
@@ -220,7 +227,7 @@ onMounted(() => {
                     :key="i"
                     class="flex-none"
                     :class="{
-                      '!bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
+                      'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
                       'border-gray-200 rounded border-1': ![
                         UITypes.Attachment,
                         UITypes.MultiSelect,
@@ -312,7 +319,7 @@ onMounted(() => {
               :key="i"
               class="flex-none"
               :class="{
-                '!bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
+                'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
                 'border-gray-200 rounded border-1': ![
                   UITypes.Attachment,
                   UITypes.MultiSelect,

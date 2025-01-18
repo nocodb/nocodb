@@ -9,9 +9,10 @@ interface Props {
   showUnlinkButton?: boolean
   border?: boolean
   readonly?: boolean
+  truncate?: boolean
 }
 
-const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp } = defineProps<Props>()
+const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp, truncate = true } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
@@ -58,9 +59,9 @@ export default {
 <template>
   <div
     v-e="['c:row-expand:open']"
-    class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row truncate"
-    :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
-    @click="openExpandedForm"
+    class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row"
+    :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate }"
+    @click.stop="openExpandedForm"
   >
     <div class="text-ellipsis overflow-hidden pointer-events-none">
       <span class="name">

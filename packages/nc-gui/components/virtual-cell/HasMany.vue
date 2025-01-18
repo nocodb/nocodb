@@ -25,6 +25,8 @@ const isOpen = ref(false)
 
 const hideBackBtn = ref(false)
 
+const rowHeight = inject(RowHeightInj, ref())
+
 const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -123,12 +125,29 @@ watch(
   },
   { flush: 'post' },
 )
+
+const currentElementRef = ref<HTMLDivElement | null>(null)
+
+function getRef(rawEl: HTMLDivElement | null) {
+  currentElementRef.value = rawEl
+  const cell = currentElementRef.value?.closest('td, .nc-data-cell')
+  if (cell) cell.addEventListener('click', openChildList)
+}
+
+onUnmounted(() => {
+  const cell = currentElementRef.value?.closest('td, .nc-data-cell')
+  if (cell) cell.removeEventListener('click', openChildList)
+})
 </script>
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
-      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
+    <div :ref="getRef" class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
+      <div
+        class="chips flex items-center img-container flex-1 hm-items min-w-0 overflow-y-auto overflow-x-hidden"
+        :class="{ 'flex-wrap': rowHeight !== 1 }"
+        :style="{ maxHeight: `${rowHeightInPx[rowHeight]}px` }"
+      >
         <template v-if="cells">
           <VirtualCellComponentsItemChip
             v-for="(cell, i) of cells"
@@ -137,6 +156,7 @@ watch(
             :value="cell.value"
             :column="hasManyColumn"
             :show-unlink-button="true"
+            :truncate="false"
             @unlink="unlinkRef(cell.item)"
           />
 
@@ -144,19 +164,20 @@ watch(
         </template>
       </div>
 
-      <div v-if="!isUnderLookup && !isSystemColumn(column)" class="flex justify-end gap-1 min-h-4 items-center">
-        <GeneralIcon
-          icon="maximize"
-          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand h-3 w-3"
-          @click.stop="openChildList"
-        />
-
-        <GeneralIcon
+      <div
+        v-if="!isUnderLookup && !isSystemColumn(column)"
+        class="flex justify-end gap-1 min-h-4 items-center absolute right-1 top-[3px]"
+        @click.stop
+      >
+        <NcButton
           v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
-          icon="plus"
-          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
+          size="xsmall"
+          type="secondary"
+          class="nc-action-icon"
           @click.stop="openListDlg"
-        />
+        >
+          <GeneralIcon icon="plus" class="text-sm nc-plus" />
+        </NcButton>
       </div>
     </div>
     <template #overlay>

@@ -3095,6 +3095,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       exclude: extractExcludedColumnNames(this.model.columns),
       excludeNull: false,
       excludeBlanks: false,
+      keepNested: true,
     }) as UpdatePayload;
 
     if (updateDiff) {
@@ -3184,6 +3185,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               exclude: extractExcludedColumnNames(this.model.columns),
               excludeNull: false,
               excludeBlanks: false,
+              keepNested: true,
             }) as UpdatePayload;
 
             if (updateDiff) {

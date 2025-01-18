@@ -624,7 +624,7 @@
                   "Example 1": {
                     "value": {
                       "id": "mo0tpvd1hjvfbrx",
-                      "title": "Sample Table24",
+                      "title": "Sample Table",
                       "description": "Sample Description",
                       "source_id": "bzyr9k9ui4oudwx",
                       "base_id": "p13yxf5plzg73jm",
@@ -852,6 +852,13 @@
                           "title": "UpdatedTime",
                           "type": "LastModifiedTime"
                         }
+                      ],
+                      "views": [
+                        {
+                          "id": "vwuke35pn7bcoqmb",
+                          "title": "Sample Table",
+                          "view_type": "grid"
+                        }
                       ]
                     }
 
@@ -889,11 +896,254 @@
         ],
         "responses": {
           "200": {
-            "description": "Table details retrieved successfully.",
+            "description": "Table details are retrieved.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "mo0tpvd1hjvfbrx",
+                      "title": "Sample Table",
+                      "description": "Sample Description",
+                      "source_id": "bzyr9k9ui4oudwx",
+                      "base_id": "p13yxf5plzg73jm",
+                      "workspace_id": "wsdkr9ub",
+                      "display_field_id": "c455mde7px2yidt",
+                      "fields": [
+                        {
+                          "id": "c455mde7px2yidt",
+                          "title": "SingleLineText",
+                          "type": "SingleLineText",
+                          "default_value": "Default Title"
+                        },
+                        {
+                          "id": "c9zh8dmi7710mao",
+                          "title": "LongText",
+                          "type": "LongText",
+                          "default_value": "Default Description"
+                        },
+                        {
+                          "id": "c57o8n0cbyss84l",
+                          "title": "RichText",
+                          "type": "LongText",
+                          "default_value": "**Default Description**",
+                          "options": {
+                            "rich_text": true
+                          }
+                        },
+                        {
+                          "id": "cnl62kaut6jp5rg",
+                          "title": "Email",
+                          "type": "Email",
+                          "default_value": "user@nocodb.com",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "id": "cx4mpq7zm4offr8",
+                          "title": "URL",
+                          "type": "URL",
+                          "default_value": "https://nocodb.com",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "id": "cx7i90tmjjbh50g",
+                          "title": "Phone",
+                          "type": "PhoneNumber",
+                          "default_value": "1234567890",
+                          "options": {
+                            "validation": true
+                          }
+                        },
+                        {
+                          "id": "chcb0o99ricceek",
+                          "title": "Number",
+                          "type": "Number",
+                          "default_value": "34",
+                          "options": {
+                            "locale_string": true
+                          }
+                        },
+                        {
+                          "id": "csumykirz5i02pg",
+                          "title": "Decimal",
+                          "type": "Decimal",
+                          "default_value": "34.56",
+                          "options": {
+                            "precision": 2
+                          }
+                        },
+                        {
+                          "id": "cs1tvrdevhwf4r2",
+                          "title": "Currency",
+                          "type": "Currency",
+                          "default_value": "34.56",
+                          "options": {
+                            "locale": "en-US",
+                            "code": "USD"
+                          }
+                        },
+                        {
+                          "id": "crpqkxsq8d1ljgz",
+                          "title": "Percent",
+                          "type": "Percent",
+                          "default_value": "0.34",
+                          "options": {
+                            "precision": 2,
+                            "show_as_percent": true
+                          }
+                        },
+                        {
+                          "id": "crnzx3dtlnjjr5z",
+                          "title": "Date",
+                          "type": "Date",
+                          "default_value": "2021-09-30",
+                          "options": {
+                            "date_format": "YYYY-MM-DD"
+                          }
+                        },
+                        {
+                          "id": "c26ypextdeug3qd",
+                          "title": "DateTime",
+                          "type": "DateTime",
+                          "default_value": "2021-09-30 12:34:56",
+                          "options": {
+                            "date_format": "YYYY-MM-DD HH:mm:ss",
+                            "time_format": "HH:mm:ss",
+                            "12hr_format": true
+                          }
+                        },
+                        {
+                          "id": "cyllf65uowcvw1b",
+                          "title": "SingleSelect",
+                          "type": "SingleSelect",
+                          "default_value": "Option 1",
+                          "options": {
+                            "choices": [
+                              {
+                                "title": "Option 1",
+                                "color": "#36BFFF",
+                                "id": "spd7exnmjz5uch8"
+                              },
+                              {
+                                "title": "Option 2",
+                                "color": "#36BFFF",
+                                "id": "sytp5rjfte78p8k"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "clhlbmjw6dpz9ts",
+                          "title": "MultiSelect",
+                          "type": "MultiSelect",
+                          "default_value": "[\"Option 1\"]",
+                          "options": {
+                            "choices": [
+                              {
+                                "title": "Option 1",
+                                "color": "#36BFFF",
+                                "id": "ssig2048lvr9puw"
+                              },
+                              {
+                                "title": "Option 2",
+                                "color": "#36BFFF",
+                                "id": "sz7etgbnhm84e9w"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "c86vpwa0qzexf8i",
+                          "title": "Checkbox",
+                          "type": "Checkbox",
+                          "default_value": "true",
+                          "options": {
+                            "color": "#36BFFF",
+                            "icon": "heart"
+                          }
+                        },
+                        {
+                          "id": "c6h2p5nmlmynbiv",
+                          "title": "Rating",
+                          "type": "Rating",
+                          "default_value": "3",
+                          "options": {
+                            "max_value": 5,
+                            "color": "#36BFFF",
+                            "icon": "heart"
+                          }
+                        },
+                        {
+                          "id": "cqh7kupxqaw7itc",
+                          "title": "Attachment",
+                          "type": "Attachment"
+                        },
+                        {
+                          "id": "cp1d7w6surl8juh",
+                          "title": "JSON",
+                          "type": "JSON",
+                          "default_value": "{\"key\": \"value\"}"
+                        },
+                        {
+                          "id": "cebdv0v3uy7tyiy",
+                          "title": "User",
+                          "type": "User",
+                          "default_value": "uskfsbdfved8c03z",
+                          "options": {
+                            "allow_multiple_users": true
+                          }
+                        },
+                        {
+                          "id": "cb4vptiuveysb5a",
+                          "title": "Links",
+                          "type": "Links",
+                          "options": {
+                            "relation_type": "mm",
+                            "linked_table_id": "mnkgbmqwkls36fg"
+                          }
+                        },
+                        {
+                          "id": "cavokt1gde5dy2m",
+                          "title": "id",
+                          "type": "ID"
+                        },
+                        {
+                          "id": "csiwamkqrm08slv",
+                          "title": "CreatedTime",
+                          "type": "CreatedTime"
+                        },
+                        {
+                          "id": "cczd61fh2m0mn8a",
+                          "title": "CreatedBy",
+                          "type": "CreatedBy"
+                        },
+                        {
+                          "id": "chshjlwe59glff7",
+                          "title": "UpdatedBy",
+                          "type": "LastModifiedBy"
+                        },
+                        {
+                          "id": "ctlyu6sbs77whvj",
+                          "title": "UpdatedTime",
+                          "type": "LastModifiedTime"
+                        }
+                      ],
+                      "views": [
+                        {
+                          "id": "vwuke35pn7bcoqmb",
+                          "title": "Sample Table",
+                          "view_type": "grid"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -929,17 +1179,63 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TableUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Updated Table Title",
+                    "description": "Updated Description",
+                    "display_field_id": "c455mde7px2yidt",
+                    "meta": {
+                      "icon": "🚞"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Table updated successfully.",
+            "description": "Table meta updated.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "m0nibecfkcfsz2x",
+                      "title": "Features",
+                      "meta": {
+                        "icon": "🚞"
+                      },
+                      "source_id": "bbtx6pvj7b8yszy",
+                      "base_id": "pn9mmowpquxj60w",
+                      "workspace_id": "w6wqiisd",
+                      "views": [
+                        {
+                          "id": "vwuke35pn7bcoqmb",
+                          "title": "Features",
+                          "view_type": "grid"
+                        }
+                      ],
+                      "display_field_id": "cb51p6e2r4gpxpv",
+                      "fields": [
+                        {
+                          "id": "cz0jslmqdvcv68n",
+                          "title": "Id",
+                          "type": "ID"
+                        },
+                        {
+                          "id": "cb51p6e2r4gpxpv",
+                          "title": "Title",
+                          "type": "SingleLineText"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -3549,7 +3845,7 @@
             "type": "array",
             "description": "List of views associated with this table.",
             "items": {
-              "$ref": "#/components/schemas/View"
+              "$ref": "#/components/schemas/ViewSummary"
             }
           }
         },
@@ -3714,22 +4010,56 @@
           }
         }
       },
+      "TableMetaReq": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
+          }
+        }
+      },
       "TableUpdate": {
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "New title of the table."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the table."
+          },
+          "display_field_id": {
+            "type": "string",
+            "description": "Unique identifier for the display field of the table. The type of the field should be one of the allowed types for display field."
           },
           "meta": {
+            "$ref": "#/components/schemas/TableMetaReq",
+            "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
           }
         },
         "oneOf": [
           {
+            "title": "Rename Table",
             "required": [
               "title"
             ]
           },
           {
+            "title": "Update Table Description",
+            "required": [
+              "description"
+            ]
+          },
+          {
+            "title": "Update Display Field",
+            "required": [
+              "display_field_id"
+            ]
+          },
+          {
+            "title": "Update Table Icon",
             "required": [
               "meta"
             ]
@@ -3810,6 +4140,31 @@
         "required": [
           "id"
         ]
+      },
+      "ViewSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the view."
+          },
+          "title": {
+            "type": "string",
+            "description": "Name of the view."
+          },
+          "view_type": {
+            "type": "string",
+            "enum": [
+              "GRID",
+              "GALLERY",
+              "KANBAN",
+              "CALENDAR",
+              "FORM"
+            ],
+            "description": "Type of the view."
+          }
+        }
       },
       "View": {
         "type": "object",

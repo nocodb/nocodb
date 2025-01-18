@@ -569,15 +569,17 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         meta.duration = durationIdx;
       }
     }
+    // if multi select then accept array of default values
+    else if (data.uidt === UITypes.MultiSelect) {
+      data.cdf = Array.isArray(data.cdf) ? data.cdf.join(',') : data.cdf;
+    }
 
     let additionalPayloadData = {};
 
     if (columnsWithOptions.includes(data.uidt) && data.meta) {
       additionalPayloadData =
         columnOptionsV3ToV2Builder().build(data.meta) || {};
-      // meta = {};
     }
-    console.log(additionalPayloadData);
 
     return {
       ...data,

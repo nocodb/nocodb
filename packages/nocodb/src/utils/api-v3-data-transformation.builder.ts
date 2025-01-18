@@ -659,10 +659,19 @@ export const viewColumnBuilder = builderGenerator<
   ViewColumn[],
   Partial<ViewColumn>[]
 >({
-  allowed: ['fk_column_id', 'width', 'show', 'formatting'],
+  allowed: [
+    'fk_column_id',
+    'width',
+    'show',
+    'formatting',
+    'label',
+    'help',
+    'description',
+    'required',
+  ],
   mappings: {
     fk_column_id: 'field_id',
   },
   excludeNullProps: true,
-  booleanProps: ['show'],
+  booleanProps: ['show', 'required'],
 });

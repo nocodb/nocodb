@@ -133,7 +133,7 @@ export class TablesV3Service {
         }
         return table;
       }),
-    ) as TableV3Type[];
+    ) as unknown as TableV3Type[];
   }
 
   async tableCreate(

@@ -622,7 +622,7 @@ const parseConditionV2 = async (
             UITypes.LastModifiedTime,
           ].includes(column.uidt)
         ) {
-          let now = dayjs(new Date());
+          let now = dayjs(new Date()).utc();
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st

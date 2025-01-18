@@ -1284,7 +1284,7 @@
     "/api/v3/meta/tables/{tableId}/fields": {
       "post": {
         "summary": "Create field",
-        "description": "Create a new column within the specified table.",
+        "description": "Create a new field within the specified table.",
         "tags": [
           "Fields"
         ],
@@ -1304,18 +1304,61 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Field"
+                "$ref": "#/components/schemas/CreateField"
+              },
+              "examples": {
+                "SingleLineText / LongText": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "SingleLineText",
+                    "default_value": "Default Value",
+                    "description": "Sample Description"
+                  }
+                },
+                "RichText": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "LongText",
+                    "default_value": "Default Value",
+                    "description": "Sample Description",
+                    "options": {
+                      "rich_text": true
+                    }
+                  }
+                },
+                "Email / URL / PhoneNumber": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "Email",
+                    "default_value": "user@nocodb.com",
+                    "description": "Sample Description",
+                    "options": {
+                      "validation": true
+                    }
+                  }
+                },
+                "Number / Decimal": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "Number",
+                    "default_value": "23",
+                    "description": "Sample Description",
+                    "options": {
+                      "precision": "4"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Column created successfully.",
+            "description": "Field was created.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Field"
+                  "$ref": "#/components/schemas/CreateField"
                 }
               }
             }
@@ -1332,7 +1375,7 @@
     "/api/v3/meta/fields/{fieldId}": {
       "patch": {
         "summary": "Update field",
-        "description": "Update the details of a specific column.",
+        "description": "Update the details of a specific field.",
         "tags": [
           "Fields"
         ],
@@ -1344,7 +1387,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the column."
+            "description": "Unique identifier for the field being updated."
           }
         ],
         "requestBody": {
@@ -1352,27 +1395,67 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Field"
+                "$ref": "#/components/schemas/CreateField"
+              },
+              "examples": {
+                "SingleLineText / LongText": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "SingleLineText",
+                    "default_value": "Default Value",
+                    "description": "Sample Description"
+                  }
+                },
+                "RichText": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "LongText",
+                    "default_value": "Default Value",
+                    "description": "Sample Description",
+                    "options": {
+                      "rich_text": true
+                    }
+                  }
+                },
+                "Email / URL / PhoneNumber": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "Email",
+                    "default_value": "user@nocodb.com",
+                    "description": "Sample Description",
+                    "options": {
+                      "validation": true
+                    }
+                  }
+                },
+                "Number / Decimal": {
+                  "value": {
+                    "title": "New Field",
+                    "type": "Number",
+                    "default_value": "23",
+                    "description": "Sample Description",
+                    "options": {
+                      "precision": "4"
+                    }
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Column updated successfully.",
+          "201": {
+            "description": "Field was updated.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Field"
+                  "$ref": "#/components/schemas/CreateField"
                 }
               }
             }
           },
           "400": {
             "description": "Invalid request body."
-          },
-          "404": {
-            "description": "Column not found."
           },
           "500": {
             "description": "Server error."
@@ -1381,7 +1464,7 @@
       },
       "delete": {
         "summary": "Delete field",
-        "description": "Delete a specific column.",
+        "description": "Delete a specific field.",
         "tags": [
           "Fields"
         ],
@@ -1393,15 +1476,15 @@
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the column."
+            "description": "Unique identifier for the field."
           }
         ],
         "responses": {
           "204": {
-            "description": "Column deleted successfully."
+            "description": "Field was deleted."
           },
           "404": {
-            "description": "Column not found."
+            "description": "Field not found."
           },
           "500": {
             "description": "Server error."
@@ -3251,7 +3334,7 @@
           "fields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TableCreateField"
+              "$ref": "#/components/schemas/CreateField"
             }
           }
         },
@@ -3660,7 +3743,7 @@
           }
         }
       },
-      "TableCreateField": {
+      "CreateField": {
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
@@ -3776,7 +3859,8 @@
           "id": {
             "type": "string",
             "description": "Unique identifier for the field.",
-            "readOnly": true
+            "readOnly": true,
+            "writeOnly": false
           },
           "title": {
             "type": "string",
@@ -3838,7 +3922,7 @@
             "type": "array",
             "description": "List of fields associated with this table.",
             "items": {
-              "$ref": "#/components/schemas/TableCreateField"
+              "$ref": "#/components/schemas/CreateField"
             }
           },
           "views": {

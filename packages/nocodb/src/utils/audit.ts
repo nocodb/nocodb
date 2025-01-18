@@ -2,6 +2,7 @@ import {
   checkboxIconList,
   durationOptions,
   isSystemColumn,
+  isVirtualCol,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -989,4 +990,13 @@ export const extractColsMetaForAudit = (
       }
       return acc;
     }, {} as Record<string, ColumnMeta>);
+};
+
+export const extractExcludedColumnNames = (columns: ColumnType[]) => {
+  return columns.reduce((colNames: string[], col) => {
+    if (isSystemColumn(col) || isVirtualCol(col)) {
+      colNames.push(col.title);
+    }
+    return colNames;
+  }, [] as string[]);
 };

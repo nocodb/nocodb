@@ -53,6 +53,7 @@ import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
   extractColsMetaForAudit,
+  extractExcludedColumnNames,
   generateAuditV1Payload,
   populateUpdatePayloadDiff,
   remapWithAlias,
@@ -3091,12 +3092,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: this.model.columns.reduce((colNames: string[], col) => {
-        if (isSystemColumn(col)) {
-          colNames.push(col.title);
-        }
-        return colNames;
-      }, [] as string[]),
+      exclude: extractExcludedColumnNames(this.model.columns),
       excludeNull: false,
       excludeBlanks: false,
     }) as UpdatePayload;
@@ -3185,12 +3181,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: this.model.columns.reduce((colNames: string[], col) => {
-        if (isSystemColumn(col)) {
-          colNames.push(col.title);
-        }
-        return colNames;
-      }, [] as string[]),
+              exclude: extractExcludedColumnNames(this.model.columns),
               excludeNull: false,
               excludeBlanks: false,
             }) as UpdatePayload;

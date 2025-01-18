@@ -753,7 +753,11 @@ const currentColumnToEdit = ref('')
           />
         </template>
 
-        <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box nc-upload-box !overflow-hidden">
+        <a-collapse-panel
+          v-for="(table, tableIdx) of data.tables"
+          :key="tableIdx"
+          class="nc-import-table-box nc-upload-box !overflow-hidden"
+        >
           <template #header>
             <span class="font-weight-500 flex items-center gap-4 truncate">
               <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">

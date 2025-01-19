@@ -588,10 +588,7 @@ const parseConditionV2 = async (
         // based on custom where clause(builder), we need to change the field and val
         // todo: refactor this to use a better approach to make it more readable and clean
         let genVal = customWhereClause ? field : val;
-        const dateFormat =
-          knex.clientType() === 'mysql2'
-            ? 'YYYY-MM-DD HH:mm:ss'
-            : 'YYYY-MM-DD HH:mm:ssZ';
+        const dateFormat = 'YYYY-MM-DD';
 
         if (isAIPromptCol(column)) {
           if (knex.clientType() === 'pg') {
@@ -622,7 +619,7 @@ const parseConditionV2 = async (
             UITypes.LastModifiedTime,
           ].includes(column.uidt)
         ) {
-          let now = dayjs(new Date());
+          let now = dayjs(new Date()).utc();
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st
@@ -984,7 +981,9 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -1027,7 +1026,9 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -1069,7 +1070,9 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -1113,7 +1116,9 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -1279,7 +1284,7 @@ const parseConditionV2 = async (
             qb = qb.whereNotBetween(field, val.split(','));
             break;
           case 'isWithin': {
-            let now = dayjs(new Date()).format(dateFormat).toString();
+            let now = dayjs(new Date()).utc().format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
 
             // switch between arg based on customWhereClause(builder)

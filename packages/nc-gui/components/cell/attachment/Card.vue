@@ -79,15 +79,6 @@ const handleFileRename = async () => {
   }
 }
 
-const handleFileDeleteStart = () => {
-  if (!props.confirmToDelete) {
-    handleFileDelete()
-    return
-  }
-  isDeletingFile.value = true
-  deleteTitle.value = props.attachment.title
-}
-
 const handleResetFileDelete = () => {
   isDeletingFile.value = false
   deleteTitle.value = props.attachment.title
@@ -97,6 +88,15 @@ const handleFileDelete = () => {
   removeFile(props.index)
   handleResetFileDelete()
   return Promise.resolve()
+}
+
+const handleFileDeleteStart = () => {
+  if (!props.confirmToDelete) {
+    handleFileDelete()
+    return
+  }
+  isDeletingFile.value = true
+  deleteTitle.value = props.attachment.title
 }
 </script>
 

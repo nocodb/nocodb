@@ -55,7 +55,6 @@ const {
   selectedFile,
   isReadonly,
   storedFiles,
-  removeFile,
   updateAttachmentTitle,
 } = useProvideAttachmentCell(updateModelValue)
 

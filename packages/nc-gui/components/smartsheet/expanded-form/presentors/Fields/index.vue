@@ -54,11 +54,7 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsColumns
-        :fields="fields"
-        :hidden-fields="hiddenFields"
-        :is-loading="isLoading"
-      />
+      <SmartsheetExpandedFormPresentorsFieldsColumns :fields="fields" :hidden-fields="hiddenFields" :is-loading="isLoading" />
 
       <div
         v-if="canEdit"

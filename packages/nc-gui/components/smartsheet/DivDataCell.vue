@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+withDefaults(defineProps<{
+  isDataCell?: boolean
+}>(), {
+  isDataCell: true
+})
+
 const el = ref()
 
 provide(CurrentCellInj, el)
@@ -26,7 +32,7 @@ const onTabPress = () => {
 </script>
 
 <template>
-  <div ref="el" class="select-none nc-data-cell" @keydown.tab="onTabPress">
+  <div ref="el" class="select-none" :class="{ 'nc-data-cell': isDataCell, '!p-0': !isDataCell }" @keydown.tab="onTabPress">
     <slot />
   </div>
 </template>

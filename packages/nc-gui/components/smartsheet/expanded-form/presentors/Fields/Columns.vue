@@ -1,12 +1,5 @@
 <script lang="ts" setup>
-import {
-  type ColumnType,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 /* interface */
 
@@ -45,20 +38,8 @@ function toggleHiddenFields() {
   showHiddenFields.value = !showHiddenFields.value
 }
 
-/* utilities */
-
-function isReadOnlyVirtualCell(column: ColumnType) {
-  return (
-    isRollup(column) ||
-    isFormula(column) ||
-    isBarcode(column) ||
-    isLookup(column) ||
-    isQrCode(column) ||
-    isSystemColumn(column) ||
-    isCreatedOrLastModifiedTimeCol(column) ||
-    isCreatedOrLastModifiedByCol(column)
-  )
-}
+const shouldApplyDataCell = (column: ColumnType) =>
+  !(isBarcode(column) || isQrCode(column) || isCheckbox(column) || isRating(column))
 </script>
 
 <template>
@@ -98,7 +79,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
         </div>
 
         <template v-if="isLoading">
-          <a-skeleton-input active class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
+          <a-skeleton-input active class="h-8 flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
         </template>
         <template v-else>
           <SmartsheetDivDataCell
@@ -112,6 +93,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
               '!select-text nc-readonly-div-data-cell': readOnly,
               'nc-mentioned-cell': col.id === mentionedCell,
             }"
+            :is-data-cell="shouldApplyDataCell(col)"
           >
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(col)"
@@ -172,7 +154,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
           </div>
 
           <template v-if="isLoading">
-            <a-skeleton-input active class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
+            <a-skeleton-input active class="h-8 flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
           </template>
           <template v-else>
             <LazySmartsheetDivDataCell

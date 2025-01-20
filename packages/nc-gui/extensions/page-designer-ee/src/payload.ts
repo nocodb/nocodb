@@ -1,4 +1,5 @@
 import type { PageOrientation, PageType } from './layout'
+import type { PageDesignerWidget } from './widgets'
 
 interface PageLayout {
   orientation: PageOrientation
@@ -10,4 +11,5 @@ export interface PageDesignerPayload {
   selectedViewId?: string
   selectedRecordPrimaryKey?: string
   layout?: PageLayout
+  widgets?: PageDesignerWidget[]
 }

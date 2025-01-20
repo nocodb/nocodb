@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { type PageDesignerPayload } from '../src/payload'
+import { PageDesignerPayloadInj } from '../src/context'
 import { PageDesignerLayout } from '../src/layout'
+import Text from './widgets/Text.vue'
+import TextProperties from './widgets/TextProperties.vue'
 
-const props = defineProps<{
-  payload: PageDesignerPayload
-}>()
+const payload = inject(PageDesignerPayloadInj)
 
 const pageSize = computed(() =>
-  PageDesignerLayout.getPageSizePx(props.payload.layout?.pageType, props.payload.layout?.orientation),
+  PageDesignerLayout.getPageSizePx(payload?.value?.layout?.pageType, payload?.value?.layout?.orientation),
 )
 
 const horizontalLines = computed(() => {
@@ -39,9 +39,15 @@ const verticalLines = computed(() => {
             :style="{ top: `${line}px`, width: `${pageSize.width}px`, height: `1px` }"
           ></div>
         </div>
+        <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
+          <Text :widget="widget" />
+        </template>
       </div>
     </div>
-    <div class="w-[420px]">Sidebar</div>
+    <div class="w-[200px]">
+      Side Panel
+      <TextProperties :index="0" />
+    </div>
   </div>
 </template>
 

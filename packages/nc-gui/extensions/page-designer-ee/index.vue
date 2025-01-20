@@ -5,12 +5,16 @@ import RecordSelector from './components/RecordSelector.vue'
 import PageEditor from './components/PageEditor.vue'
 import { type PageDesignerPayload } from './src/payload'
 import { PageOrientation, PageType } from './src/layout'
+import { PageDesignerPayloadInj } from './src/context'
 
 const { extension, fullscreen, getViewsForTable, getTableMeta, tables } = useExtensionHelperOrThrow()
 
 const KV_STORE_KEY = 'pageDesigner'
 
 const savedPayload = ref<PageDesignerPayload>({})
+
+provide(PageDesignerPayloadInj, savedPayload)
+
 const views = ref<ViewType[]>([])
 const meta = ref<TableType>()
 
@@ -97,11 +101,11 @@ onMounted(async () => {
   const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
   if (saved) {
     savedPayload.value = saved
-    if (!savedPayload.value.layout)
-      savedPayload.value.layout = {
-        orientation: PageOrientation.PORTRAIT,
-        pageType: PageType.A4,
-      }
+    savedPayload.value.layout = {
+      orientation: PageOrientation.PORTRAIT,
+      pageType: PageType.A4,
+    }
+    savedPayload.value.widgets = [{ type: 'text', value: '', fontSize: 14 }]
   }
   await updateColumns()
   await reloadViews()
@@ -189,7 +193,7 @@ onMounted(async () => {
           @update:model-value="saveChanges"
         />
       </div>
-      <PageEditor v-else :payload="savedPayload" />
+      <PageEditor v-else />
     </div>
   </ExtensionsExtensionWrapper>
 </template>

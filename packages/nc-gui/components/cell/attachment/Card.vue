@@ -7,7 +7,8 @@ const props = withDefaults(
     index: number
     selected?: boolean
     dragging?: boolean
-    allowEditing?: boolean
+    allowRename?: boolean
+    allowDelete?: boolean
     allowSelection?: boolean
     previewClassOverride?: string
     renameInline?: boolean
@@ -16,7 +17,8 @@ const props = withDefaults(
   {
     selected: false,
     dragging: false,
-    allowEditing: false,
+    allowRename: false,
+    allowDelete: true,
     allowSelection: false,
     renameInline: true,
     confirmToDelete: false,
@@ -138,7 +140,7 @@ const handleFileDelete = () => {
       <div
         class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
-        @dblclick.stop="allowEditing && handleFileRenameStart()"
+        @dblclick.stop="allowRename && handleFileRenameStart()"
       >
         <NcTooltip v-if="!isRenamingFile" class="truncate h-5 flex items-center" show-on-truncate-only>
           {{ attachment.title }}
@@ -174,7 +176,7 @@ const handleFileDelete = () => {
           </NcButton>
         </NcTooltip>
 
-        <NcTooltip v-if="allowEditing" placement="bottom">
+        <NcTooltip v-if="allowRename" placement="bottom">
           <template #title> {{ $t('title.renameFile') }} </template>
           <NcButton
             size="xsmall"
@@ -186,7 +188,7 @@ const handleFileDelete = () => {
           </NcButton>
         </NcTooltip>
 
-        <NcTooltip v-if="allowEditing" placement="bottom">
+        <NcTooltip v-if="allowDelete" placement="bottom">
           <template #title> {{ $t('title.removeFile') }} </template>
           <NcButton
             class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"

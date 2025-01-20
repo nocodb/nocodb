@@ -123,7 +123,8 @@ const isNewAttachmentModalOpen = ref(false)
           v-model:dragging="dragging"
           v-model:selected="selectedVisibleItems[i]"
           :allow-selection="true"
-          :allow-editing="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
+          :allow-rename="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
+          :allow-delete="!readOnly"
           @clicked="onClick(item)"
         />
         <div v-if="isLoading" class="flex flex-col gap-1">

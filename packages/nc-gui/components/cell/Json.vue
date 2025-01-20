@@ -224,6 +224,7 @@ onUnmounted(() => {
     :closable="false"
     centered
     :footer="null"
+    :class="{ 'group': isExpandedFormOpen || isForm, 'nc-data-cell': isExpandedFormOpen }"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
     class="relative"
     :class="{ 'json-modal min-w-80': isExpanded }"

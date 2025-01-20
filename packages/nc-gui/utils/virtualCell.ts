@@ -34,6 +34,7 @@ export const isCount = (column: ColumnType) => column.uidt === UITypes.Count
 export const isLink = (column: ColumnType) => column.uidt === UITypes.Links
 export const isCheckbox = (column: ColumnType) => column.uidt === UITypes.Checkbox
 export const isRating = (column: ColumnType) => column.uidt === UITypes.Rating
+export const isJSON = (column: ColumnType) => column.uidt === UITypes.JSON
 
 export function isReadOnlyVirtualCell(col: ColumnType) {
   return (

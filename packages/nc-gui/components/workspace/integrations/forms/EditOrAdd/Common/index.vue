@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { type IntegrationCategoryType, SyncDataType, clientTypes as _clientTypes } from '#imports'
+import type { IntegrationCategoryType, SyncDataType, clientTypes as _clientTypes } from '#imports'
 
 const props = defineProps<{
   open: boolean

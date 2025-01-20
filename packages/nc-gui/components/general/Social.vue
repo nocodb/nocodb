@@ -50,7 +50,7 @@ const isZhLang = computed(() => locale.value.startsWith('zh'))
       :is="iconMap.calendar"
       v-e="['e:community:book-demo']"
       class="icon text-green-500"
-      @click="open('https://calendly.com/nocodb-meeting')"
+      @click="open('https://cal.com/nocodb')"
     />
   </div>
 </template>

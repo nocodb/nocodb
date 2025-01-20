@@ -107,7 +107,8 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             class="bg-white flex-1 <lg:w-full px-1 min-h-8 flex items-center relative"
             :class="{
               'w-full': props.forceVerticalMode,
-              '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer': isReadOnlyVirtualCell(col),
+              '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                isReadOnlyVirtualCell(col),
               '!select-text nc-readonly-div-data-cell': readOnly,
               'nc-mentioned-cell': col.id === mentionedCell,
             }"
@@ -177,10 +178,12 @@ function isReadOnlyVirtualCell(column: ColumnType) {
             <LazySmartsheetDivDataCell
               v-if="col.title"
               :ref="(el: any) => { if (i) cellWrapperEl = el }"
-              class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
+              class="bg-white flex-1 <lg:w-full px-1 min-h-8 flex items-center relative"
               :class="{
-                '!select-text nc-system-field': isReadOnlyVirtualCell(col),
-                '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
+                'w-full': props.forceVerticalMode,
+                '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                  isReadOnlyVirtualCell(col),
+                '!select-text nc-readonly-div-data-cell': readOnly,
                 'nc-mentioned-cell': col.id === mentionedCell,
               }"
             >

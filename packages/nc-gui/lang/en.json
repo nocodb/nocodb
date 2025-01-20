@@ -1816,6 +1816,7 @@
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "contents are read-only",
       "computedFieldDeleteWarning": "contents are read-only",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "No more records",
       "tokenNameNotEmpty": "Token name should not be empty",
       "tokenNameMaxLength": "Token name should not be more than 255 characters",

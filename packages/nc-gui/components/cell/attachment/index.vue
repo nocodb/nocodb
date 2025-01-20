@@ -209,6 +209,8 @@ const attachmentSize = computed(() => {
   }
 })
 
+const showAllAttachments = ref(false)
+
 defineExpose({
   openFilePicker: openAttachmentModal,
   downloadAttachment,
@@ -221,9 +223,9 @@ defineExpose({
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
-    <div v-if="visibleItems.length > 0" class="flex items-center mb-2 gap-2">
+    <div v-if="visibleItems.length > 0" class="flex flex-wrap items-center mb-2 gap-2">
       <CellAttachmentCard
-        v-for="(item, i) in visibleItems.slice(0,3)"
+        v-for="(item, i) in showAllAttachments ? visibleItems : visibleItems.slice(0, 3)"
         :key="`${item?.title}-${i}`"
         class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px]"
         :attachment="item"
@@ -238,11 +240,11 @@ defineExpose({
       />
     </div>
     <div class="mb-2" v-if="visibleItems.length > 3">
-      <NcButton class="!border-none !shadow-none" type="ghost" size="small" @click="onExpand">
-        + {{ visibleItems.length - 3 }} more
+      <NcButton class="!border-none !shadow-none" type="ghost" size="small" @click="showAllAttachments = !showAllAttachments">
+        {{ showAllAttachments ? `${$t('general.showLess')}` : `+ ${visibleItems.length - 3} ${$t('general.more').toLowerCase()}` }}
       </NcButton>
     </div>
-    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="openAttachmentModal">
+    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="openAttachmentModal" class="mb-1">
       <div class="flex items-center !text-xs gap-2 justify-center">
         <GeneralIcon :icon="'upload'" />
         <span class="text-[14px]">

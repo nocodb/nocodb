@@ -2,14 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import RecordSelector from './components/RecordSelector.vue'
+import PageEditor from './components/PageEditor.vue'
+import { type PageDesignerPayload } from './src/payload'
+import { PageOrientation, PageType } from './src/layout'
 
 const { extension, fullscreen, getViewsForTable, getTableMeta, tables } = useExtensionHelperOrThrow()
 
-interface PageDesignerPayload {
-  selectedTableId?: string
-  selectedViewId?: string
-  selectedRecordPrimaryKey?: string
-}
 const KV_STORE_KEY = 'pageDesigner'
 
 const savedPayload = ref<PageDesignerPayload>({})
@@ -97,7 +95,14 @@ const onViewSelect = async (viewId: string) => {
 
 onMounted(async () => {
   const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
-  if (saved) savedPayload.value = saved
+  if (saved) {
+    savedPayload.value = saved
+    if (!savedPayload.value.layout)
+      savedPayload.value.layout = {
+        orientation: PageOrientation.PORTRAIT,
+        pageType: PageType.A4,
+      }
+  }
   await updateColumns()
   await reloadViews()
 })
@@ -106,14 +111,9 @@ onMounted(async () => {
 <template>
   <ExtensionsExtensionWrapper>
     <template v-if="fullscreen" #headerExtra>
-      <NcButton> Header actions </NcButton>
+      <!-- <NcButton> Header actions </NcButton> -->
     </template>
-    <div
-      class="flex flex-col"
-      :class="{
-        'gap-6 bg-nc-bg-gray-extralight': fullscreen,
-      }"
-    >
+    <div class="flex flex-col h-full">
       <div v-if="!fullscreen" class="flex flex-col gap-2">
         <div class="p-3 flex">
           <div
@@ -189,6 +189,7 @@ onMounted(async () => {
           @update:model-value="saveChanges"
         />
       </div>
+      <PageEditor v-else :payload="savedPayload" />
     </div>
   </ExtensionsExtensionWrapper>
 </template>

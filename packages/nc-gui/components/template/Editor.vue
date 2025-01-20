@@ -794,7 +794,7 @@ const currentColumnToEdit = ref('')
                     <div class="flex items-center flex-grow truncate">
                       <NcTooltip class="inline-block max-w-full truncate">
                         <template #title>{{ record.srcTitle }}</template>
-                        {{ record.srcTitle }} {{ record.srcTitle }}
+                        {{ record.srcTitle }}
                       </NcTooltip>
                     </div>
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-1" />

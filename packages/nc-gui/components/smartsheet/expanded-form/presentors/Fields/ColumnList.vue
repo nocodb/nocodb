@@ -16,7 +16,7 @@ const { isUIAllowed } = useRoles()
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 const shouldApplyDataCell = (column: ColumnType) =>
-  !(isBarcode(column) || isQrCode(column) || isCheckbox(column) || isRating(column) || isJSON(column))
+  !(isBarcode(column) || isQrCode(column) || isBoolean(column) || isRating(column) || isJSON(column))
 </script>
 
 <template>

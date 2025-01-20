@@ -89,7 +89,7 @@ const virtualCellClassName = computed(() => {
     <LazyVirtualCellLookup v-else-if="virtualCellType === 'lookup'" />
     <LazyVirtualCellButton v-else-if="virtualCellType === 'button'" />
     <LazyCellDateTimeReadonly v-else-if="virtualCellType === 'createdOrLastModifiedTimeCol'" :model-value="modelValue" />
-    <LazyCellReadOnlyUser v-else-if="virtualCellType === 'createdOrLastModifiedByCol'" :model-value="modelValue" />
+    <LazyCellUserReadonly v-else-if="virtualCellType === 'createdOrLastModifiedByCol'" :model-value="modelValue" />
   </div>
 </template>
 

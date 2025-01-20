@@ -2,13 +2,12 @@
 import { type ColumnType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   fields: ColumnType[]
   forceVerticalMode?: boolean
   isLoading: boolean
 }>()
 
-const { changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()

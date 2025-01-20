@@ -30,7 +30,7 @@ const shouldApplyDataCell = (column: ColumnType) =>
     class="nc-expanded-form-row w-full"
   >
     <div
-      class="flex items-start nc-expanded-cell min-h-[37px]"
+      class="flex items-start nc-expanded-cell min-h-[32px]"
       :class="{
         'flex-row sm:(gap-x-2) <lg:(flex-col w-full)': !props.forceVerticalMode,
         'flex-col w-full': props.forceVerticalMode,
@@ -39,7 +39,7 @@ const shouldApplyDataCell = (column: ColumnType) =>
       <div
         class="flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto)': !props.forceVerticalMode,
+          'w-45 <lg:(w-full px-0 mb-1) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
           'w-full px-0 mb-1 h-auto': props.forceVerticalMode,
         }"
       >
@@ -65,7 +65,7 @@ const shouldApplyDataCell = (column: ColumnType) =>
           :class="{
             'w-full': props.forceVerticalMode,
             '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
-              isReadOnlyVirtualCell(col),
+              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col),
             '!select-text nc-readonly-div-data-cell': readOnly,
           }"
           :is-data-cell="shouldApplyDataCell(col)"

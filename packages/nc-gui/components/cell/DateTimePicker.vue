@@ -476,7 +476,6 @@ const currentDate = ($event) => {
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
     >
       <div
-        v-if="!isColDisabled || localState"
         :title="localState?.format(dateTimeFormat)"
         class="nc-date-picker ant-picker-input flex relative !w-auto gap-2"
         :class="{
@@ -543,7 +542,6 @@ const currentDate = ($event) => {
           </span>
         </div>
       </div>
-      <div v-else>&nbsp;</div>
 
       <template #overlay>
         <div

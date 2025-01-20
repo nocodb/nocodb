@@ -124,6 +124,11 @@ const showCol = (col: ColumnType) => {
     }
   }
 
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply h-auto;
+  }
+
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
     @apply !border-gray-200;

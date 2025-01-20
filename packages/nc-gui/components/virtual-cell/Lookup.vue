@@ -327,7 +327,19 @@ watch(dropdownVisible, (val) => {
           </template>
         </a-input>
         <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
-          <template v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup">
+          <div
+            v-if="search && !filteredArrValues.length"
+            class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+          >
+            <img
+              src="~assets/img/placeholder/no-search-result-found.png"
+              class="!w-[164px] flex-none"
+              alt="No search results found"
+            />
+
+            {{ $t('title.noResultsMatchedYourSearch') }}
+          </div>
+          <template v-else-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="

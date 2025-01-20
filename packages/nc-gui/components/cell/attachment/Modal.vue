@@ -118,10 +118,10 @@ const isNewAttachmentModalOpen = ref(false)
         <CellAttachmentCard
           v-for="(item, i) in visibleItems"
           :key="`${item?.title}-${i}`"
-          :attachment="item"
-          :index="i"
           v-model:dragging="dragging"
           v-model:selected="selectedVisibleItems[i]"
+          :attachment="item"
+          :index="i"
           :allow-selection="true"
           :allow-rename="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
           :allow-delete="!readOnly"

@@ -103,10 +103,10 @@ const handleFileDelete = () => {
 <template>
   <div class="nc-attachment-item group gap-1 flex border-1 rounded-md border-gray-200 flex-col relative">
     <NcCheckbox
+      v-if="allowSelection"
       v-model:checked="isSelected"
       class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100) opacity-0 z-50"
       :class="{ '!opacity-100': isSelected }"
-      v-if="allowSelection"
     />
     <div
       :class="{

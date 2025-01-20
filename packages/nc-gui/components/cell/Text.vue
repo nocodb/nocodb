@@ -58,7 +58,7 @@ const textareaValue = computed({
       v-model:value="textareaValue"
       :auto-size="{ minRows: 1, maxRows: 6 }"
       class="!border-0 !border-none !outline-0 !ring-0 focus:!border-0 focus:!outline-0 focus:!ring-0 !p-2 !py-0 nc-scrollbar-thin"
-      style="color: inherit; resize: auto !important; min-height: 32px !important; height: 32px !important;"
+      style="color: inherit; resize: auto !important; min-height: 32px !important; height: 32px !important"
       @keydown.enter.prevent
     />
   </template>

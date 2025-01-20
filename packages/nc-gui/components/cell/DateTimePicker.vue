@@ -467,6 +467,7 @@ const currentDate = ($event) => {
 <template>
   <div v-bind="$attrs" class="nc-cell-field relative">
     <NcDropdown
+      v-if="!isColDisabled || (modelValue !== null && !showNull)"
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
       :auto-close="false"
@@ -474,7 +475,6 @@ const currentDate = ($event) => {
       class="nc-cell-picker-datetime"
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
-      v-if="!isColDisabled || (modelValue !== null && !showNull)"
     >
       <div
         :title="localState?.format(dateTimeFormat)"

@@ -21,7 +21,7 @@ const shouldApplyDataCell = (column: ColumnType) =>
 
 <template>
   <div
-    v-for="(col, i) of fields"
+    v-for="col of fields"
     v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
     :key="col.title"
     :class="`nc-expand-col-${col.title}`"

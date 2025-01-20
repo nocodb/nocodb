@@ -77,14 +77,20 @@ const keydownSpace = (e: KeyboardEvent) => {
   }
 }
 
-useSelectedCellKeyupListener(active, (e) => {
-  switch (e.key) {
-    case 'Enter':
-      onClick()
-      e.stopPropagation()
-      break
-  }
-})
+useSelectedCellKeyupListener(
+  active,
+  (e) => {
+    switch (e.key) {
+      case 'Enter':
+        onClick()
+        e.stopPropagation()
+        break
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 const height = computed(() => {
   if (isGrid.value && !isForm?.value && !isExpandedFormOpen.value) {

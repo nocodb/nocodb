@@ -3,17 +3,18 @@ import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
+import { getOptions, getSelectedUsers } from './utils'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
   rowIndex?: number
   location?: 'cell' | 'filter'
   forceMulti?: boolean
+  options?: UserFieldRecordType[]
 }
 
-const { modelValue, forceMulti } = defineProps<Props>()
+const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -65,63 +66,20 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
-const options = computed<UserFieldRecordType[]>(() => {
-  let order = 1
-  const limitOptionsById =
-    ((parseProp(column.value.meta)?.limitOptions || []).reduce(
-      (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-        if (order < (f?.order ?? 0)) {
-          order = f.order
-        }
-        return {
-          ...o,
-          [f.id]: f,
-        }
-      },
-      {},
-    ) as Record<string, FormFieldsLimitOptionsType>) ?? {}
+const options = computed(() => {
+  return userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)
+})
 
-  const collaborators: UserFieldRecordType[] = []
-
-  if (
-    !isEditColumn.value &&
-    isForm.value &&
-    parseProp(column.value.meta)?.isLimitOption &&
-    (parseProp(column.value.meta)?.limitOptions || []).length
-  ) {
-    collaborators.push(
-      ...(baseUsers.value || [])
-        .filter((user) => {
-          if (limitOptionsById[user.id]?.show !== undefined) {
-            return limitOptionsById[user.id]?.show
-          }
-          return false
-        })
-        .map((user: any) => ({
-          id: user.id,
-          email: user.email,
-          display_name: user.display_name,
-          deleted: user.deleted,
-          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
-          meta: user.meta,
-        }))
-        .sort((a, b) => a.order - b.order),
-    )
-  } else {
-    collaborators.push(
-      ...(baseUsers.value || [])
-        .map((user: any) => ({
-          id: user.id,
-          email: user.email,
-          display_name: user.display_name,
-          deleted: user.deleted,
-          order: order++,
-          meta: user.meta,
-        }))
-        .sort((a, b) => a.order - b.order),
-    )
-  }
-  return collaborators
+const optionsMap = computed(() => {
+  return options.value.reduce((acc, op) => {
+    if (op.id) {
+      acc[op.id] = op
+    }
+    if (op.email) {
+      acc[op.email.trim()] = op
+    }
+    return acc
+  }, {} as Record<string, (typeof options.value)[number]>)
 })
 
 const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
@@ -130,49 +88,7 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 
 const vModel = computed({
   get: () => {
-    let selected: { label: string; value: string; meta: any }[] = []
-
-    let localModelValue = modelValue
-
-    // if stringified json
-    if (typeof localModelValue === 'string' && /^\s*[{[]/.test(localModelValue)) {
-      try {
-        localModelValue = JSON.parse(localModelValue)
-      } catch (e) {
-        // do nothing
-      }
-    }
-
-    if (typeof localModelValue === 'string') {
-      const idsOrMails = localModelValue.split(',').map((idOrMail) => idOrMail.trim())
-      selected = idsOrMails.reduce((acc, idOrMail) => {
-        const user = options.value.find((u) => u.id === idOrMail || u.email === idOrMail)
-        if (user) {
-          acc.push({
-            label: user?.display_name || user?.email,
-            value: user.id,
-            meta: user.meta,
-          })
-        }
-        return acc
-      }, [] as { label: string; value: string; meta: any }[])
-    } else {
-      selected = localModelValue
-        ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
-            const label = item?.display_name || item?.email
-            if (label) {
-              acc.push({
-                label,
-                value: item.id,
-                meta: item?.meta,
-              })
-            }
-            return acc
-          }, [] as { label: string; value: string; meta: any }[])
-        : []
-    }
-
-    return selected
+    return getSelectedUsers(optionsMap.value, modelValue)
   },
   set: (val) => {
     const value: string[] = []
@@ -219,39 +135,46 @@ watch(active, (n, _o) => {
   if (!n) isOpen.value = false
 })
 
-useSelectedCellKeyupListener(activeCell, (e) => {
-  switch (e.key) {
-    case 'Escape':
-      isOpen.value = false
-      break
-    case 'Enter':
-      if (editAllowed.value && active.value && !isOpen.value) {
-        isOpen.value = true
-      }
-      break
-    // skip space bar key press since it's used for expand row
-    case ' ':
-      break
-    case 'ArrowUp':
-    case 'ArrowDown':
-    case 'ArrowRight':
-    case 'ArrowLeft':
-    case 'Delete':
-      // skip
-      break
-    default:
-      if (!editAllowed.value) {
-        e.preventDefault()
+useSelectedCellKeyupListener(
+  activeCell,
+  (e) => {
+    console.log('use slected cell')
+    switch (e.key) {
+      case 'Escape':
+        isOpen.value = false
         break
-      }
-      // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
-        e.stopPropagation()
-        isOpen.value = true
-      }
-      break
-  }
-})
+      case 'Enter':
+        if (editAllowed.value && active.value && !isOpen.value) {
+          isOpen.value = true
+        }
+        break
+      // skip space bar key press since it's used for expand row
+      case ' ':
+        break
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowRight':
+      case 'ArrowLeft':
+      case 'Delete':
+        // skip
+        break
+      default:
+        if (!editAllowed.value) {
+          e.preventDefault()
+          break
+        }
+        // toggle only if char key pressed
+        if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+          e.stopPropagation()
+          isOpen.value = true
+        }
+        break
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 // close dropdown list on escape
 useSelectedCellKeyupListener(
@@ -261,6 +184,7 @@ useSelectedCellKeyupListener(
   },
   {
     isGridCell: false,
+    immediate: true,
   },
 )
 
@@ -409,7 +333,7 @@ const onFocus = () => {
         </template>
       </component>
       <div
-        v-if="!isMultiple && vModel.length"
+        v-if="!readOnly && !isMultiple && vModel.length"
         class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
         @click="vModel = []"
       >

@@ -12,8 +12,6 @@ const { modelValue, selectOptions } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
 
-const readOnly = inject(ReadonlyInj)!
-
 const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
@@ -40,8 +38,8 @@ const selectedOpt = computed(() => {
 
 <template>
   <div
-    class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent"
-    :class="{ 'read-only': readOnly, 'max-w-full': isForm }"
+    class="nc-cell-field h-full w-full flex items-center nc-single-select focus:outline-transparent read-only"
+    :class="{ 'max-w-full': isForm }"
   >
     <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <a-radio-group :value="modelValue" disabled class="nc-field-layout-list" @click.stop>
@@ -116,44 +114,5 @@ const selectedOpt = computed(() => {
 
 :deep(.ant-tag) {
   @apply "rounded-tag";
-}
-
-:deep(.ant-select-clear) {
-  opacity: 1;
-  border-radius: 100%;
-}
-
-.nc-single-select:not(.read-only) {
-  :deep(.ant-select-selector),
-  :deep(.ant-select-selector input) {
-    @apply !cursor-pointer;
-  }
-}
-
-:deep(.ant-select-selector) {
-  @apply !pl-0 !pr-4;
-}
-
-:deep(.ant-select-selector .ant-select-selection-item) {
-  @apply flex items-center;
-  text-overflow: clip;
-}
-
-:deep(.ant-select-selection-search) {
-  @apply flex items-center;
-
-  .ant-select-selection-search-input {
-    @apply !text-small;
-  }
-}
-
-:deep(.ant-select-clear > span) {
-  @apply block;
-}
-</style>
-
-<style lang="scss">
-.ant-select-item-option-content {
-  @apply !flex !items-center;
 }
 </style>

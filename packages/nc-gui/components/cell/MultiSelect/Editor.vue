@@ -132,40 +132,45 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(activeCell, (e) => {
-  console.log('keydown', e.key)
-  switch (e.key) {
-    case 'Escape':
-      isOpen.value = false
-      break
-    case 'Enter':
-      if (editAllowed.value && active.value && !isOpen.value) {
-        isOpen.value = true
-      }
-      break
-    // skip space bar key press since it's used for expand row
-    case ' ':
-      break
-    case 'ArrowUp':
-    case 'ArrowDown':
-    case 'ArrowRight':
-    case 'ArrowLeft':
-    case 'Delete':
-      // skip
-      break
-    default:
-      if (!editAllowed.value) {
-        e.preventDefault()
+useSelectedCellKeyupListener(
+  activeCell,
+  (e) => {
+    switch (e.key) {
+      case 'Escape':
+        isOpen.value = false
         break
-      }
-      // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
-        e.stopPropagation()
-        isOpen.value = true
-      }
-      break
-  }
-})
+      case 'Enter':
+        if (editAllowed.value && active.value && !isOpen.value) {
+          isOpen.value = true
+        }
+        break
+      // skip space bar key press since it's used for expand row
+      case ' ':
+        break
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowRight':
+      case 'ArrowLeft':
+      case 'Delete':
+        // skip
+        break
+      default:
+        if (!editAllowed.value) {
+          e.preventDefault()
+          break
+        }
+        // toggle only if char key pressed
+        if (!(e.metaKey || e.ctrlKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
+          e.stopPropagation()
+          isOpen.value = true
+        }
+        break
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 // close dropdown list on escape
 useSelectedCellKeyupListener(

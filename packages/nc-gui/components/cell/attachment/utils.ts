@@ -13,7 +13,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const { $api } = useNuxtApp()
 
+    const { isUIAllowed } = useRoles()
+
     const baseURL = $api.instance.defaults.baseURL
+
+    const { isSharedForm } = useSmartsheetStoreOrThrow()
 
     const { row } = useSmartsheetRowStoreOrThrow()
 
@@ -32,6 +36,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const column = inject(ColumnInj, ref())
 
     const editEnabled = inject(EditModeInj, ref(false))
+
+    const isEditAllowed = computed(() => (!isPublic.value && !isReadonly.value && isUIAllowed('dataEdit')) || isSharedForm.value)
 
     /** keep user selected File object */
     const storedFiles = ref<AttachmentType[]>([])
@@ -555,6 +561,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       permissionGranted,
       isRenameModalOpen,
       updateAttachmentTitle,
+      isEditAllowed,
     }
   },
   'useAttachmentCell',

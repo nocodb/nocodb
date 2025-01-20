@@ -34,8 +34,6 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
-const { isSharedForm } = useSmartsheetStoreOrThrow()!
-
 const { isMobileMode } = useGlobal()
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -57,6 +55,7 @@ const {
   storedFiles,
   removeFile,
   updateAttachmentTitle,
+  isEditAllowed,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -177,7 +176,6 @@ const keydownSpace = (e: KeyboardEvent) => {
   }
 }
 
-const { isUIAllowed } = useRoles()
 const isConfirmModalOpen = ref(false)
 const filetoDelete = reactive({
   title: '',
@@ -239,7 +237,7 @@ defineExpose({
         :attachment="item"
         :index="i"
         :allow-selection="false"
-        :allow-rename="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)"
+        :allow-rename="isEditAllowed"
         :allow-delete="!isReadonly"
         preview-class-override="!h-20"
         :rename-inline="false"
@@ -256,15 +254,16 @@ defineExpose({
       </NcButton>
     </div>
     <NcButton
+      v-if="isEditAllowed"
       data-testid="attachment-cell-file-picker-button"
       type="secondary"
-      size="small"
-      class="mb-1"
+      size="xsmall"
+      class="mb-1 !px-2"
       @click="openAttachmentModal"
     >
-      <div class="flex items-center !text-xs gap-2 justify-center">
-        <GeneralIcon icon="upload" />
-        <span class="text-[14px]">
+      <div class="flex items-center gap-1.5 justify-center">
+        <GeneralIcon icon="upload" class="text-gray-500 h-3.5 w-3.5" />
+        <span class="text-tiny">
           {{ $t('activity.uploadFiles') }}
         </span>
       </div>
@@ -403,6 +402,7 @@ defineExpose({
       </NcTooltip>
 
       <NcTooltip
+        v-if="isEditAllowed"
         placement="bottom"
         class="nc-action-icon !absolute hidden left-0 nc-text-area-expand-btn !group-hover:block z-3"
         :class="{

@@ -474,6 +474,7 @@ const currentDate = ($event) => {
       class="nc-cell-picker-datetime"
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
+      v-if="!isColDisabled || (modelValue !== null && !showNull)"
     >
       <div
         :title="localState?.format(dateTimeFormat)"

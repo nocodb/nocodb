@@ -3,8 +3,8 @@ import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
-import MdiCloseCircle from '~icons/mdi/close-circle'
 import { getOptions, getSelectedUsers } from './utils'
+import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null

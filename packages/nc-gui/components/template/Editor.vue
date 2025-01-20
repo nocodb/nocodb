@@ -805,7 +805,7 @@ const currentColumnToEdit = ref('')
                 <template v-else-if="column.key === 'destination_column'">
                   <a-select
                     v-model:value="record.destCn"
-                    class="w-full"
+                    class="w-full nc-upload-filter-field"
                     show-search
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
@@ -1024,5 +1024,8 @@ const currentColumnToEdit = ref('')
       @apply !font-weight-700 text-[13px];
     }
   }
+}
+:deep(.ant-select.nc-upload-filter-field) .ant-select-selector {
+  @apply !border-gray-200 shadow-sm shadow-gray-200;
 }
 </style>

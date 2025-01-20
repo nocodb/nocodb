@@ -104,7 +104,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
           <SmartsheetDivDataCell
             v-if="col.title"
             :ref="(el: any) => { if (i) cellWrapperEl = el }"
-            class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
+            class="bg-white flex-1 <lg:w-full px-1 min-h-8 flex items-center relative"
             :class="{
               'w-full': props.forceVerticalMode,
               '!select-text nc-system-field bg-nc-bg-gray-light': isReadOnlyVirtualCell(col),

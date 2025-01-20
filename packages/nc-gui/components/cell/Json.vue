@@ -223,9 +223,9 @@ onUnmounted(() => {
     :closable="false"
     centered
     :footer="null"
-    :class="{ 'json-modal min-w-80': isExpanded }"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
     class="relative"
+    :class="{ 'json-modal min-w-80': isExpanded }"
   >
     <div v-if="isExpanded" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>
@@ -288,13 +288,11 @@ onUnmounted(() => {
 .nc-grid-cell .nc-cell-json {
   min-height: 20px !important;
 }
-.nc-expanded-cell .nc-cell-json {
-  .nc-cell-field {
-    margin: 4px 0;
-  }
+.nc-expanded-cell .nc-cell-json .nc-cell-field {
+  margin: 8px 0;
 }
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
-  min-height: 30px;
+  min-height: 38px;
 }
 
 .nc-default-value-wrapper,

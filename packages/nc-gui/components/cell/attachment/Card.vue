@@ -36,7 +36,7 @@ const isSelected = useVModel(props, 'selected', emits)
 const isDragging = useVModel(props, 'dragging', emits)
 
 const { getPossibleAttachmentSrc } = useAttachment()
-const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile } = useAttachmentCell()!
+const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
 
 const isRenamingFile = ref(false)
 const renameTitle = ref('')
@@ -127,7 +127,7 @@ const handleFileDeleteStart = () => {
       <div
         class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
-        @dblclick.stop="allowRename && handleFileRenameStart()"
+        @dblclick.stop="allowRename && isEditAllowed && handleFileRenameStart()"
       >
         <NcTooltip v-if="!isRenamingFile" class="truncate h-5 flex items-center" show-on-truncate-only>
           {{ attachment.title }}
@@ -163,7 +163,7 @@ const handleFileDeleteStart = () => {
           </NcButton>
         </NcTooltip>
 
-        <NcTooltip v-if="allowRename" placement="bottom">
+        <NcTooltip v-if="allowRename && isEditAllowed" placement="bottom">
           <template #title> {{ $t('title.renameFile') }} </template>
           <NcButton
             size="xsmall"
@@ -175,7 +175,7 @@ const handleFileDeleteStart = () => {
           </NcButton>
         </NcTooltip>
 
-        <NcTooltip v-if="allowDelete" placement="bottom">
+        <NcTooltip v-if="allowDelete && isEditAllowed" placement="bottom">
           <template #title> {{ $t('title.removeFile') }} </template>
           <NcButton
             class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"

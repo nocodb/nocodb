@@ -227,21 +227,12 @@ defineExpose({
 
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
-    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="openAttachmentModal">
-      <div class="flex items-center !text-xs gap-1 justify-center">
-        <MaterialSymbolsAttachFile class="text-gray-500 text-tiny" />
-        <span class="text-[10px]">
-          {{ $t('activity.addFiles') }}
-        </span>
-      </div>
-    </NcButton>
     <LazyCellAttachmentCarousel v-if="selectedFile" />
-
-    <div v-if="visibleItems.length > 0" class="grid mt-2 gap-2 grid-cols-2">
+    <div v-if="visibleItems.length > 0" class="flex items-center mb-2 gap-2">
       <div
-        v-for="(item, i) in visibleItems"
+        v-for="(item, i) in visibleItems.slice(0, 3)"
         :key="`${item?.title}-${i}`"
-        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative"
+        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-1/4"
       >
         <div
           :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
@@ -251,7 +242,7 @@ defineExpose({
             v-if="isImage(item.title, item.mimetype)"
             :srcs="getPossibleAttachmentSrc(item, 'small')"
             object-fit="cover"
-            class="!w-full !h-42 object-cover !m-0 rounded-t-[5px] justify-center"
+            class="!w-full !h-20 object-cover !m-0 rounded-t-[5px] justify-center"
             @click="onFileClick(item)"
           />
 
@@ -310,6 +301,19 @@ defineExpose({
         </div>
       </div>
     </div>
+    <div class="mb-2" v-if="visibleItems.length > 3">
+      <NcButton class="!border-none !shadow-none" type="ghost" size="small" @click="onExpand">
+        + {{ visibleItems.length - 3 }} more
+      </NcButton>
+    </div>
+    <NcButton data-testid="attachment-cell-file-picker-button" type="secondary" size="small" @click="openAttachmentModal">
+      <div class="flex items-center !text-xs gap-2 justify-center">
+        <GeneralIcon :icon="'upload'" />
+        <span class="text-[14px]">
+          {{ $t('activity.uploadFiles') }}
+        </span>
+      </div>
+    </NcButton>
   </div>
   <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
     <LazyCellAttachmentCarousel v-if="selectedFile" />

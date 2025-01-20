@@ -7850,7 +7850,7 @@ class BaseModelSqlv2 {
             : null;
 
           if (oldRowId) {
-            const [parentRelatedPkValue, _childRelatedPkValue] =
+            const [parentRelatedPkValue, childRelatedPkValue] =
               await this.readOnlyPrimariesByPkFromModel([
                 { model: childTable, id: childId },
                 { model: parentTable, id: oldRowId },
@@ -7864,7 +7864,8 @@ class BaseModelSqlv2 {
               opSubType: AuditOperationSubTypes.UNLINK_RECORD,
               columnTitle: auditConfig.parentColTitle,
               columnId: auditConfig.parentColId,
-              displayValue: parentRelatedPkValue,
+              refDisplayValue: parentRelatedPkValue,
+              displayValue: childRelatedPkValue,
               req: cookie,
               type: colOptions.type as RelationTypes,
             });
@@ -7878,7 +7879,8 @@ class BaseModelSqlv2 {
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.childColTitle,
                 columnId: auditConfig.childColId,
-                refDisplayValue: parentRelatedPkValue,
+                displayValue: parentRelatedPkValue,
+                refDisplayValue: childRelatedPkValue,
                 req: cookie,
                 type: getOppositeRelationType(colOptions.type),
               });

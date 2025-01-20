@@ -289,10 +289,10 @@ onUnmounted(() => {
   min-height: 20px !important;
 }
 .nc-expanded-cell .nc-cell-json .nc-cell-field {
-  margin: 8px 0;
+  margin: 4px 0;
 }
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
-  min-height: 38px;
+  min-height: 34px;
 }
 
 .nc-default-value-wrapper,

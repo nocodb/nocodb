@@ -438,7 +438,7 @@ const addNewRow = () => {
 }
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
-useActiveKeyupListener(
+useActiveKeydownListener(
   isExpanded,
   async (e: KeyboardEvent) => {
     if (!e.altKey) return

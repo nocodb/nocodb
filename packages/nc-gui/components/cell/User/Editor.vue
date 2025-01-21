@@ -135,7 +135,7 @@ watch(active, (n, _o) => {
   if (!n) isOpen.value = false
 })
 
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   activeCell,
   (e) => {
     console.log('use slected cell')
@@ -177,7 +177,7 @@ useSelectedCellKeyupListener(
 )
 
 // close dropdown list on escape
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   isOpen,
   (e) => {
     if (e.key === 'Escape') isOpen.value = false

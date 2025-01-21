@@ -77,7 +77,7 @@ const keydownSpace = (e: KeyboardEvent) => {
   }
 }
 
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   active,
   (e) => {
     switch (e.key) {

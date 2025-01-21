@@ -334,7 +334,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       </div>
     </template>
   </NcDropdown>
-  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
+  <div v-if="!active && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

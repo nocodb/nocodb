@@ -4,7 +4,7 @@ import type { ColumnType, Validation } from 'nocodb-sdk'
 
 import DatePicker from '~/components/cell/Date/index.vue'
 import YearPicker from '~/components/cell/Year/index.vue'
-import TimePicker from '~/components/cell/TimePicker.vue'
+import TimePicker from '~/components/cell/Time/index.vue'
 import Duration from '~/components/cell/Duration/index.vue'
 import Percent from '~/components/cell/Percent/index.vue'
 import Currency from '~/components/cell/Currency/index.vue'

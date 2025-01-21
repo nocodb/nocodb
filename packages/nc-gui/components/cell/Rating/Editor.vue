@@ -28,7 +28,7 @@ const vModel = computed({
   set: (val) => emits('update:modelValue', val),
 })
 
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   inject(ActiveCellInj, ref(false)),
   (e: KeyboardEvent) => {
     if (/^\d$/.test(e.key)) {

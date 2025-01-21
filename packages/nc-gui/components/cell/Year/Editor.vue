@@ -236,7 +236,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
   }
 }
 
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   active,
   (e) => {
     if (e.altKey || e.shiftKey) {

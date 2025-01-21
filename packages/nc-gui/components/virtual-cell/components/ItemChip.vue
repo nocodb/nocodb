@@ -80,7 +80,6 @@ export default {
           <!-- For attachment cell avoid adding chip style -->
           <template v-else>
             <div
-              class="min-w-max"
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
                 'border-gray-200 rounded border-1 blue-chip':
@@ -167,6 +166,10 @@ export default {
     &,
     & * {
       @apply !text-nc-content-brand;
+    }
+    :deep(.clamped-text) {
+      display: block !important;
+      text-overflow: ellipsis;
     }
   }
 }

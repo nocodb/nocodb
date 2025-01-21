@@ -188,7 +188,7 @@ watch(dropdownVisible, (val) => {
           isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
             ? undefined
             : rowHeight
-            ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+            ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`]}px`
             : `2.85rem`,
       }"
       @dblclick="activateShowEditNonEditableFieldWarning"
@@ -259,7 +259,7 @@ watch(dropdownVisible, (val) => {
                     class="flex-none"
                     :class="{
                       'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                      'border-gray-200 rounded border-1': ![
+                      'border-gray-200 rounded border-1 max-w-full': ![
                         UITypes.Attachment,
                         UITypes.MultiSelect,
                         UITypes.SingleSelect,
@@ -365,7 +365,7 @@ watch(dropdownVisible, (val) => {
               class="flex-none"
               :class="{
                 'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                'border-gray-200 rounded border-1': ![
+                'border-gray-200 rounded border-1 max-w-full': ![
                   UITypes.Attachment,
                   UITypes.MultiSelect,
                   UITypes.SingleSelect,

@@ -10,4 +10,10 @@ export interface PageDesignerTextWidget extends PageDesignerWidget {
   backgroundColor: string
   textColor: string
   lineHeight: number
+  borderLeft: number
+  borderRight: number
+  borderTop: number
+  borderBottom: number
+  borderRadius: number
+  borderColor: number
 }

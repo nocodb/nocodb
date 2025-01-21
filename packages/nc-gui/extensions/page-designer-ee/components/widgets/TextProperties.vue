@@ -2,6 +2,7 @@
 import { PageDesignerPayloadInj } from '../../src/context'
 import GroupedSettings from '../GroupedSettings.vue'
 import ColorPropertyPicker from '../ColorPropertyPicker.vue'
+import BorderImage from '../../assets/border.svg'
 
 defineProps<{
   index: number
@@ -26,7 +27,7 @@ const fontWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 </script>
 
 <template>
-  <div v-if="payload?.widgets?.[index]" class="flex flex-col text-properties">
+  <div v-if="payload?.widgets?.[index]" class="flex flex-col text-properties overflow-y-auto max-h-full">
     <header>
       <h1 class="m-0">Text</h1>
     </header>
@@ -59,6 +60,7 @@ const fontWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
             v-model:value="payload.widgets[index].fontSize"
             class="!rounded-lg flex-1"
             type="number"
+            min="0"
             label="Font Size"
             placeholder="14"
           ></a-input>
@@ -69,8 +71,36 @@ const fontWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
             v-model:value="payload.widgets[index].lineHeight"
             class="!rounded-lg flex-1"
             type="number"
+            min="0"
             placeholder="Value"
           ></a-input>
+        </div>
+      </div>
+    </GroupedSettings>
+    <GroupedSettings title="Border">
+      <div class="flex gap-2 items-center">
+        <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
+          <div>
+            <a-input v-model:value="payload.widgets[index].borderTop" type="number" min="0"></a-input>
+          </div>
+          <div class="flex gap-2 items-center">
+            <a-input v-model:value="payload.widgets[index].borderLeft" type="number" min="0"></a-input>
+            <img :src="BorderImage" />
+            <a-input v-model:value="payload.widgets[index].borderRight" type="number" min="0"></a-input>
+          </div>
+          <div>
+            <a-input v-model:value="payload.widgets[index].borderBottom" type="number" min="0"></a-input>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-2">
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <span>Border Color</span>
+            <ColorPropertyPicker v-model="payload.widgets[index].borderColor" />
+          </div>
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <span>Border Radius</span>
+            <a-input v-model:value="payload.widgets[index].borderRadius" type="number" min="0" class="!rounded-lg" />
+          </div>
         </div>
       </div>
     </GroupedSettings>
@@ -104,6 +134,19 @@ const fontWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
   }
   :deep(.ant-select-selection-item) {
     display: inline-block !important;
+  }
+  .border-inputs {
+    .ant-input {
+      @apply !rounded-lg h-8 w-8;
+      padding: 2px;
+      -moz-appearance: textfield; /*For FireFox*/
+
+      &::-webkit-inner-spin-button {
+        /*For Webkits like Chrome and Safari*/
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
   }
 }
 </style>

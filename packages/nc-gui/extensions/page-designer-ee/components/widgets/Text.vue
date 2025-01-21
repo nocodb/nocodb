@@ -54,7 +54,18 @@ const onScale = (e) => {
     class="target"
     :style="`width: 100px; height: 50px; transform: translate(0, 0); max-width: ${maxWidth};max-height: ${maxHeight};min-width: ${minWidth};min-height: ${minHeight};`"
   >
-    <div :style="`background: ${widget.backgroundColor};height:100%; width: 100%;`">
+    <div
+      :style="{
+        background: `${widget.backgroundColor}`,
+        height: '100%',
+        width: '100%',
+        borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+          widget.borderLeft || 0
+        }px`,
+        borderColor: widget.borderColor,
+        borderRadius: `${widget.borderRadius || 0}px`,
+      }"
+    >
       <span
         v-if="widget.value"
         :style="{

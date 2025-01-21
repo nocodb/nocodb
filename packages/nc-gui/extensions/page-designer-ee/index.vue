@@ -115,6 +115,12 @@ onMounted(async () => {
         textColor: '#000000',
         backgroundColor: '#FFFFFF00',
         lineHeight: 1.4,
+        borderLeft: 0,
+        borderRight: 0,
+        borderTop: 0,
+        borderBottom: 0,
+        borderRadius: 0,
+        borderColor: '#FFFFFF00',
       },
     ]
   }

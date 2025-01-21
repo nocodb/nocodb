@@ -50,7 +50,7 @@ export class SortsV3Service {
   async sortUpdate(
     context: NcContext,
     param: {
-      sortId: any;
+      sortId: string;
       sort: SortUpdateV3Type;
       req: NcRequest;
       viewId: string;
@@ -86,7 +86,7 @@ export class SortsV3Service {
 
   async sortCreate(
     context: NcContext,
-    param: { viewId: any; sort: SortCreateV3Type; req: NcRequest },
+    param: { viewId: string; sort: SortCreateV3Type; req: NcRequest },
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortCreate',

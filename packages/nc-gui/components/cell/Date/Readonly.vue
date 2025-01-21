@@ -25,7 +25,7 @@ const localState = computed(() => {
 </script>
 
 <template>
-  <span>
+  <span class="nc-cell-field">
     {{ localState?.format(dateFormat) ?? '' }}
   </span>
 </template>

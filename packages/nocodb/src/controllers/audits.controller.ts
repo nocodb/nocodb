@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
@@ -13,9 +13,31 @@ export class AuditsController {
 
   @Get(['/api/v1/db/meta/audits/', '/api/v2/meta/audits/'])
   @Acl('auditListRow')
-  async auditListRow(@Req() req: NcRequest) {
+  async auditListRow(
+    @Req() req: NcRequest,
+    @Query('row_id') rowId: string,
+    @Query('fk_model_id') fkModelId: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ) {
     return new PagedResponseImpl(
-      await this.auditsService.auditOnlyList({ query: req.query as any }),
+      await this.auditsService.auditOnlyList({
+        query: {
+          row_id: rowId,
+          fk_model_id: fkModelId,
+          limit,
+          offset,
+        },
+      }),
+      {
+        count: await this.auditsService.auditOnlyCount({
+          query: {
+            row_id: rowId,
+            fk_model_id: fkModelId,
+          },
+        }),
+        ...req.query,
+      },
     );
   }
 

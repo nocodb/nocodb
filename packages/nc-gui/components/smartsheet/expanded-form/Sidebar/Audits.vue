@@ -133,7 +133,10 @@ function isV0Audit(audit: AuditType) {
                   {{ safeJsonParse(audit.details).link_field_title }}
                 </div>
                 <div class="!border-none audit-link-container">
-                  <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0" class="audit-link-removal">
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0"
+                    class="audit-link-removal"
+                  >
                     <span
                       v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
                       :key="entry.refRowId"
@@ -142,7 +145,10 @@ function isV0Audit(audit: AuditType) {
                       {{ entry.value }}
                     </span>
                   </div>
-                  <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0" class="audit-link-addition">
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0"
+                    class="audit-link-addition"
+                  >
                     <span
                       v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_links"
                       :key="entry.refRowId"

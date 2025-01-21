@@ -12,11 +12,13 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(EditModeInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
 
 const showWarningMessage = ref(false)
 
@@ -85,10 +87,6 @@ const submitDuration = () => {
   tempState.value = undefined
 }
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
-
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
@@ -97,7 +95,6 @@ const focus: VNodeRef = (el) =>
   <div class="duration-cell-wrapper">
     <!-- eslint-disable vue/use-v-on-exact -->
     <input
-      v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="localState"
       class="nc-cell-field w-full !border-none !outline-none py-1"
@@ -113,6 +110,7 @@ const focus: VNodeRef = (el) =>
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
+      :disabled="readOnly"
     />
 
     <div v-if="showWarningMessage && showValidationError" class="nc-cell-field duration-warning">

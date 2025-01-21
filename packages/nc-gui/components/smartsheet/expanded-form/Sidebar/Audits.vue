@@ -3,20 +3,19 @@ import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { consolidatedAudits, isAuditLoading, loadMoreAudits, mightHaveMoreAudits } = useExpandedFormStoreOrThrow()
+const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, mightHaveMoreAudits } = useExpandedFormStoreOrThrow()
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
 
-function scrollToAudit(auditId?: string) {
-  if (!auditId) return
+watch(primaryKey, () => {
+  resetAuditPages()
+})
 
-  const auditEl = auditsWrapperEl.value?.querySelector(`.nc-audit-item.${auditId}`)
-  if (auditEl) {
-    auditEl.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    })
-  }
+function scrollToLastAudit() {
+  auditsWrapperEl.value?.scrollBy({
+    top: 50000,
+    behavior: 'smooth',
+  })
 }
 
 const createdByAudit = (
@@ -43,15 +42,15 @@ function initLoadMoreAudits() {
 }
 
 watch(
-  () => consolidatedAudits.value.length,
-  (auditCount) => {
+  consolidatedAudits,
+  () => {
     if (shouldSkipAuditsScroll.value) {
       shouldSkipAuditsScroll.value = true
       return
     }
     nextTick(() => {
       setTimeout(() => {
-        scrollToAudit(consolidatedAudits.value[auditCount - 1]?.id)
+        scrollToLastAudit()
       }, 500)
     })
   },

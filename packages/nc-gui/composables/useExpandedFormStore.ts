@@ -591,7 +591,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               current.details = JSON.stringify(details)
             } else if (
               ['SingleLineText', 'LongText', 'Number', 'Decimal'].includes(field.type) &&
-              lastDetails?.column_meta?.[field?.title]
+              lastDetails?.column_meta?.[field?.title] &&
+              lastDetails.old_data[field.title]
             ) {
               lastDetails.data[field.title] = details.data[field.title]
               last.details = JSON.stringify(lastDetails)

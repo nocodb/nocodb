@@ -76,6 +76,7 @@ import {
   View,
 } from '~/models';
 import {
+  extractExcludedColumnNames,
   getAliasGenerator,
   nocoExecute,
   populateUpdatePayloadDiff,
@@ -7307,12 +7308,7 @@ class BaseModelSqlv2 {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: this.model.columns.reduce((colNames: string[], col) => {
-        if (isSystemColumn(col)) {
-          colNames.push(col.title);
-        }
-        return colNames;
-      }, [] as string[]),
+              exclude: extractExcludedColumnNames(this.model.columns),
               excludeNull: false,
               excludeBlanks: false,
             }) as UpdatePayload;
@@ -7394,12 +7390,7 @@ class BaseModelSqlv2 {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: this.model.columns.reduce((colNames: string[], col) => {
-        if (isSystemColumn(col)) {
-          colNames.push(col.title);
-        }
-        return colNames;
-      }, [] as string[]),
+      exclude: extractExcludedColumnNames(this.model.columns),
       excludeNull: false,
       excludeBlanks: false,
     }) as UpdatePayload;
@@ -11845,9 +11836,17 @@ export function formatDataForAudit(
   columns: Column[],
 ) {
   if (!data || typeof data !== 'object') return data;
-  const res = { ...data };
+  const res = {};
 
   for (const column of columns) {
+    if (isSystemColumn(column) || isVirtualCol(column)) continue;
+
+    if (!(column.title in data)) {
+      continue;
+    }
+
+    res[column.title] = data[column.title];
+
     // if multi-select column, convert string to array
     if (column.uidt === UITypes.MultiSelect) {
       if (res[column.title] && typeof res[column.title] === 'string') {

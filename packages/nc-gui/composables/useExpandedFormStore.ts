@@ -417,6 +417,51 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   })
 
+  const consolidatedAudits = computed(() => {
+
+    const result = [];
+
+    try {
+
+      const allAudits = JSON.parse(JSON.stringify(audits.value));
+  
+      while (allAudits.length > 0) {
+        const current = allAudits.shift()!;
+        if (current.op_type === 'DATA_LINK' || current.op_type === 'DATA_UNLINK') {
+          const last = result[result.length - 1];
+          const details = JSON.parse(current.details);
+          if (!last) {
+            details.consolidated_ref_display_values = [details.ref_display_value];
+            current.details = JSON.stringify(details);
+            result.push(current);
+          }
+          else {
+            const lastDetails = JSON.parse(last.details);
+            if (last.op_type === current.op_type && last.user === current.user && dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30 && lastDetails.link_field_id === details.link_field_id && lastDetails.ref_table_title === details.ref_table_title) {
+              lastDetails.consolidated_ref_display_values.push(details.ref_display_value);
+              last.details = JSON.stringify(lastDetails);
+            }
+            else {
+              details.consolidated_ref_display_values = [details.ref_display_value];
+              current.details = JSON.stringify(details);
+              result.push(current);
+            }
+          }
+        }
+        else {
+          result.push(current);
+        }
+      }
+      
+    }
+    catch (e) {
+      console.error(e);
+    }
+
+    return result;
+
+  });
+
   return {
     ...rowStore,
     loadComments,
@@ -441,6 +486,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     updateComment,
     clearColumns,
     auditCommentGroups,
+    consolidatedAudits,
   }
 }, 'expanded-form-store')
 

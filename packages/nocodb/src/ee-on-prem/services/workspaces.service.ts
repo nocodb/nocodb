@@ -49,6 +49,10 @@ export class WorkspacesService extends WorkspacesServiceEE {
       );
     }
 
+    if (this.licenseService.getOneWorkspace() && userWorkspacesCount >= 1) {
+      NcError.notAllowed('One workspace license allows only one workspace.');
+    }
+
     return super.create(param);
   }
 }

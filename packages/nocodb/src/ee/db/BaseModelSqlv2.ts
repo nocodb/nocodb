@@ -277,7 +277,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     // update user fields
     if (!options.skipUserConversion) {
-      data = await this.convertUserFormat(data, dependencyColumns);
+      data = await this.convertUserFormat(
+        data,
+        dependencyColumns,
+        options?.apiVersion,
+      );
     }
     // Update button fields
     if (!options.skipJsonConversion) {

@@ -16,6 +16,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const isForm = inject(IsFormInj)!
@@ -54,6 +56,7 @@ onBeforeUnmount(() => {
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
+    :disabled="readOnly"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

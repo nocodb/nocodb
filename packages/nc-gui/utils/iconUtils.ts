@@ -613,6 +613,8 @@ import NcHeading2 from '~icons/nc-icons-v2/heading-2'
 import NcHeading3 from '~icons/nc-icons-v2/heading-3'
 import NcQuote from '~icons/nc-icons-v2/quote'
 
+import NcPenLine from '~icons/nc-icons-v2/pen-line.svg'
+import NcNode from '~icons/nc-icons-v2/nc-node.svg'
 import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
@@ -1521,6 +1523,8 @@ export const iconMap = {
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
+  ncPenLine: h(NcPenLine, { stroke: 'transparent' }),
+  ncNode: h(NcNode, { stroke: 'transparent' }),
   importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
   importCsv: h(NcImportCsv, { stroke: 'transparent' }),
   importJson: h(NcImportJson, { stroke: 'transparent' }),

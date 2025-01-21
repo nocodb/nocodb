@@ -28,8 +28,6 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const domRef = ref<HTMLElement>()
-
 const meta = computed(() => {
   return typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
 })
@@ -94,12 +92,6 @@ const onKeyDown = (e: any) => {
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
-
-watch(isExpandedFormOpen, () => {
-  if (!isExpandedFormOpen.value) {
-    domRef.value?.focus()
-  }
-})
 </script>
 
 <template>

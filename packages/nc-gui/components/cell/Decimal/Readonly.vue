@@ -33,5 +33,5 @@ const displayValue = computed(() => {
 </script>
 
 <template>
-  <span class="nc-cell-field">{{ displayValue }}</span>
+  <div class="nc-cell-field truncate">{{ displayValue }}</div>
 </template>

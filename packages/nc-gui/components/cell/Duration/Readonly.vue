@@ -15,7 +15,7 @@ const localState = computed(() => {
 </script>
 
 <template>
-  <div class="duration-cell-wrapper">
+  <div class="duration-cell-wrapper truncate">
     <span class="nc-cell-field"> {{ localState }}</span>
   </div>
 </template>

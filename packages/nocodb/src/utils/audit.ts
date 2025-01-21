@@ -53,6 +53,7 @@ export const removeBlankPropsAndMask = (
   obj,
   _excludedProps: string[] = [],
   includeNull = false,
+  includeBlanks = false,
 ) => {
   const excludedProps = [
     ..._excludedProps,
@@ -70,7 +71,7 @@ export const removeBlankPropsAndMask = (
       ([key, value]) =>
         (includeNull || value !== null) &&
         value !== undefined &&
-        value !== '' &&
+        (includeBlanks || value !== '') &&
         (!excludedProps || !excludedProps.includes(key)),
     ),
   );
@@ -635,6 +636,7 @@ export const populateUpdatePayloadDiff = ({
   parseMeta = false,
   metaProps,
   excludeNull = false,
+  excludeBlanks = false,
   replaceAlias = false,
   boolProps,
   aliasMap,
@@ -646,6 +648,7 @@ export const populateUpdatePayloadDiff = ({
   parseMeta?: boolean;
   metaProps?: string[];
   excludeNull?: boolean;
+  excludeBlanks?: boolean;
   replaceAlias?: boolean;
   boolProps?: string[];
   aliasMap?: Record<string, string>;
@@ -703,6 +706,7 @@ export const populateUpdatePayloadDiff = ({
     diff(prev, next),
     exclude,
     !excludeNull,
+    !excludeBlanks,
   );
 
   if (!Object.keys(updatedProps).length) return false;

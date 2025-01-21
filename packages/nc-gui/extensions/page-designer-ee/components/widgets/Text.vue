@@ -54,13 +54,25 @@ const onScale = (e) => {
     class="target"
     :style="`width: 100px; height: 50px; transform: translate(0, 0); max-width: ${maxWidth};max-height: ${maxHeight};min-width: ${minWidth};min-height: ${minHeight};`"
   >
-    <span :style="{ fontSize: `${widget.fontSize}px`, fontWeight: widget.fontWeight, fontFamily: widget.fontFamily }">{{
-      widget.value
-    }}</span>
+    <div :style="`background: ${widget.backgroundColor};height:100%; width: 100%;`">
+      <span
+        v-if="widget.value"
+        :style="{
+          fontSize: `${widget.fontSize}px`,
+          fontWeight: widget.fontWeight,
+          fontFamily: widget.fontFamily,
+          lineHeight: widget.lineHeight,
+          color: widget.textColor,
+        }"
+      >
+        {{ widget.value }}
+      </span>
+      <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+    </div>
   </div>
   <Moveable
     ref="moveableRef"
-    :rotatable="true"
+    :rotatable="false"
     :throttle-rotate="throttleRotate"
     :rotation-position="rotationPosition"
     :target="targetRef"
@@ -79,6 +91,7 @@ const onScale = (e) => {
     :resizable="resizable"
     :throttle-resize="throttleResize"
     :render-directions="renderDirections"
+    :origin="false"
     @resize="onResize"
     @rotate="onRotate"
     @drag="onDrag"

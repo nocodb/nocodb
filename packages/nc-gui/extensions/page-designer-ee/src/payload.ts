@@ -10,6 +10,7 @@ export interface PageDesignerPayload {
   selectedTableId?: string
   selectedViewId?: string
   selectedRecordPrimaryKey?: string
+  currentWidgetIndex?: number
   layout?: PageLayout
-  widgets?: PageDesignerWidget[]
+  widgets: PageDesignerWidget[]
 }

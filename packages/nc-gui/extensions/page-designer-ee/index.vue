@@ -105,7 +105,18 @@ onMounted(async () => {
       orientation: PageOrientation.PORTRAIT,
       pageType: PageType.A4,
     }
-    savedPayload.value.widgets = [{ type: 'text', value: '', fontSize: 14 }]
+    savedPayload.value.widgets = [
+      {
+        type: 'text',
+        value: '',
+        fontSize: 14,
+        fontWeight: 400,
+        fontFamily: 'Manrope',
+        textColor: '#000000',
+        backgroundColor: '#FFFFFF00',
+        lineHeight: 1.4,
+      },
+    ]
   }
   await updateColumns()
   await reloadViews()

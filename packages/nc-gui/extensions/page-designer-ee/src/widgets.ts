@@ -9,4 +9,5 @@ export interface PageDesignerTextWidget extends PageDesignerWidget {
   fontFamily: string
   backgroundColor: string
   textColor: string
+  lineHeight: number
 }

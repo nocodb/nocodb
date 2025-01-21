@@ -2,7 +2,7 @@
 import { PageDesignerPayloadInj } from '../src/context'
 import { PageDesignerLayout } from '../src/layout'
 import Text from './widgets/Text.vue'
-import TextProperties from './widgets/TextProperties.vue'
+import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)
 
@@ -44,10 +44,7 @@ const verticalLines = computed(() => {
         </template>
       </div>
     </div>
-    <div class="w-[200px]">
-      Side Panel
-      <TextProperties :index="0" />
-    </div>
+    <PropertiesPanel />
   </div>
 </template>
 

@@ -11,7 +11,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { extractRolesObj, TableReqType } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  TableCreateV3Type,
+  TableUpdateV3Type,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -51,7 +55,7 @@ export class TablesV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Param('sourceId') sourceId: string,
-    @Body() body: TableReqType,
+    @Body() body: TableCreateV3Type,
     @Request() req,
   ) {
     const result = await this.tablesV3Service.tableCreate(context, {
@@ -87,17 +91,16 @@ export class TablesV3Controller {
   async tableUpdate(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
-    @Body() body: TableReqType,
+    @Body() body: TableUpdateV3Type,
     @Request() req,
   ) {
-    await this.tablesV3Service.tableUpdate(context, {
+    return await this.tablesV3Service.tableUpdate(context, {
       tableId: tableId,
       table: body,
       baseId: req.ncBaseId,
-      user: req.ncBaseId,
+      user: req.user,
       req,
     });
-    return { msg: 'The table has been updated successfully' };
   }
 
   @Delete('/api/v3/meta/tables/:tableId')

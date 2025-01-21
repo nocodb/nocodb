@@ -1,7 +1,7 @@
-import Noco from 'src/Noco';
 import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
+import Noco from '~/Noco';
 
 export class UpdateWebhookHandler {
   private constructor(

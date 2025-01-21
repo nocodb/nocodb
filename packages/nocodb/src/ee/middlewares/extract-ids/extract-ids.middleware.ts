@@ -524,6 +524,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: req.ncBaseId,
     };
 
+    await this.additionalValidation({ req, res, next });
+
     next();
   }
 
@@ -534,6 +536,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       () => {},
     );
     return true;
+  }
+
+  // additional validation logic which can be overridden
+  protected async additionalValidation(_param: {
+    next: any;
+    res: any;
+    req: any;
+  }) {
+    // do nothing
   }
 }
 

@@ -436,4 +436,18 @@ export default class Workspace implements WorkspaceType {
 
     return res;
   }
+
+  public static async getFirstWorkspace(ncMeta = Noco.ncMeta) {
+    // todo: add cache
+    const workspace = await ncMeta.metaGet2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      {
+        deleted: false,
+      },
+    );
+
+    return workspace;
+  }
 }

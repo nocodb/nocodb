@@ -1,6 +1,7 @@
 import Noco from 'src/Noco';
 import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 import type { NcContext } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 
 export class UpdateWebhookHandler {
   private constructor(
@@ -9,7 +10,7 @@ export class UpdateWebhookHandler {
       user: any;
       viewId: string;
       modelId: string;
-      tnPath: string | any;
+      tnPath: string | Knex.Raw<any>;
       isSingleUpdate?: boolean;
       ignoreWebhook?: boolean;
     },
@@ -23,7 +24,7 @@ export class UpdateWebhookHandler {
     user: any;
     viewId: string;
     modelId: string;
-    tnPath: string | any;
+    tnPath: string | Knex.Raw<any>;
     isSingleUpdate?: boolean;
     ignoreWebhook?: boolean;
   };
@@ -35,7 +36,7 @@ export class UpdateWebhookHandler {
       user: any;
       viewId: string;
       modelId: string;
-      tnPath: string | any;
+      tnPath: string | Knex.Raw<any>;
       isSingleUpdate?: boolean;
       ignoreWebhook?: boolean;
     },

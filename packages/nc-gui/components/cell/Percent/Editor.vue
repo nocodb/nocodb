@@ -15,6 +15,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
@@ -88,6 +90,7 @@ const onFocus = () => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
+    :disabled="readOnly"
   />
 </template>
 

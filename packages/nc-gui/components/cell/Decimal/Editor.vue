@@ -82,6 +82,7 @@ const focus: VNodeRef = (el) =>
     :step="precision"
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem"
+    :disabled="readOnly"
     @blur="editEnabled = false"
     @keydown.down.stop="onKeyDown"
     @keydown.left.stop
@@ -91,7 +92,6 @@ const focus: VNodeRef = (el) =>
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-    :disabled="readOnly"
   />
 </template>
 

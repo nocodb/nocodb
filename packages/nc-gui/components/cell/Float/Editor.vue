@@ -53,6 +53,7 @@ const focus: VNodeRef = (el) =>
     class="nc-cell-field outline-none px-1 border-none w-full h-full"
     type="number"
     step="0.1"
+    :disabled="readOnly"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -62,7 +63,6 @@ const focus: VNodeRef = (el) =>
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-    :disabled="readOnly"
   />
 </template>
 

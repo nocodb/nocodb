@@ -67,7 +67,6 @@ const childClassName = computed(() => {
     :style="{
       height,
     }"
-    :tabindex="-1"
   >
     <div class="flex items-center" :class="childClassName">
       <Transition name="layout" mode="out-in" :duration="100">

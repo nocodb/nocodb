@@ -54,6 +54,7 @@ watch(rateDomRef, () => {
       '-webkit-line-clamp': rowHeight === 6 ? 5 : rowHeightTruncateLines(rowHeight, true),
       '-webkit-box-orient': 'vertical',
       'overflow': 'hidden',
+      'line-height': '16px',
     }"
   >
     <template #character>

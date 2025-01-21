@@ -7,6 +7,10 @@ const props = defineProps<{
   auditGroup: { audit: AuditType; user: string; displayName: string }
 }>()
 
+const { user } = useGlobal()
+
+/* fields */
+
 const fieldsChanged = computed(() => {
   try {
     return Object.keys(JSON.parse(props.auditGroup.audit.details || '').data).length
@@ -22,6 +26,21 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
     return '-'
   }
 }
+
+/* formatting */
+
+const createdBy = computed(() => {
+  if (props.auditGroup.user === user.value?.email) {
+    return 'You'
+  } else if (props.auditGroup.displayName?.trim()) {
+    return props.auditGroup.displayName.trim() || 'Shared source'
+  } else if (props.auditGroup.displayName) {
+    return props.auditGroup.displayName
+  } else {
+    return 'Shared source'
+  }
+})
+
 </script>
 
 <template>
@@ -31,9 +50,15 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
         icon="pencil"
         class="w-[28px] h-[28px] p-1 text-gray-500 bg-white rounded-full border border-1 border-gray-300 shadow -ml-3.5"
       />
-      <GeneralUserIcon :email="props.auditGroup.user" class="w-[24px] aspect-square ml-1" />
+      <GeneralUserIcon
+        :user="{
+          email: props.auditGroup.user,
+          display_name: props.auditGroup.displayName,
+        }"
+        class="w-[24px] aspect-square ml-1"
+      />
       <p class="text-sm font-medium mb-0">
-        {{ props.auditGroup.displayName }}
+        {{ createdBy }}
         <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'"> created a record. </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'"> updated {{ fieldsChanged }} fields </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'">
@@ -50,7 +75,7 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncLink"
-          class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-gray-500 bg-white border-2 border-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5">Record was created.</p>
       </div>
@@ -62,7 +87,7 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncLink"
-          class="w-[12px] h-[12px] text-gray-500 absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-gray-500 bg-white border-2 border-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5">
           "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}" field was linked to row
@@ -70,9 +95,6 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
           with value "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_display_value') }}"
         </p>
       </div>
-    </template>
-    <template v-else>
-      <!-- {{ props.auditGroup.audit }} -->
     </template>
   </div>
 </template>

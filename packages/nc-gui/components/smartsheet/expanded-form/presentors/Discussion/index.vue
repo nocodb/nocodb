@@ -23,12 +23,27 @@ onMounted(async () => {
 
 /* new comment */
 
+const refAuditsEnd = useTemplateRef('refAuditsEnd')
+const refRichComment = useTemplateRef('refRichComment')
 const newCommentText = ref('')
 
 function handleCreatingNewComment() {
   saveComment(newCommentText.value)
   newCommentText.value = ''
+
+  setTimeout(() => {
+    refRichComment.value?.focusEditor?.()
+  }, 500);
 }
+
+watch([newCommentText, auditCommentGroups], () => {
+  setTimeout(() => {
+    refAuditsEnd.value?.scrollIntoView({
+      behavior: 'smooth'
+    })
+  }, 200)
+})
+
 </script>
 
 <script lang="ts">
@@ -58,6 +73,7 @@ export default {
         <div class="w-full border-t border-gray-200 px-6">
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
+            ref="refRichComment"
             :key="auditCommentGroups.length"
             v-model:value="newCommentText"
             :hide-options="false"
@@ -69,6 +85,7 @@ export default {
             @keydown.enter.exact.prevent="handleCreatingNewComment"
           />
         </div>
+        <div ref="refAuditsEnd" />
       </div>
     </div>
     <div

@@ -254,6 +254,7 @@ const saveComment = (e) => {
 
 defineExpose({
   setEditorContent,
+  focusEditor,
 })
 </script>
 

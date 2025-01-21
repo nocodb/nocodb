@@ -114,7 +114,13 @@ function onCommentBlur() {
 <template>
   <div class="bg-white rounded-lg border border-gray-300 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
     <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-200 rounded-t-lg">
-      <GeneralUserIcon :email="props.comment.user" class="w-[24px] aspect-square" />
+      <GeneralUserIcon
+        :user="{
+          email: props.comment.user,
+          display_name: props.comment.displayName,
+        }"
+        class="w-[24px] aspect-square"
+      />
 
       <span class="font-medium text-sm">
         {{ createdBy(props.comment) }}

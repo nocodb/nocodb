@@ -174,7 +174,7 @@ function isV0Audit(audit: AuditType) {
   @apply bg-green-100 rounded-md !mr-3;
 }
 .audit-link-container {
-  @apply flex flex-row gap-2;
+  @apply flex flex-row flex-wrap gap-2;
   .audit-link-addition {
     @apply flex gap-1 flex-wrap;
     span {
@@ -185,21 +185,6 @@ function isV0Audit(audit: AuditType) {
     @apply flex gap-1 flex-wrap;
     span {
       @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
-    }
-  }
-  &:has(.audit-link-item + .audit-link-item) {
-    @apply flex-col;
-    .audit-link-addition {
-      @apply p-1 border-1 border-green-200 rounded-md bg-green-50;
-      span {
-        @apply !text-[13px] !leading-[18px] px-1 py-0.5 text-gray-700 font-weight-500 border-1 border-gray-300 rounded-md bg-gray-100 decoration-clone;
-      }
-    }
-    .audit-link-removal {
-      @apply p-1 border-1 border-red-200 rounded-md bg-red-50;
-      span {
-        @apply !text-[13px] !leading-[18px] px-1 py-0.5 text-gray-700 font-weight-500 border-1 border-gray-300 rounded-md bg-gray-100 decoration-clone;
-      }
     }
   }
 }

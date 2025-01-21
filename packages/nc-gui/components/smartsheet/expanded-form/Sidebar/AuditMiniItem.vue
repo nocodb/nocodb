@@ -26,7 +26,7 @@ const meta = computed(() => {
 })
 
 const columnKeys = computed(() => {
-  return Object.keys(newData.value)
+  return Object.keys(newData.value).filter(it => !!meta.value?.[it])
 })
 
 /* provides */

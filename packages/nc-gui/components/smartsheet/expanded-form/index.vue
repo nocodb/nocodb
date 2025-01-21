@@ -130,24 +130,24 @@ watch(activeViewMode, async (v) => {
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
-  const fieldOrdersById = viewFields.value
-    .filter((k) => !k.show)
-    .reduce((accumulator, currentValue) => {
-      accumulator[currentValue.fk_column_id] = currentValue.order
-      return accumulator
-    }, {})
-
   // todo: figure out when meta.value is undefined
-  return (meta.value?.columns ?? [])
-    .filter(
-      (col) =>
-        !isSystemColumn(col) &&
-        !fields.value?.includes(col) &&
-        (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
-    )
-    .sort((a, b) => {
-      return (fieldOrdersById[a.id] ?? Infinity) - (fieldOrdersById[b.id] ?? Infinity)
+  const hiddenFields = (meta.value?.columns ?? []).filter(
+    (col) =>
+      !isSystemColumn(col) &&
+      !fields.value?.includes(col) &&
+      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+  )
+  if (props.useMetaFields && maintainDefaultViewOrder.value) {
+    return hiddenFields.sort((a, b) => {
+      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
+  }
+  // record from same view and same table (not linked)
+  else {
+    return hiddenFields.sort((a, b) => {
+      return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
+    })
+  }
 })
 
 const isKanban = inject(IsKanbanInj, ref(false))

@@ -43,7 +43,7 @@ const { isMobileMode } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+const { fields: viewFields, fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
 
@@ -130,14 +130,24 @@ watch(activeViewMode, async (v) => {
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
+  const fieldOrdersById = viewFields.value
+    .filter((k) => !k.show)
+    .reduce((accumulator, currentValue) => {
+      accumulator[currentValue.fk_column_id] = currentValue.order
+      return accumulator
+    }, {})
+
   // todo: figure out when meta.value is undefined
   return (meta.value?.columns ?? [])
     .filter(
       (col) =>
+        !isSystemColumn(col) &&
         !fields.value?.includes(col) &&
         (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
     )
-    .filter((col) => !isSystemColumn(col))
+    .sort((a, b) => {
+      return (fieldOrdersById[a.id] ?? Infinity) - (fieldOrdersById[b.id] ?? Infinity)
+    })
 })
 
 const isKanban = inject(IsKanbanInj, ref(false))

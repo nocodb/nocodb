@@ -43,7 +43,7 @@ const { isMobileMode } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { fields: viewFields, fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
 
@@ -137,10 +137,12 @@ const hiddenFields = computed(() => {
       !fields.value?.includes(col) &&
       (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
   )
-  if (props.useMetaFields && maintainDefaultViewOrder.value) {
-    return hiddenFields.sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-    })
+  if (props.useMetaFields) {
+    return maintainDefaultViewOrder.value
+      ? hiddenFields.sort((a, b) => {
+          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+        })
+      : hiddenFields
   }
   // record from same view and same table (not linked)
   else {

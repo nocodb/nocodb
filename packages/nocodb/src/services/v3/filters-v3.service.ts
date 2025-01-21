@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { FilterReqType, FilterType, UserType } from 'nocodb-sdk';
+import type {
+  FilterCreateV3Type,
+  FilterGroupV3Type,
+  FilterReqType,
+  FilterType,
+  FilterUpdateV3Type,
+  FilterV3Type,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { FilterGroup } from '~/controllers/v3/filters-v3.controller';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
@@ -10,6 +17,7 @@ import {
   filterRevBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { FiltersService } from '~/services/filters.service';
+import { validatePayload } from '~/helpers';
 
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
@@ -25,7 +33,7 @@ export class FiltersV3Service {
   async filterCreate(
     context: NcContext,
     param: {
-      filter: FilterGroup;
+      filter: FilterCreateV3Type;
       user: UserType;
       req: NcRequest;
     } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
@@ -73,12 +81,17 @@ export class FiltersV3Service {
   }: {
     context: any;
     param: { viewId: string } | { hookId: string } | { linkColumnId: string };
-    groupOrFilter: FilterGroup | Filter; // Support both group and filter
+    groupOrFilter: FilterCreateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
   }): Promise<void> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FilterCreate',
+      groupOrFilter,
+    );
+
     let currentParentId = parentId;
     const { additionalProps } = await this.extractAdditionalProps(
       param,
@@ -100,7 +113,7 @@ export class FiltersV3Service {
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
       await Filter.insert(context, {
-        ...filterRevBuilder().build(groupOrFilter as Filter),
+        ...filterRevBuilder().build(groupOrFilter),
         fk_parent_id: parentId === 'root' ? null : parentId,
         ...additionalProps,
         logical_op: extractLogicalOp(logicalOp),
@@ -268,17 +281,17 @@ export class FiltersV3Service {
   async filterUpdate(
     context: NcContext,
     param: {
-      filter: FilterReqType & { group_operator?: 'AND' | 'OR' };
+      filter: FilterUpdateV3Type;
       filterId: string;
       viewId: string;
       user: UserType;
       req: NcRequest;
     },
   ) {
-    // validatePayload(
-    //   'swagger-v3.json#/components/schemas/FilterReq',
-    //   param.filter,
-    // );
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FilterUpdate',
+      param.filter,
+    );
 
     const filter = await Filter.get(context, param.filterId ?? '');
 
@@ -288,16 +301,18 @@ export class FiltersV3Service {
 
     // if group operator is changed, update all children logical_op
     if (filter.is_group) {
-      if (param.filter.group_operator) {
+      if ((param.filter as FilterGroupV3Type).group_operator) {
         await Filter.updateAllChildrenLogicalOp(context, {
           viewId: param.viewId,
           parentFilterId: param.filterId,
-          logicalOp: extractLogicalOp(param.filter.group_operator),
+          logicalOp: extractLogicalOp(
+            (param.filter as FilterGroupV3Type).group_operator,
+          ),
         });
       }
     } else {
       const remappedFilter = filterRevBuilder().build(
-        param.filter,
+        param.filter as FilterGroupV3Type | FilterV3Type,
       ) as FilterType;
       delete remappedFilter.logical_op;
       await this.filtersService.filterUpdate(context, {
@@ -525,7 +540,7 @@ export class FiltersV3Service {
   async filterReplace(
     context: NcContext,
     param: {
-      filter: FilterGroup;
+      filter: FilterCreateV3Type;
       user: UserType & {
         base_roles?: Record<string, boolean>;
         workspace_roles?: Record<string, boolean>;

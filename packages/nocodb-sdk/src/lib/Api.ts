@@ -9,6 +9,1100 @@
  * ---------------------------------------------------------------
  */
 
+export enum WorkspaceRolesV3Type {
+  WorkspaceLevelOwner = 'workspace-level-owner',
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelEditor = 'workspace-level-editor',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelCommenter = 'workspace-level-commenter',
+  WorkspaceLevelNoAccess = 'workspace-level-no-access',
+}
+
+export enum BaseRolesV3Type {
+  Owner = 'owner',
+  Creator = 'creator',
+  Editor = 'editor',
+  Viewer = 'viewer',
+  Commenter = 'commenter',
+  NoAccess = 'no-access',
+}
+
+/**
+ * Model for Paginated
+ */
+export interface PaginatedV3Type {
+  /** URL to access next page */
+  next?: string;
+  /** URL to access previous page */
+  prev?: string;
+  /** URL to access current page data with next set of nested fields data */
+  nestedNext?: string;
+  /** URL to access current page data with previous set of nested fields data */
+  nestedPrev?: string;
+}
+
+export interface SortListResponseV3Type {
+  list: SortV3Type[];
+}
+
+export type FilterUpdateV3Type = {
+  /** Unique identifier for the filter. */
+  id: string;
+} & (FilterV3Type | FilterGroupV3Type);
+
+export type FilterCreateV3Type = FilterV3Type | FilterGroupLevel1V3Type;
+
+export interface FilterGroupV3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters or nested filter groups at level 1. */
+  filters: (FilterV3Type | FilterGroupV3Type)[];
+}
+
+export interface FilterGroupLevel1V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters or nested filter groups at level 2. */
+  filters: (FilterV3Type | FilterGroupLevel2V3Type)[];
+}
+
+export interface FilterGroupLevel2V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters or nested filter groups at level 3. */
+  filters: (FilterV3Type | FilterGroupLevel3V3Type)[];
+}
+
+export interface FilterGroupLevel3V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters in this group. */
+  filters: FilterV3Type[];
+}
+
+export interface FilterListResponseV3Type {
+  list: (FilterGroupV3Type | FilterV3Type)[];
+}
+
+export interface FilterV3Type {
+  /** Unique identifier for the filter. */
+  filter_id: string;
+  /** Parent ID of the filter, specifying its group. */
+  parent_id: string;
+  /** Field ID to which the filter applies. */
+  field_id: string;
+  /** Primary comparison operator (e.g., eq, gt, lt). */
+  operator: string;
+  /** Secondary comparison operator (if applicable). */
+  sub_operator?: string | null;
+  /** Value for comparison. */
+  value: string | number | boolean | null;
+}
+
+export type FieldUpdateV3Type = FieldBaseV3Type &
+  (
+    | {
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      }
+    | {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      }
+    | {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      }
+    | {
+        type?: 'JSON';
+        options?: FieldOptionsJSONV3Type;
+      }
+    | {
+        type?: 'Currency';
+        options?: FieldOptionsCurrencyV3Type;
+      }
+    | {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      }
+    | {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      }
+    | {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'Single select' | 'Multi select';
+        options?: FieldOptionsSelectV3Type;
+      }
+    | {
+        type?: 'Rating' | 'Checkbox';
+        options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'Barcode';
+        options?: FieldOptionsBarcodeV3Type;
+      }
+    | {
+        type?: 'Formula';
+        options?: FieldOptionsFormulaV3Type;
+      }
+    | {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      }
+    | {
+        type?: 'Lookup';
+        options?: FieldOptionsLookupV3Type;
+      }
+    | {
+        type?: 'Links';
+        options?: FieldOptionsLinksV3Type;
+      }
+    | {
+        type?: 'Link to another record';
+        options?: FieldOptionsLinkToAnotherRecordV3Type;
+      }
+  );
+
+export type FilterCreateUpdateV3Type = any;
+
+export type FieldV3Type = FieldBaseV3Type &
+  (
+    | {
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      }
+    | {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      }
+    | {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      }
+    | {
+        type?: 'JSON';
+        options?: FieldOptionsJSONV3Type;
+      }
+    | {
+        type?: 'Currency';
+        options?: FieldOptionsCurrencyV3Type;
+      }
+    | {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      }
+    | {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      }
+    | {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'Single select' | 'Multi select';
+        options?: FieldOptionsSelectV3Type;
+      }
+    | {
+        type?: 'Rating' | 'Checkbox';
+        options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'Barcode';
+        options?: FieldOptionsBarcodeV3Type;
+      }
+    | {
+        type?: 'Formula';
+        options?: FieldOptionsFormulaV3Type;
+      }
+    | {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      }
+    | {
+        type?: 'Lookup';
+        options?: FieldOptionsLookupV3Type;
+      }
+    | {
+        type?: 'Links';
+        options?: FieldOptionsLinksV3Type;
+      }
+    | {
+        type?: 'Link to another record';
+        options?: FieldOptionsLinkToAnotherRecordV3Type;
+      }
+  );
+
+export type FieldOptionsJSONV3Type = object;
+
+export interface FieldOptionsLinkToAnotherRecordV3Type {
+  /** Type of relationship (e.g., many-to-many, one-to-one). */
+  relation_type: string;
+  /** Identifier of the linked table. */
+  linked_table_id: string;
+}
+
+export interface FieldOptionsLinksV3Type {
+  /** Type of relationship (e.g., many-to-many, one-to-one). */
+  relation_type: string;
+  /** Identifier of the linked table. */
+  linked_table_id: string;
+}
+
+export interface FieldOptionsLookupV3Type {
+  /** Linked field ID. */
+  link_field_id?: string;
+  /** Lookup field ID in the linked table. */
+  linked_table_lookup_field_id?: string;
+  result?: {
+    /** Result type. */
+    type?: string;
+    options?: FieldOptionsNumberV3Type;
+  };
+}
+
+export interface FieldOptionsUserV3Type {
+  /** Allow selecting multiple users. */
+  allow_multiple_users?: boolean;
+  /** Notify user when they are added. */
+  notify_user_when_added?: boolean;
+}
+
+export interface FieldOptionsFormulaV3Type {
+  /** Formula expression. */
+  formula?: string;
+  /** Field IDs used in the formula. */
+  reference_field_ids?: string[];
+  result?: {
+    /** Result type. */
+    type?: string;
+    options?: FieldOptionsNumberV3Type;
+  };
+}
+
+export interface FieldOptionsBarcodeV3Type {
+  /** Barcode format (e.g., CODE128). */
+  format?: string;
+  /** Field ID that contains the value. */
+  value_field_id?: string;
+}
+
+export interface FieldOptionsRatingV3Type {
+  /** Icon to use for ratings. */
+  icon?: string;
+  /** Maximum value for the rating. */
+  max_value?: number;
+  /** Color for the rating display. */
+  color?: string;
+}
+
+export interface FieldOptionsSelectV3Type {
+  choices?: {
+    /** Choice identifier. */
+    id?: string;
+    /** Choice title. */
+    title?: string;
+    /** Choice color. */
+    color?: string;
+  }[];
+}
+
+export interface FieldOptionsDateTimeV3Type {
+  /** Date format (e.g., YYYY/MM/DD). */
+  date_format?: string;
+  /** Time format (e.g., HH:mm:ss). */
+  time_format?: string;
+  /** Use 12-hour time format. */
+  '12hr_format'?: boolean;
+}
+
+export interface FieldOptionsDurationV3Type {
+  /** Duration format (e.g., h:mm). */
+  format?: string;
+}
+
+export interface FieldOptionsPercentV3Type {
+  /** Number of decimal places allowed. */
+  precision?: number;
+  /** Display as a progress bar. */
+  show_as_progress?: boolean;
+}
+
+export interface FieldOptionsCurrencyV3Type {
+  /** Locale for currency formatting. */
+  locale?: string;
+  /** Currency code (e.g., USD). */
+  code?: string;
+}
+
+export interface FieldOptionsNumberV3Type {
+  /** Number of decimal places allowed. */
+  precision?: number;
+  /** Allow negative numbers. */
+  allow_negative?: boolean;
+}
+
+export interface FieldOptionsPhoneNumberV3Type {
+  /** Enable validation for phone numbers. */
+  validation?: boolean;
+}
+
+export interface FieldOptionsLongTextV3Type {
+  /** Enable rich text formatting. */
+  rich_text?: boolean;
+  /** Allow AI-generated text. */
+  generate_text_using_ai?: boolean;
+}
+
+export interface FieldBaseV3Type {
+  /** Field identifier. */
+  id?: string;
+  /** Field name. */
+  title: string;
+  /** Field type. */
+  type: string;
+  /** Default value for the field. */
+  default_value?: string;
+  /** Field description. */
+  description?: string;
+}
+
+/**
+ * GRID View
+ */
+export type ViewV3Type = (
+  | {
+      fields: {
+        /**
+         * Field ID for GRID view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is hidden in GRID view. */
+        is_hidden?: boolean;
+      }[];
+      group?: {
+        /**
+         * Field ID for grouping in GRID view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Sorting order for the group. */
+        sort?: 'asc' | 'desc';
+      }[];
+    }
+  | {
+      fields: {
+        /**
+         * Field ID displayed in GALLERY view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is the cover image. */
+        cover_image?: boolean;
+      }[];
+      /**
+       * Field ID for the cover image.
+       * @format uuid
+       */
+      cover_image_field_id?: string;
+    }
+  | {
+      fields: {
+        /**
+         * Field ID used in KANBAN view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is used for stacking in KANBAN. */
+        is_stack_by?: boolean;
+      }[];
+      /**
+       * Field ID for the cover image.
+       * @format uuid
+       */
+      cover_image_field_id?: string;
+      /**
+       * Field ID used for stacking in KANBAN view.
+       * @format uuid
+       */
+      kanban_stack_by_field_id?: string;
+    }
+  | {
+      fields: {
+        /**
+         * Field ID displayed in CALENDAR view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is used for date ranges. */
+        is_date_field?: boolean;
+      }[];
+      calendar_range?: {
+        /**
+         * Field ID for the start date.
+         * @format uuid
+         */
+        start_field_id?: string;
+        /**
+         * Field ID for the end date.
+         * @format uuid
+         */
+        end_field_id?: string;
+      }[];
+    }
+  | {
+      fields: {
+        /**
+         * Field ID used in FORM view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is required in the form. */
+        is_required?: boolean;
+      }[];
+      /** Heading for the form. */
+      form_heading?: string;
+      /** Subheading for the form. */
+      form_sub_heading?: string;
+      /** Success message shown after form submission. */
+      form_success_message?: string;
+      /**
+       * URL to redirect to after form submission.
+       * @format uri
+       */
+      form_redirect_url?: string;
+      /** Seconds to wait before redirecting. */
+      form_redirect_after_secs?: number;
+      /** Whether to send a response email. */
+      form_send_response_email?: boolean;
+      /** Whether to show another form after submission. */
+      form_show_another?: boolean;
+      /** Whether to show a blank form after submission. */
+      form_show_blank?: boolean;
+      /** Whether to hide the banner on the form. */
+      form_hide_banner?: boolean;
+      /** Whether to hide branding on the form. */
+      form_hide_branding?: boolean;
+      /**
+       * URL of the banner image for the form.
+       * @format uri
+       */
+      form_banner_image_url?: string;
+      /**
+       * URL of the logo for the form.
+       * @format uri
+       */
+      form_logo_url?: string;
+      /**
+       * Background color for the form.
+       * @format color
+       */
+      form_background_color?: string;
+    }
+) & {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id?: string;
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  /** Lock type of the view. */
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  /** Description of the view. */
+  description?: string;
+  /** Indicates if this is the default view. */
+  is_default?: boolean;
+  meta?: {
+    /** Description for locked views. */
+    locked_view_description?: string;
+    /**
+     * User ID of the person who locked the view.
+     * @format uuid
+     */
+    locked_by_user_id?: string;
+  };
+  /**
+   * User ID of the creator.
+   * @format uuid
+   */
+  created_by?: string;
+  /**
+   * User ID of the owner.
+   * @format uuid
+   */
+  owned_by?: string;
+  /**
+   * Timestamp of creation.
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Timestamp of last update.
+   * @format date-time
+   */
+  updated_at?: string;
+  /** Filters applied to the view. */
+  filters?: FilterV3Type[];
+  /** Sort options for the view. */
+  sorts?: SortV3Type[];
+};
+
+export interface SortUpdateV3Type {
+  /** Unique identifier for the sort. */
+  id: string;
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id?: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction?: 'asc' | 'desc';
+}
+
+export interface SortCreateV3Type {
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction: 'asc' | 'desc';
+}
+
+export interface SortV3Type {
+  /**
+   * Unique identifier for the sort.
+   * @format uuid
+   */
+  id: string;
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction: 'asc' | 'desc';
+}
+
+export type TableUpdateV3Type = {
+  title?: string;
+  meta?: any;
+};
+
+export type BaseUserDeleteV3Type = {
+  /** Unique identifier for the user. */
+  user_id?: string;
+}[];
+
+/**
+ * Array of user updates.
+ */
+export type BaseUserUpdateV3Type = {
+  /** Unique identifier for the user. Used as a primary identifier if provided. */
+  id?: string;
+  /**
+   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * @format email
+   */
+  email?: string;
+  base_role: BaseRolesV3Type;
+}[];
+
+/**
+ * Array of users to be created.
+ */
+export type BaseUserCreateV3Type = {
+  /** Unique identifier for the user. Can be provided optionally during creation. */
+  id?: string;
+  /**
+   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * @format email
+   */
+  email?: string;
+  /** Full name of the user. */
+  user_name?: string;
+  base_role: BaseRolesV3Type;
+}[];
+
+export interface BaseUserListV3Type {
+  list?: BaseUserV3Type[];
+}
+
+export type BaseUserDeleteRequestV3Type = any;
+
+export interface BaseUserV3Type {
+  /** Unique identifier for the user. */
+  id: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email: string;
+  /** Full name of the user. */
+  user_name?: string;
+  /**
+   * Timestamp of when the user was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the user was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  base_role?: BaseRolesV3Type;
+  workspace_role: WorkspaceRolesV3Type;
+  /** Unique identifier for the workspace. */
+  workspace_id: string;
+}
+
+/**
+ * Model for Calendar Column Request
+ */
+export interface CalendarColumnReqV3Type {
+  /** Is this column shown? */
+  show?: any;
+  /** Is this column shown as bold? */
+  bold?: any;
+  /** Is this column shown as italic? */
+  italic?: any;
+  /** Is this column shown underlines? */
+  underline?: any;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Calendar Column
+ */
+export interface CalendarColumnV3Type {
+  /** Unique ID */
+  id?: any;
+  /** Foreign Key to Column */
+  fk_column_id?: any;
+  /** Foreign Key to View */
+  fk_view_id?: any;
+  /**
+   * Baes ID
+   *
+   */
+  source_id?: any;
+  /** Base ID */
+  base_id?: any;
+  /** Base ID */
+  title?: string;
+  /** Is this column shown? */
+  show?: any;
+  /** Is this column shown as bold? */
+  bold?: any;
+  /** Is this column shown as italic? */
+  italic?: any;
+  /** Is this column shown underlines? */
+  underline?: any;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Gallery Column Request
+ */
+export interface GalleryColumnReqV3Type {
+  /** Show */
+  show?: any;
+  /**
+   * Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Kanban Column Request
+ */
+export interface KanbanColumnReqV3Type {
+  /** Title */
+  title?: string;
+  /** Is this column shown? */
+  show?: any;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Kanban Column
+ */
+export interface KanbanColumnV3Type {
+  /** Unique ID */
+  id?: any;
+  /** Foreign Key to Column */
+  fk_column_id?: any;
+  /** Foreign Key to View */
+  fk_view_id?: any;
+  /**
+   * Baes ID
+   *
+   */
+  source_id?: any;
+  /** Base ID */
+  base_id?: any;
+  /** Base ID */
+  title?: string;
+  /** Is this column shown? */
+  show?: any;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Grid Column Request
+ */
+export interface GridColumnReqV3Type {
+  /** Foreign Key to Column */
+  fk_column_id?: any;
+  help?: string;
+  /**
+   * The label of the column
+   * @example My Column
+   */
+  label?: string;
+  /**
+   * The width of the column
+   * @pattern ^[0-9]+(px|%)$
+   * @example 200px
+   */
+  width?: string;
+  /** Group By */
+  group_by?: any;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: any;
+  /** Show */
+  show?: any;
+  /**
+   * Order
+   * @example 1
+   */
+  order?: number;
+  /**
+   * Aggregation
+   * @example sum
+   */
+  aggregation?: any;
+}
+
+/**
+ * Model for Grid Column
+ */
+export interface GridColumnV3Type {
+  /** Unique ID */
+  id?: any;
+  /** Foreign Key to View */
+  fk_view_id?: any;
+  /** Foreign Key to Column */
+  fk_column_id?: any;
+  /** Base ID */
+  base_id?: any;
+  /** Source ID */
+  source_id?: any;
+  show?: any;
+  /**
+   * Grid Column Order
+   * @example 1
+   */
+  order?: number;
+  /**
+   * Column Width
+   * @example 200px
+   */
+  width?: string;
+  /** Column Help Text */
+  help?: any;
+  /** Group By */
+  group_by?: any;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: any;
+  /**
+   * Aggregation
+   * @example sum
+   */
+  aggregation?: any;
+}
+
+/**
+ * Model for Gallery Column
+ */
+export interface GalleryColumnV3Type {
+  fk_col_id?: string;
+  fk_gallery_id?: string;
+  help?: string;
+  /** Unique ID */
+  id?: any;
+  label?: string;
+}
+
+/**
+ * Model for Form Column Request
+ */
+export interface FormColumnReqV3Type {
+  /** Form Column Description */
+  description?: any;
+  /** Form Column Help Text (Not in use) */
+  help?: any;
+  /** Form Column Label */
+  label?: any;
+  /** Meta Info */
+  meta?: any;
+  /** The order among all the columns in the form */
+  order?: number;
+  /** Is this form column required in submission? */
+  required?: any;
+  /** Is this column shown in Form? */
+  show?: any;
+}
+
+/**
+ * Model for Form Column
+ */
+export interface FormColumnV3Type {
+  /** Unique ID */
+  id?: any;
+  /** Form Column Description */
+  description?: any;
+  /** Foreign Key to Column */
+  fk_column_id?: any;
+  /** Foreign Key to View */
+  fk_view_id?: any;
+  /** Form Column Help Text (Not in use) */
+  help?: any;
+  /** Form Column Label */
+  label?: any;
+  /** Meta Info */
+  meta?: any;
+  /**
+   * The order among all the columns in the form
+   * @example 1
+   */
+  order?: number;
+  /** Is this form column required in submission? */
+  required?: any;
+  /** Is this column shown in Form? */
+  show?: any;
+  /**
+   * Indicates whether the 'Fill by scan' button is visible for this column or not.
+   * @example true
+   */
+  enable_scanner?: any;
+  /** Form Column UUID (Not in use) */
+  uuid?: any;
+}
+
+export interface TableV3Type {
+  id?: string;
+  source_id?: string;
+  base_id?: string;
+  title?: string;
+  description?: string;
+  display_field_id?: string;
+  workspace_id?: string;
+  fields?: FieldV3Type[];
+  views?: ViewV3Type[];
+}
+
+export interface FieldBaseReqV3Type {
+  /** Title of the field. */
+  title: string;
+  /** Field data type. */
+  type: string;
+  /** Description of the field. */
+  description?: string | null;
+  /** Default value for the field. */
+  default_value?: string;
+}
+
+export type TableCreateFieldV3Type = FieldBaseReqV3Type &
+  (
+    | {
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      }
+    | {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      }
+    | {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      }
+    | {
+        type?: 'JSON';
+        options?: FieldOptionsJSONV3Type;
+      }
+    | {
+        type?: 'Currency';
+        options?: FieldOptionsCurrencyV3Type;
+      }
+    | {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      }
+    | {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      }
+    | {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'Single select' | 'Multi select';
+        options?: FieldOptionsSelectV3Type;
+      }
+    | {
+        type?: 'Rating' | 'Checkbox';
+        options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      }
+  );
+
+export interface TableCreateV3Type {
+  /** Title of the table. */
+  title: string;
+  /** Description of the table. */
+  description?: string | null;
+  meta?: TableMetaV3Type;
+  /** Unique identifier for the data source. Include this information only if the table being created is part of a data source. */
+  source_id?: string;
+  fields?: TableCreateFieldV3Type[];
+}
+
+export interface TableMetaV3Type {
+  /** Icon prefix to the table name that needs to be displayed in-lieu of the default table icon. */
+  icon?: string;
+}
+
+export interface TableListV3Type {
+  list: {
+    /** Unique identifier for the table. */
+    id: string;
+    /** Title of the table. */
+    title: string;
+    /** Description of the table. */
+    description?: string | null;
+    meta?: TableMetaV3Type;
+    /** Unique identifier for the base to which this table belongs to. */
+    base_id: string;
+    /** Unique identifier for the data source. This information will be included only if the table is associated with an external data source. */
+    source_id?: string;
+    /** Unique identifier for the workspace to which this base belongs to. */
+    workspace_id: string;
+  }[];
+}
+
+export interface BaseUpdateV3Type {
+  /** Title of the base. */
+  title?: string;
+  meta?: BaseMetaReqV3Type;
+}
+
+export interface BaseCreateV3Type {
+  /** Title of the base. */
+  title: string;
+  meta?: BaseMetaReqV3Type;
+}
+
+export interface BaseMetaReqV3Type {
+  /**
+   * Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).
+   *
+   * **Constraints**:
+   * - Must be a valid 6-character hexadecimal color code preceded by a `#`.
+   * - Optional field; defaults to a standard color if not provided.
+   * @format color
+   */
+  icon_color?: string;
+}
+
+export interface BaseMetaResV3Type {
+  /**
+   * Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)
+   * @format color
+   */
+  icon_color?: string;
+}
+
+export interface BaseV3Type {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaResV3Type;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
+}
+
 /**
  * Model for API Token
  */
@@ -2168,20 +3262,6 @@ export interface PaginatedType {
    * @example 1
    */
   totalRows?: number;
-}
-
-/**
- * Model for Paginated
- */
-export interface PaginatedV3Type {
-  /** URL to access next page */
-  next?: string;
-  /** URL to access previous page */
-  prev?: string;
-  /** URL to access current page data with next set of nested fields data */
-  nestedNext?: string;
-  /** URL to access current page data with previous set of nested fields data */
-  nestedPrev?: string;
 }
 
 /**
@@ -5609,7 +6689,7 @@ export class Api<
  * @name Cost
  * @summary Base Cost
  * @request GET:/api/v1/db/meta/projects/{baseId}/cost
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5618,7 +6698,7 @@ export class Api<
  */
     cost: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -5785,7 +6865,7 @@ export class Api<
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
  * @request GET:/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5794,7 +6874,7 @@ export class Api<
  */
     hasEmptyOrNullFilters: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -5930,7 +7010,7 @@ export class Api<
  * @name Update
  * @summary Update Source
  * @request PATCH:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5940,11 +7020,11 @@ export class Api<
     update: (
       baseId: IdType,
       sourceId: string,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -5965,7 +7045,7 @@ export class Api<
  * @name List
  * @summary List Sources
  * @request GET:/api/v1/db/meta/projects/{baseId}/bases/
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5974,7 +7054,7 @@ export class Api<
  */
     list: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8321,7 +9401,7 @@ export class Api<
  * @name Create
  * @summary Create Table Row
  * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8332,7 +9412,7 @@ export class Api<
       orgs: string,
       baseName: string,
       tableName: string,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       query?: {
         before?: string;
         undo?: boolean;
@@ -8340,7 +9420,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8362,7 +9442,7 @@ export class Api<
  * @name FindOne
  * @summary Find One Table Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8381,7 +9461,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8401,7 +9481,7 @@ export class Api<
      * @name GroupBy
      * @summary Group By Table Row
      * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     groupBy: (
       orgs: string,
@@ -8419,7 +9499,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby`,
         method: 'GET',
         query: query,
@@ -8476,7 +9556,7 @@ export class Api<
  * @name Read
  * @summary Get Table Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8495,7 +9575,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8515,7 +9595,7 @@ export class Api<
  * @name Update
  * @summary Update Table Row
  * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8527,7 +9607,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       query?: {
         /** To get Hidden Columns */
         getHiddenColumn?: boolean;
@@ -8535,7 +9615,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8783,7 +9863,7 @@ export class Api<
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
  * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8794,7 +9874,7 @@ export class Api<
       orgs: string,
       baseName: string,
       tableName: string,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       query?: {
         where?: string;
         viewId?: string;
@@ -8802,7 +9882,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8862,7 +9942,7 @@ export class Api<
  * @name CsvExport
  * @summary Export Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8877,7 +9957,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8896,7 +9976,7 @@ export class Api<
  * @name NestedList
  * @summary List Nested Relations Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8920,7 +10000,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9051,7 +10131,7 @@ export class Api<
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9075,7 +10155,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9194,7 +10274,7 @@ export class Api<
  * @name Create
  * @summary Create Table View Row
  * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9206,7 +10286,7 @@ export class Api<
       baseName: string,
       tableName: string,
       viewName: string,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       query?: {
         before?: string;
         undo?: string;
@@ -9214,7 +10294,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9236,7 +10316,7 @@ export class Api<
  * @name FindOne
  * @summary Find One Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9258,7 +10338,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9278,7 +10358,7 @@ export class Api<
  * @name GroupBy
  * @summary Group By Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9303,7 +10383,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9360,7 +10440,7 @@ export class Api<
  * @name Read
  * @summary Get Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9376,7 +10456,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9395,7 +10475,7 @@ export class Api<
  * @name Update
  * @summary Update Table View Row
  * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9408,11 +10488,11 @@ export class Api<
       tableName: string,
       viewName: string,
       rowId: any,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9503,7 +10583,7 @@ export class Api<
  * @name Export
  * @summary Export Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9519,7 +10599,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9636,7 +10716,7 @@ export class Api<
  * @name DbCalendarViewRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9661,7 +10741,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9682,7 +10762,7 @@ export class Api<
  * @name DataCalendarRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9704,7 +10784,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9758,7 +10838,7 @@ export class Api<
  * @name DataTableBulkDataList
  * @summary Read Shared View Bulk Data List
  * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9775,7 +10855,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9797,7 +10877,7 @@ export class Api<
  * @name DataTableBulkGroup
  * @summary Read Shared View Bulk Group Data
  * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9814,7 +10894,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9836,7 +10916,7 @@ export class Api<
  * @name DataTableAggregate
  * @summary Read Shared View Aggregated Data
  * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/aggregate
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9856,7 +10936,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10058,7 +11138,7 @@ export class Api<
  * @name DataCreate
  * @summary Create Share View Row
  * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10071,7 +11151,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10216,7 +11296,7 @@ export class Api<
  * @name CsvExport
  * @summary Export Rows in Share View
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10229,7 +11309,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10248,7 +11328,7 @@ export class Api<
  * @name DataRelationList
  * @summary List Nested Data Relation
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10283,7 +11363,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10411,7 +11491,7 @@ export class Api<
  * @name DbDataTableBulkList
  * @summary Read Bulk Data
  * @request POST:/api/v2/tables/{tableId}/bulk/dataList
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10430,7 +11510,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10453,7 +11533,7 @@ export class Api<
  * @name DbDataTableBulkGroupList
  * @summary Read Bulk Group Data
  * @request POST:/api/v2/tables/{tableId}/bulk/group
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10470,7 +11550,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11053,16 +12133,19 @@ export class Api<
  * @name AxiosRequestMake
  * @summary Axios Request
  * @request POST:/api/v1/db/meta/axiosRequestMake
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    axiosRequestMake: (data: object, params: RequestParams = {}) =>
+    axiosRequestMake: (
+      data: FieldOptionsJSONV3Type,
+      params: RequestParams = {}
+    ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11416,10 +12499,10 @@ export class Api<
      * @name CommandPalette
      * @summary Get command palette suggestions
      * @request POST:/api/v1/command_palette
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     commandPalette: (data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v1/command_palette`,
         method: 'POST',
         body: data,
@@ -11769,7 +12852,7 @@ export class Api<
  * @name Test
  * @summary Test Plugin
  * @request POST:/api/v1/db/meta/plugins/test
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11778,7 +12861,7 @@ export class Api<
  */
     test: (data: PluginTestReqType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11799,7 +12882,7 @@ export class Api<
  * @name Update
  * @summary Update Plugin
  * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11812,7 +12895,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12022,10 +13105,10 @@ export class Api<
      * @name Poll
      * @summary Notification Poll
      * @request GET:/api/v1/notifications/poll
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     poll: (params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v1/notifications/poll`,
         method: 'GET',
         format: 'json',
@@ -12119,7 +13202,7 @@ export class Api<
  * @name DbDataTableAggregate
  * @summary Read Aggregated Data
  * @request GET:/api/v2/tables/{tableId}/aggregate
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12141,7 +13224,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12231,7 +13314,7 @@ export class Api<
  * @name Create
  * @summary Create Table Rows
  * @request POST:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12250,7 +13333,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12272,7 +13355,7 @@ export class Api<
  * @name Update
  * @summary Update Table Rows
  * @request PATCH:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12289,7 +13372,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12311,7 +13394,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table Rows
  * @request DELETE:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12328,7 +13411,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12350,7 +13433,7 @@ export class Api<
  * @name Read
  * @summary Read Table Row
  * @request GET:/api/v2/tables/{tableId}/records/{rowId}
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12374,7 +13457,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12394,7 +13477,7 @@ export class Api<
  * @name Move
  * @summary Move Table Row
  * @request POST:/api/v2/tables/{tableId}/records/{rowId}/move
- * @response `200` `object` OK
+ * @response `200` `FieldOptionsJSONV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12411,7 +13494,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        FieldOptionsJSONV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12547,7 +13630,7 @@ export class Api<
  * @name NestedLink
  * @summary Create Nested Relations Rows
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12566,7 +13649,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12588,7 +13671,7 @@ export class Api<
  * @name NestedUnlink
  * @summary Delete Nested Relations Rows
  * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12607,7 +13690,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12670,7 +13753,7 @@ export class Api<
  * @name NestedListCopyPasteOrDeleteAll
  * @summary Copy paste or deleteAll nested link
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records
- * @response `200` `any` OK
+ * @response `200` `FilterCreateUpdateV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12688,7 +13771,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FilterCreateUpdateV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12736,10 +13819,14 @@ export class Api<
      * @name Create
      * @summary Create Extension
      * @request POST:/api/v2/extensions/{baseId}
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
-    create: (baseId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<any, any>({
+    create: (
+      baseId: IdType,
+      data: FieldOptionsJSONV3Type,
+      params: RequestParams = {}
+    ) =>
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/extensions/${baseId}`,
         method: 'POST',
         body: data,
@@ -12755,10 +13842,10 @@ export class Api<
      * @name Read
      * @summary Get Extension
      * @request GET:/api/v2/extensions/{extensionId}
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     read: (extensionId: IdType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'GET',
         format: 'json',
@@ -12772,10 +13859,14 @@ export class Api<
      * @name Update
      * @summary Update Extension
      * @request PATCH:/api/v2/extensions/{extensionId}
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
-    update: (extensionId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<any, any>({
+    update: (
+      extensionId: IdType,
+      data: FieldOptionsJSONV3Type,
+      params: RequestParams = {}
+    ) =>
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'PATCH',
         body: data,
@@ -12791,10 +13882,10 @@ export class Api<
      * @name Delete
      * @summary Delete Extension
      * @request DELETE:/api/v2/extensions/{extensionId}
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     delete: (extensionId: IdType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'DELETE',
         format: 'json',
@@ -12810,7 +13901,7 @@ export class Api<
      * @summary Jobs Listen
      * @request POST:/jobs/listen
      */
-    listen: (data: object, params: RequestParams = {}) =>
+    listen: (data: FieldOptionsJSONV3Type, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/jobs/listen`,
         method: 'POST',
@@ -12855,7 +13946,7 @@ export class Api<
     data: (
       viewId: IdType,
       exportAs: 'csv',
-      data: object,
+      data: FieldOptionsJSONV3Type,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -12874,7 +13965,7 @@ export class Api<
      * @name Utils
      * @summary AI Utils
      * @request POST:/api/v2/ai/bases/{baseId}/utils
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     utils: (
       baseId: IdType,
@@ -12884,7 +13975,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/ai/bases/${baseId}/utils`,
         method: 'POST',
         body: data,
@@ -12900,7 +13991,7 @@ export class Api<
      * @name Schema
      * @summary AI Schema
      * @request POST:/api/v2/ai/bases/{baseId}/schema
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     schema: (
       baseId: IdType,
@@ -12910,7 +14001,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/ai/bases/${baseId}/schema`,
         method: 'POST',
         body: data,
@@ -12926,7 +14017,7 @@ export class Api<
      * @name SchemaCreate
      * @summary AI Schema
      * @request POST:/api/v2/ai/workspaces/{workspaceId}/bases
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     schemaCreate: (
       workspaceId: IdType,
@@ -12936,7 +14027,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/ai/workspaces/${workspaceId}/bases`,
         method: 'POST',
         body: data,
@@ -13041,7 +14132,7 @@ export class Api<
      * @name List
      * @summary List integrations
      * @request GET:/api/v2/meta/integrations
-     * @response `200` `any` OK
+     * @response `200` `FilterCreateUpdateV3Type` OK
      */
     list: (
       query?: {
@@ -13055,7 +14146,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FilterCreateUpdateV3Type, any>({
         path: `/api/v2/meta/integrations`,
         method: 'GET',
         query: query,
@@ -13203,10 +14294,10 @@ export class Api<
      * @name List
      * @summary Integration List
      * @request GET:/api/v2/integrations
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     list: (params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v2/integrations`,
         method: 'GET',
         format: 'json',
@@ -13220,10 +14311,10 @@ export class Api<
      * @name Info
      * @summary Get Integration Info
      * @request GET:/api/v2/integrations/:type/:subType
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     info: (type: string, subType: string, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v2/integrations/${type}/${subType}`,
         method: 'GET',
         format: 'json',
@@ -13237,15 +14328,15 @@ export class Api<
      * @name Endpoint
      * @summary Call exposed integration endpoint
      * @request POST:/api/v2/integrations/:integrationId/:endpoint
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     endpoint: (
       integrationId: string,
       endpoint: string,
-      data: object,
+      data: FieldOptionsJSONV3Type,
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v2/integrations/${integrationId}/${endpoint}`,
         method: 'POST',
         body: data,
@@ -13262,7 +14353,7 @@ export class Api<
      * @name TriggerButton
      * @summary Trigger a button action
      * @request POST:/api/v2/tables/:tableId/button/:fieldId
-     * @response `200` `object` OK
+     * @response `200` `FieldOptionsJSONV3Type` OK
      */
     triggerButton: (
       tableId: string,
@@ -13278,12 +14369,68 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
+      this.request<FieldOptionsJSONV3Type, any>({
         path: `/api/v2/tables/${tableId}/button/${fieldId}`,
         method: 'POST',
         query: query,
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  internal = {
+    /**
+     * @description Trigger an internal operation
+     *
+     * @tags Internal
+     * @name PostOperation
+     * @summary Trigger an internal operation
+     * @request POST:/api/v2/internal/:workspaceId/:baseId
+     * @response `200` `Record<string, any>` OK
+     */
+    postOperation: (
+      workspaceId: string,
+      baseId: string,
+      query: {
+        /** Operation to trigger */
+        operation: string;
+      },
+      data: Record<string, any>,
+      params: RequestParams = {}
+    ) =>
+      this.request<Record<string, any>, any>({
+        path: `/api/v2/internal/${workspaceId}/${baseId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Trigger an internal operation
+     *
+     * @tags Internal
+     * @name GetOperation
+     * @summary Trigger an internal operation
+     * @request GET:/api/v2/internal/:workspaceId/:baseId
+     * @response `200` `Record<string, any>` OK
+     */
+    getOperation: (
+      workspaceId: string,
+      baseId: string,
+      query: {
+        /** Operation to trigger */
+        operation: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<Record<string, any>, any>({
+        path: `/api/v2/internal/${workspaceId}/${baseId}`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

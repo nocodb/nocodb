@@ -608,6 +608,10 @@ const errorHelpers: {
     message: (offset: string) => `Offset value '${offset}' is invalid`,
     code: 422,
   },
+  [NcErrorType.INVALID_PAGE_VALUE]: {
+    message: (page: string) => `Page value '${page}' is invalid`,
+    code: 422,
+  },
   [NcErrorType.INVALID_PK_VALUE]: {
     message: (value: any, pkColumn: string) =>
       `Primary key value '${value}' is invalid for column '${pkColumn}'`,
@@ -891,6 +895,12 @@ export class NcError {
   static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
+      ...args,
+    });
+  }
+  static invalidPageValue(page: string | number, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
+      params: `${page}`,
       ...args,
     });
   }

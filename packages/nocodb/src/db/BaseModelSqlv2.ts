@@ -7307,7 +7307,12 @@ class BaseModelSqlv2 {
               keepUnderModified: true,
               prev: formattedOldData,
               next: formattedData,
-              exclude: this.model.columns.filter((col) => isSystemColumn(col)),
+              exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
               excludeNull: false,
               excludeBlanks: false,
             }) as UpdatePayload;
@@ -7389,7 +7394,12 @@ class BaseModelSqlv2 {
       keepUnderModified: true,
       prev: formattedOldData,
       next: formattedData,
-      exclude: this.model.columns.filter((col) => isSystemColumn(col)),
+      exclude: this.model.columns.reduce((colNames: string[], col) => {
+        if (isSystemColumn(col)) {
+          colNames.push(col.title);
+        }
+        return colNames;
+      }, [] as string[]),
       excludeNull: false,
       excludeBlanks: false,
     }) as UpdatePayload;

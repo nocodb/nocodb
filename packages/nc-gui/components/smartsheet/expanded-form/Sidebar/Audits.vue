@@ -153,7 +153,10 @@ function isV0Audit(audit: AuditType) {
                 </div>
                 <div class="!border-none">
                   <span class="space-x-1">
-                    <span v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values" class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone">
+                    <span
+                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values"
+                      class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone"
+                    >
                       {{ name }}
                     </span>
                   </span>

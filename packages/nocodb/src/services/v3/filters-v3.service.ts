@@ -38,16 +38,6 @@ export class FiltersV3Service {
       req: NcRequest;
     } & { viewId: string }, // | { hookId: string } | { linkColumnId: string }),
   ) {
-    // validatePayload(
-    //   'swagger-v3.json#/components/schemas/FilterV3Req',
-    //   param.filter,
-    // );
-
-    // const filter = await Filter.insert(context, {
-    //   ...param.filter,
-    //   ...additionalProps,
-    // });
-
     // if root group creation then check existing root group
 
     await this.insertFilterGroup({
@@ -58,14 +48,6 @@ export class FiltersV3Service {
     });
 
     const list = this.filterList(context, param);
-
-    /*    for(const filter of list) {
-      this.appHooksService.emit(AppEvents.FILTER_CREATE, {
-        filter,
-        req: param.req,
-        ...additionalAuditProps,
-      });
-    }*/
 
     return list;
   }
@@ -90,6 +72,7 @@ export class FiltersV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/FilterCreate',
       groupOrFilter,
+      true,
     );
 
     let currentParentId = parentId;
@@ -291,6 +274,7 @@ export class FiltersV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/FilterUpdate',
       param.filter,
+      true,
     );
 
     const filter = await Filter.get(context, param.filterId ?? '');
@@ -323,14 +307,16 @@ export class FiltersV3Service {
       });
     }
 
-    if (filter.is_group) {
-      return await this.extractGroup(context, {
-        viewId: param.viewId,
-        parentFilterId: param.filterId,
-      });
-    }
+    // if (filter.is_group) {
+    //   return await this.extractGroup(context, {
+    //     viewId: param.viewId,
+    //     parentFilterId: param.filterId,
+    //   });
+    // }
 
-    return filterBuilder().build(await Filter.get(context, param.filterId));
+    return this.filterList(context, {
+      viewId: param.viewId,
+    });
   }
 
   private async extractGroup(
@@ -449,7 +435,6 @@ export class FiltersV3Service {
     return [
       {
         id: 'root',
-        is_group: true,
         group_operator:
           nestedFilters.length > 0
             ? getGroupOperatorFromFirstChild(null)

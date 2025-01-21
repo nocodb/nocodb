@@ -96,6 +96,7 @@ export class BasesV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseUpdate',
       param.base,
+      true,
     );
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
@@ -117,6 +118,7 @@ export class BasesV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseCreate',
       param.base,
+      true,
     );
 
     const base = {

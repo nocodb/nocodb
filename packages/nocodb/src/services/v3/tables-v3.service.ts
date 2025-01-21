@@ -45,6 +45,7 @@ export class TablesV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/TableUpdate',
       param.table,
+      true,
     );
 
     const tableUpdateReq: Partial<TableReqType> = { ...param.table };
@@ -133,7 +134,7 @@ export class TablesV3Service {
         }
         return table;
       }),
-    ) as TableV3Type[];
+    ) as unknown as TableV3Type[];
   }
 
   async tableCreate(
@@ -149,6 +150,7 @@ export class TablesV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/TableCreate',
       param.table,
+      true,
     );
 
     const tableCreateReq: any = param.table;

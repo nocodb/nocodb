@@ -500,9 +500,15 @@ export class TestConnectionError extends NcBaseError {
 }
 
 export class AjvError extends NcBaseError {
-  constructor(param: { message: string; errors: ErrorObject[] }) {
+  humanReadableError: boolean;
+  constructor(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError?: boolean;
+  }) {
     super(param.message);
     this.errors = param.errors;
+    this.humanReadableError = param.humanReadableError || false;
   }
 
   errors: ErrorObject[];
@@ -975,7 +981,11 @@ export class NcError {
     throw new Forbidden(message);
   }
 
-  static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
+  static ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[] | ValidationError[];
+    humanReadableError: boolean;
+  }) {
     throw new AjvError(param);
   }
 

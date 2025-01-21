@@ -190,6 +190,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     ) {
       return response.status(404).json({ msg: exception.message });
     } else if (exception instanceof AjvError) {
+      if (exception.humanReadableError) {
+        return response
+          .status(400)
+          .json({ msg: exception.message, errors: exception.errors });
+      }
+
       return response
         .status(400)
         .json({ msg: exception.message, errors: exception.errors });

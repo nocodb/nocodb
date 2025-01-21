@@ -2011,38 +2011,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
   }
 })
 
-const handleTableEvents = (event: MouseEvent) => {
-  const cell = (event.target as HTMLElement).closest('.nc-grid-cell')
-
-  if (!cell) return
-
-  const attribute = cell.getAttribute('data-testid')
-
-  const [_, col, row] = (attribute ?? '').split('-')
-
-  if (!col || !row) return
-  switch (event.type) {
-    case 'mousedown':
-      handleMouseDown(event, +row, +col)
-      break
-    case 'mouseover':
-      handleMouseOver(event, +row, +col)
-      break
-    case 'dblclick': {
-      const rowVal = cachedRows.value.get(+row)
-      if (!rowVal) return
-      makeEditable(rowVal, fields.value[+col])
-      break
-    }
-    case 'contextmenu':
-      showContextMenu(event, { row: +row, col: +col })
-      break
-    case 'click':
-      handleCellClick(event, +row, +col)
-      break
-  }
-}
-
 const cellAlignClass = computed(() => {
   if (!props.rowHeightEnum || props.rowHeightEnum === 1) {
     return 'align-middle'
@@ -2280,7 +2248,7 @@ const cellAlignClass = computed(() => {
             </thead>
           </table>
 
-          <div v-if="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
+          <div v-show="isDragging" class="dragging-record" :style="{ width: `${width}px`, top: `${targetTop}px` }"></div>
 
           <div
             class="table-overlay"
@@ -2304,11 +2272,6 @@ const cellAlignClass = computed(() => {
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
-                @click="handleTableEvents"
-                @mousedown="handleTableEvents"
-                @dblclick="handleTableEvents"
-                @contextmenu="handleTableEvents"
-                @mouseover="handleTableEvents"
               >
                 <LazySmartsheetGridPlaceholderRow
                   v-if="placeholderStartRows.length"
@@ -2473,7 +2436,12 @@ const cellAlignClass = computed(() => {
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
                         }"
-                        :data-testid="`cell-${0}-${row.rowMeta.rowIndex}`"
+                        :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
+                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
+                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
+                        @dblclick="makeEditable(row, fields[0])"
+                        @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
+                        @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                       >
                         <template v-if="cellMeta[index][0]?.cellProgress && !switchingTab">
                           <div
@@ -2556,7 +2524,12 @@ const cellAlignClass = computed(() => {
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
                         }"
-                        :data-testid="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
+                        :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
+                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
+                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
+                        @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"
+                        @dblclick="makeEditable(row, columnObj)"
+                        @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
                       >
                         <template v-if="cellMeta[index][colIndex]?.cellProgress && !switchingTab">
                           <div

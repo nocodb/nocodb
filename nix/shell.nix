@@ -5,7 +5,8 @@
   shfmt,
   typescript-language-server,
   nodePackages,
-}: mkShell {
+}:
+mkShell {
   inputsFrom = [ nocodb ];
 
   buildInputs = [

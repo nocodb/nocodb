@@ -182,17 +182,21 @@ onUnmounted(() => {
 
       <div
         v-if="!isUnderLookup && !isSystemColumn(column)"
-        class="flex justify-end gap-1 min-h-4 items-center absolute right-1 top-[3px]"
+        class="flex justify-end gap-[2px] min-h-4 items-center absolute right-1 top-[3px] has-many-actions"
+        :class="{ active }"
         @click.stop
       >
         <NcButton
           v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon has-many-action-icon"
+          class="nc-action-icon"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
+        </NcButton>
+        <NcButton size="xsmall" type="secondary" class="nc-action-icon" @click.stop="openChildList">
+          <GeneralIcon icon="maximize" />
         </NcButton>
       </div>
     </div>
@@ -217,11 +221,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.has-many-action-icon {
-  @apply hidden cursor-pointer;
+.has-many-actions {
+  @apply hidden;
 }
 
-.chips-wrapper:hover .has-many-action-icon {
+.has-many-actions.active,
+.chips-wrapper:hover .has-many-actions {
   @apply flex;
 }
 </style>
@@ -230,18 +235,18 @@ onUnmounted(() => {
 .nc-default-value-wrapper,
 .nc-expanded-cell,
 .ant-form-item-control-input {
-  .has-many-action-icon {
+  .has-many-actions {
     @apply !flex;
   }
 }
 
-.ant-form-item-control-input .has-many-action-icon {
-  top: 4px;
-  right: 4px;
+.ant-form-item-control-input .has-many-actions {
+  top: 7px;
+  right: 5px;
 }
 
-.nc-expanded-cell .has-many-action-icon {
-  top: 2px;
-  right: 2px;
+.nc-expanded-cell .has-many-actions {
+  top: 5px;
+  right: 5px;
 }
 </style>

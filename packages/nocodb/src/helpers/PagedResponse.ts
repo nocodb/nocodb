@@ -130,12 +130,12 @@ export class PagedResponseV3Impl<T> {
     }
 
     if (nestedPrevPageAvail) {
-      pageInfo.nestedNext = constructUrl({
+      pageInfo.nestedPrev = constructUrl({
         ...commonProps,
         query: {
           ...commonQueryParams,
           page: pagedResponse.pageInfo.page,
-          nestedPage: nestedPage + 1,
+          nestedPage: nestedPage - 1,
         },
       });
     }

@@ -120,47 +120,32 @@ function isV0Audit(audit: AuditType) {
               </div>
             </div>
             <div v-else-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
-            <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
+            <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
               <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
                     :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
                     class="!m-0"
                   />
-                  {{ safeJsonParse(audit.details).ref_table_title }}
+                  {{ safeJsonParse(audit.details).link_field_title }}
                 </div>
-                <div class="!border-none">
-                  <span class="space-x-1">
+                <div class="!border-none audit-link-container">
+                  <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0" class="audit-link-removal">
                     <span
-                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values"
-                      class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone"
+                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
+                      class="audit-link-item"
                     >
                       {{ name }}
                     </span>
-                  </span>
-                  was linked
-                </div>
-              </div>
-            </div>
-            <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
-              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
-                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
-                  <SmartsheetHeaderVirtualCellIcon
-                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
-                    class="!m-0"
-                  />
-                  {{ safeJsonParse(audit.details).ref_table_title }}
-                </div>
-                <div class="!border-none">
-                  <span class="space-x-1">
+                  </div>
+                  <div v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0" class="audit-link-addition">
                     <span
-                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values"
-                      class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone"
+                      v-for="name of safeJsonParse(audit.details).consolidated_ref_display_values_links"
+                      class="audit-link-item"
                     >
                       {{ name }}
                     </span>
-                  </span>
-                  was unlinked
+                  </div>
                 </div>
               </div>
             </div>
@@ -187,5 +172,35 @@ function isV0Audit(audit: AuditType) {
 
 :deep(.green.lighten-4) {
   @apply bg-green-100 rounded-md !mr-3;
+}
+.audit-link-container {
+  @apply flex flex-row gap-2;
+  .audit-link-addition {
+    @apply flex gap-1 flex-wrap;
+    span {
+      @apply !text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
+    }
+  }
+  .audit-link-removal {
+    @apply flex gap-1 flex-wrap;
+    span {
+      @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
+    }
+  }
+  &:has(.audit-link-item + .audit-link-item) {
+    @apply flex-col;
+    .audit-link-addition {
+      @apply p-1 border-1 border-green-200 rounded-md bg-green-50;
+      span {
+        @apply !text-[13px] !leading-[18px] px-1 py-0.5 text-gray-700 font-weight-500 border-1 border-gray-300 rounded-md bg-gray-100 decoration-clone;
+      }
+    }
+    .audit-link-removal {
+      @apply p-1 border-1 border-red-200 rounded-md bg-red-50;
+      span {
+        @apply !text-[13px] !leading-[18px] px-1 py-0.5 text-gray-700 font-weight-500 border-1 border-gray-300 rounded-md bg-gray-100 decoration-clone;
+      }
+    }
+  }
 }
 </style>

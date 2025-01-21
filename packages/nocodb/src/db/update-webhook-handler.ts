@@ -91,7 +91,7 @@ export class UpdateWebhookHandler {
       context: this.webhookContext.context,
       hookName,
       prevData,
-      nextData,
+      newData: nextData,
       user: this.webhookContext.user,
       viewId: this.webhookContext.viewId,
       modelId: this.webhookContext.modelId,

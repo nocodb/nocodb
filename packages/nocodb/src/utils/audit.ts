@@ -642,6 +642,7 @@ export const populateUpdatePayloadDiff = ({
   boolProps,
   aliasMap,
   keepUnderModified = false,
+  keepNested = false,
 }: {
   prev: any;
   next: any;
@@ -654,6 +655,7 @@ export const populateUpdatePayloadDiff = ({
   boolProps?: string[];
   aliasMap?: Record<string, string>;
   keepUnderModified?: boolean;
+  keepNested?: boolean;
 }): UpdatePayload | UpdateDestructedPayload | false => {
   if (parseMeta)
     parseMetaIfFound({ payloads: [next, prev], metaProps: metaProps });
@@ -703,7 +705,7 @@ export const populateUpdatePayloadDiff = ({
     prev = mapAlias(prev);
   }
 
-  const updatedProps = removeBlankPropsAndMask(
+  let updatedProps = removeBlankPropsAndMask(
     diff(prev, next),
     exclude,
     !excludeNull,
@@ -712,10 +714,16 @@ export const populateUpdatePayloadDiff = ({
 
   if (!Object.keys(updatedProps).length) return false;
 
-  const prevState = diff(
-    extractPropsFromPrev(next, updatedProps),
-    extractPropsFromPrev(prev, updatedProps),
-  ) as Record<string, unknown>;
+  let prevState: Record<string, any>;
+  if (keepNested) {
+    prevState = extractPropsFromPrev(prev, updatedProps);
+    updatedProps = extractPropsFromPrev(next, updatedProps);
+  } else {
+    prevState = diff(
+      extractPropsFromPrev(next, updatedProps),
+      extractPropsFromPrev(prev, updatedProps),
+    ) as Record<string, unknown>;
+  }
 
   return keepUnderModified
     ? {

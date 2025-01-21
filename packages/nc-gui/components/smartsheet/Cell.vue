@@ -366,7 +366,10 @@ const cellClassName = computed(() => {
         :show-readonly-field="showReadonlyField"
       />
 
-      <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
+      <template v-else-if="cellType === 'timePicker'">
+        <LazyCellTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
+      </template>
 
       <template v-else-if="cellType === 'rating'">
         <LazyCellRatingReadonly v-if="showReadonlyField" :model-value="vModel" />

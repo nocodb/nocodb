@@ -1113,7 +1113,8 @@
     "configureAiButton": "Configure AI Button",
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
-    "rowId": "Row Id"
+    "rowId": "Row Id",
+    "showJsonPayload": "Show json payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

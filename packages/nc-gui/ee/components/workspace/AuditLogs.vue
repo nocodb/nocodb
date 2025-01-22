@@ -1178,7 +1178,7 @@ onKeyStroke('ArrowDown', onDown)
                 size="small"
                 @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
               >
-                <div class="text-sm">Show Json Payload</div>
+                <div class="text-sm">{{ $t('labels.showJsonPayload') }}</div>
 
                 <GeneralIcon
                   icon="chevronDown"

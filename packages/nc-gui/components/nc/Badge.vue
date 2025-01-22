@@ -19,7 +19,7 @@ const props = withDefaults(
     :class="{
       'border-purple-500 bg-purple-100': props.color === 'purple',
       'border-blue-500 bg-blue-100': props.color === 'blue',
-      'border-green-500 bg-green-100 text-nc-content-green-dark': props.color === 'green',
+      'border-green-500 bg-green-100': props.color === 'green',
       'border-orange-500 bg-orange-100': props.color === 'orange',
       'border-yellow-500 bg-yellow-100': props.color === 'yellow',
       'border-red-500 bg-red-100': props.color === 'red',

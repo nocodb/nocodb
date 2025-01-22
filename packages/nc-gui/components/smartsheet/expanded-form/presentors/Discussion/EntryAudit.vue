@@ -87,18 +87,68 @@ const createdBy = computed(() => {
     <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
-    <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'">
+    <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncNode"
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm mb-1 ml-6.5">
-          "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}" field was linked to row
-          {{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_row_id') }}
-          with value "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'ref_display_value') }}"
+        <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
+          <span class="text-gray-600 font-weight-500">
+            Linked
+          </span>
+          <span
+            class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-3"
+          >
+            <SmartsheetHeaderVirtualCellIcon
+              :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
+              class="!w-[16px] !h-[16px] !m-0"
+            />
+            <span class="text-sm font-weight-500 text-gray-600">
+              {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
+            </span>
+          </span>
+          <div
+            v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')?.length > 0"
+            class="audit-link-removal"
+          >
+            <span
+              v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
+              :key="entry.refRowId"
+              class="audit-link-item"
+            >
+              {{ entry.value }}
+            </span>
+          </div>
+          <div
+            v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')?.length > 0"
+            class="audit-link-addition"
+          >
+            <span
+              v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
+              :key="entry.refRowId"
+              class="audit-link-item"
+            >
+              {{ entry.value }}
+            </span>
+          </div>
         </p>
       </div>
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.audit-link-addition {
+  @apply flex gap-2 flex-wrap;
+  span {
+    @apply !text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
+  }
+}
+.audit-link-removal {
+  @apply flex gap-2 flex-wrap;
+  span {
+    @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
+  }
+}
+</style>

@@ -416,29 +416,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
-  const auditCommentGroups = computed(() => {
-    const adts = [...audits.value].map((it) => ({
-      user: it.user,
-      displayName: it.created_display_name,
-      created_at: it.created_at,
-      type: 'audit',
-      audit: it,
-    }))
-
-    const cmnts = [...comments.value].map((it) => ({
-      ...it,
-      user: it.created_by_email,
-      displayName: it.created_display_name,
-      type: 'comment',
-    }))
-
-    const groups = [...adts, ...cmnts]
-
-    return groups.sort((a, b) => {
-      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
-    })
-  })
-
   const processedAudits = computed(() => {
     const result: typeof audits.value = []
 
@@ -614,6 +591,29 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
 
     return result
+  })
+
+  const auditCommentGroups = computed(() => {
+    const adts = [...consolidatedAudits.value].map((it) => ({
+      user: it.user,
+      displayName: it.created_display_name,
+      created_at: it.created_at,
+      type: 'audit',
+      audit: it,
+    }))
+
+    const cmnts = [...comments.value].map((it) => ({
+      ...it,
+      user: it.created_by_email,
+      displayName: it.created_display_name,
+      type: 'comment',
+    }))
+
+    const groups = [...adts, ...cmnts]
+
+    return groups.sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
+    })
   })
 
   return {

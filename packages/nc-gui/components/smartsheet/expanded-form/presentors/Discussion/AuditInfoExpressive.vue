@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AuditType } from 'nocodb-sdk'
+import type { AttachmentType, AuditType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -71,6 +71,48 @@ function normalizeMeta(key: string) {
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
   }
+}
+
+function processOldDataFor(key: string) {
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    return odata?.filter((it: AttachmentType) => !ndata?.some((t: AttachmentType) => t.title === it.title))
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata
+  }
+
+  return odata
+}
+
+function processNewDataFor(key: string) {
+  const odata = oldData.value[key]
+  const ndata = newData.value[key]
+
+  if (meta.value?.[key]?.type === 'Attachment') {
+    return ndata?.filter((it: AttachmentType) => !odata?.some((t: AttachmentType) => t.title === it.title))
+  }
+  if (meta.value?.[key]?.type === 'MultiSelect') {
+    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata
+  }
+
+  return ndata
+}
+
+function shouldUseNormalizedPadding(key: string) {
+  return !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type) && !normalizeMeta(key).is_progress
+}
+
+function shouldUseUniformPadding(key: string) {
+  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type)
+}
+
+/* visibility */
+
+function isShowableValue(value: any) {
+  return ![undefined, null, ''].includes(value)
 }
 </script>
 
@@ -161,10 +203,14 @@ function normalizeMeta(key: string) {
           </template>
         </template>
         <template v-else>
-          <span class="nc-expressive-mini-item-cell cell-removal line-through">
-            <span v-if="!oldData[columnKey]"> empty </span>
+          <span
+            v-if="isShowableValue(processOldDataFor(columnKey))"
+            class="nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
+            :class="{
+              'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+              '!p-0.25': shouldUseUniformPadding(columnKey),
+            }">
             <SmartsheetCell
-              v-else
               :column="{
                 uidt: meta[columnKey]?.type,
                 dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
@@ -174,15 +220,20 @@ function normalizeMeta(key: string) {
               :model-value="oldData[columnKey]"
               :edit-enabled="false"
               :read-only="true"
+              class="!text-red-700"
               :class="{
                 'min-w-[100px]': normalizeMeta(columnKey).is_progress,
               }"
             />
           </span>
-          <span class="nc-expressive-mini-item-cell ml-2">
-            <span v-if="!newData[columnKey]"> empty </span>
+          <span
+            v-if="isShowableValue(processNewDataFor(columnKey))"
+            class="nc-expressive-mini-item-cell ml-2 nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
+            :class="{
+              'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
+              '!p-0.25': shouldUseUniformPadding(columnKey),
+            }">
             <SmartsheetCell
-              v-else
               :column="{
                 uidt: meta[columnKey]?.type,
                 dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
@@ -192,6 +243,7 @@ function normalizeMeta(key: string) {
               :model-value="newData[columnKey]"
               :edit-enabled="false"
               :read-only="true"
+              class="!text-green-700"
               :class="{
                 'min-w-[100px]': normalizeMeta(columnKey).is_progress,
               }"
@@ -230,7 +282,7 @@ function normalizeMeta(key: string) {
   }
 }
 .nc-expressive-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
-  @apply !p-0 transform -translate-y-[2px];
+  @apply !p-0;
 }
 .nc-expressive-mini-item-cell :deep(.nc-cell-percent) {
   & > div > div {
@@ -270,19 +322,68 @@ function normalizeMeta(key: string) {
     text-decoration: line-through;
   }
 }
+.nc-expressive-mini-item-cell :deep(.nc-cell-user) {
+  .nc-cell-field > div {
+    display: flex !important;
+    & > .ant-tag {
+      @apply !m-0 !p-0 !bg-transparent !text-inherit;
+      & > span > div + div {
+        @apply flex items-center !text-sm font-weight-500;
+      }
+      & > span {
+        @apply gap-1;
+      }
+    }
+    .nc-user-avatar {
+      @apply border-1 border-nc-gray-medium;
+      height: 24px !important;
+      width: 24px !important;
+    }
+  }
+}
+.nc-expressive-mini-item-cell :deep(.nc-cell-user:has(.ant-tag + .ant-tag)) {
+  .ant-tag {
+    @apply !border-1 !border-gray-300 !py-0.5 !px-1 !bg-gray-100 !rounded-[6px];
+  }
+}
+.nc-expressive-mini-item-cell.nc-audit-removal :deep(.nc-cell-user) {
+  .ant-tag > span > div + div {
+    @apply !text-red-700;
+  }
+}
+.nc-expressive-mini-item-cell.nc-audit-addition :deep(.nc-cell-user) {
+  .ant-tag > span > div + div {
+    @apply !text-green-700;
+  }
+}
 </style>
 
 <style lang="scss">
-.nc-audit-mini-item-header {
+.nc-expressive-mini-item-header {
   svg {
     height: 12px;
   }
 }
+.nc-expressive-mini-item-cell:has(.nc-cell-user .ant-tag + .ant-tag) {
+  @apply !p-1;
+  .nc-cell-field > div {
+    @apply gap-1;
+  }
+}
+.nc-expressive-mini-item-cell.nc-audit-removal:has(.nc-cell-user) {
+  text-decoration: none;
+  .ant-tag div + div {
+    text-decoration: line-through;
+  }
+}
 .nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) a {
-  @apply !text-gray-800 no-underline;
+  @apply text-inherit !no-underline !p-0;
+}
+.nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) {
+  @apply !h-[20px];
 }
 .nc-expressive-mini-item-cell.cell-removal :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) a {
-  @apply !line-through;
+  @apply !line-through !p-0;
 }
 .nc-expressive-mini-item-cell.cell-removal :where(.nc-year-picker, .nc-time-picker, .nc-date-picker) {
   @apply !line-through;

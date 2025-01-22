@@ -1,18 +1,23 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { betterAjvErrors } from '@apideck/better-ajv-errors';
+import type { ValidationError } from '@apideck/better-ajv-errors';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import { swaggerV3 } from '~/schema';
 import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
 
+import addErrors from 'ajv-errors';
+
+
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;
 }
 
-const ajv = new Ajv({ strictSchema: false, strict: false }); // Initialize AJV
-
+const ajv = new Ajv({ strictSchema: false, strict: false,  allErrors: true  }); // Initialize AJV
+addErrors(ajv);
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);
@@ -40,20 +45,42 @@ export const getAjvValidatorMw = (schema: string) => {
 };
 
 // a function to validate the payload against the schema
-export const validatePayload = (schema: string, payload: any) => {
+export const validatePayload = (
+  schema: string,
+  payload: any,
+  humanReadableError = false,
+) => {
   const validate = ajv.getSchema(schema);
   // Validate the request body against the schema
   const valid = validate(payload);
 
   // If the request body is not valid, throw error
   if (!valid) {
-    const errors: ErrorObject[] | null | undefined =
+    let errors: ErrorObject[] | null | undefined | ValidationError[] =
       ajv.errors || validate.errors;
+
+    if (humanReadableError) {
+      // let extractedSchema;
+      // // extract schema from swagger json
+      // if (schema.startsWith('swagger-v3.json#/components/schemas/')) {
+      //   extractedSchema =
+      //     swaggerV3.components.schemas[
+      //       schema.split('swagger-v3.json#/components/schemas/')[1]
+      //     ];
+      // }
+
+      // errors = betterAjvErrors({
+      //   schema: validate.schema,
+      //   data: payload,
+      //   errors,
+      // });
+    }
 
     // If the request body is invalid, throw error with error message  and errors
     NcError.ajvValidationError({
       message: 'Invalid request body',
       errors,
+      humanReadableError,
     });
   }
 };

@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
-import type { ColumnReqType, UserType } from 'nocodb-sdk';
+import type {
+  ColumnReqType,
+  FieldUpdateV3Type,
+  FieldV3Type,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -10,6 +15,7 @@ import {
   columnBuilder,
   columnV3ToV2Builder,
 } from '~/utils/api-v3-data-transformation.builder';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class ColumnsV3Service {
@@ -20,21 +26,26 @@ export class ColumnsV3Service {
     param: {
       req: any;
       columnId: string;
-      column: ColumnReqType &
-        ({ colOptions?: any; type?: UITypes } | { type?: any });
+      column: FieldUpdateV3Type;
       cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
     },
   ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/FieldUpdate',
+      param.column,
+      true,
+    );
+
     let column = await Column.get(context, { colId: param.columnId });
 
-    const type = (param.column?.type ?? column.uidt) as UITypes;
+    const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
     const processedColumnReq = columnV3ToV2Builder().build({
       ...param.column,
       type,
-    }) as ColumnReqType & {
+    } as FieldV3Type) as ColumnReqType & {
       meta?: any;
       colOptions?: any;
       dtxp?: string;
@@ -85,11 +96,17 @@ export class ColumnsV3Service {
     param: {
       req: NcRequest;
       tableId: string;
-      column: ColumnReqType;
+      column: FieldV3Type;
       user: UserType;
       reuse?: ReusableParams;
     },
   ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/Field',
+      param.column,
+      true,
+    );
+
     const column = columnV3ToV2Builder().build(
       param.column,
     ) as ColumnReqType & {

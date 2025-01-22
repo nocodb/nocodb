@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ColumnReqType } from 'nocodb-sdk';
+import { FieldUpdateV3Type, FieldV3Type } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -29,7 +29,7 @@ export class ColumnsV3Controller {
   async columnAdd(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
-    @Body() body: ColumnReqType,
+    @Body() body: FieldV3Type,
     @Req() req: NcRequest,
   ) {
     return await this.columnsV3Service.columnAdd(context, {
@@ -45,7 +45,7 @@ export class ColumnsV3Controller {
   async columnUpdate(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
-    @Body() body: ColumnReqType,
+    @Body() body: FieldUpdateV3Type,
     @Req() req: NcRequest,
   ) {
     return await this.columnsV3Service.columnUpdate(context, {

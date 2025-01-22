@@ -126,13 +126,18 @@ function onCommentBlur() {
         {{ createdBy(props.comment) }}
       </span>
       <span class="text-xs text-gray-500">
-        {{ timeAgo(props.comment.created_at) }}
+        <NcTooltip>
+          <template #title>{{ parseStringDateTime(props.comment.created_at) }}</template>
+          {{ timeAgo(props.comment.created_at) }}
+        </NcTooltip>
       </span>
 
       <div class="flex-1" />
 
-      <div v-if="!editCommentValue" class="transition flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
-        <NcTooltip v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
+      <div v-if="!editCommentValue" class="flex items-center gap-2">
+        <NcTooltip
+          v-if="user && props.comment.created_by_email === user.email && hasEditPermission"
+          class="opacity-0 transition pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
             size="xsmall"
@@ -144,7 +149,9 @@ function onCommentBlur() {
           <template #title>Click to edit</template>
         </NcTooltip>
 
-        <NcTooltip v-if="!props.comment.resolved_by && hasEditPermission">
+        <NcTooltip
+          v-if="!props.comment.resolved_by && hasEditPermission"
+          class="opacity-0 transition pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
             size="xsmall"
@@ -155,7 +162,8 @@ function onCommentBlur() {
           </NcButton>
           <template #title>Click to resolve</template>
         </NcTooltip>
-        <NcTooltip v-else-if="props.comment.resolved_by">
+        <NcTooltip
+          v-else-if="props.comment.resolved_by">
           <template #title>{{ `Resolved by ${props.comment.resolved_display_name}` }}</template>
           <NcButton
             class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"

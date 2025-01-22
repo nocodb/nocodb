@@ -72,7 +72,10 @@ const createdBy = computed(() => {
         </span>
       </p>
       <div class="text-xs font-weight-500 text-gray-500">
-        {{ timeAgo(props.auditGroup.audit?.created_at) }}
+        <NcTooltip>
+          <template #title>{{ parseStringDateTime(props.auditGroup.audit?.created_at) }}</template>
+          {{ timeAgo(props.auditGroup.audit?.created_at) }}
+        </NcTooltip>
       </div>
     </div>
     <template v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'">
@@ -95,7 +98,7 @@ const createdBy = computed(() => {
         />
         <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
           <span class="text-gray-600 font-weight-500">
-            Linked
+            linked
           </span>
           <span
             class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-3"

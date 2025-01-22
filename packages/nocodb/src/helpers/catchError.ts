@@ -983,7 +983,7 @@ export class NcError {
 
   static ajvValidationError(param: {
     message: string;
-    errors: ErrorObject[] | ValidationError[];
+    errors: ErrorObject[];
     humanReadableError: boolean;
   }) {
     throw new AjvError(param);

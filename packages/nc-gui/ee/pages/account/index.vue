@@ -109,6 +109,21 @@ const logout = async () => {
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
                 </div>
               </NcMenuItem>
+              <!-- <NcMenuItem
+                v-if="isUIAllowed('ssoSettings')"
+                key="audits"
+                :class="{
+                  active: $route.params.page === 'audits',
+                }"
+                class="item"
+                @click="navigateTo('/account/audits')"
+              >
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.audit" />
+
+                  <div class="select-none text-sm">{{ $t('title.audits') }}</div>
+                </div>
+              </NcMenuItem> -->
               <NcMenuItem
                 v-if="isUIAllowed('ssoSettings')"
                 key="authentication"

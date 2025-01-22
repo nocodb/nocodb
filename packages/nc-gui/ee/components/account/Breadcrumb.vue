@@ -51,6 +51,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'audits': {
+      payload.push({
+        title: t('title.audits'),
+        active: true,
+      })
+      break
+    }
   }
 
   switch (route.params.nestedPage) {

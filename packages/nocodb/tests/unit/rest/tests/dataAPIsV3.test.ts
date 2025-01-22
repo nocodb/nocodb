@@ -83,6 +83,7 @@
 
 import 'mocha';
 import {
+  convertMS2Duration,
   isCreatedOrLastModifiedTimeCol,
   UITypes,
   ViewTypes,
@@ -1437,7 +1438,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 33.3,
         Currency: 33.3,
         Percent: 33,
-        Duration: 10,
+        Duration: 10 * 60,
         Rating: 0,
       },
       {
@@ -1446,7 +1447,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 456.34,
         Currency: 456.34,
         Percent: null,
-        Duration: 20,
+        Duration: 20 * 60,
         Rating: 1,
       },
       {
@@ -1455,7 +1456,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 333.3,
         Currency: 333.3,
         Percent: 456,
-        Duration: 30,
+        Duration: 30 * 60,
         Rating: 2,
       },
       {
@@ -1464,7 +1465,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: null,
         Currency: null,
         Percent: 333,
-        Duration: 40,
+        Duration: 40 * 60,
         Rating: 3,
       },
       {
@@ -1473,7 +1474,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 267.5674,
         Currency: 267.5674,
         Percent: 267,
-        Duration: 50,
+        Duration: 50 * 60,
         Rating: null,
       },
       {
@@ -1482,7 +1483,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 34,
         Currency: 34,
         Percent: 34,
-        Duration: 60,
+        Duration: 60 * 60,
         Rating: 0,
       },
       {
@@ -1500,7 +1501,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 3234.547,
         Currency: 3234.547,
         Percent: 3234,
-        Duration: 70,
+        Duration: 70 * 60,
         Rating: 5,
       },
       {
@@ -1509,7 +1510,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 44.2647,
         Currency: 44.2647,
         Percent: 44,
-        Duration: 80,
+        Duration: 80 * 60,
         Rating: 0,
       },
       {
@@ -1518,7 +1519,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         Decimal: 33.98,
         Currency: 33.98,
         Percent: 33,
-        Duration: 90,
+        Duration: 90 * 60,
         Rating: 1,
       },
     ];
@@ -1557,7 +1558,10 @@ export default function (API_VERSION: 'v2' | 'v3') {
       records.forEach((r) => delete r.Id);
       rsp = await ncAxiosPost({
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
-        body: records,
+        body: records.map((k) => ({
+          ...k,
+          Duration: convertMS2Duration(k.Duration, 0),
+        })),
       });
 
       // prepare array with 10 Id's, from 401 to 410

@@ -1,4 +1,5 @@
 import {
+  convertMS2Duration,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   UITypes,
@@ -79,7 +80,19 @@ const _rowMixedValue = (column: ColumnType, index: number) => {
     33.98,
     null,
   ];
-  const duration = [10, 20, 30, 40, 50, 60, null, 70, 80, 90, null];
+  const duration = [
+    10 * 60,
+    20 * 60,
+    30 * 60,
+    40 * 60,
+    50 * 60,
+    60 * 60,
+    null,
+    70 * 60,
+    80 * 60,
+    90 * 60,
+    null,
+  ];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
 
   // Array of random sample email strings (not more than 100 characters)
@@ -207,6 +220,9 @@ const rowMixedValue = (column: ColumnType, index: number, isV3: boolean = false)
     if (column.uidt === UITypes.MultiSelect) {
       return val ? (val as string).split(',') : val
     }
+  }
+  if (column.uidt === UITypes.Duration) {
+    return val ? convertMS2Duration(val, 0) : val
   }
   return val
 }

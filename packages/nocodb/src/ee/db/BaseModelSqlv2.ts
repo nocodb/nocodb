@@ -1,6 +1,7 @@
 import {
   AppEvents,
   AuditV1OperationTypes,
+  convertDurationToSeconds,
   extractFilterFromXwhere,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
@@ -1686,6 +1687,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 }
                 if (this.isPg && col.uidt === UITypes.Checkbox) {
                   val = val ? true : false;
+                }
+
+                if (col.uidt === UITypes.Duration) {
+                  if (col.meta?.duration !== undefined) {
+                    const duration = convertDurationToSeconds(
+                      val,
+                      col.meta.duration,
+                    );
+                    if (duration._isValid) {
+                      val = duration._sec;
+                    }
+                  }
                 }
                 insertObj[sanitize(col.column_name)] = val;
               }

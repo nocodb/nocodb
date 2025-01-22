@@ -110,7 +110,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
         await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
       } catch (e) {
         if (process.env.NC_CLOUD === 'true') throw e;
-        console.error('Plugin init failed', e);
+        console.error('Plugin init failed', e?.message);
       }
     }
 

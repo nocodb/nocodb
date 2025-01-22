@@ -1,30 +1,28 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes } from 'nocodb-sdk'
-import { useColumnResize } from './canvasUtils/useColumnResize'
+import { UITypes } from 'nocodb-sdk'
+import { normalizeWidth, useColumnResize } from './canvasUtils/useColumnResize'
+
+// Refs
 const canvasRef = ref()
-
 const containerRef = ref()
-
 const scrollTop = ref(0)
-
 const scrollLeft = ref(0)
 
+// Injections
 const meta = inject(MetaInj, ref())
-
+const fields = inject(FieldsInj, ref([]))
 const view = inject(ActiveViewInj, ref())
-
 const { xWhere } = useSmartsheetStoreOrThrow()
-
 const reloadVisibleDataHook = createEventHook()
 
 provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
+// Composables
 const { totalRows, syncCount, cachedRows } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
-
-const fields = inject(FieldsInj, ref([]))
-
 const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
+const { height } = useElementSize(containerRef)
 
+// Computed
 const visibleColumns = computed(() => {
   const cols = fields.value.map((f) => {
     const gridViewCol = gridViewCols.value[f.id]
@@ -42,7 +40,7 @@ const visibleColumns = computed(() => {
     id: 'row_number',
     grid_column_id: 'row_number',
     title: '#',
-    uidt: 'number',
+    uidt: UITypes.AutoNumber,
     width: '64',
     fixed: true,
   })
@@ -59,46 +57,35 @@ const totalHeight = computed(() => {
   return rowsHeight + headerHeight
 })
 
-const columnWidthLimit = {
-  [UITypes.Attachment]: {
-    minWidth: 80,
-    maxWidth: Number.POSITIVE_INFINITY,
-  },
-  [UITypes.Button]: {
-    minWidth: 100,
-    maxWidth: 320,
-  },
-}
-const normalizeWidth = (col: ColumnType, width: number) => {
-  if (col.uidt! in columnWidthLimit) {
-    const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
-
-    if (minWidth < width && width < maxWidth) return width
-    if (width < minWidth) return minWidth
-    if (width > maxWidth) return maxWidth
-  }
-  return width
-}
-
-const { drawResizeHandle, handleMouseMove, handleMouseDown } = useColumnResize(
+const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
   canvasRef,
   visibleColumns,
   (columnId, newWidth) => {
     const columnIndex = visibleColumns.value.findIndex((col) => col.id === columnId)
     if (columnIndex !== -1) {
-      const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
-      visibleColumns.value[columnIndex].width = `${normalizedWidth}px`
-      requestAnimationFrame(drawCanvas)
+      try {
+        const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
+        visibleColumns.value[columnIndex].width = `${normalizedWidth}px`
+        requestAnimationFrame(drawCanvas)
+      } catch (error) {
+        console.error('Error updating column width:', error)
+        cleanupResize()
+      }
     }
   },
-  (columnId, newWidth) => {
-    const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
+  (columnId, width) => {
+    const columnIndex = visibleColumns.value.findIndex((col) => col.id === columnId)
+
+    if (columnIndex === -1) return
+
+    const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], width)
     updateGridViewColumn(columnId, { width: `${normalizedWidth}px` })
-    requestAnimationFrame(drawCanvas)
+
+    nextTick(() => {
+      drawCanvas()
+    })
   },
 )
-
-const isRendering = ref(false)
 
 function drawCanvas() {
   const canvas = canvasRef.value
@@ -110,15 +97,15 @@ function drawCanvas() {
   const dpr = window.devicePixelRatio || 1
 
   canvas.width = totalWidth.value * dpr
-  canvas.height = totalHeight.value * dpr
+  canvas.height = height.value * dpr
 
   canvas.style.width = `${totalWidth.value}px`
-  canvas.style.height = `${totalHeight.value}px`
-
   ctx.scale(dpr, dpr)
 
   ctx.fillStyle = '#f4f4f5'
   ctx.fillRect(0, 0, totalWidth.value, 32)
+
+  ctx.fillStyle = '#f4f4f5'
 
   ctx.strokeStyle = '#e7e7e9'
   ctx.lineWidth = 1
@@ -184,18 +171,7 @@ function drawCanvas() {
       ctx.stroke()
     })
   }
-
-  drawResizeHandle(ctx)
 }
-
-onMounted(async () => {
-  isRendering.value = true
-  requestAnimationFrame(drawCanvas)
-})
-
-onBeforeUnmount(() => {
-  isRendering.value = false
-})
 
 let rafnId: number | null = null
 
@@ -212,6 +188,18 @@ useScroll(containerRef, {
     })
   },
 })
+
+onMounted(async () => {
+  canvasRef.value?.addEventListener('mousemove', handleMouseMove)
+  canvasRef.value?.addEventListener('mousedown', handleMouseDown)
+
+  await syncCount()
+  requestAnimationFrame(drawCanvas)
+})
+onBeforeUnmount(() => {
+  canvasRef.value?.removeEventListener('mousemove', handleMouseMove)
+  canvasRef.value?.removeEventListener('mousedown', handleMouseDown)
+})
 </script>
 
 <template>
@@ -224,7 +212,14 @@ useScroll(containerRef, {
           height: `${totalHeight}px`,
         }"
       >
-        <canvas ref="canvasRef" :width="`${totalWidth}px`" @mousedown="handleMouseDown" @mousemove="handleMouseMove"> </canvas>
+        <canvas
+          ref="canvasRef"
+          class="sticky top-0"
+          :height="`${height}px`"
+          @mousedown="handleMouseDown"
+          @mousemove="handleMouseMove"
+        >
+        </canvas>
       </div>
     </div>
   </div>

@@ -2,7 +2,7 @@
 import { Empty } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType, UserType, WorkspaceUserType } from 'nocodb-sdk'
-import { AuditOperationTypes, auditOperationSubTypeLabels, auditOperationTypeLabels, timeAgo } from 'nocodb-sdk'
+import { AuditOperationTypes, auditOperationTypeLabels, auditV1OperationTypesAlias, timeAgo } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { AuditLogsDateRange } from '~/lib/enums'
 
@@ -288,6 +288,10 @@ const handleRefresh = () => {
     auditLogsQuery.value.endDate = dayjs(new Date()).utc().format('YYYY-MM-DD HH:mm:ssZ')
   }
   loadAudits()
+}
+
+const isDataEventType = (audit) => {
+  return !ncIsUndefined(audit?.row_id) && audit?.op_type?.startsWith('DATA_')
 }
 
 watch(
@@ -850,17 +854,18 @@ onKeyStroke('ArrowDown', onDown)
                 <th class="cell-base">
                   <div>{{ $t('objects.project') }}</div>
                 </th>
-                <th class="cell-type">
-                  <div>{{ $t('general.type') }}</div>
+                <th class="cell-event">
+                  <div>{{ $t('general.event') }}</div>
                 </th>
-                <th class="cell-sub-type">
-                  <div>{{ $t('general.subType') }}</div>
-                </th>
-                <th class="cell-description">
+
+                <!-- <th class="cell-description">
                   <div>{{ $t('labels.description') }}</div>
-                </th>
+                </th> -->
                 <th class="cell-ip">
                   <div>{{ $t('general.ipAddress') }}</div>
+                </th>
+                <th class="cell-user_agent">
+                  <div>{{ $t('labels.osBrowser') }}</div>
                 </th>
               </tr>
             </thead>
@@ -944,39 +949,40 @@ onKeyStroke('ArrowDown', onDown)
                       </template>
                     </div>
                   </td>
-                  <td class="cell-type">
-                    <div>
-                      <div class="truncate bg-gray-200 px-2 py-1 rounded-lg">
-                        <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
-                          <template #title> {{ auditOperationTypeLabels[audit.op_type] }}</template>
-
-                          <span class="truncate"> {{ auditOperationTypeLabels[audit.op_type] }} </span>
-                        </NcTooltip>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="cell-sub-type">
+                  <td class="cell-event">
                     <div>
                       <div class="truncate">
                         <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
-                          <template #title> {{ auditOperationSubTypeLabels[audit.op_sub_type] }}</template>
+                          <template #title> {{ auditV1OperationTypesAlias[audit.op_type] }}</template>
 
-                          <span class="truncate"> {{ auditOperationSubTypeLabels[audit.op_sub_type] }} </span>
+                          <span class="truncate"> {{ auditV1OperationTypesAlias[audit.op_type] }} </span>
                         </NcTooltip>
                       </div>
                     </div>
                   </td>
-                  <td class="cell-description">
+
+                  <!--  <td class="cell-description">
                     <div>
                       <div class="truncate">
                         {{ audit.description }}
                       </div>
                     </div>
-                  </td>
+                  </td> -->
                   <td class="cell-ip">
                     <div>
                       <div class="truncate">
                         {{ audit.ip }}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="cell-user_agent">
+                    <div>
+                      <div class="truncate">
+                        <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
+                          <template #title> {{ audit.user_agent ?? '' }}</template>
+
+                          <span class="truncate"> {{ audit.user_agent ?? '' }} </span>
+                        </NcTooltip>
                       </div>
                     </div>
                   </td>
@@ -1070,9 +1076,22 @@ onKeyStroke('ArrowDown', onDown)
 
                 <div v-else class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
               </div>
-              <div class="w-1/2 flex flex-col gap-2 px-4 py-3">
-                <div class="cell-header">{{ $t('general.ipAddress') }}</div>
-                <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip }}</div>
+
+              <div class="w-1/2">
+                <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
+                  <div class="cell-header">{{ $t('general.ipAddress') }}</div>
+                  <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip }}</div>
+                </div>
+                <div class="h-1/2 flex items-center gap-2 px-4 py-3">
+                  <div class="cell-header whitespace-nowrap">{{ $t('labels.osBrowser') }}</div>
+                  <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
+                    <template #title> {{ selectedAudit?.user_agent ?? 'N/A' }}</template>
+
+                    <span class="text-small leading-[18px] text-gray-600">
+                      {{ selectedAudit?.user_agent ?? 'N/A' }}
+                    </span>
+                  </NcTooltip>
+                </div>
               </div>
             </div>
             <div class="border-t-1 border-gray-200 flex">
@@ -1096,16 +1115,19 @@ onKeyStroke('ArrowDown', onDown)
                 </template>
               </div>
               <div class="w-1/2">
-                <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
-                  <div class="cell-header">{{ $t('general.type') }}</div>
-                  <div class="text-small leading-[18px] text-gray-600 bg-gray-200 px-1 rounded-md">
-                    {{ auditOperationTypeLabels[selectedAudit?.op_type] }}
+                <div class="h-1/2 flex items-center gap-2 px-4 py-3">
+                  <div class="cell-header">{{ $t('general.event') }}</div>
+                  <div class="text-small leading-[18px] text-gray-600">
+                    {{ auditV1OperationTypesAlias[selectedAudit?.op_type] }}
                   </div>
                 </div>
-                <div class="h-1/2 flex items-center gap-2 px-4 py-3">
-                  <div class="cell-header">{{ $t('general.subType') }}</div>
+                <div
+                  v-if="isDataEventType(selectedAudit)"
+                  class="h-1/2 flex items-center gap-2 px-4 py-3 border-t border-gray-200"
+                >
+                  <div class="cell-header">{{ $t('labels.rowId') }}</div>
                   <div class="text-small leading-[18px] text-gray-600">
-                    {{ auditOperationSubTypeLabels[selectedAudit?.op_sub_type] }}
+                    {{ selectedAudit?.row_id }}
                   </div>
                 </div>
               </div>
@@ -1201,10 +1223,16 @@ onKeyStroke('ArrowDown', onDown)
         @apply w-[220px] sticky left-0 z-5;
       }
 
+      &.cell-base {
+        @apply w-[250px];
+      }
+
       &.cell-timestamp,
-      &.cell-base,
       &.cell-ip {
         @apply w-[180px];
+      }
+      &.cell-event {
+        @apply w-[280px];
       }
       &.cell-type {
         @apply w-[118px];
@@ -1215,12 +1243,15 @@ onKeyStroke('ArrowDown', onDown)
       &.cell-description {
         @apply w-[472px];
       }
+      &.cell-user_agent {
+        @apply w-[250px];
+      }
     }
   }
 }
 
 .cell-header {
-  @apply text-xs font-semibold text-gray-500;
+  @apply text-xs font-semibold text-gray-500 leading-[18px];
 }
 :deep(.nc-button) {
   svg.sort-asc path.up {

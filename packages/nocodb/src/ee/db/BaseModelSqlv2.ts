@@ -1690,12 +1690,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 }
 
                 if (col.uidt === UITypes.Duration) {
-                  const duration = convertDurationToSeconds(
-                    val,
-                    col.meta.duration,
-                  );
-                  if (duration._isValid) {
-                    val = duration._sec;
+                  if (col.meta?.duration !== undefined) {
+                    const duration = convertDurationToSeconds(
+                      val,
+                      col.meta.duration,
+                    );
+                    if (duration._isValid) {
+                      val = duration._sec;
+                    }
                   }
                 }
                 insertObj[sanitize(col.column_name)] = val;

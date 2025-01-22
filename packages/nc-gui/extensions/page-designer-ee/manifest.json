@@ -17,6 +17,7 @@
     }
   },
   "config": {
+    "modalSize": "fullscreen",
     "contentMinHeight": "500px"
   }
 }

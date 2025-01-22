@@ -162,7 +162,11 @@ useEventListener('keydown', (e) => {
             @click="closeFullscreen"
           >
             <div
-              :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }"
+              :class="{
+                'extension-modal-content': fullscreen,
+                'h-full': !fullscreen,
+                '!h-screen !w-screen': currentExtensionModalSize === 'fullscreen',
+              }"
               :style="
                 fullscreen
                   ? {

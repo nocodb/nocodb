@@ -25,7 +25,7 @@ const verticalLines = computed(() => {
 
 <template>
   <div class="h-full w-full flex">
-    <div class="layout-wrapper flex-1 overflow-auto">
+    <div class="layout-wrapper flex-1 flex justify-center overflow-auto">
       <div class="page relative" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div

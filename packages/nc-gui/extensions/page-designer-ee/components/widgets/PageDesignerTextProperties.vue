@@ -5,11 +5,9 @@ import ColorPropertyPicker from '../ColorPropertyPicker.vue'
 import BorderImage from '../../assets/border.svg'
 import type { PageDesignerTextWidget } from '../../src/widgets'
 
-const props = defineProps<{
-  index: number
-}>()
+const payload = inject(PageDesignerPayloadInj)!
 
-const payload = inject(PageDesignerPayloadInj)
+const index = payload.value.currentWidgetIndex ?? -1
 
 const fontWeightToLabel: Record<string, string> = {
   '100': 'Thin',
@@ -26,7 +24,7 @@ const fontWeightToLabel: Record<string, string> = {
 const fonts = ['Arial', 'Tahoma', 'Times New Roman', 'Verdana', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS', 'Manrope']
 const fontWeights = ['400', '700']
 
-const textWidget = payload?.value?.widgets[props.index] as PageDesignerTextWidget
+const textWidget = payload?.value?.widgets[index] as PageDesignerTextWidget
 </script>
 
 <template>

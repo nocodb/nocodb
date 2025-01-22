@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
-import type { PageDesignerTextWidget } from '../src/widgets'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import type { PageDesignerTextWidget } from '../../src/widgets'
 
 defineProps<{
   widget: PageDesignerTextWidget
+  active: boolean
 }>()
 
 const draggable = true
@@ -31,19 +33,19 @@ const minHeight = 'auto'
 const resizable = true
 const throttleResize = 1
 const renderDirections = ['se']
-const onResize = (e) => {
+const onResize = (e: OnResize) => {
   e.target.style.width = `${e.width}px`
   e.target.style.height = `${e.height}px`
   e.target.style.transform = e.drag.transform
 }
 
-const onRotate = (e) => {
+const onRotate = (e: OnRotate) => {
   e.target.style.transform = e.drag.transform
 }
-const onDrag = (e) => {
+const onDrag = (e: OnDrag) => {
   e.target.style.transform = e.transform
 }
-const onScale = (e) => {
+const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
 </script>
@@ -106,6 +108,7 @@ const onScale = (e) => {
     :throttle-resize="throttleResize"
     :render-directions="renderDirections"
     :origin="false"
+    :data-inactive-widget="!active"
     @resize="onResize"
     @rotate="onRotate"
     @drag="onDrag"

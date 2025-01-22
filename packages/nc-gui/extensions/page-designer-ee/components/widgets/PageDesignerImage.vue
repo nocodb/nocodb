@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { PageDesignerTextWidget } from '../src/widgets'
+import type { PageDesignerImageWidget } from '../../src/widgets'
 
 defineProps<{
-  widget: PageDesignerTextWidget
+  widget: PageDesignerImageWidget
+  active: boolean
 }>()
 
 const draggable = true
@@ -31,19 +33,19 @@ const minHeight = 'auto'
 const resizable = true
 const throttleResize = 1
 const renderDirections = ['se']
-const onResize = (e) => {
+const onResize = (e: OnResize) => {
   e.target.style.width = `${e.width}px`
   e.target.style.height = `${e.height}px`
   e.target.style.transform = e.drag.transform
 }
 
-const onRotate = (e) => {
+const onRotate = (e: OnRotate) => {
   e.target.style.transform = e.drag.transform
 }
-const onDrag = (e) => {
+const onDrag = (e: OnDrag) => {
   e.target.style.transform = e.transform
 }
-const onScale = (e) => {
+const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
 </script>
@@ -66,19 +68,13 @@ const onScale = (e) => {
         borderRadius: `${widget.borderRadius || 0}px`,
       }"
     >
-      <span
-        v-if="widget.value"
+      <img
+        :src="widget.imageSrc"
+        class="w-full h-full"
         :style="{
-          fontSize: `${widget.fontSize}px`,
-          fontWeight: widget.fontWeight,
-          fontFamily: widget.fontFamily,
-          lineHeight: widget.lineHeight,
-          color: widget.textColor,
+          objectFit: widget.objectFit || 'fill',
         }"
-      >
-        {{ widget.value }}
-      </span>
-      <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+      />
     </div>
   </div>
   <Moveable
@@ -103,6 +99,7 @@ const onScale = (e) => {
     :throttle-resize="throttleResize"
     :render-directions="renderDirections"
     :origin="false"
+    :data-inactive-widget="!active"
     @resize="onResize"
     @rotate="onRotate"
     @drag="onDrag"

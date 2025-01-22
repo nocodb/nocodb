@@ -3,6 +3,7 @@ export interface PageDesignerWidget {
 }
 
 export interface PageDesignerTextWidget extends PageDesignerWidget {
+  type: 'text'
   value: string
   fontSize: string
   fontWeight: string
@@ -21,9 +22,10 @@ export interface PageDesignerTextWidget extends PageDesignerWidget {
 }
 
 export interface PageDesignerImageWidget extends PageDesignerWidget {
+  type: 'image'
   static: boolean
   column: string
-  url: string
+  imageSrc: string
   backgroundColor: string
   borderLeft: string
   borderRight: string
@@ -31,4 +33,5 @@ export interface PageDesignerImageWidget extends PageDesignerWidget {
   borderBottom: string
   borderRadius: string
   borderColor: string
+  objectFit: 'fill' | 'contain' | 'cover'
 }

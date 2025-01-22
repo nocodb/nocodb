@@ -2,9 +2,10 @@
 import { PageDesignerPayloadInj } from '../src/context'
 import { PageDesignerLayout } from '../src/layout'
 import PageDesignerText from './widgets/PageDesignerText.vue'
+import PageDesignerImage from './widgets/PageDesignerImage.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 
-const payload = inject(PageDesignerPayloadInj)
+const payload = inject(PageDesignerPayloadInj)!
 
 const pageSize = computed(() =>
   PageDesignerLayout.getPageSizePx(payload?.value?.layout?.pageType, payload?.value?.layout?.orientation),
@@ -40,7 +41,10 @@ const verticalLines = computed(() => {
           ></div>
         </div>
         <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
-          <PageDesignerText :widget="widget" />
+          <div @click="payload.currentWidgetIndex = i">
+            <PageDesignerText v-if="widget.type === 'text'" :widget="widget" :active="payload.currentWidgetIndex === i" />
+            <PageDesignerImage v-else-if="widget.type === 'image'" :widget="widget" :active="payload.currentWidgetIndex === i" />
+          </div>
         </template>
       </div>
     </div>

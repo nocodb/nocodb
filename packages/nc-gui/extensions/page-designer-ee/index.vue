@@ -124,6 +124,18 @@ onMounted(async () => {
         horizontalAlign: 'flex-start',
         verticalAlign: 'flex-start',
       },
+      {
+        type: 'image',
+        imageSrc: '',
+        backgroundColor: '#FFFFFF00',
+        borderLeft: '0',
+        borderRight: '0',
+        borderTop: '0',
+        borderBottom: '0',
+        borderRadius: '0',
+        borderColor: '#000000',
+        objectFit: 'contain',
+      },
     ]
   }
   await updateColumns()

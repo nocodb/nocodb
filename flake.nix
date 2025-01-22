@@ -22,8 +22,7 @@
       packages = forAllSystems (
         { system, pkgs }:
         {
-          nodejs = pkgs.callPackage ./nix/nodejs.nix { };
-          nocodb = pkgs.callPackage ./nix/nocodb.nix { };
+          nocodb = pkgs.callPackage ./nix/package.nix { };
           default = self.packages.${system}.nocodb;
         }
       );

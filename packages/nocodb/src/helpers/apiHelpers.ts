@@ -7,6 +7,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { swaggerV3 } from '~/schema';
 import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
+// import addErrors from 'ajv-errors';
 
 import addErrors from 'ajv-errors';
 
@@ -16,8 +17,8 @@ export function parseHrtimeToMilliSeconds(hrtime) {
   return milliseconds;
 }
 
-const ajv = new Ajv({ strictSchema: false, strict: false,  allErrors: true  }); // Initialize AJV
-addErrors(ajv);
+const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); // Initialize AJV
+// addErrors(ajv);
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);
@@ -68,7 +69,6 @@ export const validatePayload = (
       //       schema.split('swagger-v3.json#/components/schemas/')[1]
       //     ];
       // }
-
       // errors = betterAjvErrors({
       //   schema: validate.schema,
       //   data: payload,

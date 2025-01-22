@@ -562,11 +562,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
             offset: limit * (page - 1),
             limit,
             ...auditLogsQuery.value,
+            sourceId: undefined,
           })
         : await $api.base.auditList(auditLogsQuery.value.baseId, {
             offset: limit * (page - 1),
             limit,
             ...auditLogsQuery.value,
+            sourceId: undefined,
           })
 
       audits.value = list

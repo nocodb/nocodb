@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { timeFormatsObj } from './utils'
 
 interface Props {
   modelValue?: string | null
@@ -13,13 +14,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'currentDate'])
 
-const timeFormatsObj = {
-  [timeFormats[0]]: 'hh:mm A',
-  [timeFormats[1]]: 'hh:mm:ss A',
-  [timeFormats[2]]: 'hh:mm:ss.SSS A',
-}
-
-const { isMssql, isXcdbBase } = useBase()
+const { isXcdbBase } = useBase()
 
 const { showNull } = useGlobal()
 

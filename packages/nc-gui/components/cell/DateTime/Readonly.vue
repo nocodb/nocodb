@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { dateFormats, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { timeCellMaxWidthMap } from './utils'
+import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {
   modelValue?: string | null
@@ -10,12 +10,6 @@ interface Props {
 const { modelValue } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
-
-const timeFormatsObj = {
-  [timeFormats[0]]: 'hh:mm A',
-  [timeFormats[1]]: 'hh:mm:ss A',
-  [timeFormats[2]]: 'hh:mm:ss.SSS A',
-}
 
 const { isXcdbBase } = useBase()
 

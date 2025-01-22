@@ -294,6 +294,37 @@ const isDataEventType = (audit) => {
   return !ncIsUndefined(audit?.row_id) && audit?.op_type?.startsWith('DATA_')
 }
 
+const advancedOptionsExpansionPanel = ref<string[]>([])
+
+const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+  if (open) {
+    advancedOptionsExpansionPanel.value = ['1']
+    handleAutoScroll(true, 'nc-audit-json-perview-wrapper')
+  } else {
+    advancedOptionsExpansionPanel.value = []
+  }
+}
+
+let timer: any
+function handleAutoScroll(scroll: boolean, className: string) {
+  if (scroll) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    nextTick(() => {
+      const el = document.querySelector(`.nc-expanded-audit .${className}`)
+
+      if (!el) return
+
+      // wait for transition complete
+      timer = setTimeout(() => {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }, 400)
+    })
+  }
+}
+
 watch(
   () => auditLogsQuery.value.baseId,
   () => {
@@ -1034,7 +1065,13 @@ onKeyStroke('ArrowDown', onDown)
           </div>
         </div>
       </div>
-      <NcModal v-model:visible="isRowExpanded" size="medium" :show-separator="false" @keydown.esc="isRowExpanded = false">
+      <NcModal
+        v-model:visible="isRowExpanded"
+        size="sm"
+        height="auto"
+        :show-separator="false"
+        @keydown.esc="isRowExpanded = false"
+      >
         <template #header>
           <div class="flex items-center justify-between gap-x-2 w-full">
             <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
@@ -1133,10 +1170,37 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </div>
           </div>
-          <div class="flex flex-col gap-2">
-            <div class="cell-header">{{ $t('labels.description') }}</div>
-            <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.description }}</div>
-          </div>
+
+          <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-audit-json-perview-wrapper">
+            <template #expandIcon="{ isActive }">
+              <NcButton
+                type="text"
+                size="small"
+                @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+              >
+                <div class="text-sm">Show Json Payload</div>
+
+                <GeneralIcon
+                  icon="chevronDown"
+                  class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
+                  :class="{ '!rotate-180': isActive }"
+                />
+              </NcButton>
+            </template>
+            <a-collapse-panel key="1" collapsible="disabled">
+              <template #header>
+                <span></span>
+              </template>
+
+              <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
+                <MonacoEditor
+                  :model-value="selectedAudit?.details || ''"
+                  readOnly
+                  class="nc-audit-json-perview h-[200px] w-full"
+                />
+              </div>
+            </a-collapse-panel>
+          </a-collapse>
         </div>
       </NcModal>
     </template>
@@ -1282,5 +1346,20 @@ onKeyStroke('ArrowDown', onDown)
 }
 :deep(.ant-empty-description) {
   @apply mb-0;
+}
+
+.nc-audit-json-perview-wrapper {
+  @apply;
+  :deep(.ant-collapse-header) {
+    @apply !p-0 flex items-center !cursor-default children:first:flex;
+  }
+  :deep(.ant-collapse-content-box) {
+    @apply !px-0 !pb-0 !pt-3;
+  }
+}
+.nc-audit-json-perview {
+  @apply min-h-[200px] max-h-[400px];
+  resize: vertical;
+  overflow-y: auto;
 }
 </style>

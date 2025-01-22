@@ -473,7 +473,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
     nextTick(() => {
       const el = document.querySelector(`.nc-edit-or-add-connection .${className}`)
-      console.log('className', className, el)
+
       if (!el) return
 
       // wait for transition complete

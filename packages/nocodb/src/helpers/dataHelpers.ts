@@ -237,11 +237,12 @@ export async function serializeCellValue(
         return Number(value).toFixed(column.meta?.precision ?? 1);
       }
       break;
-    case UITypes.Duration:
-      {
-        return convertMS2Duration(value, column.meta.duration);
+    case UITypes.Duration: {
+      if (column.meta?.duration === undefined) {
+        return value;
       }
-      break;
+      return convertMS2Duration(value, column.meta.duration);
+    }
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);

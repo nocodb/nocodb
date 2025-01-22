@@ -1193,11 +1193,18 @@ onKeyStroke('ArrowDown', onDown)
               </template>
 
               <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
-                <MonacoEditor
-                  :model-value="selectedAudit?.details || ''"
-                  readOnly
-                  class="nc-audit-json-perview h-[200px] w-full"
-                />
+                <Suspense>
+                  <LazyMonacoEditor
+                    v-if="isRowExpanded"
+                    :model-value="selectedAudit?.details || ''"
+                    readOnly
+                    class="nc-audit-json-perview h-[200px] w-full"
+                  />
+                  <!-- loading state via #fallback slot -->
+                  <template #fallback>
+                    <div class="h-[200px] w-full px-3"><a-skeleton active :paragraph="{ rows: 3 }" /></div>
+                  </template>
+                </Suspense>
               </div>
             </a-collapse-panel>
           </a-collapse>

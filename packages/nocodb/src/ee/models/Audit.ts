@@ -132,6 +132,7 @@ export default class Audit extends AuditCE {
         limit,
         offset,
         condition: {
+          version: 1,
           fk_workspace_id: workspaceId,
           ...(user ? { user: user } : {}),
           ...(baseId ? { base_id: baseId } : {}),
@@ -180,6 +181,7 @@ export default class Audit extends AuditCE {
       MetaTable.AUDIT,
       {
         condition: {
+          version: 1,
           fk_workspace_id: workspaceId,
           ...(user ? { user: user } : {}),
           ...(baseId ? { base_id: baseId } : {}),

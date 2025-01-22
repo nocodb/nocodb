@@ -45,7 +45,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       chunkSize?: number;
       foreign_key_checks?: boolean;
       skip_hooks?: boolean;
@@ -76,7 +76,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       raw?: boolean;
     },
   ) {
@@ -92,7 +92,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       query: any;
     },
   ) {
@@ -107,7 +107,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -136,7 +136,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       undo: boolean;
     },
   ) {

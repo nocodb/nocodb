@@ -1,6 +1,6 @@
 /* eslint-disable no-async-promise-executor */
 import { Readable } from 'stream';
-import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import {isLinksOrLTAR, NcRequest, RelationTypes} from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
 import { Logger } from '@nestjs/common';
 import PQueue from 'p-queue';
@@ -199,6 +199,7 @@ export async function importData(
         logBasic,
         logDetailed,
         logWarning,
+        req,
       }).catch((e) => {
         logger.error(e);
         logWarning(
@@ -347,6 +348,7 @@ export async function importLTARData(
     idCounter,
     logBasic = (_str) => {},
     logWarning = (_str) => {},
+    req,
   }: {
     baseName: string;
     table: { title?: string; id?: string };
@@ -367,6 +369,7 @@ export async function importLTARData(
     logBasic: (string) => void;
     logDetailed: (string) => void;
     logWarning: (string) => void;
+    req: NcRequest;
   },
 ): Promise<number> {
   const assocTableMetas: Array<{
@@ -497,7 +500,7 @@ export async function importLTARData(
                       baseName,
                       tableName: assocMeta.modelMeta.id,
                       body: insertArray,
-                      cookie: {},
+                      cookie: req,
                       skip_hooks: true,
                       foreign_key_checks: !!source.isMeta(),
                       allowSystemColumn: true,
@@ -541,7 +544,7 @@ export async function importLTARData(
               baseName,
               tableName: assocMeta.modelMeta.id,
               body: assocTableData[assocMeta.modelMeta.id],
-              cookie: {},
+              cookie: req,
               skip_hooks: true,
               foreign_key_checks: !!source.isMeta(),
               allowSystemColumn: true,

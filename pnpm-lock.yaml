@@ -849,6 +849,9 @@ importers:
       nocodb-sdk:
         specifier: workspace:^
         version: link:../nocodb-sdk
+      node-addon-api:
+        specifier: ^8.3.0
+        version: 8.3.0
       nodemailer:
         specifier: ^6.9.13
         version: 6.9.13
@@ -1059,7 +1062,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.6.8
-        version: 1.6.8(debug@4.3.4)
+        version: 1.6.8(debug@4.3.7)
       dayjs:
         specifier: ^1.11.11
         version: 1.11.11
@@ -11572,6 +11575,10 @@ packages:
 
   node-addon-api@7.0.0:
     resolution: {integrity: sha512-vgbBJTS4m5/KkE16t5Ly0WW9hz46swAstv0hYYwMtbG7AznRhNyfLRe8HZAiWIpcHzoO7HxhLuBQj9rJ/Ho0ZA==}
+
+  node-addon-api@8.3.0:
+    resolution: {integrity: sha512-8VOpLHFrOQlAH+qA0ZzuGRlALRA6/LVh8QJldbrC4DY0hXoMP0l4Acq8TzFC018HztWiRqyCEj2aTWY2UvnJUg==}
+    engines: {node: ^18 || ^20 || >= 21}
 
   node-emoji@1.11.0:
     resolution: {integrity: sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A==}
@@ -22563,7 +22570,7 @@ snapshots:
       vue-demi: 0.14.7(vue@3.5.13(typescript@5.6.2))
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.6.8(debug@4.3.4)
+      axios: 1.6.8(debug@4.3.7)
       change-case: 5.4.4
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -29554,6 +29561,8 @@ snapshots:
 
   node-addon-api@7.0.0: {}
 
+  node-addon-api@8.3.0: {}
+
   node-emoji@1.11.0:
     dependencies:
       lodash: 4.17.21
@@ -29934,7 +29943,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.6.8(debug@4.3.4)
+      axios: 1.6.8(debug@4.3.7)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -32627,7 +32636,7 @@ snapshots:
   swagger-typescript-api@10.0.3(encoding@0.1.13):
     dependencies:
       '@types/swagger-schema-official': 2.0.22
-      axios: 1.6.8(debug@4.3.4)
+      axios: 1.6.8(debug@4.3.7)
       commander: 9.4.1
       cosmiconfig: 7.0.1
       eta: 1.12.3

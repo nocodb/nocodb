@@ -1160,7 +1160,7 @@ const isTypeAndRangeFilterEnabled = false
                 </template>
               </div>
               <div class="w-1/2">
-                <div class="h-1/2 flex items-center gap-2 px-4 py-3">
+                <div :class="selectedAudit?.base_id ? 'h-1/2' : 'h-full'" class="flex items-center gap-2 px-4 py-3">
                   <div class="cell-header">{{ $t('general.event') }}</div>
                   <div class="text-small leading-[18px] text-gray-600">
                     {{ auditV1OperationTypesAlias[selectedAudit?.op_type] }}

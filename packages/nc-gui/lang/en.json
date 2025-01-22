@@ -1114,7 +1114,7 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show json payload"
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

@@ -112,8 +112,8 @@ function onCommentBlur() {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-300 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
-    <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-200 rounded-t-lg">
+  <div class="bg-white rounded-lg border !border-gray-200 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
+    <div class="flex items-center gap-2 bg-gray-50 pl-5 pr-3 py-2 border-b border-gray-200 rounded-t-lg">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
@@ -131,7 +131,7 @@ function onCommentBlur() {
 
       <div class="flex-1" />
 
-      <template v-if="!editCommentValue">
+      <div v-if="!editCommentValue" class="transition flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
         <NcTooltip v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -166,7 +166,7 @@ function onCommentBlur() {
             <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
           </NcButton>
         </NcTooltip>
-      </template>
+      </div>
     </div>
     <SmartsheetExpandedFormRichComment
       v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
@@ -194,10 +194,10 @@ function onCommentBlur() {
 <style scoped lang="scss">
 .nc-audit-comment-block::before {
   content: '';
-  @apply absolute -top-4.5 left-5.75 w-[1px] h-4.5 bg-gray-300;
+  @apply absolute -top-4.5 left-8 w-[1px] h-4.5 bg-gray-300;
 }
 .nc-audit-comment-block::after {
   content: '';
-  @apply absolute -bottom-4.5 left-5.75 w-[1px] h-4.5 bg-gray-300;
+  @apply absolute -bottom-4.5 left-8 w-[1px] h-4.5 bg-gray-300;
 }
 </style>

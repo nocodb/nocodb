@@ -17,7 +17,7 @@ import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
-import { T } from '~/utils';
+import { isOnPrem, T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -484,6 +484,7 @@ export class UtilsService {
       samlAuthEnabled,
       giftUrl,
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
+      isOnPrem,
     };
 
     return result;

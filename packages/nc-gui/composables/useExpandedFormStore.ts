@@ -103,6 +103,24 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
+  const auditsInAPage = 5
+  const currentAuditPages = ref(1)
+  const mightHaveMoreAudits = ref(false)
+
+  const loadMoreAudits = async () => {
+    if (!mightHaveMoreAudits.value) {
+      return
+    }
+
+    currentAuditPages.value++
+    await loadAudits()
+  }
+
+  const resetAuditPages = async () => {
+    currentAuditPages.value = 1
+    await loadAudits()
+  }
+
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
     if (
       !isUIAllowed('auditListRow') ||
@@ -119,13 +137,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       if (showLoading) {
         isAuditLoading.value = true
       }
-      const res =
-        (
-          await $api.utils.auditList({
-            row_id: rowId,
-            fk_model_id: meta.value.id as string,
-          })
-        ).list?.reverse?.() || []
+
+      const response = await $api.utils.auditList({
+        row_id: rowId,
+        fk_model_id: meta.value.id as string,
+        offset: 0,
+        limit: currentAuditPages.value * auditsInAPage,
+      })
+
+      const res = response.list?.reverse?.() || []
 
       audits.value = res.map((audit) => {
         const user = baseUsers.value.find((u) => u.email === audit.user)
@@ -136,6 +156,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           created_by_meta: user?.meta,
         }
       })
+
+      mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
     } catch (e: any) {
       message.error(
         await extractSdkResponseErrorMsg(
@@ -417,6 +439,183 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   })
 
+  const processedAudits = computed(() => {
+    const result: typeof audits.value = []
+
+    try {
+      const allAudits = JSON.parse(JSON.stringify(audits.value))
+
+      for (const audit of allAudits) {
+        if (audit.op_type !== 'DATA_UPDATE') {
+          result.push(audit)
+          continue
+        }
+
+        const details = JSON.parse(audit.details)
+
+        for (const columnKey of Object.keys(details.data || {})) {
+          if (!details.column_meta?.[columnKey]) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+
+          if (
+            ['CreatedTime', 'CreatedBy', 'LastModifiedTime', 'LastModifiedBy'].includes(details.column_meta?.[columnKey]?.type)
+          ) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+        }
+
+        if (Object.values(details.column_meta || {}).length > 0) {
+          audit.details = JSON.stringify(details)
+          result.push(audit)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    return result
+  })
+
+  const consolidatedAudits = computed(() => {
+    const result: typeof audits.value = []
+
+    const applyAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
+      if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = []
+      if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = []
+
+      if (type === 'link') {
+        if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
+          detail.consolidated_ref_display_values_links.push({ refRowId, value })
+        } else {
+          detail.consolidated_ref_display_values_unlinks.splice(
+            detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
+        }
+      } else {
+        if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
+          detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
+        } else {
+          detail.consolidated_ref_display_values_links.splice(
+            detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
+        }
+      }
+    }
+
+    try {
+      const allAudits = JSON.parse(JSON.stringify(processedAudits.value))
+
+      while (allAudits.length > 0) {
+        const current = allAudits.shift()!
+        if (current.op_type === 'DATA_LINK' || current.op_type === 'DATA_UNLINK') {
+          const last = result[result.length - 1]
+          const details = JSON.parse(current.details)
+          if (!last) {
+            applyAuditValue(
+              details,
+              details.ref_row_id,
+              details.ref_display_value,
+              current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+            )
+            current.details = JSON.stringify(details)
+            result.push(current)
+          } else {
+            const lastDetails = JSON.parse(last.details)
+            if (
+              last.user === current.user &&
+              dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30 &&
+              lastDetails.link_field_id === details.link_field_id &&
+              lastDetails.ref_table_title === details.ref_table_title
+            ) {
+              applyAuditValue(
+                lastDetails,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
+              if (
+                lastDetails.consolidated_ref_display_values_links?.length > 0 ||
+                lastDetails.consolidated_ref_display_values_unlinks?.length
+              ) {
+                last.details = JSON.stringify(lastDetails)
+              } else {
+                result.pop()
+              }
+            } else {
+              applyAuditValue(
+                details,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
+              current.details = JSON.stringify(details)
+              result.push(current)
+            }
+          }
+        } else if (current.op_type === 'DATA_UPDATE') {
+          const last = result[result.length - 1]
+          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
+            result.push(current)
+            continue
+          }
+          const details = JSON.parse(current.details)
+          const lastDetails = JSON.parse(last.details)
+          for (const field of Object.values(details.column_meta ?? {}) as any[]) {
+            if (field.type === 'MultiSelect' && lastDetails?.column_meta?.[field?.title]) {
+              lastDetails.data[field.title] = details.data[field.title]
+              for (const option of details.column_meta[field.title]?.options?.choices ?? []) {
+                if (!lastDetails.column_meta[field.title]?.options.choices.find((it: any) => it.id === option.id)) {
+                  lastDetails.column_meta[field.title].options.choices.push(option)
+                }
+              }
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            } else if (field.type === 'User' && lastDetails?.column_meta?.[field?.title] && field.options?.is_multi) {
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            } else if (
+              ['SingleLineText', 'LongText', 'Number', 'Decimal'].includes(field.type) &&
+              lastDetails?.column_meta?.[field?.title] &&
+              lastDetails.old_data[field.title]
+            ) {
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            }
+          }
+          if (Object.values(details.column_meta).length > 0) {
+            result.push(current)
+          }
+        } else {
+          result.push(current)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    return result
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -425,6 +624,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     comments,
     audits,
     isAuditLoading,
+    clearColumns,
+    auditCommentGroups,
+    consolidatedAudits,
+    mightHaveMoreAudits,
+    loadMoreAudits,
+    resetAuditPages,
     resolveComment,
     isCommentsLoading,
     saveComment,
@@ -439,8 +644,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
-    clearColumns,
-    auditCommentGroups,
   }
 }, 'expanded-form-store')
 

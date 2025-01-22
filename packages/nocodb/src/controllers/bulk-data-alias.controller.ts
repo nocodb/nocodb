@@ -116,6 +116,7 @@ export class BulkDataAliasController {
       tableName: tableName,
       query: req.query,
       viewName: req.query.viewId,
+      req,
     });
   }
 

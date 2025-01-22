@@ -3,7 +3,7 @@ const props = defineProps<{
   showFieldsTab?: boolean
 }>()
 
-const expandedFormStore = useExpandedFormStoreOrThrow();
+const expandedFormStore = useExpandedFormStoreOrThrow()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 const isAuditsEnabled = computed(() => !isEeUI || isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))

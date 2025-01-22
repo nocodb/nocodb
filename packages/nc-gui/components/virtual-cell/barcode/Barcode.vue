@@ -41,6 +41,19 @@ const showBarcodeModal = () => {
 const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter: showBarcodeModal })
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const height = computed(() => {
+  if (isExpandedFormOpen.value) {
+    return '44px'
+  }
+
+  if (!rowHeight.value) {
+    return '1.8rem'
+  }
+
+  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight.value}`]! - 20}px`
+})
+
 const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
@@ -81,7 +94,7 @@ const cellIcon = (column: ColumnType) =>
     v-if="!tooManyCharsForBarcode"
     class="flex w-full items-center barcode-wrapper"
     :class="{
-      'justify-start ml-2': isExpandedFormOpen,
+      'justify-start': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
@@ -91,7 +104,7 @@ const cellIcon = (column: ColumnType) =>
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
       :custom-style="{
-        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+        height,
       }"
       class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"
@@ -153,6 +166,17 @@ const cellIcon = (column: ColumnType) =>
       height: 30px;
       display: flex;
       align-items: center;
+    }
+  }
+}
+
+.nc-data-cell {
+  &:has(.nc-virtual-cell-barcode) {
+    @apply !border-none;
+    box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
     }
   }
 }

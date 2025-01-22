@@ -170,7 +170,13 @@ const nocoExecute = async (
                 requestObj[key] as XcRequest,
                 r,
                 dataTree?.[key]?.[i],
-                rootArgs?.nested?.[key],
+                Object.assign(
+                  {
+                    nestedPage: rootArgs?.nestedPage,
+                    limit: rootArgs?.nestedLimit,
+                  },
+                  rootArgs?.nested?.[key] || {},
+                ),
               ),
             ),
           ));
@@ -180,7 +186,13 @@ const nocoExecute = async (
             requestObj[key] as XcRequest,
             res1,
             dataTree[key],
-            rootArgs?.nested?.[key],
+            Object.assign(
+              {
+                nestedPage: rootArgs?.nestedPage,
+                limit: rootArgs?.nestedLimit,
+              },
+              rootArgs?.nested?.[key] || {},
+            ),
           ));
         }
         return res1; // Return result if no further nesting

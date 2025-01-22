@@ -122,9 +122,15 @@ const categoriesQuery = computed({
   },
 })
 
+const isDataReflectionEnabled = computed(() => {
+  return isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION)
+})
+
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
     const isOssOnly = isEeUI ? !i?.isOssOnly : true
+
+    if (!isDataReflectionEnabled.value && i.sub_type === SyncDataType.NOCODB) return false
 
     if (i.hidden) return false
 
@@ -206,10 +212,6 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
 const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
     handleUpvote(category, integration.sub_type)
-    return
-  }
-
-  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
     return
   }
 
@@ -420,11 +422,7 @@ watch(activeViewTab, (value) => {
                               <div class="name">{{ $t(integration.title) }}</div>
                               <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
                             </div>
-                            <div
-                              v-if="
-                                !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration?.sub_type === SyncDataType.NOCODB
-                              "
-                            ></div>
+                            <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                             <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
                               <template v-if="dataReflectionEnabled">
                                 <GeneralIcon icon="check" class="text-primary text-lg" />

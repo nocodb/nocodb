@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import TextProperties from './widgets/TextProperties.vue'
+import PageDesignerTextProperties from './widgets/PageDesignerTextProperties.vue'
 </script>
 
 <template>
   <div class="properties-panel w-[420px]">
-    <TextProperties :index="0" />
+    <PageDesignerTextProperties :index="0" />
   </div>
 </template>
 

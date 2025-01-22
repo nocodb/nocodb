@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../src/context'
 import { PageDesignerLayout } from '../src/layout'
-import Text from './widgets/Text.vue'
+import PageDesignerText from './widgets/PageDesignerText.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)
@@ -40,7 +40,7 @@ const verticalLines = computed(() => {
           ></div>
         </div>
         <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
-          <Text :widget="widget" />
+          <PageDesignerText :widget="widget" />
         </template>
       </div>
     </div>

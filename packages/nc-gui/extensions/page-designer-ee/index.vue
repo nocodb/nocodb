@@ -11,7 +11,7 @@ const { extension, fullscreen, getViewsForTable, getTableMeta, tables } = useExt
 
 const KV_STORE_KEY = 'pageDesigner'
 
-const savedPayload = ref<PageDesignerPayload>({})
+const savedPayload = ref<PageDesignerPayload>({ widgets: [] })
 
 provide(PageDesignerPayloadInj, savedPayload)
 
@@ -109,18 +109,20 @@ onMounted(async () => {
       {
         type: 'text',
         value: '',
-        fontSize: 14,
-        fontWeight: 400,
+        fontSize: '14',
+        fontWeight: '400',
         fontFamily: 'Manrope',
         textColor: '#000000',
         backgroundColor: '#FFFFFF00',
-        lineHeight: 1.4,
-        borderLeft: 0,
-        borderRight: 0,
-        borderTop: 0,
-        borderBottom: 0,
-        borderRadius: 0,
-        borderColor: '#FFFFFF00',
+        lineHeight: '1.4',
+        borderLeft: '0',
+        borderRight: '0',
+        borderTop: '0',
+        borderBottom: '0',
+        borderRadius: '0',
+        borderColor: '#000000',
+        horizontalAlign: 'flex-start',
+        verticalAlign: 'flex-start',
       },
     ]
   }

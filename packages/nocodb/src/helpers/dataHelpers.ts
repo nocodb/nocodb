@@ -1,4 +1,4 @@
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import { convertMS2Duration, isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -235,6 +235,11 @@ export async function serializeCellValue(
         if (isNaN(Number(value))) return null;
 
         return Number(value).toFixed(column.meta?.precision ?? 1);
+      }
+      break;
+    case UITypes.Duration:
+      {
+        return convertMS2Duration(value, column.meta.duration);
       }
       break;
     default:

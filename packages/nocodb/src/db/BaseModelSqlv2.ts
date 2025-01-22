@@ -10,6 +10,7 @@ import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
   ButtonActionsType,
+  convertDurationToSeconds,
   extractFilterFromXwhere,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
@@ -5943,6 +5944,12 @@ class BaseModelSqlv2 {
           }
           if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
             val = this.formatDate(val);
+          }
+          if (col.uidt === UITypes.Duration) {
+            const duration = convertDurationToSeconds(val, col.meta.duration);
+            if (duration._isValid) {
+              val = duration._sec;
+            }
           }
           insertObj[sanitize(col.column_name)] = val;
         }

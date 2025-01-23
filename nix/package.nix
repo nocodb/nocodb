@@ -51,6 +51,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r ./packages/nocodb/node_modules $out/share/nocodb/packages/nocodb/node_modules
 
     makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
+      --set NODE_ENV production \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
 
@@ -84,6 +85,6 @@ stdenv.mkDerivation (finalAttrs: {
     platforms = lib.platforms.linux;
     license = lib.licenses.agpl3Plus;
     mainProgram = finalAttrs.pname;
-    maintainers = with lib.maintainers; [ siannmohd ];
+    maintainers = with lib.maintainers; [ sinanmohd ];
   };
 })

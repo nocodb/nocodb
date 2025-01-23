@@ -38,7 +38,6 @@ export class AuditsController extends AuditsControllerCE {
   }
 
   @Get(['/api/v2/meta/audits/'])
-  @Acl('globalAuditList')
   async globalAuditList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

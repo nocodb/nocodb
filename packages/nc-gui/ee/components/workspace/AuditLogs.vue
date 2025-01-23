@@ -23,9 +23,13 @@ const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
 
-const { loadAudits: _loadAudits } = workspaceStore
+const { collaborators } = storeToRefs(workspaceStore)
 
-const { collaborators, audits, auditLogsQuery, auditPaginationData } = storeToRefs(workspaceStore)
+const auditsStore = useAuditsStore()
+
+const { loadAudits: _loadAudits } = auditsStore
+
+const { audits, auditLogsQuery, auditPaginationData } = storeToRefs(auditsStore)
 
 const basesStore = useBases()
 

@@ -160,7 +160,11 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
           <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
             <Suspense>
-              <MonacoEditor :model-value="selectedAudit?.details || ''" readOnly class="nc-audit-json-perview h-[200px] w-full" />
+              <MonacoEditor
+                :model-value="selectedAudit?.details || ''"
+                read-only
+                class="nc-audit-json-perview h-[200px] w-full"
+              />
               <template #fallback>
                 <div class="h-[200px] w-full px-3"><a-skeleton active :paragraph="{ rows: 3 }" /></div>
               </template>

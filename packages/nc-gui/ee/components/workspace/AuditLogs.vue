@@ -1208,7 +1208,7 @@ const isTypeAndRangeFilterEnabled = false
                 <Suspense>
                   <MonacoEditor
                     :model-value="selectedAudit?.details || ''"
-                    readOnly
+                    read-only
                     class="nc-audit-json-perview h-[200px] w-full"
                   />
                   <template #fallback>

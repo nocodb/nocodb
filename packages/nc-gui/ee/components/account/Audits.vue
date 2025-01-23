@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { VNodeRef } from '@vue/runtime-core'
 
-import { auditOperationTypeLabels, AuditOperationTypes, auditV1OperationTypesAlias, type AuditType } from 'nocodb-sdk'
+import { AuditOperationTypes, type AuditType, auditOperationTypeLabels, auditV1OperationTypesAlias } from 'nocodb-sdk'
 
 const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
@@ -878,7 +878,7 @@ const isTypeAndRangeFilterEnabled = false
         :data="audits || []"
         sticky-first-column
         class="flex-1 nc-audit-logs-table max-w-full"
-        :customRow="customRow"
+        :custom-row="customRow"
       >
         <template #bodyCell="{ column, record: audit }">
           <div v-if="column.key === 'user'" class="w-full">

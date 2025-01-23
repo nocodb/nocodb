@@ -1,4 +1,4 @@
-import type { AuditType, PaginatedType, UserType, WorkspaceUserType } from 'nocodb-sdk'
+import { auditV1OperationsCategory, type AuditType, type PaginatedType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
   type: undefined,
@@ -84,6 +84,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         offset: limit * (page - 1),
         limit,
         ...auditLogsQuery.value,
+        type: auditLogsQuery.value.type ? auditV1OperationsCategory[auditLogsQuery.value.type]?.types : undefined,
         sourceId: undefined,
       })
 

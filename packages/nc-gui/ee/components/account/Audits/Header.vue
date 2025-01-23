@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { VNodeRef } from '@vue/runtime-core'
-import { AuditOperationTypes, auditOperationTypeLabels } from 'nocodb-sdk'
+import { auditV1OperationsCategory } from 'nocodb-sdk'
 import { AuditLogsDateRange } from '~/lib/enums'
 
 const isTypeFilterEnabled = false
-
-const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
 const defaultAuditDropdowns = {
   type: false,
@@ -64,12 +62,7 @@ const focusTypeSearchRef: VNodeRef = (el) => {
 }
 
 const auditTypeOptions = computed(() => {
-  return Object.values(AuditOperationTypes)
-    .filter((type) => allowedAuditOperationTypes.includes(type as AuditOperationTypes))
-    .map((type) => ({
-      label: auditOperationTypeLabels[type],
-      value: type,
-    }))
+  return Object.values(auditV1OperationsCategory)
 })
 
 const dateRangeOptions = computed(() => {
@@ -545,9 +538,9 @@ const handleRefresh = () => {
                 {{ $t('general.type') }}:
                 <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
                   <template #title>
-                    {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                    {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
                   </template>
-                  {{ auditLogsQuery.type ? auditOperationTypeLabels[auditLogsQuery.type] : 'All' }}
+                  {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
                 </NcTooltip>
               </div>
               <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
@@ -600,13 +593,13 @@ const handleRefresh = () => {
                 <NcDivider />
                 <template v-for="type of auditTypeOptions" :key="type.value">
                   <NcMenuItem
-                    v-if="type.label.toLowerCase().includes(auditDropdownsSearch.type.toLowerCase())"
+                    v-if="searchCompare([type.label], auditDropdownsSearch.type)"
                     class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
                     @click="auditLogsQuery.type = type.value"
                   >
                     <div class="w-full flex items-center justify-between gap-3">
                       <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
-                        {{ type.label }}
+                        {{ $t(type.label) }}
                       </div>
 
                       <GeneralIcon

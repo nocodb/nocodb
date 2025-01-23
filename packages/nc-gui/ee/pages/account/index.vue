@@ -109,7 +109,7 @@ const logout = async () => {
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
                 </div>
               </NcMenuItem>
-              <!-- <NcMenuItem
+              <NcMenuItem
                 v-if="isUIAllowed('ssoSettings')"
                 key="audits"
                 :class="{
@@ -123,7 +123,7 @@ const logout = async () => {
 
                   <div class="select-none text-sm">{{ $t('title.audits') }}</div>
                 </div>
-              </NcMenuItem> -->
+              </NcMenuItem>
               <NcMenuItem
                 v-if="isUIAllowed('ssoSettings')"
                 key="authentication"

@@ -36,4 +36,23 @@ export class AuditsController extends AuditsControllerCE {
       },
     );
   }
+
+  @Get(['/api/v2/meta/audits/'])
+  @Acl('globalAuditList')
+  async globalAuditList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+  ) {
+    return new PagedResponseImpl(
+      await this.auditsService.globalAuditList({
+        query: req.query,
+      }),
+      {
+        count: await this.auditsService.globalAuditCount({
+          query: req.query,
+        }),
+        ...req.query,
+      },
+    );
+  }
 }

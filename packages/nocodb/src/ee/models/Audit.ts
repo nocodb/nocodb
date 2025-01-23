@@ -220,4 +220,106 @@ export default class Audit extends AuditCE {
 
     return AuditCE.insert(audit, ncMeta, { forceAwait, catchException });
   }
+
+  static async globalAuditList({
+    limit = 25,
+    offset = 0,
+    workspaceId,
+    baseId,
+    sourceId,
+    user,
+    type,
+    startDate,
+    endDate,
+    orderBy,
+  }: {
+    limit?: number;
+    offset?: number;
+    workspaceId?: string;
+    baseId?: string;
+    sourceId?: string;
+    user?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    orderBy?: {
+      created_at?: 'asc' | 'desc';
+      user?: 'asc' | 'desc';
+    };
+  }) {
+    return await Noco.ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        limit,
+        offset,
+        condition: {
+          version: 1,
+          ...(user ? { user: user } : {}),
+          ...(workspaceId ? { fk_workspace_id: workspaceId } : {}),
+
+          ...(baseId ? { base_id: baseId } : {}),
+          ...(sourceId ? { source_id: sourceId } : {}),
+          ...(type ? { op_type: type } : {}),
+        },
+        orderBy: {
+          ...(orderBy?.created_at
+            ? { created_at: orderBy?.created_at }
+            : !orderBy?.user
+            ? { created_at: 'desc' }
+            : {}),
+          ...(orderBy?.user ? { user: orderBy?.user } : {}),
+        },
+        xcCondition: {
+          _and: [
+            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
+            ...(endDate ? [{ created_at: { le: endDate } }] : []),
+          ],
+        },
+      },
+    );
+  }
+
+  static async globalAuditCount({
+    user,
+    workspaceId,
+    baseId,
+    sourceId,
+    type,
+    startDate,
+    endDate,
+  }: {
+    user?: string;
+    workspaceId?: string;
+    baseId?: string;
+    sourceId?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<number> {
+    const condition = {};
+
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        condition: {
+          version: 1,
+          ...(user ? { user: user } : {}),
+          ...(workspaceId ? { fk_workspace_id: workspaceId } : {}),
+          ...(baseId ? { base_id: baseId } : {}),
+          ...(sourceId ? { source_id: sourceId } : {}),
+          ...(type ? { op_type: type } : {}),
+        },
+        xcCondition: {
+          _and: [
+            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
+            ...(endDate ? [{ created_at: { le: endDate } }] : []),
+          ],
+        },
+      },
+    );
+  }
 }

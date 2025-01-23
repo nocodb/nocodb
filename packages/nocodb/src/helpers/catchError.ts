@@ -500,9 +500,15 @@ export class TestConnectionError extends NcBaseError {
 }
 
 export class AjvError extends NcBaseError {
-  constructor(param: { message: string; errors: ErrorObject[] }) {
+  humanReadableError: boolean;
+  constructor(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError?: boolean;
+  }) {
     super(param.message);
     this.errors = param.errors;
+    this.humanReadableError = param.humanReadableError || false;
   }
 
   errors: ErrorObject[];
@@ -606,6 +612,10 @@ const errorHelpers: {
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
     message: (offset: string) => `Offset value '${offset}' is invalid`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_PAGE_VALUE]: {
+    message: (page: string) => `Page value '${page}' is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_PK_VALUE]: {
@@ -894,6 +904,12 @@ export class NcError {
       ...args,
     });
   }
+  static invalidPageValue(page: string | number, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
+      params: `${page}`,
+      ...args,
+    });
+  }
 
   static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
@@ -965,7 +981,11 @@ export class NcError {
     throw new Forbidden(message);
   }
 
-  static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
+  static ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError: boolean;
+  }) {
     throw new AjvError(param);
   }
 

@@ -7,6 +7,7 @@ import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -63,16 +64,16 @@ export class BaseUsersV3Service {
       req: NcRequest;
     },
   ): Promise<any> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUserCreate',
+      param.baseUsers,
+      true,
+    );
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        // todo: enable later
-        // validatePayload(
-        //   'swagger.json#/components/schemas/ProjectUserV3Req',
-        //   baseUser,
-        // );
-
         let user: User;
         if (baseUser.id) {
           user = await User.get(baseUser.id, ncMeta);
@@ -125,15 +126,16 @@ export class BaseUsersV3Service {
       baseId: string;
     },
   ): Promise<any> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUserUpdate',
+      param.baseUsers,
+      true,
+    );
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        // validatePayload(
-        //   'swagger.json#/components/schemas/ProjectUserV3Req',
-        //   baseUser,
-        // );
-
         let userId = baseUser.id;
 
         if (!baseUser.id && baseUser.email) {

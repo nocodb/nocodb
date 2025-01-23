@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { SortReqType } from 'nocodb-sdk';
+import { SortCreateV3Type, SortUpdateV3Type } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -40,7 +40,7 @@ export class SortsV3Controller {
   async sortCreate(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
-    @Body() body: SortReqType,
+    @Body() body: SortCreateV3Type,
     @Req() req: NcRequest,
   ) {
     const sort = await this.sortsV3Service.sortCreate(context, {
@@ -55,7 +55,7 @@ export class SortsV3Controller {
   @Acl('sortUpdate')
   async sortUpdate(
     @TenantContext() context: NcContext,
-    @Body() body: SortReqType & { id: string },
+    @Body() body: SortUpdateV3Type,
     @Param('viewId') viewId: string,
     @Req() req: NcRequest,
   ) {
@@ -76,11 +76,11 @@ export class SortsV3Controller {
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
   ) {
-    const sort = await this.sortsV3Service.sortDelete(context, {
+    await this.sortsV3Service.sortDelete(context, {
       viewId,
       sortId: body.id,
       req,
     });
-    return { list: sort };
+    return {};
   }
 }

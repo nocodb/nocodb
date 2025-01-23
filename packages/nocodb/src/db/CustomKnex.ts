@@ -506,6 +506,8 @@ export type ConditionVal = AtLeastOne<{
   le: number | string | Date;
   like: string;
   nlike: string;
+  in: (number | string | Date)[];
+  nin: (number | string | Date)[];
 }>;
 
 export interface Condition {

@@ -4,8 +4,6 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { auditV1OperationsCategory } from 'nocodb-sdk'
 import { AuditLogsDateRange } from '~/lib/enums'
 
-const isTypeFilterEnabled = false
-
 const defaultAuditDropdowns = {
   type: false,
   subType: false,
@@ -526,95 +524,91 @@ const handleRefresh = () => {
           </div>
         </template>
       </NcDropdown>
-      <template v-if="isTypeFilterEnabled">
-        <NcDropdown
-          v-model:visible="auditDropdowns.type"
-          overlay-class-name="overflow-hidden"
-          @update:visible="handleClearDropdownSearch($event, 'type')"
-        >
-          <NcButton type="secondary" size="small">
-            <div class="!w-[106px] flex items-center justify-between gap-2">
-              <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
-                {{ $t('general.type') }}:
-                <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
-                  <template #title>
-                    {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
-                  </template>
+
+      <NcDropdown
+        v-model:visible="auditDropdowns.type"
+        overlay-class-name="overflow-hidden"
+        @update:visible="handleClearDropdownSearch($event, 'type')"
+      >
+        <NcButton type="secondary" size="small">
+          <div class="!w-[106px] flex items-center justify-between gap-2">
+            <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
+              {{ $t('general.event') }}:
+              <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
+                <template #title>
                   {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
-                </NcTooltip>
-              </div>
-              <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
+                </template>
+                {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
+              </NcTooltip>
             </div>
-          </NcButton>
+            <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
+          </div>
+        </NcButton>
 
-          <template #overlay>
-            <div
-              class="w-[256px]"
-              :class="{
-                'pt-2': auditTypeOptions.length >= 6,
-                'pt-1.5': auditTypeOptions.length < 6,
-              }"
-            >
-              <div v-if="auditTypeOptions.length >= 6" class="px-2 pb-2" @click.stop>
-                <a-input
-                  :ref="focusTypeSearchRef"
-                  v-model:value="auditDropdownsSearch.type"
-                  type="text"
-                  autocomplete="off"
-                  class="nc-input-sm nc-input-shadow"
-                  placeholder="Search type"
-                  data-testid="nc-audit-dropdown-type-search-input"
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-                  </template>
-                  <template #suffix>
-                    <GeneralIcon
-                      v-if="auditDropdownsSearch.type.length > 0"
-                      icon="close"
-                      class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
-                      data-testid="nc-audit-logs-clear-search"
-                      @click="auditDropdownsSearch.type = ''"
-                    />
-                  </template>
-                </a-input>
-              </div>
+        <template #overlay>
+          <div
+            class="w-[256px]"
+            :class="{
+              'pt-2': auditTypeOptions.length >= 6,
+              'pt-1.5': auditTypeOptions.length < 6,
+            }"
+          >
+            <div v-if="auditTypeOptions.length >= 6" class="px-2 pb-2" @click.stop>
+              <a-input
+                :ref="focusTypeSearchRef"
+                v-model:value="auditDropdownsSearch.type"
+                type="text"
+                autocomplete="off"
+                class="nc-input-sm nc-input-shadow"
+                placeholder="Search type"
+                data-testid="nc-audit-dropdown-type-search-input"
+              >
+                <template #prefix>
+                  <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+                </template>
+                <template #suffix>
+                  <GeneralIcon
+                    v-if="auditDropdownsSearch.type.length > 0"
+                    icon="close"
+                    class="ml-1 h-4 w-4 text-gray-500 group-hover:text-black"
+                    data-testid="nc-audit-logs-clear-search"
+                    @click="auditDropdownsSearch.type = ''"
+                  />
+                </template>
+              </a-input>
+            </div>
 
-              <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('type')">
+            <NcMenu class="w-full max-h-[360px] nc-scrollbar-thin" @click="handleCloseDropdown('type')">
+              <NcMenuItem
+                class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                @click="auditLogsQuery.type = undefined"
+              >
+                <div class="w-full flex items-center justify-between gap-3">
+                  <span class="flex-1 text-gray-800"> All Events </span>
+                  <GeneralIcon v-if="!auditLogsQuery.type" icon="check" class="flex-none text-primary w-4 h-4" />
+                </div>
+              </NcMenuItem>
+              <NcDivider />
+              <template v-for="type of auditTypeOptions" :key="type.value">
                 <NcMenuItem
+                  v-if="searchCompare([type.label], auditDropdownsSearch.type)"
                   class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                  @click="auditLogsQuery.type = undefined"
+                  @click="auditLogsQuery.type = type.value"
                 >
                   <div class="w-full flex items-center justify-between gap-3">
-                    <span class="flex-1 text-gray-800"> All Types </span>
-                    <GeneralIcon v-if="!auditLogsQuery.type" icon="check" class="flex-none text-primary w-4 h-4" />
+                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
+                      {{ $t(type.label) }}
+                    </div>
+
+                    <GeneralIcon v-if="auditLogsQuery.type === type.value" icon="check" class="flex-none text-primary w-4 h-4" />
                   </div>
                 </NcMenuItem>
-                <NcDivider />
-                <template v-for="type of auditTypeOptions" :key="type.value">
-                  <NcMenuItem
-                    v-if="searchCompare([type.label], auditDropdownsSearch.type)"
-                    class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                    @click="auditLogsQuery.type = type.value"
-                  >
-                    <div class="w-full flex items-center justify-between gap-3">
-                      <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)] text-gray-800">
-                        {{ $t(type.label) }}
-                      </div>
+              </template>
+            </NcMenu>
+          </div>
+        </template>
+      </NcDropdown>
 
-                      <GeneralIcon
-                        v-if="auditLogsQuery.type === type.value"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
-                    </div>
-                  </NcMenuItem>
-                </template>
-              </NcMenu>
-            </div>
-          </template>
-        </NcDropdown>
-      </template>
       <NcDropdown v-model:visible="auditDropdowns.dateRange" overlay-class-name="overflow-hidden">
         <NcButton type="secondary" size="small">
           <div class="!w-[127px] flex items-center justify-between gap-2">

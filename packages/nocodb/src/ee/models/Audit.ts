@@ -221,7 +221,6 @@ export default class Audit extends AuditCE {
     return AuditCE.insert(audit, ncMeta, { forceAwait, catchException });
   }
 
-  // Todo: Add op_type filter using in operator
   static async globalAuditList({
     limit = 25,
     offset = 0,
@@ -229,7 +228,7 @@ export default class Audit extends AuditCE {
     baseId,
     sourceId,
     user,
-    type: _type,
+    type,
     startDate,
     endDate,
     orderBy,
@@ -259,7 +258,6 @@ export default class Audit extends AuditCE {
           version: 1,
           ...(user ? { user: user } : {}),
           ...(workspaceId ? { fk_workspace_id: workspaceId } : {}),
-
           ...(baseId ? { base_id: baseId } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
         },
@@ -275,19 +273,19 @@ export default class Audit extends AuditCE {
           _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
+            ...(type ? [{ op_type: { in: type } }] : []),
           ],
         },
       },
     );
   }
 
-  // Todo: Add op_type filter using in operator
   static async globalAuditCount({
     user,
     workspaceId,
     baseId,
     sourceId,
-    type: _type,
+    type,
     startDate,
     endDate,
   }: {
@@ -315,6 +313,7 @@ export default class Audit extends AuditCE {
           _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
+            ...(type ? [{ op_type: { in: type } }] : []),
           ],
         },
       },

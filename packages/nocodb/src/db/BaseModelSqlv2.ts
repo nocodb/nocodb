@@ -65,6 +65,7 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import type { ResolverObj } from '~/utils';
 import {
   BaseUser,
   Column,
@@ -302,7 +303,6 @@ class BaseModelSqlv2 {
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
-
     const { ast, dependencyFields, parsedQuery } = await getAst(this.context, {
       query,
       model: this.model,
@@ -346,7 +346,9 @@ class BaseModelSqlv2 {
       data.__proto__ = proto;
     }
 
-    return data ? await nocoExecute(ast, data, {}, parsedQuery) : null;
+    return data
+      ? await nocoExecute(ast, data as ResolverObj, {}, parsedQuery)
+      : null;
   }
 
   public async readByPkFromModel(
@@ -3811,10 +3813,12 @@ class BaseModelSqlv2 {
     apiVersion?: NcApiVersion;
   } = {}) {
     if (this._proto) {
-      return this._proto;
+      return this._proto as ResolverObj;
     }
 
-    const proto: any = { __columnAliases: {} };
+    const proto: ResolverObj = {
+      __columnAliases: {},
+    };
     const columns = await this.model.getColumns(this.context);
     await Promise.all(
       columns.map(async (column) => {
@@ -4030,7 +4034,6 @@ class BaseModelSqlv2 {
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
-                // todo : handle mm
               } else if (colOptions.type === 'oo') {
                 const isBt = column.meta?.bt;
 

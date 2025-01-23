@@ -25,6 +25,10 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
+type Ast = {
+  [key: string]: 1 | true | null;
+};
+
 const getAst = async (
   context: NcContext,
   {
@@ -57,7 +61,11 @@ const getAst = async (
     apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
   },
-) => {
+): Promise<{
+  ast: Ast;
+  dependencyFields: DependantFields;
+  parsedQuery: DependantFields;
+}> => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
@@ -89,7 +97,7 @@ const getAst = async (
 
   // extract only pk and pv
   if (extractOnlyPrimaries) {
-    const ast = {
+    const ast: Ast = {
       ...(model.primaryKeys
         ? model.primaryKeys.reduce((o, pk) => ({ ...o, [pk.title]: 1 }), {})
         : {}),
@@ -107,7 +115,7 @@ const getAst = async (
   }
 
   if (extractOnlyRangeFields) {
-    const ast = {
+    const ast: Ast = {
       ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
         return { ...o, [col.title]: 1 };
@@ -167,7 +175,7 @@ const getAst = async (
     }
   }
 
-  const ast = await model.columns.reduce(async (obj, col: Column) => {
+  const ast: Ast = await model.columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
@@ -360,7 +368,7 @@ type RequestQuery = {
 
 export interface DependantFields {
   fieldsSet?: Set<string>;
-  nested?: DependantFields;
+  nested?: { [key: string]: DependantFields };
 }
 
 export default getAst;

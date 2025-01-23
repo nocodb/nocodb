@@ -28,7 +28,7 @@ NocoDB is the fastest and easiest way to build databases online.
 <div align="center">
 
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/languages/chinese.md)
-[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/languages/french.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/languages/French.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263531-fae58600-6616-4b43-95a0-5891019dd35d.png">](markdown/readme/languages/german.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263589-3dbeda9a-0d2e-4bbd-b1fc-691404bb74fb.png">](markdown/readme/languages/spanish.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263669-f567196a-d4e8-4143-a80a-93d3be32ba90.png">](markdown/readme/languages/portuguese.md)
@@ -50,6 +50,28 @@ NocoDB is the fastest and easiest way to build databases online.
 </a>
 
 [![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
+# Quick try
+
+## Docker
+
+```bash
+# for SQLite
+docker run -d --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 nocodb/nocodb:latest
+
+# for MySQL
+docker run -d --name nocodb-mysql -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" nocodb/nocodb:latest
+
+# for PostgreSQL
+docker run -d --name nocodb-postgres -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" nocodb/nocodb:latest
+
+# for MSSQL
+docker run -d --name nocodb-mssql -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" nocodb/nocodb:latest
+```
+
+> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise, your data will be lost after recreating the container.
+
+> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
 # Installation
 
@@ -106,7 +128,50 @@ Auto-upstall does the following: 🕊
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
+
+```bash
+git clone https://github.com/nocodb/nocodb
+# for MySQL
+cd nocodb/docker-compose/mysql
+# for PostgreSQL
+cd nocodb/docker-compose/pg
+# for MSSQL
+cd nocodb/docker-compose/mssql
+docker-compose up -d
+```
+
+> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise, your data will be lost after recreating the container.
+
+> If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
+
+## NPX
+
+You can run the below command if you need an interactive configuration.
+
+```
+npx create-nocodb-app
+```
+
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
+## Node Application
+
+We provide a simple Node.js Application for getting started.
+
+```bash
+git clone https://github.com/nocodb/nocodb-seed
+cd nocodb-seed
+npm install
+npm start
+```
+
+
+# GUI
+
+Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+
 For more installation methods, please refer to [our docs](https://docs.nocodb.com/category/installation)
+
 
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
@@ -141,8 +206,8 @@ For more installation methods, please refer to [our docs](https://docs.nocodb.co
 
 We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a> for details.
 
-- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, and etc
-- ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc
+- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, etc.
+- ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc.
 - ⚡ &nbsp;Storage: AWS S3, Google Cloud Storage, Minio, and etc
 
 ### Programmatic Access
@@ -152,13 +217,39 @@ We provide the following ways to let users programmatically invoke actions. You 
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;NocoDB SDK
 
+### Sync Schema
+
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See [Sync Schema](https://docs.nocodb.com/data-sources/sync-with-data-source) for details.
+
+### Audit
+
+We are keeping all the user operation logs in one place. See [Audit](https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs) for details.
+
+# Production Setup
+
+By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in the `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+
+## Environment variables
+
+Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
+
+# Development Setup
+
+Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
+
+# Self Hosting
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploy.png)](https://repocloud.io/details/?app_id=100)
+
+[![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/nocodb)
+
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Why are we building this?
 
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly a glass ceiling on what's possible in the future.
+Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases, which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly, a glass ceiling on what's possible in the future.
 
 # Our Mission
 

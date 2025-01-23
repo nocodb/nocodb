@@ -7695,13 +7695,13 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     const prevChildDataForWebhook = await childBaseModel.readByPk(
       childId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     const parentWebhookHandler = await UpdateWebhookHandler.beginUpdate(
       {
@@ -8421,14 +8421,14 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     await parentWebhookHandler.finishUpdate(nextParentDataForWebhook);
     const nextChildDataForWebhook = await childBaseModel.readByPk(
       childId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     await childWebhookHandler.finishUpdate(nextChildDataForWebhook);
   }
@@ -8552,13 +8552,13 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     const prevChildDataForWebhook = await childBaseModel.readByPk(
       childId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     const parentWebhookHandler = await UpdateWebhookHandler.beginUpdate(
       {
@@ -8795,14 +8795,14 @@ class BaseModelSqlv2 {
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     await parentWebhookHandler.finishUpdate(nextParentDataForWebhook);
     const nextChildDataForWebhook = await childBaseModel.readByPk(
       childId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      { ignoreView: true, getHiddenColumn: false },
     );
     await childWebhookHandler.finishUpdate(nextChildDataForWebhook);
   }

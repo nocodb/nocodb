@@ -21,14 +21,6 @@ stdenv.mkDerivation (finalAttrs: {
     export NUXT_TELEMETRY_DISABLED=1
     export npm_config_nodedir=${nodePackages.nodejs}
 
-    pnpm rebuild -r --verbose --reporter=append-only
-    # nodejs 22.11.0 -> 22.12.0 broke pnpm rebuild somehow, so let's do it manaully
-    for package in $(find -L packages/nocodb/node_modules -name binding.gyp -type f); do
-        cd "$(dirname "$package")"
-        node-gyp rebuild
-        cd -
-    done
-
     pnpm --filter=nocodb-sdk run build
     pnpm run registerIntegrations
     pnpm --filter=nc-gui run build:copy
@@ -39,7 +31,22 @@ stdenv.mkDerivation (finalAttrs: {
     mkdir -p $out/share/nocodb/packages/nocodb
     cp -v ./packages/nocodb/docker/main.js $out/share/nocodb/packages/nocodb/index.js
 
-    # TODOD, only ship nocodb workspace prod deps with node_modules
+    # only ship nocodb workspace prod deps with node_modules (1.9GB -> 400MB)
+    rm -rf ./node_modules ./packages/nocodb/node_modules
+    pnpm install \
+        --offline \
+        --prod \
+        --ignore-scripts \
+        --filter=nocodb \
+        --frozen-lockfile
+    # nodejs 22.11.0 -> 22.12.0 broke pnpm rebuild somehow, so let's do it manaully
+    # pnpm rebuild -r --verbose --reporter=append-only
+    for package in $(find -L packages/nocodb/node_modules -name binding.gyp -type f); do
+        cd "$(dirname "$package")"
+        node-gyp rebuild
+        cd -
+    done
+
     cp -r ./node_modules $out/share/nocodb/node_modules
     cp -r ./packages/nocodb/node_modules $out/share/nocodb/packages/nocodb/node_modules
 

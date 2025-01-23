@@ -19,7 +19,7 @@ const defaultAuditDropdowns = {
 
 const auditsStore = useAuditsStore()
 
-const { loadAudits, loadBasesForWorkspace, loadUsersForWorkspace } = auditsStore
+const { loadAudits, loadBasesForWorkspace } = auditsStore
 
 const {
   bases,
@@ -96,7 +96,7 @@ const dateRangeOptions = computed(() => {
 const handleUpdateWorkspaceQuery = (workspaceId?: string) => {
   auditLogsQuery.value = { ...auditLogsQuery.value, workspaceId, baseId: undefined, user: undefined }
   if (workspaceId) {
-    Promise.allSettled([loadBasesForWorkspace(), loadUsersForWorkspace()])
+    loadBasesForWorkspace()
   }
 }
 
@@ -285,7 +285,17 @@ const handleRefresh = () => {
                   @click="handleUpdateWorkspaceQuery(workspace.id)"
                 >
                   <div class="w-full flex items-center justify-between gap-3">
-                    {{ workspace.title }}
+                    <div class="w-[calc(100%_-_28px)] gap-2 flex items-center">
+                      <GeneralWorkspaceIcon :workspace="workspace" />
+                      <NcTooltip class="max-w-full" show-on-truncate-only>
+                        <template #title>
+                          {{ workspace.title }}
+                        </template>
+                        <span class="capitalize">
+                          {{ workspace.title }}
+                        </span>
+                      </NcTooltip>
+                    </div>
 
                     <GeneralIcon
                       v-if="auditLogsQuery.workspaceId === workspace.id"

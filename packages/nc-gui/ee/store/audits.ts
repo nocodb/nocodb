@@ -24,6 +24,10 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const { getBaseUrl } = useGlobal()
 
+  const workspaceStore = useWorkspace()
+
+  const { workspacesList } = storeToRefs(workspaceStore)
+
   const audits = ref<null | Array<AuditType>>(null)
 
   const isRowExpanded = ref(false)
@@ -48,18 +52,10 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     return new Map()
   })
 
-  const allCollaborators = ref<Map<string, CollaboratorType[]>>(new Map())
+  const collaboratorsMap = ref<Map<string, CollaboratorType>>(new Map())
 
   const auditCollaborators = computed<CollaboratorType[]>(() => {
-    return auditLogsQuery.value.workspaceId ? allCollaborators.value.get(auditLogsQuery.value.workspaceId) ?? [] : []
-  })
-
-  const collaboratorsMap = computed<Map<string, CollaboratorType>>(() => {
-    if (auditCollaborators.value.length) {
-      return new Map(auditCollaborators.value.map((user) => [user.email, user]))
-    }
-
-    return new Map()
+    return Array.from(collaboratorsMap.value.values())
   })
 
   const isLoadingAudits = ref(false)
@@ -68,8 +64,12 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     page: number = auditPaginationData.value.page!,
     limit: number = auditPaginationData.value.pageSize!,
     updateCurrentPage = true,
+    showLoading = true,
   ) => {
-    isLoadingAudits.value = true
+    if (showLoading) {
+      isLoadingAudits.value = true
+    }
+
     try {
       if (updateCurrentPage) {
         auditPaginationData.value.page = 1
@@ -95,7 +95,9 @@ export const useAuditsStore = defineStore('auditsStore', () => {
       auditPaginationData.value.totalRows = 0
       auditPaginationData.value.page = 1
     } finally {
-      isLoadingAudits.value = false
+      if (showLoading) {
+        isLoadingAudits.value = false
+      }
     }
   }
 
@@ -123,33 +125,56 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const isLoadingUsers = ref(false)
 
-  const loadUsersForWorkspace = async () => {
-    if (!auditLogsQuery.value.workspaceId || allCollaborators.value.get(auditLogsQuery.value.workspaceId)) return
-    isLoadingUsers.value = true
+  const loadUsersForWorkspace = async (workspaceId: string) => {
+    if (!workspaceId) return
 
     try {
       const { list } = await $api.workspaceUser.list(
-        auditLogsQuery.value.workspaceId,
+        workspaceId,
         {},
         {
-          baseURL: getBaseUrl(auditLogsQuery.value.workspaceId),
+          baseURL: getBaseUrl(workspaceId),
         },
       )
 
-      allCollaborators.value.set(auditLogsQuery.value.workspaceId, list ?? [])
+      if (!list) return
+
+      for (const user of list) {
+        if (user.email && !collaboratorsMap.value.get(user.email)) {
+          collaboratorsMap.value.set(user.email, user)
+        }
+      }
     } catch (e: any) {
       console.error(e)
-    } finally {
-      isLoadingUsers.value = false
     }
   }
 
-  const onInit = () => {
+  const onInit = async (fetchData = false) => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
     auditPaginationData.value = { ...defaultPaginationData }
 
     allBases.value.clear()
-    allCollaborators.value.clear()
+    collaboratorsMap.value.clear()
+
+    if (!fetchData) return
+
+    const promises = [loadAudits(undefined, undefined, true, false)]
+    isLoadingAudits.value = true
+    if (!workspacesList.value.length) {
+      await workspaceStore.loadWorkspaces(true)
+    }
+
+    if (!collaboratorsMap.value.size) {
+      promises.push(workspacesList.value.map((workspace) => loadUsersForWorkspace(workspace?.id)))
+    }
+
+    try {
+      await Promise.all(promises)
+    } catch (e: any) {
+      message.error((await extractSdkResponseErrorMsgv2(e)).message)
+    } finally {
+      isLoadingAudits.value = false
+    }
   }
 
   return {

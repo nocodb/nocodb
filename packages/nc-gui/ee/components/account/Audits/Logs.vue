@@ -7,13 +7,9 @@ const { appInfo } = useGlobal()
 
 const auditsStore = useAuditsStore()
 
-const { loadAudits } = auditsStore
+const { loadAudits, onInit } = auditsStore
 const { isRowExpanded, selectedAudit, bases, audits, auditLogsQuery, auditPaginationData, collaboratorsMap, isLoadingAudits } =
   storeToRefs(auditsStore)
-
-const workspaceStore = useWorkspace()
-
-const { workspacesList } = storeToRefs(workspaceStore)
 
 const handleChangePage = async (page: number) => {
   auditPaginationData.value.page = page
@@ -95,13 +91,7 @@ const customRow = (audit: AuditType) => ({
 })
 
 onMounted(() => {
-  const promises = [auditsStore.loadAudits()]
-
-  if (!workspacesList.value.length) {
-    promises.push(workspaceStore.loadWorkspaces())
-  }
-
-  Promise.allSettled(promises)
+  onInit(true)
 })
 
 const renderAltOrOptlKey = () => {
@@ -172,7 +162,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcTooltip>
           </div>
           <div v-if="column.key === 'base_id'" class="w-full">
-            <div v-if="audit.base_id" class="w-full">
+            <div v-if="bases.get(audit.base_id)" class="w-full">
               <NcTooltip class="truncate text-sm !leading-5 text-gray-800 font-semibold" show-on-truncate-only placement="bottom">
                 <template #title>
                   {{ bases.get(audit.base_id)?.title }}
@@ -182,6 +172,7 @@ onKeyStroke('ArrowDown', onDown)
 
               <div class="text-gray-600 text-xs">ID: {{ audit.base_id }}</div>
             </div>
+            <div v-else class="truncate">{{ audit.base_id ?? '' }}</div>
           </div>
           <div v-if="column.key === 'event'" class="w-full">
             <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>

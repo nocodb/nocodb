@@ -26,7 +26,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 
 type Ast = {
-  [key: string]: 1 | true | null;
+  [key: string]: 1 | true | null | Ast;
 };
 
 const getAst = async (

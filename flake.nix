@@ -22,6 +22,7 @@
       packages = forAllSystems (
         { system, pkgs }:
         {
+          docker = pkgs.callPackage ./nix/docker.nix { };
           nocodb = pkgs.callPackage ./nix/package.nix { };
           default = self.packages.${system}.nocodb;
         }

@@ -148,7 +148,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
+      <!-- <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
             <div class="tab-title">
@@ -160,7 +160,7 @@ onMounted(() => {
             <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>
-      </template>
+      </template> -->
     </NcTabs>
   </div>
 </template>

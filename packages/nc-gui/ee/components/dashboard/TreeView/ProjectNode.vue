@@ -326,7 +326,7 @@ function openErdView(source: SourceType) {
   }
 }
 
-async function openAudit(source: SourceType) {
+async function _openAudit(source: SourceType) {
   $e('c:project:audit')
 
   auditPaginationData.value.page = 1
@@ -852,15 +852,17 @@ const onClickMenu = (e: { key?: string }) => {
                     </NcMenuItem>
 
                     <!-- Audit -->
+                    <!-- 
                     <NcMenuItem
                       v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
                       key="audit"
                       data-testid="nc-sidebar-base-audit"
-                      @click="openAudit(base?.sources?.[0])"
+                      @click="_openAudit(base?.sources?.[0])"
                     >
                       <GeneralIcon icon="audit" />
                       {{ $t('title.audit') }} {{ $t('general.logs').toLowerCase() }}
                     </NcMenuItem>
+                     -->
 
                     <!-- Swagger: Rest APIs -->
                     <NcMenuItem

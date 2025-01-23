@@ -15,6 +15,8 @@ const defaultAuditLogsQuery = {
   },
 } as AuditLogsQuery
 
+const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0 }
+
 export type CollaboratorType = (WorkspaceUserType & { id: string }) | User | UserType
 
 export const useAuditsStore = defineStore('auditsStore', () => {
@@ -30,7 +32,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
 
-  const auditPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
+  const auditPaginationData = ref<PaginatedType>(defaultPaginationData)
 
   const allBases = ref<Map<string, NcProject[]>>(new Map())
 
@@ -132,6 +134,14 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
+  const onInit = () => {
+    auditLogsQuery.value = { ...defaultAuditLogsQuery }
+    auditPaginationData.value = { ...defaultPaginationData }
+
+    allBases.value.clear()
+    allCollaborators.value.clear()
+  }
+
   return {
     bases,
     basesList,
@@ -147,6 +157,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     isLoadingUsers,
     loadBasesForWorkspace,
     loadUsersForWorkspace,
+    onInit,
   }
 })
 

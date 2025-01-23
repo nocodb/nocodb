@@ -2,19 +2,11 @@
 import dayjs from 'dayjs'
 import type { VNodeRef } from '@vue/runtime-core'
 
-import {
-  auditOperationTypeLabels,
-  AuditOperationTypes,
-  auditV1OperationTypesAlias,
-  type AuditType,
-  type UserType,
-} from 'nocodb-sdk'
+import { auditOperationTypeLabels, AuditOperationTypes, auditV1OperationTypesAlias, type AuditType } from 'nocodb-sdk'
 
 const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
 
 const { t } = useI18n()
-
-const { appInfo } = useGlobal()
 
 const isLoading = ref(false)
 

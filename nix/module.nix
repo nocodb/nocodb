@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  callPacakge,
+  pkgs,
   ...
 }:
 
@@ -16,7 +16,7 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       description = "The nocodb package to use.";
-      default = callPacakge ./nocodb.nix { };
+      default = pkgs.callPackage ./package.nix { };
     };
 
     environment = lib.mkOption {
@@ -44,8 +44,8 @@ in
         Type = "simple";
         DynamicUser = true;
 
-        RuntimeDirectory = "cplane";
-        StateDirectory = "nocdb";
+        RuntimeDirectory = "nocodb";
+        StateDirectory = "nocodb";
         RuntimeDirectoryMode = "0700";
 
         Restart = "on-failure";

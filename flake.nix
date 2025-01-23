@@ -30,7 +30,7 @@
 
       nixosModules = {
         nocodb = ./nix/module.nix;
-        default = self.nixosModules.cplane;
+        default = self.nixosModules.nocodb;
       };
 
       devShells = forAllSystems (

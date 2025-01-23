@@ -19,10 +19,18 @@
       forAllSystems = f: lib.genAttrs supportedSystems (forSystem f);
     in
     {
+      packages = forAllSystems (
+        { system, pkgs }:
+        {
+          nodejs = pkgs.callPackage ./nix/nodejs.nix { };
+        }
+      );
+
       devShells = forAllSystems (
         { system, pkgs }:
         {
           nocodb = pkgs.callPackage ./nix/shell.nix {
+            nocodb = self.packages.${system}.nocodb;
           };
           default = self.devShells.${system}.nocodb;
         }

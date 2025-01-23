@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
-import type { OnDrag, OnRenderEnd, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import type { PageDesignerTextWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj } from '../lib/context'
 
@@ -55,16 +55,15 @@ const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
 
-const onRenderEnd = (e: OnRenderEnd) => {
+const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
-  widget.value.rectInfo = e.moveable.getRect()
 }
 
 const container = useParentElement()
 </script>
 
 <template>
-  <div ref="targetRef" :style="widget.cssStyle" v-bind="$attrs">
+  <div ref="targetRef" class="absolute" :style="widget.cssStyle" v-bind="$attrs">
     <div
       :style="{
         display: 'flex',

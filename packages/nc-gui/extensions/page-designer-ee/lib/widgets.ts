@@ -1,9 +1,6 @@
-import type { RectInfo } from 'vue3-moveable'
-
 export interface PageDesignerWidget {
   type: 'text' | 'image'
   zIndex: number
-  rectInfo?: RectInfo
   cssStyle: string
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
-import type { OnDrag, OnRenderEnd, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
 import type { PageDesignerImageWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj } from '../lib/context'
@@ -54,9 +54,8 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
-const onRenderEnd = (e: OnRenderEnd) => {
+const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
-  widget.value.rectInfo = e.moveable.getRect()
 }
 
 const errored = ref(false)
@@ -64,7 +63,7 @@ const container = useParentElement()
 </script>
 
 <template>
-  <div ref="targetRef" :style="widget.cssStyle" v-bind="$attrs">
+  <div ref="targetRef" class="absolute" :style="widget.cssStyle" v-bind="$attrs">
     <div
       :style="{
         background: `${widget.backgroundColor}`,
@@ -88,7 +87,7 @@ const container = useParentElement()
         @error="errored = true"
         @load="errored = false"
       />
-      <div v-if="errored">Unable to load the image</div>
+      <div v-if="widget.imageSrc && errored">Unable to load the image</div>
       <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted">Add an image source</span>
     </div>
   </div>

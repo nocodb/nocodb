@@ -8,7 +8,9 @@ interface Column {
 
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
-  columns: MaybeRef<Column[]>,
+  columns: ComputedRef<Column[]>,
+  colSlice: Ref<{ start: number; end: number }>,
+  scrollLeft: Ref<number>,
   onResize?: (columnId: string, width: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
@@ -35,34 +37,44 @@ export function useColumnResize(
 
   const resizeableColumn = computed(() => {
     if (!mousePosition.value || mousePosition.value.y > 32) {
-      if (!isResizing.value) setCursor('default')
+      if (!isResizing.value) document.body.style.cursor = 'default'
       return null
     }
 
+    const fixedCols = columns.value.filter((col) => col.fixed)
     let currentX = 0
-    let foundResizeableColumn = null
 
-    for (const column of columns.value) {
+    // Check fixed columns first
+    for (const column of fixedCols) {
       const width = parseInt(column.width, 10)
       const nextX = currentX + width
 
       if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
-        foundResizeableColumn = {
-          id: column.id,
-          width,
-          x: currentX,
-        }
-        break
+        return { id: column.id, width, x: currentX }
       }
-
       currentX = nextX
     }
 
-    if (!isResizing.value) {
-      setCursor(foundResizeableColumn ? 'col-resize' : 'default')
+    // Check visible columns
+    let accumulatedWidth = 0
+    for (let i = 0; i < colSlice.value.start; i++) {
+      accumulatedWidth += parseInt(columns.value[i].width, 10)
     }
 
-    return foundResizeableColumn
+    currentX = accumulatedWidth - scrollLeft.value
+    for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
+      const column = columns.value[i]
+      const width = parseInt(column.width, 10)
+      const nextX = currentX + width
+
+      if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+        return { id: column.id, width, x: currentX }
+      }
+      currentX = nextX
+    }
+
+    if (!isResizing.value) document.body.style.cursor = 'default'
+    return null
   })
 
   const handleMouseMove = (e: MouseEvent) => {

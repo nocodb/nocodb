@@ -147,6 +147,8 @@ const totalHeight = computed(() => {
 const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
   canvasRef,
   columns,
+  colSlice,
+  scrollLeft,
   (columnId, newWidth) => {
     const columnIndex = columns.value.findIndex((col) => col.id === columnId)
     if (columnIndex !== -1) {

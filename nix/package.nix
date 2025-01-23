@@ -3,11 +3,12 @@
   stdenv,
   nodePackages,
   pnpm,
-  pulumi,
   sqlite,
   pkg-config,
   rsync,
   makeWrapper,
+  node-gyp,
+  vips,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -15,16 +16,19 @@ stdenv.mkDerivation (finalAttrs: {
   version = "0.260.2";
   src = ../.;
 
-  patchPhase = ''
-    # TODO: ./nodejs.nix, minor version mismatch
-    sed -i '/use-node-version/d' ./.npmrc
-  '';
   buildPhase = ''
     export NODE_OPTIONS="--max_old_space_size=16384"
     export NUXT_TELEMETRY_DISABLED=1
     export npm_config_nodedir=${nodePackages.nodejs}
 
     pnpm rebuild -r --verbose --reporter=append-only
+    # nodejs 22.11.0 -> 22.12.0 broke pnpm rebuild somehow, so let's do it manaully
+    for package in $(find -L packages/nocodb/node_modules -name binding.gyp -type f); do
+        cd "$(dirname "$package")"
+        node-gyp rebuild
+        cd -
+    done
+
     pnpm --filter=nocodb-sdk run build
     pnpm run registerIntegrations
     pnpm --filter=nc-gui run build:copy
@@ -32,19 +36,21 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   installPhase = ''
-    mkdir -p $out/share/nocodb/dist
-    cp -v ./packages/nocodb/docker/main.js $out/share/nocodb/index.js
+    mkdir -p $out/share/nocodb/packages/nocodb
+    cp -v ./packages/nocodb/docker/main.js $out/share/nocodb/packages/nocodb/index.js
 
     # TODOD, only ship nocodb workspace prod deps with node_modules
     cp -r ./node_modules $out/share/nocodb/node_modules
+    cp -r ./packages/nocodb/node_modules $out/share/nocodb/packages/nocodb/node_modules
 
     makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
-      --add-flags "$out/share/nocodb/index.js"
+      --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
 
   nativeBuildInputs = [
     nodePackages.pnpm
     pnpm.configHook
+    node-gyp
 
     rsync
     makeWrapper
@@ -57,12 +63,12 @@ stdenv.mkDerivation (finalAttrs: {
   buildInputs = [
     nodePackages.nodejs
     sqlite
-    pulumi
+    vips
   ];
 
   pnpmDeps = pnpm.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-X0LT8OaFbxaoWP8+cEDQtinnYLRLxGmO3cxk+JX5ztY=";
+    hash = "sha256-jvMpIqgD/dUxEIlzW06c9aQ83nj4dShLKSGikRcM+Xo=";
   };
 
   meta = {

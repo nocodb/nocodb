@@ -39,10 +39,8 @@ const verticalLines = computed(() => {
           ></div>
         </div>
         <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
-          <div @mousedown.stop="payload.currentWidgetIndex = i">
-            <PageDesignerText v-if="widget.type === 'text'" :widget="widget" :active="payload.currentWidgetIndex === i" />
-            <PageDesignerImage v-else-if="widget.type === 'image'" :widget="widget" :active="payload.currentWidgetIndex === i" />
-          </div>
+          <PageDesignerText v-if="widget.type === 'text'" :index="i" @mousedown.stop="payload.currentWidgetIndex = i" />
+          <PageDesignerImage v-else-if="widget.type === 'image'" :index="i" @mousedown.stop="payload.currentWidgetIndex = i" />
         </template>
       </div>
     </div>

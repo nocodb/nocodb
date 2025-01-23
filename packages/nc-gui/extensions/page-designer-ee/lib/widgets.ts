@@ -1,6 +1,10 @@
+import type { RectInfo } from 'vue3-moveable'
+
 export interface PageDesignerWidget {
   type: 'text' | 'image'
   zIndex: number
+  rectInfo?: RectInfo
+  cssStyle: string
 }
 
 export interface PageDesignerTextWidget extends PageDesignerWidget {
@@ -58,6 +62,8 @@ export class PageDesignerWidgetFactory {
       type: 'text',
       value: '',
       zIndex: 0,
+      cssStyle:
+        'width: 200px; height: 30px; transform: translate(0, 0); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;',
     }
   }
 
@@ -74,6 +80,8 @@ export class PageDesignerWidgetFactory {
       imageSrc: '',
       objectFit: 'cover',
       zIndex: 0,
+      cssStyle:
+        'width: 200px; height: 200px; transform: translate(0, 0); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;',
     }
   }
 }

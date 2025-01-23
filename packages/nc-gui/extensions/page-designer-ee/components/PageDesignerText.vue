@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
-import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import type { OnDrag, OnRenderEnd, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import type { PageDesignerTextWidget } from '../lib/widgets'
+import { PageDesignerPayloadInj } from '../lib/context'
 
-defineProps<{
-  widget: PageDesignerTextWidget
-  active: boolean
+const props = defineProps<{
+  index: number
 }>()
+
+const payload = inject(PageDesignerPayloadInj)!
+const active = computed(() => payload.value.currentWidgetIndex === props.index)
+const widget = ref(payload?.value?.widgets[props.index] as PageDesignerTextWidget)
+watch(
+  () => props.index,
+  (idx) => {
+    widget.value = payload?.value?.widgets[idx] as PageDesignerTextWidget
+  },
+)
 
 const draggable = true
 const throttleDrag = 1
@@ -21,15 +31,11 @@ const snappable = true
 const snapGridWidth = 10
 const snapGridHeight = 10
 const isDisplayGridGuidelines = false
-const targetRef = ref(null)
+const targetRef = ref<HTMLElement>()
 const moveableRef = ref(null)
 const rotationPosition = 'top'
 const throttleRotate = 0
 
-const maxWidth = 'auto'
-const maxHeight = 'auto'
-const minWidth = '30px'
-const minHeight = '30px'
 const resizable = true
 const throttleResize = 1
 const renderDirections = ['se']
@@ -48,13 +54,17 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
+
+const onRenderEnd = (e: OnRenderEnd) => {
+  widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
+  widget.value.rectInfo = e.moveable.getRect()
+}
+
+const container = useParentElement()
 </script>
 
 <template>
-  <div
-    ref="targetRef"
-    :style="`width: 200px; height: 30px; transform: translate(0, 0); max-width: ${maxWidth};max-height: ${maxHeight};min-width: ${minWidth};min-height: ${minHeight};`"
-  >
+  <div ref="targetRef" :style="widget.cssStyle" v-bind="$attrs">
     <div
       :style="{
         display: 'flex',
@@ -108,9 +118,11 @@ const onScale = (e: OnScale) => {
     :render-directions="renderDirections"
     :origin="false"
     :data-inactive-widget="!active"
+    :container="container"
     @resize="onResize"
     @rotate="onRotate"
     @drag="onDrag"
     @scale="onScale"
+    @render-end="onRenderEnd"
   />
 </template>

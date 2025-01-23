@@ -6,6 +6,7 @@ import type { Ref } from 'vue'
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
+
 const cellValue = inject(CellValueInj)
 
 const { isPg } = useBase()
@@ -13,6 +14,22 @@ const { isPg } = useBase()
 const result = computed(() =>
   isPg(column.value.source_id) ? renderValue(handleTZ(cellValue?.value)) : renderValue(cellValue?.value),
 )
+
+const isVisible = ref(false)
+
+
+
+
+////for closing the expanded model
+const closeModel = () => {
+  isVisible.value = false
+}
+
+
+
+const onExpand = () => {
+  isVisible.value = true
+}
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
@@ -29,16 +46,12 @@ const isGrid = inject(IsGridInj, ref(false))
 </script>
 
 <template>
-  <LazySmartsheetFormulaWrapperCell
-    v-if="column.meta?.display_type"
-    v-model="cellValue"
-    :column="{
+  <LazySmartsheetFormulaWrapperCell v-if="column.meta?.display_type" v-model="cellValue" :column="{
       uidt: column.meta?.display_type,
       ...column.meta?.display_column_meta,
-    }"
-  />
+    }" />
 
-  <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
+  <div v-else class="w-full formula-wrapper" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
@@ -51,6 +64,24 @@ const isGrid = inject(IsGridInj, ref(false))
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
+
+
+      <NcTooltip v-if="!isVisible" placement="bottom"
+        class="nc-action-icon !absolute !hidden nc-formula-area-expand-btn group-hover:block z-3" :class="{
+  'right-1': isExpandedFormOpen,
+          'right-3': !isExpandedFormOpen,
+          'top-0': isGrid && !isExpandedFormOpen&& !(!rowHeight || rowHeight === 1),
+          'top-1': !(isGrid && !isExpandedFormOpen ),
+        }" :style="isGrid && !isExpandedFormOpen && (!rowHeight || rowHeight === 1)
+            ? { top: '50%', transform: 'translateY(-50%)' }
+            : undefined
+          ">
+        <template #title>{{ $t('title.expand') }}</template>
+        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="onExpand">
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
+        </NcButton>
+      </NcTooltip>
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
@@ -58,5 +89,15 @@ const isGrid = inject(IsGridInj, ref(false))
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>
+    <DlgVirtualTextCellExpand v-on:close="closeModel" :model-value="cellValue" :is-visible="isVisible">
+    </DlgVirtualTextCellExpand>
   </div>
+  <!-- <LazyCellTextArea  v-model="vModel" :virtual="true" /> -->
+
 </template>
+<style lang="scss">
+.cell:hover .nc-formula-area-expand-btn,
+.formula-wrapper:hover .nc-formula-area-expand-btn {
+  @apply !block cursor-pointer;
+}
+</style>

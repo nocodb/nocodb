@@ -1,4 +1,4 @@
-import type { AuditType, PaginatedType, UserType } from 'nocodb-sdk'
+import type { AuditType, PaginatedType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
   type: undefined,
@@ -15,25 +15,12 @@ const defaultAuditLogsQuery = {
   },
 } as AuditLogsQuery
 
+export type CollaboratorType = (WorkspaceUserType & { id: string }) | User | UserType
+
 export const useAuditsStore = defineStore('auditsStore', () => {
   const { $api } = useNuxtApp()
 
   const { getBaseUrl } = useGlobal()
-
-  const { isUIAllowed } = useRoles()
-
-  const auditCollaborators = ref<User[] | UserType[]>([])
-
-  const collaboratorsMap = computed<Map<string, User | UserType>>(() => {
-    const map = new Map()
-
-    auditCollaborators.value?.forEach((coll) => {
-      if (coll?.email) {
-        map.set(coll.email, coll)
-      }
-    })
-    return map
-  })
 
   const audits = ref<null | Array<AuditType>>(null)
 
@@ -59,8 +46,18 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     return new Map()
   })
 
-  watchEffect(() => {
-    console.log('bases', bases.value)
+  const allCollaborators = ref<Map<string, CollaboratorType[]>>(new Map())
+
+  const auditCollaborators = computed<CollaboratorType[]>(() => {
+    return auditLogsQuery.value.workspaceId ? allCollaborators.value.get(auditLogsQuery.value.workspaceId) ?? [] : []
+  })
+
+  const collaboratorsMap = computed<Map<string, CollaboratorType>>(() => {
+    if (auditCollaborators.value.length) {
+      return new Map(auditCollaborators.value.map((user) => [user.email, user]))
+    }
+
+    return new Map()
   })
 
   const loadAudits = async (
@@ -112,6 +109,29 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
+  const isLoadingUsers = ref(false)
+
+  const loadUsersForWorkspace = async () => {
+    if (!auditLogsQuery.value.workspaceId || allCollaborators.value.get(auditLogsQuery.value.workspaceId)) return
+    isLoadingUsers.value = true
+
+    try {
+      const { list } = await $api.workspaceUser.list(
+        auditLogsQuery.value.workspaceId,
+        {},
+        {
+          baseURL: getBaseUrl(auditLogsQuery.value.workspaceId),
+        },
+      )
+
+      allCollaborators.value.set(auditLogsQuery.value.workspaceId, list ?? [])
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      isLoadingUsers.value = false
+    }
+  }
+
   return {
     bases,
     basesList,
@@ -124,7 +144,9 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     auditPaginationData,
     loadAudits,
     isLoadingBases,
+    isLoadingUsers,
     loadBasesForWorkspace,
+    loadUsersForWorkspace,
   }
 })
 

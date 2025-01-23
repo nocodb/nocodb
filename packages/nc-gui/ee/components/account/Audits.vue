@@ -8,7 +8,6 @@ import {
   auditV1OperationTypesAlias,
   type AuditType,
   type UserType,
-  type WorkspaceUserType,
 } from 'nocodb-sdk'
 
 const allowedAuditOperationTypes = [AuditOperationTypes.DATA, AuditOperationTypes.TABLE, AuditOperationTypes.TABLE_COLUMN]
@@ -21,30 +20,24 @@ const isLoading = ref(false)
 
 const auditsStore = useAuditsStore()
 
-const { loadAudits: _loadAudits, loadBasesForWorkspace } = auditsStore
-const { isRowExpanded, selectedAudit, bases, basesList, audits, auditLogsQuery, auditPaginationData, isLoadingBases } =
-  storeToRefs(auditsStore)
+const { loadAudits: _loadAudits, loadBasesForWorkspace, loadUsersForWorkspace } = auditsStore
+const {
+  isRowExpanded,
+  selectedAudit,
+  bases,
+  basesList,
+  audits,
+  auditLogsQuery,
+  auditPaginationData,
+  isLoadingBases,
+  isLoadingUsers,
+  collaboratorsMap,
+  auditCollaborators,
+} = storeToRefs(auditsStore)
 
 const workspaceStore = useWorkspace()
 
 const { workspaces, workspacesList } = storeToRefs(workspaceStore)
-
-const localCollaborators = ref<User[] | UserType[]>([])
-
-const auditCollaborators = computed(() => {
-  return (auditLogsQuery.value.baseId ? localCollaborators.value : []) || []
-})
-
-const collaboratorsMap = computed<Map<string, User | UserType>>(() => {
-  const map = new Map()
-
-  auditCollaborators.value?.forEach((coll) => {
-    if (coll?.email) {
-      map.set(coll.email, coll)
-    }
-  })
-  return map
-})
 
 const defaultAuditDropdowns = {
   type: false,
@@ -202,7 +195,7 @@ const orderBy = computed({
 const handleUpdateWorkspaceQuery = (workspaceId?: string) => {
   auditLogsQuery.value = { ...auditLogsQuery.value, workspaceId, baseId: undefined, user: undefined }
   if (workspaceId) {
-    loadBasesForWorkspace()
+    Promise.allSettled([loadBasesForWorkspace(), loadUsersForWorkspace()])
   }
 }
 
@@ -329,10 +322,6 @@ onMounted(() => {
   Promise.allSettled(promises)
 })
 
-watchEffect(() => {
-  console.log('workspacesList', workspacesList.value)
-})
-
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
@@ -451,7 +440,6 @@ const isTypeAndRangeFilterEnabled = false
             </template>
           </NcDropdown>
           <NcDropdown
-            v-if="auditCollaborators?.length"
             v-model:visible="auditDropdowns.user"
             overlay-class-name="overflow-hidden"
             @update:visible="handleClearDropdownSearch($event, 'user')"
@@ -533,39 +521,42 @@ const isTypeAndRangeFilterEnabled = false
                       <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
                     </div>
                   </NcMenuItem>
-                  <NcDivider v-if="auditCollaborators.length" />
-                  <template v-for="(coll, index) of auditCollaborators" :key="index">
-                    <NcMenuItem
-                      v-if="
-                        coll.email?.includes(auditDropdownsSearch.user.toLowerCase()) ||
-                        coll.display_name?.includes(auditDropdownsSearch.user.toLowerCase())
-                      "
-                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                      @click="auditLogsQuery.user = coll.email"
-                    >
-                      <div class="w-full flex items-center justify-between gap-3">
-                        <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
-                          <GeneralUserIcon :user="coll" size="base" class="flex-none" />
-                          <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                            <div class="w-full flex gap-3">
-                              <span class="text-sm text-gray-800 capitalize font-semibold truncate">
-                                {{ coll?.display_name || coll?.email?.slice(0, coll?.email.indexOf('@')) }}
+                  <NcDivider v-if="auditCollaborators.length || isLoadingUsers" />
+
+                  <div v-if="isLoadingUsers" class="flex flex-col justify-center items-center py-4">
+                    <GeneralLoader size="small" class="flex-none" />
+                  </div>
+                  <template v-else>
+                    <template v-for="(coll, index) of auditCollaborators" :key="index">
+                      <NcMenuItem
+                        v-if="searchCompare([coll.email, coll.display_name], auditDropdownsSearch.user)"
+                        class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                        @click="auditLogsQuery.user = coll.email"
+                      >
+                        <div class="w-full flex items-center justify-between gap-3">
+                          <div v-if="coll?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_28px)]">
+                            <GeneralUserIcon :user="coll" size="base" class="flex-none" />
+                            <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                              <div class="w-full flex gap-3">
+                                <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                                  {{ coll?.display_name || coll?.email?.slice(0, coll?.email.indexOf('@')) }}
+                                </span>
+                              </div>
+                              <span class="text-xs text-gray-600 truncate">
+                                {{ coll?.email }}
                               </span>
                             </div>
-                            <span class="text-xs text-gray-600 truncate">
-                              {{ coll?.email }}
-                            </span>
                           </div>
-                        </div>
-                        <template v-else>{{ coll.email }} </template>
+                          <template v-else>{{ coll.email }} </template>
 
-                        <GeneralIcon
-                          v-if="auditLogsQuery.user === coll.email"
-                          icon="check"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </NcMenuItem>
+                          <GeneralIcon
+                            v-if="auditLogsQuery.user === coll.email"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </NcMenuItem>
+                    </template>
                   </template>
                 </NcMenu>
               </div>
@@ -639,37 +630,43 @@ const isTypeAndRangeFilterEnabled = false
                       <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
                     </div>
                   </NcMenuItem>
-                  <NcDivider v-if="basesList.length" />
-                  <template v-for="(base, index) of basesList" :key="index">
-                    <NcMenuItem
-                      v-if="
-                        base?.sources?.[0]?.enabled &&
-                        base.title?.toLowerCase()?.includes(auditDropdownsSearch.base.toLowerCase())
-                      "
-                      class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
-                      @click="handleUpdateBaseQuery(base.id, base?.sources?.[0]?.id)"
-                    >
-                      <div class="w-full flex items-center justify-between gap-3">
-                        <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
-                          <GeneralProjectIcon
-                            :color="base?.meta?.iconColor"
-                            :type="base?.type || 'database'"
-                            class="nc-view-icon w-4 h-4 flex-none"
+                  <NcDivider v-if="basesList.length || isLoadingBases" />
+
+                  <div v-if="isLoadingBases" class="flex flex-col justify-center items-center py-4">
+                    <GeneralLoader size="small" class="flex-none" />
+                  </div>
+                  <template v-else>
+                    <template v-for="(base, index) of basesList" :key="index">
+                      <NcMenuItem
+                        v-if="
+                          base?.sources?.[0]?.enabled &&
+                          base.title?.toLowerCase()?.includes(auditDropdownsSearch.base.toLowerCase())
+                        "
+                        class="!children:w-full ant-dropdown-menu-item ant-dropdown-menu-item-only-child"
+                        @click="handleUpdateBaseQuery(base.id, base?.sources?.[0]?.id)"
+                      >
+                        <div class="w-full flex items-center justify-between gap-3">
+                          <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_28px)]">
+                            <GeneralProjectIcon
+                              :color="base?.meta?.iconColor"
+                              :type="base?.type || 'database'"
+                              class="nc-view-icon w-4 h-4 flex-none"
+                            />
+
+                            <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>
+                              <template #title> {{ base.title }}</template>
+                              {{ base.title }}
+                            </NcTooltip>
+                          </div>
+
+                          <GeneralIcon
+                            v-if="auditLogsQuery.baseId === base.id"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
                           />
-
-                          <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>
-                            <template #title> {{ base.title }}</template>
-                            {{ base.title }}
-                          </NcTooltip>
                         </div>
-
-                        <GeneralIcon
-                          v-if="auditLogsQuery.baseId === base.id"
-                          icon="check"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </NcMenuItem>
+                      </NcMenuItem>
+                    </template>
                   </template>
                 </NcMenu>
               </div>

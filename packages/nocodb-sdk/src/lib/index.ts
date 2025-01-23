@@ -48,3 +48,4 @@ export * from '~/lib/audit';
 export * from '~/lib/ncTypes';
 export * from '~/lib/import-export-data';
 export * from '~/lib/is';
+export * from '~/lib/durationUtils';

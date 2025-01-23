@@ -1,5 +1,5 @@
-import { truncateText } from '../canvasUtils'
-import type { CellRenderer } from '../useCellRenderer'
+import { truncateText } from '../utils/canvas'
+import type { CellRenderer } from '~/lib/types'
 import { convertMS2Duration } from '~/utils/durationUtils'
 
 export const DurationCellRenderer: CellRenderer = {

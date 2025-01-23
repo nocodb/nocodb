@@ -108,28 +108,28 @@ get_public_ip() {
 		fi
 	fi
 
-	# Method 2: Using curl
-	if command -v curl >/dev/null 2>&1; then
-		ip=$(curl -s -4 https://ifconfig.co 2>/dev/null)
-		if [ -n "$ip" ]; then
-			echo "$ip"
-			return
-		fi
-	fi
-
-	# Method 3: Using wget
-	if command -v wget >/dev/null 2>&1; then
-		ip=$(wget -qO- https://ifconfig.me 2>/dev/null)
-		if [ -n "$ip" ]; then
-			echo "$ip"
-			return
-		fi
-	fi
-
-	# Method 4: Using host
+	# Method 2: Using host
 	if command -v host >/dev/null 2>&1; then
 		ip=$(host myip.opendns.com resolver1.opendns.com 2>/dev/null | grep "myip.opendns.com has" | awk '{print $4}')
 		if [ -n "$ip" ]; then
+			echo "$ip"
+			return
+		fi
+	fi
+
+	# Method 3: Using curl
+	if command -v curl >/dev/null 2>&1; then
+		ip="$(curl -s -4 https://ip.me 2>/dev/null)"
+		if echo "$ip" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+			echo "$ip"
+			return
+		fi
+	fi
+
+	# Method 4: Using wget
+	if command -v wget >/dev/null 2>&1; then
+		ip="$(wget -qO- https://ifconfig.me 2>/dev/null)"
+		if echo "$ip" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
 			echo "$ip"
 			return
 		fi

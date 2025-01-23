@@ -28,6 +28,11 @@
         }
       );
 
+      nixosModules = {
+        nocodb = ./nix/module.nix;
+        default = self.nixosModules.cplane;
+      };
+
       devShells = forAllSystems (
         { system, pkgs }:
         {

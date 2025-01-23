@@ -118,12 +118,6 @@ const isProjectDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()
 
-const workspaceStore = useWorkspace()
-
-const { navigateToWorkspaceSettings, loadAudits } = workspaceStore
-
-const { activeWorkspace, auditLogsQuery, auditPaginationData } = storeToRefs(workspaceStore)
-
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
   const routeNameSplit = String(route.value?.name).split('baseId-index-index')
@@ -323,57 +317,6 @@ function openErdView(source: SourceType) {
     isOpen.value = false
 
     close(1000)
-  }
-}
-
-async function _openAudit(source: SourceType) {
-  $e('c:project:audit')
-
-  auditPaginationData.value.page = 1
-
-  if (isUIAllowed('workspaceAuditList') && activeWorkspace.value?.id) {
-    auditLogsQuery.value = {
-      ...auditLogsQuery.value,
-      baseId: base.value.id,
-      sourceId: source!.id,
-      user: undefined,
-    }
-
-    const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-    await navigateToWorkspaceSettings('', cmdOrCtrl, { tab: 'audit' })
-
-    await loadAudits(activeWorkspace.value?.id)
-  } else {
-    auditLogsQuery.value = {
-      ...auditLogsQuery.value,
-      user: undefined,
-      dateRange: undefined,
-      dateRangeLabel: undefined,
-      startDate: undefined,
-      endDate: undefined,
-      orderBy: {
-        created_at: 'desc',
-        user: undefined,
-      },
-    }
-
-    const isOpen = ref(true)
-
-    const { close } = useDialog(resolveComponent('DlgProjectAudit'), {
-      'modelValue': isOpen,
-      'workspaceId': activeWorkspace.value?.id,
-      'sourceId': source!.id,
-      'onUpdate:modelValue': () => closeDialog(),
-      'baseId': base.value!.id,
-      'bordered': true,
-    })
-
-    function closeDialog() {
-      isOpen.value = false
-
-      close(1000)
-    }
   }
 }
 
@@ -850,19 +793,6 @@ const onClickMenu = (e: { key?: string }) => {
                       <GeneralIntegrationIcon v-else type="nocodb" class="group-hover:text-black" />
                       {{ dataReflectionText }}
                     </NcMenuItem>
-
-                    <!-- Audit -->
-                    <!-- 
-                    <NcMenuItem
-                      v-if="isUIAllowed('baseAuditList') && base?.sources?.[0]?.enabled"
-                      key="audit"
-                      data-testid="nc-sidebar-base-audit"
-                      @click="_openAudit(base?.sources?.[0])"
-                    >
-                      <GeneralIcon icon="audit" />
-                      {{ $t('title.audit') }} {{ $t('general.logs').toLowerCase() }}
-                    </NcMenuItem>
-                     -->
 
                     <!-- Swagger: Rest APIs -->
                     <NcMenuItem

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
-import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { PageDesignerImageWidget } from '../../src/widgets'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import type { PageDesignerTextWidget } from '../lib/widgets'
 
 defineProps<{
-  widget: PageDesignerImageWidget
+  widget: PageDesignerTextWidget
   active: boolean
 }>()
 
@@ -58,6 +58,7 @@ const onScale = (e: OnScale) => {
   >
     <div
       :style="{
+        display: 'flex',
         background: `${widget.backgroundColor}`,
         height: '100%',
         width: '100%',
@@ -66,15 +67,23 @@ const onScale = (e: OnScale) => {
         }px`,
         borderColor: widget.borderColor,
         borderRadius: `${widget.borderRadius || 0}px`,
+        justifyContent: widget.horizontalAlign,
+        alignItems: widget.verticalAlign,
       }"
     >
-      <img
-        :src="widget.imageSrc"
-        class="w-full h-full"
+      <span
+        v-if="widget.value"
         :style="{
-          objectFit: widget.objectFit || 'fill',
+          fontSize: `${widget.fontSize}px`,
+          fontWeight: widget.fontWeight,
+          fontFamily: widget.fontFamily,
+          lineHeight: widget.lineHeight,
+          color: widget.textColor,
         }"
-      />
+      >
+        {{ widget.value }}
+      </span>
+      <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
     </div>
   </div>
   <Moveable

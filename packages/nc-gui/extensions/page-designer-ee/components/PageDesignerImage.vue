@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Moveable from 'vue3-moveable'
-import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
-import type { PageDesignerTextWidget } from '../../src/widgets'
+import { ref } from 'vue'
+import type { PageDesignerImageWidget } from '../lib/widgets'
 
 defineProps<{
-  widget: PageDesignerTextWidget
+  widget: PageDesignerImageWidget
   active: boolean
 }>()
 
@@ -48,6 +48,8 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
+
+const errored = ref(false)
 </script>
 
 <template>
@@ -58,7 +60,6 @@ const onScale = (e: OnScale) => {
   >
     <div
       :style="{
-        display: 'flex',
         background: `${widget.backgroundColor}`,
         height: '100%',
         width: '100%',
@@ -67,23 +68,19 @@ const onScale = (e: OnScale) => {
         }px`,
         borderColor: widget.borderColor,
         borderRadius: `${widget.borderRadius || 0}px`,
-        justifyContent: widget.horizontalAlign,
-        alignItems: widget.verticalAlign,
       }"
     >
-      <span
-        v-if="widget.value"
+      <img
+        v-if="widget.imageSrc"
+        :src="widget.imageSrc"
+        class="w-full h-full"
         :style="{
-          fontSize: `${widget.fontSize}px`,
-          fontWeight: widget.fontWeight,
-          fontFamily: widget.fontFamily,
-          lineHeight: widget.lineHeight,
-          color: widget.textColor,
+          objectFit: widget.objectFit || 'fill',
         }"
-      >
-        {{ widget.value }}
-      </span>
-      <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+        @error="errored = true"
+        @load="errored = false"
+      />
+      <div v-if="errored">Unable to load the image</div>
     </div>
   </div>
   <Moveable

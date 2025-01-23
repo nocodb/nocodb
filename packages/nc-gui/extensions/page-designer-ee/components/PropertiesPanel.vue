@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../src/context'
-import PageDesignerTextProperties from './widgets/PageDesignerTextProperties.vue'
-import PageDesignerImageProperties from './widgets/PageDesignerImageProperties.vue'
+import { PageDesignerPayloadInj } from '../lib/context'
+import PageDesignerTextProperties from './PageDesignerTextProperties.vue'
+import PageDesignerImageProperties from './PageDesignerImageProperties.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../../src/context'
-import GroupedSettings from '../GroupedSettings.vue'
-import ColorPropertyPicker from '../ColorPropertyPicker.vue'
-import BorderImage from '../../assets/border.svg'
-import type { PageDesignerTextWidget } from '../../src/widgets'
+import { PageDesignerPayloadInj } from '../lib/context'
+import type { PageDesignerTextWidget } from '../lib/widgets'
+import BorderImage from '../assets/border.svg'
+import GroupedSettings from './GroupedSettings.vue'
+import ColorPropertyPicker from './ColorPropertyPicker.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 

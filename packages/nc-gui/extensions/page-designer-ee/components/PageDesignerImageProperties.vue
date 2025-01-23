@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../../src/context'
-import GroupedSettings from '../GroupedSettings.vue'
-import ColorPropertyPicker from '../ColorPropertyPicker.vue'
-import BorderImage from '../../assets/border.svg'
-import type { PageDesignerImageWidget } from '../../src/widgets'
+import { PageDesignerPayloadInj } from '../lib/context'
+import BorderImage from '../assets/border.svg'
+import type { PageDesignerImageWidget } from '../lib/widgets'
+import GroupedSettings from './GroupedSettings.vue'
+import ColorPropertyPicker from './ColorPropertyPicker.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const index = payload.value.currentWidgetIndex ?? -1

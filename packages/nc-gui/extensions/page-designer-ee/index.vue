@@ -3,9 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import RecordSelector from './components/RecordSelector.vue'
 import PageEditor from './components/PageEditor.vue'
-import { type PageDesignerPayload } from './src/payload'
-import { PageOrientation, PageType } from './src/layout'
-import { PageDesignerPayloadInj } from './src/context'
+import { type PageDesignerPayload } from './lib/payload'
+import { PageOrientation, PageType } from './lib/layout'
+import { PageDesignerPayloadInj } from './lib/context'
 
 const { extension, fullscreen, getViewsForTable, getTableMeta, tables } = useExtensionHelperOrThrow()
 

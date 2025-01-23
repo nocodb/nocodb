@@ -11,7 +11,7 @@ const FEATURES = [
   {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
-    description: 'Enable LTAR for links',
+    description: 'Show linked record display value in Link fields.',
     enabled: false,
   },
   {

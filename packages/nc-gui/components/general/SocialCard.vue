@@ -97,7 +97,7 @@ function openKeyboardShortcutDialog() {
           no-prefetch
           no-rel
           class="!no-underline !text-current"
-          to="https://calendly.com/nocodb-meeting"
+          to="https://cal.com/nocodb"
           target="_blank"
         >
           <div class="flex items-center text-sm">

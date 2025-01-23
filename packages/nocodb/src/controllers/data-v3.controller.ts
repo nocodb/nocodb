@@ -187,7 +187,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v2/tables/:modelId/records/:rowId'])
+  @Get(['/api/v3/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @TenantContext() context: NcContext,

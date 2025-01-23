@@ -14360,6 +14360,10 @@
                           "id": "d22zkup0c0l80"
                         }
                       }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Pagination Info"
                     }
                   },
                   "required": [
@@ -14417,7 +14421,23 @@
         },
         "description": "List all audits",
         "parameters": [
-          {
+            {
+              "schema": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "in": "query",
+              "name": "offset"
+            },
+            {
+              "schema": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "in": "query",
+              "name": "limit"
+            },
+            {
             "schema": {
               "type": "string",
               "example": "10"

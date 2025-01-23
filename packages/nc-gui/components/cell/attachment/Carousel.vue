@@ -3,12 +3,10 @@ import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
 import { isOffice } from '~/utils/fileUtils'
 
-const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly, isRenameModalOpen } =
+const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isRenameModalOpen, isEditAllowed } =
   useAttachmentCell()!
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
-
-const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -294,11 +292,7 @@ const initEmblaApi = (val: any) => {
         </div>
 
         <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-          <NcTooltip
-            v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)"
-            color="light"
-            placement="bottom"
-          >
+          <NcTooltip v-if="isEditAllowed" color="light" placement="bottom">
             <template #title> {{ $t('title.renameFile') }} </template>
             <NcButton
               size="xsmall"
@@ -310,7 +304,7 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
+          <NcTooltip color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
             <NcButton
               class="!hover:bg-transparent !text-white"
@@ -322,11 +316,7 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip
-            v-if="!isReadonly && (isSharedForm || (isUIAllowed('dataEdit') && !isPublic))"
-            color="light"
-            placement="bottomRight"
-          >
+          <NcTooltip v-if="isEditAllowed" color="light" placement="bottomRight">
             <template #title> {{ $t('title.removeFile') }} </template>
             <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
               <component :is="iconMap.delete" class="!hover:text-gray-400" />

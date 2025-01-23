@@ -729,7 +729,8 @@ const currentColumnToEdit = ref('')
         {{ importingTip }}
       </p>
     </template>
-    <a-card v-if="importDataOnly">
+
+    <div v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
@@ -737,30 +738,36 @@ const currentColumnToEdit = ref('')
         </p>
       </a-form>
 
-      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
-        <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
+      <a-collapse
+        v-if="data.tables && data.tables.length"
+        v-model:activeKey="expansionPanel"
+        class="template-collapse !rounded-lg !overflow-hidden"
+        accordion
+        expand-icon-position="right"
+      >
+        <template #expandIcon="{ isActive }">
+          <GeneralIcon
+            icon="ncChevronDown"
+            class="text-lg !-translate-y-1/2 !transition"
+            :class="{ '!transform !rotate-180': isActive }"
+          />
+        </template>
+
+        <a-collapse-panel
+          v-for="(table, tableIdx) of data.tables"
+          :key="tableIdx"
+          class="nc-import-table-box nc-upload-box !overflow-hidden"
+        >
           <template #header>
-            <span class="font-weight-bold text-lg flex items-center gap-2 truncate">
-              <component :is="iconMap.table" class="text-primary" />
+            <span class="font-weight-500 flex items-center gap-4 truncate">
+              <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">
+                <GeneralIcon :icon="tableIcon" class="w-5 h-5" />
+              </div>
               {{ table.table_name }}
             </span>
           </template>
 
-          <template #extra>
-            <NcTooltip bottom class="inline-block">
-              <template #title>
-                <span>{{ $t('activity.deleteTable') }}</span>
-              </template>
-              <component
-                :is="iconMap.delete"
-                v-if="data.tables.length > 1"
-                class="text-lg mr-8"
-                @click.stop="deleteTable(tableIdx)"
-              />
-            </NcTooltip>
-          </template>
-
-          <div v-if="srcDestMapping" class="flex w-full max-h-[calc(80vh_-_200px)]">
+          <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
             <NcTable
               class="template-form flex-1"
               body-row-class-name="template-form-row"
@@ -782,16 +789,23 @@ const currentColumnToEdit = ref('')
 
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'source_column'">
-                  <NcTooltip class="truncate inline-block">
-                    <template #title>{{ record.srcTitle }}</template>
-                    {{ record.srcTitle }}
-                  </NcTooltip>
+                  <div class="flex items-center gap-3 w-70">
+                    <a-checkbox v-model:checked="record.enabled" />
+                    <div class="flex items-center flex-grow truncate">
+                      <NcTooltip class="inline-block max-w-full truncate">
+                        <template #title>{{ record.srcTitle }}</template>
+                        {{ record.srcTitle }}
+                      </NcTooltip>
+                    </div>
+                    <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-1" />
+                  </div>
+                  <div class="absolute h-1 border-t top-0 left-3 right-3" />
                 </template>
 
                 <template v-else-if="column.key === 'destination_column'">
                   <a-select
                     v-model:value="record.destCn"
-                    class="w-full"
+                    class="w-full nc-upload-filter-field"
                     show-search
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
@@ -818,16 +832,12 @@ const currentColumnToEdit = ref('')
                     </a-select-option>
                   </a-select>
                 </template>
-
-                <template v-if="column.key === 'action'">
-                  <a-checkbox v-model:checked="record.enabled" />
-                </template>
               </template>
             </NcTable>
           </div>
         </a-collapse-panel>
       </a-collapse>
-    </a-card>
+    </div>
 
     <a-card v-else class="!border-none !px-0 !mx-0" :body-style="{ padding: '0 !important' }">
       <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
@@ -845,6 +855,7 @@ const currentColumnToEdit = ref('')
               :class="{ '!transform !rotate-180': isActive }"
             />
           </template>
+
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !overflow-hidden">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
@@ -910,16 +921,7 @@ const currentColumnToEdit = ref('')
                           @keydown.enter.prevent.stop="currentColumnToEdit = ''"
                           @keydown.esc.prevent.stop="currentColumnToEdit = ''"
                           @blur.esc.prevent.stop="currentColumnToEdit = ''"
-                        >
-                          <template #suffix>
-                            <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
-                              <template #title
-                                >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
-                              </template>
-                              <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
-                            </NcTooltip>
-                          </template>
-                        </a-input>
+                        />
                       </a-form-item>
                     </template>
                     <template v-else>
@@ -940,6 +942,12 @@ const currentColumnToEdit = ref('')
                         </NcButton>
                       </div>
                     </template>
+                    <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
+                      <template #title>
+                        {{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                      </template>
+                      <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                    </NcTooltip>
                     <div class="absolute h-1 border-t top-0 left-3 right-3" />
                   </template>
                 </template>
@@ -993,7 +1001,6 @@ const currentColumnToEdit = ref('')
   }
 }
 :deep(.nc-import-table-box:last-child) {
-  // border-bottom: 0 !important;
   @apply !rounded-b-lg;
 }
 :deep(.nc-import-table-box .ant-collapse-content) {
@@ -1009,5 +1016,16 @@ const currentColumnToEdit = ref('')
     height: 40px !important;
     position: relative;
   }
+}
+:deep(.nc-import-table-box.nc-upload-box .ant-collapse-content-box) {
+  .nc-table-header-row {
+    @apply !flex !h-auto !border-none !h-10;
+    span {
+      @apply !font-weight-700 text-[13px];
+    }
+  }
+}
+:deep(.ant-select.nc-upload-filter-field) .ant-select-selector {
+  @apply !border-gray-200 shadow-sm shadow-gray-200;
 }
 </style>

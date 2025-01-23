@@ -272,7 +272,7 @@ function shouldShowRaw(key: string) {
             }"
             :model-value="processOldDataFor(columnKey)"
             :edit-enabled="false"
-            :read-only="true"
+            read-only
             :class="{
               'min-w-[100px]': normalizeMeta(columnKey).is_progress,
             }"
@@ -295,8 +295,8 @@ function shouldShowRaw(key: string) {
               colOptions: normalizeColOptions(columnKey),
             }"
             :model-value="processNewDataFor(columnKey)"
-            edit-enabled
-            :read-only="true"
+            :edit-enabled="false"
+            read-only
             :class="{
               'min-w-[100px]': normalizeMeta(columnKey).is_progress,
             }"

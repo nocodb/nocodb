@@ -98,6 +98,16 @@ const getTiptapExtensions = () => {
   return extensions
 }
 
+function isOnlyBrTagsAndSpaces(str?: string) {
+  if (!str || !str?.trim()) {
+    return true
+  }
+
+  // Match any number of <br> tags with optional spaces
+  const regex = /^\s*(<br\s*\/?>\s*)*$/i
+  return regex.test(str)
+}
+
 const editor = useEditor({
   content: vModel.value,
   extensions: getTiptapExtensions(),
@@ -107,9 +117,10 @@ const editor = useEditor({
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
       if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
+      if (markdown.endsWith('<br /> ')) markdown = markdown.slice(0, -7)
     }
 
-    vModel.value = markdown === '<br />' ? '' : `${markdown}`
+    vModel.value = isOnlyBrTagsAndSpaces(markdown) ? '' : `${markdown}`
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
@@ -236,6 +247,11 @@ const emitSave = (event: KeyboardEvent) => {
 let timerId: any
 
 const handleEnterDown = (event: KeyboardEvent) => {
+  if (!vModel.value?.length) {
+    setEditorContent('')
+    return
+  }
+
   if (timerId) {
     clearTimeout(timerId)
   }

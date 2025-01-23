@@ -7,8 +7,6 @@ import ColorPropertyPicker from './ColorPropertyPicker.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
-const index = payload.value.currentWidgetIndex ?? -1
-
 const fontWeightToLabel: Record<string, string> = {
   '100': 'Thin',
   '200': 'Extra Light',
@@ -24,7 +22,14 @@ const fontWeightToLabel: Record<string, string> = {
 const fonts = ['Arial', 'Tahoma', 'Times New Roman', 'Verdana', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS', 'Manrope']
 const fontWeights = ['400', '700']
 
-const textWidget = payload?.value?.widgets[index] as PageDesignerTextWidget
+const index = payload.value.currentWidgetIndex ?? -1
+const textWidget = ref(payload?.value?.widgets[index] as PageDesignerTextWidget)
+watch(
+  () => payload.value.currentWidgetIndex ?? -1,
+  (idx) => {
+    textWidget.value = payload?.value?.widgets[idx] as PageDesignerTextWidget
+  },
+)
 </script>
 
 <template>

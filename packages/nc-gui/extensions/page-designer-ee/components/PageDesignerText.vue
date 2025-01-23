@@ -28,8 +28,8 @@ const throttleRotate = 0
 
 const maxWidth = 'auto'
 const maxHeight = 'auto'
-const minWidth = 'auto'
-const minHeight = 'auto'
+const minWidth = '30px'
+const minHeight = '30px'
 const resizable = true
 const throttleResize = 1
 const renderDirections = ['se']
@@ -53,8 +53,7 @@ const onScale = (e: OnScale) => {
 <template>
   <div
     ref="targetRef"
-    class="target"
-    :style="`width: 100px; height: 50px; transform: translate(0, 0); max-width: ${maxWidth};max-height: ${maxHeight};min-width: ${minWidth};min-height: ${minHeight};`"
+    :style="`width: 200px; height: 30px; transform: translate(0, 0); max-width: ${maxWidth};max-height: ${maxHeight};min-width: ${minWidth};min-height: ${minHeight};`"
   >
     <div
       :style="{

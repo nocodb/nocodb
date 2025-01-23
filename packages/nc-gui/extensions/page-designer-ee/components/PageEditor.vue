@@ -7,9 +7,7 @@ import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
-const pageSize = computed(() =>
-  PageDesignerLayout.getPageSizePx(payload?.value?.layout?.pageType, payload?.value?.layout?.orientation),
-)
+const pageSize = computed(() => PageDesignerLayout.getPageSizePx(payload?.value?.pageType, payload?.value?.orientation))
 
 const horizontalLines = computed(() => {
   const leftPixels: number[] = []
@@ -26,7 +24,7 @@ const verticalLines = computed(() => {
 
 <template>
   <div class="h-full w-full flex">
-    <div class="layout-wrapper flex-1 flex justify-center overflow-auto">
+    <div class="layout-wrapper flex-1 overflow-auto" @mousedown="payload.currentWidgetIndex = -1">
       <div class="page relative" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div
@@ -41,7 +39,7 @@ const verticalLines = computed(() => {
           ></div>
         </div>
         <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
-          <div @click="payload.currentWidgetIndex = i">
+          <div @mousedown.stop="payload.currentWidgetIndex = i">
             <PageDesignerText v-if="widget.type === 'text'" :widget="widget" :active="payload.currentWidgetIndex === i" />
             <PageDesignerImage v-else-if="widget.type === 'image'" :widget="widget" :active="payload.currentWidgetIndex === i" />
           </div>

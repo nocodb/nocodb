@@ -1,9 +1,9 @@
 export enum PageType {
-  LETTER = 'Letter',
-  LEGAL = 'Legal',
-  A4 = 'A4',
-  INDEX_CARD = 'Index Card',
-  BUSINESS_CARD = 'Business Card',
+  LETTER = 'Letter (8.5 x 11 inches)',
+  LEGAL = 'Legal (8.5 x 14 inches)',
+  A4 = 'A4 (8.268 x 11.693 inches)',
+  INDEX_CARD = 'Index Card (3 x 5 inches)',
+  BUSINESS_CARD = 'Business Card (2 x 3.5 inches)',
 }
 
 export enum PageOrientation {

@@ -6,11 +6,15 @@
 let
   nocodb = callPackage ./package.nix { };
 in
-dockerTools.buildImage {
+dockerTools.buildLayeredImage {
   name = "nocodb";
+
   config = {
-    Cmd = [
+    Entrypoint = [
       (lib.getExe nocodb)
     ];
+    ExposedPorts = {
+      "8080/tcp" = { };
+    };
   };
 }

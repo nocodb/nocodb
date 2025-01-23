@@ -62,11 +62,19 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     return new Map()
   })
 
+  const isLoadingAudits = ref(false)
+
   const loadAudits = async (
     page: number = auditPaginationData.value.page!,
     limit: number = auditPaginationData.value.pageSize!,
+    updateCurrentPage = true,
   ) => {
+    isLoadingAudits.value = true
     try {
+      if (updateCurrentPage) {
+        auditPaginationData.value.page = 1
+      }
+
       if (limit * (page - 1) > auditPaginationData.value.totalRows!) {
         auditPaginationData.value.page = 1
         page = 1
@@ -86,6 +94,8 @@ export const useAuditsStore = defineStore('auditsStore', () => {
       audits.value = []
       auditPaginationData.value.totalRows = 0
       auditPaginationData.value.page = 1
+    } finally {
+      isLoadingAudits.value = false
     }
   }
 
@@ -152,6 +162,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     selectedAudit,
     auditLogsQuery,
     auditPaginationData,
+    isLoadingAudits,
     loadAudits,
     isLoadingBases,
     isLoadingUsers,

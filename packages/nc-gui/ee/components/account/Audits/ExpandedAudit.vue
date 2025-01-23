@@ -178,7 +178,6 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
 <style lang="scss" scoped>
 .nc-audit-json-perview-wrapper {
-  @apply;
   :deep(.ant-collapse-header) {
     @apply !p-0 flex items-center !cursor-default children:first:flex;
   }
@@ -187,9 +186,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
   }
 }
 .nc-audit-json-perview {
-  @apply min-h-[200px] max-h-[400px];
-  resize: vertical;
-  overflow-y: auto;
+  @apply min-h-[200px] max-h-[400px] resize-y overflow-y-auto;
 }
 .nc-expanded-audit pre {
   font-family: Manrope, 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,

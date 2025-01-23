@@ -903,6 +903,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Duplicate view",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Duplicate Grid View",
     "createGridView": "Create Grid View",
     "createGridViewPlural": "Create Grid View(s)",

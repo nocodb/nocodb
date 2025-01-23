@@ -102,14 +102,23 @@ const columns = [
 ] as NcTableColumnProps[]
 
 const expandedTableIds = ref(new Set<string>())
+const loadingViewsOfTableIds = ref(new Set<string>())
 
 function isTableExpanded(tableId: string) {
   return expandedTableIds.value.has(tableId)
 }
 
-function toggleTable(tableId: string) {
+async function toggleTable(tableId: string) {
+  if (loadingViewsOfTableIds.value.has(tableId)) return
   if (isTableExpanded(tableId)) expandedTableIds.value.delete(tableId)
-  else expandedTableIds.value.add(tableId)
+  else {
+    if (!viewsByTable.value.get(tableId)?.length) {
+      loadingViewsOfTableIds.value.add(tableId)
+      await viewStore.loadViews({ tableId, ignoreLoading: true })
+      loadingViewsOfTableIds.value.delete(tableId)
+    }
+    expandedTableIds.value.add(tableId)
+  }
 }
 
 const borderlessIndexRange = ref<[start: number, end: number][]>([])
@@ -117,18 +126,19 @@ const borderlessIndexRange = ref<[start: number, end: number][]>([])
 const sortedActiveTables = computed(() => [...activeTables.value].sort((a, b) => a.source_id!.localeCompare(b.source_id!) * 20))
 
 const tableAndViewData = computed(() => {
-  const combined: Array<TableType | ViewType> = []
+  const combined: Array<TableType | ViewType | { isEmptyView: true }> = []
   const indexRange: [start: number, end: number][] = []
   let i = 0
   for (const table of sortedActiveTables.value) {
     const tableId = table?.id ?? ''
     combined.push(table)
     if (isTableExpanded(tableId)) {
-      const views = (viewsByTable.value.get(tableId) ?? []).filter((view) => !view.is_default)
-      if (views.length) {
-        combined.push(...views)
-        indexRange.push([i, i + views.length])
+      const views: typeof combined = (viewsByTable.value.get(tableId) ?? []).filter((view) => !view.is_default)
+      if (!views.length) {
+        views.push({ isEmptyView: true })
       }
+      combined.push(...views)
+      indexRange.push([i, i + views.length])
       i += views.length + 1
     } else {
       i++
@@ -290,62 +300,82 @@ const sourceIdToIconMap = computed(() => {
         class="nc-base-view-all-table-list flex-1"
       >
         <template #bodyCell="{ column, record }">
-          <NcButton
-            v-if="column.key === 'accordion' && !isRecordAView(record)"
-            size="small"
-            type="text"
-            @click.stop="toggleTable(record.id)"
-          >
-            <GeneralIcon
-              icon="chevronRight"
-              class="transform transition-transform duration-200"
-              :class="{ '!rotate-90': isTableExpanded(record.id) }"
-            />
-          </NcButton>
-          <template v-if="column.key === 'name'">
-            <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
-            <div v-else class="w-full flex items-center gap-3 max-w-full text-gray-800" data-testid="proj-view-list__item-title">
-              <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
+          <div v-if="record.isEmptyView">
+            <div v-if="column.key === 'name'" class="text-nc-content-gray-muted empty_views pl-[33px]">
+              {{ $t('labels.noTableViews') }}
+            </div>
+          </div>
+          <template v-else>
+            <NcButton
+              v-if="column.key === 'accordion' && !isRecordAView(record)"
+              size="small"
+              type="text"
+              @click.stop="toggleTable(record.id)"
+            >
+              <div class="flex children:flex-none relative h-4 w-4">
+                <Transition name="icon-fade" :duration="200">
+                  <div v-if="loadingViewsOfTableIds.has(record.id)">
+                    <GeneralLoader />
+                  </div>
+                  <div v-else>
+                    <GeneralIcon
+                      icon="chevronRight"
+                      class="transform transition-transform duration-200"
+                      :class="{ '!rotate-90': isTableExpanded(record.id) }"
+                    />
+                  </div>
+                </Transition>
+              </div>
+            </NcButton>
+            <template v-if="column.key === 'name'">
+              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <div
+                v-else
+                class="w-full flex items-center gap-3 max-w-full text-gray-800"
+                data-testid="proj-view-list__item-title"
+              >
+                <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
 
-              <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-                <template #title>
+                <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                  <template #title>
+                    {{ record?.title }}
+                  </template>
                   {{ record?.title }}
+                </NcTooltip>
+              </div>
+            </template>
+            <div
+              v-if="column.key === 'description'"
+              class="w-full flex items-center gap-3 max-w-full text-gray-800 description"
+              data-testid="proj-view-list__item-description"
+            >
+              <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                <template #title>
+                  {{ record?.description }}
                 </template>
-                {{ record?.title }}
+                {{ record?.description }}
               </NcTooltip>
             </div>
-          </template>
-          <div
-            v-if="column.key === 'description'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800 description"
-            data-testid="proj-view-list__item-description"
-          >
-            <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-              <template #title>
-                {{ record?.description }}
-              </template>
-              {{ record?.description }}
-            </NcTooltip>
-          </div>
-          <template v-if="column.key === 'sourceName'">
-            <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
-            <div
-              v-else-if="sourceIdToIconMap[record.source_id!]"
-              class="w-full flex justify-center items-center max-w-full"
-              data-testid="proj-view-list__item-type"
-            >
-              <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
-                <component :is="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
+            <template v-if="column.key === 'sourceName'">
+              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <div
+                v-else-if="sourceIdToIconMap[record.source_id!]"
+                class="w-full flex justify-center items-center max-w-full"
+                data-testid="proj-view-list__item-type"
+              >
+                <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
+                  <component :is="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
+                </div>
               </div>
+            </template>
+            <div
+              v-if="column.key === 'created_at'"
+              class="flex items-center gap-2 max-w-full created_at"
+              data-testid="proj-view-list__item-created-at"
+            >
+              {{ dayjs(record?.created_at).fromNow() }}
             </div>
           </template>
-          <div
-            v-if="column.key === 'created_at'"
-            class="flex items-center gap-2 max-w-full created_at"
-            data-testid="proj-view-list__item-created-at"
-          >
-            {{ dayjs(record?.created_at).fromNow() }}
-          </div>
         </template>
       </NcTable>
     </div>
@@ -397,7 +427,8 @@ const sourceIdToIconMap = computed(() => {
 }
 
 .description,
-.created_at {
+.created_at,
+.empty_views {
   @apply text-[13px] leading-[18px];
 }
 

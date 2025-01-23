@@ -1,6 +1,5 @@
 import { roundUpToPrecision } from 'nocodb-sdk'
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
 
 export const DecimalCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {

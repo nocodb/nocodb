@@ -50,6 +50,8 @@ export function useColumnResize(
       const nextX = currentX + width
 
       if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+        if (!column.uidt) return null
+
         return { id: column.id, width, x: currentX }
       }
       currentX = nextX
@@ -58,12 +60,13 @@ export function useColumnResize(
     // Check visible columns
     let accumulatedWidth = 0
     for (let i = 0; i < colSlice.value.start; i++) {
-      accumulatedWidth += parseInt(columns.value[i].width, 10)
+      if (!columns.value[i]) continue
+      accumulatedWidth += parseInt(columns.value[i]!.width, 10)
     }
 
     currentX = accumulatedWidth - scrollLeft.value
     for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
-      const column = columns.value[i]
+      const column = columns.value[i]!
       const width = parseInt(column.width, 10)
       const nextX = currentX + width
 
@@ -110,7 +113,7 @@ export function useColumnResize(
     window.removeEventListener('mouseleave', handleMouseLeave)
   }
 
-  const handleMouseDown = (e: MouseEvent) => {
+  const handleMouseDown = (_e: MouseEvent) => {
     const column = resizeableColumn.value
     if (!column) return
 
@@ -164,9 +167,14 @@ export const columnWidthLimit = {
   },
 }
 
+const getColumnWidthLimit = (uidt: keyof typeof columnWidthLimit) => {
+  if (uidt in columnWidthLimit) return columnWidthLimit[uidt]
+  return { minWidth: 100, maxWidth: Number.POSITIVE_INFINITY }
+}
+
 export const normalizeWidth = (col: ColumnType, width: number) => {
   if (col.uidt! in columnWidthLimit) {
-    const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
+    const { minWidth, maxWidth } = getColumnWidthLimit(col.uidt as keyof typeof columnWidthLimit)
     if (minWidth < width && width < maxWidth) return width
     if (width < minWidth) return minWidth
     if (width > maxWidth) return maxWidth

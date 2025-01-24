@@ -446,20 +446,18 @@ useSelectedCellKeyupListener(active, (e) => {
 }
 .lookup-dropdown {
   .nc-cell-field > span {
-    font-size: 13px !important;
+    @apply !text-[13px];
   }
   .lookup-search-input {
+    // order matters hence using vanilla css
     border: none;
-    border-radius: 14px 14px 0 0;
     border-bottom: 1px solid;
-    @apply !border-nc-border-gray-medium;
-    box-shadow: none !important;
-    padding: 6.5px 12px;
+    @apply !shadow-none px-3 py-[6.5px] rounded-[14px_14px_0_0] !border-nc-border-gray-medium;
     input::placeholder {
       @apply !text-nc-content-gray-muted;
     }
     .ant-input-prefix {
-      margin-right: 8px;
+      @apply mr-2;
     }
   }
 }

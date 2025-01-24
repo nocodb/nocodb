@@ -241,12 +241,10 @@ onUnmounted(() => {
 }
 
 .ant-form-item-control-input .has-many-actions {
-  top: 7px;
-  right: 5px;
+  @apply top-[7px] right-[5px];
 }
 
 .nc-expanded-cell .has-many-actions {
-  top: 5px;
-  right: 5px;
+  @apply top-[5px] right-[5px];
 }
 </style>

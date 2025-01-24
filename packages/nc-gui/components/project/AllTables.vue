@@ -355,10 +355,7 @@ const sourceIdToIconMap = computed(() => {
             <template v-if="column.key === 'sourceName'">
               <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
               <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
-                <div
-                  class="w-8 h-8 flex justify-center items-center rounded-[6px]"
-                  :class="{ 'bg-nc-bg-gray-light': sourceIdToIconMap[record.source_id!] }"
-                >
+                <div class="w-8 h-8 flex justify-center items-center">
                   <component
                     :is="sourceIdToIconMap[record.source_id!]"
                     v-if="sourceIdToIconMap[record.source_id!]"

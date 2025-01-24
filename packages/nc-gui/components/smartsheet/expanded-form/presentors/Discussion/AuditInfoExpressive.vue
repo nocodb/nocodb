@@ -117,7 +117,7 @@ function isShowableValue(value: any) {
 </script>
 
 <template>
-  <div v-for="columnKey in columnKeys" :key="columnKey" class="relative mb-2">
+  <div v-for="columnKey in columnKeys" :key="columnKey" class="relative not-last:mb-4">
     <GeneralIcon
       icon="ncNode"
       class="w-[16px] h-[16px] text-gray-500 bg-white absolute left-0 transform -translate-x-1/2"

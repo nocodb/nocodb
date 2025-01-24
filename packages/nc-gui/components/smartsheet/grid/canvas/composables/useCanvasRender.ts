@@ -166,10 +166,10 @@ export function useCanvasRender({
 
     if (isFillMode.value) {
       ctx.setLineDash([2, 2])
-      ctx.strokeStyle = '#3366ff'
+      ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
       ctx.strokeRect(
         calculateXPosition(selection.value.start.col) - scrollLeft.value,
-        selection.value.start.row * rowHeight.value + 32,
+        (selection.value.start.row - rowSlice.value.start) * rowHeight.value + 32,
         calculateSelectionWidth(selection.value.start.col, selection.value.end.col),
         (selection.value.end.row - selection.value.start.row + 1) * rowHeight.value,
       )

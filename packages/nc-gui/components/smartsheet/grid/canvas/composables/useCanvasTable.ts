@@ -31,6 +31,7 @@ export function useCanvasTable({
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref({ row: -1, column: -1 })
+  const selection = ref(new CellRange())
   const hoverRow = ref(-1)
   const editEnabled = ref<{
     rowIndex: number
@@ -118,6 +119,7 @@ export function useCanvasTable({
     activeCell,
     dragOver,
     hoverRow,
+    selection,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
@@ -243,6 +245,7 @@ export function useCanvasTable({
     triggerReRender: triggerRefreshCanvas,
     columns,
     scrollToCell,
+    selection,
   })
 
   return {
@@ -256,14 +259,15 @@ export function useCanvasTable({
     columns,
     canvasRef,
     isDragging,
+    selection,
+    hoverRow,
+    resizeableColumn,
     // Functions
     fetchChunk,
     updateVisibleRows,
     findColumnIndex,
     triggerRefreshCanvas,
     startDrag,
-    resizeableColumn,
-    hoverRow,
 
     // Handler
     resizeMouseMove,

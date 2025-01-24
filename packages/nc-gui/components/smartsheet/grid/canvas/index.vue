@@ -105,6 +105,7 @@ const {
   startDrag,
   startResize,
   hoverRow,
+  selection,
 } = useCanvasTable({
   rowHeightEnum: props.rowHeightEnum,
   cachedRows,
@@ -228,6 +229,9 @@ function handleMouseClick(e: MouseEvent) {
 const handleMouseDown = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+
+  // Clear Selection on Clicking on Canvas
+  selection.value.clear()
 
   const y = e.clientY - rect.top
 

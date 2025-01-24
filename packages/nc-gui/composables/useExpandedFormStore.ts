@@ -103,7 +103,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  const auditsInAPage = 5
+  const auditsInAPage = 25
   const currentAuditPages = ref(1)
   const mightHaveMoreAudits = ref(false)
 
@@ -463,7 +463,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const consolidatedAudits = computed(() => {
     const result: typeof audits.value = []
 
-    const applyAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
+    const applyLinkAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
       if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = []
       if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = []
 
@@ -497,7 +497,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           const last = result[result.length - 1]
           const details = JSON.parse(current.details)
           if (!last) {
-            applyAuditValue(
+            applyLinkAuditValue(
               details,
               details.ref_row_id,
               details.ref_display_value,
@@ -513,7 +513,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               lastDetails.link_field_id === details.link_field_id &&
               lastDetails.ref_table_title === details.ref_table_title
             ) {
-              applyAuditValue(
+              applyLinkAuditValue(
                 lastDetails,
                 details.ref_row_id,
                 details.ref_display_value,
@@ -528,7 +528,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 result.pop()
               }
             } else {
-              applyAuditValue(
+              applyLinkAuditValue(
                 details,
                 details.ref_row_id,
                 details.ref_display_value,
@@ -540,14 +540,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           }
         } else if (current.op_type === 'DATA_UPDATE') {
           const last = result[result.length - 1]
-          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
+          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 300) {
             result.push(current)
             continue
           }
           const details = JSON.parse(current.details)
           const lastDetails = JSON.parse(last.details)
           for (const field of Object.values(details.column_meta ?? {}) as any[]) {
-            if (field.type === 'MultiSelect' && lastDetails?.column_meta?.[field?.title]) {
+            if (['MultiSelect', 'SingleSelect'].includes(field.type) && lastDetails?.column_meta?.[field?.title]) {
               lastDetails.data[field.title] = details.data[field.title]
               for (const option of details.column_meta[field.title]?.options?.choices ?? []) {
                 if (!lastDetails.column_meta[field.title]?.options.choices.find((it: any) => it.id === option.id)) {
@@ -559,18 +559,25 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               delete details.data[field.title]
               delete details.column_meta[field.title]
               current.details = JSON.stringify(details)
-            } else if (field.type === 'User' && lastDetails?.column_meta?.[field?.title] && field.options?.is_multi) {
+            } else if (
+              lastDetails?.column_meta?.[field?.title] &&
+              lastDetails.old_data[field.title]
+            ) {
               lastDetails.data[field.title] = details.data[field.title]
               last.details = JSON.stringify(lastDetails)
               delete details.old_data[field.title]
               delete details.data[field.title]
               delete details.column_meta[field.title]
               current.details = JSON.stringify(details)
-            } else if (
-              ['SingleLineText', 'LongText', 'Number', 'Decimal'].includes(field.type) &&
-              lastDetails?.column_meta?.[field?.title] &&
-              lastDetails.old_data[field.title]
+            }
+            else if (
+              details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]
             ) {
+              if (!lastDetails.column_meta) lastDetails.column_meta = {}
+              if (!lastDetails.old_data) lastDetails.old_data = {}
+              if (!lastDetails.data) lastDetails.data = {}
+              lastDetails.column_meta[field.title] = details.column_meta[field.title]
+              lastDetails.old_data[field.title] = details.old_data[field.title]
               lastDetails.data[field.title] = details.data[field.title]
               last.details = JSON.stringify(lastDetails)
               delete details.old_data[field.title]

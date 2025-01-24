@@ -16,7 +16,8 @@ const maxTitleWidth = computed(() => `calc(100% - 28px - ${indentation} - ${isPu
 <template>
   <div
     v-if="column.key === 'name'"
-    :class="`w-full flex items-center gap-3 max-w-full text-gray-800 ml-[${indentation}]`"
+    class="w-full flex items-center gap-3 max-w-full text-gray-800"
+    :style="{ marginLeft: indentation }"
     data-testid="proj-view-view_item-title"
   >
     <GeneralViewIcon :meta="record" />

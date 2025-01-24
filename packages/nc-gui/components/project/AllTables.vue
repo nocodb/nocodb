@@ -78,38 +78,34 @@ const columns = [
   {
     key: 'accordion',
     title: '',
-    minWidth: 56,
+    width: `56px`,
     padding: '0px 12px',
   },
   {
     key: 'name',
     title: t('general.name'),
     name: 'Name',
-    basis: '40%',
-    minWidth: 220,
+    width: `320px`,
     padding: '0px 12px 0 0',
   },
   {
     key: 'description',
     title: t('labels.description'),
     name: 'Description',
-    basis: '40%',
-    minWidth: 220,
     padding: '0px 12px',
   },
   {
     key: 'sourceName',
     title: t('general.source'),
     name: 'View Name',
-    basis: '25%',
-    minWidth: 220,
+    width: `96px`,
     padding: '0px 12px',
   },
   {
     key: 'created_at',
     title: t('labels.createdOn'),
     name: 'editor',
-    minWidth: 120,
+    width: `144px`,
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
@@ -299,7 +295,7 @@ const onCreateBaseClick = () => {
           </template>
           <div
             v-if="column.key === 'description'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800 description"
             data-testid="proj-view-list__item-description"
           >
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
@@ -328,7 +324,7 @@ const onCreateBaseClick = () => {
           </div>
           <div
             v-if="column.key === 'created_at'"
-            class="capitalize flex items-center gap-2 max-w-full"
+            class="flex items-center gap-2 max-w-full created_at"
             data-testid="proj-view-list__item-created-at"
           >
             {{ dayjs(record?.created_at).fromNow() }}
@@ -381,5 +377,11 @@ const onCreateBaseClick = () => {
 
 .nc-text-icon {
   @apply flex-none w-5 h-5 rounded bg-white text-gray-800 text-[6px] leading-4 font-weight-800 flex items-center justify-center;
+}
+
+.description,
+.created_at {
+  font-size: 13px;
+  line-height: 18px;
 }
 </style>

@@ -5,6 +5,7 @@ import NcTooltip from '~/components/nc/Tooltip.vue'
 import NocoDBIcon from '@/assets/img/dashboards/source-icons/nocodb.svg'
 import MysqlIcon from '@/assets/img/dashboards/source-icons/mysql.svg'
 import PostgresIcon from '@/assets/img/dashboards/source-icons/postgres.svg'
+import SqliteIcon from '@/assets/img/dashboards/source-icons/sqlite.svg'
 
 const { activeTables } = storeToRefs(useTablesStore())
 
@@ -176,15 +177,15 @@ const onCreateBaseClick = () => {
   isNewBaseModalOpen.value = true
 }
 
-function getSourceIcon(source?: SourceType) {
-  if (!source) return null
+function getSourceIcon(source: SourceType) {
   if (base.value.is_meta) return NocoDBIcon
   if (!source.is_meta && !source.is_local) {
     const sourceId = source.id ?? ''
     if (baseStore.isMysql(sourceId)) return MysqlIcon
     if (baseStore.isPg(sourceId)) return PostgresIcon
+    if (baseStore.isSqlite(sourceId)) return SqliteIcon
   }
-  return null
+  return NocoDBIcon
 }
 
 const sourceIdToIconMap = computed(() => {

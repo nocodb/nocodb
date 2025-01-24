@@ -1235,7 +1235,7 @@ export const iconMap = {
   ollama: NcOllama,
   groq: NcGroq,
   posthog: h(NcPosthog, { stroke: 'transparent' }),
-  nocodbPg: NcNocodbPg,
+  nocodbPg: h(NcNocodbPg, { stroke: 'transparent' }),
   refreshCw: NcRefreshCW,
   iconReddit: NcRedditIcon,
   iconTwitter: NcTwitterIcon,

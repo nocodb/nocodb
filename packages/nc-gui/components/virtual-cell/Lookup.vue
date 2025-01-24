@@ -129,23 +129,15 @@ const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
 
 const dropdownOverlayRef = ref<HTMLInputElement | null>(null)
 const active = inject(ActiveCellInj, ref(false))
-const isGrid = inject(IsGridInj, ref(false))
-const isCellAlreadyActive = ref(false)
 
 function toggleDropdown() {
-  if (isGrid.value && !isCellAlreadyActive.value && active.value) {
-    isCellAlreadyActive.value = true
-    return
-  }
   dropdownVisible.value = !dropdownVisible.value
 }
 
-watch(active, (val) => {
-  if (!val) isCellAlreadyActive.value = false
-})
+useSelectedCellClickListener(active, toggleDropdown)
 
 onMounted(() => {
-  const container = triggerRef.value?.closest('td, .nc-data-cell, .nc-default-value-wrapper')
+  const container = triggerRef.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
   if (container) container.addEventListener('click', toggleDropdown)
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
@@ -154,7 +146,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  const container = triggerRef.value?.closest('td, .nc-data-cell, .nc-default-value-wrapper')
+  const container = triggerRef.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
   if (container) container.removeEventListener('click', toggleDropdown)
 })
 

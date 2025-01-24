@@ -1,9 +1,12 @@
 <script lang="ts" setup>
-import type { SourceType, TableType } from 'nocodb-sdk'
+import type { SourceType, TableType, ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
+
+const viewStore = useViewsStore()
+
 const { openTable } = useTablesStore()
 const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 
@@ -73,9 +76,23 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 const columns = [
   {
-    key: 'tableName',
-    title: t('objects.table'),
-    name: 'Table Name',
+    key: 'accordion',
+    title: '',
+    minWidth: 56,
+    padding: '0px 12px',
+  },
+  {
+    key: 'name',
+    title: t('general.name'),
+    name: 'Name',
+    basis: '40%',
+    minWidth: 220,
+    padding: '0px 12px 0 0',
+  },
+  {
+    key: 'description',
+    title: t('labels.description'),
+    name: 'Description',
     basis: '40%',
     minWidth: 220,
     padding: '0px 12px',
@@ -97,9 +114,49 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
+const expandedTableIds = ref(new Set<string>())
+
+function isTableExpanded(tableId: string) {
+  return expandedTableIds.value.has(tableId)
+}
+
+function toggleTable(tableId: string) {
+  if (isTableExpanded(tableId)) expandedTableIds.value.delete(tableId)
+  else expandedTableIds.value.add(tableId)
+}
+
+const sortedActiveTables = computed(() => [...activeTables.value].sort((a, b) => a.source_id!.localeCompare(b.source_id!) * 20))
+
+const tableAndViewData = computed(() => {
+  const combined: Array<TableType | ViewType> = []
+  for (const table of sortedActiveTables.value) {
+    const tableId = table?.id ?? ''
+    combined.push(table)
+    if (isTableExpanded(tableId)) {
+      const views = (viewStore.viewsByTable.get(tableId) ?? []).filter((view) => !view.is_default)
+      if (views.length) combined.push(...views)
+    }
+  }
+  return combined
+})
+
+function isRecordAView(record: Record<string, any>) {
+  return !!record.fk_model_id
+}
+
 const customRow = (record: Record<string, any>) => ({
-  onclick: () => {
-    openTable(record as TableType)
+  onclick: async () => {
+    if (isRecordAView(record)) {
+      const view = record as ViewType
+      await viewStore.navigateToView({
+        view,
+        tableId: view.fk_model_id,
+        baseId: base.value.id!,
+        doNotSwitchTab: true,
+      })
+    } else {
+      openTable(record as TableType)
+    }
   },
 })
 
@@ -206,27 +263,50 @@ const onCreateBaseClick = () => {
         :is-data-loading="base?.isLoading"
         :columns="columns"
         sticky-first-column
-        :data="[...activeTables].sort(
-          (a, b) => a.source_id!.localeCompare(b.source_id!) * 20
-        )"
+        :data="tableAndViewData"
         :custom-row="customRow"
         :bordered="false"
+        row-height="44px"
+        header-row-height="44px"
         class="nc-base-view-all-table-list flex-1"
       >
         <template #bodyCell="{ column, record }">
-          <div
-            v-if="column.key === 'tableName'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800"
-            data-testid="proj-view-list__item-title"
+          <NcButton
+            v-if="column.key === 'accordion' && !isRecordAView(record)"
+            size="small"
+            type="text"
+            @click.stop="toggleTable(record.id)"
           >
-            <div class="min-w-6 flex items-center justify-center">
-              <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
+            <div class="flex children:flex-none relative h-4 w-4">
+              <Transition name="icon-fade" :duration="200">
+                <GeneralIcon v-if="!isTableExpanded(record.id)" icon="arrowRight" class="h-4 w-4" />
+                <GeneralIcon v-else icon="arrowDown" class="h-4 w-4" />
+              </Transition>
             </div>
+          </NcButton>
+          <template v-if="column.key === 'name'">
+            <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+            <div v-else class="w-full flex items-center gap-3 max-w-full text-gray-800" data-testid="proj-view-list__item-title">
+              <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
+
+              <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                <template #title>
+                  {{ record?.title }}
+                </template>
+                {{ record?.title }}
+              </NcTooltip>
+            </div>
+          </template>
+          <div
+            v-if="column.key === 'description'"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800"
+            data-testid="proj-view-list__item-description"
+          >
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
               <template #title>
-                {{ record?.title }}
+                {{ record?.description }}
               </template>
-              {{ record?.title }}
+              {{ record?.description }}
             </NcTooltip>
           </div>
           <div

@@ -504,7 +504,7 @@ export class AjvError extends NcBaseError {
   humanReadableError: boolean;
   constructor(param: {
     message: string;
-    errors: ErrorObject[] | ValidationError[];
+    errors: ErrorObject[];
     humanReadableError?: boolean;
   }) {
     super(param.message);
@@ -984,7 +984,7 @@ export class NcError {
 
   static ajvValidationError(param: {
     message: string;
-    errors: ErrorObject[] | ValidationError[];
+    errors: ErrorObject[];
     humanReadableError: boolean;
   }) {
     throw new AjvError(param);

@@ -13,7 +13,8 @@ const viewStore = useViewsStore()
 const { openTable } = useTablesStore()
 const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 
-const { base } = storeToRefs(useBase())
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const isNewBaseModalOpen = ref(false)
 
@@ -27,18 +28,6 @@ const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
   return openedProject.value?.sources?.[0]
-})
-
-const sources = computed(() => {
-  // Convert array of sources to map of sources
-
-  const baseMap = new Map<string, SourceType>()
-
-  openedProject.value?.sources?.forEach((source) => {
-    baseMap.set(source.id!, source)
-  })
-
-  return baseMap
 })
 
 function openTableCreateDialog(baseIndex?: number | undefined) {
@@ -187,17 +176,24 @@ const onCreateBaseClick = () => {
   isNewBaseModalOpen.value = true
 }
 
-function getSourceIcon(type: SourceType['type']) {
-  switch (type) {
-    case 'mysql':
-    case 'mysql2':
-      return MysqlIcon
-    case 'pg':
-      return PostgresIcon
-    default:
-      return NocoDBIcon
+function getSourceIcon(source?: SourceType) {
+  if (!source) return null
+  if (base.value.is_meta) return NocoDBIcon
+  if (!source.is_meta && !source.is_local) {
+    const sourceId = source.id ?? ''
+    if (baseStore.isMysql(sourceId)) return MysqlIcon
+    if (baseStore.isPg(sourceId)) return PostgresIcon
   }
+  return null
 }
+
+const sourceIdToIconMap = computed(() => {
+  const map: Record<string, string | null> = {}
+  for (const source of openedProject.value?.sources ?? []) {
+    map[source.id ?? ''] = getSourceIcon(source)
+  }
+  return map
+})
 </script>
 
 <template>
@@ -344,9 +340,13 @@ function getSourceIcon(type: SourceType['type']) {
           </div>
           <template v-if="column.key === 'sourceName'">
             <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
-            <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
+            <div
+              v-else-if="sourceIdToIconMap[record.source_id!]"
+              class="w-full flex justify-center items-center max-w-full"
+              data-testid="proj-view-list__item-type"
+            >
               <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
-                <img :src="getSourceIcon(sources.get(record.source_id!)?.type)" class="w-6 h-6" />
+                <img :src="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
               </div>
             </div>
           </template>

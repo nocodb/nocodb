@@ -20,7 +20,8 @@ const sharedViewUrl = computed(() => {
   const defaultView = 'view'
   const viewTypeSegment = recordViewType === ViewTypes.GRID ? defaultView : viewTypeAlias[recordViewType] ?? defaultView
 
-  // Change `sharedViewUrl` fn in the SharePage.vue if changing below
+  // Check if `sharedViewUrl` fn in the SharePage.vue and in other places should be changed
+  // if the below url is changed
   return encodeURI(`${dashboardUrl?.value}#/nc/${viewTypeSegment}/${props.record.uuid}`)
 })
 </script>

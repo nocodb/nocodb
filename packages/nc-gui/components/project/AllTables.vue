@@ -303,7 +303,7 @@ const sourceIdToIconMap = computed(() => {
             />
           </NcButton>
           <template v-if="column.key === 'name'">
-            <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+            <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
             <div v-else class="w-full flex items-center gap-3 max-w-full text-gray-800" data-testid="proj-view-list__item-title">
               <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
 
@@ -328,7 +328,7 @@ const sourceIdToIconMap = computed(() => {
             </NcTooltip>
           </div>
           <template v-if="column.key === 'sourceName'">
-            <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+            <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
             <div
               v-else-if="sourceIdToIconMap[record.source_id!]"
               class="w-full flex justify-center items-center max-w-full"

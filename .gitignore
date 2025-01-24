@@ -98,3 +98,6 @@ httpbin
 
 /packages/nc-secret-mgr/dist/index.js
 /packages/nc-secret-mgr/dist/index.js.map
+
+# nix
+result

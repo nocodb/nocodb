@@ -71,14 +71,14 @@ const columns = [
   {
     key: 'accordion',
     title: '',
-    width: `56px`,
+    width: 56,
     padding: '0px 12px',
   },
   {
     key: 'name',
     title: t('general.name'),
     name: 'Name',
-    width: `320px`,
+    width: 320,
     padding: '0px 12px 0 0',
   },
   {
@@ -86,19 +86,20 @@ const columns = [
     title: t('labels.description'),
     name: 'Description',
     padding: '0px 12px',
+    minWidth: 101,
   },
   {
     key: 'sourceName',
     title: t('general.source'),
     name: 'View Name',
-    width: `96px`,
+    width: 96,
     padding: '0px 12px',
   },
   {
     key: 'created_at',
     title: t('labels.createdOn'),
     name: 'editor',
-    width: `144px`,
+    width: 144,
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]

@@ -9,7 +9,7 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups } = useExpandedFormStoreOrThrow()
+const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -21,11 +21,12 @@ onMounted(async () => {
   await loadAudits()
 })
 
-/* new comment */
+/* comments */
 
 const refAuditsEnd = useTemplateRef('refAuditsEnd')
 const refRichComment = useTemplateRef('refRichComment')
 const newCommentText = ref('')
+const shouldSkipAuditsScroll = ref(false)
 
 function handleCreatingNewComment() {
   saveComment(newCommentText.value)
@@ -36,8 +37,17 @@ function handleCreatingNewComment() {
   }, 500);
 }
 
+function initLoadMoreAudits() {
+  shouldSkipAuditsScroll.value = true
+  loadMoreAudits()
+}
+
 watch([newCommentText, auditCommentGroups], () => {
   setTimeout(() => {
+    if (shouldSkipAuditsScroll.value) {
+      shouldSkipAuditsScroll.value = false
+      return
+    }
     refAuditsEnd.value?.scrollIntoView({
       behavior: 'smooth'
     })
@@ -62,6 +72,11 @@ export default {
       }"
     >
       <div class="w-[680px] h-0 flex-grow ml-16.25 border-l-1 border-gray-300" />
+      <div v-if="mightHaveMoreAudits" class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-16.25 border-l-1 border-gray-300 relative">
+        <NcButton size="small" type="secondary" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" @click="initLoadMoreAudits()">
+          Load more
+        </NcButton>
+      </div>
       <div class="w-[680px] max-w-full pb-4">
         <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-2 xl:px-0">
           <template v-if="group.type === 'audit'">

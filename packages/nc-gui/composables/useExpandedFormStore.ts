@@ -539,8 +539,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             }
           }
         } else if (current.op_type === 'DATA_UPDATE') {
-          const last = result[result.length - 1]
-          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 300) {
+          const last = result.findLast((it) => it.op_type === 'DATA_UPDATE')
+          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
             result.push(current)
             continue
           }

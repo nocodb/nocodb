@@ -33,7 +33,7 @@ const sharedViewUrl = computed(() => {
     :style="{ marginLeft: indentation }"
     data-testid="proj-view-view_item-title"
   >
-    <GeneralViewIcon :meta="record" />
+    <GeneralViewIcon :meta="record" class="text-[1.125rem]" />
     <NcTooltip class="truncate font-weight-600" :style="{ maxWidth: maxTitleWidth }" show-on-truncate-only>
       <template #title>
         {{ record?.title }}

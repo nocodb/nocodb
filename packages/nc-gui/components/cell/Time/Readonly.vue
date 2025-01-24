@@ -36,5 +36,3 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
     {{ cellValue }}
   </div>
 </template>
-
-<style scoped lang="scss"></style>

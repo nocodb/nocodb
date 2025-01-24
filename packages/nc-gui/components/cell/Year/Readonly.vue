@@ -26,5 +26,3 @@ const localState = computed(() => {
     {{ localState?.format('YYYY') ?? '' }}
   </div>
 </template>
-
-<style scoped lang="scss"></style>

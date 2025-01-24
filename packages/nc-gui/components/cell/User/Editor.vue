@@ -43,5 +43,3 @@ const showReadonlyField = computed(() => {
   <LazyCellUserReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="rowIndex" :options="options" />
   <LazyCellUserEditor v-else v-model="vModel" :row-index="rowIndex" :options="options" />
 </template>
-
-<style scoped lang="scss"></style>

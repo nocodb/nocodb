@@ -44,5 +44,3 @@ const showReadonlyField = computed(() => {
     :options="options"
   />
 </template>
-
-<style scoped lang="scss"></style>

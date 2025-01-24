@@ -6,21 +6,27 @@ interface Props {
   colCount: number
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const background = computed(() => {
+  return `repeating-linear-gradient(0deg,#FCFCFC, #FCFCFC ${props.rowHeight - 1}px, #E7E7E9 ${props.rowHeight}px)`
+})
+
+const height = computed(() => `${props.totalRowHeight}px`)
 </script>
 
 <template>
   <tr
     class="nc-grid-row"
     :style="{
-      height: `${totalRowHeight}px`,
+      height,
     }"
   >
     <td
       :colspan="colCount"
       class="nc-grid-cell"
       :style="{
-        background: `repeating-linear-gradient(0deg,#FCFCFC, #FCFCFC ${rowHeight - 1}px, #E7E7E9 ${rowHeight}px)`,
+        background,
       }"
     ></td>
   </tr>

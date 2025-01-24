@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import { ClientType, timeAgo } from 'nocodb-sdk'
 import type { SourceType, TableType, ViewType } from 'nocodb-sdk'
-import dayjs from 'dayjs'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
@@ -176,21 +176,17 @@ const onCreateBaseClick = () => {
 }
 
 function getSourceIcon(source: SourceType) {
-  const NocoDBIcon = allIntegrationsMapBySubType[SyncDataType.NOCODB].icon
-  if (base.value.is_meta) return NocoDBIcon
-  if (!source.is_meta && !source.is_local) {
-    const sourceId = source.id ?? ''
-    if (baseStore.isMysql(sourceId)) return allIntegrationsMapBySubType[ClientType.MYSQL].icon
-    if (baseStore.isPg(sourceId)) return allIntegrationsMapBySubType[ClientType.PG].icon
-    if (baseStore.isSqlite(sourceId)) return allIntegrationsMapBySubType[ClientType.SQLITE].icon
+  if (source.is_meta || source.is_local) {
+    return iconMap.nocodb1
   }
-  return NocoDBIcon
+  if (baseStore.isMysql(source.id)) return allIntegrationsMapBySubType[ClientType.MYSQL].icon
+  return allIntegrationsMapBySubType[source.type! as ClientType]?.icon ?? null
 }
 
 const sourceIdToIconMap = computed(() => {
-  const map: Record<string, string | null> = {}
+  const map: Record<string, ReturnType<typeof getSourceIcon>> = {}
   for (const source of openedProject.value?.sources ?? []) {
-    map[source.id ?? ''] = getSourceIcon(source)
+    map[source.id!] = getSourceIcon(source)
   }
   return map
 })
@@ -358,13 +354,17 @@ const sourceIdToIconMap = computed(() => {
             </div>
             <template v-if="column.key === 'sourceName'">
               <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
-              <div
-                v-else-if="sourceIdToIconMap[record.source_id!]"
-                class="w-full flex justify-center items-center max-w-full"
-                data-testid="proj-view-list__item-type"
-              >
-                <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
-                  <component :is="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
+              <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
+                <div
+                  class="w-8 h-8 flex justify-center items-center rounded-[6px]"
+                  :class="{ 'bg-nc-bg-gray-light': sourceIdToIconMap[record.source_id!] }"
+                >
+                  <component
+                    :is="sourceIdToIconMap[record.source_id!]"
+                    v-if="sourceIdToIconMap[record.source_id!]"
+                    class="w-6 h-6"
+                  />
+                  <div v-else>-</div>
                 </div>
               </div>
             </template>
@@ -373,7 +373,7 @@ const sourceIdToIconMap = computed(() => {
               class="flex items-center gap-2 max-w-full created_at"
               data-testid="proj-view-list__item-created-at"
             >
-              {{ dayjs(record?.created_at).fromNow() }}
+              {{ timeAgo(record?.created_at) }}
             </div>
           </template>
         </template>

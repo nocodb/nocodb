@@ -2,14 +2,11 @@
 import type { SourceType, TableType, ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcTooltip from '~/components/nc/Tooltip.vue'
-import NocoDBIcon from '@/assets/img/dashboards/source-icons/nocodb.svg'
-import MysqlIcon from '@/assets/img/dashboards/source-icons/mysql.svg'
-import PostgresIcon from '@/assets/img/dashboards/source-icons/postgres.svg'
-import SqliteIcon from '@/assets/img/dashboards/source-icons/sqlite.svg'
 
 const { activeTables } = storeToRefs(useTablesStore())
 
 const viewStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewStore)
 
 const { openTable } = useTablesStore()
 const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
@@ -127,7 +124,7 @@ const tableAndViewData = computed(() => {
     const tableId = table?.id ?? ''
     combined.push(table)
     if (isTableExpanded(tableId)) {
-      const views = (viewStore.viewsByTable.get(tableId) ?? []).filter((view) => !view.is_default)
+      const views = (viewsByTable.value.get(tableId) ?? []).filter((view) => !view.is_default)
       if (views.length) {
         combined.push(...views)
         indexRange.push([i, i + views.length])
@@ -141,22 +138,11 @@ const tableAndViewData = computed(() => {
   return combined
 })
 
-const noBottomBorderClass = 'no-bottom-border'
-watch(borderlessIndexRange, (val) => {
-  document.querySelectorAll(`.${noBottomBorderClass}`).forEach((el) => el.classList.remove(noBottomBorderClass))
-  for (const [start, end] of val) {
-    for (let i = start; i < end; i++) {
-      const row = document.querySelector<HTMLElement>(`.nc-table-row-${i}`)
-      if (row) row.classList.add(noBottomBorderClass)
-    }
-  }
-})
-
 function isRecordAView(record: Record<string, any>) {
   return !!record.fk_model_id
 }
 
-const customRow = (record: Record<string, any>) => ({
+const customRow = (record: Record<string, any>, recordIndex: number) => ({
   onclick: async () => {
     if (isRecordAView(record)) {
       const view = record as ViewType
@@ -170,6 +156,7 @@ const customRow = (record: Record<string, any>) => ({
       openTable(record as TableType)
     }
   },
+  class: borderlessIndexRange.value.some(([start, end]) => recordIndex >= start && recordIndex < end) ? 'no-bottom-border' : '',
 })
 
 const onCreateBaseClick = () => {
@@ -179,12 +166,13 @@ const onCreateBaseClick = () => {
 }
 
 function getSourceIcon(source: SourceType) {
+  const NocoDBIcon = allIntegrationsMapBySubType[SyncDataType.NOCODB].icon
   if (base.value.is_meta) return NocoDBIcon
   if (!source.is_meta && !source.is_local) {
     const sourceId = source.id ?? ''
-    if (baseStore.isMysql(sourceId)) return MysqlIcon
-    if (baseStore.isPg(sourceId)) return PostgresIcon
-    if (baseStore.isSqlite(sourceId)) return SqliteIcon
+    if (baseStore.isMysql(sourceId)) return allIntegrationsMapBySubType[ClientType.MYSQL].icon
+    if (baseStore.isPg(sourceId)) return allIntegrationsMapBySubType[ClientType.PG].icon
+    if (baseStore.isSqlite(sourceId)) return allIntegrationsMapBySubType[ClientType.SQLITE].icon
   }
   return NocoDBIcon
 }
@@ -308,12 +296,11 @@ const sourceIdToIconMap = computed(() => {
             type="text"
             @click.stop="toggleTable(record.id)"
           >
-            <div class="flex children:flex-none relative h-4 w-4">
-              <Transition name="icon-fade" :duration="200">
-                <GeneralIcon v-if="!isTableExpanded(record.id)" icon="arrowRight" class="h-4 w-4" />
-                <GeneralIcon v-else icon="arrowDown" class="h-4 w-4" />
-              </Transition>
-            </div>
+            <GeneralIcon
+              icon="chevronRight"
+              class="transform transition-transform duration-200"
+              :class="{ '!rotate-90': isTableExpanded(record.id) }"
+            />
           </NcButton>
           <template v-if="column.key === 'name'">
             <DashboardBaseViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
@@ -348,7 +335,7 @@ const sourceIdToIconMap = computed(() => {
               data-testid="proj-view-list__item-type"
             >
               <div class="w-8 h-8 flex justify-center items-center rounded-[6px] bg-nc-bg-gray-light">
-                <img :src="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
+                <component :is="sourceIdToIconMap[record.source_id!]" class="w-6 h-6" />
               </div>
             </div>
           </template>
@@ -411,17 +398,16 @@ const sourceIdToIconMap = computed(() => {
 
 .description,
 .created_at {
-  font-size: 13px;
-  line-height: 18px;
+  @apply text-[13px] leading-[18px];
 }
 
 :deep(.no-bottom-border) {
-  border-color: transparent !important;
+  @apply !border-transparent;
 }
 
 :deep(.nc-table-header-cell-3) {
   > .gap-3 {
-    margin-left: 7px;
+    @apply ml-[7px];
   }
 }
 </style>

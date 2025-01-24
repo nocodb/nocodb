@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: NcTableColumnProps
@@ -16,26 +16,12 @@ const maxTitleWidth = computed(() => `calc(100% - 28px - ${indentation} - ${isPu
 
 const sharedViewUrl = computed(() => {
   if (!isPubliclyShared.value) return
+  const recordViewType = props.record.type as ViewTypes
+  const defaultView = 'view'
+  const viewTypeSegment = recordViewType === ViewTypes.GRID ? defaultView : viewTypeAlias[recordViewType] ?? defaultView
 
-  let viewType
-  switch (props.record.type) {
-    case ViewTypes.FORM:
-      viewType = 'form'
-      break
-    case ViewTypes.KANBAN:
-      viewType = 'kanban'
-      break
-    case ViewTypes.GALLERY:
-      viewType = 'gallery'
-      break
-    case ViewTypes.MAP:
-      viewType = 'map'
-      break
-    default:
-      viewType = 'view'
-  }
-
-  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${props.record.uuid}`)
+  // Change `sharedViewUrl` fn in the SharePage.vue if changing below
+  return encodeURI(`${dashboardUrl?.value}#/nc/${viewTypeSegment}/${props.record.uuid}`)
 })
 </script>
 
@@ -58,7 +44,7 @@ const sharedViewUrl = computed(() => {
         <template #title>
           {{ $t('labels.sharedPublicly') }}
         </template>
-        <NcBadge color="green" size="xs" class="h-4" :border="false">
+        <NcBadge color="green" size="xs" class="h-4 text-nc-content-green-dark" :border="false">
           <GeneralIcon icon="globe" />
         </NcBadge>
       </NcTooltip>

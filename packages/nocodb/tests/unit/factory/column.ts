@@ -351,7 +351,7 @@ const customColumns = function (
               title: 'Duration',
               uidt: UITypes.Duration,
               meta: {
-                duration: 'h:mm',
+                duration: 0,
                 ...optionsOverride['Duration'],
               },
             },

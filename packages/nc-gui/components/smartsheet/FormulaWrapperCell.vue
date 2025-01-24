@@ -59,7 +59,7 @@ provide(ColumnInj, column)
 }
 
 .nc-cell {
-  @apply text-sm text-gray-600;
+  @apply text-sm;
   font-weight: 500;
 
   :deep(.nc-cell-field) {

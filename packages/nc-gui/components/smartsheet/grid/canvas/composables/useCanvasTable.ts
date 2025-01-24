@@ -28,6 +28,7 @@ export function useCanvasTable({
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref({ row: -1, column: -1 })
+  const hoverRow = ref(-1)
   const editEnabled = ref<{
     rowIndex: number
     column: ColumnType
@@ -113,6 +114,7 @@ export function useCanvasTable({
     rowHeight,
     activeCell,
     dragOver,
+    hoverRow,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
@@ -250,6 +252,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     startDrag,
     resizeableColumn,
+    hoverRow,
 
     // Handler
     resizeMouseMove,

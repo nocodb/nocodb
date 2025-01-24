@@ -1,16 +1,42 @@
 <script setup lang="ts">
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: NcTableColumnProps
   record: ViewType
 }>()
 
-const indentation = `31px`
+const indentation = `32px`
+
+const { dashboardUrl } = useDashboard()
 
 const isPubliclyShared = computed(() => !!props.record.uuid)
 
-const maxTitleWidth = computed(() => `calc(100% - 28px - ${indentation} - ${isPubliclyShared.value ? '120px' : '0px'})`)
+const maxTitleWidth = computed(() => `calc(100% - 28px - ${indentation} - ${isPubliclyShared.value ? '30px' : '0px'})`)
+
+const sharedViewUrl = computed(() => {
+  if (!isPubliclyShared.value) return
+
+  let viewType
+  switch (props.record.type) {
+    case ViewTypes.FORM:
+      viewType = 'form'
+      break
+    case ViewTypes.KANBAN:
+      viewType = 'kanban'
+      break
+    case ViewTypes.GALLERY:
+      viewType = 'gallery'
+      break
+    case ViewTypes.MAP:
+      viewType = 'map'
+      break
+    default:
+      viewType = 'view'
+  }
+
+  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${props.record.uuid}`)
+})
 </script>
 
 <template>
@@ -27,8 +53,15 @@ const maxTitleWidth = computed(() => `calc(100% - 28px - ${indentation} - ${isPu
       </template>
       {{ record?.title }}
     </NcTooltip>
-    <NcBadge v-if="isPubliclyShared" color="green" size="xs" class="font-weight-500" :border="false">
-      {{ $t('labels.sharedPublicly') }}
-    </NcBadge>
+    <a v-if="isPubliclyShared" :href="sharedViewUrl" target="_blank" @click.stop>
+      <NcTooltip>
+        <template #title>
+          {{ $t('labels.sharedPublicly') }}
+        </template>
+        <NcBadge color="green" size="xs" class="h-4" :border="false">
+          <GeneralIcon icon="globe" />
+        </NcBadge>
+      </NcTooltip>
+    </a>
   </div>
 </template>

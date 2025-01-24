@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
+import { type ColumnType, type TableType, type ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
-import { normalizeWidth, useColumnResize } from './composables/useColumnResize'
-import { useCellRenderer } from './cells'
-import { roundedRect, truncateText } from './utils/canvas'
 import { useCanvasTable } from './composables/useCanvasTable'
 import type { Row } from '~/lib/types'
 
@@ -77,13 +74,14 @@ const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
 
 // Refs
-const canvasRef = ref()
 const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
 
 // Composables
+const { height, width } = useElementSize(wrapperRef)
+
 const {
   rowSlice,
   colSlice,
@@ -95,6 +93,13 @@ const {
   updateVisibleRows,
   columns,
   findColumnIndex,
+  canvasRef,
+  triggerRefreshCanvas,
+  resizeableColumn,
+  resizeMouseMove,
+  isDragging,
+  startDrag,
+  startResize,
 } = useCanvasTable({
   rowHeightEnum: props.rowHeightEnum,
   cachedRows,
@@ -102,50 +107,19 @@ const {
   chunkStates,
   totalRows,
   loadData,
+  scrollLeft,
+  width,
+  height,
 })
-const { updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
-const { height, width } = useElementSize(wrapperRef)
-const { renderCell } = useCellRenderer()
+
+const { metaColumnById } = useViewColumnsOrThrow()
 
 // Computed
-
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
   return rowsHeight + headerHeight + 256
 })
-
-const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
-  canvasRef,
-  columns,
-  colSlice,
-  scrollLeft,
-  (columnId, newWidth) => {
-    const columnIndex = columns.value.findIndex((col) => col.id === columnId)
-    if (columnIndex !== -1) {
-      try {
-        const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
-        columns.value[columnIndex].width = `${normalizedWidth}px`
-        requestAnimationFrame(drawCanvas)
-      } catch (error) {
-        console.error('Error updating column width:', error)
-        cleanupResize()
-      }
-    }
-  },
-  (columnId, width) => {
-    const columnIndex = columns.value.findIndex((col) => col.id === columnId)
-
-    if (columnIndex === -1) return
-
-    const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], width)
-    updateGridViewColumn(columnId, { width: `${normalizedWidth}px` })
-
-    nextTick(() => {
-      drawCanvas()
-    })
-  },
-)
 
 const COLUMN_BUFFER_SIZE = 5
 
@@ -176,259 +150,17 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
-function renderHeader(ctx: CanvasRenderingContext2D) {
-  // Header background
-  ctx.fillStyle = '#f4f4f5'
-  ctx.fillRect(0, 0, width.value, 32)
-
-  // Header borders
-  ctx.strokeStyle = '#e7e7e9'
-  ctx.lineWidth = 1
-
-  // Bottom border
-  ctx.beginPath()
-  ctx.moveTo(0, 32)
-  ctx.lineTo(width.value, 32)
-  ctx.stroke()
-
-  const { start: startColIndex, end: endColIndex } = colSlice.value
-  const visibleCols = columns.value.slice(startColIndex, endColIndex)
-
-  let initialOffset = 0
-  for (let i = 0; i < startColIndex; i++) {
-    initialOffset += parseInt(columns.value[i].width, 10)
-  }
-
-  // Regular columns
-  ctx.fillStyle = '#6a7184'
-  ctx.font = '550 12px Manrope'
-  ctx.textBaseline = 'middle'
-  ctx.imageSmoothingEnabled = false
-
-  let xOffset = initialOffset
-  visibleCols.forEach((column) => {
-    const width = parseInt(column.width, 10)
-    const truncatedText = truncateText(ctx, column.title!, width - 20)
-
-    ctx.fillText(truncatedText, xOffset + 10 - scrollLeft.value, 16)
-
-    xOffset += width
-
-    ctx.beginPath()
-    ctx.moveTo(xOffset - scrollLeft.value, 0)
-    ctx.lineTo(xOffset - scrollLeft.value, 32)
-    ctx.stroke()
-  })
-
-  // Fixed columns
-  const fixedCols = columns.value.filter((col) => col.fixed)
-  if (fixedCols.length) {
-    xOffset = 0
-
-    fixedCols.forEach((column, index) => {
-      const width = parseInt(column.width, 10)
-
-      // Draw background
-      ctx.fillStyle = '#f4f4f5'
-      ctx.fillRect(xOffset, 0, width, 32)
-
-      // Draw title
-      ctx.fillStyle = '#6a7184'
-      const truncatedText = truncateText(ctx, column.title!, width - 20)
-      ctx.fillText(truncatedText, xOffset + 10, 16)
-
-      xOffset += width
-
-      // Draw vertical border
-      ctx.strokeStyle = index === fixedCols.length - 1 ? '#d1d1d1' : '#e7e7e9'
-      ctx.beginPath()
-      ctx.moveTo(xOffset, 0)
-      ctx.lineTo(xOffset, 32)
-      ctx.stroke()
-    })
-  }
-}
-
-const renderActiveState = (ctx: CanvasRenderingContext2D, activeState) => {
-  if (activeState) {
-    ctx.strokeStyle = '#3366ff'
-    ctx.lineWidth = 2
-    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
-  }
-}
-
-function renderRows(ctx: CanvasRenderingContext2D) {
-  const { start: startRowIndex, end: endRowIndex } = rowSlice.value
-  const { start: startColIndex, end: endColIndex } = colSlice.value
-  const visibleCols = columns.value.slice(startColIndex, endColIndex)
-
-  let yOffset = 32
-  let activeState = null
-
-  let initialXOffset = 0
-  for (let i = 0; i < startColIndex; i++) {
-    initialXOffset += parseInt(columns.value[i].width, 10)
-  }
-
-  for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
-    const row = cachedRows.value.get(rowIdx)
-
-    // Row background
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, yOffset, width.value, rowHeight.value)
-
-    if (row) {
-      let xOffset = initialXOffset
-
-      visibleCols.forEach((column, colIdx) => {
-        const width = parseInt(column.width, 10)
-        const absoluteColIdx = startColIndex + colIdx
-
-        if (column.fixed) {
-          xOffset += width
-          return
-        }
-
-        ctx.strokeStyle = '#f4f4f5'
-        ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-        ctx.stroke()
-
-        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
-
-        if (isActive) {
-          activeState = {
-            col: column,
-            x: xOffset - scrollLeft.value,
-            y: yOffset,
-            width,
-            height: rowHeight.value,
-          }
-        }
-
-        const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
-
-        renderCell(
-          ctx,
-          metaColumnById.value[column.id] ?? {
-            uidt: UITypes.AutoNumber,
-          },
-          {
-            value,
-            x: xOffset - scrollLeft.value,
-            y: yOffset,
-            width,
-            height: rowHeight.value,
-            row: row.row,
-            selected: isActive,
-            pv: column.pv,
-          },
-        )
-        xOffset += width
-      })
-
-      renderActiveState(ctx, activeState)
-      activeState = null
-
-      // Draw fixed columns if any (overlay on top)
-      const fixedCols = columns.value.filter((col) => col.fixed)
-      if (fixedCols.length) {
-        xOffset = 0
-
-        fixedCols.forEach((column, index) => {
-          const width = parseInt(column.width, 10)
-          const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
-          const colIdx = columns.value.findIndex((col) => col.id === column.id)
-          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
-          if (isActive) {
-            activeState = {
-              col: column,
-              x: xOffset,
-              y: yOffset,
-              width,
-              height: rowHeight.value,
-            }
-          }
-
-          ctx.fillStyle = '#ffffff'
-          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-
-          renderCell(
-            ctx,
-            metaColumnById.value[column.id] ?? {
-              uidt: UITypes.AutoNumber,
-            },
-            {
-              value,
-              x: xOffset,
-              y: yOffset,
-              width,
-              height: rowHeight.value,
-              row: row.row,
-              selected: isActive,
-              pv: column.pv,
-            },
-          )
-
-          ctx.strokeStyle = index === fixedCols.length - 1 ? '#f4f4f5' : '#d1d1d1'
-          ctx.beginPath()
-          ctx.moveTo(xOffset, yOffset)
-          ctx.lineTo(xOffset, yOffset + rowHeight.value)
-          ctx.stroke()
-
-          xOffset += width
-        })
-      }
-    } else {
-      // Loading state
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, yOffset, totalWidth.value, rowHeight.value)
-    }
-
-    // Bottom border for each row
-    ctx.strokeStyle = '#e7e7e9'
-    ctx.beginPath()
-    ctx.moveTo(0, yOffset + rowHeight.value)
-    ctx.lineTo(width.value, yOffset + rowHeight.value)
-    ctx.stroke()
-
-    yOffset += rowHeight.value
-  }
-  renderActiveState(ctx, activeState)
-}
-
-function drawCanvas() {
-  const canvas = canvasRef.value
-  if (!canvas) return
-
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  const dpr = window.devicePixelRatio || 1
-
-  canvas.width = width.value * dpr
-  canvas.height = height.value * dpr
-
-  canvas.style.width = `${width.value}px`
-  ctx.scale(dpr, dpr)
-
-  renderHeader(ctx)
-  renderRows(ctx)
-}
-
 function handleMouseClick(e: MouseEvent) {
   editEnabled.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
   const y = e.clientY - rect.top - 32
-  const rowIndex = Math.floor((y + scrollTop.value) / rowHeight.value)
+  const rowIndex = Math.floor(y / rowHeight.value) + rowSlice.value.start
 
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
     activeCell.value = { row: -1, column: -1 }
-    requestAnimationFrame(drawCanvas)
+    triggerRefreshCanvas()
     return
   }
 
@@ -476,14 +208,14 @@ function handleMouseClick(e: MouseEvent) {
       editEnabled.value = {
         rowIndex,
         x: xOffset + scrollLeft.value,
-        y: (rowIndex + 1) * rowHeight.value - scrollTop.value,
+        y: (rowIndex + 1) * rowHeight.value + 32,
         column: metaColumnById.value[clickedColumn.id],
         row: cachedRows.value.get(rowIndex),
         height: rowHeight.value,
         width: parseInt(clickedColumn.width, 10),
       }
     }
-    requestAnimationFrame(drawCanvas)
+    triggerRefreshCanvas()
   }
 }
 
@@ -498,28 +230,37 @@ useScroll(containerRef, {
       scrollTop.value = e.target.scrollTop
       scrollLeft.value = e.target.scrollLeft
       calculateSlices()
-      drawCanvas()
+      triggerRefreshCanvas()
     })
   },
 })
-
-watch([rowSlice, cachedRows, colSlice], () => {
-  requestAnimationFrame(drawCanvas)
-})
-
 onMounted(async () => {
-  canvasRef.value?.addEventListener('mousemove', handleMouseMove)
-  canvasRef.value?.addEventListener('mousedown', handleMouseDown)
-
   await syncCount()
   calculateSlices()
-  await updateVisibleRows()
-  requestAnimationFrame(drawCanvas)
+  triggerRefreshCanvas()
 })
-onBeforeUnmount(() => {
-  canvasRef.value?.removeEventListener('mousemove', handleMouseMove)
-  canvasRef.value?.removeEventListener('mousedown', handleMouseDown)
-})
+
+const handleMouseDown = (e: MouseEvent) => {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  const y = e.clientY - rect.top
+
+  if (y <= 32) {
+    // Try resize first
+    startResize(e)
+
+    // If not resizing, try drag
+    if (!resizeableColumn.value) {
+      startDrag(e.clientX - rect.left)
+    }
+  }
+}
+
+// Handle both resize and drag move events
+const handleMouseMove = (e: MouseEvent) => {
+  resizeMouseMove(e)
+}
 </script>
 
 <template>
@@ -546,7 +287,7 @@ onBeforeUnmount(() => {
       <div
         v-if="editEnabled"
         :style="{
-          top: `${rowHeight * (editEnabled.rowIndex + 1)}px`,
+          top: `${rowHeight * editEnabled.rowIndex + 32}px`,
           left: `${editEnabled.x}px`,
           width: `${editEnabled.width}px`,
           height: `${editEnabled.height}`,

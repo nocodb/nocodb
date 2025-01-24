@@ -337,7 +337,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   <div v-if="!active && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-year-icon {
     @apply visible;

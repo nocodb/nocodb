@@ -383,7 +383,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
   <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-time-icon {
     @apply visible;

@@ -36,7 +36,7 @@ const checkboxMeta = computed(() => {
 const modelValue = computed(() => !!_modelValue && _modelValue !== '0' && _modelValue !== 0 && _modelValue !== 'false')
 
 const height = computed(() => {
-  if (isGrid.value && !isForm?.value && !isExpandedFormOpen.value) {
+  if (isGrid.value && !isExpandedFormOpen.value) {
     return `${!rowHeight.value || rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - 20}px`
   } else {
     return undefined

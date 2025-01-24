@@ -27,7 +27,7 @@ const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) => {
   const element = el as HTMLInputElement
-  if ((isExpandedFormOpen.value ? localEditEnabled.value : true) && !isEditColumn.value && !isForm.value) {
+  if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
     if (isExpandedFormOpen.value) {
       element?.focus()
       element?.select()

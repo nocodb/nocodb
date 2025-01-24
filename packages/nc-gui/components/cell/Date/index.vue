@@ -389,7 +389,7 @@ const currentDate = ($event) => {
   <div v-if="!active && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-date-icon {
     @apply visible;

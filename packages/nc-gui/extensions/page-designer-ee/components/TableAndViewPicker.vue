@@ -90,14 +90,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-full"
-  >
-    <a-form-item class="!my-0 min-w-1/2">
+  <div class="flex-1 flex items-center rounded-lg relative max-w-full">
+    <a-form-item class="!my-0 min-w-1/2 table-selector">
       <NcSelect
         v-model:value="savedPayloads.selectedTableId"
-        placeholder="-select table-"
-        class="nc-bulk-update-table-select nc-select-shadow"
+        placeholder="Select Table"
         :filter-option="filterOption"
         dropdown-class-name="w-[250px]"
         show-search
@@ -123,11 +120,10 @@ onMounted(async () => {
       </NcSelect>
     </a-form-item>
 
-    <a-form-item class="!my-0 min-w-1/2">
+    <a-form-item class="!my-0 min-w-1/2 view-selector">
       <NcSelect
         v-model:value="savedPayloads.selectedViewId"
-        placeholder="-select view-"
-        class="nc-bulk-update-view-select nc-select-shadow"
+        placeholder="Select View"
         dropdown-class-name="w-[250px]"
         :filter-option="filterOption"
         show-search
@@ -154,3 +150,16 @@ onMounted(async () => {
     </a-form-item>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.table-selector {
+  :deep(.ant-select-selector) {
+    @apply !rounded-[8px_0_0_8px];
+  }
+}
+.view-selector {
+  :deep(.ant-select-selector) {
+    @apply !rounded-[0_8px_8px_0];
+  }
+}
+</style>

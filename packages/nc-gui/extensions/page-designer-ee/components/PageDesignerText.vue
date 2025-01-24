@@ -3,7 +3,7 @@ import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import type { PageDesignerTextWidget } from '../lib/widgets'
-import { PageDesignerPayloadInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
 const props = defineProps<{
   index: number
@@ -60,6 +60,12 @@ const onRenderEnd = () => {
 }
 
 const container = useParentElement()
+
+const row = inject(PageDesignerRowInj)!
+
+const replacedText = computed(() => {
+  return widget.value.value.replace(/{(.*?)}/g, (_, key) => (row.value ?? {})[key.trim()] || `{${key}}`)
+})
 </script>
 
 <template>
@@ -89,7 +95,7 @@ const container = useParentElement()
           color: widget.textColor,
         }"
       >
-        {{ widget.value }}
+        {{ replacedText }}
       </span>
       <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
     </div>

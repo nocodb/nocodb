@@ -281,7 +281,7 @@ const wrapperHeight = computed(() => {
         :fields="_fields"
         :is-loading="row?.rowMeta.isLoading"
         :display-field="pv"
-        @click="resolve(row.row)"
+        @click="resolve({ ...row.row, _rowIndex: row.rowMeta.rowIndex })"
       />
     </div>
   </div>

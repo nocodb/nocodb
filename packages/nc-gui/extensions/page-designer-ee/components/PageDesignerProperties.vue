@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { PageOrientation, PageType } from '../lib/layout'
 import { type PageDesignerWidget, PageDesignerWidgetFactory } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
+import TableAndViewPicker from './TableAndViewPicker.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
+const row = inject(PageDesignerRowInj)!
+const meta = inject(PageDesignerTableTypeInj)
 
 const pageTypeOptions = Object.values(PageType)
 
 const pageOrientationOptions = Object.values(PageOrientation)
+
+const displayField = computed(() => meta?.value?.columns?.find((c) => c?.pv) || meta?.value?.columns?.[0] || null)
 
 function addWidget(widget: PageDesignerWidget) {
   payload.value.widgets.push(widget)
@@ -20,7 +25,24 @@ function addWidget(widget: PageDesignerWidget) {
     <header>
       <h1 class="m-0">Page</h1>
     </header>
-    <GroupedSettings title="Preview"> </GroupedSettings>
+    <GroupedSettings title="Preview">
+      <div class="flex flex-col gap-4">
+        <div class="px-3 flex">
+          <TableAndViewPicker />
+        </div>
+        <div class="px-3 flex">
+          <NRecordPicker
+            v-if="payload.selectedTableId"
+            :key="payload.selectedTableId + payload.selectedViewId"
+            v-model:model-value="row"
+            :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+            :table-id="payload.selectedTableId"
+            :view-id="payload.selectedViewId"
+            class="w-full"
+          />
+        </div>
+      </div>
+    </GroupedSettings>
     <GroupedSettings title="Add Elements">
       <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget())">Text</NcButton>
       <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget())">Image</NcButton>

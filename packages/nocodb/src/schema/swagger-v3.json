@@ -3312,7 +3312,6 @@
         "properties": {
           "icon_color": {
             "type": "string",
-            "format": "color",
             "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }
@@ -3323,7 +3322,6 @@
         "properties": {
           "icon_color": {
             "type": "string",
-            "format": "color",
             "description": "Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).\n\n**Constraints**:\n- Must be a valid 6-character hexadecimal color code preceded by a `#`.\n- Optional field; defaults to a standard color if not provided.",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }
@@ -4692,7 +4690,6 @@
               },
               "form_background_color": {
                 "type": "string",
-                "format": "color",
                 "description": "Background color for the form.",
                 "pattern": "^#[0-9A-Fa-f]{6}$"
               }
@@ -5070,7 +5067,6 @@
                 },
                 "color": {
                   "type": "string",
-                  "format": "color",
                   "description": "Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`).",
                   "pattern": "^#[0-9A-Fa-f]{6}$"
                 }
@@ -5105,7 +5101,6 @@
           },
           "color": {
             "type": "string",
-            "format": "color",
             "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }
@@ -5129,7 +5124,6 @@
           },
           "color": {
             "type": "string",
-            "format": "color",
             "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }

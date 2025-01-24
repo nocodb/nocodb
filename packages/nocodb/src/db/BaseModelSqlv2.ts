@@ -8371,15 +8371,6 @@ class BaseModelSqlv2 {
       type: getOppositeRelationType(colOptions.type),
     });
 
-    console.log(
-      'auditUpdateObj',
-      auditUpdateObj.map((k) => ({
-        ...k,
-        refModel: null,
-        model: null,
-        req: null,
-      })),
-    );
     await Promise.allSettled(
       auditUpdateObj.map((updateObj) => {
         if (updateObj.opSubType === AuditOperationSubTypes.LINK_RECORD) {

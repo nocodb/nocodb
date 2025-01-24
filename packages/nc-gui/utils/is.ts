@@ -13,6 +13,10 @@ import {
   ncIsUndefined,
 } from 'nocodb-sdk'
 
+const ncIsPlaywright = () => {
+  return !!(window as any)?.isPlaywright
+}
+
 export {
   ncIsObject,
   ncIsEmptyObject,
@@ -26,4 +30,5 @@ export {
   ncIsFunction,
   ncIsPromise,
   ncIsArrayIncludes,
+  ncIsPlaywright,
 }

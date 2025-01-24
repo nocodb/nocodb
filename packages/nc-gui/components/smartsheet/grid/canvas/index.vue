@@ -106,6 +106,11 @@ const {
   startResize,
   hoverRow,
   selection,
+
+  // MouseSelectionHandler
+  onMouseMoveSelectionHandler,
+  onMouseDownSelectionHandler,
+  onMouseUpSelectionHandler,
 } = useCanvasTable({
   rowHeightEnum: props.rowHeightEnum,
   cachedRows,
@@ -157,91 +162,82 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
-function handleMouseClick(e: MouseEvent) {
+function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
-  const y = e.clientY - rect.top - 32
-  const rowIndex = Math.floor(y / rowHeight.value) + rowSlice.value.start
-
-  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
-    activeCell.value = { row: -1, column: -1 }
-    triggerRefreshCanvas()
-    return
-  }
-
+  selection.value.clear()
+  let y = e.clientY - rect.top
   const x = e.clientX - rect.left
-  let clickedColumn = null
 
-  const fixedCols = columns.value.filter((col) => col.fixed)
-  let xOffset = 0
-
-  for (const column of fixedCols) {
-    const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
-    if (x >= xOffset && x < xOffset + width) {
-      if (!column.uidt) continue
-      clickedColumn = column
-      break
+  // Header interactions
+  if (y <= 32) {
+    startResize(e)
+    if (!resizeableColumn.value) {
+      startDrag(e.clientX - rect.left)
     }
-    xOffset += width
-  }
+  } else {
+    // Body interactions
+    y -= 32
+    const rowIndex = Math.floor(y / rowHeight.value) + rowSlice.value.start
+    if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
+      activeCell.value = { row: -1, column: -1 }
+      triggerRefreshCanvas()
+    }
+    let clickedColumn = null
 
-  if (!clickedColumn) {
-    const visibleStart = colSlice.value.start
-    const visibleEnd = colSlice.value.end
+    const fixedCols = columns.value.filter((col) => col.fixed)
+    let xOffset = 0
 
-    const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
-
-    xOffset = startOffset - scrollLeft.value
-
-    for (let i = visibleStart; i < visibleEnd; i++) {
-      const width = columnWidths.value[i] ?? 10
+    for (const column of fixedCols) {
+      const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
       if (x >= xOffset && x < xOffset + width) {
-        clickedColumn = columns.value[i]
+        if (!column.uidt) continue
+        clickedColumn = column
         break
       }
       xOffset += width
     }
-  }
 
-  if (clickedColumn) {
-    activeCell.value = {
-      row: rowIndex,
-      column: columns.value.findIndex((col) => col.id === clickedColumn.id),
-    }
+    if (!clickedColumn) {
+      const visibleStart = colSlice.value.start
+      const visibleEnd = colSlice.value.end
 
-    if (e.detail === 2) {
-      editEnabled.value = {
-        rowIndex,
-        x: xOffset + scrollLeft.value,
-        y: (rowIndex + 1) * rowHeight.value + 32,
-        column: metaColumnById.value[clickedColumn.id],
-        row: cachedRows.value.get(rowIndex),
-        height: rowHeight.value,
-        width: parseInt(clickedColumn.width, 10),
+      const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+      xOffset = startOffset - scrollLeft.value
+
+      for (let i = visibleStart; i < visibleEnd; i++) {
+        const width = columnWidths.value[i] ?? 10
+        if (x >= xOffset && x < xOffset + width) {
+          clickedColumn = columns.value[i]
+          break
+        }
+        xOffset += width
       }
     }
-    triggerRefreshCanvas()
-  }
-}
 
-const handleMouseDown = (e: MouseEvent) => {
-  const rect = canvasRef.value?.getBoundingClientRect()
-  if (!rect) return
+    if (clickedColumn) {
+      activeCell.value = {
+        row: rowIndex,
+        column: columns.value.findIndex((col) => col.id === clickedColumn.id),
+      }
 
-  // Clear Selection on Clicking on Canvas
-  selection.value.clear()
-
-  const y = e.clientY - rect.top
-
-  if (y <= 32) {
-    // Try resize first
-    startResize(e)
-
-    // If not resizing, try drag
-    if (!resizeableColumn.value) {
-      startDrag(e.clientX - rect.left)
+      if (e.detail === 2) {
+        editEnabled.value = {
+          rowIndex,
+          x: xOffset + scrollLeft.value,
+          y: (rowIndex + 1) * rowHeight.value + 32,
+          column: metaColumnById.value[clickedColumn.id],
+          row: cachedRows.value.get(rowIndex),
+          height: rowHeight.value,
+          width: parseInt(clickedColumn.width, 10),
+        }
+      } else {
+        onMouseDownSelectionHandler(e)
+      }
+      triggerRefreshCanvas()
     }
   }
 }
@@ -263,7 +259,7 @@ function scrollToCell(row: number, column: number) {
   let cellLeft = 0
   let cellRight = 0
 
-  const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+  const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0) + 128
 
   for (let i = 0; i < column; i++) {
     if (!columns.value[i].fixed) {
@@ -285,6 +281,11 @@ function scrollToCell(row: number, column: number) {
   }
 }
 
+const handleMouseUp = (e: MouseEvent) => {
+  e.preventDefault()
+  onMouseUpSelectionHandler(e)
+}
+
 const handleMouseMove = (e: MouseEvent) => {
   if (isDragging.value || resizeableColumn.value) {
     if (e.clientX >= window.innerWidth - 200) {
@@ -300,6 +301,7 @@ const handleMouseMove = (e: MouseEvent) => {
       resizeMouseMove(e)
     } else {
       hoverRow.value = Math.floor((y - 32) / rowHeight.value) + rowSlice.value.start
+      onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
   }
@@ -373,7 +375,7 @@ onMounted(async () => {
           :width="`${width}px`"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
-          @click="handleMouseClick"
+          @mouseup="handleMouseUp"
         >
         </canvas>
       </div>

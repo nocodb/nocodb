@@ -1,88 +1,69 @@
 import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 import type { NcContext } from 'nocodb-sdk';
-import type { Knex } from 'knex';
+import type { BaseModelSqlv2 } from './BaseModelSqlv2';
 import Noco from '~/Noco';
+
+export type WebhookContext = {
+  context: NcContext;
+  user: any;
+  baseModel: BaseModelSqlv2;
+  isSingleUpdate?: boolean;
+  ignoreWebhook?: boolean;
+};
 
 export class UpdateWebhookHandler {
   private constructor(
-    webhookContext: {
-      context: NcContext;
-      user: any;
-      viewId: string;
-      modelId: string;
-      tnPath: string | Knex.Raw<any>;
-      isSingleUpdate?: boolean;
-      ignoreWebhook?: boolean;
-    },
-    prevData: any,
+    private webhookContext: WebhookContext,
+    private rowId: any,
   ) {
     this.webhookContext = webhookContext;
-    this.prevData = prevData;
+    this.rowId = rowId;
   }
-  webhookContext: {
-    context: NcContext;
-    user: any;
-    viewId: string;
-    modelId: string;
-    tnPath: string | Knex.Raw<any>;
-    isSingleUpdate?: boolean;
-    ignoreWebhook?: boolean;
-  };
   prevData: any;
 
-  public static beginUpdate(
-    payload: {
-      context: NcContext;
-      user: any;
-      viewId: string;
-      modelId: string;
-      tnPath: string | Knex.Raw<any>;
-      isSingleUpdate?: boolean;
-      ignoreWebhook?: boolean;
-    },
-    prevData: any,
-  ) {
-    const webhookHandler = new UpdateWebhookHandler(payload, prevData);
-    webhookHandler.sendBeforeUpdateWebhook();
+  public static async beginUpdate(payload: WebhookContext, rowId: any) {
+    const webhookHandler = new UpdateWebhookHandler(payload, rowId);
+    await webhookHandler.sendBeforeUpdateWebhook();
     return webhookHandler;
   }
 
-  // experimental, will be useful when refactoring
+  // // experimental, will be useful after refactoring
 
   // public static async manageWebhook(
-  //   payload: {
-  //     context: NcContext;
-  //     user: any;
-  //     viewId: string;
-  //     modelId: string;
-  //     tnPath: string | any; // should be Knex.Raw<any>
-  //     isSingleUpdate?: boolean;
-  //     ignoreWebhook?: boolean;
-  //   },
+  //   payload: WebhookContext,
   //   prevData: any,
-  //   handler: (setNextData: (nextData) => void) => Promise<void> | Promise<any>,
+  //   handler: () => Promise<void> | Promise<any>,
   // ) {
-  //   const webhookHandler = this.beginUpdate(payload, prevData);
-  //   let nextData;
-  //   const handlerResult = await handler((updateNextData) => {
-  //     nextData = updateNextData;
-  //   });
-  //   webhookHandler.finishUpdate(nextData);
+  //   const webhookHandler = await this.beginUpdate(payload, prevData);
+  //   const handlerResult = await handler();
+  //   await webhookHandler.finishUpdate();
   //   return handlerResult;
   // }
 
-  sendBeforeUpdateWebhook() {
+  async sendBeforeUpdateWebhook() {
     const hookName = `before.${
       this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
     }`;
+    this.prevData = await this.webhookContext.baseModel.readByPk(
+      this.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: false },
+    );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData);
     }
   }
-  finishUpdate(nextData: any) {
+  async finishUpdate() {
     const hookName = `after.${
       this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
     }`;
+    const nextData = await this.webhookContext.baseModel.readByPk(
+      this.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: false },
+    );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData, nextData);
     }
@@ -94,9 +75,9 @@ export class UpdateWebhookHandler {
       prevData,
       newData: nextData,
       user: this.webhookContext.user,
-      viewId: this.webhookContext.viewId,
-      modelId: this.webhookContext.modelId,
-      tnPath: this.webhookContext.tnPath,
+      viewId: this.webhookContext.baseModel.getViewId(),
+      modelId: this.webhookContext.baseModel.model.id,
+      tnPath: this.webhookContext.baseModel.tnPath,
     });
   }
 }

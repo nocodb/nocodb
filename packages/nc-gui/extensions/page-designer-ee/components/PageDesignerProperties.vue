@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { PageOrientation, PageType } from '../lib/layout'
-import { type PageDesignerWidget, PageDesignerWidgetFactory } from '../lib/widgets'
+import { type PageDesignerWidget, PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import TextWidgetImage from '../assets/text-widget.svg'
 import ImageWidgetImage from '../assets/image-widget.svg'
 import DividerWidgetImage from '../assets/divider-widget.svg'
@@ -36,36 +36,35 @@ function getNextWidgetId() {
     </header>
     <GroupedSettings title="Preview">
       <div class="flex flex-col gap-4">
-        <div class="px-3 flex">
-          <TableAndViewPicker />
-        </div>
-        <div class="px-3 flex">
-          <NRecordPicker
-            v-if="payload.selectedTableId"
-            :key="payload.selectedTableId + payload.selectedViewId"
-            v-model:model-value="row"
-            :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
-            :table-id="payload.selectedTableId"
-            :view-id="payload.selectedViewId"
-            class="w-full"
-          />
-        </div>
+        <TableAndViewPicker />
+
+        <NRecordPicker
+          v-if="payload.selectedTableId"
+          :key="payload.selectedTableId + payload.selectedViewId"
+          v-model:model-value="row"
+          :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+          :table-id="payload.selectedTableId"
+          :view-id="payload.selectedViewId"
+          class="w-full"
+        />
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
       <div class="flex">
         <StaticWidget
+          :type="PageDesignerWidgetType.TEXT"
           :icon="TextWidgetImage"
           text="Text"
           first
           @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))"
         ></StaticWidget>
         <StaticWidget
+          :type="PageDesignerWidgetType.IMAGE"
           :icon="ImageWidgetImage"
           text="Image"
           @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
         ></StaticWidget>
-        <StaticWidget :icon="DividerWidgetImage" text="Divider" last></StaticWidget>
+        <StaticWidget :type="PageDesignerWidgetType.TEXT" :icon="DividerWidgetImage" text="Divider" last></StaticWidget>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">

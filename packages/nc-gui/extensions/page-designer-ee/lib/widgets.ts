@@ -1,6 +1,6 @@
 export enum PageDesignerWidgetType {
   TEXT,
-  IMAGE
+  IMAGE,
 }
 
 export interface PageDesignerWidget {
@@ -46,7 +46,7 @@ const BLACK = '#000000'
 const WHITE = '#ffffff'
 
 export class PageDesignerWidgetFactory {
-  static createEmptyTextWidget(id: number): PageDesignerTextWidget {
+  static createEmptyTextWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerTextWidget {
     return {
       id,
       textColor: BLACK,
@@ -66,12 +66,11 @@ export class PageDesignerWidgetFactory {
       type: PageDesignerWidgetType.TEXT,
       value: '',
       zIndex: 0,
-      cssStyle:
-        'width: 200px; height: 30px; transform: translate(0, 0); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;',
+      cssStyle: `width: 200px; height: 30px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 
-  static createEmptyImageWidget(id: number): PageDesignerImageWidget {
+  static createEmptyImageWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
     return {
       id,
       backgroundColor: WHITE,
@@ -85,8 +84,7 @@ export class PageDesignerWidgetFactory {
       imageSrc: '',
       objectFit: 'cover',
       zIndex: 0,
-      cssStyle:
-        'width: 200px; height: 200px; transform: translate(0, 0); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;',
+      cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 }

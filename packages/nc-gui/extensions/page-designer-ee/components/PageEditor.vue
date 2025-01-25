@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
-import { PageDesignerWidgetType } from '../lib/widgets'
+import { PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
@@ -9,6 +9,8 @@ import PropertiesPanel from './PropertiesPanel.vue'
 const payload = inject(PageDesignerPayloadInj)!
 
 const { fullscreen } = useExtensionHelperOrThrow()
+
+const pageRef = ref<HTMLDivElement>()
 
 const pageSize = computed(() => PageDesignerLayout.getPageSizePx(payload?.value?.pageType, payload?.value?.orientation))
 
@@ -35,12 +37,39 @@ const widgetTypeToComponent = {
 //     payload.value.currentWidgetId = -1
 //   }
 // })
+
+const widgetFactoryByType: Record<string, Function> = {
+  [PageDesignerWidgetType.TEXT]: PageDesignerWidgetFactory.createEmptyTextWidget,
+  [PageDesignerWidgetType.IMAGE]: PageDesignerWidgetFactory.createEmptyImageWidget,
+}
+
+function onDropped(e: DragEvent) {
+  const rect = pageRef.value?.getBoundingClientRect()
+  if (!rect) return
+  const widgetType = e.dataTransfer?.getData('text/plain') ?? ''
+  const factory = widgetFactoryByType[widgetType]
+  if (!factory) return
+  const relativeX = e.clientX - rect.left
+  const relativeY = e.clientY - rect.top
+  const widget = factory(++payload.value.lastWidgetId, { x: relativeX, y: relativeY })
+  payload.value.widgets[widget.id] = widget
+  payload.value.currentWidgetId = widget.id
+}
 </script>
 
 <template>
   <div class="h-full w-full flex">
-    <div class="layout-wrapper flex-1 overflow-auto grid place-items-center" @mousedown="payload.currentWidgetId = -1">
-      <div class="page relative flex-shrink-0" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
+    <div
+      class="layout-wrapper flex-1 overflow-auto grid place-items-center"
+      @drop="onDropped"
+      @mousedown="payload.currentWidgetId = -1"
+      @dragover.prevent
+    >
+      <div
+        ref="pageRef"
+        class="page relative flex-shrink-0"
+        :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }"
+      >
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div
             v-for="line in horizontalLines"

@@ -1,18 +1,31 @@
 <script setup lang="ts">
-defineProps<{
+import type { PageDesignerWidgetType } from '../lib/widgets'
+
+const props = defineProps<{
   icon: string
   text: string
+  type: PageDesignerWidgetType
   first?: boolean
   last?: boolean
 }>()
+
+const dragging = ref(false)
+
+function onDragStart(e: DragEvent) {
+  e.dataTransfer?.setData('text/plain', props.type.toString())
+  dragging.value = true
+}
 </script>
 
 <template>
   <div
+    draggable="true"
     class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-3 cursor-pointer"
-    :class="{ first, last }"
+    :class="{ first, last, dragging }"
+    @dragstart="onDragStart"
+    @dragend="dragging = false"
   >
-    <img :src="icon" class="w-10 h-10" />
+    <img draggable="false" :src="icon" class="w-10 h-10" />
     <div class="text-center text-nc-content-gray text-[13px] font-bold leading-[18px]">{{ text }}</div>
   </div>
 </template>
@@ -27,6 +40,9 @@ defineProps<{
   }
   &:hover {
     @apply bg-nc-bg-gray-extralight;
+  }
+  &.dragging {
+    @apply rounded-none border-none opacity-50;
   }
 }
 </style>

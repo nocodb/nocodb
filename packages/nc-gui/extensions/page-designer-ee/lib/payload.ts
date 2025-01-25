@@ -7,6 +7,7 @@ export interface PageDesignerPayload {
   pageName?: string
   selectedTableId?: string
   selectedViewId?: string
-  currentWidgetIndex?: number
-  widgets: PageDesignerWidget[]
+  currentWidgetId: string | number
+  lastWidgetId: number
+  widgets: Record<string | number, PageDesignerWidget>
 }

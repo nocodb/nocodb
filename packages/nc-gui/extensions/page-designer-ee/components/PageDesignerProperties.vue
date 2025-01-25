@@ -16,7 +16,11 @@ const pageOrientationOptions = Object.values(PageOrientation)
 const displayField = computed(() => meta?.value?.columns?.find((c) => c?.pv) || meta?.value?.columns?.[0] || null)
 
 function addWidget(widget: PageDesignerWidget) {
-  payload.value.widgets.push(widget)
+  payload.value.widgets[widget.id] = widget
+}
+
+function getNextWidgetId() {
+  return ++payload.value.lastWidgetId
 }
 </script>
 
@@ -44,8 +48,8 @@ function addWidget(widget: PageDesignerWidget) {
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
-      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget())">Text</NcButton>
-      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget())">Image</NcButton>
+      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))">Text</NcButton>
+      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))">Image</NcButton>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">
       <div class="flex flex-col gap-4">

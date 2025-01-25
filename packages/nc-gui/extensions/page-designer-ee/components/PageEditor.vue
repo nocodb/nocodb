@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
+import { PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
@@ -20,11 +21,16 @@ const verticalLines = computed(() => {
   for (let i = 10; i <= pageSize.value.height; i += 10) topPixels.push(i)
   return topPixels
 })
+
+const widgetTypeToComponent = {
+  [PageDesignerWidgetType.TEXT]: PageDesignerText,
+  [PageDesignerWidgetType.IMAGE]: PageDesignerImage,
+}
 </script>
 
 <template>
   <div class="h-full w-full flex">
-    <div class="layout-wrapper flex-1 overflow-auto" @mousedown="payload.currentWidgetIndex = -1">
+    <div class="layout-wrapper flex-1 overflow-auto" @mousedown="payload.currentWidgetId = -1">
       <div class="page relative" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div
@@ -38,9 +44,13 @@ const verticalLines = computed(() => {
             :style="{ top: `${line}px`, width: `${pageSize.width}px`, height: `1px` }"
           ></div>
         </div>
-        <template v-for="(widget, i) in payload?.widgets ?? []" :key="i">
-          <PageDesignerText v-if="widget.type === 'text'" :index="i" @mousedown.stop="payload.currentWidgetIndex = i" />
-          <PageDesignerImage v-else-if="widget.type === 'image'" :index="i" @mousedown.stop="payload.currentWidgetIndex = i" />
+        <template v-for="(widget, i) in payload?.widgets ?? {}" :key="i">
+          <component
+            :is="widgetTypeToComponent[widget.type]"
+            :id="i"
+            :active="i === payload.currentWidgetId"
+            @mousedown.stop="payload.currentWidgetId = i"
+          />
         </template>
       </div>
     </div>

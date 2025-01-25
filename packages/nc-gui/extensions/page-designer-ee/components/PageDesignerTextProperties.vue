@@ -22,13 +22,13 @@ const fontWeightToLabel: Record<string, string> = {
 const fonts = ['Arial', 'Tahoma', 'Times New Roman', 'Verdana', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS', 'Manrope']
 const fontWeights = ['400', '700']
 
-const index = payload.value.currentWidgetIndex ?? -1
-const textWidget = ref(payload?.value?.widgets[index] as PageDesignerTextWidget)
+const textWidget = ref<PageDesignerTextWidget>()
 watch(
-  () => payload.value.currentWidgetIndex ?? -1,
-  (idx) => {
-    textWidget.value = payload?.value?.widgets[idx] as PageDesignerTextWidget
+  () => payload.value.currentWidgetId,
+  (id) => {
+    textWidget.value = payload?.value?.widgets[id] as PageDesignerTextWidget
   },
+  { immediate: true },
 )
 </script>
 

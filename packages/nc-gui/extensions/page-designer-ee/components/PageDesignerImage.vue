@@ -6,17 +6,18 @@ import type { PageDesignerImageWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj } from '../lib/context'
 
 const props = defineProps<{
-  index: number
+  id: string | number
+  active: boolean
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
-const active = computed(() => payload.value.currentWidgetIndex === props.index)
-const widget = ref(payload?.value?.widgets[props.index] as PageDesignerImageWidget)
+const widget = ref() as Ref<PageDesignerImageWidget>
 watch(
-  () => props.index,
-  (idx) => {
-    widget.value = payload?.value?.widgets[idx] as PageDesignerImageWidget
+  () => props.id,
+  (id) => {
+    widget.value = payload?.value?.widgets[id] as PageDesignerImageWidget
   },
+  { immediate: true },
 )
 
 const draggable = true
@@ -63,62 +64,64 @@ const container = useParentElement()
 </script>
 
 <template>
-  <div ref="targetRef" class="absolute" :style="widget.cssStyle" v-bind="$attrs">
-    <div
-      :style="{
-        background: `${widget.backgroundColor}`,
-        height: '100%',
-        width: '100%',
-        borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
-          widget.borderLeft || 0
-        }px`,
-        borderColor: widget.borderColor,
-        borderRadius: `${widget.borderRadius || 0}px`,
-      }"
-    >
-      <img
-        v-if="widget.imageSrc"
-        :src="widget.imageSrc"
-        class="w-full h-full"
-        :class="{ hidden: errored }"
+  <div v-if="widget">
+    <div ref="targetRef" class="absolute" :style="widget.cssStyle">
+      <div
         :style="{
-          objectFit: widget.objectFit || 'fill',
+          background: `${widget.backgroundColor}`,
+          height: '100%',
+          width: '100%',
+          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+            widget.borderLeft || 0
+          }px`,
+          borderColor: widget.borderColor,
+          borderRadius: `${widget.borderRadius || 0}px`,
         }"
-        @error="errored = true"
-        @load="errored = false"
-      />
-      <div v-if="widget.imageSrc && errored">Unable to load the image</div>
-      <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted">Add an image source</span>
+      >
+        <img
+          v-if="widget.imageSrc"
+          :src="widget.imageSrc"
+          class="w-full h-full"
+          :class="{ hidden: errored }"
+          :style="{
+            objectFit: widget.objectFit || 'fill',
+          }"
+          @error="errored = true"
+          @load="errored = false"
+        />
+        <div v-if="widget.imageSrc && errored">Unable to load the image</div>
+        <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted">Add an image source</span>
+      </div>
     </div>
+    <Moveable
+      ref="moveableRef"
+      :rotatable="false"
+      :throttle-rotate="throttleRotate"
+      :rotation-position="rotationPosition"
+      :target="targetRef"
+      :draggable="draggable"
+      :throttle-drag="throttleDrag"
+      :edge-draggable="edgeDraggable"
+      :start-drag-rotate="startDragRotate"
+      :throttle-drag-rotate="throttleDragRotate"
+      :scalable="scalable"
+      :keep-ratio="keepRatio"
+      :throttle-scale="throttleScale"
+      :snappable="snappable"
+      :snap-grid-width="snapGridWidth"
+      :snap-grid-height="snapGridHeight"
+      :is-display-grid-guidelines="isDisplayGridGuidelines"
+      :resizable="resizable"
+      :throttle-resize="throttleResize"
+      :render-directions="renderDirections"
+      :origin="false"
+      :data-inactive-widget="!active"
+      :container="container"
+      @render-end="onRenderEnd"
+      @resize="onResize"
+      @rotate="onRotate"
+      @drag="onDrag"
+      @scale="onScale"
+    />
   </div>
-  <Moveable
-    ref="moveableRef"
-    :rotatable="false"
-    :throttle-rotate="throttleRotate"
-    :rotation-position="rotationPosition"
-    :target="targetRef"
-    :draggable="draggable"
-    :throttle-drag="throttleDrag"
-    :edge-draggable="edgeDraggable"
-    :start-drag-rotate="startDragRotate"
-    :throttle-drag-rotate="throttleDragRotate"
-    :scalable="scalable"
-    :keep-ratio="keepRatio"
-    :throttle-scale="throttleScale"
-    :snappable="snappable"
-    :snap-grid-width="snapGridWidth"
-    :snap-grid-height="snapGridHeight"
-    :is-display-grid-guidelines="isDisplayGridGuidelines"
-    :resizable="resizable"
-    :throttle-resize="throttleResize"
-    :render-directions="renderDirections"
-    :origin="false"
-    :data-inactive-widget="!active"
-    :container="container"
-    @render-end="onRenderEnd"
-    @resize="onResize"
-    @rotate="onRotate"
-    @drag="onDrag"
-    @scale="onScale"
-  />
 </template>

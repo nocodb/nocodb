@@ -6,17 +6,18 @@ import type { PageDesignerTextWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
 const props = defineProps<{
-  index: number
+  id: number
+  active: boolean
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
-const active = computed(() => payload.value.currentWidgetIndex === props.index)
-const widget = ref(payload?.value?.widgets[props.index] as PageDesignerTextWidget)
+const widget = ref() as Ref<PageDesignerTextWidget>
 watch(
-  () => props.index,
-  (idx) => {
-    widget.value = payload?.value?.widgets[idx] as PageDesignerTextWidget
+  () => props.id,
+  (id) => {
+    widget.value = payload?.value?.widgets[id] as PageDesignerTextWidget
   },
+  { immediate: true },
 )
 
 const draggable = true
@@ -64,70 +65,73 @@ const container = useParentElement()
 const row = inject(PageDesignerRowInj)!
 
 const replacedText = computed(() => {
-  return widget.value.value.replace(/{(.*?)}/g, (_, key) => (row.value ?? {})[key.trim()] || `{${key}}`)
+  const record = (row.value ?? {}) as Record<string, any>
+  return widget.value.value.replace(/{(.*?)}/g, (_, key) => record[key.trim()] || `{${key}}`)
 })
 </script>
 
 <template>
-  <div ref="targetRef" class="absolute" :style="widget.cssStyle" v-bind="$attrs">
-    <div
-      :style="{
-        display: 'flex',
-        background: `${widget.backgroundColor}`,
-        height: '100%',
-        width: '100%',
-        borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
-          widget.borderLeft || 0
-        }px`,
-        borderColor: widget.borderColor,
-        borderRadius: `${widget.borderRadius || 0}px`,
-        justifyContent: widget.horizontalAlign,
-        alignItems: widget.verticalAlign,
-      }"
-    >
-      <span
-        v-if="widget.value"
+  <div v-if="widget">
+    <div ref="targetRef" class="absolute" :style="widget.cssStyle">
+      <div
         :style="{
-          fontSize: `${widget.fontSize}px`,
-          fontWeight: widget.fontWeight,
-          fontFamily: widget.fontFamily,
-          lineHeight: widget.lineHeight,
-          color: widget.textColor,
+          display: 'flex',
+          background: `${widget.backgroundColor}`,
+          height: '100%',
+          width: '100%',
+          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+            widget.borderLeft || 0
+          }px`,
+          borderColor: widget.borderColor,
+          borderRadius: `${widget.borderRadius || 0}px`,
+          justifyContent: widget.horizontalAlign,
+          alignItems: widget.verticalAlign,
         }"
       >
-        {{ replacedText }}
-      </span>
-      <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+        <span
+          v-if="widget.value"
+          :style="{
+            fontSize: `${widget.fontSize}px`,
+            fontWeight: widget.fontWeight,
+            fontFamily: widget.fontFamily,
+            lineHeight: widget.lineHeight,
+            color: widget.textColor,
+          }"
+        >
+          {{ replacedText }}
+        </span>
+        <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+      </div>
     </div>
+    <Moveable
+      ref="moveableRef"
+      :rotatable="false"
+      :throttle-rotate="throttleRotate"
+      :rotation-position="rotationPosition"
+      :target="targetRef"
+      :draggable="draggable"
+      :throttle-drag="throttleDrag"
+      :edge-draggable="edgeDraggable"
+      :start-drag-rotate="startDragRotate"
+      :throttle-drag-rotate="throttleDragRotate"
+      :scalable="scalable"
+      :keep-ratio="keepRatio"
+      :throttle-scale="throttleScale"
+      :snappable="snappable"
+      :snap-grid-width="snapGridWidth"
+      :snap-grid-height="snapGridHeight"
+      :is-display-grid-guidelines="isDisplayGridGuidelines"
+      :resizable="resizable"
+      :throttle-resize="throttleResize"
+      :render-directions="renderDirections"
+      :origin="false"
+      :data-inactive-widget="!active"
+      :container="container"
+      @resize="onResize"
+      @rotate="onRotate"
+      @drag="onDrag"
+      @scale="onScale"
+      @render-end="onRenderEnd"
+    />
   </div>
-  <Moveable
-    ref="moveableRef"
-    :rotatable="false"
-    :throttle-rotate="throttleRotate"
-    :rotation-position="rotationPosition"
-    :target="targetRef"
-    :draggable="draggable"
-    :throttle-drag="throttleDrag"
-    :edge-draggable="edgeDraggable"
-    :start-drag-rotate="startDragRotate"
-    :throttle-drag-rotate="throttleDragRotate"
-    :scalable="scalable"
-    :keep-ratio="keepRatio"
-    :throttle-scale="throttleScale"
-    :snappable="snappable"
-    :snap-grid-width="snapGridWidth"
-    :snap-grid-height="snapGridHeight"
-    :is-display-grid-guidelines="isDisplayGridGuidelines"
-    :resizable="resizable"
-    :throttle-resize="throttleResize"
-    :render-directions="renderDirections"
-    :origin="false"
-    :data-inactive-widget="!active"
-    :container="container"
-    @resize="onResize"
-    @rotate="onRotate"
-    @drag="onDrag"
-    @scale="onScale"
-    @render-end="onRenderEnd"
-  />
 </template>

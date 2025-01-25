@@ -12,15 +12,16 @@ const { extension, fullscreen, getTableMeta } = useExtensionHelperOrThrow()
 const KV_STORE_KEY = 'pageDesigner'
 
 const savedPayload = ref<PageDesignerPayload>({
-  widgets: [],
+  widgets: {},
   orientation: PageOrientation.PORTRAIT,
   pageType: PageType.LETTER,
+  lastWidgetId: 0,
+  currentWidgetId: -1,
 })
 
 const row = ref<Partial<Row>>({})
 const meta = ref<TableType>()
 const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
-  
 provide(PageDesignerPayloadInj, savedPayload)
 provide(PageDesignerRowInj, row)
 provide(PageDesignerTableTypeInj, meta)

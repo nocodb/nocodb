@@ -1,19 +1,27 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
+import { PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerTextProperties from './PageDesignerTextProperties.vue'
 import PageDesignerImageProperties from './PageDesignerImageProperties.vue'
 import PageDesignerProperties from './PageDesignerProperties.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
-const currentWidgetType = computed(() => payload.value.widgets?.[payload.value.currentWidgetIndex ?? -1]?.type)
+const currentWidgetType = computed(() => payload.value.widgets?.[payload.value.currentWidgetId]?.type)
+
+const widgetTypeToPropertiesComponent = {
+  [PageDesignerWidgetType.TEXT]: PageDesignerTextProperties,
+  [PageDesignerWidgetType.IMAGE]: PageDesignerImageProperties,
+}
+
+const propertiesComponent = computed(() => {
+  return widgetTypeToPropertiesComponent[currentWidgetType.value!] ?? PageDesignerProperties
+})
 </script>
 
 <template>
   <div class="properties-panel w-[420px]">
-    <PageDesignerTextProperties v-if="currentWidgetType === 'text'" />
-    <PageDesignerImageProperties v-else-if="currentWidgetType === 'image'" />
-    <PageDesignerProperties v-else />
+    <component :is="propertiesComponent" />
   </div>
 </template>
 

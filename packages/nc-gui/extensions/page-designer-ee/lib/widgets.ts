@@ -1,11 +1,17 @@
+export enum PageDesignerWidgetType {
+  TEXT,
+  IMAGE
+}
+
 export interface PageDesignerWidget {
-  type: 'text' | 'image'
+  type: PageDesignerWidgetType
   zIndex: number
   cssStyle: string
+  id: number
 }
 
 export interface PageDesignerTextWidget extends PageDesignerWidget {
-  type: 'text'
+  type: PageDesignerWidgetType.TEXT
   value: string
   fontSize: string
   fontWeight: string
@@ -24,7 +30,7 @@ export interface PageDesignerTextWidget extends PageDesignerWidget {
 }
 
 export interface PageDesignerImageWidget extends PageDesignerWidget {
-  type: 'image'
+  type: PageDesignerWidgetType.IMAGE
   imageSrc: string
   backgroundColor: string
   borderLeft: string
@@ -40,8 +46,9 @@ const BLACK = '#000000'
 const WHITE = '#ffffff'
 
 export class PageDesignerWidgetFactory {
-  static createEmptyTextWidget(): PageDesignerTextWidget {
+  static createEmptyTextWidget(id: number): PageDesignerTextWidget {
     return {
+      id,
       textColor: BLACK,
       backgroundColor: WHITE,
       borderTop: '0',
@@ -56,7 +63,7 @@ export class PageDesignerWidgetFactory {
       horizontalAlign: 'flex-start',
       verticalAlign: 'flex-start',
       lineHeight: '1.4',
-      type: 'text',
+      type: PageDesignerWidgetType.TEXT,
       value: '',
       zIndex: 0,
       cssStyle:
@@ -64,8 +71,9 @@ export class PageDesignerWidgetFactory {
     }
   }
 
-  static createEmptyImageWidget(): PageDesignerImageWidget {
+  static createEmptyImageWidget(id: number): PageDesignerImageWidget {
     return {
+      id,
       backgroundColor: WHITE,
       borderTop: '0',
       borderRight: '0',
@@ -73,7 +81,7 @@ export class PageDesignerWidgetFactory {
       borderLeft: '0',
       borderRadius: '0',
       borderColor: BLACK,
-      type: 'image',
+      type: PageDesignerWidgetType.IMAGE,
       imageSrc: '',
       objectFit: 'cover',
       zIndex: 0,

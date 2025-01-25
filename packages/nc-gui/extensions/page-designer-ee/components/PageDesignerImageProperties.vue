@@ -7,13 +7,13 @@ import ColorPropertyPicker from './ColorPropertyPicker.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
-const index = payload.value.currentWidgetIndex ?? -1
-const imageWidget = ref(payload?.value?.widgets[index] as PageDesignerImageWidget)
+const imageWidget = ref<PageDesignerImageWidget>()
 watch(
-  () => payload.value.currentWidgetIndex ?? -1,
-  (idx) => {
-    imageWidget.value = payload?.value?.widgets[idx] as PageDesignerImageWidget
+  () => payload.value.currentWidgetId,
+  (id) => {
+    imageWidget.value = payload?.value?.widgets[id] as PageDesignerImageWidget
   },
+  { immediate: true },
 )
 </script>
 

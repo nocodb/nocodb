@@ -84,7 +84,7 @@ export default {
               class="min-w-max"
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
-                'border-gray-200 rounded border-1':
+                'border-gray-200 rounded border-1 blue-chip':
                   border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"
             >
@@ -159,6 +159,15 @@ export default {
       .nc-cell-field-link {
         @apply py-0;
       }
+    }
+  }
+  .blue-chip {
+    @apply !bg-nc-bg-brand !border-none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    &,
+    & * {
+      @apply !text-nc-content-brand;
     }
   }
 }

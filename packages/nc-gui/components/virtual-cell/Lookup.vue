@@ -133,10 +133,21 @@ const randomClass = `lookup-${Math.floor(Math.random() * 99999)}`
 const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
 
 const dropdownOverlayRef = ref<HTMLInputElement | null>(null)
+const active = inject(ActiveCellInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
+const isCellAlreadyActive = ref(false)
 
 function toggleDropdown() {
+  if (isGrid.value && !isCellAlreadyActive.value && active.value) {
+    isCellAlreadyActive.value = true
+    return
+  }
   dropdownVisible.value = !dropdownVisible.value
 }
+
+watch(active, (val) => {
+  if (!val) isCellAlreadyActive.value = false
+})
 
 onMounted(() => {
   const container = triggerRef.value?.closest('td, .nc-data-cell, .nc-default-value-wrapper')
@@ -305,8 +316,10 @@ watch(dropdownVisible, (val) => {
     <template #overlay>
       <div
         ref="dropdownOverlayRef"
-        class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown"
+        class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown outline-none"
         :class="[randomClass]"
+        tabindex="0"
+        @keydown.esc="dropdownVisible = false"
       >
         <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')" class="lookup-search-input">
           <template #prefix>

@@ -66,9 +66,7 @@ const createdBy = computed(() => {
         <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-gray-600"> created a record. </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-gray-600"> updated {{ fieldsChanged }} fields </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-gray-600">
-          linked table "{{ safeGetFromAuditDetails(props.auditGroup.audit, 'table_title') }}" to "{{
-            safeGetFromAuditDetails(props.auditGroup.audit, 'ref_table_title')
-          }}"
+          updated 1 field
         </span>
       </p>
       <div class="text-xs font-weight-500 text-gray-500">
@@ -97,11 +95,11 @@ const createdBy = computed(() => {
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
-          <span class="text-gray-600 font-weight-500">
-            linked
+          <span class="text-xs text-gray-600 font-weight-500">
+            changed
           </span>
           <span
-            class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-3"
+            class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1"
           >
             <SmartsheetHeaderVirtualCellIcon
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
@@ -113,26 +111,32 @@ const createdBy = computed(() => {
           </span>
           <div
             v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')?.length > 0"
-            class="audit-link-removal"
+            class="flex gap-1 flex-wrap mr-1"
           >
             <span
-              v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
-              :key="entry.refRowId"
-              class="audit-link-item"
+              class="!text-sm p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
             >
-              {{ entry.value }}
+              <span
+                v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
+                :key="entry.refRowId"
+                class="text-brand-500 font-weight-500 line-through px-1 bg-[#F0F3FF] !rounded-md">
+                {{ entry.value }}
+              </span>
             </span>
           </div>
           <div
             v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')?.length > 0"
-            class="audit-link-addition"
+            class="flex gap-1 flex-wrap"
           >
             <span
-              v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
-              :key="entry.refRowId"
-              class="audit-link-item"
+              class="!text-sm p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
             >
-              {{ entry.value }}
+              <span
+                v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
+                :key="entry.refRowId"
+                class="text-brand-500 font-weight-500 line-through px-1 bg-[#F0F3FF] !rounded-md">
+                {{ entry.value }}
+              </span>
             </span>
           </div>
         </p>
@@ -140,18 +144,3 @@ const createdBy = computed(() => {
     </template>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.audit-link-addition {
-  @apply flex gap-2 flex-wrap;
-  span {
-    @apply !text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
-  }
-}
-.audit-link-removal {
-  @apply flex gap-2 flex-wrap;
-  span {
-    @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
-  }
-}
-</style>

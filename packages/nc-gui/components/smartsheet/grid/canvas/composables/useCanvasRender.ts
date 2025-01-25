@@ -1,6 +1,9 @@
 import { UITypes } from 'nocodb-sdk'
 import { roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+import { renderIcon } from '../../../header/CellIcon'
 
 export function useCanvasRender({
   width,
@@ -18,6 +21,8 @@ export function useCanvasRender({
   isAiFillMode,
   isFillMode,
   getFillHandlerPosition,
+  spriteLoader,
+  imageLoader,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -44,6 +49,8 @@ export function useCanvasRender({
   isAiFillMode: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
+  imageLoader: ImageWindowLoader
+  spriteLoader: SpriteLoader
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -81,9 +88,22 @@ export function useCanvasRender({
     let xOffset = initialOffset
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
+
+      const icon = renderIcon(column, null)
+
+      if (column.uidt) {
+        spriteLoader.renderIcon(ctx, {
+          icon,
+          size: 7,
+          color: '#6a7184',
+          x: xOffset + 8 - scrollLeft.value,
+          y: 8,
+        })
+      }
+
       const truncatedText = truncateText(ctx, column.title!, width - 20)
 
-      ctx.fillText(truncatedText, xOffset + 10 - scrollLeft.value, 16)
+      ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, 16)
 
       xOffset += width
 
@@ -107,8 +127,21 @@ export function useCanvasRender({
 
         // Draw title
         ctx.fillStyle = '#6a7184'
+
+        const icon = renderIcon(column, null)
+
+        if (column.uidt) {
+          spriteLoader.renderIcon(ctx, {
+            icon,
+            size: 7,
+            color: '#6a7184',
+            x: xOffset + 8,
+            y: 8,
+          })
+        }
+
         const truncatedText = truncateText(ctx, column.title!, width - 20)
-        ctx.fillText(truncatedText, xOffset + 10, 16)
+        ctx.fillText(truncatedText, xOffset + (column.uidt ? 26 : 10), 16)
 
         xOffset += width
 
@@ -249,6 +282,8 @@ export function useCanvasRender({
               row: row.row,
               selected: isActive,
               pv: column.pv,
+              spriteLoader,
+              imageLoader,
             },
           )
           xOffset += width
@@ -301,6 +336,8 @@ export function useCanvasRender({
                 row: row.row,
                 selected: isActive,
                 pv: column.pv,
+                spriteLoader,
+                imageLoader,
               },
             )
 

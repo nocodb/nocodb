@@ -1,4 +1,6 @@
 import { type ColumnType } from 'nocodb-sdk'
+import { SpriteLoader } from '../loaders/SpriteLoader'
+import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -46,6 +48,8 @@ export function useCanvasTable({
   } | null>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
+  const spriteLoader = new SpriteLoader()
+  const imageLoader = new ImageWindowLoader()
 
   const { isMobileMode } = useGlobal()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
@@ -83,7 +87,6 @@ export function useCanvasTable({
       id: 'row_number',
       grid_column_id: 'row_number',
       title: '#',
-      // @ts-expect-error - uidt is not defined
       uidt: null,
       width: '80',
       fixed: true,
@@ -145,7 +148,6 @@ export function useCanvasTable({
   const { canvasRef, triggerRefreshCanvas } = useCanvasRender({
     width,
     height,
-    // @ts-expect-error - some properties may be undefined
     columns,
     colSlice,
     scrollLeft,
@@ -159,6 +161,8 @@ export function useCanvasTable({
     getFillHandlerPosition,
     isAiFillMode,
     isFillMode,
+    imageLoader,
+    spriteLoader,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({

@@ -1,7 +1,8 @@
-class ImageWindowLoader {
+export class ImageWindowLoader {
   private cache: Map<string, HTMLImageElement> = new Map()
   private loadQueue: Set<string> = new Set()
   private onLoadCallbacks: ((url: string) => void)[] = []
+  constructor() {}
 
   loadOrGetImage(url: string): HTMLImageElement | undefined {
     if (this.cache.has(url)) {
@@ -41,6 +42,3 @@ class ImageWindowLoader {
     this.cache.clear()
   }
 }
-
-const imageLoader = new ImageWindowLoader()
-export { imageLoader, ImageWindowLoader }

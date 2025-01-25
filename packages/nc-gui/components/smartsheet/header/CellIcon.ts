@@ -1,7 +1,7 @@
 import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 
-const renderIcon = (column: ColumnType, abstractType: any) => {
+export const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
   } else if (isSpecificDBType(column)) {

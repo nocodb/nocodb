@@ -461,3 +461,9 @@ export const allIntegrations: IntegrationItemType[] = [
   //   type: IntegrationCategoryType.OTHERS,
   // },
 ]
+
+export const allIntegrationsMapBySubType = allIntegrations.reduce((acc, integration) => {
+  acc[integration.sub_type] = integration
+
+  return acc
+}, {} as Record<(typeof allIntegrations)[number]['sub_type'], IntegrationItemType>)

@@ -559,20 +559,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               delete details.data[field.title]
               delete details.column_meta[field.title]
               current.details = JSON.stringify(details)
-            } else if (
-              lastDetails?.column_meta?.[field?.title] &&
-              lastDetails.old_data[field.title]
-            ) {
+            } else if (lastDetails?.column_meta?.[field?.title] && lastDetails.old_data[field.title]) {
               lastDetails.data[field.title] = details.data[field.title]
               last.details = JSON.stringify(lastDetails)
               delete details.old_data[field.title]
               delete details.data[field.title]
               delete details.column_meta[field.title]
               current.details = JSON.stringify(details)
-            }
-            else if (
-              details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]
-            ) {
+            } else if (details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]) {
               if (!lastDetails.column_meta) lastDetails.column_meta = {}
               if (!lastDetails.old_data) lastDetails.old_data = {}
               if (!lastDetails.data) lastDetails.data = {}

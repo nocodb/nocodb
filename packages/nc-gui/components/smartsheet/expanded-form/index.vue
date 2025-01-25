@@ -724,7 +724,11 @@ export default {
         </div>
         <div class="ml-auto">
           <NcSelectTab
-            v-if="isEeUI && (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) || isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))"
+            v-if="
+              isEeUI &&
+              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
+                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
+            "
             v-model="activeViewMode"
             class="nc-expanded-form-mode-switch"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
@@ -732,7 +736,11 @@ export default {
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment', hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) },
-              { icon: 'ncMessageSquare', value: 'discussion', hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) },
+              {
+                icon: 'ncMessageSquare',
+                value: 'discussion',
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE),
+              },
             ]"
           />
         </div>

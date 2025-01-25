@@ -35,7 +35,7 @@ const modelValue = defineModel<string>()
       }"
     >
       <div
-        v-for="item of props.items.filter(it => !it.hidden)"
+        v-for="item of props.items.filter((it) => !it.hidden)"
         :key="item.value"
         v-e="[`c:project:mode:${item.value}`]"
         class="tab"

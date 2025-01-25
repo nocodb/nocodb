@@ -9,7 +9,8 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } = useExpandedFormStoreOrThrow()
+const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } =
+  useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -34,7 +35,7 @@ function handleCreatingNewComment() {
 
   setTimeout(() => {
     refRichComment.value?.focusEditor?.()
-  }, 500);
+  }, 500)
 }
 
 function initLoadMoreAudits() {
@@ -49,11 +50,10 @@ watch([newCommentText, auditCommentGroups], () => {
       return
     }
     refAuditsEnd.value?.scrollIntoView({
-      behavior: 'smooth'
+      behavior: 'smooth',
     })
   }, 200)
 })
-
 </script>
 
 <script lang="ts">
@@ -72,8 +72,16 @@ export default {
       }"
     >
       <div class="w-[680px] h-0 flex-grow ml-16.25 border-l-1 border-gray-300" />
-      <div v-if="mightHaveMoreAudits" class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-16.25 border-l-1 border-gray-300 relative">
-        <NcButton size="small" type="secondary" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" @click="initLoadMoreAudits()">
+      <div
+        v-if="mightHaveMoreAudits"
+        class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-16.25 border-l-1 border-gray-300 relative"
+      >
+        <NcButton
+          size="small"
+          type="secondary"
+          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+          @click="initLoadMoreAudits()"
+        >
           Load more
         </NcButton>
       </div>

@@ -45,7 +45,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
       <div class="flex items-center justify-between gap-x-2 w-full">
         <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
         <div class="flex items-center gap-2">
-          <NcTooltip placement="bottom" class="text-gray-600 text-small leading-[18px]">
+          <NcTooltip placement="bottom" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
             <template #title> {{ parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm') }}</template>
 
             {{ timeAgo(selectedAudit.created_at) }}
@@ -177,6 +177,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
 </template>
 
 <style lang="scss" scoped>
+.cell-header {
+  @apply text-xs font-semibold text-gray-500;
+}
+
 .nc-audit-json-perview-wrapper {
   :deep(.ant-collapse-header) {
     @apply !p-0 flex items-center !cursor-default children:first:flex;
@@ -185,9 +189,11 @@ function handleAutoScroll(scroll: boolean, className: string) {
     @apply !px-0 !pb-0 !pt-3;
   }
 }
+
 .nc-audit-json-perview {
   @apply min-h-[200px] max-h-[400px] resize-y overflow-y-auto;
 }
+
 .nc-expanded-audit pre {
   font-family: Manrope, 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;

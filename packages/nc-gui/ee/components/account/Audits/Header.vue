@@ -196,6 +196,17 @@ const handleRefresh = () => {
   }
   loadAudits()
 }
+
+const selectedUserFilter = computed(() => {
+  return (
+    (auditLogsQuery.value.user &&
+      (collaboratorsMap.value.get(auditLogsQuery.value.user)?.display_name ||
+        collaboratorsMap.value
+          .get(auditLogsQuery.value.user)
+          ?.email?.slice(0, collaboratorsMap.value.get(auditLogsQuery.value.user)?.email?.indexOf('@')))) ||
+    'All'
+  )
+})
 </script>
 
 <template>
@@ -211,12 +222,14 @@ const handleRefresh = () => {
             <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
               {{ $t('objects.workspace') }}:
               <NcTooltip
-                class="truncate !leading-5"
+                class="capitalize truncate !leading-5"
                 :class="{ 'text-brand-500': auditLogsQuery.workspaceId }"
                 show-on-truncate-only
               >
                 <template #title>
-                  {{ (auditLogsQuery.workspaceId && workspaces.get(auditLogsQuery.workspaceId)?.title) || 'All' }}
+                  <span class="capitalize">
+                    {{ (auditLogsQuery.workspaceId && workspaces.get(auditLogsQuery.workspaceId)?.title) || 'All' }}
+                  </span>
                 </template>
                 {{ (auditLogsQuery.workspaceId && workspaces.get(auditLogsQuery.workspaceId)?.title) || 'All' }}
               </NcTooltip>
@@ -278,7 +291,7 @@ const handleRefresh = () => {
                   <div class="w-full flex items-center justify-between gap-3">
                     <div class="w-[calc(100%_-_28px)] gap-2 flex items-center">
                       <GeneralWorkspaceIcon :workspace="workspace" />
-                      <NcTooltip class="max-w-full" show-on-truncate-only>
+                      <NcTooltip class="max-w-full capitalize" show-on-truncate-only>
                         <template #title>
                           {{ workspace.title }}
                         </template>
@@ -315,24 +328,12 @@ const handleRefresh = () => {
                 show-on-truncate-only
               >
                 <template #title>
-                  {{
-                    (auditLogsQuery.user &&
-                      (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
-                        collaboratorsMap
-                          .get(auditLogsQuery.user)
-                          ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email?.indexOf('@')))) ||
-                    'All'
-                  }}
+                  <span class="capitalize">
+                    {{ selectedUserFilter }}
+                  </span>
                 </template>
 
-                {{
-                  (auditLogsQuery.user &&
-                    (collaboratorsMap.get(auditLogsQuery.user)?.display_name ||
-                      collaboratorsMap
-                        .get(auditLogsQuery.user)
-                        ?.email?.slice(0, collaboratorsMap.get(auditLogsQuery.user)?.email?.indexOf('@')))) ||
-                  'All'
-                }}
+                {{ selectedUserFilter }}
               </NcTooltip>
             </div>
             <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
@@ -435,7 +436,9 @@ const handleRefresh = () => {
               {{ $t('objects.project') }}:
               <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.baseId }" show-on-truncate-only>
                 <template #title>
-                  {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                  <span class="capitalize">
+                    {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                  </span>
                 </template>
                 {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
               </NcTooltip>
@@ -536,7 +539,9 @@ const handleRefresh = () => {
               {{ $t('general.event') }}:
               <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
                 <template #title>
-                  {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
+                  <span class="capitalize">
+                    {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
+                  </span>
                 </template>
                 {{ auditLogsQuery.type ? $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '') : 'All' }}
               </NcTooltip>
@@ -620,7 +625,9 @@ const handleRefresh = () => {
                 show-on-truncate-only
               >
                 <template #title>
-                  {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                  <span class="capitalize">
+                    {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
+                  </span>
                 </template>
                 {{ auditLogsQuery.dateRange ? auditLogsQuery.dateRangeLabel : 'All Time' }}
               </NcTooltip>

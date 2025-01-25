@@ -132,11 +132,20 @@ const randomClass = `lookup-${Math.floor(Math.random() * 99999)}`
 
 const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
 
+const dropdownOverlayRef = ref<HTMLInputElement | null>(null)
+
 onMounted(() => {
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
     dropdownVisible.value = false
   })
+})
+
+watch(dropdownVisible, (val) => {
+  setTimeout(() => {
+    if (val && dropdownOverlayRef.value)
+      dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+  }, 200)
 })
 </script>
 
@@ -145,7 +154,7 @@ onMounted(() => {
     :disabled="disableDropdown"
     :visible="!disableDropdown && dropdownVisible"
     :auto-close="false"
-    overlay-class-name="!min-w-[300px]"
+    :overlay-class-name="`!min-w-[300px] nc-links-dropdown ${dropdownVisible ? 'active' : ''}`"
   >
     <div
       ref="triggerRef"
@@ -165,7 +174,7 @@ onMounted(() => {
       <div
         class="h-full w-full flex gap-1"
         :class="{
-          '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
+          '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
         }"
       >
         <template v-if="lookupColumn">
@@ -284,9 +293,9 @@ onMounted(() => {
     </div>
     <template #overlay>
       <div
+        ref="dropdownOverlayRef"
         class="w-[300px] min-h-[200px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown"
         :class="[randomClass]"
-        @click.stop
       >
         <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')" class="lookup-search-input">
           <template #prefix>

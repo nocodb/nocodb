@@ -24,8 +24,8 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 @Injectable()
 export class OrgUsersService {
   constructor(
-    private readonly baseUsersService: BaseUsersService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly baseUsersService: BaseUsersService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   async userList(param: {

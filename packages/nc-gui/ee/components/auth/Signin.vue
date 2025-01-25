@@ -87,6 +87,8 @@ const queryToPass = computed(() =>
     workspaceId: location.host?.split('.')[0],
   }).toString(),
 )
+
+const toggleLoginForm = ref(false)
 </script>
 
 <template>
@@ -97,12 +99,16 @@ const queryToPass = computed(() =>
     <div
       class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
-      <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
+      <LazyGeneralNocoIcon
+        class="color-transition hover:(ring ring-accent ring-opacity-100)"
+        :animate="isLoading"
+        @dblclick="toggleLoginForm = !toggleLoginForm"
+      />
 
       <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
       <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
-        <template v-if="!appInfo.disableEmailAuth">
+        <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -144,7 +150,7 @@ const queryToPass = computed(() =>
         </template>
 
         <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-          <template v-if="!appInfo.disableEmailAuth">
+          <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
             <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <component :is="iconMap.signin" />
@@ -225,11 +231,11 @@ const queryToPass = computed(() =>
             </a>
           </div>
 
-          <div class="text-end prose-sm">
+          <div v-if="!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm" class="text-end prose-sm">
             {{ $t('msg.info.signUp.dontHaveAccount') }}
             <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
           </div>
-          <template v-if="!appInfo.disableEmailAuth">
+          <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
             <div class="md:hidden">
               <nuxt-link class="prose-sm" @click="navigateForgotPassword">
                 {{ $t('msg.info.signUp.forgotPassword') }}

@@ -218,7 +218,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <LazyGeneralReleaseInfo />
 
               <a-tooltip
-                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)"
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem"
                 placement="bottom"
                 :mouse-enter-delay="1"
                 class="mr-4"

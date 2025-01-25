@@ -21,17 +21,17 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9
+      - name: Get pnpm store directory
+        shell: bash
+        timeout-minutes: 1
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
@@ -138,7 +138,7 @@ jobs:
           file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
           context: "./packages/nocodb"
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true

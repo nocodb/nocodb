@@ -1,7 +1,7 @@
 import { type AuditType, type PaginatedType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
-  type: undefined,
+  type: [],
   workspaceId: undefined,
   baseId: undefined,
   sourceId: undefined,

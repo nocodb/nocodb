@@ -24,7 +24,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const workspaceStore = useWorkspace()
 
-  const { loadRoles, isUIAllowed } = useRoles()
+  const { loadRoles } = useRoles()
 
   const { user: currentUser } = useGlobal()
 

@@ -1,7 +1,7 @@
-import { auditV1OperationsCategory, type AuditType, type PaginatedType, type UserType, type WorkspaceUserType } from 'nocodb-sdk'
+import { type AuditType, type PaginatedType, type UserType, type WorkspaceUserType, auditV1OperationsCategory } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
-  type: undefined,
+  type: [],
   workspaceId: undefined,
   baseId: undefined,
   sourceId: undefined,
@@ -84,7 +84,10 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         offset: limit * (page - 1),
         limit,
         ...auditLogsQuery.value,
-        type: auditLogsQuery.value.type ? auditV1OperationsCategory[auditLogsQuery.value.type]?.types : undefined,
+        type:
+          ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+            ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+            : undefined,
         sourceId: undefined,
       })
 
@@ -161,6 +164,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
   const onInit = async () => {
     const promises = [loadAudits(undefined, undefined, true, false)]
     isLoadingAudits.value = true
+    isLoadingUsers.value = true
     if (!workspacesList.value.length) {
       await workspaceStore.loadWorkspaces(true)
     }
@@ -175,6 +179,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
       message.error((await extractSdkResponseErrorMsgv2(e)).message)
     } finally {
       isLoadingAudits.value = false
+      isLoadingUsers.value = false
     }
   }
 

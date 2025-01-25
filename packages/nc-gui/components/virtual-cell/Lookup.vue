@@ -134,11 +134,22 @@ const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
 
 const dropdownOverlayRef = ref<HTMLInputElement | null>(null)
 
+function toggleDropdown() {
+  dropdownVisible.value = !dropdownVisible.value
+}
+
 onMounted(() => {
+  const container = triggerRef.value?.closest('td, .nc-data-cell, .nc-default-value-wrapper')
+  if (container) container.addEventListener('click', toggleDropdown)
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
     dropdownVisible.value = false
   })
+})
+
+onUnmounted(() => {
+  const container = triggerRef.value?.closest('td, .nc-data-cell, .nc-default-value-wrapper')
+  if (container) container.removeEventListener('click', toggleDropdown)
 })
 
 watch(dropdownVisible, (val) => {
@@ -152,6 +163,7 @@ watch(dropdownVisible, (val) => {
 <template>
   <NcDropdown
     :disabled="disableDropdown"
+    :trigger="[]"
     :visible="!disableDropdown && dropdownVisible"
     :auto-close="false"
     :overlay-class-name="`!min-w-[300px] nc-links-dropdown ${dropdownVisible ? 'active' : ''}`"
@@ -168,7 +180,6 @@ watch(dropdownVisible, (val) => {
             ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
             : `2.85rem`,
       }"
-      @click="dropdownVisible = !dropdownVisible"
       @dblclick="activateShowEditNonEditableFieldWarning"
     >
       <div
@@ -294,7 +305,7 @@ watch(dropdownVisible, (val) => {
     <template #overlay>
       <div
         ref="dropdownOverlayRef"
-        class="w-[300px] min-h-[200px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown"
+        class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown"
         :class="[randomClass]"
       >
         <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')" class="lookup-search-input">
@@ -405,7 +416,7 @@ watch(dropdownVisible, (val) => {
   }
   .lookup-search-input {
     border: none;
-    border-radius: 8px 8px 0 0;
+    border-radius: 14px 14px 0 0;
     border-bottom: 1px solid;
     @apply !border-nc-border-gray-medium;
     box-shadow: none !important;

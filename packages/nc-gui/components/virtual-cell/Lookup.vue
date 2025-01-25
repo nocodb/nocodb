@@ -12,6 +12,8 @@ const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
 
+const isGrid = inject(IsGridInj, ref(false))
+
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
 const providedHeightRef = ref(1) as any
@@ -187,7 +189,7 @@ const cellHeight = computed(() =>
   isGroupByLabel.value || (lookupColumn.value && isAttachment(lookupColumn.value))
     ? undefined
     : rowHeight.value
-    ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`]}px`
+    ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
     : `2.85rem`,
 )
 </script>

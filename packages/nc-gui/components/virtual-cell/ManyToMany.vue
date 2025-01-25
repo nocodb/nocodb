@@ -26,6 +26,8 @@ const hideBackBtn = ref(false)
 
 const rowHeight = inject(RowHeightInj, ref())
 
+const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
+
 const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -128,17 +130,33 @@ watch(
 const currentElementRef = ref<HTMLDivElement | null>(null)
 const active = inject(ActiveCellInj, ref(false))
 
-useSelectedCellClickListener(active, openChildList)
+// useSelectedCellClickListener(isExpandedForm.value ? isExpandedForm : active, openChildList, {
+//   immediate: true,
+//   isGridCell: !isExpandedForm.value,
+// })
 
 function getRef(rawEl: HTMLDivElement | null) {
   currentElementRef.value = rawEl
-  const cell = currentElementRef.value?.closest('.nc-data-cell')
-  if (cell) cell.addEventListener('click', openChildList)
+  // const cell = currentElementRef.value?.closest('.nc-data-cell')
+  // if (cell) cell.addEventListener('click', openChildList)
 }
 
+// onUnmounted(() => {
+//   const cell = currentElementRef.value?.closest('.nc-data-cell')
+//   if (cell) cell.removeEventListener('click', openChildList)
+// })
+
+const onDivDataCellEventTrigger = (params) => {
+  if (params?.type === 'click') {
+    openChildList()
+  }
+}
+
+onMounted(() => {
+  onDivDataCellEventHook?.on(onDivDataCellEventTrigger)
+})
 onUnmounted(() => {
-  const cell = currentElementRef.value?.closest('.nc-data-cell')
-  if (cell) cell.removeEventListener('click', openChildList)
+  onDivDataCellEventHook?.off(onDivDataCellEventTrigger)
 })
 </script>
 

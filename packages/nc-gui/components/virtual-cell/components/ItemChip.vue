@@ -61,7 +61,6 @@ export default {
     v-e="['c:row-expand:open']"
     class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row"
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate }"
-    @click.stop="openExpandedForm"
   >
     <div class="text-ellipsis overflow-hidden pointer-events-none">
       <span class="name">

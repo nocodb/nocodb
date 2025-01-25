@@ -126,7 +126,7 @@ const filteredArrValues = computed(() => {
 
 const dropdownVisible = ref(false)
 
-const triggerRef = ref<HTMLDivElement>(null)
+const triggerRef = ref<HTMLDivElement | null>(null)
 
 const randomClass = `lookup-${Math.floor(Math.random() * 99999)}`
 
@@ -220,7 +220,7 @@ onMounted(() => {
                     :key="i"
                     class="flex-none"
                     :class="{
-                      'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
+                      '!bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
                       'border-gray-200 rounded border-1': ![
                         UITypes.Attachment,
                         UITypes.MultiSelect,
@@ -252,7 +252,7 @@ onMounted(() => {
                           [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
                             ? 'pl-2'
                             : !isAttachment(lookupColumn)
-                            ? 'px-2'
+                            ? 'px-1'
                             : ''
                         }`,
                         {
@@ -276,10 +276,14 @@ onMounted(() => {
       </div>
     </div>
     <template #overlay>
-      <div class="w-[300px] max-w-[320px] flex flex-col rounded-sm" :class="[randomClass]" @click.stop>
-        <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')">
+      <div
+        class="w-[300px] min-h-[200px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown"
+        :class="[randomClass]"
+        @click.stop
+      >
+        <a-input v-if="isSearchable" v-model:value="search" :placeholder="$t('general.search')" class="lookup-search-input">
           <template #prefix>
-            <GeneralIcon icon="search" />
+            <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
           </template>
         </a-input>
         <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
@@ -308,7 +312,7 @@ onMounted(() => {
               :key="i"
               class="flex-none"
               :class="{
-                'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
+                '!bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
                 'border-gray-200 rounded border-1': ![
                   UITypes.Attachment,
                   UITypes.MultiSelect,
@@ -340,7 +344,7 @@ onMounted(() => {
                     [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
                       ? 'pl-2'
                       : !isAttachment(lookupColumn)
-                      ? 'px-2'
+                      ? 'px-1'
                       : ''
                   }`,
                   {
@@ -377,6 +381,24 @@ onMounted(() => {
 .nc-lookup-cell {
   &:has(.nc-cell-attachment) {
     height: auto !important;
+  }
+}
+.lookup-dropdown {
+  .nc-cell-field > span {
+    font-size: 13px !important;
+  }
+  .lookup-search-input {
+    border: none;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid;
+    @apply !border-nc-border-gray-medium;
+    box-shadow: none !important;
+    input::placeholder {
+      @apply !text-nc-content-gray-muted;
+    }
+    .ant-input-prefix {
+      margin-right: 8px;
+    }
   }
 }
 </style>

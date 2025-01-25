@@ -172,7 +172,7 @@ onUnmounted(() => {
           v-if="!readOnly && isUIAllowed('dataEdit')"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon"
+          class="nc-action-icon many-to-many-action-icon"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
@@ -200,11 +200,30 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.nc-action-icon {
+.many-to-many-action-icon {
   @apply hidden cursor-pointer;
 }
 
-.chips-wrapper:hover .nc-action-icon {
+.chips-wrapper:hover .many-to-many-action-icon {
   @apply inline-block;
+}
+</style>
+
+<style lang="scss">
+.nc-default-value-wrapper,
+.nc-expanded-cell,
+.ant-form-item-control-input {
+  .many-to-many-action-icon {
+    @apply !inline-block;
+  }
+}
+.ant-form-item-control-input .many-to-many-action-icon {
+  top: 4px;
+  right: 4px;
+}
+
+.nc-expanded-cell .many-to-many-action-icon {
+  top: 2px;
+  right: 2px;
 }
 </style>

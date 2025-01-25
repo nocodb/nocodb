@@ -31,6 +31,7 @@ export class LicenseService {
     siteUrl: string;
     exp: number;
     iat: number;
+    oneWorkspace?: boolean;
   };
 
   private _isExpired: boolean = false;
@@ -124,5 +125,9 @@ export class LicenseService {
 
   getMaxUsers() {
     return this.getLicenseData().maxUsers || 4;
+  }
+
+  getOneWorkspace() {
+    return this.getLicenseData().oneWorkspace || false;
   }
 }

@@ -23,6 +23,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import SSOClient from '~/models/SSOClient';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
@@ -248,5 +249,27 @@ export class AuthController extends AuthControllerCE {
     };
 
     res.json(result);
+  }
+
+  @Post([
+    '/auth/user/signup',
+    '/api/v1/db/auth/user/signup',
+    '/api/v1/auth/user/signup',
+    '/api/v2/auth/user/signup',
+  ])
+  @UseGuards(PublicApiLimiterGuard)
+  @HttpCode(200)
+  async signup(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
+    // check if any sso clients are present
+    if (process.env.NC_CLOUD !== 'true') {
+      const ssoClients = await SSOClient.getPublicList({
+        ncSiteUrl: req.ncSiteUrl,
+      });
+      if (ssoClients.length > 0) {
+        NcError.forbidden('Email-password authentication is disabled');
+      }
+    }
+
+    return super.signup(req, res);
   }
 }

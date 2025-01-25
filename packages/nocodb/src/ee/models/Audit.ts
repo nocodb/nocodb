@@ -1,6 +1,7 @@
 import AuditCE from 'src/models/Audit';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
+import { isOnPrem } from '~/utils';
 
 export default class Audit extends AuditCE {
   static async baseAuditList(
@@ -206,9 +207,11 @@ export default class Audit extends AuditCE {
     },
   ) {
     // disable audit by default and enable it only in test environment
+    // skip disabling it in on-prem
     if (
       process.env.NC_ENABLE_AUDIT !== 'true' &&
-      process.env.NODE_ENV !== 'test'
+      process.env.NODE_ENV !== 'test' &&
+      !isOnPrem
     ) {
       return;
     }

@@ -125,12 +125,14 @@ export class UsersService {
       password,
       email_verification_token,
       req,
+      is_invite = false,
     }: {
       email: string;
       salt: any;
       password;
       email_verification_token;
       req: NcRequest;
+      is_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -156,7 +158,7 @@ export class UsersService {
         );
       } catch {}
 
-      if (settings?.invite_only_signup) {
+      if (settings?.invite_only_signup && !is_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;

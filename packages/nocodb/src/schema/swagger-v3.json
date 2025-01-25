@@ -4198,11 +4198,30 @@
         "items": {
           "type": "object",
           "properties": {
-            "user_id": {
+            "id": {
               "type": "string",
               "description": "Unique identifier for the user."
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the user."
             }
-          }
+          },
+          "oneOf": [
+            {
+              "title": "Update User using ID",
+              "required": [
+                "id"
+              ]
+            },
+            {
+              "title": "Update User using Email",
+              "required": [
+                "email"
+              ]
+            }
+          ]
         }
       },
       "TableMetaReq": {

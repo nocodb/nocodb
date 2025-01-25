@@ -10,7 +10,13 @@ const cellValue = inject(CellValueInj)!
 
 const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-const isForm = inject(IsFormInj)
+const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const cellClickHook = inject(CellClickHookInj, null)
+
+const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -25,8 +31,6 @@ const isOpen = ref(false)
 const hideBackBtn = ref(false)
 
 const rowHeight = inject(RowHeightInj, ref())
-
-const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const { isUIAllowed } = useRoles()
 
@@ -127,42 +131,28 @@ watch(
   { flush: 'post' },
 )
 
-const currentElementRef = ref<HTMLDivElement | null>(null)
 const active = inject(ActiveCellInj, ref(false))
-
-// useSelectedCellClickListener(isExpandedForm.value ? isExpandedForm : active, openChildList, {
-//   immediate: true,
-//   isGridCell: !isExpandedForm.value,
-// })
-
-function getRef(rawEl: HTMLDivElement | null) {
-  currentElementRef.value = rawEl
-  // const cell = currentElementRef.value?.closest('.nc-data-cell')
-  // if (cell) cell.addEventListener('click', openChildList)
-}
-
-// onUnmounted(() => {
-//   const cell = currentElementRef.value?.closest('.nc-data-cell')
-//   if (cell) cell.removeEventListener('click', openChildList)
-// })
-
-const onDivDataCellEventTrigger = (params) => {
-  if (params?.type === 'click') {
+function onCellClick(e: Event) {
+  if (e.type !== 'click') return
+  if (isExpandedForm.value || isForm.value || active.value) {
     openChildList()
   }
 }
 
 onMounted(() => {
-  onDivDataCellEventHook?.on(onDivDataCellEventTrigger)
+  onDivDataCellEventHook?.on(onCellClick)
+  cellClickHook?.on(onCellClick)
 })
+
 onUnmounted(() => {
-  onDivDataCellEventHook?.off(onDivDataCellEventTrigger)
+  onDivDataCellEventHook?.off(onCellClick)
+  cellClickHook?.off(onCellClick)
 })
 </script>
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div :ref="getRef" class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
+    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
       <div
         class="chips flex items-center img-container flex-1 hm-items min-w-0 overflow-y-auto overflow-x-hidden"
         :class="{ 'flex-wrap': rowHeight !== 1 }"

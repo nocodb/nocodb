@@ -30,17 +30,7 @@ const onTabPress = () => {
 </script>
 
 <template>
-  <div
-    ref="el"
-    class="select-none nc-data-cell"
-    @keydown.tab="onTabPress"
-    @click="
-      cellClickHook.trigger({
-        event: $event,
-        type: 'click',
-      })
-    "
-  >
+  <div ref="el" class="select-none nc-data-cell" @keydown.tab="onTabPress" @click="cellClickHook.trigger($event)">
     <slot />
   </div>
 </template>

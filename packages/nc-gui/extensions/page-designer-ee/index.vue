@@ -74,7 +74,7 @@ watch(
       <!-- <NcButton> Header actions </NcButton> -->
     </template>
     <div class="flex flex-col h-full">
-      <div v-if="!fullscreen" class="flex flex-col">
+      <div v-if="!fullscreen" class="flex flex-col max-h-full">
         <div class="p-3 flex">
           <TableAndViewPicker />
         </div>
@@ -89,8 +89,29 @@ watch(
             class="w-full"
           />
         </div>
+        <div class="overflow-y-auto flex-1 relative group px-3 my-3 mini-layout">
+          <div
+            class="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out transform -translate-x-2/4 -translate-y-2/4 left-2/4 top-2/4 z-1"
+          >
+            <NcButton @click="fullscreen = true">
+              <template #icon>
+                <GeneralIcon icon="ncEdit"></GeneralIcon>
+              </template>
+              Edit Layout
+            </NcButton>
+          </div>
+          <PageEditor style="zoom: 50%" />
+        </div>
       </div>
       <PageEditor v-else />
     </div>
   </ExtensionsExtensionWrapper>
 </template>
+
+<style lang="scss" scoped>
+.mini-layout {
+  :deep(.layout-wrapper) {
+    @apply rounded-lg;
+  }
+}
+</style>

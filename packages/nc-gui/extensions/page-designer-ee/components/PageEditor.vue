@@ -8,6 +8,8 @@ import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
+const { fullscreen } = useExtensionHelperOrThrow()
+
 const pageSize = computed(() => PageDesignerLayout.getPageSizePx(payload?.value?.pageType, payload?.value?.orientation))
 
 const horizontalLines = computed(() => {
@@ -30,8 +32,8 @@ const widgetTypeToComponent = {
 
 <template>
   <div class="h-full w-full flex">
-    <div class="layout-wrapper flex-1 overflow-auto" @mousedown="payload.currentWidgetId = -1">
-      <div class="page relative" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
+    <div class="layout-wrapper flex-1 overflow-auto grid place-items-center" @mousedown="payload.currentWidgetId = -1">
+      <div class="page relative flex-shrink-0" :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }">
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div
             v-for="line in horizontalLines"
@@ -54,15 +56,15 @@ const widgetTypeToComponent = {
         </template>
       </div>
     </div>
-    <PropertiesPanel />
+    <PropertiesPanel v-if="fullscreen" />
   </div>
 </template>
 
 <style scoped lang="scss">
 .layout-wrapper {
   @apply bg-nc-bg-gray-extralight;
-  padding: 40px;
   .page {
+    margin: 40px;
     @apply bg-nc-bg-default;
     box-shadow: 0px 0px 12px 2px rgba(0, 0, 0, 0.08);
     .grid-lines {

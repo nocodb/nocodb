@@ -219,6 +219,14 @@ const selectedUserFilter = computed(() => {
     'All'
   )
 })
+
+const selectedEventTypes = computed(() => {
+  if (!ncIsArray(auditLogsQuery.value.type) || !auditLogsQuery.value.type?.length) {
+    return 'All'
+  }
+
+  return auditLogsQuery.value.type.map((cat) => t(auditV1OperationsCategory[cat]?.label ?? '')).join(', ')
+})
 </script>
 
 <template>
@@ -439,24 +447,20 @@ const selectedUserFilter = computed(() => {
         @update:visible="handleClearDropdownSearch($event, 'type')"
       >
         <NcButton type="secondary" size="small">
-          <div class="!w-[106px] flex items-center justify-between gap-2">
+          <div class="!w-[116px] flex items-center justify-between gap-2">
             <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
               {{ $t('general.event') }}:
-              <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.type }" show-on-truncate-only>
+              <NcTooltip
+                class="truncate !leading-5"
+                :class="{ 'text-brand-500': !(!ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length) }"
+                show-on-truncate-only
+              >
                 <template #title>
                   <span class="capitalize">
-                    {{
-                      !ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length
-                        ? 'All'
-                        : $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '')
-                    }}
+                    {{ selectedEventTypes }}
                   </span>
                 </template>
-                {{
-                  !ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length
-                    ? 'All'
-                    : $t(auditV1OperationsCategory[auditLogsQuery.type]?.label ?? '')
-                }}
+                {{ selectedEventTypes }}
               </NcTooltip>
             </div>
             <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />

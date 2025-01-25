@@ -169,6 +169,15 @@ watch(dropdownVisible, (val) => {
       dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
   }, 200)
 })
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Enter':
+      dropdownVisible.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>

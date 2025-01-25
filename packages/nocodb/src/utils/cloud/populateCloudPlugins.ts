@@ -14,14 +14,9 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     throw new Error('S3 env variables not found');
   }
 
-  const s3PluginData = await ncMeta.metaGet2(
-    RootScopes.ROOT,
-    RootScopes.ROOT,
-    MetaTable.PLUGIN,
-    {
-      title: S3PluginConfig.title,
-    },
-  );
+  const s3PluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+    title: S3PluginConfig.title,
+  });
 
   if (!s3PluginData && !process.env.NC_LICENSE_KEY)
     throw new Error('S3 plugin not found');
@@ -66,14 +61,9 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   //   throw new Error('SES env variables not found');
   // }
 
-  const sesPluginData = await ncMeta.metaGet2(
-    RootScopes.ROOT,
-    RootScopes.ROOT,
-    MetaTable.PLUGIN,
-    {
-      title: SESPluginConfig.title,
-    },
-  );
+  const sesPluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+    title: SESPluginConfig.title,
+  });
 
   if (!sesPluginData && !process.env.NC_LICENSE_KEY) {
     throw new Error('SES plugin not found');

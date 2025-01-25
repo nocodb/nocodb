@@ -12,8 +12,6 @@ const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 
-const isGrid = inject(IsGridInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
@@ -129,29 +127,18 @@ watch(
 
 const currentElementRef = ref<HTMLDivElement | null>(null)
 const active = inject(ActiveCellInj, ref(false))
-const isCellAlreadyActive = ref(false)
 
-function openChildListIfActive() {
-  if (isGrid.value && !isCellAlreadyActive.value && active.value) {
-    isCellAlreadyActive.value = true
-    return
-  }
-  openChildList()
-}
-
-watch(active, (val) => {
-  if (!val) isCellAlreadyActive.value = false
-})
+useSelectedCellClickListener(active, openChildList)
 
 function getRef(rawEl: HTMLDivElement | null) {
   currentElementRef.value = rawEl
-  const cell = currentElementRef.value?.closest('td, .nc-data-cell')
-  if (cell) cell.addEventListener('click', openChildListIfActive)
+  const cell = currentElementRef.value?.closest('.nc-data-cell')
+  if (cell) cell.addEventListener('click', openChildList)
 }
 
 onUnmounted(() => {
-  const cell = currentElementRef.value?.closest('td, .nc-data-cell')
-  if (cell) cell.removeEventListener('click', openChildListIfActive)
+  const cell = currentElementRef.value?.closest('.nc-data-cell')
+  if (cell) cell.removeEventListener('click', openChildList)
 })
 </script>
 
@@ -243,6 +230,6 @@ onUnmounted(() => {
 }
 
 .nc-expanded-cell .many-to-many-actions {
-  @apply top-[5px] right-[5px];
+  @apply top-[2px] right-[5px];
 }
 </style>

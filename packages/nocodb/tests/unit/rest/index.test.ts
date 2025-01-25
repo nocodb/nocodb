@@ -14,12 +14,8 @@ import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
 
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
-import baseTestv3 from './tests/metaApiV3/base.test';
+import baseTestV3 from './tests/metaApiV3/base.test';
 import tableTests from './tests/meta-apis/table.test';
-import fieldsTests from './tests/meta-apis/fields.test';
-import commentTests from './tests/meta-apis/comment.test';
-import filterTests from './tests/meta-apis/filters.test';
-import sortsTests from './tests/meta-apis/sorts.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -35,8 +31,6 @@ if (process.env.EE === 'true') {
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
 }
-// import layoutTests from './tests/layout.test';
-// import widgetTest from './tests/widget.test';
 
 const testVersion = ['v1', 'v2', 'v3'];
 
@@ -66,7 +60,7 @@ function restTests() {
 
   // v3 API tests
   if (testVersion.includes('v3')) {
-    baseTestv3();
+    baseTestV3();
   }
 }
 

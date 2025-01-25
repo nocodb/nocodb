@@ -1,5 +1,5 @@
-import S3PluginConfig from '../../plugins/s3';
-import SESPluginConfig from '../../plugins/ses';
+import S3PluginConfig from '~/plugins/s3';
+import SESPluginConfig from '~/plugins/ses';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 

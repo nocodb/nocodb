@@ -9,6 +9,8 @@ const { t } = useI18n()
 const router = useRouter()
 const route = router.currentRoute
 
+const { appInfo } = useGlobal()
+
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const formValidator = ref()
@@ -77,7 +79,36 @@ function resetError() {
     data-testid="nc-form-signin"
     class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
   >
-    <template v-if="clients && clients.length > 1">
+    <template v-if="!appInfo.isCloud">
+      <div
+        v-for="client of appInfo.ssoClients || []"
+        :key="client.id"
+        class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+      >
+        <a
+          v-if="client.type === 'google'"
+          :href="client.url"
+          class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+        >
+          <span class="flex items-center gap-2">
+            <LogosGoogleGmail />
+
+            {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
+          </span>
+        </a>
+
+        <a v-else :href="client.url" class="!text-primary !no-underline">
+          <button type="button" class="scaling-btn bg-opacity-100">
+            <span class="flex items-center gap-2">
+              <MdiLogin />
+              {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+            </span>
+          </button>
+        </a>
+      </div>
+    </template>
+
+    <template v-else-if="clients && clients.length > 1">
       <div
         v-for="client of clients || []"
         :key="client.id"

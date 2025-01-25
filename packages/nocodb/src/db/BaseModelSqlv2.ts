@@ -9316,8 +9316,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw idToAliasMap[k];
       }
     }
-    console.log('data2', idToAliasMap);
-
     data.forEach((item) => {
       Object.entries(item).forEach(([key, value]) => {
         const alias = idToAliasMap[key];

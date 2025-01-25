@@ -112,6 +112,8 @@ function navigateSignIn() {
 // todo: move to utils
 // extract workspace id from url
 const subDomain = location.host?.split('.')[0]
+
+const toggleLoginForm = ref(false)
 </script>
 
 <template>
@@ -130,7 +132,7 @@ const subDomain = location.host?.split('.')[0]
           </h1>
 
           <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
-            <template v-if="!appInfo.disableEmailAuth">
+            <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
               <Transition name="layout">
                 <div
                   v-if="error"
@@ -167,7 +169,7 @@ const subDomain = location.host?.split('.')[0]
               </a-form-item>
             </template>
             <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
-              <template v-if="!appInfo.disableEmailAuth">
+              <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
                 <button class="scaling-btn bg-opacity-100" type="submit">
                   <span class="flex items-center gap-2">
                     <MaterialSymbolsRocketLaunchOutline />
@@ -253,7 +255,10 @@ const subDomain = location.host?.split('.')[0]
                 </a>
               </div>
 
-              <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
+              <div
+                v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)"
+                class="flex items-center gap-2"
+              >
                 <a-switch
                   v-model:checked="subscribe"
                   size="small"

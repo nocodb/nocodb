@@ -110,7 +110,7 @@ const logout = async () => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('ssoSettings')"
+                v-if="isUIAllowed('globalAudits')"
                 key="audits"
                 :class="{
                   active: $route.params.page === 'audits',

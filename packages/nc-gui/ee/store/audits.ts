@@ -150,15 +150,15 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
-  const onInit = async (fetchData = false) => {
+  const handleReset = () => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
     auditPaginationData.value = { ...defaultPaginationData }
 
     allBases.value.clear()
     collaboratorsMap.value.clear()
+  }
 
-    if (!fetchData) return
-
+  const onInit = async () => {
     const promises = [loadAudits(undefined, undefined, true, false)]
     isLoadingAudits.value = true
     if (!workspacesList.value.length) {
@@ -189,6 +189,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     auditLogsQuery,
     auditPaginationData,
     isLoadingAudits,
+    handleReset,
     loadAudits,
     isLoadingBases,
     isLoadingUsers,

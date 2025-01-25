@@ -94,6 +94,8 @@ const permissionScopes = {
 
     'notification',
     'deleteAccount',
+
+    'globalAuditList',
   ],
   workspace: [
     'workspaceBaseList',
@@ -910,6 +912,8 @@ const permissionDescriptions: Record<string, string> = {
   workspace_integrationList: 'view list of workspace integrations',
 
   hookTrigger: 'trigger a webhook',
+
+  globalAuditList: 'view list of audits',
 };
 
 // Human-readable descriptions for roles

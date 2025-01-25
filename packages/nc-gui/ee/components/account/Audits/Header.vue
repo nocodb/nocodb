@@ -565,7 +565,7 @@ const selectedUserFilter = computed(() => {
                 type="text"
                 autocomplete="off"
                 class="nc-input-sm nc-input-shadow"
-                placeholder="Search type"
+                placeholder="Search event"
                 data-testid="nc-audit-dropdown-type-search-input"
               >
                 <template #prefix>

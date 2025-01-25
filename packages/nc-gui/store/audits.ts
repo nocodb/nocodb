@@ -46,6 +46,8 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const isLoadingAudits = ref(false)
 
+  const handleReset = () => {}
+
   const loadAudits = async (..._arg: any[]) => {}
 
   const isLoadingBases = ref(false)
@@ -56,7 +58,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const loadUsersForWorkspace = async (..._arg: any[]) => {}
 
-  const onInit = async (..._arg: any[]) => {}
+  const onInit = async () => {}
 
   return {
     bases,
@@ -69,6 +71,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     auditLogsQuery,
     auditPaginationData,
     isLoadingAudits,
+    handleReset,
     loadAudits,
     isLoadingBases,
     isLoadingUsers,

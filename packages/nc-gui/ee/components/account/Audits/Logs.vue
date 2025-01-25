@@ -91,7 +91,7 @@ const customRow = (audit: AuditType) => ({
 })
 
 onMounted(() => {
-  onInit(true)
+  onInit()
 })
 
 const renderAltOrOptlKey = () => {

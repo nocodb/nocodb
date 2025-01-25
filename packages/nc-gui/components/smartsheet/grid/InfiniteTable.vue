@@ -15,7 +15,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 
-import axios from 'axios'
+import axios, { type CancelTokenSource } from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
 import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
@@ -24,7 +24,7 @@ const props = defineProps<{
   totalRows: number
   data: Map<number, Row>
   rowHeightEnum?: number
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, cancelTokenSource?: CancelTokenSource) => Promise<Array<Row>>
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
   updateOrSaveRow?: (
@@ -217,8 +217,25 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
+const cancelTokens = ref<CancelTokenSource[]>([]) // Array to manage CancelToken sources
+const MAX_CONCURRENT_CALLS = 4 // Maximum concurrent API calls
+
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
+
+  // Create a new CancelToken source
+  const source = axios.CancelToken.source()
+
+  // Add the source to the queue
+  cancelTokens.value.push(source)
+
+  // // Cancel old requests if the queue exceeds the limit
+  // while (cancelTokens.value.length > MAX_CONCURRENT_CALLS) {
+  //   const oldSource = cancelTokens.value.shift()
+  //   if (oldSource) {
+  //     oldSource.cancel('Request canceled due to new scroll events')
+  //   }
+  // }
 
   const offset = chunkId * CHUNK_SIZE
   const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
@@ -232,7 +249,7 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
     chunkStates.value[chunkId + 1] = 'loading'
   }
   try {
-    const newItems = await loadData({ offset, limit })
+    const newItems = await loadData({ offset, limit }, undefined, source)
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
 
     chunkStates.value[chunkId] = 'loaded'
@@ -276,7 +293,7 @@ const totalMaxPlaceholderRows = computed(() => {
     return 0
   }
 
-  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`)
+  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`) * 3
 })
 
 const placeholderStartRows = computed(() => {
@@ -307,9 +324,9 @@ const topOffset = computed(() => {
 })
 
 let debounceTimeout: any = null // To store the debounced timeout
-let debounceDelay = 9 // Delay in ms after the last scroll event
+let debounceDelay = 50 // Delay in ms after the last scroll event
 
-const updateVisibleRows = async () => {
+const updateVisibleRows = async (fromCalculateSlice = false) => {
   const { start, end } = rowSlice
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
@@ -340,26 +357,29 @@ const updateVisibleRows = async () => {
   clearTimeout(debounceTimeout)
 
   // Debounced execution
-  debounceTimeout = setTimeout(async () => {
-    // Execute the function after the debounce delay has passed
-    const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
+  debounceTimeout = setTimeout(
+    async () => {
+      // Execute the function after the debounce delay has passed
+      const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
 
-    if (isInitialLoad) {
-      await fetchChunk(0, true)
-      chunksToFetch.delete(0)
-      chunksToFetch.delete(1)
-    }
+      if (isInitialLoad) {
+        await fetchChunk(0, true)
+        chunksToFetch.delete(0)
+        chunksToFetch.delete(1)
+      }
 
-    // Fetch the necessary chunks concurrently
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+      // Fetch the necessary chunks concurrently
+      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
 
-    // Clear cache for chunks that are no longer visible
-    const bufferStart = Math.max(0, start - BUFFER_SIZE)
-    const bufferEnd = Math.min(totalRows.value, end + BUFFER_SIZE)
+      // Clear cache for chunks that are no longer visible
+      const bufferStart = Math.max(0, start - BUFFER_SIZE)
+      const bufferEnd = Math.min(totalRows.value, end + BUFFER_SIZE)
 
-    // Cache clearing with buffer
-    clearCache(bufferStart, bufferEnd)
-  }, debounceDelay) // The function will run after 300ms of inactivity
+      // Cache clearing with buffer
+      clearCache(bufferStart, bufferEnd)
+    },
+    fromCalculateSlice ? debounceDelay : 25,
+  )
 }
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -1473,8 +1493,6 @@ const updateSliceIfNeeded = (newStart, newEnd, slice) => {
   return false
 }
 
-let maxOptimizedTime = 0 // To store the maximum time for the optimized function
-
 // Optimized calculateSlices function
 const calculateSlices = () => {
   // Skip calculation if the grid wrapper is not rendered yet
@@ -1637,7 +1655,7 @@ const _calculateSlicesOld = () => {
     rowSlice.start = newStart
     rowSlice.end = newEnd
 
-    updateVisibleRows()
+    updateVisibleRows(true)
     lastTotalRows.value = totalRows.value
   }
 }
@@ -1869,7 +1887,7 @@ useScroll(gridWrapper, {
       requestAnimationFrameId = null
     })
   },
-  throttle: 50, // Throttle value for smoother scrolling
+  throttle: 100, // Throttle value for smoother scrolling
   behavior: 'smooth',
 })
 

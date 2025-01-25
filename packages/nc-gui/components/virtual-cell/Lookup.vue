@@ -85,30 +85,26 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   useShowNotEditableWarning()
 
 const search = ref('')
-
+const searchableUITypes = [
+  UITypes.ID,
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Year,
+  UITypes.PhoneNumber,
+  UITypes.Email,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.Formula,
+]
 const isSearchable = computed(() => {
   if (!lookupColumn.value) return false
-
-  switch (lookupColumn.value.uidt!) {
-    case UITypes.ID:
-    case UITypes.SingleLineText:
-    case UITypes.LongText:
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-    case UITypes.Year:
-    case UITypes.PhoneNumber:
-    case UITypes.Email:
-    case UITypes.Number:
-    case UITypes.Decimal:
-    case UITypes.Currency:
-    case UITypes.Percent:
-    case UITypes.Duration:
-    case UITypes.Rating:
-    case UITypes.Formula:
-      return true
-    default:
-      return false
-  }
+  return searchableUITypes.includes(lookupColumn.value.uidt! as UITypes)
 })
 
 const disableDropdown = computed(() => {
@@ -118,9 +114,8 @@ const disableDropdown = computed(() => {
 })
 
 const filteredArrValues = computed(() => {
-  const query = search.value.toLowerCase()
   return arrValue.value.filter((val) => {
-    return `${val}`.toLowerCase().includes(query)
+    return searchCompare(val, search.value)
   })
 })
 
@@ -178,6 +173,31 @@ useSelectedCellKeyupListener(active, (e) => {
       break
   }
 })
+
+const smartsheetCellClass = computed(() => {
+  const isAttachmentColumn = isAttachment(lookupColumn.value!)
+  return [
+    `${
+      [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.value!.uidt! as UITypes)
+        ? 'pl-2'
+        : !isAttachmentColumn
+        ? 'px-1'
+        : ''
+    }`,
+    {
+      'min-h-0 min-w-0': isAttachmentColumn,
+      '!w-auto ': !isAttachmentColumn,
+    },
+  ]
+})
+
+const cellHeight = computed(() =>
+  isGroupByLabel.value || (lookupColumn.value && isAttachment(lookupColumn.value))
+    ? undefined
+    : rowHeight.value
+    ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`]}px`
+    : `2.85rem`,
+)
 </script>
 
 <template>
@@ -193,12 +213,7 @@ useSelectedCellKeyupListener(active, (e) => {
       class="nc-cell-field h-full w-full nc-lookup-cell"
       tabindex="-1"
       :style="{
-        height:
-          isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
-            ? undefined
-            : rowHeight
-            ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`]}px`
-            : `2.85rem`,
+        height: cellHeight,
       }"
       @dblclick="activateShowEditNonEditableFieldWarning"
     >
@@ -294,19 +309,7 @@ useSelectedCellKeyupListener(active, (e) => {
                       :edit-enabled="false"
                       :virtual="true"
                       :read-only="true"
-                      :class="[
-                        `${
-                          [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
-                            ? 'pl-2'
-                            : !isAttachment(lookupColumn)
-                            ? 'px-1'
-                            : ''
-                        }`,
-                        {
-                          'min-h-0 min-w-0': isAttachment(lookupColumn),
-                          '!w-auto ': !isAttachment(lookupColumn),
-                        },
-                      ]"
+                      :class="smartsheetCellClass"
                     />
                   </div>
                 </div>
@@ -400,19 +403,7 @@ useSelectedCellKeyupListener(active, (e) => {
                 :edit-enabled="false"
                 :virtual="true"
                 :read-only="true"
-                :class="[
-                  `${
-                    [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
-                      ? 'pl-2'
-                      : !isAttachment(lookupColumn)
-                      ? 'px-1'
-                      : ''
-                  }`,
-                  {
-                    'min-h-0 min-w-0': isAttachment(lookupColumn),
-                    '!w-auto ': !isAttachment(lookupColumn),
-                  },
-                ]"
+                :class="smartsheetCellClass"
               />
             </div>
           </template>

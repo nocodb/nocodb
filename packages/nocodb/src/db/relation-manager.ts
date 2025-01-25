@@ -94,9 +94,11 @@ export class RelationManager {
       childTn: string | Knex.Raw<any>;
       childColumn: Column<any>;
       childTable: Model;
+      childBaseModel: IBaseModelSqlV2;
       parentTn: string | Knex.Raw<any>;
       parentColumn: Column<any>;
       parentTable: Model;
+      parentBaseModel: IBaseModelSqlV2;
       childId: any;
       parentId: any;
     },
@@ -151,15 +153,23 @@ export class RelationManager {
       childTn: childBaseModel.getTnPath(childTable),
       childColumn,
       childTable,
+      childBaseModel,
       parentTn: parentBaseModel.getTnPath(parentTable),
       parentColumn,
       parentTable,
-      childId: isBt ? id.rowId : id.childId,
-      parentId: isBt ? id.childId : id.rowId,
+      parentBaseModel,
+      childId:
+        isBt || colOptions.type === RelationTypes.MANY_TO_MANY
+          ? id.rowId
+          : id.childId,
+      parentId:
+        isBt || colOptions.type === RelationTypes.MANY_TO_MANY
+          ? id.childId
+          : id.rowId,
     });
   }
 
-  async getChildRow() {
+  async getHmOrOChildRow() {
     const { baseModel, childTn, childColumn, childTable, childId } =
       this.relationContext;
     return await baseModel.execAndParse(
@@ -178,7 +188,7 @@ export class RelationManager {
     );
   }
 
-  async getChildLinkedWithParent() {
+  async getHmOrOoChildLinkedWithParent() {
     const {
       baseModel,
       childTn,

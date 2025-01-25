@@ -1,3 +1,4 @@
+inputs:
 {
   config,
   lib,
@@ -7,6 +8,7 @@
 
 let
   cfg = config.services.nocodb;
+  inherit (pkgs.stdenv.hostPlatform) system;
 in
 {
   meta.maintainers = with lib.maintainers; [ sinanmohd ];
@@ -16,7 +18,7 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       description = "The nocodb package to use.";
-      default = pkgs.callPackage ./package.nix { };
+      default = inputs.self.packages.${system}.nocodb;
     };
 
     environment = lib.mkOption {

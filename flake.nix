@@ -4,7 +4,7 @@
   inputs.nixpkgs.url = "github:NixOs/nixpkgs/nixos-unstable";
 
   outputs =
-    { self, nixpkgs }:
+    inputs@{ self, nixpkgs }:
     let
       lib = nixpkgs.lib;
 
@@ -29,7 +29,7 @@
       );
 
       nixosModules = {
-        nocodb = ./nix/module.nix;
+        nocodb = import ./nix/module.nix inputs;
         default = self.nixosModules.nocodb;
       };
 

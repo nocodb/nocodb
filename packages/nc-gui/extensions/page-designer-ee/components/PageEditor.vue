@@ -28,6 +28,13 @@ const widgetTypeToComponent = {
   [PageDesignerWidgetType.TEXT]: PageDesignerText,
   [PageDesignerWidgetType.IMAGE]: PageDesignerImage,
 }
+
+// onKeyStroke('Backspace', () => {
+//   if (false && Number(payload.value.currentWidgetId) > 0) {
+//     delete payload.value.widgets[payload.value.currentWidgetId]
+//     payload.value.currentWidgetId = -1
+//   }
+// })
 </script>
 
 <template>
@@ -50,7 +57,7 @@ const widgetTypeToComponent = {
           <component
             :is="widgetTypeToComponent[widget.type]"
             :id="i"
-            :active="i === payload.currentWidgetId"
+            :active="+i === +payload.currentWidgetId"
             @mousedown.stop="payload.currentWidgetId = i"
           />
         </template>

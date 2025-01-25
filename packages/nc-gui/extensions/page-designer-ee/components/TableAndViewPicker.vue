@@ -51,7 +51,6 @@ const filterOption = (input: string, option: { key: string }) => {
 async function reloadViews() {
   if (!savedPayloads.value.selectedTableId) return
   views.value = await getViewsForTable(savedPayloads.value.selectedTableId)
-  console.log(views.value)
 }
 
 async function onTableSelect(tableId?: string) {

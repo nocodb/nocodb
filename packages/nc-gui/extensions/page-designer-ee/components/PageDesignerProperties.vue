@@ -2,6 +2,10 @@
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { PageOrientation, PageType } from '../lib/layout'
 import { type PageDesignerWidget, PageDesignerWidgetFactory } from '../lib/widgets'
+import TextWidgetImage from '../assets/text-widget.svg'
+import ImageWidgetImage from '../assets/image-widget.svg'
+import DividerWidgetImage from '../assets/divider-widget.svg'
+import StaticWidget from './StaticWidget.vue'
 import GroupedSettings from './GroupedSettings.vue'
 import TableAndViewPicker from './TableAndViewPicker.vue'
 
@@ -17,6 +21,7 @@ const displayField = computed(() => meta?.value?.columns?.find((c) => c?.pv) || 
 
 function addWidget(widget: PageDesignerWidget) {
   payload.value.widgets[widget.id] = widget
+  payload.value.currentWidgetId = widget.id
 }
 
 function getNextWidgetId() {
@@ -48,8 +53,20 @@ function getNextWidgetId() {
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
-      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))">Text</NcButton>
-      <NcButton @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))">Image</NcButton>
+      <div class="flex">
+        <StaticWidget
+          :icon="TextWidgetImage"
+          text="Text"
+          first
+          @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))"
+        ></StaticWidget>
+        <StaticWidget
+          :icon="ImageWidgetImage"
+          text="Image"
+          @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
+        ></StaticWidget>
+        <StaticWidget :icon="DividerWidgetImage" text="Divider" last></StaticWidget>
+      </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">
       <div class="flex flex-col gap-4">

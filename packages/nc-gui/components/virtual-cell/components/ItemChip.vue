@@ -160,16 +160,13 @@ export default {
     }
   }
   .blue-chip {
-    @apply !bg-nc-bg-brand !border-none;
-    padding: 4px 8px;
-    border-radius: 8px;
+    @apply !bg-nc-bg-brand !border-none px-2 py-1 rounded-lg;
     &,
     & * {
       @apply !text-nc-content-brand;
     }
     :deep(.clamped-text) {
-      display: block !important;
-      text-overflow: ellipsis;
+      @apply !block text-ellipsis;
     }
   }
 }

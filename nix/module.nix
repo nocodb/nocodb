@@ -7,6 +7,11 @@
 
 let
   cfg = config.services.nocodb;
+  inherit (pkgs.stdenv.hostPlatform) system;
+
+  defaultEnvs = {
+    DATABASE_URL="sqlite:///%S/nocodb/sqlite.db";
+  };
 in
 {
   meta.maintainers = with lib.maintainers; [ sinanmohd ];
@@ -38,20 +43,14 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
-      inherit (cfg) environment;
+      environment = defaultEnvs // cfg.environment;
 
       serviceConfig = {
         Type = "simple";
         DynamicUser = true;
-
-        RuntimeDirectory = "nocodb";
         StateDirectory = "nocodb";
-        RuntimeDirectoryMode = "0700";
-
         Restart = "on-failure";
-
         EnvironmentFile = lib.mkIf (cfg.environmentFile != null) cfg.environmentFile;
-
         ExecStart = lib.getExe cfg.package;
       };
     };

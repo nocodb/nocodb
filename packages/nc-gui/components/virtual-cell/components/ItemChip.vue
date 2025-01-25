@@ -160,7 +160,7 @@ export default {
     }
   }
   .blue-chip {
-    @apply !bg-nc-bg-brand !border-none px-2 py-1 rounded-lg;
+    @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
       @apply !text-nc-content-brand;

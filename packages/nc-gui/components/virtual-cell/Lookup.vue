@@ -14,6 +14,14 @@ const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const cellClickHook = inject(CellClickHookInj, null)
+
+const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
+
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
 const providedHeightRef = ref(1) as any
@@ -132,24 +140,25 @@ const cell = computed(() => triggerRef.value?.closest('td, .nc-data-cell'))
 const dropdownOverlayRef = ref<HTMLInputElement | null>(null)
 const active = inject(ActiveCellInj, ref(false))
 
-function toggleDropdown() {
-  dropdownVisible.value = !dropdownVisible.value
+function toggleDropdown(e: Event) {
+  if (e.type !== 'click') return
+  if (isExpandedForm.value || isForm.value || active.value) {
+    dropdownVisible.value = !dropdownVisible.value
+  }
 }
 
-useSelectedCellClickListener(active, toggleDropdown)
-
 onMounted(() => {
-  const container = triggerRef.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
-  if (container) container.addEventListener('click', toggleDropdown)
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
     dropdownVisible.value = false
   })
+  onDivDataCellEventHook?.on(toggleDropdown)
+  cellClickHook?.on(toggleDropdown)
 })
 
 onUnmounted(() => {
-  const container = triggerRef.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
-  if (container) container.removeEventListener('click', toggleDropdown)
+  onDivDataCellEventHook?.off(toggleDropdown)
+  cellClickHook?.off(toggleDropdown)
 })
 
 watch(dropdownVisible, (val) => {

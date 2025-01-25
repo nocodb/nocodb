@@ -127,7 +127,7 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)" placement="bottom">
+      <a-tooltip v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem" placement="bottom">
         <template #title>{{ $t('title.switchLanguage') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />

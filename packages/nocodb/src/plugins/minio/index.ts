@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: S3Plugin,
   id: 'minio',
   title: 'Minio',
-  version: '0.0.4',
+  version: '0.0.5',
   logo: 'plugins/minio.png',
   description:
     'MinIO is a High Performance Object Storage released under Apache License v2.0. It is API compatible with Amazon S3 cloud storage service.',
@@ -22,6 +22,8 @@ const config: XcPluginConfig = {
         placeholder: 'Minio Endpoint',
         type: XcType.SingleLineText,
         required: true,
+        help_text:
+          'Hostnames can’t include underscores (_) due to DNS standard limitations. Update the hostname if you see an Invalid endpoint error.',
       },
       {
         key: 'port',

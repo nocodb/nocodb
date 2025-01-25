@@ -113,15 +113,17 @@ export const InitMetaServiceProvider: FactoryProvider = {
     NcDebug.log('Admin user from environment initialized');
     await Noco.loadEEState();
 
-    if (process.env.NC_CLOUD === 'true' || process.env.NC_LICENSE_KEY) {
+    if (process.env.NC_LICENSE_KEY) {
       try {
         await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+        NcDebug.log('Cloud plugins initialized from env');
       } catch (e) {
         if (process.env.NC_CLOUD === 'true') throw e;
         console.error('Plugin init failed', e?.message);
       }
     }
 
+    NcDebug.log('Upgrader starting');
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
     NcDebug.log('Upgrader finished');

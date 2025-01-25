@@ -14,7 +14,7 @@ interface CreateBaseArgs {
 const testDev = true;
 
 export default function () {
-  describe.only(`Base v3`, () => {
+  describe(`Base v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     async function _createBase(args: CreateBaseArgs) {

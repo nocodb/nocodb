@@ -144,7 +144,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             size="small"
             @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
           >
-            <div class="text-sm">{{ $t('labels.showJsonPayload') }}</div>
+            <div class="text-sm">{{ $t('title.additionalDetails') }}</div>
 
             <GeneralIcon
               icon="chevronDown"

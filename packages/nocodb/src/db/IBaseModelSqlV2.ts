@@ -1,3 +1,4 @@
+import type { XKnex } from './CustomKnex';
 import type { NcApiVersion, NcContext } from 'nocodb-sdk';
 import type { Column, Model } from 'src/models';
 import type { Knex } from 'knex';
@@ -6,9 +7,21 @@ import type CustomKnex from './CustomKnex';
 export interface IBaseModelSqlV2 {
   context: NcContext;
   model: Model;
+  tnPath: string | Knex.Raw<any>;
 
-  get dbDriver(): CustomKnex;
-
+  readByPk(
+    id: undefined | any,
+    validateFormula: boolean,
+    query: any,
+    options: {
+      ignoreView?: boolean;
+      getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      extractOnlyPrimaries?: boolean;
+      apiVersion?: NcApiVersion;
+      extractOrderColumn?: boolean;
+    },
+  ): Promise<any>;
   execAndParse(
     qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
@@ -24,4 +37,27 @@ export interface IBaseModelSqlV2 {
       apiVersion?: NcApiVersion;
     },
   ): Promise<any>;
+
+  updateLastModified(payload: {
+    rowIds: any | any[];
+    cookie?: { user?: any };
+    model?: Model;
+    knex?: XKnex;
+    baseModel?: IBaseModelSqlV2;
+  }): Promise<void>;
+  readOnlyPrimariesByPkFromModel(
+    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+  ): Promise<any[]>;
+  extractPksValues(data: any, asString?: boolean): any;
+
+  getViewId(): string;
+
+  get dbDriver(): CustomKnex;
+  get isSqlite(): boolean;
+  get isMssql(): boolean;
+  get isPg(): boolean;
+  get isMySQL(): boolean;
+  get isSnowflake(): boolean;
+  get isDatabricks(): boolean;
+  get clientType(): string;
 }

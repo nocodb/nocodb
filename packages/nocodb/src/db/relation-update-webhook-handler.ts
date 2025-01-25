@@ -1,12 +1,12 @@
 import { UpdateWebhookHandler } from './update-webhook-handler';
+import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
 
 export type RelationUpdateWebhookContext = {
   context: NcContext;
   user: any;
-  parentBaseModel: BaseModelSqlv2;
-  childBaseModel: BaseModelSqlv2;
+  parentBaseModel: IBaseModelSqlV2;
+  childBaseModel: IBaseModelSqlV2;
   ignoreWebhook?: boolean;
 };
 export class RelationUpdateWebhookHandler {

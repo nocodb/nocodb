@@ -183,7 +183,7 @@ onKeyStroke('ArrowDown', onDown)
           </div>
 
           <div v-if="column.key === 'ip'" class="w-full truncate">
-            {{ audit.ip || '' }}
+            {{ audit.ip === '::1' ? 'localhost' : '' }}
           </div>
           <div v-if="column.key === 'user_agent'" class="w-full truncate">
             {{ audit.user_agent || '' }}

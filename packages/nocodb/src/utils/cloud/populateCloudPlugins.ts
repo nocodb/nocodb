@@ -1,7 +1,7 @@
-import S3PluginConfig from '../../plugins/s3';
-import SESPluginConfig from '../../plugins/ses';
-import { MetaTable } from '../globals';
+import S3PluginConfig from '~/plugins/s3';
+import SESPluginConfig from '~/plugins/ses';
 import Noco from '~/Noco';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   if (

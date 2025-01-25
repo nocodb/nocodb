@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { auditGroups } from 'nocodb-sdk';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { Audit } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -16,6 +17,7 @@ export class AuditsService {
       fk_model_id: string;
       limit?: string | number;
       offset?: string | number;
+      type?: keyof typeof auditGroups;
     };
   }) {
     return await Audit.auditList(param.query);

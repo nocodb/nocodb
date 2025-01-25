@@ -7,10 +7,6 @@ import type { NextFunction, Request, Response } from 'express';
 import { swaggerV3 } from '~/schema';
 import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
-// import addErrors from 'ajv-errors';
-
-import addErrors from 'ajv-errors';
-
 
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
@@ -18,7 +14,6 @@ export function parseHrtimeToMilliSeconds(hrtime) {
 }
 
 const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); // Initialize AJV
-// addErrors(ajv);
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);
@@ -57,7 +52,7 @@ export const validatePayload = (
 
   // If the request body is not valid, throw error
   if (!valid) {
-    let errors: ErrorObject[] | null | undefined | ValidationError[] =
+    const errors: ErrorObject[] | null | undefined | ValidationError[] =
       ajv.errors || validate.errors;
 
     if (humanReadableError) {
@@ -69,6 +64,7 @@ export const validatePayload = (
       //       schema.split('swagger-v3.json#/components/schemas/')[1]
       //     ];
       // }
+
       // errors = betterAjvErrors({
       //   schema: validate.schema,
       //   data: payload,

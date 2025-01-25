@@ -4,6 +4,7 @@ import { PageDesignerLayout } from '../lib/layout'
 import { PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
+import PageDesignerDivider from './PageDesignerDivider'
 import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -29,6 +30,7 @@ const verticalLines = computed(() => {
 const widgetTypeToComponent = {
   [PageDesignerWidgetType.TEXT]: PageDesignerText,
   [PageDesignerWidgetType.IMAGE]: PageDesignerImage,
+  [PageDesignerWidgetType.DIVIDER]: PageDesignerDivider,
 }
 
 // onKeyStroke('Backspace', () => {
@@ -41,6 +43,7 @@ const widgetTypeToComponent = {
 const widgetFactoryByType: Record<string, Function> = {
   [PageDesignerWidgetType.TEXT]: PageDesignerWidgetFactory.createEmptyTextWidget,
   [PageDesignerWidgetType.IMAGE]: PageDesignerWidgetFactory.createEmptyImageWidget,
+  [PageDesignerWidgetType.DIVIDER]: PageDesignerWidgetFactory.createEmptyDividerWidget,
 }
 
 function onDropped(e: DragEvent) {

@@ -1293,12 +1293,3 @@ svg.nc-virtual-cell-icon {
     }
   }
 }
-
-[data-inactive-widget='true'] {
-  .moveable-se {
-    visibility: hidden;
-  }
-  .moveable-line {
-    @apply !bg-nc-bg-gray-dark;
-  }
-}

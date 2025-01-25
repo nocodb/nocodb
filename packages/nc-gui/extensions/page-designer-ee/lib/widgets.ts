@@ -1,6 +1,7 @@
 export enum PageDesignerWidgetType {
   TEXT,
   IMAGE,
+  DIVIDER,
 }
 
 export interface PageDesignerWidget {
@@ -40,6 +41,11 @@ export interface PageDesignerImageWidget extends PageDesignerWidget {
   borderRadius: string
   borderColor: string
   objectFit: 'fill' | 'contain' | 'cover'
+}
+
+export interface PageDesignerDividerWidget extends PageDesignerWidget {
+  type: PageDesignerWidgetType.DIVIDER
+  backgroundColor: string
 }
 
 const BLACK = '#000000'
@@ -85,6 +91,16 @@ export class PageDesignerWidgetFactory {
       objectFit: 'cover',
       zIndex: 0,
       cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
+    }
+  }
+
+  static createEmptyDividerWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerDividerWidget {
+    return {
+      id,
+      backgroundColor: BLACK,
+      type: PageDesignerWidgetType.DIVIDER,
+      zIndex: 0,
+      cssStyle: `width: 500px; height: 10px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
     }
   }
 }

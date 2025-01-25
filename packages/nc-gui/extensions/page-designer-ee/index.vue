@@ -91,7 +91,8 @@ watch(
         </div>
         <div class="overflow-y-auto flex-1 relative group px-3 my-3 mini-layout">
           <div
-            class="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out transform -translate-x-2/4 -translate-y-2/4 left-2/4 top-2/4 z-1"
+            class="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out transform -translate-x-2/4 -translate-y-2/4 left-2/4 top-2/4"
+            style="z-index: 10000"
           >
             <NcButton @click="fullscreen = true">
               <template #icon>
@@ -112,6 +113,18 @@ watch(
 .mini-layout {
   :deep(.layout-wrapper) {
     @apply rounded-lg;
+  }
+}
+</style>
+
+<style lang="scss">
+[data-inactive-widget='true'] {
+  .moveable-control,
+  .moveable-rotation-line {
+    visibility: hidden;
+  }
+  .moveable-line {
+    @apply !bg-nc-bg-gray-dark;
   }
 }
 </style>

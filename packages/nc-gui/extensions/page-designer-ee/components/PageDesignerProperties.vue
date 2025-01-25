@@ -64,7 +64,13 @@ function getNextWidgetId() {
           text="Image"
           @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
         ></StaticWidget>
-        <StaticWidget :type="PageDesignerWidgetType.TEXT" :icon="DividerWidgetImage" text="Divider" last></StaticWidget>
+        <StaticWidget
+          :type="PageDesignerWidgetType.DIVIDER"
+          :icon="DividerWidgetImage"
+          text="Divider"
+          last
+          @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget(getNextWidgetId()))"
+        ></StaticWidget>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">

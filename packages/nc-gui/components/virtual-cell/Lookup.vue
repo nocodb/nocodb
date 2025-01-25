@@ -445,6 +445,7 @@ watch(dropdownVisible, (val) => {
     border-bottom: 1px solid;
     @apply !border-nc-border-gray-medium;
     box-shadow: none !important;
+    padding: 6.5px 12px;
     input::placeholder {
       @apply !text-nc-content-gray-muted;
     }

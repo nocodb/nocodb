@@ -109,6 +109,7 @@ function isV0Audit(audit: AuditType) {
                   :user="{
                     email: audit?.created_by_email || audit?.user,
                     display_name: audit?.created_display_name || audit?.user,
+                    meta: audit?.created_by_meta,
                   }"
                   class="mt-0.5"
                   size="medium"
@@ -203,13 +204,13 @@ function isV0Audit(audit: AuditType) {
   .audit-link-addition {
     @apply flex gap-2 flex-wrap;
     span {
-      @apply !text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
+      @apply !text-[13px] px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
     }
   }
   .audit-link-removal {
     @apply flex gap-2 flex-wrap;
     span {
-      @apply !text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
+      @apply !text-[13px] px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
     }
   }
 }

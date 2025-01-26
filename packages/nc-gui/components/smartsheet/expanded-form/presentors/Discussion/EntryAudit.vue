@@ -56,6 +56,7 @@ const createdBy = computed(() => {
         :user="{
           email: props.auditGroup.user,
           display_name: props.auditGroup.displayName,
+          meta: props.auditGroup.audit?.created_by_meta,
         }"
         class="w-[24px] aspect-square"
       />

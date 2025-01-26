@@ -137,7 +137,7 @@ function isShowableValue(value: any) {
         </span>
         <template v-if="meta[columnKey]?.type === 'Attachment'">
           <div v-if="processOldDataFor(columnKey)?.length > 0" class="w-full mt-1">
-            <div class="border-1 border-red-500 rounded-md bg-red-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
+            <div class="border-1 border-red-200 rounded-md bg-red-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processOldDataFor(columnKey)"
                 :key="item.url || item.title"
@@ -166,7 +166,7 @@ function isShowableValue(value: any) {
             </div>
           </div>
           <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full mt-1">
-            <div class="border-1 border-green-500 rounded-md bg-green-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
+            <div class="border-1 border-green-200 rounded-md bg-green-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processNewDataFor(columnKey)"
                 :key="item.url || item.title"
@@ -429,6 +429,7 @@ function isShowableValue(value: any) {
     .nc-cell.nc-cell-duration .nc-cell-field,
     .nc-cell.nc-cell-currency .nc-cell-field,
     .nc-cell.nc-cell-decimal .nc-cell-field,
+    .nc-cell.nc-cell-geometry .nc-cell-field,
     .nc-cell.nc-cell-number .nc-cell-field
   ) {
   font-size: 13px !important;

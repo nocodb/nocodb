@@ -22,7 +22,7 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 // override cell click hook to avoid unexpected behavior at form fields
-provide(CellClickHookInj, null)
+provide(CellClickHookInj, undefined)
 
 provide(MetaInj, meta)
 

@@ -113,7 +113,7 @@ function onCommentBlur() {
 
 <template>
   <div class="bg-white rounded-lg border !border-gray-200 border-1 relative group my-4 nc-audit-comment-block">
-    <div class="flex items-center gap-2 bg-gray-50 pl-5 pr-3 py-1.9 border-b border-gray-200 rounded-t-lg">
+    <div class="flex items-center gap-2 bg-gray-50 px-4 py-1.9 border-b border-gray-200 rounded-t-lg">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
@@ -183,7 +183,7 @@ function onCommentBlur() {
       v-model:value="value"
       autofocus
       :hide-options="false"
-      class="cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+      class="cursor-text expanded-form-comment-input !py-2 !px-4 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
       data-testid="expanded-form-comment-input"
       sync-value-change
       @save="onEditComment"
@@ -194,7 +194,7 @@ function onCommentBlur() {
     <SmartsheetExpandedFormRichComment
       v-else
       :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-      class="!text-small !leading-18px !text-gray-800 px-5 py-4"
+      class="!text-small !leading-18px !text-gray-800 px-4 py-4"
       read-only
       sync-value-change
     />

@@ -401,10 +401,6 @@ const validateTitle = async () => {
 async function onRename() {
   if (!isEditing.value) return
 
-  if (formState.title) {
-    formState.title = formState.title.trim()
-  }
-
   if (!formState.title?.trim() || table.value.title === formState.title) {
     onCancel()
     return
@@ -419,7 +415,7 @@ async function onRename() {
 
   const originalTitle = table.value.title
 
-  table.value.title = formState.title || ''
+  table.value.title = formState.title.trim() || ''
 
   const updateTitle = (title: string) => {
     table.value.title = title

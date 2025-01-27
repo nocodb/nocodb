@@ -7690,6 +7690,19 @@ class BaseModelSqlv2 {
       model: childTable,
     });
 
+    const prevParentDataForWebhook = await parentBaseModel.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    const prevChildDataForWebhook = await childBaseModel.readByPk(
+      childId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
     const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = parentBaseModel.getTnPath(parentTable);
 
@@ -8381,6 +8394,34 @@ class BaseModelSqlv2 {
           });
         }
       }),
+    );
+
+    // FIXME : a first effort to send webhook when child added
+    const nextParentDataForWebhook = await parentBaseModel.readByPk(
+      rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
+    await parentBaseModel.handleHooks(
+      'after.update',
+      prevParentDataForWebhook,
+      nextParentDataForWebhook,
+      cookie,
+    );
+    const nextChildDataForWebhook = await childBaseModel.readByPk(
+      childId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
+    await childBaseModel.handleHooks(
+      'after.update',
+      prevChildDataForWebhook,
+      nextChildDataForWebhook,
+      cookie,
     );
   }
 

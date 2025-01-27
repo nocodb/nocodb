@@ -107,20 +107,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const currentAuditPages = ref(1)
   const mightHaveMoreAudits = ref(false)
 
-  const loadMoreAudits = async () => {
-    if (!mightHaveMoreAudits.value) {
-      return
-    }
-
-    currentAuditPages.value++
-    await loadAudits()
-  }
-
-  const resetAuditPages = async () => {
-    currentAuditPages.value = 1
-    await loadAudits()
-  }
-
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
     if (
       !isUIAllowed('auditListRow') ||
@@ -169,6 +155,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     } finally {
       isAuditLoading.value = false
     }
+  }
+
+  const loadMoreAudits = async () => {
+    if (!mightHaveMoreAudits.value) {
+      return
+    }
+
+    currentAuditPages.value++
+    await loadAudits()
+  }
+
+  const resetAuditPages = async () => {
+    currentAuditPages.value = 1
+    await loadAudits()
   }
 
   const isYou = (email: string) => {

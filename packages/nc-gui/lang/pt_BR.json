@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "Você",
     "read": "Lida",
-    "unread": "Não lida"
+    "unread": "Não lida",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "Criar integração de IA",
     "suggestTablesViews": "Sugerir Tabelas e Visualizações",
     "configureAiButton": "Configurar Botão de IA",
-    "viewHide": "Visibilidade da visualização "
+    "viewHide": "Visibilidade da visualização ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",

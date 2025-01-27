@@ -1,5 +1,3 @@
-import type { CellRenderer } from '~/lib/types'
-
 export const CheckboxCellRenderer: CellRenderer = {
   render: async (ctx, { value, x, y, width, height, readonly, column }) => {
     const checked = !!value && value !== '0' && value !== 0 && value !== 'false'

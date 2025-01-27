@@ -59,6 +59,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
   const loadUsersForWorkspace = async (..._arg: any[]) => {}
 
   const onInit = async () => {}
+  const getUserName = (..._arg: any[]) => {}
 
   return {
     bases,
@@ -78,6 +79,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     loadBasesForWorkspace,
     loadUsersForWorkspace,
     onInit,
+    getUserName,
   }
 })
 

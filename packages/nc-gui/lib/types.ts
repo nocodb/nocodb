@@ -1,7 +1,6 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
 import type {
-  AuditOperationTypes,
   BaseType,
   ColumnType,
   FilterType,
@@ -283,7 +282,7 @@ interface ImageCropperProps {
 }
 
 interface AuditLogsQuery {
-  type?: AuditOperationTypes
+  type?: string
   workspaceId?: string
   baseId?: string
   sourceId?: string

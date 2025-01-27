@@ -138,6 +138,45 @@ export const auditV1OperationTypesAlias = Object.values(
   return acc;
 }, {} as Record<string, string>);
 
+/**
+ * For audit logs table filter usecase only
+ */
+export interface AuditV1OperationsCategoryItemType {
+  label: string;
+  value: string;
+  types: Array<AuditV1OperationTypes>;
+}
+
+/**
+ * For audit logs table filter usecase only
+ */
+export const auditV1OperationsCategory: Record<
+  string,
+  AuditV1OperationsCategoryItemType
+> = {
+  DATA: {
+    label: 'general.data',
+    value: 'DATA',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('DATA_')
+    ),
+  },
+  FIELD: {
+    label: 'objects.column',
+    value: 'FIELD',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('FIELD_')
+    ),
+  },
+  TABLE: {
+    label: 'objects.table',
+    value: 'TABLE',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('TABLE_')
+    ),
+  },
+};
+
 export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_INSERT
   | AuditV1OperationTypes.DATA_BULK_UPDATE

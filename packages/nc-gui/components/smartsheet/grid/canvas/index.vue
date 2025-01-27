@@ -86,6 +86,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 // Composables
 const { height, width } = useElementSize(wrapperRef)
+const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 
 const {
   rowSlice,
@@ -131,6 +132,7 @@ const {
   height,
   scrollToCell,
   scrollTop,
+  aggregations,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()
@@ -176,12 +178,17 @@ function handleMouseDown(e: MouseEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
+  const y = e.clientY - rect.top
+  const x = e.clientX - rect.left
+
+  if (y > height.value - 36) {
+    return
+  }
+
   onMouseDownFillHandlerStart(e)
   if (isFillHandlerActive.value) return
 
   selection.value.clear()
-  const y = e.clientY - rect.top
-  const x = e.clientX - rect.left
 
   // Header interactions
   if (y <= 32) {
@@ -368,6 +375,7 @@ onMounted(async () => {
   await syncCount()
   calculateSlices()
   triggerRefreshCanvas()
+  await loadViewAggregate()
 })
 </script>
 

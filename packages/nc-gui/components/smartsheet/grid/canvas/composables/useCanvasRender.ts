@@ -39,6 +39,8 @@ export function useCanvasRender({
         fixed: boolean
         pv: boolean
         columnObj: ColumnType
+        aggregation: string
+        agg_prefix: string
       }[]
   >
   colSlice: Ref<{ start: number; end: number }>
@@ -476,6 +478,173 @@ export function useCanvasRender({
     ctx.stroke()
   }
 
+  function renderAggregations(ctx: CanvasRenderingContext2D) {
+    const AGGREGATION_HEIGHT = 36
+    const { start: startColIndex, end: endColIndex } = colSlice.value
+
+    // Background
+    ctx.fillStyle = '#F9F9FA'
+    ctx.fillRect(0, height.value - AGGREGATION_HEIGHT, width.value, AGGREGATION_HEIGHT)
+
+    // Top border
+    ctx.beginPath()
+    ctx.strokeStyle = '#E7E7E9'
+    ctx.moveTo(0, height.value - AGGREGATION_HEIGHT)
+    ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT)
+    ctx.stroke()
+
+    let initialOffset = 0
+    for (let i = 0; i < startColIndex; i++) {
+      initialOffset += parseInt(columns.value[i]!.width, 10)
+    }
+
+    const visibleCols = columns.value.slice(startColIndex, endColIndex)
+    let xOffset = initialOffset + 1
+
+    visibleCols.forEach((column) => {
+      const width = parseInt(column.width, 10)
+
+      if (column.aggregation) {
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+        ctx.clip()
+
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'right'
+
+        ctx.font = '600 12px Manrope'
+        const aggWidth = ctx.measureText(column.aggregation).width
+
+        if (column.agg_prefix) {
+          ctx.font = '400 12px Manrope'
+          ctx.fillStyle = '#6a7184'
+          ctx.fillText(
+            column.agg_prefix,
+            xOffset + width - aggWidth - 16 - scrollLeft.value,
+            height.value - AGGREGATION_HEIGHT / 2,
+          )
+        }
+
+        ctx.font = '600 12px Manrope'
+        ctx.fillStyle = '#4a5268'
+        ctx.fillText(column.aggregation, xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
+
+        ctx.restore()
+      }
+
+      ctx.beginPath()
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.moveTo(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT)
+      ctx.lineTo(xOffset - scrollLeft.value, height.value)
+      ctx.stroke()
+
+      xOffset += width
+    })
+
+    const fixedCols = columns.value.filter((col) => col.fixed)
+    if (fixedCols.length) {
+      xOffset = 0
+      const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
+      const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
+
+      if (rowNumberCol && firstFixedCol) {
+        const mergedWidth = parseInt(rowNumberCol.width, 10) + parseInt(firstFixedCol.width, 10)
+
+        ctx.fillStyle = '#F9F9FA'
+        ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
+
+        if (firstFixedCol.aggregation) {
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
+          ctx.clip()
+
+          ctx.textBaseline = 'middle'
+          ctx.textAlign = 'right'
+
+          ctx.font = '600 12px Manrope'
+          const aggWidth = ctx.measureText(firstFixedCol.aggregation).width
+
+          if (firstFixedCol.agg_prefix) {
+            ctx.font = '400 12px Manrope'
+            ctx.fillStyle = '#6a7184'
+            ctx.fillText(firstFixedCol.agg_prefix, mergedWidth - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
+          }
+
+          ctx.font = '600 12px Manrope'
+          ctx.fillStyle = '#4a5268'
+          ctx.fillText(firstFixedCol.aggregation, mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
+
+          ctx.restore()
+        }
+
+        ctx.strokeStyle = '#e7e7e9'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
+        ctx.lineTo(xOffset, height.value)
+        ctx.stroke()
+
+        xOffset += mergedWidth
+
+        fixedCols.slice(2).forEach((column) => {
+          const width = parseInt(column.width, 10)
+
+          ctx.fillStyle = '#F9F9FA'
+          ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+
+          if (column.aggregation) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+            ctx.clip()
+
+            ctx.font = '600 12px Manrope'
+            const aggWidth = ctx.measureText(column.aggregation).width
+
+            if (column.agg_prefix) {
+              ctx.font = '400 12px Manrope'
+              ctx.fillStyle = '#6a7184'
+              ctx.fillText(column.agg_prefix, xOffset + width - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
+            }
+
+            ctx.font = '600 12px Manrope'
+            ctx.fillStyle = '#4a5268'
+            ctx.fillText(column.aggregation, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
+
+            ctx.restore()
+          }
+
+          ctx.strokeStyle = '#e7e7e9'
+          ctx.beginPath()
+          ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
+          ctx.lineTo(xOffset, height.value)
+          ctx.stroke()
+
+          xOffset += width
+        })
+
+        if (scrollLeft.value) {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+          ctx.shadowBlur = 2
+          ctx.shadowOffsetX = 1
+          ctx.shadowOffsetY = 0
+        }
+
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
+        ctx.lineTo(xOffset, height.value)
+        ctx.stroke()
+
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+      }
+    }
+  }
+
   function renderCanvas() {
     const canvas = canvasRef.value
     if (!canvas) return
@@ -496,6 +665,7 @@ export function useCanvasRender({
     renderRows(ctx)
     renderHeader(ctx)
     renderDragIndicator(ctx)
+    renderAggregations(ctx)
   }
 
   return {

@@ -21,6 +21,7 @@ export function useCanvasTable({
   width,
   height,
   scrollToCell,
+  aggregations,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -33,6 +34,7 @@ export function useCanvasTable({
   width: Ref<number>
   height: Ref<number>
   scrollToCell: (row: number, column: number) => void
+  aggregations: Ref<Record<string, any>>
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -54,6 +56,7 @@ export function useCanvasTable({
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
 
   const { isMobileMode } = useGlobal()
+  const { t } = useI18n()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
   const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
@@ -83,6 +86,8 @@ export function useCanvasTable({
           width: gridViewCol.width,
           fixed: f.pv,
           pv: !!f.pv,
+          aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
+          agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
           columnObj: f,
         }
       })

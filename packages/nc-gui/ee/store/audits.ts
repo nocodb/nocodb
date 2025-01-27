@@ -17,7 +17,7 @@ const defaultAuditLogsQuery = {
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0 }
 
-export type CollaboratorType = (WorkspaceUserType & { id: string }) | User | UserType
+export type CollaboratorType = User | UserType | (WorkspaceUserType & { id: string })
 
 export const useAuditsStore = defineStore('auditsStore', () => {
   const { $api } = useNuxtApp()
@@ -183,6 +183,19 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
+  const getUserName = (userEmail?: string) => {
+    if (!userEmail) return ''
+
+    const userInfo = collaboratorsMap.value.get(userEmail)
+
+    if (!userInfo) return ''
+
+    if (userInfo?.display_name) {
+      return userInfo.display_name
+    }
+
+    return userInfo?.email?.slice(0, userInfo?.email.indexOf('@'))
+  }
   return {
     bases,
     basesList,
@@ -201,6 +214,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     loadBasesForWorkspace,
     loadUsersForWorkspace,
     onInit,
+    getUserName,
   }
 })
 

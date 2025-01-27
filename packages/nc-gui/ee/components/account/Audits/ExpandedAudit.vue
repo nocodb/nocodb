@@ -1,13 +1,19 @@
 <script lang="ts" setup>
 import { auditV1OperationTypesAlias } from 'nocodb-sdk'
 
-const { isRowExpanded, selectedAudit, bases, collaboratorsMap } = storeToRefs(useAuditsStore())
+const auditsStore = useAuditsStore()
+
+const { isRowExpanded, selectedAudit, bases, collaboratorsMap } = storeToRefs(auditsStore)
 
 const isDataEventType = (audit) => {
   return !ncIsUndefined(audit?.row_id) && audit?.op_type?.startsWith('DATA_')
 }
 
 const advancedOptionsExpansionPanel = ref<string[]>([])
+
+const selectedAuditUsername = computed(() => {
+  return auditsStore.getUserName(selectedAudit.value?.user)
+})
 
 const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
   if (open) {
@@ -66,12 +72,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
               <div class="flex-1 flex flex-col">
                 <div class="w-full flex gap-3">
                   <span class="text-sm text-gray-800 capitalize font-semibold">
-                    {{
-                      collaboratorsMap.get(selectedAudit.user)?.display_name ||
-                      collaboratorsMap
-                        .get(selectedAudit.user)
-                        ?.email?.slice(0, collaboratorsMap.get(selectedAudit.user)?.email.indexOf('@'))
-                    }}
+                    {{ selectedAuditUsername }}
                   </span>
                 </div>
                 <span class="text-xs text-gray-600">

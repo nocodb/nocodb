@@ -7,7 +7,7 @@ const { appInfo } = useGlobal()
 
 const auditsStore = useAuditsStore()
 
-const { loadAudits, onInit } = auditsStore
+const { loadAudits, onInit, getUserName } = auditsStore
 const { isRowExpanded, selectedAudit, bases, audits, auditLogsQuery, auditPaginationData, collaboratorsMap, isLoadingAudits } =
   storeToRefs(auditsStore)
 
@@ -132,15 +132,9 @@ onKeyStroke('ArrowDown', onDown)
                     placement="bottom"
                   >
                     <template #title>
-                      {{
-                        collaboratorsMap.get(audit.user)?.display_name ||
-                        collaboratorsMap.get(audit.user)?.email?.slice(0, collaboratorsMap.get(audit.user)?.email?.indexOf('@'))
-                      }}
+                      {{ getUserName(audit.user) }}
                     </template>
-                    {{
-                      collaboratorsMap.get(audit.user)?.display_name ||
-                      collaboratorsMap.get(audit.user)?.email?.slice(0, collaboratorsMap.get(audit.user)?.email?.indexOf('@'))
-                    }}
+                    {{ getUserName(audit.user) }}
                   </NcTooltip>
                 </div>
                 <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">

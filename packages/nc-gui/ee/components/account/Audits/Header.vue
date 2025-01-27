@@ -227,6 +227,14 @@ const selectedEventTypes = computed(() => {
 
   return auditLogsQuery.value.type.map((cat) => t(auditV1OperationsCategory[cat]?.label ?? '')).join(', ')
 })
+
+const selectedWorkspace = computed(() => {
+  return (auditLogsQuery.value.workspaceId && workspaces.value.get(auditLogsQuery.value.workspaceId)?.title) || 'All'
+})
+
+const selectedBase = computed(() => {
+  return (auditLogsQuery.value.baseId && bases.value.get(auditLogsQuery.value.baseId)?.title) || 'All'
+})
 </script>
 
 <template>
@@ -248,10 +256,10 @@ const selectedEventTypes = computed(() => {
               >
                 <template #title>
                   <span class="capitalize">
-                    {{ (auditLogsQuery.workspaceId && workspaces.get(auditLogsQuery.workspaceId)?.title) || 'All' }}
+                    {{ selectedWorkspace }}
                   </span>
                 </template>
-                {{ (auditLogsQuery.workspaceId && workspaces.get(auditLogsQuery.workspaceId)?.title) || 'All' }}
+                {{ selectedWorkspace }}
               </NcTooltip>
             </div>
             <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />
@@ -380,10 +388,10 @@ const selectedEventTypes = computed(() => {
               <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.baseId }" show-on-truncate-only>
                 <template #title>
                   <span class="capitalize">
-                    {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                    {{ selectedBase }}
                   </span>
                 </template>
-                {{ (auditLogsQuery.baseId && bases.get(auditLogsQuery.baseId)?.title) || 'All' }}
+                {{ selectedBase }}
               </NcTooltip>
             </div>
             <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4" />

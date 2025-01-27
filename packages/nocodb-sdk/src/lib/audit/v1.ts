@@ -126,6 +126,18 @@ enum AuditV1OperationTypes {
   USER_PROFILE_UPDATE = 'USER_PROFILE_UPDATE',
 }
 
+export const auditV1OperationTypesAlias = Object.values(
+  AuditV1OperationTypes
+).reduce((acc, key) => {
+  // Convert snake_case or UPPER_SNAKE_CASE to readable format
+  const readableKey = key
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .toLowerCase() // Convert to lowercase
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase()); // Capitalize each word
+  acc[key] = readableKey;
+  return acc;
+}, {} as Record<string, string>);
+
 export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_INSERT
   | AuditV1OperationTypes.DATA_BULK_UPDATE

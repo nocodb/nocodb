@@ -22,7 +22,7 @@ export function useCanvasTable({
   height,
   scrollToCell,
 }: {
-  rowHeightEnum?: ComputedRef<number>
+  rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
   clearCache: (start: number, end: number) => void
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
@@ -62,7 +62,7 @@ export function useCanvasTable({
 
   const fields = inject(FieldsInj, ref([]))
 
-  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value}`] ?? 32))
+  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 

@@ -7,6 +7,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
+const auditsStore = useAuditsStore()
+
 const name = computed(() => user.value?.display_name?.trim())
 
 const isMenuOpen = ref(false)
@@ -197,7 +199,7 @@ const accountUrl = computed(() => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-              <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
+              <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.onInit">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
             </template>

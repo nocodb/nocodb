@@ -64,20 +64,17 @@ onUnmounted(() => {
         <h1 class="text-base !text-gray-900 font-weight-700 p-0 m-0">
           {{ $t('general.featurePreview') }}
         </h1>
-        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto" @click="value = false;">
+        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto" @click="value = false">
           <GeneralIcon icon="close" class="!text-gray-700" />
         </nc-button>
       </div>
-      
+
       <div class="text-sm font-weight-500 text-gray-600 leading-5 m-4 mb-0">
         {{ $t('labels.toggleExperimentalFeature') }}
       </div>
 
       <div class="overflow-y-auto nc-scrollbar-thin h-0 flex-grow m-4 !rounded-lg">
-        <div
-          ref="contentRef"
-          class="border-1 !border-gray-200 !rounded-lg"
-        >
+        <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
           <template v-for="feature in features" :key="feature.id">
             <div
               v-if="(!feature.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn)"
@@ -89,7 +86,7 @@ onUnmounted(() => {
                 </div>
                 <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
               </div>
-  
+
               <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
                 {{ feature.description }}
               </div>
@@ -102,12 +99,12 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss">
-  .nc-features-drawer {
-    .ant-drawer-content-wrapper {
-      @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)];
-      .ant-drawer-body {
-        @apply p-0;
-      }
+.nc-features-drawer {
+  .ant-drawer-content-wrapper {
+    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)];
+    .ant-drawer-body {
+      @apply p-0;
     }
   }
+}
 </style>

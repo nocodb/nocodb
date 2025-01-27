@@ -18,6 +18,8 @@ export class RelationUpdateWebhookHandler {
 
   parentUpdateWebhookHandler: UpdateWebhookHandler;
   childUpdateWebhookHandler: UpdateWebhookHandler;
+  affectedChildUpdateWebhookHandler: UpdateWebhookHandler;
+  affectedParentUpdateWebhookHandler: UpdateWebhookHandler;
 
   public static async beginUpdate(
     payload: RelationUpdateWebhookContext,
@@ -62,7 +64,12 @@ export class RelationUpdateWebhookHandler {
       },
       this.parentRowId,
     );
-    if (this.parentRowId != this.childRowId) {
+
+    if (
+      this.relationWebhookContext.parentBaseModel.model.id !==
+        this.relationWebhookContext.childBaseModel.model.id ||
+      this.parentRowId !== this.childRowId
+    ) {
       this.childUpdateWebhookHandler = await UpdateWebhookHandler.beginUpdate(
         {
           context: this.relationWebhookContext.context,
@@ -75,10 +82,45 @@ export class RelationUpdateWebhookHandler {
       );
     }
   }
+
+  async addAffectedParentId(parentRowId: any) {
+    this.affectedParentUpdateWebhookHandler =
+      await UpdateWebhookHandler.beginUpdate(
+        {
+          context: this.relationWebhookContext.context,
+          user: this.relationWebhookContext.user,
+          baseModel: this.relationWebhookContext.parentBaseModel,
+          isSingleUpdate: true,
+          ignoreWebhook: this.relationWebhookContext.ignoreWebhook,
+        },
+        parentRowId,
+      );
+  }
+
+  async addAffectedChildId(childRowId: any) {
+    this.affectedChildUpdateWebhookHandler =
+      await UpdateWebhookHandler.beginUpdate(
+        {
+          context: this.relationWebhookContext.context,
+          user: this.relationWebhookContext.user,
+          baseModel: this.relationWebhookContext.childBaseModel,
+          isSingleUpdate: true,
+          ignoreWebhook: this.relationWebhookContext.ignoreWebhook,
+        },
+        childRowId,
+      );
+  }
+
   async finishUpdate() {
     await this.parentUpdateWebhookHandler.finishUpdate();
-    if (this.parentRowId != this.childRowId) {
+    if (this.childUpdateWebhookHandler) {
       await this.childUpdateWebhookHandler.finishUpdate();
+      if (this.affectedChildUpdateWebhookHandler) {
+        await this.affectedChildUpdateWebhookHandler.finishUpdate();
+      }
+      if (this.affectedParentUpdateWebhookHandler) {
+        await this.affectedParentUpdateWebhookHandler.finishUpdate();
+      }
     }
   }
 }

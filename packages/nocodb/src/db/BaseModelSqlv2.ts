@@ -7700,8 +7700,10 @@ class BaseModelSqlv2 {
         ignoreWebhook: cookie.query?.ignoreWebhook,
       },
       {
-        parent: rowId,
-        child: childId,
+        // in bt, child id and row id is swapped
+        // due to table definition
+        parent: column.meta?.bt ? childId : rowId,
+        child: column.meta?.bt ? rowId : childId,
       },
     );
 
@@ -7922,8 +7924,10 @@ class BaseModelSqlv2 {
         break;
       case RelationTypes.BELONGS_TO:
         {
-          auditConfig.parentModel = childTable;
-          auditConfig.childModel = parentTable;
+          // when bt, the childId and rowId is swapped
+          // due to the relation definiton
+          const childPkId = rowId,
+            parentPkId = childId;
 
           if (onlyUpdateAuditLogs) {
             const oldChildRowId = prevData[column.title]
@@ -7935,14 +7939,14 @@ class BaseModelSqlv2 {
 
             const [childRelatedPkValue] =
               await this.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: rowId },
+                { model: childTable, id: childPkId },
               ]);
 
             if (oldChildRowId) {
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
                 refModel: auditConfig.childModel,
-                rowId,
+                rowId: parentPkId,
                 refRowId: oldChildRowId as string,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
@@ -7959,7 +7963,7 @@ class BaseModelSqlv2 {
                 model: auditConfig.childModel,
                 refModel: auditConfig.parentModel,
                 rowId: oldChildRowId as string,
-                refRowId: rowId,
+                refRowId: parentPkId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.childColTitle,
                 columnId: auditConfig.childColId,
@@ -7982,27 +7986,27 @@ class BaseModelSqlv2 {
                     ),
                   ),
                 )
-                .where(this._wherePk(rowId)),
+                .where(_wherePk(childTable.primaryKeys, childPkId)),
               null,
               { raw: true, first: true },
             );
 
-            const oldChildRowId = linkedHmRowObj
+            const oldParentRowId = linkedHmRowObj
               ? linkedHmRowObj[childColumn.column_name]
               : null;
-
-            if (oldChildRowId) {
+            if (oldParentRowId) {
+              await webhookHandler.addAffectedParentId(oldParentRowId);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await this.readOnlyPrimariesByPkFromModel([
-                  { model: parentTable, id: oldChildRowId },
-                  { model: childTable, id: rowId },
+                  { model: parentTable, id: oldParentRowId },
+                  { model: childTable, id: childPkId },
                 ]);
 
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
                 refModel: auditConfig.childModel,
-                rowId,
-                refRowId: oldChildRowId as string,
+                rowId: childPkId,
+                refRowId: oldParentRowId as string,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
                 columnId: auditConfig.parentColId,
@@ -8015,8 +8019,8 @@ class BaseModelSqlv2 {
               auditUpdateObj.push({
                 model: auditConfig.childModel,
                 refModel: auditConfig.parentModel,
-                rowId: oldChildRowId as string,
-                refRowId: rowId,
+                rowId: oldParentRowId as string,
+                refRowId: childPkId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.childColTitle,
                 columnId: auditConfig.childColId,
@@ -8033,7 +8037,7 @@ class BaseModelSqlv2 {
                   [childColumn.column_name]: this.dbDriver.from(
                     this.dbDriver(parentTn)
                       .select(parentColumn.column_name)
-                      .where(_wherePk(parentTable.primaryKeys, childId))
+                      .where(_wherePk(parentTable.primaryKeys, parentPkId))
                       .first()
                       .as('___cn_alias'),
                   ),
@@ -8048,7 +8052,7 @@ class BaseModelSqlv2 {
             await this.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
-              rowIds: [childId],
+              rowIds: [parentPkId],
               cookie,
             });
           }
@@ -8057,13 +8061,16 @@ class BaseModelSqlv2 {
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;
-          auditConfig.parentModel = isBt ? childTable : parentTable;
-          auditConfig.childModel = isBt ? parentTable : childTable;
 
           let linkedOoRowObj;
           let linkedCurrentOoRowObj;
           if (isBt) {
-            // 1. check current row is linked with another child
+            // when bt, the childId and rowId is swapped
+            // due to the relation definiton
+            const childPkId = rowId,
+              parentPkId = childId;
+
+            // 1. check current child is linked with another parent
             linkedCurrentOoRowObj = await this.execAndParse(
               this.dbDriver(childTn)
                 .select(
@@ -8073,27 +8080,28 @@ class BaseModelSqlv2 {
                     ),
                   ),
                 )
-                .where(_wherePk(childTable.primaryKeys, rowId)),
+                .where(_wherePk(childTable.primaryKeys, childPkId)),
               null,
               { raw: true, first: true },
             );
 
-            const oldChildRowId = linkedCurrentOoRowObj
-              ? linkedCurrentOoRowObj[childTable.primaryKeys[0]?.column_name]
+            const oldParentRowId = linkedCurrentOoRowObj
+              ? linkedCurrentOoRowObj[childColumn.column_name]
               : null;
 
-            if (oldChildRowId) {
+            if (oldParentRowId) {
+              await webhookHandler.addAffectedParentId(oldParentRowId);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await this.readOnlyPrimariesByPkFromModel([
-                  { model: parentTable, id: oldChildRowId },
-                  { model: childTable, id: rowId },
+                  { model: childTable, id: childPkId },
+                  { model: parentTable, id: oldParentRowId },
                 ]);
 
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
                 refModel: auditConfig.childModel,
-                rowId: rowId,
-                refRowId: oldChildRowId,
+                rowId: oldParentRowId,
+                refRowId: childPkId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
                 columnId: auditConfig.parentColId,
@@ -8106,8 +8114,8 @@ class BaseModelSqlv2 {
               auditUpdateObj.push({
                 model: auditConfig.childModel,
                 refModel: auditConfig.parentModel,
-                rowId: oldChildRowId as string,
-                refRowId: rowId,
+                rowId: childPkId as string,
+                refRowId: oldParentRowId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.childColTitle,
                 columnId: auditConfig.childColId,
@@ -8118,15 +8126,13 @@ class BaseModelSqlv2 {
               });
             }
 
-            // 2. check current child is linked with another row cell
+            // 2. check current parent is linked with another child cell
             linkedOoRowObj = await this.execAndParse(
               this.dbDriver(childTn).where({
                 [childColumn.column_name]: this.dbDriver.from(
                   this.dbDriver(parentTn)
                     .select(parentColumn.column_name)
-                    .where(
-                      _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
-                    )
+                    .where(_wherePk(parentTable.primaryKeys, parentPkId))
                     .first()
                     .as('___cn_alias'),
                 ),
@@ -8134,29 +8140,29 @@ class BaseModelSqlv2 {
               null,
               { raw: true, first: true },
             );
-
             if (linkedOoRowObj) {
-              const oldRowId = getCompositePkValue(
+              const oldChildId = getCompositePkValue(
                 childTable.primaryKeys,
                 this.extractPksValues(linkedOoRowObj),
               );
 
-              if (oldRowId) {
+              if (oldChildId) {
+                await webhookHandler.addAffectedChildId(oldChildId);
                 const [_parentRelatedPkValue, childRelatedPkValue] =
                   await this.readOnlyPrimariesByPkFromModel([
-                    { model: parentTable, id: childId },
-                    { model: childTable, id: oldRowId },
+                    { model: parentTable, id: parentPkId },
+                    { model: childTable, id: oldChildId },
                   ]);
 
                 auditUpdateObj.push({
                   model: auditConfig.parentModel,
                   refModel: auditConfig.childModel,
-                  rowId: oldRowId as string,
-                  refRowId: childId,
+                  rowId: parentPkId as string,
+                  refRowId: oldChildId,
                   opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.parentColTitle,
                   columnId: auditConfig.parentColId,
-                  displayValue: childRelatedPkValue,
+                  displayValue: _parentRelatedPkValue,
                   refDisplayValue: childRelatedPkValue,
                   req: cookie,
                   type: colOptions.type as RelationTypes,
@@ -8165,13 +8171,13 @@ class BaseModelSqlv2 {
                 auditUpdateObj.push({
                   model: auditConfig.childModel,
                   refModel: auditConfig.parentModel,
-                  rowId: childId,
-                  refRowId: oldRowId as string,
+                  rowId: oldChildId,
+                  refRowId: parentPkId as string,
                   opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.childColTitle,
                   columnId: auditConfig.childColId,
                   displayValue: childRelatedPkValue,
-                  refDisplayValue: childRelatedPkValue,
+                  refDisplayValue: _parentRelatedPkValue,
                   req: cookie,
                   type: getOppositeRelationType(colOptions.type),
                 });
@@ -8200,6 +8206,7 @@ class BaseModelSqlv2 {
               );
 
               if (oldChildRowId) {
+                await webhookHandler.addAffectedChildId(oldChildRowId);
                 const [parentRelatedPkValue, childRelatedPkValue] =
                   await this.readOnlyPrimariesByPkFromModel([
                     { model: childTable, id: oldChildRowId },
@@ -8252,9 +8259,10 @@ class BaseModelSqlv2 {
             );
 
             const oldRowId = linkedOoRowObj
-              ? linkedOoRowObj[childTable.primaryKeys[0]?.column_name]
+              ? linkedOoRowObj[childColumn.column_name]
               : null;
             if (oldRowId) {
+              await webhookHandler.addAffectedParentId(oldRowId);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await this.readOnlyPrimariesByPkFromModel([
                   { model: childTable, id: childId },
@@ -8332,7 +8340,7 @@ class BaseModelSqlv2 {
           await this.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
-            rowIds: [childId],
+            rowIds: [isBt ? childId : rowId],
             cookie,
           });
         }
@@ -8342,8 +8350,8 @@ class BaseModelSqlv2 {
     auditUpdateObj.push({
       model: auditConfig.parentModel,
       refModel: auditConfig.childModel,
-      rowId,
-      refRowId: childId,
+      rowId: column.meta?.isBt ? childId : rowId,
+      refRowId: column.meta?.isBt ? rowId : childId,
       opSubType: AuditOperationSubTypes.LINK_RECORD,
       columnTitle: auditConfig.parentColTitle,
       columnId: auditConfig.parentColId,
@@ -8354,8 +8362,8 @@ class BaseModelSqlv2 {
     auditUpdateObj.push({
       model: auditConfig.childModel,
       refModel: auditConfig.parentModel,
-      rowId: childId,
-      refRowId: rowId,
+      rowId: column.meta?.isBt ? rowId : childId,
+      refRowId: column.meta?.isBt ? childId : rowId,
       opSubType: AuditOperationSubTypes.LINK_RECORD,
       columnTitle: auditConfig.childColTitle,
       columnId: auditConfig.childColId,
@@ -8363,6 +8371,15 @@ class BaseModelSqlv2 {
       type: getOppositeRelationType(colOptions.type),
     });
 
+    console.log(
+      'auditUpdateObj',
+      auditUpdateObj.map((k) => ({
+        ...k,
+        refModel: null,
+        model: null,
+        req: null,
+      })),
+    );
     await Promise.allSettled(
       auditUpdateObj.map((updateObj) => {
         if (updateObj.opSubType === AuditOperationSubTypes.LINK_RECORD) {

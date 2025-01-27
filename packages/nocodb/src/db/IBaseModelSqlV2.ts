@@ -1,6 +1,6 @@
 import type { XKnex } from './CustomKnex';
 import type { NcApiVersion, NcContext } from 'nocodb-sdk';
-import type { Column, Model } from 'src/models';
+import type { Column, Model } from '~/models';
 import type { Knex } from 'knex';
 import type CustomKnex from './CustomKnex';
 

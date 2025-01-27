@@ -69,7 +69,7 @@ watch(
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper>
+  <ExtensionsExtensionWrapper class="page-designer">
     <template v-if="fullscreen" #headerExtra>
       <!-- <NcButton> Header actions </NcButton> -->
     </template>
@@ -86,7 +86,7 @@ watch(
             :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
             :table-id="savedPayload.selectedTableId"
             :view-id="savedPayload.selectedViewId"
-            class="w-full"
+            class="w-full page-designer-record-picker"
           />
         </div>
         <div class="overflow-y-auto flex-1 relative group px-3 my-3 mini-layout">
@@ -118,13 +118,59 @@ watch(
 </style>
 
 <style lang="scss">
-[data-inactive-widget='true'] {
-  .moveable-control,
-  .moveable-rotation-line {
-    visibility: hidden;
+.page-designer {
+  .page-widget {
+    & > .absolute {
+      border-radius: 2px;
+      outline: 2px solid transparent;
+      transition: outline 200ms ease-in-out;
+    }
+    &:hover {
+      > .absolute {
+        outline: 2px solid gray;
+      }
+    }
+    &.active-page-widget > .absolute {
+      outline: 2px solid #3366ff;
+    }
   }
-  .moveable-line {
-    @apply !bg-nc-bg-gray-dark;
+  .page-widget:not(.active-page-widget) {
+    .moveable-control,
+    .moveable-rotation-line {
+      @apply invisible;
+    }
+  }
+  .nc-moveable .moveable-line {
+    @apply bg-transparent;
+  }
+  .nc-moveable .moveable-control {
+    @apply rounded-[3px] w-[10px] h-[10px] border-2 border-solid border-nc-border-brand bg-nc-bg-default;
+  }
+
+  .page-designer-record-picker {
+    > div {
+      @apply !justify-start pl-2;
+    }
+  }
+
+  .radio-picker {
+    @apply rounded-lg;
+    label.ant-radio-button-wrapper {
+      @apply bg-nc-bg-gray-light !border-t-nc-border-gray-light !border-b-nc-border-gray-light !border-l-nc-border-gray-light !border-r-nc-border-gray-medium;
+      @apply px-2 text-nc-content-gray-subtle;
+      &.ant-radio-button-wrapper-checked {
+        @apply !outline-none !shadow-none !text-nc-content-brand-disabled;
+      }
+      &:before {
+        @apply !bg-transparent;
+      }
+    }
+    > :first-child {
+      @apply rounded-[8px_0_0_8px] !border-l-0;
+    }
+    > :last-child {
+      @apply rounded-[0_8px_8px_0] !border-r-0;
+    }
   }
 }
 </style>

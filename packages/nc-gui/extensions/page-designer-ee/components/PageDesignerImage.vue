@@ -7,7 +7,6 @@ import { PageDesignerPayloadInj } from '../lib/context'
 
 const props = defineProps<{
   id: string | number
-  active: boolean
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -115,8 +114,8 @@ const container = useParentElement()
       :throttle-resize="throttleResize"
       :render-directions="renderDirections"
       :origin="false"
-      :data-inactive-widget="!active"
       :container="container"
+      class-name="nc-moveable"
       @render-end="onRenderEnd"
       @resize="onResize"
       @rotate="onRotate"

@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { vOnClickOutside } from '@vueuse/components'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
 import { PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
-import PageDesignerDivider from './PageDesignerDivider'
+import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -33,13 +34,6 @@ const widgetTypeToComponent = {
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDivider,
 }
 
-// onKeyStroke('Backspace', () => {
-//   if (false && Number(payload.value.currentWidgetId) > 0) {
-//     delete payload.value.widgets[payload.value.currentWidgetId]
-//     payload.value.currentWidgetId = -1
-//   }
-// })
-
 const widgetFactoryByType: Record<string, Function> = {
   [PageDesignerWidgetType.TEXT]: PageDesignerWidgetFactory.createEmptyTextWidget,
   [PageDesignerWidgetType.IMAGE]: PageDesignerWidgetFactory.createEmptyImageWidget,
@@ -58,14 +52,32 @@ function onDropped(e: DragEvent) {
   payload.value.widgets[widget.id] = widget
   payload.value.currentWidgetId = widget.id
 }
+
+function unselectCurrentWidget() {
+  payload.value.currentWidgetId = -1
+}
+
+const clickedWithinWidget = ref(false)
+onKeyStroke('Backspace', () => {
+  if (clickedWithinWidget.value) {
+    delete payload.value.widgets[payload.value.currentWidgetId]
+    unselectCurrentWidget()
+    clickedWithinWidget.value = false
+  }
+})
+
+function onWidgetClick(id: string | number) {
+  payload.value.currentWidgetId = id
+  clickedWithinWidget.value = true
+}
 </script>
 
 <template>
-  <div class="h-full w-full flex">
+  <div v-on-click-outside="unselectCurrentWidget" class="h-full w-full flex">
     <div
       class="layout-wrapper flex-1 overflow-auto grid place-items-center"
       @drop="onDropped"
-      @mousedown="payload.currentWidgetId = -1"
+      @mousedown="unselectCurrentWidget"
       @dragover.prevent
     >
       <div
@@ -89,8 +101,10 @@ function onDropped(e: DragEvent) {
           <component
             :is="widgetTypeToComponent[widget.type]"
             :id="i"
-            :active="+i === +payload.currentWidgetId"
-            @mousedown.stop="payload.currentWidgetId = i"
+            v-on-click-outside="() => (clickedWithinWidget = false)"
+            class="page-widget"
+            :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
+            @mousedown.stop="onWidgetClick(i)"
           />
         </template>
       </div>

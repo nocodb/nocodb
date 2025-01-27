@@ -4,6 +4,7 @@ import BorderImage from '../assets/border.svg'
 import type { PageDesignerImageWidget } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
+import TabbedSelect from './TabbedSelect.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -15,6 +16,12 @@ watch(
   },
   { immediate: true },
 )
+
+const objectFitLabels: Record<string, string> = {
+  contain: 'Fit',
+  cover: 'Fill',
+  fill: 'Stretch',
+}
 </script>
 
 <template>
@@ -22,17 +29,15 @@ watch(
     <header>
       <h1 class="m-0">Image</h1>
     </header>
-    <GroupedSettings title="Value">
+    <GroupedSettings title="Source">
       <a-input v-model:value="imageWidget.imageSrc" placeholder="Image URL" class="!rounded-lg"></a-input>
     </GroupedSettings>
-    <GroupedSettings title="Fit">
-      <div class="flex gap-3">
-        <a-radio-group v-model:value="imageWidget.objectFit" class="radio-picker">
-          <a-radio-button value="fill">Fill</a-radio-button>
-          <a-radio-button value="contain">Contain</a-radio-button>
-          <a-radio-button value="cover">Cover</a-radio-button>
-        </a-radio-group>
-      </div>
+    <GroupedSettings title="Fitting">
+      <TabbedSelect v-model="imageWidget.objectFit" :values="['contain', 'cover', 'fill']">
+        <template #default="{ value }">
+          {{ objectFitLabels[`${value}`] }}
+        </template>
+      </TabbedSelect>
     </GroupedSettings>
     <GroupedSettings title="Border">
       <div class="flex gap-2 items-center">
@@ -99,15 +104,6 @@ watch(
         -webkit-appearance: none;
         margin: 0;
       }
-    }
-  }
-  .radio-picker {
-    border-radius: 0.5rem;
-    :first-child {
-      border-radius: 0.5rem 0 0 0.5rem;
-    }
-    :last-child {
-      border-radius: 0 0.5rem 0.5rem 0;
     }
   }
 }

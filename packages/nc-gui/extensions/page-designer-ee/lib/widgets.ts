@@ -49,14 +49,14 @@ export interface PageDesignerDividerWidget extends PageDesignerWidget {
 }
 
 const BLACK = '#000000'
-const WHITE = '#ffffff'
+const WHITE_TRANSPARENT = '#ffffff00'
 
 export class PageDesignerWidgetFactory {
   static createEmptyTextWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerTextWidget {
     return {
       id,
       textColor: BLACK,
-      backgroundColor: WHITE,
+      backgroundColor: WHITE_TRANSPARENT,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',
@@ -79,7 +79,7 @@ export class PageDesignerWidgetFactory {
   static createEmptyImageWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
     return {
       id,
-      backgroundColor: WHITE,
+      backgroundColor: WHITE_TRANSPARENT,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',
@@ -88,7 +88,7 @@ export class PageDesignerWidgetFactory {
       borderColor: BLACK,
       type: PageDesignerWidgetType.IMAGE,
       imageSrc: '',
-      objectFit: 'cover',
+      objectFit: 'contain',
       zIndex: 0,
       cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }

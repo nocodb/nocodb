@@ -9,7 +9,6 @@ import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } 
 
 const props = defineProps<{
   id: number
-  active: boolean
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -208,8 +207,8 @@ const replacedText = computed(() => {
       :throttle-resize="throttleResize"
       :render-directions="renderDirections"
       :origin="false"
-      :data-inactive-widget="!active"
       :container="container"
+      class-name="nc-moveable"
       @resize="onResize"
       @rotate="onRotate"
       @drag="onDrag"

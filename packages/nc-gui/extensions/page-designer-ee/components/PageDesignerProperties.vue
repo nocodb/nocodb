@@ -37,16 +37,18 @@ function getNextWidgetId() {
     <GroupedSettings title="Preview">
       <div class="flex flex-col gap-4">
         <TableAndViewPicker />
-
-        <NRecordPicker
-          v-if="payload.selectedTableId"
-          :key="payload.selectedTableId + payload.selectedViewId"
-          v-model:model-value="row"
-          :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
-          :table-id="payload.selectedTableId"
-          :view-id="payload.selectedViewId"
-          class="w-full"
-        />
+        <div class="flex flex-col gap-2">
+          <span>Record</span>
+          <NRecordPicker
+            v-if="payload.selectedTableId"
+            :key="payload.selectedTableId + payload.selectedViewId"
+            v-model:model-value="row"
+            :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+            :table-id="payload.selectedTableId"
+            :view-id="payload.selectedViewId"
+            class="w-full page-designer-record-picker"
+          />
+        </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
@@ -130,15 +132,6 @@ function getNextWidgetId() {
         -webkit-appearance: none;
         margin: 0;
       }
-    }
-  }
-  .radio-picker {
-    border-radius: 0.5rem;
-    :first-child {
-      border-radius: 0.5rem 0 0 0.5rem;
-    }
-    :last-child {
-      border-radius: 0 0.5rem 0.5rem 0;
     }
   }
 }

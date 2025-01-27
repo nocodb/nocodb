@@ -37,7 +37,7 @@ watch(
     <header>
       <h1 class="m-0">Text</h1>
     </header>
-    <GroupedSettings title="Value">
+    <GroupedSettings title="Content">
       <a-textarea v-model:value="textWidget.value" :rows="4" placeholder="Lorem ipsum..." class="!rounded-lg"></a-textarea>
     </GroupedSettings>
     <GroupedSettings title="Alignment">
@@ -166,15 +166,6 @@ watch(
         -webkit-appearance: none;
         margin: 0;
       }
-    }
-  }
-  .radio-picker {
-    border-radius: 0.5rem;
-    :first-child {
-      border-radius: 0.5rem 0 0 0.5rem;
-    }
-    :last-child {
-      border-radius: 0 0.5rem 0.5rem 0;
     }
   }
 }

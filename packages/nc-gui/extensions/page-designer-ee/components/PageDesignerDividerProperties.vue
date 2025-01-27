@@ -61,14 +61,5 @@ watch(
       }
     }
   }
-  .radio-picker {
-    border-radius: 0.5rem;
-    :first-child {
-      border-radius: 0.5rem 0 0 0.5rem;
-    }
-    :last-child {
-      border-radius: 0 0.5rem 0.5rem 0;
-    }
-  }
 }
 </style>

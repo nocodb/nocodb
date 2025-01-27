@@ -1,9 +1,17 @@
+import QRCode from 'qrcode'
+import { truncateText } from '../utils/canvas'
+
 export class ImageWindowLoader {
   private cache = new Map<string, HTMLImageElement>()
+  private qrCache = new Map<string, HTMLCanvasElement>()
   private loadingImages = new Map<string, Promise<HTMLImageElement | undefined>>()
+  private loadingQRs = new Map<string, Promise<HTMLCanvasElement | undefined>>()
   private pendingSprites = 0
-
   constructor(private onSettled?: () => void) {}
+
+  private getQRCacheKey(value: string, size: number, dark: string, light: string): string {
+    return `qr-${value}-${size}-${dark}-${light}`
+  }
 
   loadOrGetImage(url: string): HTMLImageElement | undefined {
     const cachedImage = this.cache.get(url)
@@ -19,6 +27,76 @@ export class ImageWindowLoader {
     }
 
     return undefined
+  }
+
+  loadOrGetQR(value: string, size: number, options: { dark?: string; light?: string } = {}): HTMLCanvasElement | undefined {
+    const { dark = '#000000', light = '#ffffff' } = options
+    const cacheKey = this.getQRCacheKey(value, size, dark, light)
+
+    const cached = this.qrCache.get(cacheKey)
+    if (cached) return cached
+
+    if (!this.loadingQRs.has(cacheKey)) {
+      const loadPromise = this.generateQR(value, size, dark, light, cacheKey)
+      this.loadingQRs.set(cacheKey, loadPromise)
+
+      loadPromise.finally(() => {
+        this.loadingQRs.delete(cacheKey)
+      })
+    }
+
+    return undefined
+  }
+
+  private async generateQR(
+    value: string,
+    size: number,
+    dark: string,
+    light: string,
+    cacheKey: string,
+  ): Promise<HTMLCanvasElement | undefined> {
+    this.pendingSprites++
+
+    try {
+      const canvas = document.createElement('canvas')
+      await QRCode.toCanvas(canvas, value, {
+        margin: 1,
+        scale: 4,
+        width: size,
+        color: { dark, light },
+      })
+
+      this.qrCache.set(cacheKey, canvas)
+      return canvas
+    } catch {
+      return undefined
+    } finally {
+      this.pendingSprites--
+      if (this.pendingSprites === 0) {
+        this.onSettled?.()
+      }
+    }
+  }
+
+  renderError(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    padding = 10,
+  ): void {
+    ctx.font = '500 13px Manrope'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#e65100'
+    const truncatedError = truncateText(ctx, text, width - padding * 2)
+    ctx.fillText(truncatedError, x + padding, y + height / 2)
+  }
+
+  renderQRCode(ctx: CanvasRenderingContext2D, qrCanvas: HTMLCanvasElement, x: number, y: number, size: number): void {
+    ctx.drawImage(qrCanvas, x, y, size, size)
   }
 
   private async loadImage(url: string): Promise<HTMLImageElement | undefined> {
@@ -99,6 +177,8 @@ export class ImageWindowLoader {
     })
     this.cache.clear()
     this.loadingImages.clear()
+    this.qrCache.clear()
+    this.loadingQRs.clear()
   }
 
   get isLoading(): boolean {

@@ -1,7 +1,8 @@
 #!/bin/sh
 
 commit_message="chore(nix/pacakge/pnpmDeps): bump hash"
-commit_author="sinanmohd <sinanmohd>"
+commit_author="sinanmohd"
+commit_email="sinan@sinanmohd.com"
 
 hash_get() {
 	grep -Eo 'sha256-[^=]*=' nix/package.nix
@@ -12,13 +13,11 @@ hash_set() {
 }
 
 early_escape_possible() {
-	last_bump_commit=$(git log --oneline | grep "$commit_message"  | cut -d' ' -f1)
-	if [ -z "$last_bump_commit" ]; then
+	last_pnpm_time="$(git log -1 --format="%at" pnpm-lock.yaml)"
+	last_bump_time=$(git log --oneline --grep="^${commit_message}$" -n 1 --format="%at")
+	if [ -z "$last_bump_time" ]; then
 		return 1
 	fi
-
-	last_pnpm_time="$(git log -1 --format="%at" pnpm-lock.yaml)"
-	last_bump_time="$(git log -1 --format="%at" "$last_bump_commit")"
 
 	if [ "$last_bump_time" -lt "$last_pnpm_time" ]; then
 		return 1
@@ -29,8 +28,11 @@ early_escape_possible() {
 
 nix_hash() {
 	out="$(mktemp)"
+
 	nix build .#pnpmDeps -L > "$out" 2>&1
 	tac "$out" | grep -Eom1 'sha256-[^=]*='
+
+	rm "$out"
 }
 
 ##########
@@ -64,7 +66,9 @@ if [ "$cur_hash" != "$new_hash" ]; then
 	hash_set "$new_hash"
 
 	git add nix/pacakge.nix
-	git commit --author="$commit_author" -m "$commit_message"
+	git config --global user.name "$commit_author"
+	git config --global user.email "$commit_email"
+	git commit -m "$commit_message"
 	git push
 else
 	echo "hash staysss: waiting for your next commit"

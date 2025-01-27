@@ -9261,7 +9261,12 @@ class BaseModelSqlv2 {
       if (col.uidt === UITypes.LinkToAnotherRecord) {
         ltarMap[col.id] = true;
         const linkData = Object.values(data).find(
-          (d) => d[col.id] && Object.keys(d[col.id]),
+          (d) =>
+            d[col.id] &&
+            // we need this check because Object.keys of array exists with 0 length
+            // so if it's an array we need to check if it contains item
+            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id])) ||
+              (Array.isArray(d[col.id]) && d[col.id].length > 0)),
         );
         if (linkData) {
           if (typeof linkData[col.id] === 'object') {
@@ -9310,6 +9315,7 @@ class BaseModelSqlv2 {
         throw idToAliasMap[k];
       }
     }
+    console.log('data2', idToAliasMap);
 
     data.forEach((item) => {
       Object.entries(item).forEach(([key, value]) => {

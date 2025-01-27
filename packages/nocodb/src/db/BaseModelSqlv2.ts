@@ -7704,8 +7704,14 @@ class BaseModelSqlv2 {
       {
         // in bt, child id and row id is swapped
         // due to table definition
-        parent: isBt ? childId : rowId,
-        child: isBt ? rowId : childId,
+        parent:
+          isBt || colOptions.type === RelationTypes.MANY_TO_MANY
+            ? childId
+            : rowId,
+        child:
+          isBt || colOptions.type === RelationTypes.MANY_TO_MANY
+            ? rowId
+            : childId,
       },
     );
 
@@ -8536,8 +8542,9 @@ class BaseModelSqlv2 {
         ignoreWebhook: cookie.query?.ignoreWebhook,
       },
       {
-        parent: rowId,
-        child: childId,
+        parent:
+          colOptions.type === RelationTypes.MANY_TO_MANY ? childId : rowId,
+        child: colOptions.type === RelationTypes.MANY_TO_MANY ? rowId : childId,
       },
     );
 

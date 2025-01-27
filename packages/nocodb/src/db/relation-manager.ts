@@ -1,9 +1,9 @@
 import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import { RelationUpdateWebhookHandler } from './relation-update-webhook-handler';
 import type { NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
-import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
+import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { Model } from '~/models';
 import { NcError } from '~/helpers/catchError';
 

@@ -2,8 +2,10 @@
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import { UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 import type { PageDesignerTextWidget } from '../lib/widgets'
-import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 
 const props = defineProps<{
   id: number
@@ -11,6 +13,7 @@ const props = defineProps<{
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
+const meta = inject(PageDesignerTableTypeInj)
 const widget = ref() as Ref<PageDesignerTextWidget>
 watch(
   () => props.id,
@@ -19,6 +22,14 @@ watch(
   },
   { immediate: true },
 )
+
+const columnByTitle = computed(() => {
+  if (!meta?.value) return {}
+  return (meta.value.columns ?? []).reduce((map, cur) => {
+    map[cur?.title ?? ''] = cur
+    return map
+  }, {} as Record<string, any>)
+})
 
 const draggable = true
 const throttleDrag = 1
@@ -64,9 +75,81 @@ const container = useParentElement()
 
 const row = inject(PageDesignerRowInj)!
 
+const unsupportedTypes = [
+  UITypes.Attachment,
+  UITypes.JSON,
+  UITypes.LinkToAnotherRecord,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Links,
+  UITypes.Button,
+  UITypes.CreatedBy,
+]
+
+const dateTimeTypes = [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.LastModifiedBy]
+const timeTypes = [UITypes.Time]
+
+const getDateTimeFormat = (columnMeta) => {
+  const dateFormat = parseProp(columnMeta)?.date_format ?? dateFormats[0]
+  const timeFormat = parseProp(columnMeta)?.time_format ?? timeFormats[0]
+  return `${dateFormat} ${timeFormat}`
+}
+
+const getDecimal = (value, colMeta) => {
+  if (value === null) return null
+
+  if (isNaN(Number(value))) return null
+
+  if (colMeta.isLocaleString) {
+    return Number(roundUpToPrecision(Number(value), colMeta.precision ?? 1)).toLocaleString(undefined, {
+      minimumFractionDigits: colMeta.precision ?? 1,
+      maximumFractionDigits: colMeta.precision ?? 1,
+    })
+  }
+
+  return roundUpToPrecision(Number(value), colMeta.precision ?? 1)
+}
+
+function getTextualRepresentationForColumn(column: string, record: Record<string, unknown>) {
+  const colMeta = columnByTitle.value[column]
+  const uidt = colMeta.uidt as UITypes
+  const raw = `{${column}}`
+  const value = record[column]
+  const isRichTextLongText = uidt === UITypes.LongText && colMeta.meta.richMode
+  if (isRichTextLongText || unsupportedTypes.includes(uidt)) return raw
+  else if (uidt === UITypes.Currency) {
+    const currencyMeta = colMeta.meta
+    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.currency_code || 'USD',
+    }).format(value as number)
+  } else if (uidt === UITypes.Checkbox) return !!value
+  else if (uidt === UITypes.Percent) return value && !isNaN(Number(value)) ? `${value}%` : value ?? raw
+  else if (dateTimeTypes.includes(uidt)) {
+    const dateObj = dayjs(value)
+    if (!dateObj.isValid()) return raw
+    return dateObj.utc().local().format(getDateTimeFormat(colMeta))
+  } else if (timeTypes.includes(uidt)) {
+    const dateObj = dayjs(value)
+    if (!dateObj.isValid()) return raw
+    return dateObj.format(parseProp(colMeta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+  } else if (uidt === UITypes.Duration) {
+    return convertMS2Duration(value, parseProp(colMeta)?.duration || 0) ?? raw
+  } else if (uidt === UITypes.Decimal) {
+    return getDecimal(value, colMeta) ?? raw
+  } else if (Array.isArray(value)) return value.join(', ')
+  else if (typeof value === 'object' || value == null) return raw
+  return value
+}
+
 const replacedText = computed(() => {
   const record = (row.value ?? {}) as Record<string, any>
-  return widget.value.value.replace(/{(.*?)}/g, (_, key) => record[key.trim()] || `{${key}}`)
+  return widget.value.value.replace(/{(.*?)}/g, (_, key) => {
+    if (key in record) return getTextualRepresentationForColumn(key, record)
+    return `{${key}}`
+  })
 })
 </script>
 

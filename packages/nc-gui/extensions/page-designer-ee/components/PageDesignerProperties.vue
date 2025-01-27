@@ -50,27 +50,30 @@ function getNextWidgetId() {
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
-      <div class="flex">
-        <StaticWidget
-          :type="PageDesignerWidgetType.TEXT"
-          :icon="TextWidgetImage"
-          text="Text"
-          first
-          @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))"
-        ></StaticWidget>
-        <StaticWidget
-          :type="PageDesignerWidgetType.IMAGE"
-          :icon="ImageWidgetImage"
-          text="Image"
-          @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
-        ></StaticWidget>
-        <StaticWidget
-          :type="PageDesignerWidgetType.DIVIDER"
-          :icon="DividerWidgetImage"
-          text="Divider"
-          last
-          @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget(getNextWidgetId()))"
-        ></StaticWidget>
+      <div class="flex flex-col gap-4">
+        <span>Drag and drop elements into the edit area.</span>
+        <div class="flex">
+          <StaticWidget
+            :type="PageDesignerWidgetType.TEXT"
+            :icon="TextWidgetImage"
+            text="Text"
+            first
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))"
+          ></StaticWidget>
+          <StaticWidget
+            :type="PageDesignerWidgetType.IMAGE"
+            :icon="ImageWidgetImage"
+            text="Image"
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
+          ></StaticWidget>
+          <StaticWidget
+            :type="PageDesignerWidgetType.DIVIDER"
+            :icon="DividerWidgetImage"
+            text="Divider"
+            last
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget(getNextWidgetId()))"
+          ></StaticWidget>
+        </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">

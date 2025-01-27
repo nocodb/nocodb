@@ -65,6 +65,7 @@ if [ "$cur_hash" != "$new_hash" ]; then
 
 	git add nix/pacakge.nix
 	git commit --author="$commit_author" -m "$commit_message"
+	git push
 else
 	echo "hash staysss: waiting for your next commit"
 fi

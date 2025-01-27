@@ -1021,7 +1021,7 @@
     "personalAccessToken": "Personal Access Token",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Shared Base URL",
-    "sharedPublicly": "Shared publicly",
+    "sharedPublicly": "Shared Publicly",
     "importData": "Import data",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1116,7 +1116,7 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show json payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

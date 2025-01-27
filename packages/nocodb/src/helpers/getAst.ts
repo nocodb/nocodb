@@ -238,13 +238,17 @@ const getAst = async (
       apiVersion === NcApiVersion.V3
     ) {
       isRequested = false;
+    } else if (col.uidt === UITypes.ForeignKey && !getHiddenColumn) {
+      isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
     } else if (
       getHiddenColumn &&
-      [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt)
+      [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.ForeignKey].includes(
+        col.uidt,
+      )
     ) {
       isRequested = value;
     } else if (getHiddenColumn) {

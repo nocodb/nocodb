@@ -29,6 +29,8 @@ import type Base from '~/models/Base';
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const customerColumnsListStr = columns
+    // ForeignKey now only shown when getHidden is selected
+    .filter(c => c.uidt !== UITypes.ForeignKey)
     .map((c) => c.title)
     .sort()
     .join(',');
@@ -80,6 +82,7 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
+    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], customerColumns)) {
       throw new Error('Wrong columns');
     }
@@ -101,6 +104,7 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
+    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
       throw new Error('Wrong columns');
     }

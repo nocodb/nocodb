@@ -242,6 +242,7 @@ function handleMouseDown(e: MouseEvent) {
       }
 
       if (e.detail === 2) {
+        if (clickedColumn?.virtual) return
         editEnabled.value = {
           rowIndex,
           x: xOffset + scrollLeft.value,

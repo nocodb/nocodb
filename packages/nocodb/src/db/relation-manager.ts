@@ -662,6 +662,166 @@ export class RelationManager {
     await webhookHandler.finishUpdate();
   }
 
+  async removeChild(params: { req: any }) {
+    const {
+      relationColOptions: colOptions,
+      baseModel,
+      parentBaseModel,
+      parentColumn,
+      parentTable,
+      parentTn,
+      childBaseModel,
+      childColumn,
+      childTable,
+      childTn,
+
+      childId,
+      parentId,
+    } = this.relationContext;
+    const { req } = params;
+
+    switch (colOptions.type) {
+      case RelationTypes.MANY_TO_MANY:
+        {
+          const vChildCol = await colOptions.getMMChildColumn(
+            baseModel.context,
+          );
+          const vParentCol = await colOptions.getMMParentColumn(
+            baseModel.context,
+          );
+          const vTable = await colOptions.getMMModel(baseModel.context);
+          const assocBaseModel = await Model.getBaseModelSQL(
+            baseModel.context,
+            {
+              model: vTable,
+              dbDriver: baseModel.dbDriver,
+            },
+          );
+          const vTn = assocBaseModel.getTnPath(vTable);
+
+          await baseModel.execAndParse(
+            baseModel
+              .dbDriver(vTn)
+              .where({
+                [vParentCol.column_name]: baseModel
+                  .dbDriver(parentTn)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, parentId))
+                  .first(),
+                [vChildCol.column_name]: baseModel
+                  .dbDriver(childTn)
+                  .select(childColumn.column_name)
+                  .where(_wherePk(childTable.primaryKeys, childId))
+                  .first(),
+              })
+              .delete(),
+            null,
+            { raw: true },
+          );
+
+          await baseModel.updateLastModified({
+            baseModel: parentBaseModel,
+            model: parentTable,
+            rowIds: [parentId],
+            cookie: req,
+          });
+          await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
+        }
+        break;
+      case RelationTypes.HAS_MANY:
+        {
+          await baseModel.execAndParse(
+            baseModel
+              .dbDriver(childTn)
+              // .where({
+              //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+              //     .select(parentColumn.cn)
+              //     .where(parentTable.primaryKey.cn, rowId)
+              //     .first()
+              // })
+              .where(_wherePk(childTable.primaryKeys, childId))
+              .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
+          );
+
+          await baseModel.updateLastModified({
+            baseModel: parentBaseModel,
+            model: parentTable,
+            rowIds: [parentId],
+            cookie: req,
+          });
+        }
+        break;
+      case RelationTypes.BELONGS_TO:
+        {
+          await baseModel.execAndParse(
+            baseModel
+              .dbDriver(childTn)
+              // .where({
+              //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+              //     .select(parentColumn.cn)
+              //     .where(parentTable.primaryKey.cn, childId)
+              //     .first()
+              // })
+              .where(_wherePk(childTable.primaryKeys, childId))
+              .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
+          );
+
+          await baseModel.updateLastModified({
+            baseModel: parentBaseModel,
+            model: parentTable,
+            rowIds: [childId],
+            cookie: req,
+          });
+        }
+        break;
+      case RelationTypes.ONE_TO_ONE:
+        {
+          await baseModel.execAndParse(
+            baseModel
+              .dbDriver(childTn)
+              .where(_wherePk(childTable.primaryKeys, childId))
+              .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
+          );
+
+          await baseModel.updateLastModified({
+            baseModel: parentBaseModel,
+            model: parentTable,
+            rowIds: [childId],
+            cookie: req,
+          });
+        }
+        break;
+    }
+
+    this.auditUpdateObj.push({
+      rowId: parentId,
+      refRowId: childId,
+      opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+      type: colOptions.type as RelationTypes,
+      direction: 'parent_child',
+    });
+    if (parentTable.id !== childTable.id) {
+      this.auditUpdateObj.push({
+        rowId: childId,
+        refRowId: parentId,
+        opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+        type: getOppositeRelationType(colOptions.type),
+        direction: 'child_parent',
+      });
+    }
+  }
+
   async handleOnlyUpdateAudit(params: {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;

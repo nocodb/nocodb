@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BasesV3Service as BasesV3ServiceCE } from 'src/services/v3/bases-v3.service';
 import type { NcContext } from '~/interface/config';
-import { BaseUser } from '~/models';
+import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 
 @Injectable()
@@ -18,10 +18,10 @@ export class BasesV3Service extends BasesV3ServiceCE {
       workspaceId: string;
     },
   ) {
-    const bases = await BaseUser.getProjectsList(param.user.id, {
-      workspace_id: param.workspaceId,
-      ...(param.query || {}),
-    });
+    const bases = await Base.listByWorkspaceAndUser(
+      param.workspaceId,
+      param.user.id,
+    );
 
     return bases;
   }

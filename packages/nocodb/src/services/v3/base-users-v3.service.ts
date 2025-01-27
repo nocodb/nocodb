@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import type {
+  BaseUserCreateV3Type,
+  BaseUserUpdateV3Type,
+  ProjectUserReqType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
@@ -60,7 +64,7 @@ export class BaseUsersV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: any[]; //ProjectUserReqType[];
+      baseUsers: BaseUserCreateV3Type;
       req: NcRequest;
     },
   ): Promise<any> {
@@ -121,7 +125,7 @@ export class BaseUsersV3Service {
   async baseUserUpdate(
     context: NcContext,
     param: {
-      baseUsers: any[]; // ProjectUserReqType[];
+      baseUsers: BaseUserUpdateV3Type;
       req: any;
       baseId: string;
     },

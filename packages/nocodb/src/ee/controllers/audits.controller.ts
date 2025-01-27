@@ -7,6 +7,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { OrgUserRoles } from 'nocodb-sdk';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -31,6 +32,29 @@ export class AuditsController extends AuditsControllerCE {
         count: await this.auditsService.workspaceAuditCount({
           query: req.query,
           workspaceId,
+        }),
+        ...req.query,
+      },
+    );
+  }
+
+  @Get(['/api/v2/meta/audits/'])
+  @Acl('globalAuditList', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async globalAuditList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+  ) {
+    return new PagedResponseImpl(
+      await this.auditsService.globalAuditList({
+        query: req.query,
+      }),
+      {
+        count: await this.auditsService.globalAuditCount({
+          query: req.query,
         }),
         ...req.query,
       },

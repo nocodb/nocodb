@@ -147,20 +147,6 @@ onMounted(() => {
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
-
-      <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
-        <a-tab-pane key="audit" class="w-full">
-          <template #tab>
-            <div class="tab-title">
-              <GeneralIcon icon="audit" class="h-4 w-4" />
-              {{ $t('title.auditLogs') }}
-            </div>
-          </template>
-          <div class="h-[calc(100vh-92px)] px-6">
-            <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
-          </div>
-        </a-tab-pane>
-      </template>
     </NcTabs>
   </div>
 </template>

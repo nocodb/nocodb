@@ -198,9 +198,11 @@ export default class BaseUser {
       mode = 'full',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
+      skip_cache,
       user_ids,
     }: {
       base_id: string;
+      skip_cache?: boolean;
       mode?: 'full' | 'viewer';
       include_ws_deleted?: boolean;
       user_ids?: string[];
@@ -213,7 +215,7 @@ export default class BaseUser {
 
     const fullVersionCols = ['invite_token'];
 
-    if (!isNoneList && !baseUsers.length) {
+    if (skip_cache || (!isNoneList && !baseUsers.length)) {
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
         .select(

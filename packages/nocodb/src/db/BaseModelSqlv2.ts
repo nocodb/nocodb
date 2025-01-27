@@ -11246,7 +11246,9 @@ class BaseModelSqlv2 {
 
           const baseUsers = await BaseUser.getUsersList(this.context, {
             base_id: this.model.base_id,
-            include_ws_deleted: false,
+            // deleted user may still exists on some fields
+            // it's still valid as a historical record
+            include_ws_deleted: true,
           });
 
           if (typeof data[column.column_name] === 'object') {

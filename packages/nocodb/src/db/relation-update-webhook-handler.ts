@@ -62,7 +62,7 @@ export class RelationUpdateWebhookHandler {
       },
       this.parentRowId,
     );
-    if (this.childRowId != this.childRowId) {
+    if (this.parentRowId != this.childRowId) {
       this.childUpdateWebhookHandler = await UpdateWebhookHandler.beginUpdate(
         {
           context: this.relationWebhookContext.context,
@@ -77,7 +77,7 @@ export class RelationUpdateWebhookHandler {
   }
   async finishUpdate() {
     await this.parentUpdateWebhookHandler.finishUpdate();
-    if (this.childRowId != this.childRowId) {
+    if (this.parentRowId != this.childRowId) {
       await this.childUpdateWebhookHandler.finishUpdate();
     }
   }

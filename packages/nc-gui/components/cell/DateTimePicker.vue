@@ -301,7 +301,7 @@ onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 onUnmounted(() => {
-  cellClickHook?.on(cellClickHandler)
+  cellClickHook?.off(cellClickHandler)
 })
 
 const clickHandler = (e: MouseEvent, _isDatePicker = false) => {

@@ -246,7 +246,9 @@ const getAst = async (
       isRequested = extractOrderColumn || getHiddenColumn;
     } else if (
       getHiddenColumn &&
-      [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt)
+      [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.ForeignKey].includes(
+        col.uidt,
+      )
     ) {
       isRequested = value;
     } else if (getHiddenColumn) {

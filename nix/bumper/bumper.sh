@@ -1,8 +1,8 @@
 #!/bin/sh
 
 commit_message="chore(nix/pacakge/pnpmDeps): bump hash"
-commit_author="sinanmohd"
-commit_email="sinan@sinanmohd.com"
+commit_author="auto walle"
+commit_email="auto@sinanmohd.com"
 
 hash_get() {
 	grep -Eo 'sha256-[^=]*=' nix/package.nix

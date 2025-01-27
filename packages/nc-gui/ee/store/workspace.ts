@@ -1,9 +1,7 @@
 import type {
   Api,
-  AuditType,
   BaseType,
   IntegrationType,
-  PaginatedType,
   PlanLimitTypes,
   WorkspaceType,
   WorkspaceUserRoles,
@@ -13,7 +11,6 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import type { AuditLogsQuery } from '~/lib/types'
 
 interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -21,27 +18,13 @@ interface NcWorkspace extends WorkspaceType {
   roles?: string
 }
 
-const defaultAuditLogsQuery = {
-  type: undefined,
-  baseId: undefined,
-  sourceId: undefined,
-  user: undefined,
-  startDate: undefined,
-  endDate: undefined,
-  dateRangeLabel: undefined,
-  orderBy: {
-    created_at: 'desc',
-    user: undefined,
-  },
-} as AuditLogsQuery
-
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
 
   const workspaceStore = useWorkspace()
 
-  const { loadRoles, isUIAllowed } = useRoles()
+  const { loadRoles } = useRoles()
 
   const { user: currentUser } = useGlobal()
 
@@ -538,47 +521,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
-
-  const audits = ref<null | Array<AuditType>>(null)
-
-  const auditPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
-
-  const loadAudits = async (
-    workspaceId?: string,
-    page: number = auditPaginationData.value.page!,
-    limit: number = auditPaginationData.value.pageSize!,
-  ) => {
-    try {
-      if (isUIAllowed('workspaceAuditList') && !workspaceId) return
-
-      if (limit * (page - 1) > auditPaginationData.value.totalRows!) {
-        auditPaginationData.value.page = 1
-        page = 1
-      }
-
-      const { list, pageInfo } = isUIAllowed('workspaceAuditList')
-        ? await $api.workspace.auditList(workspaceId, {
-            offset: limit * (page - 1),
-            limit,
-            ...auditLogsQuery.value,
-          })
-        : await $api.base.auditList(auditLogsQuery.value.baseId, {
-            offset: limit * (page - 1),
-            limit,
-            ...auditLogsQuery.value,
-          })
-
-      audits.value = list
-      auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-    } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
-      audits.value = []
-      auditPaginationData.value.totalRows = 0
-      auditPaginationData.value.page = 1
-    }
-  }
-
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -590,7 +532,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   watch(activeWorkspaceId, async () => {
-    auditLogsQuery.value = defaultAuditLogsQuery
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
@@ -641,10 +582,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceUserCount,
     getPlanLimit,
     moveToOrg,
-    auditLogsQuery,
-    audits,
-    auditPaginationData,
-    loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
     navigateToFeed,

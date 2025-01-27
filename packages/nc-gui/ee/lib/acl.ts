@@ -38,6 +38,7 @@ const rolePermissions = {
     include: {
       adminPanel: true,
       orgAdminPanel: true,
+      globalAudits: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

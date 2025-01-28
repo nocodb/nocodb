@@ -16,9 +16,11 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(EditModeInj, ref(false))
+const editEnabled = inject(EditModeInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -94,6 +96,7 @@ function onKeyDown(e: any) {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
+    :disabled="readOnly"
   />
 </template>
 

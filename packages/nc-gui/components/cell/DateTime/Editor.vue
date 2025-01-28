@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { timeCellMaxWidthMap } from './utils'
 
 interface Props {
   modelValue?: string | null
@@ -436,20 +437,7 @@ function handleSelectTime(value: dayjs.Dayjs) {
 }
 
 const timeCellMaxWidth = computed(() => {
-  return {
-    [timeFormats[0]]: {
-      12: 'max-w-[85px]',
-      24: 'max-w-[65px]',
-    },
-    [timeFormats[1]]: {
-      12: 'max-w-[100px]',
-      24: 'max-w-[80px]',
-    },
-    [timeFormats[2]]: {
-      12: 'max-w-[130px]',
-      24: 'max-w-[110px]',
-    },
-  }[timeFormat.value][parseProp(column.value.meta).is12hrFormat ? 12 : 24]
+  return timeCellMaxWidthMap?.[timeFormat.value]?.[parseProp(column.value.meta).is12hrFormat ? 12 : 24]
 })
 
 const cellValue = computed(
@@ -585,8 +573,6 @@ const currentDate = ($event) => {
       @click.stop="handleSelectDate()"
     />
   </div>
-
-  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

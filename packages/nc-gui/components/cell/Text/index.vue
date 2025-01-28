@@ -65,5 +65,11 @@ const textareaValue = computed({
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-  <LazyCellClampedText v-else class="nc-cell-field clamped-text" :value="vModel" :lines="rowHeight" :style="{ 'word-break': 'break-word' }" />
+  <LazyCellClampedText
+    v-else
+    class="nc-cell-field clamped-text"
+    :value="vModel"
+    :lines="rowHeight"
+    :style="{ 'word-break': 'break-word' }"
+  />
 </template>

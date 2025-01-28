@@ -1,5 +1,4 @@
 import type { ComputedRef, Ref } from 'vue'
-import axios from 'axios'
 import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
   type Api,

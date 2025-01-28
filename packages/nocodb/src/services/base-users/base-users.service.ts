@@ -314,6 +314,7 @@ export class BaseUsersService {
         context,
         {
           base_id: param.baseId,
+          skip_cache: true,
         },
         ncMeta,
       );

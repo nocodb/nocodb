@@ -287,7 +287,7 @@ export function useCanvasRender({
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'
-        ctx.textAlign = 'center'
+        ctx.textAlign = 'left'
         ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
       }
 

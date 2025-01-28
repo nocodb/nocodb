@@ -819,6 +819,9 @@ export function useInfiniteData(args: {
                 row.row = { ...pkData, ...row.row }
 
                 await insertRow(row, ltarState, {}, true)
+                // refreshing the view
+                cachedRows.value.clear()
+                chunkStates.value = []
 
                 try {
                   await recoverLTARRefs(row.row, undefined, { suppressError: true })

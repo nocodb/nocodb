@@ -23,7 +23,7 @@ const column = inject(ColumnInj, null)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
-const domRef = ref<HTMLElement>()
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
@@ -70,12 +70,6 @@ const onKeyDown = (e: any) => {
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
-
-watch(isExpandedFormOpen, () => {
-  if (!isExpandedFormOpen.value) {
-    domRef.value?.focus()
-  }
-})
 </script>
 
 <template>
@@ -97,6 +91,7 @@ watch(isExpandedFormOpen, () => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
+    :disabled="readOnly"
   />
 </template>
 

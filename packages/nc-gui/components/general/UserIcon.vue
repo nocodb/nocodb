@@ -188,6 +188,7 @@ const usernameInitials = computed(() => {
     >
       {{ usernameInitials }}
     </div>
+    <div v-else>&nbsp;</div>
   </div>
 </template>
 

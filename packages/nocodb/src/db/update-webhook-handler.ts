@@ -19,12 +19,20 @@ export class UpdateWebhookHandler {
     this.webhookContext = webhookContext;
     this.rowId = rowId;
   }
-  prevData: any;
+  protected prevData: any;
+  protected nextData: any;
 
   public static async beginUpdate(payload: WebhookContext, rowId: any) {
     const webhookHandler = new UpdateWebhookHandler(payload, rowId);
     await webhookHandler.sendBeforeUpdateWebhook();
     return webhookHandler;
+  }
+
+  getData() {
+    return {
+      prevData: this.prevData,
+      nextData: this.nextData,
+    };
   }
 
   // // experimental, will be useful after refactoring
@@ -58,14 +66,14 @@ export class UpdateWebhookHandler {
     const hookName = `after.${
       this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
     }`;
-    const nextData = await this.webhookContext.baseModel.readByPk(
+    this.nextData = await this.webhookContext.baseModel.readByPk(
       this.rowId,
       false,
       {},
       { ignoreView: true, getHiddenColumn: false },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
-      this.sendWebhook(hookName, this.prevData, nextData);
+      this.sendWebhook(hookName, this.prevData, this.nextData);
     }
   }
   sendWebhook(hookName: string, prevData: any, nextData?: any) {

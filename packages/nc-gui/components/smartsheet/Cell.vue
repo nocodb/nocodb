@@ -332,7 +332,11 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'dateTimePicker'">
-        <LazyCellDateTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellDateTimeReadonly
+          v-if="showReadonlyField"
+          :model-value="vModel"
+          :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
+        />
         <LazyCellDateTimeEditor
           v-else
           v-model="vModel"

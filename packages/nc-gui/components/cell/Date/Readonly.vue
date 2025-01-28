@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isDateMonthFormat } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null
@@ -11,6 +12,8 @@ const columnMeta = inject(ColumnInj, null)!
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
 
+const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
+
 const localState = computed(() => {
   if (!modelValue) {
     return undefined
@@ -20,7 +23,9 @@ const localState = computed(() => {
     return undefined
   }
 
-  return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateFormat.value)
+  const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
+
+  return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
 })
 </script>
 

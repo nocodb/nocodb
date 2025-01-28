@@ -5,9 +5,10 @@ import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {
   modelValue?: string | null
+  isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
 
@@ -30,6 +31,14 @@ const localState = computed(() => {
   }
 
   const isXcDB = isXcdbBase(column.value.source_id)
+
+  // cater copy and paste
+  // when copying a datetime cell, the copied value would be local time
+  // when pasting a datetime cell, UTC (xcdb) will be saved in DB
+  // we convert back to local time
+  if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
+    return dayjs(modelValue).utc().local()
+  }
 
   // ext db
   if (!isXcDB) {

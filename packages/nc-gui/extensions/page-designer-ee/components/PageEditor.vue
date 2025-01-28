@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { vOnClickOutside } from '@vueuse/components'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
-import { PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
+import { type PageDesignerWidget, PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
+
+let deletedWidget: PageDesignerWidget | null = null
+let justDeleted = false
 
 const { fullscreen } = useExtensionHelperOrThrow()
 
@@ -57,18 +59,39 @@ function unselectCurrentWidget() {
   payload.value.currentWidgetId = -1
 }
 
-const clickedWithinWidget = ref(false)
 onKeyStroke('Backspace', () => {
-  if (clickedWithinWidget.value) {
-    delete payload.value.widgets[payload.value.currentWidgetId]
-    unselectCurrentWidget()
-    clickedWithinWidget.value = false
+  if (payload.value.currentWidgetId === -1 || isActiveInputElementExist() || isDrawerOrModalExist() || isNcDropdownOpen()) return
+
+  const widget = payload.value.widgets[payload.value.currentWidgetId]
+  delete payload.value.widgets[payload.value.currentWidgetId]
+  deletedWidget = widget
+  justDeleted = true
+  unselectCurrentWidget()
+})
+
+onKeyStroke(['z', 'Z'], (e) => {
+  if (!e.metaKey) return
+  if (deletedWidget) {
+    payload.value.widgets[deletedWidget.id] = deletedWidget
+    payload.value.currentWidgetId = deletedWidget.id
+    deletedWidget = null
   }
 })
 
+watch(
+  payload,
+  () => {
+    if (justDeleted) {
+      justDeleted = false
+      return
+    }
+    deletedWidget = null
+  },
+  { deep: true },
+)
+
 function onWidgetClick(id: string | number) {
   payload.value.currentWidgetId = id
-  clickedWithinWidget.value = true
 }
 </script>
 
@@ -101,7 +124,6 @@ function onWidgetClick(id: string | number) {
           <component
             :is="widgetTypeToComponent[widget.type]"
             :id="i"
-            v-on-click-outside="() => (clickedWithinWidget = false)"
             class="page-widget"
             :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
             @mousedown.stop="onWidgetClick(i)"

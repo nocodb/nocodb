@@ -25,7 +25,7 @@ const localState = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field tracking-tight truncate">
+  <div :title="localState?.format(dateFormat)" class="nc-date-picker nc-cell-field tracking-tight truncate">
     {{ localState?.format(dateFormat) ?? '' }}
   </div>
 </template>

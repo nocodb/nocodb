@@ -22,7 +22,7 @@ const localState = computed(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field tracking-tight truncate">
+  <div :title="localState?.format('YYYY')" class="nc-year-picker nc-cell-field tracking-tight truncate">
     {{ localState?.format('YYYY') ?? '' }}
   </div>
 </template>

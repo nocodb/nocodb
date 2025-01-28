@@ -16,6 +16,10 @@ const { isXcdbBase } = useBase()
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
 const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ?? timeFormats[0])
 
+const dateTimeFormat = computed(() => {
+  return `${dateFormat.value} ${timeFormat.value}`
+})
+
 const localState = computed(() => {
   if (!modelValue) {
     return undefined
@@ -47,7 +51,10 @@ const timeCellMaxWidth = computed(() => {
 </script>
 
 <template>
-  <div class="w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight">
+  <div
+    :title="localState?.format(dateTimeFormat)"
+    class="nc-date-picker w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight"
+  >
     <div class="flex-none rounded-md box-border w-[60%] max-w-[110px] py-0.5 px-1 truncate">
       {{ localState?.format(dateFormat) ?? '' }}
     </div>

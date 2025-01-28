@@ -29,6 +29,8 @@ provide(ColumnInj, column)
 
 const editEnabled = useVModel(props, 'editEnabled', emit)
 
+const localEditEnabled = ref(false)
+
 provide(EditModeInj, editEnabled)
 
 provide(ActiveCellInj, active)
@@ -196,6 +198,14 @@ const showReadonlyField = computed(() => {
       return !((!readOnly.value && editEnabled.value) || (isForm && !isEditColumnMenu.value && editEnabled.value))
     }
 
+    case 'percent': {
+      return !(
+        !readOnly.value &&
+        editEnabled.value &&
+        (isExpandedFormOpen.value ? localEditEnabled.value || !parseProp(column.value?.meta).is_progress : true)
+      )
+    }
+
     default: {
       return readOnly.value || !editEnabled.value
     }
@@ -336,7 +346,10 @@ const cellClassName = computed(() => {
         <LazyCellPhoneNumberEditor v-else v-model="vModel" />
       </template>
 
-      <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
+      <template v-else-if="cellType === 'percent'">
+        <LazyCellPercentReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
+        <LazyCellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
+      </template>
 
       <template v-else-if="cellType === 'currency'">
         <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />

@@ -5352,6 +5352,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             typeof data[col.title] === 'string'
               ? JSON.parse(data[col.title])
               : data[col.title];
+          if (nestedData.length === 0) {
+            return { postInsertOps, preInsertOps, postInsertAuditOps };
+          }
         } catch {
           continue;
         }

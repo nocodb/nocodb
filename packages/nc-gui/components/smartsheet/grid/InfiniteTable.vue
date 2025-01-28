@@ -402,9 +402,13 @@ const addColumnDropdown = ref(false)
 
 const disableUrlOverlay = ref(false)
 
+const preloadColumn = ref<any>()
+
 const scrolling = ref(false)
 
 const switchingTab = ref(false)
+
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const editEnabled = ref(false)
 
@@ -643,11 +647,14 @@ function openColumnCreate(data: any) {
 
   setTimeout(() => {
     addColumnDropdown.value = true
+    preloadColumn.value = data
   }, 500)
 }
 
 function closeAddColumnDropdownMenu(scrollToLastCol = false) {
+  columnOrder.value = null
   addColumnDropdown.value = false
+  preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
       scrollToAddNewColumnHeader('instant')
@@ -1807,6 +1814,7 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
 
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
+    columnOrder.value = payload
     addColumnDropdown.value = true
   }
   if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
@@ -2396,11 +2404,14 @@ const cellAlignClass = computed(() => {
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
                             ref="editOrAddProviderRef"
+                            :preload="preloadColumn"
+                            :column-position="columnOrder"
                             :class="{ hidden: isJsonExpand }"
                             @submit="closeAddColumnDropdownMenu(true)"
                             @cancel="closeAddColumnDropdownMenu()"
                             @click.stop
                             @keydown.stop
+                            @mounted="preloadColumn = undefined"
                           />
                         </div>
                       </template>

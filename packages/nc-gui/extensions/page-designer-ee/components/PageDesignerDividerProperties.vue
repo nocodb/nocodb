@@ -18,7 +18,7 @@ watch(
 
 <template>
   <div v-if="dividerWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
-    <header>
+    <header class="widget-header">
       <h1 class="m-0">Divider</h1>
     </header>
     <GroupedSettings title="Fill">
@@ -33,41 +33,9 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Angle</span>
-          <a-input v-model:value="dividerWidget.angle" type="number" class="!rounded-lg"></a-input>
+          <a-input v-model:value="dividerWidget.angle" type="number"></a-input>
         </div>
       </div>
     </GroupedSettings>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.text-properties {
-  header {
-    h1 {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 32px;
-      letter-spacing: -0.4px;
-      padding: 16px 24px;
-      border-bottom: 1px solid;
-      @apply border-nc-border-gray-medium;
-    }
-  }
-  :deep(.ant-select-selection-item) {
-    display: inline-block !important;
-  }
-  .border-inputs {
-    .ant-input {
-      @apply !rounded-lg h-8 w-8 text-center;
-      padding: 2px;
-      -moz-appearance: textfield; /*For FireFox*/
-
-      &::-webkit-inner-spin-button {
-        /*For Webkits like Chrome and Safari*/
-        -webkit-appearance: none;
-        margin: 0;
-      }
-    }
-  }
-}
-</style>

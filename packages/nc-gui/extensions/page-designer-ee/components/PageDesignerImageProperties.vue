@@ -26,11 +26,11 @@ const objectFitLabels: Record<string, string> = {
 
 <template>
   <div v-if="imageWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
-    <header>
+    <header class="widget-header">
       <h1 class="m-0">Image</h1>
     </header>
     <GroupedSettings title="Source">
-      <a-input v-model:value="imageWidget.imageSrc" placeholder="Image URL" class="!rounded-lg"></a-input>
+      <a-input v-model:value="imageWidget.imageSrc" placeholder="Image URL"></a-input>
     </GroupedSettings>
     <GroupedSettings title="Fitting">
       <TabbedSelect v-model="imageWidget.objectFit" :values="['contain', 'cover', 'fill']">
@@ -61,7 +61,7 @@ const objectFitLabels: Record<string, string> = {
           </div>
           <div class="flex flex-col gap-2 flex-1 min-w-0">
             <span>Border Radius</span>
-            <a-input v-model:value="imageWidget.borderRadius" type="number" min="0" class="!rounded-lg" />
+            <a-input v-model:value="imageWidget.borderRadius" type="number" min="0" />
           </div>
         </div>
       </div>
@@ -76,35 +76,3 @@ const objectFitLabels: Record<string, string> = {
     </GroupedSettings>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.text-properties {
-  header {
-    h1 {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 32px;
-      letter-spacing: -0.4px;
-      padding: 16px 24px;
-      border-bottom: 1px solid;
-      @apply border-nc-border-gray-medium;
-    }
-  }
-  :deep(.ant-select-selection-item) {
-    display: inline-block !important;
-  }
-  .border-inputs {
-    .ant-input {
-      @apply !rounded-lg h-8 w-8 text-center;
-      padding: 2px;
-      -moz-appearance: textfield; /*For FireFox*/
-
-      &::-webkit-inner-spin-button {
-        /*For Webkits like Chrome and Safari*/
-        -webkit-appearance: none;
-        margin: 0;
-      }
-    }
-  }
-}
-</style>

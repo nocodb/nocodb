@@ -31,7 +31,7 @@ function getNextWidgetId() {
 
 <template>
   <div v-if="payload" class="flex flex-col page-properties overflow-y-auto max-h-full pb-8">
-    <header>
+    <header class="widget-header">
       <h1 class="m-0">Page</h1>
     </header>
     <GroupedSettings title="Preview">
@@ -82,7 +82,7 @@ function getNextWidgetId() {
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <span>Page Name</span>
-          <a-input v-model:value="payload.pageName" placeholder="Page Name" class="!rounded-lg"></a-input>
+          <a-input v-model:value="payload.pageName" placeholder="Page Name"></a-input>
         </div>
         <div class="flex flex-col gap-2">
           <span>Size</span>
@@ -104,35 +104,3 @@ function getNextWidgetId() {
     </GroupedSettings>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.page-properties {
-  header {
-    h1 {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 32px;
-      letter-spacing: -0.4px;
-      padding: 16px 24px;
-      border-bottom: 1px solid;
-      @apply border-nc-border-gray-medium;
-    }
-  }
-  :deep(.ant-select-selection-item) {
-    display: inline-block !important;
-  }
-  .border-inputs {
-    .ant-input {
-      @apply !rounded-lg h-8 w-8 text-center;
-      padding: 2px;
-      -moz-appearance: textfield; /*For FireFox*/
-
-      &::-webkit-inner-spin-button {
-        /*For Webkits like Chrome and Safari*/
-        -webkit-appearance: none;
-        margin: 0;
-      }
-    }
-  }
-}
-</style>

@@ -34,15 +34,15 @@ watch(
 
 <template>
   <div v-if="textWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
-    <header>
+    <header class="widget-header">
       <h1 class="m-0">Text</h1>
     </header>
     <GroupedSettings title="Content">
-      <a-textarea v-model:value="textWidget.value" :rows="4" placeholder="Lorem ipsum..." class="!rounded-lg"></a-textarea>
+      <a-textarea v-model:value="textWidget.value" :rows="4" placeholder="Lorem ipsum..."></a-textarea>
     </GroupedSettings>
     <GroupedSettings title="Alignment">
       <div class="flex gap-3">
-        <a-radio-group v-model:value="textWidget.horizontalAlign" class="radio-picker">
+        <a-radio-group v-model:value="textWidget.horizontalAlign" class="radio-pills">
           <a-radio-button value="flex-start">
             <GeneralIcon icon="ncAlignLeft" />
           </a-radio-button>
@@ -53,7 +53,7 @@ watch(
             <GeneralIcon icon="ncAlignRight" />
           </a-radio-button>
         </a-radio-group>
-        <a-radio-group v-model:value="textWidget.verticalAlign" class="radio-picker">
+        <a-radio-group v-model:value="textWidget.verticalAlign" class="radio-pills">
           <a-radio-button value="flex-start">
             <GeneralIcon icon="ncVerticalAlignTop" />
           </a-radio-button>
@@ -90,7 +90,7 @@ watch(
           <span>Size</span>
           <a-input
             v-model:value="textWidget.fontSize"
-            class="!rounded-lg flex-1"
+            class="flex-1"
             type="number"
             min="0"
             label="Font Size"
@@ -99,13 +99,7 @@ watch(
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Line Height</span>
-          <a-input
-            v-model:value="textWidget.lineHeight"
-            class="!rounded-lg flex-1"
-            type="number"
-            min="0"
-            placeholder="Value"
-          ></a-input>
+          <a-input v-model:value="textWidget.lineHeight" class="flex-1" type="number" min="0" placeholder="Value"></a-input>
         </div>
       </div>
     </GroupedSettings>
@@ -131,7 +125,7 @@ watch(
           </div>
           <div class="flex flex-col gap-2 flex-1 min-w-0">
             <span>Border Radius</span>
-            <a-input v-model:value="textWidget.borderRadius" type="number" min="0" class="!rounded-lg" />
+            <a-input v-model:value="textWidget.borderRadius" type="number" min="0" />
           </div>
         </div>
       </div>
@@ -150,38 +144,3 @@ watch(
     </GroupedSettings>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.text-properties {
-  header {
-    h1 {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 32px;
-      letter-spacing: -0.4px;
-      padding: 16px 24px;
-      border-bottom: 1px solid;
-      @apply border-nc-border-gray-medium;
-    }
-  }
-
-  :deep(.ant-select-selection-item) {
-    display: inline-block !important;
-  }
-
-  .border-inputs {
-    .ant-input {
-      @apply !rounded-lg h-8 w-8 text-center;
-      padding: 2px;
-      -moz-appearance: textfield;
-      /*For FireFox*/
-
-      &::-webkit-inner-spin-button {
-        /*For Webkits like Chrome and Safari*/
-        -webkit-appearance: none;
-        margin: 0;
-      }
-    }
-  }
-}
-</style>

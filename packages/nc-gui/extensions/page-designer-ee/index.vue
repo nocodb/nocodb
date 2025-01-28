@@ -153,7 +153,7 @@ watch(
     }
   }
 
-  .radio-picker {
+  .radio-pills {
     @apply rounded-lg;
     label.ant-radio-button-wrapper {
       @apply bg-nc-bg-gray-light !border-t-nc-border-gray-light !border-b-nc-border-gray-light !border-l-nc-border-gray-light !border-r-nc-border-gray-medium;
@@ -170,6 +170,48 @@ watch(
     }
     > :last-child {
       @apply rounded-[0_8px_8px_0] !border-r-0;
+    }
+    .nc-icon {
+      @apply -mt-[2px];
+    }
+  }
+
+  .border-inputs {
+    .ant-input {
+      @apply !rounded-lg h-8 w-8 text-center;
+      padding: 2px;
+      -moz-appearance: textfield; /*For FireFox*/
+
+      &::-webkit-inner-spin-button {
+        /*For Webkits like Chrome and Safari*/
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+  }
+
+  .ant-input-affix-wrapper .ant-input {
+    @apply !shadow-none;
+  }
+  .ant-select-selector,
+  .ant-input,
+  .ant-input-affix-wrapper {
+    @apply !rounded-lg !border-nc-border-gray-medium;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important;
+    &:focus,
+    &:focus-within {
+      @apply !border-nc-border-brand;
+      box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
+    }
+  }
+  .properties-panel {
+    .ant-select-selection-item {
+      @apply !inline-block;
+    }
+    .widget-header {
+      h1 {
+        @apply text-xl font-bold leading-8 tracking-[-0.4px] px-6 py-4 border-b border-solid border-nc-border-gray-medium;
+      }
     }
   }
 }

@@ -14,6 +14,8 @@ const { t } = useI18n()
 
 const editEnabled = inject(EditModeInj, ref(false))
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -80,5 +82,6 @@ onBeforeUnmount(() => {
     @selectstart.capture.stop
     @mousedown.stop
     @paste.prevent="onPaste"
+    :disabled="readOnly"
   />
 </template>

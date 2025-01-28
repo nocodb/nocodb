@@ -310,26 +310,36 @@ const cellClassName = computed(() => {
       <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
       <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
       <LazyCellDuration v-else-if="cellType === 'duration'" v-model="vModel" />
+
       <template v-else-if="cellType === 'email'">
         <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellEmailEditor v-else v-model="vModel" />
       </template>
+
       <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
       <LazyCellPhoneNumber v-else-if="cellType === 'phoneNumber'" v-model="vModel" />
       <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
       <LazyCellCurrency v-else-if="cellType === 'currency'" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellDecimal v-else-if="cellType === 'decimal'" v-model="vModel" />
-      <LazyCellFloat v-else-if="cellType === 'float'" v-model="vModel" />
+
+      <template v-else-if="cellType === 'float'">
+        <LazyCellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellFloatEditor v-else v-model="vModel" />
+      </template>
+
       <template v-else-if="cellType === 'integer'">
         <LazyCellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellIntegerEditor v-else v-model="vModel" />
       </template>
+
       <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
+
       <template v-else>
         <LazyCellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellTextEditor v-else v-model="vModel" />
       </template>
+
       <div v-if="showLockedOverlay" class="nc-locked-overlay" />
     </template>
   </div>

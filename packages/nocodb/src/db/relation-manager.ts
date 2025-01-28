@@ -879,7 +879,6 @@ export class RelationManager {
   getAuditUpdateObj(req: any) {
     const { childTable, parentTable, parentColumn, childColumn } =
       this.relationContext;
-    console.log(JSON.stringify(this.auditUpdateObj, null, 2));
     return this.auditUpdateObj.map((log) => {
       const column =
         log.direction === 'parent_child' ? parentColumn : childColumn;

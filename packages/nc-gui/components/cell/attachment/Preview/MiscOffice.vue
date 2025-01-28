@@ -48,5 +48,3 @@ const openMethod = ref<'google' | undefined>()
     @error="handleError"
   ></iframe>
 </template>
-
-<style scoped lang="scss"></style>

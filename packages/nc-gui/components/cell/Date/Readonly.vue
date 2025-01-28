@@ -29,5 +29,3 @@ const localState = computed(() => {
     {{ localState?.format(dateFormat) ?? '' }}
   </div>
 </template>
-
-<style scoped lang="scss"></style>

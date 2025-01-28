@@ -1,5 +1,3 @@
-<script setup lang="ts"></script>
-
 <template>
   <div class="w-full p-2 h-12 border-b-1 border-gray-200">
     <div class="h-full flex items-center gap-2 px-2">
@@ -9,5 +7,3 @@
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

@@ -99,6 +99,7 @@ const focus: VNodeRef = (el) =>
       v-model="localState"
       class="nc-cell-field w-full !border-none !outline-none py-1"
       :placeholder="durationPlaceholder"
+      :disabled="readOnly"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
@@ -110,7 +111,6 @@ const focus: VNodeRef = (el) =>
       @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
-      :disabled="readOnly"
     />
 
     <div v-if="showWarningMessage && showValidationError" class="nc-cell-field duration-warning">

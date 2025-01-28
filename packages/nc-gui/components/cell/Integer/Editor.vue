@@ -86,6 +86,7 @@ function onKeyDown(e: any) {
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     style="letter-spacing: 0.06rem"
+    :disabled="readOnly"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
     @keydown.down.stop
@@ -96,7 +97,6 @@ function onKeyDown(e: any) {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-    :disabled="readOnly"
   />
 </template>
 

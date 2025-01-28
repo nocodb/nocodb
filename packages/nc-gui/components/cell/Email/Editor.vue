@@ -72,6 +72,7 @@ onBeforeUnmount(() => {
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
+    :disabled="readOnly"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
@@ -82,6 +83,5 @@ onBeforeUnmount(() => {
     @selectstart.capture.stop
     @mousedown.stop
     @paste.prevent="onPaste"
-    :disabled="readOnly"
   />
 </template>

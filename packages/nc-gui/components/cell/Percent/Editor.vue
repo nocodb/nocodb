@@ -80,6 +80,7 @@ const onFocus = () => {
     class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
     :type="inputType"
     :placeholder="placeholder"
+    :disabled="readOnly"
     @blur="onBlur"
     @focus="onFocus"
     @keydown.down.stop
@@ -90,7 +91,6 @@ const onFocus = () => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
-    :disabled="readOnly"
   />
 </template>
 

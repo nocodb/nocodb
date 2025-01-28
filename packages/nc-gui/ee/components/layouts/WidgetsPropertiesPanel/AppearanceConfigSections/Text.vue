@@ -31,5 +31,3 @@ const appearanceConfig = computed(() => focusedWidget.value?.appearance_config a
     </a-collapse-panel>
   </a-collapse>
 </template>
-
-<style scoped lang="scss"></style>

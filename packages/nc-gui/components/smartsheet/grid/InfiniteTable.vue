@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   type ButtonType,
-  type ColumnReqType,
   type ColumnType,
   type TableType,
   UITypes,
@@ -110,11 +109,9 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts } = useSmartsheetStoreOrThrow()
 
-const { $e } = useNuxtApp()
-
-const { api } = useApi()
+const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -132,15 +129,6 @@ const {
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const {
-  predictingNextColumn,
-  predictedNextColumn,
-  predictingNextFormulas,
-  predictedNextFormulas,
-  predictNextColumn,
-  predictNextFormulas,
-} = useNocoEe().table
-
 const { paste } = usePaste()
 
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
@@ -151,22 +139,17 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-// Element refs
-const smartTable = ref(null)
-
 const tableBodyEl = ref<HTMLElement>()
 
 const gridWrapper = ref<HTMLElement>()
 
-const tableHeadEl = ref<HTMLElement>()
-
 const fillHandle = ref<HTMLElement>()
-
-const { height: tableHeadHeight } = useElementBounding(tableHeadEl)
 
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 const resizingColumn = ref(false)
+
+const isPlaywright = computed(() => ncIsPlaywright())
 
 const columnWidthLimit = {
   [UITypes.Attachment]: {
@@ -248,6 +231,7 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (isInitialLoad) {
     chunkStates.value[chunkId + 1] = 'loading'
   }
+
   try {
     const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
@@ -293,7 +277,7 @@ const totalMaxPlaceholderRows = computed(() => {
     return 0
   }
 
-  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`)
+  return parseInt(`${gridWrapper.value?.clientHeight / (rowHeight.value || 32)}`) * 3
 })
 
 const placeholderStartRows = computed(() => {
@@ -323,7 +307,10 @@ const topOffset = computed(() => {
   return rowHeight.value! * (rowSlice.start - placeholderStartRows.value.length)
 })
 
-const updateVisibleRows = async () => {
+let debounceTimeout: any = null // To store the debounced timeout
+const debounceDelay = 50 // Delay in ms after the last scroll event
+
+const updateVisibleRows = async (fromCalculateSlice = false) => {
   const { start, end } = rowSlice
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
@@ -331,10 +318,12 @@ const updateVisibleRows = async () => {
 
   const chunksToFetch = new Set<number>()
 
+  // Collect chunks that need to be fetched (i.e., chunks that are not loaded yet)
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
     if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
   }
 
+  // Add adjacent chunks for prefetching
   const nextChunkId = lastChunkId + 1
   if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
     chunksToFetch.add(nextChunkId)
@@ -345,19 +334,36 @@ const updateVisibleRows = async () => {
     chunksToFetch.add(prevChunkId)
   }
 
-  if (chunksToFetch.size > 0) {
-    const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
+  // Early exit if no chunks need to be fetched
+  if (chunksToFetch.size === 0) return
 
-    if (isInitialLoad) {
-      await fetchChunk(0, true)
-      chunksToFetch.delete(0)
-      chunksToFetch.delete(1)
-    }
+  // Clear the previous timeout if any
+  clearTimeout(debounceTimeout)
 
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-  }
+  // Debounced execution
+  debounceTimeout = setTimeout(
+    async () => {
+      // Execute the function after the debounce delay has passed
+      const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
 
-  clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
+      if (isInitialLoad) {
+        await fetchChunk(0, true)
+        chunksToFetch.delete(0)
+        chunksToFetch.delete(1)
+      }
+
+      // Fetch the necessary chunks concurrently
+      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+
+      // Clear cache for chunks that are no longer visible
+      const bufferStart = Math.max(0, start - BUFFER_SIZE)
+      const bufferEnd = Math.min(totalRows.value, end + BUFFER_SIZE)
+
+      // Cache clearing with buffer
+      clearCache(bufferStart, bufferEnd)
+    },
+    fromCalculateSlice ? debounceDelay : 25,
+  )
 }
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -370,8 +376,6 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   gridWrapper,
 })
 
-const { allFilters, sorts } = useSmartsheetStoreOrThrow()
-
 const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
 const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
@@ -379,10 +383,6 @@ const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.v
 const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPkAvail.value)
 
 const addColumnDropdown = ref(false)
-
-const altModifier = ref(false)
-
-const persistMenu = ref(false)
 
 const disableUrlOverlay = ref(false)
 
@@ -501,7 +501,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
               await syncLTARRefs(rowObj, rowObj.row)
             } else if (isMm(columnObj)) {
-              await api.dbDataTableRow.nestedLink(
+              await $api.dbDataTableRow.nestedLink(
                 meta.value?.id as string,
                 columnObj.id as string,
                 encodeURIComponent(rowId as string),
@@ -1342,7 +1342,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
 
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, {
       top: 9,
-      bottom: (tableHeadHeight.value || 40) + 9,
+      bottom: 32 + 9,
       right: 9,
     })
 
@@ -1409,23 +1409,10 @@ const saveOrUpdateRecords = async (
   }
 }
 
-const loadColumn = (title: string, tp: string, colOptions?: any) => {
-  preloadColumn.value = {
-    title,
-    uidt: tp,
-    colOptions,
-  }
-  persistMenu.value = false
-}
-
 const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
-  addColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
-    addColumnDropdown.value = false
-    // persistMenu.value = altModifier
-  }
+  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen()
 }
 
 const COL_VIRTUAL_MARGIN = 5
@@ -1440,16 +1427,147 @@ const lastScrollTop = ref()
 const lastScrollLeft = ref()
 const lastTotalRows = ref()
 
+// Store the previous results for binary search to avoid redundant calculations
+let prevScrollLeft = -1
+let prevScrollWidth = -1
+let lastRenderStart = -1
+let lastRenderEnd = -1
+
+// Optimized binary search to determine the visible column range
+const binarySearchForStart = (scrollLeft) => {
+  if (prevScrollLeft === scrollLeft && prevScrollWidth === gridWrapper.value.clientWidth) {
+    // Return cached results if the scroll position and grid width haven't changed
+    return { renderStart: lastRenderStart, renderEnd: lastRenderEnd }
+  }
+
+  let renderStart = 0
+  let startRange = 0
+  let endRange = colPositions.value.length - 1
+
+  // Perform binary search to find the starting column
+  while (startRange <= endRange) {
+    const middle = Math.floor((startRange + endRange) / 2)
+    if (colPositions.value[middle] <= scrollLeft && colPositions.value[middle + 1] > scrollLeft) {
+      renderStart = middle
+      break
+    }
+    if (colPositions.value[middle] < scrollLeft) {
+      startRange = middle + 1
+    } else {
+      endRange = middle - 1
+    }
+  }
+
+  // Find the ending column using a simple linear scan starting from renderStart
+  let renderEnd = colPositions.value.findIndex((pos) => pos > gridWrapper.value.clientWidth + scrollLeft)
+  renderEnd = renderEnd === -1 ? colPositions.value.length : renderEnd
+
+  // Cache the results
+  prevScrollLeft = scrollLeft
+  prevScrollWidth = gridWrapper.value.clientWidth
+  lastRenderStart = renderStart
+  lastRenderEnd = renderEnd
+
+  return { renderStart, renderEnd }
+}
+
+// Function to update slices only if there's a significant change
+const updateSliceIfNeeded = (newStart, newEnd, slice) => {
+  if (slice.start !== newStart || slice.end !== newEnd) {
+    Object.assign(slice, {
+      start: newStart,
+      end: newEnd,
+    })
+
+    return true // Return true if an update occurred
+  }
+  return false
+}
+
+// Optimized calculateSlices function
 const calculateSlices = () => {
-  // if the grid is not rendered yet
-  if (!gridWrapper.value || !gridWrapper.value) {
-    colSlice.value = {
+  // Skip calculation if the grid wrapper is not rendered yet
+  if (!gridWrapper.value) {
+    Object.assign(colSlice.value, {
       start: 0,
       end: 0,
-    }
+    })
+
+    // Retry calculation after a short delay
+    setTimeout(calculateSlices, 50)
+    return
+  }
+
+  // Avoid recalculating if only vertical scrolling occurred and no major change
+  if (
+    lastScrollLeft.value &&
+    lastScrollLeft.value === scrollLeft.value &&
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
+    lastTotalRows.value === totalRows.value
+  ) {
+    return
+  }
+
+  // Cache the current scroll positions
+  lastScrollLeft.value = scrollLeft.value
+  lastScrollTop.value = scrollTop.value
+
+  // Determine visible column range using binary search
+  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value)
+
+  // Add virtual margins to the calculated ranges
+  const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
+  const colEnd = Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN)
+
+  // Update column slice if needed
+  updateSliceIfNeeded(colStart, colEnd, colSlice.value)
+
+  // Determine visible row range based on the current scroll position
+  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
+  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
+
+  // Add virtual margins to the row range
+  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  const newEnd = Math.min(totalRows.value, Math.max(endIndex + ROW_VIRTUAL_MARGIN, newStart + 50))
+
+  // Update row slice if needed
+  if (
+    rowSlice.start < 10 || // Ensure we initialize the slice
+    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
+    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
+    lastTotalRows.value !== totalRows.value
+  ) {
+    rowSlice.start = newStart
+    rowSlice.end = newEnd
+
+    updateVisibleRows(true) // Trigger visible row updates
+    lastTotalRows.value = totalRows.value
+  }
+}
+
+let timer1: any
+let timer2: any
+
+// Todo: we can remove this after testing
+const _calculateSlicesOld = () => {
+  if (timer1) {
+    clearTimeout(timer1)
+  }
+
+  if (timer2) {
+    clearTimeout(timer2)
+  }
+
+  // if the grid is not rendered yet
+  if (!gridWrapper.value) {
+    Object.assign(colSlice.value, {
+      start: 0,
+      end: 0,
+    })
 
     // try again until the grid is rendered
-    setTimeout(calculateSlices, 50)
+    timer1 = setTimeout(calculateSlices, 50)
     return
   }
 
@@ -1498,13 +1616,18 @@ const calculateSlices = () => {
     }
   }
 
-  colSlice.value = {
-    start: Math.max(0, renderStart - COL_VIRTUAL_MARGIN),
-    end: renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length,
+  const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
+  const colEnd = renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length
+
+  if (colSlice.value.start !== colStart || colSlice.value.end !== colEnd) {
+    colSlice.value = {
+      start: colStart,
+      end: colEnd,
+    }
   }
 
   if (gridWrapper.value.clientWidth === 0) {
-    setTimeout(calculateSlices, 50)
+    timer2 = setTimeout(calculateSlices, 50)
   }
 
   const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
@@ -1523,7 +1646,7 @@ const calculateSlices = () => {
     rowSlice.start = newStart
     rowSlice.end = newEnd
 
-    updateVisibleRows()
+    updateVisibleRows(true)
     lastTotalRows.value = totalRows.value
   }
 }
@@ -1743,10 +1866,12 @@ useScroll(gridWrapper, {
       cancelAnimationFrame(requestAnimationFrameId)
     }
 
-    // Request a new animation frame
+    // Request a new animation frame for optimized execution
     requestAnimationFrameId = requestAnimationFrame(() => {
       scrollLeft.value = e.target?.scrollLeft
       scrollTop.value = e.target?.scrollTop
+
+      // Execute slicing calculations and handle updates
       calculateSlices()
       refreshFillHandle()
 
@@ -1754,7 +1879,7 @@ useScroll(gridWrapper, {
       requestAnimationFrameId = null
     })
   },
-  throttle: 100,
+  throttle: 100, // Throttle value for smoother scrolling
   behavior: 'smooth',
 })
 
@@ -1776,19 +1901,10 @@ useEventListener(document, 'mouseup', () => {
   }, 100)
 })
 
-useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  const isRichModalOpen = isExpandedCellInputExist()
-
-  if (e.key === 'Alt' && !isRichModalOpen) {
-    altModifier.value = true
-  }
-})
-
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   const isRichModalOpen = isExpandedCellInputExist()
 
   if (e.key === 'Alt' && !isRichModalOpen) {
-    altModifier.value = false
     disableUrlOverlay.value = false
   }
 
@@ -2049,6 +2165,13 @@ watch(vSelectedAllRecords, (selectedAll) => {
     }
   }
 })
+
+const cellAlignClass = computed(() => {
+  if (!props.rowHeightEnum || props.rowHeightEnum === 1) {
+    return 'align-middle'
+  }
+  return 'align-top'
+})
 </script>
 
 <template>
@@ -2097,7 +2220,7 @@ watch(vSelectedAllRecords, (selectedAll) => {
             }"
             class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
-            <thead ref="tableHeadEl">
+            <thead>
               <tr v-if="isViewColumnsLoading">
                 <td
                   v-for="(_col, colIndex) of dummyColumnDataForLoading"
@@ -2145,8 +2268,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
                   v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
-                  :data-col="fields[0].id"
-                  :data-title="fields[0].title"
+                  v-bind="
+                    isPlaywright
+                      ? {
+                          'data-col': fields[0].id,
+                          'data-title': fields[0].title,
+                        }
+                      : {}
+                  "
                   :style="{
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2188,9 +2317,15 @@ watch(vSelectedAllRecords, (selectedAll) => {
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
+                  v-bind="
+                    isPlaywright
+                      ? {
+                          'data-col': col.id,
+                          'data-title': col.title,
+                        }
+                      : {}
+                  "
                   v-xc-ver-resize
-                  :data-col="col.id"
-                  :data-title="col.title"
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
@@ -2246,92 +2381,9 @@ watch(vSelectedAllRecords, (selectedAll) => {
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
-                      <template v-if="isEeUI && persistMenu" #overlay>
-                        <NcMenu>
-                          <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
-                            <template #title>
-                              <div class="flex flex-row items-center py-3">
-                                <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
-                                  {{ $t('activity.predictColumns') }}
-                                </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
-                              </div>
-                            </template>
-                            <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <NcMenuItem>
-                                  <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-
-                              <NcMenuItem>
-                                <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                                  <div class="text-red-500 text-xs pl-2">
-                                    <MdiReload />
-                                    Generate Again
-                                  </div>
-                                </div>
-                              </NcMenuItem>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Columns -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                              <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictColumns') }}
-                              </div>
-                            </div>
-                          </NcMenuItem>
-                          <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
-                            <template #title>
-                              <div class="flex flex-row items-center py-3">
-                                <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
-                                  {{ $t('activity.predictFormulas') }}
-                                </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
-                              </div>
-                            </template>
-                            <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <NcMenuItem>
-                                  <div
-                                    class="flex flex-row items-center py-3"
-                                    @click="
-                                      loadColumn(col.title, 'Formula', {
-                                        formula_raw: col.formula,
-                                      })
-                                    "
-                                  >
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Formulas -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                              <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                              <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictFormulas') }}
-                              </div>
-                            </div>
-                          </NcMenuItem>
-                        </NcMenu>
-                      </template>
-                      <template v-else #overlay>
+                      <template #overlay>
                         <div class="nc-edit-or-add-provider-wrapper">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
@@ -2380,7 +2432,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
             }"
           >
             <table
-              ref="smartTable"
               class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
               :class="{
                 'mobile': isMobileMode,
@@ -2467,7 +2518,6 @@ watch(vSelectedAllRecords, (selectedAll) => {
                       }"
                     >
                       <td
-                        key="row-index"
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                         @contextmenu="contextMenuTarget = null"
@@ -2549,12 +2599,11 @@ watch(vSelectedAllRecords, (selectedAll) => {
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index]?.[0]?.isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
-                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-0`],
                           'readonly':
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          [cellAlignClass]: true,
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2562,11 +2611,17 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'width': gridViewCols[fields[0].id]?.width || '180px',
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
-                        :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"
-                        :data-col="fields[0].id"
-                        :data-title="fields[0].title"
-                        :data-row-index="row.rowMeta.rowIndex"
-                        :data-col-index="0"
+                        v-bind="
+                          isPlaywright
+                            ? {
+                                'data-key': `data-key-${row.rowMeta.rowIndex}-${fields[0].id}`,
+                                'data-col': fields[0].id,
+                                'data-title': fields[0].title,
+                                'data-row-index': row.rowMeta.rowIndex,
+                                'data-col-index': 0,
+                              }
+                            : {}
+                        "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
                         @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
                         @dblclick="makeEditable(row, fields[0])"
@@ -2640,14 +2695,14 @@ watch(vSelectedAllRecords, (selectedAll) => {
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex),
                           'nc-required-cell':
                             !row.rowMeta?.isLoading && cellMeta[index][colIndex].isColumnRequiredAndNull && !isPublicView,
-                          'align-middle': !rowHeightEnum || rowHeightEnum === 1,
-                          'align-top': rowHeightEnum && rowHeightEnum !== 1,
+
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           'readonly':
                             colMeta[colIndex].isReadonly &&
                             hasEditPermission &&
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          [cellAlignClass]: true,
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -2655,11 +2710,17 @@ watch(vSelectedAllRecords, (selectedAll) => {
                           'width': gridViewCols[columnObj.id]?.width || '180px',
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
-                        :data-key="`data-key-${row.rowMeta.rowIndex}-${columnObj.id}`"
-                        :data-col="columnObj.id"
-                        :data-title="columnObj.title"
-                        :data-row-index="row.rowMeta.rowIndex"
-                        :data-col-index="colIndex"
+                        v-bind="
+                          isPlaywright
+                            ? {
+                                'data-key': `data-key-${row.rowMeta.rowIndex}-${columnObj.id}`,
+                                'data-col': columnObj.id,
+                                'data-title': columnObj.title,
+                                'data-row-index': row.rowMeta.rowIndex,
+                                'data-col-index': 0,
+                              }
+                            : {}
+                        "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
                         @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"

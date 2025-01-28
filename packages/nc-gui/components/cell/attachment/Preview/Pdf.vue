@@ -26,5 +26,3 @@ const handleError = async () => {
 <template>
   <pdf-object :class="props.class" :url="src[currentIndex]" class="w-full h-full" @error="handleError" />
 </template>
-
-<style scoped lang="scss"></style>

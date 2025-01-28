@@ -308,7 +308,7 @@ const topOffset = computed(() => {
 })
 
 let debounceTimeout: any = null // To store the debounced timeout
-let debounceDelay = 50 // Delay in ms after the last scroll event
+const debounceDelay = 50 // Delay in ms after the last scroll event
 
 const updateVisibleRows = async (fromCalculateSlice = false) => {
   const { start, end } = rowSlice

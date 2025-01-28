@@ -25,11 +25,7 @@ const latLongStr = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="{
-      'flex justify-center': !isLocationSet,
-    }"
-  >
+  <div :class="!isLocationSet ? 'flex justify-center' : ''">
     <template v-if="!isLocationSet">
       <div v-if="readOnly" data-testid="nc-geo-data-set-location-button">&nbsp;</div>
       <NcButton
@@ -52,10 +48,12 @@ const latLongStr = computed(() => {
       v-else
       data-testid="nc-geo-data-lat-long-set"
       tabindex="0"
-      class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none truncate"
+      class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
       @click="localEditEnabled = true"
     >
-      {{ latLongStr }}
+      <span class="truncate">
+        {{ latLongStr }}
+      </span>
     </div>
   </div>
 </template>

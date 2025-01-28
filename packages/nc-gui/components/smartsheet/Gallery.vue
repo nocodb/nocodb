@@ -489,6 +489,7 @@ reloadViewDataHook?.on(async () => {
                     <div
                       v-for="col in fieldsWithoutDisplay"
                       :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
+                      class="nc-card-col-wrapper"
                       :class="{
                         '!children:pointer-events-auto':
                           isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
@@ -639,6 +640,30 @@ reloadViewDataHook?.on(async () => {
     :deep(textarea),
     :deep(.nc-cell-field-link) {
       @apply !text-xl leading-8 text-gray-600;
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-xl leading-8 text-gray-600;
+      }
+    }
+  }
+}
+
+.nc-card-col-wrapper {
+  @apply !text-small !leading-[18px];
+
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply !text-small !leading-[18px];
+
+    :deep(.nc-cell-field),
+    :deep(input),
+    :deep(textarea),
+    :deep(.nc-cell-field-link) {
+      @apply !text-small leading-[18px];
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-small leading-[18px];
+      }
     }
   }
 }
@@ -650,17 +675,6 @@ reloadViewDataHook?.on(async () => {
   }
 }
 
-:deep(.nc-cell),
-:deep(.nc-virtual-cell) {
-  @apply text-small leading-[18px];
-
-  .nc-cell-field,
-  input,
-  textarea,
-  .nc-cell-field-link {
-    @apply !text-small !leading-[18px];
-  }
-}
 :deep(.nc-cell) {
   &.nc-cell-longtext {
     .long-text-wrapper {

@@ -47,6 +47,8 @@ const onResize = (e: OnResize) => {
 
 const onRotate = (e: OnRotate) => {
   e.target.style.transform = e.drag.transform
+  const angle = Math.round(+[...e.drag.transform.matchAll(/rotate\((.*?)deg\)/g)][0][1])
+  widget.value.angle = isNaN(angle) ? 0 : angle
 }
 const onDrag = (e: OnDrag) => {
   e.target.style.transform = e.transform
@@ -58,12 +60,21 @@ const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
 }
 
+watch(
+  () => widget.value.angle,
+  () => {
+    nextTick(() => {
+      moveableRef.value?.updateRect()
+    })
+  },
+)
+
 const container = useParentElement()
 </script>
 
 <template>
   <div v-if="widget">
-    <div ref="targetRef" class="absolute" :style="widget.cssStyle">
+    <div ref="targetRef" class="absolute" :style="widget.cssStyle.replace(/rotate\(.*?\)/, `rotate(${widget.angle || 0}deg)`)">
       <div
         :style="{
           background: `${widget.backgroundColor}`,

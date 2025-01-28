@@ -69,7 +69,7 @@ watch(
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper class="page-designer">
+  <ExtensionsExtensionWrapper class="page-designer" @header-click="savedPayload.currentWidgetId = -1">
     <template v-if="fullscreen" #headerExtra>
       <!-- <NcButton> Header actions </NcButton> -->
     </template>
@@ -89,7 +89,7 @@ watch(
             class="w-full page-designer-record-picker"
           />
         </div>
-        <div class="overflow-y-auto flex-1 relative group px-3 my-3 mini-layout">
+        <div class="overflow-y-auto flex-1 relative group mt-3 mini-layout">
           <div
             class="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out transform -translate-x-2/4 -translate-y-2/4 left-2/4 top-2/4"
             style="z-index: 10000"
@@ -108,14 +108,6 @@ watch(
     </div>
   </ExtensionsExtensionWrapper>
 </template>
-
-<style lang="scss" scoped>
-.mini-layout {
-  :deep(.layout-wrapper) {
-    @apply rounded-lg;
-  }
-}
-</style>
 
 <style lang="scss">
 .page-designer {
@@ -143,8 +135,16 @@ watch(
   .nc-moveable .moveable-line {
     @apply bg-transparent;
   }
-  .nc-moveable .moveable-control {
-    @apply rounded-[3px] w-[10px] h-[10px] border-2 border-solid border-nc-border-brand bg-nc-bg-default;
+  .nc-moveable .moveable-rotation {
+    .moveable-rotation-line {
+      @apply bg-nc-fill-primary w-[2px] -ml-[0.5px];
+    }
+    .moveable-rotation-control {
+      @apply !border-nc-border-brand;
+    }
+  }
+  .nc-moveable .moveable-control:not(.moveable-rotation-control) {
+    @apply rounded-[3px] w-[10px] h-[10px] border-2 border-solid border-nc-border-brand bg-nc-bg-default -mt-[5px] -ml-[5px];
   }
 
   .page-designer-record-picker {

@@ -29,6 +29,14 @@ watch(
         </div>
       </div>
     </GroupedSettings>
+    <GroupedSettings title="Orientation">
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Angle</span>
+          <a-input v-model:value="dividerWidget.angle" type="number" class="!rounded-lg"></a-input>
+        </div>
+      </div>
+    </GroupedSettings>
   </div>
 </template>
 

@@ -46,6 +46,7 @@ export interface PageDesignerImageWidget extends PageDesignerWidget {
 export interface PageDesignerDividerWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.DIVIDER
   backgroundColor: string
+  angle: number
 }
 
 const BLACK = '#000000'
@@ -99,8 +100,9 @@ export class PageDesignerWidgetFactory {
       id,
       backgroundColor: BLACK,
       type: PageDesignerWidgetType.DIVIDER,
+      angle: 0,
       zIndex: 0,
-      cssStyle: `width: 500px; height: 10px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
+      cssStyle: `width: 500px; height: 10px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
     }
   }
 }

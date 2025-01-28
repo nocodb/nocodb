@@ -153,7 +153,7 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .table-selector {
   :deep(.ant-select-selector) {
-    @apply !rounded-[8px_0_0_8px];
+    @apply !rounded-[8px_0_0_8px] border-r-0;
   }
 }
 .view-selector {

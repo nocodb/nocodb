@@ -43,14 +43,26 @@ watch(
     <GroupedSettings title="Alignment">
       <div class="flex gap-3">
         <a-radio-group v-model:value="textWidget.horizontalAlign" class="radio-picker">
-          <a-radio-button value="flex-start"><GeneralIcon icon="ncAlignLeft" /></a-radio-button>
-          <a-radio-button value="center"><GeneralIcon icon="ncAlignCenter" /></a-radio-button>
-          <a-radio-button value="flex-end"><GeneralIcon icon="ncAlignRight" /></a-radio-button>
+          <a-radio-button value="flex-start">
+            <GeneralIcon icon="ncAlignLeft" />
+          </a-radio-button>
+          <a-radio-button value="center">
+            <GeneralIcon icon="ncAlignCenter" />
+          </a-radio-button>
+          <a-radio-button value="flex-end">
+            <GeneralIcon icon="ncAlignRight" />
+          </a-radio-button>
         </a-radio-group>
         <a-radio-group v-model:value="textWidget.verticalAlign" class="radio-picker">
-          <a-radio-button value="flex-start"><GeneralIcon icon="ncVerticalAlignTop" /></a-radio-button>
-          <a-radio-button value="center"><GeneralIcon icon="ncVerticalAlignCenter" /></a-radio-button>
-          <a-radio-button value="flex-end"><GeneralIcon icon="ncVerticalAlignBottom" /></a-radio-button>
+          <a-radio-button value="flex-start">
+            <GeneralIcon icon="ncVerticalAlignTop" />
+          </a-radio-button>
+          <a-radio-button value="center">
+            <GeneralIcon icon="ncVerticalAlignCenter" />
+          </a-radio-button>
+          <a-radio-button value="flex-end">
+            <GeneralIcon icon="ncVerticalAlignBottom" />
+          </a-radio-button>
         </a-radio-group>
       </div>
     </GroupedSettings>
@@ -152,14 +164,17 @@ watch(
       @apply border-nc-border-gray-medium;
     }
   }
+
   :deep(.ant-select-selection-item) {
     display: inline-block !important;
   }
+
   .border-inputs {
     .ant-input {
       @apply !rounded-lg h-8 w-8 text-center;
       padding: 2px;
-      -moz-appearance: textfield; /*For FireFox*/
+      -moz-appearance: textfield;
+      /*For FireFox*/
 
       &::-webkit-inner-spin-button {
         /*For Webkits like Chrome and Safari*/

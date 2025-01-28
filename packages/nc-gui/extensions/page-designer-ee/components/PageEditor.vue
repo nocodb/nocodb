@@ -73,7 +73,7 @@ function onWidgetClick(id: string | number) {
 </script>
 
 <template>
-  <div v-on-click-outside="unselectCurrentWidget" class="h-full w-full flex">
+  <div class="h-full w-full flex">
     <div
       class="layout-wrapper flex-1 overflow-auto grid place-items-center"
       @drop="onDropped"

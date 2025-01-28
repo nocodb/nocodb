@@ -36,12 +36,19 @@ const showReadonlyField = computed(() => {
 </script>
 
 <template>
-  <LazyCellMultiSelectReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="rowIndex" :options="options" />
+  <LazyCellMultiSelectReadonly
+    v-if="showReadonlyField"
+    :model-value="vModel"
+    :row-index="rowIndex"
+    :options="options"
+    :location="location"
+  />
   <LazyCellMultiSelectEditor
     v-else
     v-model="vModel"
     :disable-option-creation="disableOptionCreation"
     :row-index="rowIndex"
     :options="options"
+    :location="location"
   />
 </template>

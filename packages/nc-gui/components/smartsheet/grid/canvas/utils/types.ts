@@ -1,7 +1,7 @@
 export interface RenderSingleLineTextProps {
-  x: number
-  y: number
   text: string
+  x?: number
+  y?: number
   maxWidth?: number
   fontSize?: number
   fontFamily?: string
@@ -9,5 +9,10 @@ export interface RenderSingleLineTextProps {
   textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
   verticalAlign?: 'top' | 'middle' | 'bottom'
   fillStyle?: string
-  height: number
+  height?: number
+
+  /**
+   * Need to render or just return truncated text
+   */
+  render?: boolean
 }

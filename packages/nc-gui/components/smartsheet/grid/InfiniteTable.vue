@@ -149,6 +149,8 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 const resizingColumn = ref(false)
 
+const isPlaywright = computed(() => ncIsPlaywright())
+
 const columnWidthLimit = {
   [UITypes.Attachment]: {
     minWidth: 80,
@@ -2113,6 +2115,14 @@ const cellAlignClass = computed(() => {
                   v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
                   v-xc-ver-resize
+                  v-bind="
+                    isPlaywright
+                      ? {
+                          'data-col': fields[0].id,
+                          'data-title': fields[0].title,
+                        }
+                      : {}
+                  "
                   :style="{
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2154,6 +2164,14 @@ const cellAlignClass = computed(() => {
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
+                  v-bind="
+                    isPlaywright
+                      ? {
+                          'data-col': col.id,
+                          'data-title': col.title,
+                        }
+                      : {}
+                  "
                   v-xc-ver-resize
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
@@ -2437,6 +2455,17 @@ const cellAlignClass = computed(() => {
                           'width': gridViewCols[fields[0].id]?.width || '180px',
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
+                        v-bind="
+                          isPlaywright
+                            ? {
+                                'data-key': `data-key-${row.rowMeta.rowIndex}-${fields[0].id}`,
+                                'data-col': fields[0].id,
+                                'data-title': fields[0].title,
+                                'data-row-index': row.rowMeta.rowIndex,
+                                'data-col-index': 0,
+                              }
+                            : {}
+                        "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
                         @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
                         @dblclick="makeEditable(row, fields[0])"
@@ -2525,6 +2554,17 @@ const cellAlignClass = computed(() => {
                           'width': gridViewCols[columnObj.id]?.width || '180px',
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
+                        v-bind="
+                          isPlaywright
+                            ? {
+                                'data-key': `data-key-${row.rowMeta.rowIndex}-${columnObj.id}`,
+                                'data-col': columnObj.id,
+                                'data-title': columnObj.title,
+                                'data-row-index': row.rowMeta.rowIndex,
+                                'data-col-index': 0,
+                              }
+                            : {}
+                        "
                         @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
                         @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"

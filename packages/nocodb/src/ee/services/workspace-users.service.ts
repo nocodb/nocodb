@@ -385,6 +385,7 @@ export class WorkspaceUsersService {
             display_name: '',
             salt,
             req: param.req,
+            workspace_invite: true,
           },
           ncMeta,
         );

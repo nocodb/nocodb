@@ -5,3 +5,4 @@ export * from './domainVerification';
 export { canUseOptimisedQuery };
 
 export const isEE = true;
+export const isOnPrem = false;

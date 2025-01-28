@@ -182,7 +182,7 @@ export class UsersService extends UsersServiceCE {
 
     if (isFirstUserAndSuperUserAllowed) {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-    } else if (settings?.invite_only_signup) {
+    } else if (settings?.invite_only_signup && !workspace_invite) {
       NcError.badRequest('Not allowed to signup, contact super admin.');
     } else {
       roles = OrgUserRoles.VIEWER;

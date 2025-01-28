@@ -9,8 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectRoles } from 'nocodb-sdk';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import { BaseRolesV3Type, ProjectRoles } from 'nocodb-sdk';
+import type {
+  BaseUserCreateV3Type,
+  BaseUserDeleteV3Type,
+  BaseUserUpdateV3Type,
+  ProjectUserReqType,
+} from 'nocodb-sdk';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -46,11 +51,11 @@ export class BaseUsersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: ProjectUserReqType[],
+    @Body() baseUsers: BaseUserCreateV3Type | BaseUserCreateV3Type[number],
   ): Promise<any> {
     return await this.baseUsersV3Service.userInvite(context, {
       baseId,
-      baseUsers,
+      baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
       req,
     });
   }
@@ -64,10 +69,10 @@ export class BaseUsersV3Controller {
     baseId: string,
     @Req()
     req: NcRequest,
-    @Body() baseUsers: ProjectUserReqType[],
+    @Body() baseUsers: BaseUserUpdateV3Type | BaseUserUpdateV3Type[number],
   ): Promise<any> {
     return await this.baseUsersV3Service.baseUserUpdate(context, {
-      baseUsers,
+      baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
       baseId,
       req,
     });
@@ -79,21 +84,18 @@ export class BaseUsersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: any[],
+    @Body() baseUsers: BaseUserDeleteV3Type | BaseUserDeleteV3Type[number],
   ): Promise<any> {
-    // if not array throw bad request error
-    if (!Array.isArray(baseUsers)) {
-      NcError.badRequest('Expected an array of user object with id/email');
-    }
-
     await this.baseUsersV3Service.baseUserUpdate(context, {
       baseId,
       req,
-      baseUsers: baseUsers.map((user) => ({
-        id: user.id,
-        email: user.email,
-        base_role: ProjectRoles.NO_ACCESS,
-      })),
+      baseUsers: (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).map(
+        (user) => ({
+          id: user.id,
+          email: user.email,
+          base_role: BaseRolesV3Type.NoAccess,
+        }),
+      ),
     });
     return {
       msg: 'The user has been deleted successfully',

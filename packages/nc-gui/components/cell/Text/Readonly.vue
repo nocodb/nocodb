@@ -6,17 +6,8 @@ interface Props {
 defineProps<Props>()
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
-
-const { showNull } = useGlobal()
 </script>
 
 <template>
-  <span v-if="modelValue === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-  <LazyCellClampedText
-    v-else
-    class="nc-cell-field clamped-text"
-    :value="modelValue"
-    :lines="rowHeight"
-    :style="{ 'word-break': 'break-word' }"
-  />
+  <LazyCellClampedText class="nc-cell-field clamped-text" :value="modelValue" :lines="rowHeight" :style="{ 'word-break': 'break-word' }" />
 </template>

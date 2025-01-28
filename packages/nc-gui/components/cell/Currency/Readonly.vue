@@ -32,7 +32,7 @@ const currency = computed(() => {
 
 <template>
   <!-- only show the numeric value as previously string value was accepted -->
-  <span v-if="!isNaN(props.modelValue)" class="nc-cell-field">{{ currency }}</span>
+  <div v-if="!isNaN(props.modelValue)" class="nc-cell-field truncate">{{ currency }}</div>
 
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />

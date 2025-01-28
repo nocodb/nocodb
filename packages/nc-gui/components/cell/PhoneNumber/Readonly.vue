@@ -7,8 +7,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readOnly = inject(ReadonlyInj, ref(false))

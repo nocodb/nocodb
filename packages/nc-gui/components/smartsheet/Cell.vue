@@ -147,6 +147,10 @@ const currentDate = () => {
   vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
 
+const isPrimaryCol = computed(() => isPrimary(column.value))
+
+const isPrimaryKeyCol = computed(() => isPrimaryKey(column.value))
+
 const cellType = computed(() => {
   if (isAI(column.value)) return 'ai'
   if (isTextArea(column.value)) return 'textarea'
@@ -173,6 +177,37 @@ const cellType = computed(() => {
   if (isInt(column.value, abstractType.value)) return 'integer'
   if (isJSON(column.value)) return 'json'
   return 'text'
+})
+
+// Dynamic component rendering
+const cellComponent = computed(() => {
+  if (!active.value && (readOnly.value || !editEnabled.value) && vModel.value === null && isShowNullField(column.value)) {
+    return h(resolveComponent('LazyCellReadonlyNull'))
+  }
+
+  switch (cellType.value) {
+    case 'ai': {
+      return h(resolveComponent('LazyCellAI'), {
+        onSave: () => emit('save'),
+      })
+    }
+
+    default: {
+      if (!readOnly.value && (active.value || editEnabled.value)) {
+        console.log('render editor')
+        return h(resolveComponent('LazyCellEditorText'), {
+          'modelValue': vModel.value,
+          'onUpdate:modelValue': (value) => (vModel.value = value),
+        })
+      }
+
+      console.log('render readonly')
+
+      return h(resolveComponent('LazyCellReadonlyText'), {
+        modelValue: vModel.value,
+      })
+    }
+  }
 })
 </script>
 
@@ -209,7 +244,8 @@ const cellType = computed(() => {
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>
-      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
+      <component v-if="cellComponent" :is="cellComponent" v-model="vModel"></component>
+      <!-- <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
       <LazyCellCheckbox v-else-if="cellType === 'checkbox'" v-model="vModel" />
@@ -271,7 +307,7 @@ const cellType = computed(() => {
           !isJSON(column)
         "
         class="nc-locked-overlay"
-      />
+      /> -->
     </template>
   </div>
 </template>

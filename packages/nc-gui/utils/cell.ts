@@ -121,3 +121,18 @@ export const rowHeightTruncateLines = (rowHeight?: number, isSelectOption = fals
       return 1
   }
 }
+
+export const isShowNullField = (column: ColumnType) => {
+  return [
+    UITypes.SingleLineText,
+    UITypes.LongText,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.URL,
+    UITypes.Number,
+    UITypes.Decimal,
+    UITypes.Percent,
+    UITypes.Duration,
+    UITypes.JSON,
+  ].includes(column.uidt as UITypes)
+}

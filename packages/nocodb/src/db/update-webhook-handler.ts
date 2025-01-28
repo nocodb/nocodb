@@ -1,12 +1,12 @@
-import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import Noco from '~/Noco';
 
 export type WebhookContext = {
   context: NcContext;
   user: any;
-  baseModel: BaseModelSqlv2;
+  baseModel: IBaseModelSqlV2;
   isSingleUpdate?: boolean;
   ignoreWebhook?: boolean;
 };
@@ -19,12 +19,20 @@ export class UpdateWebhookHandler {
     this.webhookContext = webhookContext;
     this.rowId = rowId;
   }
-  prevData: any;
+  protected prevData: any;
+  protected nextData: any;
 
   public static async beginUpdate(payload: WebhookContext, rowId: any) {
     const webhookHandler = new UpdateWebhookHandler(payload, rowId);
     await webhookHandler.sendBeforeUpdateWebhook();
     return webhookHandler;
+  }
+
+  getData() {
+    return {
+      prevData: this.prevData,
+      nextData: this.nextData,
+    };
   }
 
   // // experimental, will be useful after refactoring
@@ -58,14 +66,14 @@ export class UpdateWebhookHandler {
     const hookName = `after.${
       this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
     }`;
-    const nextData = await this.webhookContext.baseModel.readByPk(
+    this.nextData = await this.webhookContext.baseModel.readByPk(
       this.rowId,
       false,
       {},
       { ignoreView: true, getHiddenColumn: false },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
-      this.sendWebhook(hookName, this.prevData, nextData);
+      this.sendWebhook(hookName, this.prevData, this.nextData);
     }
   }
   sendWebhook(hookName: string, prevData: any, nextData?: any) {

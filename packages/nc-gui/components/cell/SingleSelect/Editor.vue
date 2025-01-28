@@ -103,7 +103,7 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-useSelectedCellKeyupListener(
+useSelectedCellKeydownListener(
   activeCell,
   (e) => {
     switch (e.key) {

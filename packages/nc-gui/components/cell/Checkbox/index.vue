@@ -77,7 +77,7 @@ const keydownSpace = (e: KeyboardEvent) => {
   }
 }
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeydownListener(active, (e) => {
   switch (e.key) {
     case 'Enter':
       onClick()

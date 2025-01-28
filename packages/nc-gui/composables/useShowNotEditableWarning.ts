@@ -6,7 +6,7 @@ export default function useShowNotEditableWarning(options: { onEnter?: (e: Event
 
   const activateShowEditNonEditableFieldWarning = () => (showEditNonEditableFieldWarning.value = true)
 
-  useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
     switch (e.key) {
       case 'Enter':
         options.onEnter?.(e)

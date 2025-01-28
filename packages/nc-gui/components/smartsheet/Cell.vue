@@ -268,7 +268,7 @@ const cellClassName = computed(() => {
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>
-      <LazyCellReadonlyNull v-else-if="showNullComponent" />
+      <LazyCellNull v-else-if="showNullComponent" />
       <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
@@ -311,8 +311,8 @@ const cellClassName = computed(() => {
       <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
       <LazyCellDuration v-else-if="cellType === 'duration'" v-model="vModel" />
       <template v-else-if="cellType === 'email'">
-        <LazyCellReadonlyEmail v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellEditorEmail v-else v-model="vModel" />
+        <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellEmailEditor v-else v-model="vModel" />
       </template>
       <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
       <LazyCellPhoneNumber v-else-if="cellType === 'phoneNumber'" v-model="vModel" />
@@ -321,11 +321,14 @@ const cellClassName = computed(() => {
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellDecimal v-else-if="cellType === 'decimal'" v-model="vModel" />
       <LazyCellFloat v-else-if="cellType === 'float'" v-model="vModel" />
-      <LazyCellInteger v-else-if="cellType === 'integer'" v-model="vModel" />
+      <template v-else-if="cellType === 'integer'">
+        <LazyCellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellIntegerEditor v-else v-model="vModel" />
+      </template>
       <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
       <template v-else>
-        <LazyCellReadonlyText v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellEditorText v-else v-model="vModel" />
+        <LazyCellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellTextEditor v-else v-model="vModel" />
       </template>
       <div v-if="showLockedOverlay" class="nc-locked-overlay" />
     </template>

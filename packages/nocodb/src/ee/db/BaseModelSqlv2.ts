@@ -17,13 +17,11 @@ import {
 } from 'nocodb-sdk';
 import BigNumber from 'bignumber.js';
 import {
-  _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
   extractSortsObject,
   formatDataForAudit,
   getAs,
   getColumnName,
-  getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
   populatePk,
@@ -81,6 +79,7 @@ import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
 import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable } from '~/utils/globals';
+import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 

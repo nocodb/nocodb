@@ -311,6 +311,17 @@ const cellClassName = computed(() => {
         <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
+      <template v-else-if="cellType === 'datePicker'">
+        <LazyCellDateReadonly v-if="showReadonlyField" v-model="vModel" />
+        <LazyCellDateEditor
+          v-else
+          v-model="vModel"
+          :is-pk="isPrimaryKeyCol"
+          :show-current-date-option="showCurrentDateOption"
+          @current-date="currentDate"
+        />
+      </template>
+
       <LazyCellAttachment
         v-else-if="cellType === 'attachment'"
         ref="attachmentCell"
@@ -323,7 +334,7 @@ const cellClassName = computed(() => {
         <LazyCellSingleSelectEditor
           v-else
           v-model="vModel"
-          :disable-option-creation="!!isEditColumnMenu"
+          :disable-option-creation="isEditColumnMenu"
           :row-index="props.rowIndex"
         />
       </template>
@@ -331,15 +342,8 @@ const cellClassName = computed(() => {
       <LazyCellMultiSelect
         v-else-if="cellType === 'multiSelect'"
         v-model="vModel"
-        :disable-option-creation="!!isEditColumnMenu"
+        :disable-option-creation="isEditColumnMenu"
         :row-index="props.rowIndex"
-      />
-      <LazyCellDatePicker
-        v-else-if="cellType === 'datePicker'"
-        v-model="vModel"
-        :is-pk="isPrimaryKeyCol"
-        :show-current-date-option="showCurrentDateOption"
-        @current-date="currentDate"
       />
       <LazyCellDateTimePicker
         v-else-if="cellType === 'dateTimePicker'"

@@ -710,6 +710,7 @@ import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1626,6 +1627,7 @@ export const iconMap = {
   ncLogoZendesk: h(NcLogoZendesk, { stroke: 'transparent' }),
   ncLogoZohoColored: h(NcLogoZohoColored, { stroke: 'transparent' }),
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
+  ncSendAlt: h(NcSendAlt, { stroke: 'transparent' }),
   ncAiPlay: AiPlayIcon,
 }
 

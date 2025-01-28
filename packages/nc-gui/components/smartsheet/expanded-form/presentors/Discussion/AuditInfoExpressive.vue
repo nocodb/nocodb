@@ -121,7 +121,7 @@ function isShowableValue(value: any) {
     <GeneralIcon
       icon="ncNode"
       class="w-[16px] h-[16px] text-gray-500 bg-white absolute left-0 transform -translate-x-1/2"
-      :class="[['JSON', 'Attachment'].includes(meta[columnKey]?.type) ? 'top-1' : 'top-1/2 -translate-y-2/5']"
+      :class="[['JSON', 'Attachment', 'SingleLineText', 'LongText'].includes(meta[columnKey]?.type) ? 'top-1' : 'top-1/2 -translate-y-2/5']"
     />
     <div class="ml-6.5">
       <div class="text-[13px] font-weight-500 inline-flex items-center flex-wrap">
@@ -199,17 +199,17 @@ function isShowableValue(value: any) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone !leading-[18px]"
+              class="text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone !leading-[18px] my-0.5"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone !leading-[18px]"
+              class="text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone !leading-[18px] my-0.5"
             >
               {{ block.text }}
             </span>
-            <span v-else class="mr-1 !leading-[18px]">
+            <span v-else class="mr-1 !leading-[18px] my-0.5">
               {{ block.text }}
             </span>
           </template>
@@ -359,7 +359,7 @@ function isShowableValue(value: any) {
     & > .ant-tag {
       @apply !m-0 !text-inherit !border-1 !border-gray-300 !pr-1 !pl-0.5 !bg-gray-100 !rounded-[17px];
       & > span > div + div {
-        @apply flex items-center !text-[13px] font-weight-500;
+        @apply flex items-center !text-[13px] font-weight-500 !leading-[16px];
       }
       & > span {
         @apply gap-1;
@@ -409,7 +409,7 @@ function isShowableValue(value: any) {
   @apply !h-[20px];
 }
 .nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) span {
-  @apply !text-[13px];
+  @apply !text-[13px] !leading-[16px];
 }
 .nc-expressive-mini-item-cell .nc-cell-url > div > span {
   width: auto !important;
@@ -421,7 +421,7 @@ function isShowableValue(value: any) {
   @apply !line-through;
 }
 .nc-expressive-mini-item-cell :where(.nc-cell-year, .nc-cell-time, .nc-cell-datetime, .nc-cell-date) span {
-  @apply !text-[13px];
+  @apply !text-[13px] !leading-[16px];
 }
 .nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell
   :where(
@@ -433,8 +433,13 @@ function isShowableValue(value: any) {
     .nc-cell.nc-cell-number .nc-cell-field
   ) {
   font-size: 13px !important;
+  line-height: 16px !important;
 }
-.nc-expressive-mini-item-cell .nc-cell-field.text-ellipsis {
-  @apply flex items-center;
+.nc-expressive-mini-item-cell .nc-cell-field:not(.nc-single-select, .nc-multi-select), .nc-expressive-mini-item-cell .nc-cell:not(.nc-cell-singleselect, .nc-cell-multiselect) {
+  @apply flex items-center h-[20px];
+}
+.nc-expressive-mini-item-cell .nc-cell :where(.nc-cell-field, input, textarea, .nc-cell-field-link):not(.ant-select-selection-search-input) {
+  font-size: unset;
+  line-height: unset;
 }
 </style>

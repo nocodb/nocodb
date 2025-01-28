@@ -9,7 +9,7 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, loadAudits, commentsDrawer, isNew, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } =
+const { saveComment, loadAudits, commentsDrawer, isNew, audits, comments, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } =
   useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
@@ -20,6 +20,7 @@ const showRightSections = computed(() => !isNew.value && commentsDrawer.value &&
 
 onMounted(async () => {
   await loadAudits()
+  scrollToBottom()
 })
 
 /* comments */
@@ -43,7 +44,14 @@ function initLoadMoreAudits() {
   loadMoreAudits()
 }
 
-watch([newCommentText, auditCommentGroups], () => {
+const auditsLength = computed(() => audits.value.length)
+const commentsLength = computed(() => comments.value.length)
+
+watch([newCommentText, auditsLength, commentsLength], () => {
+  scrollToBottom()
+})
+
+function scrollToBottom() {
   setTimeout(() => {
     if (shouldSkipAuditsScroll.value) {
       shouldSkipAuditsScroll.value = false
@@ -53,7 +61,7 @@ watch([newCommentText, auditCommentGroups], () => {
       behavior: 'smooth',
     })
   }, 200)
-})
+}
 </script>
 
 <script lang="ts">
@@ -71,10 +79,10 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] h-0 flex-grow ml-16.25 border-l-1 border-gray-300" />
+      <div class="w-[680px] h-0 flex-grow ml-14 border-l-1 border-gray-300" />
       <div
         v-if="mightHaveMoreAudits"
-        class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-16.25 border-l-1 border-gray-300 relative"
+        class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-14 border-l-1 border-gray-300 relative"
       >
         <NcButton
           size="small"
@@ -100,6 +108,7 @@ export default {
             ref="refRichComment"
             :key="auditCommentGroups.length"
             v-model:value="newCommentText"
+            @update:value="scrollToBottom()"
             :hide-options="false"
             placeholder="Comment..."
             class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"

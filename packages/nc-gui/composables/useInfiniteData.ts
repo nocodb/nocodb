@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import axios, { type CancelTokenSource } from 'axios'
+import axios from 'axios'
 import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
   type Api,
@@ -231,25 +231,17 @@ export function useInfiniteData(args: {
       offset?: number
     } = {},
     _shouldShowLoading?: boolean,
-    cancelTokenSource?: CancelTokenSource,
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
 
     try {
       const response = !isPublic.value
-        ? await $api.dbViewRow.list(
-            'noco',
-            base.value.id!,
-            meta.value!.id!,
-            viewMeta.value!.id!,
-            {
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: where?.value,
-            } as any,
-            { cancelToken: cancelTokenSource?.token },
-          )
+        ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+          } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
@@ -269,10 +261,6 @@ export function useInfiniteData(args: {
 
       return data
     } catch (error: any) {
-      if (axios.isCancel(error)) {
-        return []
-      }
-
       if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {
         return []
       }

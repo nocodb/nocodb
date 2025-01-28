@@ -15,7 +15,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 
-import axios, { type CancelTokenSource } from 'axios'
+import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
 import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
@@ -24,7 +24,7 @@ const props = defineProps<{
   totalRows: number
   data: Map<number, Row>
   rowHeightEnum?: number
-  loadData: (params?: any, shouldShowLoading?: boolean, cancelTokenSource?: CancelTokenSource) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
   updateOrSaveRow?: (
@@ -217,25 +217,8 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
-const cancelTokens = ref<CancelTokenSource[]>([]) // Array to manage CancelToken sources
-const MAX_CONCURRENT_CALLS = 4 // Maximum concurrent API calls
-
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
-
-  // Create a new CancelToken source
-  const source = axios.CancelToken.source()
-
-  // Add the source to the queue
-  cancelTokens.value.push(source)
-
-  // // Cancel old requests if the queue exceeds the limit
-  // while (cancelTokens.value.length > MAX_CONCURRENT_CALLS) {
-  //   const oldSource = cancelTokens.value.shift()
-  //   if (oldSource) {
-  //     oldSource.cancel('Request canceled due to new scroll events')
-  //   }
-  // }
 
   const offset = chunkId * CHUNK_SIZE
   const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
@@ -248,8 +231,9 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (isInitialLoad) {
     chunkStates.value[chunkId + 1] = 'loading'
   }
+
   try {
-    const newItems = await loadData({ offset, limit }, undefined, source)
+    const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
 
     chunkStates.value[chunkId] = 'loaded'

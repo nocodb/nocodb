@@ -214,7 +214,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  cellClickHook?.on(cellClickHandler)
+  cellClickHook?.off(cellClickHandler)
 })
 
 const clickHandler = () => {

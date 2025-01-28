@@ -61,7 +61,7 @@ const virtualCellClassName = computed(() => {
   if (isGrid.value && !isForm.value && virtualCellType.value === 'rollup' && !isExpandedForm.value) {
     className += ' text-right justify-end'
   }
-  if (!isPrimaryCol.value && !isForm.value) {
+  if (isPrimaryCol.value && !isForm.value) {
     className += ' nc-display-value-cell'
   }
 

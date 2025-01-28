@@ -297,13 +297,18 @@ const cellClassName = computed(() => {
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
       <template v-else-if="cellType === 'geoData'">
-        <LazyCellGeoDataReadonly v-if="showReadonlyField" :model-value="vModel" v-model:local-edit-enabled="localEditEnabled" />
+        <LazyCellGeoDataReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
         <LazyCellGeoDataEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
       </template>
 
       <template v-else-if="cellType === 'checkbox'">
         <LazyCellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellCheckboxEditor v-else v-model="vModel" />
+      </template>
+
+      <template v-else-if="cellType === 'yearPicker'">
+        <LazyCellYearReadonly v-if="showReadonlyField" v-model="vModel" />
+        <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <LazyCellAttachment
@@ -336,7 +341,6 @@ const cellClassName = computed(() => {
         :show-current-date-option="showCurrentDateOption"
         @current-date="currentDate"
       />
-      <LazyCellYearPicker v-else-if="cellType === 'yearPicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
       <LazyCellDateTimePicker
         v-else-if="cellType === 'dateTimePicker'"
         v-model="vModel"

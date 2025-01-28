@@ -285,6 +285,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
   } else if (event.key === 'Escape') {
     isFocused.value = false
     emits('blur')
+
+    document.querySelector('.nc-drawer-expanded-form.active > div[tabindex="0"]')?.focus?.()
   }
 }
 

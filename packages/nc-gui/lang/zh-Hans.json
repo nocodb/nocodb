@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "您",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "创建 AI 集成",
     "suggestTablesViews": "建议表格 & 视图",
     "configureAiButton": "配置 AI 按钮",
-    "viewHide": "查看可见性 "
+    "viewHide": "查看可见性 ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

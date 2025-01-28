@@ -262,6 +262,12 @@ function resetTooltipInstances() {
   tooltipInstances.length = 0
 }
 
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.key !== 'Escape') {
+    event.stopPropagation()
+  }
+}
+
 watch(
   comments,
   () => {
@@ -469,6 +475,7 @@ onBeforeUnmount(() => {
                 data-testid="expanded-form-comment-input"
                 @save="onEditComment"
                 @keydown.esc="onCancel"
+                @keydown="handleKeyPress"
                 @blur="
                   () => {
                     editCommentValue = undefined
@@ -498,7 +505,7 @@ onBeforeUnmount(() => {
           :autofocus="isExpandedFormCommentMode"
           data-testid="expanded-form-comment-input"
           @focus="isExpandedFormCommentMode = false"
-          @keydown.stop
+          @keydown="handleKeyPress"
           @save="saveComment"
           @keydown.enter.exact.prevent="saveComment"
         />

@@ -104,5 +104,3 @@ const close = () => {
     </div>
   </NcModal>
 </template>
-
-<style scoped lang="scss"></style>

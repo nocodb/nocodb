@@ -681,6 +681,24 @@ export class RelationManager {
         }
         break;
     }
+
+    this.auditUpdateObj.push({
+      rowId: parentId,
+      refRowId: childId,
+      opSubType: AuditOperationSubTypes.LINK_RECORD,
+      type: colOptions.type as RelationTypes,
+      direction: 'parent_child',
+    });
+
+    this.auditUpdateObj.push({
+      rowId: childId,
+      refRowId: parentId,
+      opSubType: AuditOperationSubTypes.LINK_RECORD,
+      type: getOppositeRelationType(colOptions.type),
+      direction: 'child_parent',
+    });
+
+    await webhookHandler.finishUpdate();
   }
 
   getAuditUpdateObj(req: any) {

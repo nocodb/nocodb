@@ -307,16 +307,28 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'yearPicker'">
-        <LazyCellYearReadonly v-if="showReadonlyField" v-model="vModel" />
+        <LazyCellYearReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
         <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'datePicker'">
-        <LazyCellDateReadonly v-if="showReadonlyField" v-model="vModel" />
+        <LazyCellDateReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
         <LazyCellDateEditor
           v-else
           v-model="vModel"
           :is-pk="isPrimaryKeyCol"
+          :show-current-date-option="showCurrentDateOption"
+          @current-date="currentDate"
+        />
+      </template>
+
+      <template v-else-if="cellType === 'dateTimePicker'">
+        <LazyCellDateTimeReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
+        <LazyCellDateTimeEditor
+          v-else
+          v-model="vModel"
+          :is-pk="isPrimaryKeyCol"
+          :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
           :show-current-date-option="showCurrentDateOption"
           @current-date="currentDate"
         />
@@ -344,14 +356,6 @@ const cellClassName = computed(() => {
         v-model="vModel"
         :disable-option-creation="isEditColumnMenu"
         :row-index="props.rowIndex"
-      />
-      <LazyCellDateTimePicker
-        v-else-if="cellType === 'dateTimePicker'"
-        v-model="vModel"
-        :is-pk="isPrimaryKeyCol"
-        :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
-        :show-current-date-option="showCurrentDateOption"
-        @current-date="currentDate"
       />
       <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
 

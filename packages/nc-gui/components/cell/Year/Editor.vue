@@ -266,15 +266,6 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
-
-onMounted(() => {
-  if (isGrid.value && !isEditColumn.value && !isExpandedForm.value) {
-    setTimeout(() => {
-      editable.value = true
-      open.value = true
-    }, 0)
-  }
-})
 </script>
 
 <template>

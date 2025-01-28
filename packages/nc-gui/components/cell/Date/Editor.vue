@@ -310,15 +310,6 @@ const currentDate = ($event) => {
   emit('currentDate', $event)
   open.value = false
 }
-
-onMounted(() => {
-  if (isGrid.value && !isEditColumn.value && !isExpandedForm.value) {
-    setTimeout(() => {
-      editable.value = true
-      open.value = true
-    }, 0)
-  }
-})
 </script>
 
 <template>

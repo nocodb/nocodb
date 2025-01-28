@@ -124,67 +124,67 @@ const isCollaborator = (userIdOrEmail) => {
         </template>
       </component>
     </div>
-    <template v-else>
-      <div
-        class="flex flex-wrap"
-        :style="{
-          'display': '-webkit-box',
-          'max-width': '100%',
-          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-          '-webkit-box-orient': 'vertical',
-          'overflow': 'hidden',
-        }"
-      >
-        <template v-for="selectedOpt of selectedUsers" :key="selectedOpt.value">
-          <a-tag
-            class="rounded-tag max-w-full !pl-0"
-            :class="{
-              '!my-0': !rowHeight || rowHeight === 1,
+
+    <div
+      v-else
+      class="flex flex-wrap"
+      :style="{
+        'display': '-webkit-box',
+        'max-width': '100%',
+        '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+        '-webkit-box-orient': 'vertical',
+        'overflow': 'hidden',
+      }"
+    >
+      <template v-for="selectedOpt of selectedUsers" :key="selectedOpt.value">
+        <a-tag
+          class="rounded-tag max-w-full !pl-0"
+          :class="{
+            '!my-0': !rowHeight || rowHeight === 1,
+          }"
+          color="'#ccc'"
+        >
+          <span
+            :style="{
+              color: getSelectTypeOptionTextColor('#ccc'),
             }"
-            color="'#ccc'"
+            class="flex items-stretch gap-2"
+            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
-            <span
-              :style="{
-                color: getSelectTypeOptionTextColor('#ccc'),
-              }"
-              class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
-            >
-              <div class="flex-none">
-                <GeneralUserIcon
-                  :disabled="!isCollaborator(selectedOpt.value)"
-                  size="auto"
-                  :user="{
-                    display_name: !selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : '',
-                    email: selectedOpt.label,
-                    meta: selectedOpt.meta,
-                  }"
-                  class="!text-[0.65rem] !h-[16.8px]"
-                />
-              </div>
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ selectedOpt.label }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                  :class="{
-                    'text-gray-600': !isCollaborator(selectedOpt.value),
-                  }"
-                >
-                  {{ selectedOpt.label }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </template>
-      </div>
-    </template>
+            <div class="flex-none">
+              <GeneralUserIcon
+                :disabled="!isCollaborator(selectedOpt.value)"
+                size="auto"
+                :user="{
+                  display_name: !selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : '',
+                  email: selectedOpt.label,
+                  meta: selectedOpt.meta,
+                }"
+                class="!text-[0.65rem] !h-[16.8px]"
+              />
+            </div>
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ selectedOpt.label }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+                :class="{
+                  'text-gray-600': !isCollaborator(selectedOpt.value),
+                }"
+              >
+                {{ selectedOpt.label }}
+              </span>
+            </NcTooltip>
+          </span>
+        </a-tag>
+      </template>
+    </div>
   </div>
 </template>
 

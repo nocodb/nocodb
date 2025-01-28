@@ -9,6 +9,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
@@ -68,7 +70,9 @@ watch(rateDomRef, () => {
     ref="rateDomRef"
     :key="ratingMeta.icon.full"
     v-model:value="vModel"
+    :disabled="readOnly"
     :count="ratingMeta.max"
+    :class="readOnly ? 'pointer-events-none' : ''"
     :style="{
       'color': ratingMeta.color,
       'padding': isExpandedFormOpen ? '0px 8px' : '0px 2px',

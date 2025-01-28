@@ -233,7 +233,7 @@ export class RelationManager {
     });
   }
 
-  async getHmOrOChildRow() {
+  async getHmOrOoChildRow() {
     const { baseModel, childTn, childColumn, childTable, childId } =
       this.relationContext;
     return await baseModel.execAndParse(
@@ -391,7 +391,7 @@ export class RelationManager {
         break;
       case RelationTypes.HAS_MANY:
         {
-          const linkedHmRowObj = await this.getHmOrOChildRow();
+          const linkedHmRowObj = await this.getHmOrOoChildRow();
 
           const oldRowId = linkedHmRowObj
             ? linkedHmRowObj?.[childColumn?.column_name]
@@ -495,20 +495,7 @@ export class RelationManager {
             }
             // await triggerAfterRemoveChild();
           } else {
-            const linkedHmRowObj = await baseModel.execAndParse(
-              baseModel
-                .dbDriver(childTn)
-                .select(
-                  ...new Set(
-                    [childColumn, ...childTable.primaryKeys].map(
-                      (col) => col.column_name,
-                    ),
-                  ),
-                )
-                .where(_wherePk(childTable.primaryKeys, childId)),
-              null,
-              { raw: true, first: true },
-            );
+            const linkedHmRowObj = await this.getHmOrOoChildRow();
 
             const oldParentRowId = linkedHmRowObj
               ? linkedHmRowObj[childColumn.column_name]
@@ -522,8 +509,8 @@ export class RelationManager {
                 ]);
 
               this.auditUpdateObj.push({
-                rowId: childId,
-                refRowId: oldParentRowId as string,
+                rowId: oldParentRowId as string,
+                refRowId: childId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 displayValue: parentRelatedPkValue,
                 refDisplayValue: childRelatedPkValue,
@@ -532,11 +519,11 @@ export class RelationManager {
               });
 
               this.auditUpdateObj.push({
-                rowId: oldParentRowId as string,
-                refRowId: childId,
+                rowId: childId,
+                refRowId: oldParentRowId as string,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                refDisplayValue: childRelatedPkValue,
-                displayValue: parentRelatedPkValue,
+                displayValue: childRelatedPkValue,
+                refDisplayValue: parentRelatedPkValue,
                 direction: 'child_parent',
                 type: getOppositeRelationType(colOptions.type),
               });
@@ -573,42 +560,27 @@ export class RelationManager {
         break;
       case RelationTypes.ONE_TO_ONE:
         {
-          const isBt = column.meta?.bt;
+          // 1. check current row is linked with another child
+          const linkedCurrentOoRowObj =
+            await this.getHmOrOoChildLinkedWithParent();
 
-          let linkedOoRowObj;
-          let linkedCurrentOoRowObj;
-          if (isBt) {
-            // 1. check current child is linked with another parent
-            linkedCurrentOoRowObj = await baseModel.execAndParse(
-              baseModel
-                .dbDriver(childTn)
-                .select(
-                  ...new Set(
-                    [childColumn, ...childTable.primaryKeys].map(
-                      (col) => col.column_name,
-                    ),
-                  ),
-                )
-                .where(_wherePk(childTable.primaryKeys, childId)),
-              null,
-              { raw: true, first: true },
+          if (linkedCurrentOoRowObj) {
+            const oldChildRowId = getCompositePkValue(
+              childTable.primaryKeys,
+              baseModel.extractPksValues(linkedCurrentOoRowObj),
             );
 
-            const oldParentRowId = linkedCurrentOoRowObj
-              ? linkedCurrentOoRowObj[childColumn.column_name]
-              : null;
-
-            if (oldParentRowId) {
-              await webhookHandler.addAffectedParentId(oldParentRowId);
+            if (oldChildRowId) {
+              await webhookHandler.addAffectedChildId(oldChildRowId);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await baseModel.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: childId },
-                  { model: parentTable, id: oldParentRowId },
+                  { model: childTable, id: oldChildRowId },
+                  { model: parentTable, id: parentId },
                 ]);
 
               this.auditUpdateObj.push({
-                rowId: oldParentRowId,
-                refRowId: childId,
+                rowId: parentId,
+                refRowId: oldChildRowId as string,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 displayValue: parentRelatedPkValue,
                 refDisplayValue: childRelatedPkValue,
@@ -617,146 +589,8 @@ export class RelationManager {
               });
 
               this.auditUpdateObj.push({
-                rowId: childId as string,
-                refRowId: oldParentRowId,
-                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                displayValue: childRelatedPkValue,
-                refDisplayValue: parentRelatedPkValue,
-                direction: 'child_parent',
-                type: getOppositeRelationType(colOptions.type),
-              });
-            }
-
-            // 2. check current parent is linked with another child cell
-            linkedOoRowObj = await baseModel.execAndParse(
-              baseModel.dbDriver(childTn).where({
-                [childColumn.column_name]: baseModel.dbDriver.from(
-                  baseModel
-                    .dbDriver(parentTn)
-                    .select(parentColumn.column_name)
-                    .where(_wherePk(parentTable.primaryKeys, parentId))
-                    .first()
-                    .as('___cn_alias'),
-                ),
-              }),
-              null,
-              { raw: true, first: true },
-            );
-            if (linkedOoRowObj) {
-              const oldChildId = getCompositePkValue(
-                childTable.primaryKeys,
-                baseModel.extractPksValues(linkedOoRowObj),
-              );
-
-              if (oldChildId) {
-                await webhookHandler.addAffectedChildId(oldChildId);
-                const [_parentRelatedPkValue, childRelatedPkValue] =
-                  await baseModel.readOnlyPrimariesByPkFromModel([
-                    { model: parentTable, id: parentId },
-                    { model: childTable, id: oldChildId },
-                  ]);
-
-                this.auditUpdateObj.push({
-                  rowId: parentId as string,
-                  refRowId: oldChildId,
-                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                  displayValue: _parentRelatedPkValue,
-                  refDisplayValue: childRelatedPkValue,
-                  direction: 'parent_child',
-                  type: colOptions.type as RelationTypes,
-                });
-
-                this.auditUpdateObj.push({
-                  rowId: oldChildId,
-                  refRowId: parentId as string,
-                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                  displayValue: childRelatedPkValue,
-                  refDisplayValue: _parentRelatedPkValue,
-                  direction: 'child_parent',
-                  type: getOppositeRelationType(colOptions.type),
-                });
-              }
-            }
-          } else {
-            // 1. check current row is linked with another child
-            linkedCurrentOoRowObj = await this.getHmOrOoChildLinkedWithParent();
-
-            if (linkedCurrentOoRowObj) {
-              const oldChildRowId = getCompositePkValue(
-                childTable.primaryKeys,
-                baseModel.extractPksValues(linkedCurrentOoRowObj),
-              );
-
-              if (oldChildRowId) {
-                await webhookHandler.addAffectedChildId(oldChildRowId);
-                const [parentRelatedPkValue, childRelatedPkValue] =
-                  await baseModel.readOnlyPrimariesByPkFromModel([
-                    { model: childTable, id: oldChildRowId },
-                    { model: parentTable, id: parentId },
-                  ]);
-
-                this.auditUpdateObj.push({
-                  rowId: parentId,
-                  refRowId: oldChildRowId as string,
-                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                  displayValue: parentRelatedPkValue,
-                  refDisplayValue: childRelatedPkValue,
-                  direction: 'parent_child',
-                  type: colOptions.type as RelationTypes,
-                });
-
-                this.auditUpdateObj.push({
-                  rowId: oldChildRowId as string,
-                  refRowId: parentId,
-                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                  displayValue: childRelatedPkValue,
-                  refDisplayValue: parentRelatedPkValue,
-                  direction: 'child_parent',
-                  type: getOppositeRelationType(colOptions.type),
-                });
-              }
-            }
-
-            // 2. check current child is linked with another row cell
-            linkedOoRowObj = await baseModel.execAndParse(
-              baseModel
-                .dbDriver(childTn)
-                .select(
-                  ...new Set(
-                    [childColumn, ...childTable.primaryKeys].map(
-                      (col) => `${childTable.table_name}.${col.column_name}`,
-                    ),
-                  ),
-                )
-                .where(_wherePk(childTable.primaryKeys, childId)),
-              null,
-              { raw: true, first: true },
-            );
-
-            const oldRowId = linkedOoRowObj
-              ? linkedOoRowObj[childColumn.column_name]
-              : null;
-            if (oldRowId) {
-              await webhookHandler.addAffectedParentId(oldRowId);
-              const [parentRelatedPkValue, childRelatedPkValue] =
-                await baseModel.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: childId },
-                  { model: parentTable, id: oldRowId },
-                ]);
-
-              this.auditUpdateObj.push({
-                rowId: oldRowId as string,
-                refRowId: childId,
-                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-                displayValue: parentRelatedPkValue,
-                refDisplayValue: childRelatedPkValue,
-                direction: 'parent_child',
-                type: colOptions.type as RelationTypes,
-              });
-
-              this.auditUpdateObj.push({
-                rowId: childId,
-                refRowId: oldRowId as string,
+                rowId: oldChildRowId as string,
+                refRowId: parentId,
                 opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 displayValue: childRelatedPkValue,
                 refDisplayValue: parentRelatedPkValue,
@@ -766,6 +600,40 @@ export class RelationManager {
             }
           }
 
+          // 2. check current child is linked with another row cell
+          const linkedOoRowObj = await this.getHmOrOoChildRow();
+
+          const oldRowId = linkedOoRowObj
+            ? linkedOoRowObj[childColumn.column_name]
+            : null;
+          if (oldRowId) {
+            await webhookHandler.addAffectedParentId(oldRowId);
+            const [parentRelatedPkValue, childRelatedPkValue] =
+              await baseModel.readOnlyPrimariesByPkFromModel([
+                { model: childTable, id: childId },
+                { model: parentTable, id: oldRowId },
+              ]);
+
+            this.auditUpdateObj.push({
+              rowId: oldRowId as string,
+              refRowId: childId,
+              opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+              displayValue: parentRelatedPkValue,
+              refDisplayValue: childRelatedPkValue,
+              direction: 'parent_child',
+              type: colOptions.type as RelationTypes,
+            });
+
+            this.auditUpdateObj.push({
+              rowId: childId,
+              refRowId: oldRowId as string,
+              opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+              displayValue: childRelatedPkValue,
+              refDisplayValue: parentRelatedPkValue,
+              direction: 'child_parent',
+              type: getOppositeRelationType(colOptions.type),
+            });
+          }
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
           await baseModel.execAndParse(

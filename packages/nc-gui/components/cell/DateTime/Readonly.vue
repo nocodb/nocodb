@@ -65,12 +65,12 @@ const timeCellMaxWidth = computed(() => {
 </script>
 
 <template>
-  <div class="inline-flex nc-cell-field relative gap-2 justify-between nc-cell-picker-datetime">
-    <div class="flex-none rounded-md box-border w-[60%] max-w-[110px] py-0.5 hover:bg-gray-100 px-1">
+  <div class="w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight">
+    <div class="flex-none rounded-md box-border w-[60%] max-w-[110px] py-0.5 px-1 truncate">
       {{ localState?.format(dateFormat) ?? '' }}
     </div>
 
-    <div :class="timeCellMaxWidth" class="flex-none rounded-md box-border w-[60%] max-w-[110px] py-0.5 hover:bg-gray-100 px-1">
+    <div :class="timeCellMaxWidth" class="flex-1 flex-none rounded-md box-border py-0.5 px-1 truncate">
       {{ cellValue }}
     </div>
   </div>
@@ -78,7 +78,7 @@ const timeCellMaxWidth = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-picker-datetime {
-  @apply text-[13px]  leading-4;
+  @apply text-[13px] leading-4;
   font-weight: 500;
 }
 </style>

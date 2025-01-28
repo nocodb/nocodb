@@ -216,6 +216,13 @@ const showReadonlyField = computed(() => {
       return readOnly.value || !(active.value || editEnabled.value || isForm.value)
     }
 
+    case 'datePicker':
+    case 'dateTimePicker':
+    case 'timePicker':
+    case 'yearPicker': {
+      return readOnly.value || !(active.value || editEnabled.value)
+    }
+
     default: {
       return readOnly.value || !editEnabled.value
     }
@@ -309,12 +316,12 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'yearPicker'">
-        <LazyCellYearReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
+        <LazyCellYearReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'datePicker'">
-        <LazyCellDateReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
+        <LazyCellDateReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellDateEditor
           v-else
           v-model="vModel"
@@ -325,7 +332,7 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'dateTimePicker'">
-        <LazyCellDateTimeReadonly v-if="showReadonlyField && !active" :model-value="vModel" />
+        <LazyCellDateTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
         <LazyCellDateTimeEditor
           v-else
           v-model="vModel"

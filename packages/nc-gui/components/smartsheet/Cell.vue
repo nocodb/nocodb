@@ -179,58 +179,82 @@ const cellType = computed(() => {
   return 'text'
 })
 
-// Dynamic component rendering
-const cellComponent = computed(() => {
-  if (!active.value && (readOnly.value || !editEnabled.value) && vModel.value === null && isShowNullField(column.value)) {
-    return h(resolveComponent('LazyCellReadonlyNull'))
-  }
+const showNullComponent = computed(() => {
+  return (readOnly.value || !editEnabled.value) && vModel.value === null && isShowNullField(column.value)
+})
 
+const showReadonlyField = computed(() => {
   switch (cellType.value) {
-    case 'ai': {
-      return h(resolveComponent('LazyCellAI'), {
-        onSave: () => emit('save'),
-      })
+    case 'text':
+    case 'email': {
+      return readOnly.value || !editEnabled.value
     }
 
     default: {
-      if (!readOnly.value && (active.value || editEnabled.value)) {
-        console.log('render editor')
-        return h(resolveComponent('LazyCellEditorText'), {
-          'modelValue': vModel.value,
-          'onUpdate:modelValue': (value) => (vModel.value = value),
-        })
-      }
-
-      console.log('render readonly')
-
-      return h(resolveComponent('LazyCellReadonlyText'), {
-        modelValue: vModel.value,
-      })
+      return readOnly.value || !editEnabled.value
     }
   }
+})
+
+const showLockedOverlay = computed(() => {
+  return (
+    ((isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value)) &&
+    cellType.value !== 'attachment' &&
+    cellType.value !== 'textarea' &&
+    cellType.value !== 'ai' &&
+    cellType.value !== 'json'
+  )
+})
+
+const cellClassName = computed(() => {
+  let className = `nc-cell-${(column.value?.uidt || 'default').toLowerCase()}`
+
+  if (isPrimaryCol.value && !props.virtual && !isForm.value && !isCalendar.value) {
+    className += ' nc-display-value-cell'
+  }
+
+  if (
+    isGrid.value &&
+    isNumericField.value &&
+    !isEditColumnMenu.value &&
+    !isForm.value &&
+    !isExpandedFormOpen.value &&
+    cellType.value !== 'rating' &&
+    cellType.value !== 'yearPicker'
+  ) {
+    className += ' nc-grid-numeric-cell-right'
+  }
+
+  if (
+    !isEditColumnMenu.value &&
+    isForm.value &&
+    !props.virtual &&
+    cellType.value !== 'attachment' &&
+    cellType.value !== 'textarea' &&
+    cellType.value !== 'ai'
+  ) {
+    className += ' h-10'
+  }
+
+  if ((isForm.value && isNumericField.value && isExpandedFormOpen.value) || isEditColumnMenu.value) {
+    className += ' nc-grid-numeric-cell-left'
+  }
+
+  if (cellType.value === 'textarea' && (isForm.value || isSurveyForm.value)) {
+    className += ' !min-h-30'
+  }
+
+  if (cellType.value === 'ai') {
+    className += ' nc-cell-longtext-ai'
+  }
+
+  return className
 })
 </script>
 
 <template>
   <div
-    :class="[
-      `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
-      {
-        'nc-display-value-cell': isPrimary(column) && !props.virtual && !isForm && !isCalendar,
-        'nc-grid-numeric-cell-right':
-          isGrid &&
-          isNumericField &&
-          !isEditColumnMenu &&
-          !isForm &&
-          !isExpandedFormOpen &&
-          !isRating(column) &&
-          !isYear(column, abstractType),
-        'h-10': !isEditColumnMenu && isForm && !isAttachment(column) && !isTextArea(column) && !isJSON(column) && !props.virtual,
-        'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
-        '!min-h-30': isTextArea(column) && (isForm || isSurveyForm),
-        'nc-cell-longtext-ai': cellType === 'ai',
-      },
-    ]"
+    :class="cellClassName"
     class="nc-cell w-full h-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
@@ -244,8 +268,8 @@ const cellComponent = computed(() => {
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>
-      <component v-if="cellComponent" :is="cellComponent" v-model="vModel"></component>
-      <!-- <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
+      <LazyCellReadonlyNull v-else-if="showNullComponent" />
+      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
       <LazyCellCheckbox v-else-if="cellType === 'checkbox'" v-model="vModel" />
@@ -270,23 +294,26 @@ const cellComponent = computed(() => {
       <LazyCellDatePicker
         v-else-if="cellType === 'datePicker'"
         v-model="vModel"
-        :is-pk="isPrimaryKey(column)"
+        :is-pk="isPrimaryKeyCol"
         :show-current-date-option="showCurrentDateOption"
         @current-date="currentDate"
       />
-      <LazyCellYearPicker v-else-if="cellType === 'yearPicker'" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellYearPicker v-else-if="cellType === 'yearPicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
       <LazyCellDateTimePicker
         v-else-if="cellType === 'dateTimePicker'"
         v-model="vModel"
-        :is-pk="isPrimaryKey(column)"
+        :is-pk="isPrimaryKeyCol"
         :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
         :show-current-date-option="showCurrentDateOption"
         @current-date="currentDate"
       />
-      <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
       <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
       <LazyCellDuration v-else-if="cellType === 'duration'" v-model="vModel" />
-      <LazyCellEmail v-else-if="cellType === 'email'" v-model="vModel" />
+      <template v-else-if="cellType === 'email'">
+        <LazyCellReadonlyEmail v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellEditorEmail v-else v-model="vModel" />
+      </template>
       <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
       <LazyCellPhoneNumber v-else-if="cellType === 'phoneNumber'" v-model="vModel" />
       <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
@@ -294,20 +321,13 @@ const cellComponent = computed(() => {
       <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellDecimal v-else-if="cellType === 'decimal'" v-model="vModel" />
       <LazyCellFloat v-else-if="cellType === 'float'" v-model="vModel" />
-      <LazyCellText v-else-if="cellType === 'text'" v-model="vModel" />
       <LazyCellInteger v-else-if="cellType === 'integer'" v-model="vModel" />
       <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
-      <LazyCellText v-else v-model="vModel" />
-      <div
-        v-if="
-          ((isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
-          !isAttachment(column) &&
-          !isTextArea(column) &&
-          !isAI(column) &&
-          !isJSON(column)
-        "
-        class="nc-locked-overlay"
-      /> -->
+      <template v-else>
+        <LazyCellReadonlyText v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellEditorText v-else v-model="vModel" />
+      </template>
+      <div v-if="showLockedOverlay" class="nc-locked-overlay" />
     </template>
   </div>
 </template>

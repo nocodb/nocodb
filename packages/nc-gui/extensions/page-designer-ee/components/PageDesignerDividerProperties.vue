@@ -3,6 +3,7 @@ import { PageDesignerPayloadInj } from '../lib/context'
 import type { PageDesignerDividerWidget } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
+import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -33,7 +34,7 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Angle</span>
-          <a-input v-model:value="dividerWidget.angle" type="number"></a-input>
+          <NonNullableNumberInput v-model="dividerWidget.angle" />
         </div>
       </div>
     </GroupedSettings>

@@ -4,6 +4,7 @@ import type { PageDesignerTextWidget } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
+import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -88,18 +89,11 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Size</span>
-          <a-input
-            v-model:value="textWidget.fontSize"
-            class="flex-1"
-            type="number"
-            min="0"
-            label="Font Size"
-            placeholder="14"
-          ></a-input>
+          <NonNullableNumberInput v-model="textWidget.fontSize" class="flex-1" placeholder="14" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Line Height</span>
-          <a-input v-model:value="textWidget.lineHeight" class="flex-1" type="number" min="0" placeholder="Value"></a-input>
+          <NonNullableNumberInput v-model="textWidget.lineHeight" class="flex-1" placeholder="Value" />
         </div>
       </div>
     </GroupedSettings>
@@ -107,15 +101,15 @@ watch(
       <div class="flex gap-2 items-center">
         <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
           <div>
-            <a-input v-model:value="textWidget.borderTop" type="number" min="0"></a-input>
+            <NonNullableNumberInput v-model="textWidget.borderTop" />
           </div>
           <div class="flex gap-2 items-center">
-            <a-input v-model:value="textWidget.borderLeft" type="number" min="0"></a-input>
+            <NonNullableNumberInput v-model="textWidget.borderLeft" />
             <img :src="BorderImage" />
-            <a-input v-model:value="textWidget.borderRight" type="number" min="0"></a-input>
+            <NonNullableNumberInput v-model="textWidget.borderRight" />
           </div>
           <div>
-            <a-input v-model:value="textWidget.borderBottom" type="number" min="0"></a-input>
+            <NonNullableNumberInput v-model="textWidget.borderBottom" />
           </div>
         </div>
         <div class="flex-1 flex flex-col gap-2">
@@ -125,7 +119,7 @@ watch(
           </div>
           <div class="flex flex-col gap-2 flex-1 min-w-0">
             <span>Border Radius</span>
-            <a-input v-model:value="textWidget.borderRadius" type="number" min="0" />
+            <NonNullableNumberInput v-model="textWidget.borderRadius" />
           </div>
         </div>
       </div>

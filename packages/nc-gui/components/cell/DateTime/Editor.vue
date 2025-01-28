@@ -376,30 +376,34 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
   }
 }
 
-useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  // To prevent event listener on non active cell
-  if (!active.value) return
+useSelectedCellKeyupListener(
+  active,
+  (e) => {
+    if (e.altKey || e.shiftKey) {
+      return
+    }
 
-  if (e.altKey || e.shiftKey || !isGrid.value || isExpandedForm.value || isEditColumn.value || isExpandedFormOpenExist()) {
-    return
-  }
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key === ';') {
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          localState.value = dayjs(new Date())
+          e.preventDefault()
+        }
+      } else return
+    }
 
-  if (e.metaKey || e.ctrlKey) {
-    if (e.key === ';') {
-      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-        localState.value = dayjs(new Date())
-        e.preventDefault()
-      }
-    } else return
-  }
-
-  if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {
-    isClearedInputMode.value = true
-    isDatePicker.value ? datePickerRef.value?.focus() : timePickerRef.value?.focus()
-    editable.value = true
-    open.value = true
-  }
-})
+    if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {
+      isClearedInputMode.value = true
+      isDatePicker.value ? datePickerRef.value?.focus() : timePickerRef.value?.focus()
+      editable.value = true
+      open.value = true
+    }
+  },
+  {
+    immediate: true,
+    isGridCell: isGrid.value,
+  },
+)
 
 watch(editable, (nextValue) => {
   if (isGrid.value && nextValue && !open.value) {

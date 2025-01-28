@@ -2,8 +2,8 @@
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
+import { type LocalSelectOptionType, type SelectInputOptionType, getOptions, getSelectedTitles } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
-import { getOptions, getSelectedTitles, type LocalSelectOptionType, type SelectInputOptionType } from './utils'
 
 interface Props {
   modelValue?: string | string[]

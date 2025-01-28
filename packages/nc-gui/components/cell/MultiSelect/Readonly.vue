@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getOptions, getSelectedTitles, type LocalSelectOptionType } from './utils'
+import { type LocalSelectOptionType, getOptions, getSelectedTitles } from './utils'
 
 interface Props {
   modelValue?: string | string[]
@@ -9,8 +9,6 @@ interface Props {
 }
 
 const { modelValue, options: selectOptions } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 

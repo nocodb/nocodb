@@ -313,7 +313,11 @@ const cellClassName = computed(() => {
       />
       <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
       <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
-      <LazyCellDuration v-else-if="cellType === 'duration'" v-model="vModel" />
+
+      <template v-else-if="cellType === 'duration'">
+        <LazyCellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellDurationEditor v-else v-model="vModel" />
+      </template>
 
       <template v-else-if="cellType === 'email'">
         <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />

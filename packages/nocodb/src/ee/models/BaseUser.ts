@@ -219,12 +219,10 @@ export default class BaseUser extends BaseUserCE {
       base_id,
       mode = 'full',
       include_ws_deleted = true,
-      skip_cache,
       user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
-      skip_cache?: boolean;
       include_ws_deleted?: boolean;
       user_ids?: string[];
     },
@@ -241,7 +239,7 @@ export default class BaseUser extends BaseUserCE {
       'deleted',
     ];
 
-    if (skip_cache || (!isNoneList && !baseUsers.length)) {
+    if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,

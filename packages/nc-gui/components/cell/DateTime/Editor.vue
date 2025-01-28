@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
-import { timeCellMaxWidthMap } from './utils'
+import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {
   modelValue?: string | null
@@ -14,13 +14,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'currentDate'])
 
-const timeFormatsObj = {
-  [timeFormats[0]]: 'hh:mm A',
-  [timeFormats[1]]: 'hh:mm:ss A',
-  [timeFormats[2]]: 'hh:mm:ss.SSS A',
-}
-
-const { isMssql, isXcdbBase } = useBase()
+const { isXcdbBase } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -96,11 +90,6 @@ const localState = computed({
     // ext db
     if (!isXcDB) {
       return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
-    }
-
-    if (isMssql(column.value.source_id)) {
-      // e.g. 2023-04-29T11:41:53.000Z
-      return dayjs(modelValue)
     }
 
     // if cdf is defined, that means the value is auto-generated

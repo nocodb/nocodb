@@ -15,6 +15,10 @@ const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
+const rawReadOnly = inject(RawReadonlyInj, ref(false))
+
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
@@ -287,11 +291,13 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       class="nc-year-picker flex items-center justify-between ant-picker-input relative"
     >
       <input
+        v-if="!rawReadOnly"
         ref="datePickerRef"
         type="text"
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"
         class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
+        :readonly="readOnly"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop
@@ -299,9 +305,12 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         @click="clickHandler"
         @input="handleUpdateValue"
       />
+      <span v-else>
+        {{ localState?.format('YYYY') ?? '' }}
+      </span>
 
       <GeneralIcon
-        v-if="localState"
+        v-if="localState && !readOnly"
         icon="closeCircle"
         class="nc-clear-year-icon nc-action-icon absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
         @click.stop="handleSelectDate()"

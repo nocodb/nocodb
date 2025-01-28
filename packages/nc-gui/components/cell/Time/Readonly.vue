@@ -32,7 +32,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
 </script>
 
 <template>
-  <div class="nc-cell-field tracking-tight truncate">
+  <div :title="localState?.format('HH:mm')" class="nc-time-picker nc-cell-field tracking-tight truncate">
     {{ cellValue }}
   </div>
 </template>

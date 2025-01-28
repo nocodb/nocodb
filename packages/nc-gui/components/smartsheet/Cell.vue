@@ -189,11 +189,6 @@ const showNullComponent = computed(() => {
 
 const showReadonlyField = computed(() => {
   switch (cellType.value) {
-    case 'text':
-    case 'email': {
-      return readOnly.value || !editEnabled.value
-    }
-
     case 'currency': {
       return !((!readOnly.value && editEnabled.value) || (isForm && !isEditColumnMenu.value && editEnabled.value))
     }
@@ -206,7 +201,8 @@ const showReadonlyField = computed(() => {
       )
     }
 
-    case 'checkbox': {
+    case 'checkbox':
+    case 'rating': {
       return readOnly.value
     }
 
@@ -333,7 +329,11 @@ const cellClassName = computed(() => {
         @current-date="currentDate"
       />
       <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKeyCol" />
-      <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
+
+      <template v-else-if="cellType === 'rating'">
+        <LazyCellRatingReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellRatingEditor v-else v-model="vModel" />
+      </template>
 
       <template v-else-if="cellType === 'duration'">
         <LazyCellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />

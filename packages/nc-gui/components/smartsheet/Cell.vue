@@ -210,6 +210,10 @@ const showReadonlyField = computed(() => {
       return readOnly.value || !active.value
     }
 
+    case 'singleSelect': {
+      return readOnly.value || !(active.value || editEnabled.value || isForm.value)
+    }
+
     default: {
       return readOnly.value || !editEnabled.value
     }
@@ -308,12 +312,17 @@ const cellClassName = computed(() => {
         v-model="vModel"
         :row-index="props.rowIndex"
       />
-      <LazyCellSingleSelect
-        v-else-if="cellType === 'singleSelect'"
-        v-model="vModel"
-        :disable-option-creation="!!isEditColumnMenu"
-        :row-index="props.rowIndex"
-      />
+
+      <template v-else-if="cellType === 'singleSelect'">
+        <LazyCellSingleSelectReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="props.rowIndex" />
+        <LazyCellSingleSelectEditor
+          v-else
+          v-model="vModel"
+          :disable-option-creation="!!isEditColumnMenu"
+          :row-index="props.rowIndex"
+        />
+      </template>
+
       <LazyCellMultiSelect
         v-else-if="cellType === 'multiSelect'"
         v-model="vModel"

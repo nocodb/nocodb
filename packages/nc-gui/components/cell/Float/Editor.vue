@@ -16,7 +16,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 

@@ -31,6 +31,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { RelationUpdateWebhookHandler } from './relation-update-webhook-handler';
+import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -247,7 +248,7 @@ function transformObject(value, idToAliasMap) {
  * @class
  * @classdesc Base class for models
  */
-class BaseModelSqlv2 {
+class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _dbDriver: XKnex;
   protected viewId: string;
   protected _proto: any;

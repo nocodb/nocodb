@@ -1,12 +1,12 @@
 import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
+import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from './BaseModelSqlv2';
 import Noco from '~/Noco';
 
 export type WebhookContext = {
   context: NcContext;
   user: any;
-  baseModel: BaseModelSqlv2;
+  baseModel: IBaseModelSqlV2;
   isSingleUpdate?: boolean;
   ignoreWebhook?: boolean;
 };

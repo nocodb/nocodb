@@ -12,8 +12,6 @@ const { modelValue, options: selectOptions } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
 
-const readOnly = inject(ReadonlyInj)!
-
 const isForm = inject(IsFormInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
@@ -53,10 +51,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 </script>
 
 <template>
-  <div
-    class="nc-cell-field nc-multi-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly, 'max-w-full': isForm }"
-  >
+  <div class="nc-cell-field nc-multi-select h-full w-full flex items-center read-only" :class="{ 'max-w-full': isForm }">
     <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <a-checkbox-group :value="selectedOptsListLayout" disabled class="nc-field-layout-list" @click.stop>
         <a-checkbox
@@ -185,35 +180,5 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
-}
-
-:deep(.ant-select-selection-overflow-item) {
-  @apply "flex overflow-hidden";
-}
-
-:deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap overflow-hidden max-w-[fit-content];
-}
-
-.nc-multi-select:not(.read-only) {
-  :deep(.ant-select-selector),
-  :deep(.ant-select-selector input) {
-    @apply "!cursor-pointer";
-  }
-}
-
-:deep(.ant-select-selector) {
-  @apply !pl-0 flex-nowrap;
-}
-
-:deep(.ant-select-selection-search-input) {
-  @apply !text-small;
-}
-</style>
-
-<style lang="scss">
-.ant-select-item-option-content,
-.ant-select-item-option-state {
-  @apply !flex !items-center;
 }
 </style>

@@ -211,7 +211,8 @@ const showReadonlyField = computed(() => {
     }
 
     case 'singleSelect':
-    case 'multiSelect': {
+    case 'multiSelect':
+    case 'user': {
       return readOnly.value || !(active.value || editEnabled.value || isForm.value)
     }
 
@@ -395,7 +396,12 @@ const cellClassName = computed(() => {
         <LazyCellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
       </template>
 
-      <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellUser
+        v-else-if="cellType === 'user'"
+        v-model="vModel"
+        :row-index="props.rowIndex"
+        :show-readonly-field="showReadonlyField"
+      />
 
       <template v-else-if="cellType === 'decimal'">
         <LazyCellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />

@@ -87,8 +87,15 @@ const submitDuration = () => {
   tempState.value = undefined
 }
 
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    nextTick(() => {
+      ;(el as HTMLInputElement)?.focus()
+    })
+  }
+
+  return el
+}
 </script>
 
 <template>

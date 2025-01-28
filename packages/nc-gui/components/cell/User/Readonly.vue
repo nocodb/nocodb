@@ -13,8 +13,6 @@ interface Props {
 
 const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
 const meta = inject(MetaInj)!
 
 const column = inject(ColumnInj)!

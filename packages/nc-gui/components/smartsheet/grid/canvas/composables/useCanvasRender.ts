@@ -1,4 +1,3 @@
-import type { ColumnType, UITypes } from 'nocodb-sdk'
 import { roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -30,20 +29,7 @@ export function useCanvasRender({
   width: Ref<number>
   height: Ref<number>
   rowHeight: Ref<number>
-  columns: ComputedRef<
-    | {
-        id: string
-        grid_column_id: string
-        title: string
-        width: string
-        uidt: keyof typeof UITypes | null
-        fixed: boolean
-        pv: boolean
-        columnObj: ColumnType
-        aggregation: string
-        agg_prefix: string
-      }[]
-  >
+  columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
   activeCell: Ref<{ row: number; column: number }>
@@ -95,12 +81,14 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
-      const icon = column?.virtual ? renderVIcon(column.columnObj)?.icon : renderIcon(column.columnObj, null)
+      const iconConfig = (
+        column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, null)
+      ) as any
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
-          icon: icon as any,
+          icon: column?.virtual ? iconConfig?.icon : iconConfig,
           size: 13,
-          color: '#6a7184',
+          color: iconConfig?.hex ?? '#6a7184',
           x: xOffset + 8 - scrollLeft.value,
           y: 8,
         })
@@ -128,12 +116,14 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         ctx.fillStyle = '#6a7184'
-        const icon = column?.virtual ? renderVIcon(column.columnObj)?.icon : renderIcon(column.columnObj, null)
+        const iconConfig = (
+          column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, null)
+        ) as any
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
-            icon: icon as any,
+            icon: column?.virtual ? iconConfig?.icon : iconConfig,
             size: 13,
-            color: '#6a7184',
+            color: iconConfig?.hex ?? '#6a7184',
             x: xOffset + 8,
             y: 8,
           })

@@ -1,6 +1,6 @@
-import { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import Noco from '~/Noco';
 
 export type WebhookContext = {

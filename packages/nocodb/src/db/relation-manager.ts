@@ -1,11 +1,11 @@
-import { NcError } from 'src/helpers/catchError';
 import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import { Model } from 'src/models';
 import { RelationUpdateWebhookHandler } from './relation-update-webhook-handler';
 import type { NcRequest } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from 'src/models';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
+import { Model } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 export function _wherePk(
   primaryKeys: Column[],

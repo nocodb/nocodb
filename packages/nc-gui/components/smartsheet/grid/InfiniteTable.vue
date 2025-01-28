@@ -306,6 +306,9 @@ const topOffset = computed(() => {
   return rowHeight.value! * (rowSlice.start - placeholderStartRows.value.length)
 })
 
+let debounceTimeout: any = null // To store the debounced timeout
+let debounceDelay = 9 // Delay in ms after the last scroll event
+
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -314,10 +317,12 @@ const updateVisibleRows = async () => {
 
   const chunksToFetch = new Set<number>()
 
+  // Collect chunks that need to be fetched (i.e., chunks that are not loaded yet)
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
     if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
   }
 
+  // Add adjacent chunks for prefetching
   const nextChunkId = lastChunkId + 1
   if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
     chunksToFetch.add(nextChunkId)
@@ -328,7 +333,15 @@ const updateVisibleRows = async () => {
     chunksToFetch.add(prevChunkId)
   }
 
-  if (chunksToFetch.size > 0) {
+  // Early exit if no chunks need to be fetched
+  if (chunksToFetch.size === 0) return
+
+  // Clear the previous timeout if any
+  clearTimeout(debounceTimeout)
+
+  // Debounced execution
+  debounceTimeout = setTimeout(async () => {
+    // Execute the function after the debounce delay has passed
     const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
 
     if (isInitialLoad) {
@@ -337,10 +350,16 @@ const updateVisibleRows = async () => {
       chunksToFetch.delete(1)
     }
 
+    // Fetch the necessary chunks concurrently
     await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-  }
 
-  clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
+    // Clear cache for chunks that are no longer visible
+    const bufferStart = Math.max(0, start - BUFFER_SIZE)
+    const bufferEnd = Math.min(totalRows.value, end + BUFFER_SIZE)
+
+    // Cache clearing with buffer
+    clearCache(bufferStart, bufferEnd)
+  }, debounceDelay) // The function will run after 300ms of inactivity
 }
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -1397,10 +1416,132 @@ const lastScrollTop = ref()
 const lastScrollLeft = ref()
 const lastTotalRows = ref()
 
+// Store the previous results for binary search to avoid redundant calculations
+let prevScrollLeft = -1
+let prevScrollWidth = -1
+let lastRenderStart = -1
+let lastRenderEnd = -1
+
+// Optimized binary search to determine the visible column range
+const binarySearchForStart = (scrollLeft) => {
+  if (prevScrollLeft === scrollLeft && prevScrollWidth === gridWrapper.value.clientWidth) {
+    // Return cached results if the scroll position and grid width haven't changed
+    return { renderStart: lastRenderStart, renderEnd: lastRenderEnd }
+  }
+
+  let renderStart = 0
+  let startRange = 0
+  let endRange = colPositions.value.length - 1
+
+  // Perform binary search to find the starting column
+  while (startRange <= endRange) {
+    const middle = Math.floor((startRange + endRange) / 2)
+    if (colPositions.value[middle] <= scrollLeft && colPositions.value[middle + 1] > scrollLeft) {
+      renderStart = middle
+      break
+    }
+    if (colPositions.value[middle] < scrollLeft) {
+      startRange = middle + 1
+    } else {
+      endRange = middle - 1
+    }
+  }
+
+  // Find the ending column using a simple linear scan starting from renderStart
+  let renderEnd = colPositions.value.findIndex((pos) => pos > gridWrapper.value.clientWidth + scrollLeft)
+  renderEnd = renderEnd === -1 ? colPositions.value.length : renderEnd
+
+  // Cache the results
+  prevScrollLeft = scrollLeft
+  prevScrollWidth = gridWrapper.value.clientWidth
+  lastRenderStart = renderStart
+  lastRenderEnd = renderEnd
+
+  return { renderStart, renderEnd }
+}
+
+// Function to update slices only if there's a significant change
+const updateSliceIfNeeded = (newStart, newEnd, slice) => {
+  if (slice.start !== newStart || slice.end !== newEnd) {
+    Object.assign(slice, {
+      start: newStart,
+      end: newEnd,
+    })
+
+    return true // Return true if an update occurred
+  }
+  return false
+}
+
+let maxOptimizedTime = 0 // To store the maximum time for the optimized function
+
+// Optimized calculateSlices function
+const calculateSlices = () => {
+  // Skip calculation if the grid wrapper is not rendered yet
+  if (!gridWrapper.value) {
+    Object.assign(colSlice.value, {
+      start: 0,
+      end: 0,
+    })
+
+    // Retry calculation after a short delay
+    setTimeout(calculateSlices, 50)
+    return
+  }
+
+  // Avoid recalculating if only vertical scrolling occurred and no major change
+  if (
+    lastScrollLeft.value &&
+    lastScrollLeft.value === scrollLeft.value &&
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
+    lastTotalRows.value === totalRows.value
+  ) {
+    return
+  }
+
+  // Cache the current scroll positions
+  lastScrollLeft.value = scrollLeft.value
+  lastScrollTop.value = scrollTop.value
+
+  // Determine visible column range using binary search
+  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value)
+
+  // Add virtual margins to the calculated ranges
+  const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
+  const colEnd = Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN)
+
+  // Update column slice if needed
+  updateSliceIfNeeded(colStart, colEnd, colSlice.value)
+
+  // Determine visible row range based on the current scroll position
+  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
+  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
+
+  // Add virtual margins to the row range
+  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  const newEnd = Math.min(totalRows.value, Math.max(endIndex + ROW_VIRTUAL_MARGIN, newStart + 50))
+
+  // Update row slice if needed
+  if (
+    rowSlice.start < 10 || // Ensure we initialize the slice
+    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
+    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
+    lastTotalRows.value !== totalRows.value
+  ) {
+    rowSlice.start = newStart
+    rowSlice.end = newEnd
+
+    updateVisibleRows(true) // Trigger visible row updates
+    lastTotalRows.value = totalRows.value
+  }
+}
+
 let timer1: any
 let timer2: any
 
-const calculateSlices = () => {
+// Todo: we can remove this after testing
+const _calculateSlicesOld = () => {
   if (timer1) {
     clearTimeout(timer1)
   }
@@ -1410,11 +1551,11 @@ const calculateSlices = () => {
   }
 
   // if the grid is not rendered yet
-  if (!gridWrapper.value || !gridWrapper.value) {
-    colSlice.value = {
+  if (!gridWrapper.value) {
+    Object.assign(colSlice.value, {
       start: 0,
       end: 0,
-    }
+    })
 
     // try again until the grid is rendered
     timer1 = setTimeout(calculateSlices, 50)
@@ -1715,10 +1856,12 @@ useScroll(gridWrapper, {
       cancelAnimationFrame(requestAnimationFrameId)
     }
 
-    // Request a new animation frame
+    // Request a new animation frame for optimized execution
     requestAnimationFrameId = requestAnimationFrame(() => {
       scrollLeft.value = e.target?.scrollLeft
       scrollTop.value = e.target?.scrollTop
+
+      // Execute slicing calculations and handle updates
       calculateSlices()
       refreshFillHandle()
 
@@ -1726,7 +1869,7 @@ useScroll(gridWrapper, {
       requestAnimationFrameId = null
     })
   },
-  throttle: 100,
+  throttle: 50, // Throttle value for smoother scrolling
   behavior: 'smooth',
 })
 

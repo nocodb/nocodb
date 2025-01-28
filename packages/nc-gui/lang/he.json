@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "אתה",
     "read": "נקרא",
-    "unread": "לא נקרא"
+    "unread": "לא נקרא",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "יצירת אינטגרציה בינה מלאכותית",
     "suggestTablesViews": "הצע טבלאות ותצוגות",
     "configureAiButton": "הגדרת כפתור AI",
-    "viewHide": "הצג נראות "
+    "viewHide": "הצג נראות ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",

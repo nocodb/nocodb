@@ -1,0 +1,43 @@
+<script lang="ts" setup>
+import { roundUpToPrecision } from 'nocodb-sdk'
+
+interface Props {
+  // when we set a number, then it is number type
+  // for sqlite, when we clear a cell or empty the cell, it returns ""
+  // otherwise, it is null type
+  modelValue?: number | null | string
+}
+
+interface Emits {
+  (event: 'update:modelValue', model: number): void
+}
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const column = inject(ColumnInj, null)!
+
+const meta = computed(() => {
+  return typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
+})
+
+const displayValue = computed(() => {
+  if (props.modelValue === null) return null
+
+  if (isNaN(Number(props.modelValue))) return null
+
+  if (meta.value.isLocaleString) {
+    return Number(roundUpToPrecision(Number(props.modelValue), meta.value.precision ?? 1)).toLocaleString(undefined, {
+      minimumFractionDigits: meta.value.precision ?? 1,
+      maximumFractionDigits: meta.value.precision ?? 1,
+    })
+  }
+
+  return roundUpToPrecision(Number(props.modelValue), meta.value.precision ?? 1)
+})
+</script>
+
+<template>
+  <span class="nc-cell-field">{{ displayValue }}</span>
+</template>

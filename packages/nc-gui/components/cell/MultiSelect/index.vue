@@ -3,9 +3,10 @@ import type { SelectOptionType } from 'nocodb-sdk'
 import { getOptions } from './utils'
 
 interface Props {
-  modelValue?: string | undefined
+  modelValue?: string | string[]
   rowIndex?: number
   disableOptionCreation?: boolean
+  location?: 'cell' | 'filter'
   showReadonlyField?: boolean
 }
 
@@ -35,8 +36,8 @@ const showReadonlyField = computed(() => {
 </script>
 
 <template>
-  <LazyCellSingleSelectReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="rowIndex" :options="options" />
-  <LazyCellSingleSelectEditor
+  <LazyCellMultiSelectReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="rowIndex" :options="options" />
+  <LazyCellMultiSelectEditor
     v-else
     v-model="vModel"
     :disable-option-creation="disableOptionCreation"

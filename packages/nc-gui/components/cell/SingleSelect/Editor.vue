@@ -1,15 +1,17 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { useSingleSelect } from './utils'
+import { getOptions } from './utils'
+import type { SelectOptionType } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
+  selectOptions?: (SelectOptionType & { value?: string })[]
 }
 
-const { modelValue, disableOptionCreation } = defineProps<Props>()
+const { modelValue, disableOptionCreation, selectOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -59,10 +61,21 @@ const isNewOptionCreateEnabled = computed(
   () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value && !isForm.value,
 )
 
-const { options, getOptionTextColor } = useSingleSelect()
+const options = computed(() => {
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+})
+
+const optionsMap = computed(() => {
+  return options.value.reduce((acc, op) => {
+    if (op.value) {
+      acc[op.value.trim()] = op
+    }
+    return acc
+  }, {} as Record<string, (typeof options.value)[number]>)
+})
 
 const isOptionMissing = computed(() => {
-  return (options.value ?? []).every((op) => op.title !== searchVal.value)
+  return searchVal.value ? !optionsMap.value[searchVal.value] : false
 })
 
 const hasEditRoles = computed(() => isUIAllowed('dataEdit') || isForm.value)
@@ -124,7 +137,7 @@ async function addIfMissingAndSave() {
   searchVal.value = ''
   tempSelectedOptState.value = undefined
 
-  if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
+  if (newOptValue && !optionsMap.value[newOptValue]) {
     try {
       options.value.push({
         title: newOptValue,
@@ -227,10 +240,6 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose, true)
 
-const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.toString()?.trim())
-})
-
 const onFocus = () => {
   isFocusing.value = true
 
@@ -279,7 +288,7 @@ watch(
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: getOptionTextColor(op.color),
+                color: getSelectTypeOptionTextColor(op.color),
               }"
               class="text-small"
             >
@@ -303,25 +312,53 @@ watch(
         </a-radio>
       </a-radio-group>
       <div
-        v-if="vModel"
+        v-if="!readOnly && editAllowed && vModel"
         class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
         @click="vModel = ''"
       >
         {{ $t('labels.clearSelection') }}
       </div>
     </div>
-    <template v-else>
-      <div v-if="!(active || isEditable)" class="w-full">
-        <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
+
+    <NcSelect
+      v-else
+      ref="aselect"
+      v-model:value="vModel"
+      class="w-full overflow-hidden"
+      :class="{ 'caret-transparent': !hasEditRoles }"
+      :allow-clear="!column.rqd && editAllowed"
+      :bordered="false"
+      :open="isOpen && editAllowed"
+      :disabled="readOnly || !editAllowed"
+      :show-search="!isMobileMode && isOpen && active"
+      :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
+      :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
+      :dropdown-match-select-width="true"
+      @select="onSelect"
+      @keydown="onKeydown($event)"
+      @search="search"
+      @blur="isOpen = false"
+      @focus="onFocus"
+    >
+      <a-select-option
+        v-for="op of options"
+        :key="op.title"
+        :value="op.title"
+        class="gap-2"
+        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :class="`nc-select-option-${column.title}-${op.title}`"
+        @click.stop
+      >
+        <a-tag class="rounded-tag max-w-full" :color="op.color">
           <span
             :style="{
-              color: getOptionTextColor(selectedOpt.color),
+              color: getSelectTypeOptionTextColor(op.color),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
-                {{ selectedOpt.title }}
+                {{ op.title }}
               </template>
               <span
                 class="text-ellipsis overflow-hidden"
@@ -331,77 +368,21 @@ watch(
                   display: 'inline',
                 }"
               >
-                {{ selectedOpt.title }}
+                {{ op.title }}
               </span>
             </NcTooltip>
           </span>
         </a-tag>
-      </div>
-
-      <NcSelect
-        v-else
-        ref="aselect"
-        v-model:value="vModel"
-        class="w-full overflow-hidden"
-        :class="{ 'caret-transparent': !hasEditRoles }"
-        :allow-clear="!column.rqd && editAllowed"
-        :bordered="false"
-        :open="isOpen && editAllowed"
-        :disabled="readOnly || !editAllowed"
-        :show-search="!isMobileMode && isOpen && active"
-        :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
-        :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
-        :dropdown-match-select-width="true"
-        @select="onSelect"
-        @keydown="onKeydown($event)"
-        @search="search"
-        @blur="isOpen = false"
-        @focus="onFocus"
-      >
-        <a-select-option
-          v-for="op of options"
-          :key="op.title"
-          :value="op.title"
-          class="gap-2"
-          :data-testid="`select-option-${column.title}-${rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
-          @click.stop
-        >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
-            <span
-              :style="{
-                color: getOptionTextColor(op.color),
-              }"
-              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ op.title }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </a-select-option>
-        <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
-          <div class="flex gap-2 text-gray-500 items-center h-full">
-            <component :is="iconMap.plusThick" class="min-w-4" />
-            <div class="text-xs whitespace-normal">
-              {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
-            </div>
+      </a-select-option>
+      <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
+        <div class="flex gap-2 text-gray-500 items-center h-full">
+          <component :is="iconMap.plusThick" class="min-w-4" />
+          <div class="text-xs whitespace-normal">
+            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
           </div>
-        </a-select-option>
-      </NcSelect>
-    </template>
+        </div>
+      </a-select-option>
+    </NcSelect>
   </div>
 </template>
 

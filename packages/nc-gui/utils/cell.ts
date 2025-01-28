@@ -1,6 +1,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { ButtonActionsType, UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import tinycolor from 'tinycolor2'
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase()
 export const isBoolean = (column: ColumnType, abstractType?: any) =>
@@ -135,4 +136,12 @@ export const isShowNullField = (column: ColumnType) => {
     UITypes.Duration,
     UITypes.JSON,
   ].includes(column.uidt as UITypes)
+}
+
+export const getSelectTypeOptionTextColor = (color?: string | null): string => {
+  color = color ?? '#ccc' // Set default only if color is null or undefined
+
+  return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
+    ? '#fff'
+    : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
 }

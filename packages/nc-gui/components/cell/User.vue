@@ -350,7 +350,7 @@ const onFocus = () => {
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <component
         :is="isMultiple ? CheckboxGroup : RadioGroup"
-        v-model:value="vModelListLayout"
+        :value="vModelListLayout"
         :disabled="readOnly || !editAllowed"
         class="nc-field-layout-list"
         @update:value="

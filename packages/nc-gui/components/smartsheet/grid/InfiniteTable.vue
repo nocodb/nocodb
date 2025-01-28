@@ -2032,12 +2032,14 @@ const handleTableEvents = (event: MouseEvent) => {
       handleMouseDown(event, +row, +col)
       break
     case 'mouseover':
-      if (!isFillMode.value) return
       handleMouseOver(event, +row, +col)
       break
-    case 'dblclick':
-      makeEditable(cachedRows.value.get(+row), fields.value[+col])
+    case 'dblclick': {
+      const rowVal = cachedRows.value.get(+row)
+      if (!rowVal) return
+      makeEditable(rowVal, fields.value[+col])
       break
+    }
     case 'contextmenu':
       showContextMenu(event, { row: +row, col: +col })
       break
@@ -2305,6 +2307,7 @@ const handleTableEvents = (event: MouseEvent) => {
                 @mousedown="handleTableEvents"
                 @dblclick="handleTableEvents"
                 @contextmenu="handleTableEvents"
+                @mouseover="handleTableEvents"
               >
                 <LazySmartsheetGridPlaceholderRow
                   v-if="placeholderStartRows.length"

@@ -316,7 +316,10 @@ const cellClassName = computed(() => {
         <LazyCellEmailEditor v-else v-model="vModel" />
       </template>
 
-      <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
+      <template v-else-if="cellType === 'url'">
+        <LazyCellUrlReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <LazyCellUrlEditor v-else v-model="vModel" />
+      </template>
 
       <template v-else-if="cellType === 'phoneNumber'">
         <LazyCellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />

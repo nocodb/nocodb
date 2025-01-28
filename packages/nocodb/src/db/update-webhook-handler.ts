@@ -1,4 +1,4 @@
-import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import Noco from '~/Noco';

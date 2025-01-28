@@ -1,6 +1,6 @@
-import { UpdateWebhookHandler } from './update-webhook-handler';
-import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
+import { UpdateWebhookHandler } from '~/db/update-webhook-handler';
 
 export type RelationUpdateWebhookContext = {
   context: NcContext;

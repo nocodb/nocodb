@@ -30,9 +30,7 @@ import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
-import { RelationUpdateWebhookHandler } from './relation-update-webhook-handler';
-import { RelationManager } from './relation-manager';
-import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -68,6 +66,7 @@ import type {
   User,
 } from '~/models';
 import type { ResolverObj } from '~/utils';
+import { RelationManager } from '~/db/relation-manager';
 import {
   BaseUser,
   Column,

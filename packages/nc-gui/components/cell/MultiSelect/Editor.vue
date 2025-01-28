@@ -230,8 +230,8 @@ async function addIfMissingAndSave() {
 
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
-        vModel.value = [...vModel.value]
         tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
+        vModel.value = [...vModel.value.map((op) => op.title), newOptPayload.title!]
       }
     } else {
       activeOptCreateInProgress.value--

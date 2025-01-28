@@ -3,13 +3,14 @@
 commit_message="chore(nix/pacakge/pnpmDeps): bump hash"
 commit_author="auto walle"
 commit_email="auto@sinanmohd.com"
+package_path="nix/package.nix"
 
 hash_get() {
-	grep -Eo 'sha256-[^=]*=' nix/package.nix
+	grep -Eo 'sha256-[^=]*=' "$package_path"
 }
 
 hash_set() {
-	sed -i "s|sha256-[A-Za-z0-9+/=]\+|$1|" nix/package.nix
+	sed -i "s|sha256-[A-Za-z0-9+/=]\+|$1|" "$package_path"
 }
 
 early_escape_possible() {
@@ -39,8 +40,8 @@ nix_hash() {
 ## MAIN ##
 ##########
 
-if [ ! -w nix/package.nix ] || [ ! -r nix/package.nix ]; then
-	echo "nix/package: not writiable or readable"
+if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
+	echo "$package_path: not writiable or readable"
 	exit 1
 fi
 
@@ -56,20 +57,16 @@ cur_hash="$(hash_get)"
 hash_set "$fake_hash"
 new_hash="$(nix_hash)"
 
-if [ -z "$new_hash" ]; then
-	echo "empty hash: must be same"
-	exit 0
-fi
-
 if [ "$cur_hash" != "$new_hash" ]; then
 	echo "hash changed: ${cur_hash} -> ${new_hash}"
 	hash_set "$new_hash"
 
-	git add nix/pacakge.nix
+	git add "$package_path"
 	git config --global user.name "$commit_author"
 	git config --global user.email "$commit_email"
 	git commit -m "$commit_message"
 	git push
 else
 	echo "hash staysss: waiting for your next commit"
+	hash_set "$cur_hash"
 fi

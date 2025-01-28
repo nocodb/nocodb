@@ -127,7 +127,7 @@ const focus: VNodeRef = (el) =>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .duration-warning {
   @apply text-left mt-[10px] text-[#e65100];
 }

@@ -332,7 +332,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   </NcDropdown>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-year-icon {
     @apply visible;

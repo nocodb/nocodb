@@ -386,7 +386,7 @@ const currentDate = ($event) => {
   </NcDropdown>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-date-icon {
     @apply visible;

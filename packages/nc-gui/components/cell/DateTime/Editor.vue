@@ -568,7 +568,7 @@ const currentDate = ($event) => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-cell-field {
   &:hover .nc-clear-date-time-icon {
     @apply visible;

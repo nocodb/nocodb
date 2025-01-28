@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  localEditEnabled?: boolean
 }
 
 interface Emits {
   (event: 'update:modelValue', model: GeoLocationType): void
+  (event: 'update:localEditEnabled', model: boolean): void
 }
 
 const props = defineProps<Props>()
@@ -15,6 +16,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 
 const isExpanded = ref(false)
 
@@ -26,7 +29,10 @@ const [latitude, longitude] = (vModel.value || '').split(';')
 
 const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
+
   if (latitude) isLocationSet.value = true
+  else if (isLocationSet.value) isLocationSet.value = false
+
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -80,35 +86,46 @@ const openInOSM = () => {
   const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
   window.open(url, '_blank', "'noopener,noreferrer'")
 }
+
+onMounted(() => {
+  if (localEditEnabled.value) {
+    isExpanded.value = true
+    localEditEnabled.value = false
+  }
+})
+
+onBeforeUnmount(() => {
+  localEditEnabled.value = false
+})
 </script>
 
 <template>
-  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :trigger="['click']">
-    <div
-      v-if="!isLocationSet"
-      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500) my-1"
-      tabindex="0"
-    >
-      <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
-        <component
-          :is="iconMap.mapMarker"
-          class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
-        />
-        <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
+  <NcDropdown v-model:visible="isExpanded" overlay-class-name="overflow-hidden !min-w-64 !max-w-64" destroyPopupOnHide>
+    <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto">
+      <NcButton
+        size="xsmall"
+        type="secondary"
+        data-testid="nc-geo-data-set-location-button"
+        class="w-full max-w-64 !px-2 group !text-gray-500 !hover:text-primary !text-xs"
+        @click="localEditEnabled = true"
+      >
+        <div class="flex items-center gap-1.5">
+          <component :is="iconMap.mapMarker" class="transform group-hover:(!text-accent scale-110) text-[0.75rem]" />
+
           {{ latLongStr }}
         </div>
-      </div>
+      </NcButton>
     </div>
     <div
       v-else
       data-testid="nc-geo-data-lat-long-set"
       tabindex="0"
-      class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
+      class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none truncate"
     >
       {{ latLongStr }}
     </div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col w-max-64 border-1 border-gray-200" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>
@@ -182,7 +199,7 @@ const openInOSM = () => {
         </a-form-item>
       </a-form>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped lang="scss">

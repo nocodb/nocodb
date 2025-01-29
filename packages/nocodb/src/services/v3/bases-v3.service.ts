@@ -7,6 +7,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { NcError } from '~/helpers/catchError';
 import { Base, BaseUser, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { RootScopes } from '~/utils/globals';
@@ -74,6 +75,8 @@ export class BasesV3Service {
     param: { baseId: string; includeConfig?: boolean },
   ) {
     const base = await this.basesService.getProjectWithInfo(context, param);
+
+    if (!base) NcError.notFound('Base not found');
 
     // filter non-meta sources
     const sources = base.sources.filter((s) => !new Source(s).isMeta());

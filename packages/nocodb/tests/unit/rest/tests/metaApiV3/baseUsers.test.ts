@@ -56,8 +56,9 @@ export default function () {
         .to.have.property('base_role')
         .that.is.a('string')
         .that.is.oneOf(['owner', 'creator', 'editor', 'commenter', 'viewer']);
-      expect(user)
-        .to.have.property('workspace_role')
+      if(isEE()) {
+        expect(user)
+          .to.have.property('workspace_role')
         .that.is.a('string')
         .that.is.oneOf([
           'workspace-level-owner',
@@ -67,7 +68,8 @@ export default function () {
           'workspace-level-viewer',
           'workspace-level-no-access',
         ]);
-      expect(user).to.have.property('workspace_id', context.fk_workspace_id);
+        expect(user).to.have.property('workspace_id', context.fk_workspace_id);
+      }
 
       // Validate date fields are valid ISO strings
       expect(new Date(user.created_at)).to.be.a('date');
@@ -112,10 +114,12 @@ export default function () {
 
       const user0 = baseUsers.find((u) => u.email === 'user-0@nocodb.com');
       expect(user0).to.have.property('base_role', 'editor');
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-no-access',
-      );
+      if(isEE()) {
+        expect(user0).to.have.property(
+          'workspace_role',
+          'workspace-level-no-access',
+        );
+      }
     });
     it('Invite Base User v3 - Email, Multiple', async () => {
       // Invite base user
@@ -145,17 +149,21 @@ export default function () {
 
       const user0 = baseUsers.find((u) => u.email === 'user-1@nocodb.com');
       expect(user0).to.have.property('base_role', 'editor');
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-no-access',
-      );
+      if(isEE()) {
+        expect(user0).to.have.property(
+          'workspace_role',
+          'workspace-level-no-access',
+        );
+      }
 
       const user1 = baseUsers.find((u) => u.email === 'user-2@nocodb.com');
       expect(user1).to.have.property('base_role', 'viewer');
-      expect(user1).to.have.property(
-        'workspace_role',
-        'workspace-level-no-access',
-      );
+      if(isEE()) {
+        expect(user1).to.have.property(
+          'workspace_role',
+          'workspace-level-no-access',
+        );
+      }
     });
     it('Invite Base User v3 - Base role not specified', async () => {
       // Invite base user
@@ -179,7 +187,7 @@ export default function () {
       expect(error).to.have.property('msg', 'Invalid request body');
       expect(error.errors[0]).to.have.property(
         'message',
-        "must have required property 'roles'",
+        "must have required property 'base_role'",
       );
     });
     it('Invite Base User v3 - Email/UserID not specified', async () => {
@@ -230,10 +238,12 @@ export default function () {
 
       const user0 = baseUsers.find((u) => u.id === user.id);
       expect(user0).to.have.property('base_role', 'editor');
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-no-access',
-      );
+      if(isEE()) {
+        expect(user0).to.have.property(
+          'workspace_role',
+          'workspace-level-no-access',
+        );
+      }
     });
     it('Update Base User v3 - using Email', async () => {
       // Invite base user
@@ -331,12 +341,11 @@ export default function () {
       // console.log(JSON.stringify(inviteBaseUser.body, null, 2));
 
       // Delete User
-      const res = await request(context.app)
+      await request(context.app)
         .delete(`/api/v3/meta/bases/${baseId}/users`)
         .set('xc-token', context.xc_token)
         .send([{ id: user.id }])
-        // .expect(200);
-console.log(res)
+        .expect(200);
       // Get base users
       const getBaseUsers = await request(context.app)
         .get(`/api/v3/meta/bases/${baseId}/users`)

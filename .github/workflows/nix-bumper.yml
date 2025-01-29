@@ -3,10 +3,10 @@ name: "bumper"
 on:
   push:
     branches:
-      - "devlop"
+      - "develop"
   pull_request_target:
     branches:
-      - "devlop"
+      - "develop"
 
 jobs:
   bumper:

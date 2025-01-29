@@ -1,6 +1,6 @@
 #!/bin/sh
 
-commit_message="chore(nix/pacakge/pnpmDeps): bump hash"
+commit_message="chore(nix/package/pnpmDeps): bump hash"
 commit_author="auto walle"
 commit_email="auto@sinanmohd.com"
 package_path="nix/package.nix"
@@ -46,10 +46,10 @@ if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
 fi
 
 if early_escape_possible; then
-	echo "early escape suckcess : nix bump commit is newer"
+	echo "early escape success : nix bump commit is newer"
 	exit 0
 else
-	echo "early esacpe failuree : npm bump commit is newer, here we go again"
+	echo "early esacpe failure : npm bump commit is newer, here we go again"
 fi
 
 fake_hash="sha256-0000000000000000000000000000000000000000000="
@@ -67,6 +67,6 @@ if [ "$cur_hash" != "$new_hash" ]; then
 	git commit -m "$commit_message"
 	git push
 else
-	echo "hash staysss: waiting for your next commit"
+	echo "hash did not change: waiting for your next commit"
 	hash_set "$cur_hash"
 fi

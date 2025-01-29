@@ -1311,7 +1311,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfDeletedRecords: number = data;
+    let noOfDeletedRecords: number = Array.isArray(data)
+      ? data.length
+      : +data || 0;
     if (!isBulkAllOperation) {
       noOfDeletedRecords = data.length;
       await this.handleHooks('after.bulkDelete', null, data, req);

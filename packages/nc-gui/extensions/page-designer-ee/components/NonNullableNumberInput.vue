@@ -2,13 +2,13 @@
 const { min = 0 } = defineProps<{
   min?: number
 }>()
-const vModel = defineModel()
+const vModel = defineModel<string | number>()
 
-watch(vModel, (val) => {
-  if (val === '') vModel.value = min
-})
+function onBlur() {
+  if (vModel.value === '') vModel.value = min
+}
 </script>
 
 <template>
-  <a-input v-model:value="vModel" type="number" :min="min"></a-input>
+  <a-input v-model:value="vModel" type="number" :min="min" @blur="onBlur"></a-input>
 </template>

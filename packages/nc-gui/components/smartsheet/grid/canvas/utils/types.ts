@@ -16,3 +16,15 @@ export interface RenderSingleLineTextProps {
    */
   render?: boolean
 }
+
+export interface RenderRectangleProps {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface RenderTagProps extends RenderRectangleProps {
+  radius: number | DOMPointInit | Iterable<number | DOMPointInit>
+  fillStyle: string | CanvasGradient | CanvasPattern
+}

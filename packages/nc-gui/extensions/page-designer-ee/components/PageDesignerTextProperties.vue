@@ -89,11 +89,11 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Size</span>
-          <NonNullableNumberInput v-model="textWidget.fontSize" class="flex-1" placeholder="14" />
+          <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="5" class="flex-1" placeholder="16" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Line Height</span>
-          <NonNullableNumberInput v-model="textWidget.lineHeight" class="flex-1" placeholder="Value" />
+          <NonNullableNumberInput v-model="textWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
     </GroupedSettings>

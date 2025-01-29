@@ -209,10 +209,28 @@ watch(
       @apply !inline-block;
     }
     .widget-header {
+      @apply px-6 py-4 border-b border-solid border-nc-border-gray-medium;
       h1 {
-        @apply text-xl font-bold leading-8 tracking-[-0.4px] px-6 py-4 border-b border-solid border-nc-border-gray-medium;
+        @apply text-xl font-bold leading-8 tracking-[-0.4px];
       }
     }
+  }
+}
+@media print {
+  .grid-lines {
+    @apply !hidden;
+  }
+  #printPage {
+    @apply m-0 shadow-none;
+  }
+  body {
+    visibility: hidden;
+  }
+  #printPage {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 }
 </style>

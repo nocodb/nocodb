@@ -8,7 +8,7 @@ import type { PageDesignerTextWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 
 const props = defineProps<{
-  id: number
+  id: number | string
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!

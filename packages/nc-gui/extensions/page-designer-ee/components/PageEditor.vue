@@ -9,8 +9,9 @@ import PropertiesPanel from './PropertiesPanel.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
-let deletedWidget: PageDesignerWidget | null = null
+let deletedWidgets: PageDesignerWidget[] = []
 let justDeleted = false
+let justRestored = false
 
 const { fullscreen } = useExtensionHelperOrThrow()
 
@@ -63,29 +64,47 @@ onKeyStroke('Backspace', () => {
   if (payload.value.currentWidgetId === -1 || isActiveInputElementExist() || isDrawerOrModalExist() || isNcDropdownOpen()) return
 
   const widget = payload.value.widgets[payload.value.currentWidgetId]
-  delete payload.value.widgets[payload.value.currentWidgetId]
-  deletedWidget = widget
+  if (!widget) return
   justDeleted = true
+  delete payload.value.widgets[payload.value.currentWidgetId]
+  deletedWidgets.push(widget)
   unselectCurrentWidget()
 })
 
 onKeyStroke(['z', 'Z'], (e) => {
   if (!e.metaKey) return
-  if (deletedWidget) {
+  if (deletedWidgets.length) {
+    justRestored = true
+    const deletedWidget = deletedWidgets.pop()!
     payload.value.widgets[deletedWidget.id] = deletedWidget
     payload.value.currentWidgetId = deletedWidget.id
-    deletedWidget = null
   }
 })
 
+// watch for user changes and empty the deleted history
+// if not caused by deleting and restoring the widgets
 watch(
-  payload,
+  () => {
+    const { orientation, pageType, widgets, pageName, selectedTableId, selectedViewId } = payload.value
+    return {
+      orientation,
+      pageType,
+      widgets,
+      pageName,
+      selectedTableId,
+      selectedViewId,
+    }
+  },
   () => {
     if (justDeleted) {
       justDeleted = false
       return
     }
-    deletedWidget = null
+    if (justRestored) {
+      justRestored = false
+      return
+    }
+    deletedWidgets = []
   },
   { deep: true },
 )
@@ -98,15 +117,16 @@ function onWidgetClick(id: string | number) {
 <template>
   <div class="h-full w-full flex">
     <div
-      class="layout-wrapper flex-1 overflow-auto grid place-items-center"
+      class="print-page-layout-wrapper flex-1 overflow-auto grid place-items-center"
       @drop="onDropped"
       @mousedown="unselectCurrentWidget"
       @dragover.prevent
     >
       <div
+        id="printPage"
         ref="pageRef"
         class="page relative flex-shrink-0"
-        :style="{ width: `${pageSize.width}px`, height: `${pageSize.height}px` }"
+        :style="{ width: `${pageSize.width}px !important`, height: `${pageSize.height}px !important` }"
       >
         <div class="grid-lines absolute top-0 left-0 h-full w-full">
           <div
@@ -136,7 +156,7 @@ function onWidgetClick(id: string | number) {
 </template>
 
 <style scoped lang="scss">
-.layout-wrapper {
+.print-page-layout-wrapper {
   @apply bg-nc-bg-gray-extralight;
   .page {
     margin: 40px;

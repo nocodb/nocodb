@@ -32,7 +32,7 @@ const snapGridWidth = 1
 const snapGridHeight = 1
 const isDisplayGridGuidelines = false
 const targetRef = ref<HTMLElement>()
-const moveableRef = ref(null)
+const moveableRef = ref<Moveable>()
 const rotationPosition = 'top'
 const throttleRotate = 0
 
@@ -47,7 +47,7 @@ const onResize = (e: OnResize) => {
 
 const onRotate = (e: OnRotate) => {
   e.target.style.transform = e.drag.transform
-  const angle = Math.round(+[...e.drag.transform.matchAll(/rotate\((.*?)deg\)/g)][0][1])
+  const angle = Math.round(+([...e.drag.transform.matchAll(/rotate\((.*?)deg\)/g)]?.[0]?.[1] ?? 0))
   widget.value.angle = isNaN(angle) ? 0 : angle
 }
 const onDrag = (e: OnDrag) => {

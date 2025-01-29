@@ -31,8 +31,11 @@ function getNextWidgetId() {
 
 <template>
   <div v-if="payload" class="flex flex-col page-properties overflow-y-auto max-h-full pb-8">
-    <header class="widget-header">
+    <header class="widget-header flex w-full justify-between">
       <h1 class="m-0">Page</h1>
+      <NcButton size="small" type="secondary">
+        <GeneralIcon icon="ncPrinter"></GeneralIcon>
+      </NcButton>
     </header>
     <GroupedSettings title="Preview">
       <div class="flex flex-col gap-4">

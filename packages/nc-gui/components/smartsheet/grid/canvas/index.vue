@@ -84,13 +84,10 @@ const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
-const openAggregationField = ref<
-  | (CanvasGridColumn & {
-      style: Record<string, any>
-    })
-  | null
->(null)
-const isAggregationDropdownVisible = ref(false)
+const overlayStyle = ref<Record<string, any> | null>(null)
+const openAggregationField = ref<CanvasGridColumn | null>(null)
+const openColumnDropdownField = ref<ColumnType | null>(null)
+const isDropdownVisible = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
@@ -190,62 +187,84 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
+function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
+  // First check fixed columns
+  let xOffset = 0
+  const fixedCols = columns.value.filter((col) => col.fixed)
+
+  for (const column of fixedCols) {
+    const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
+    if (x >= xOffset && x < xOffset + width) {
+      if (!column.uidt) {
+        xOffset += width
+        continue
+      }
+      return { column, xOffset }
+    }
+    xOffset += width
+  }
+
+  // Then check scrollable columns
+  const visibleStart = colSlice.value.start
+  const visibleEnd = colSlice.value.end
+
+  const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+  xOffset = startOffset - scrollLeft
+
+  for (let i = visibleStart; i < visibleEnd; i++) {
+    const width = columnWidths.value[i] ?? 10
+    if (x >= xOffset && x < xOffset + width) {
+      return { column: columns.value[i], xOffset }
+    }
+    xOffset += width
+  }
+
+  return { column: null, xOffset }
+}
+
 async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
+  openColumnDropdownField.value = null
+  isDropdownVisible.value = false
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
-  if (y > height.value - 36) {
-    let clickedColumn
-    const fixedCols = columns.value.filter((col) => col.fixed)
-    let xOffset = 0
-
-    for (const column of fixedCols) {
-      const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
-      if (x >= xOffset && x < xOffset + width) {
-        if (!column.uidt) {
-          xOffset += width
-          continue
-        }
-        clickedColumn = column
-        break
-      }
-    }
-
-    if (!clickedColumn) {
-      const visibleStart = colSlice.value.start
-      const visibleEnd = colSlice.value.end
-
-      const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
-
-      xOffset = startOffset - scrollLeft.value
-
-      for (let i = visibleStart; i < visibleEnd; i++) {
-        const width = columnWidths.value[i] ?? 10
-        if (x >= xOffset && x < xOffset + width) {
-          clickedColumn = columns.value[i]
-          break
-        }
-        xOffset += width
-      }
-    }
+  if (y < 32 && e.button === 2) {
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
-      openAggregationField.value = {
-        ...clickedColumn,
-        style: {
-          top: `${height.value - 162}px`,
-          minWidth: `${clickedColumn.width}`,
-          width: `${clickedColumn.width}`,
-          left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
-        },
+      openColumnDropdownField.value = clickedColumn.columnObj
+      isDropdownVisible.value = true
+      overlayStyle.value = {
+        top: `calc(100svh - ${height.value}px + ${32}px)`,
+        minWidth: `${clickedColumn.width}`,
+        width: `${clickedColumn.width}`,
+        left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+      }
+    }
+    return
+  }
+
+  if (y > height.value - 36) {
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+    if (clickedColumn) {
+      openAggregationField.value = clickedColumn
+      isDropdownVisible.value = true
+      overlayStyle.value = {
+        top: `${height.value - 162}px`,
+        minWidth: `${clickedColumn.width}`,
+        width: `${clickedColumn.width}`,
+        left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
       }
       return
     }
   }
+
   if (x < 80) {
     onMouseDownRowReorderStart(e)
     return
@@ -256,7 +275,6 @@ async function handleMouseDown(e: MouseEvent) {
 
   selection.value.clear()
 
-  // Header interactions
   if (y <= 32) {
     startResize(e)
     if (!resizeableColumn.value) {
@@ -268,40 +286,8 @@ async function handleMouseDown(e: MouseEvent) {
       activeCell.value = { row: -1, column: -1 }
       triggerRefreshCanvas()
     }
-    let clickedColumn = null
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
-    let xOffset = 0
-
-    for (const column of fixedCols) {
-      const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
-      if (x >= xOffset && x < xOffset + width) {
-        if (!column.uidt) {
-          xOffset += width
-          continue
-        }
-        clickedColumn = column
-        break
-      }
-    }
-
-    if (!clickedColumn) {
-      const visibleStart = colSlice.value.start
-      const visibleEnd = colSlice.value.end
-
-      const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
-
-      xOffset = startOffset - scrollLeft.value
-
-      for (let i = visibleStart; i < visibleEnd; i++) {
-        const width = columnWidths.value[i] ?? 10
-        if (x >= xOffset && x < xOffset + width) {
-          clickedColumn = columns.value[i]
-          break
-        }
-        xOffset += width
-      }
-    }
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
       activeCell.value = {
         row: rowIndex,
@@ -445,19 +431,6 @@ onMounted(async () => {
   triggerRefreshCanvas()
   await loadViewAggregate()
 })
-
-watch(
-  () => openAggregationField.value,
-  async (newVal) => {
-    if (newVal) {
-      await nextTick()
-      isAggregationDropdownVisible.value = true
-    } else {
-      isAggregationDropdownVisible.value = false
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
@@ -506,11 +479,16 @@ watch(
         </LazySmartsheetRow>
       </div>
 
-      <template v-if="isAggregationDropdownVisible && openAggregationField">
-        <NcDropdown :overlay-style="openAggregationField.style" :visible="isAggregationDropdownVisible">
+      <template v-if="overlayStyle">
+        <NcDropdown :visible="isDropdownVisible" :overlay-style="overlayStyle">
           <div></div>
           <template #overlay>
-            <Aggregation v-model:column="openAggregationField" />
+            <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" />
+            <SmartsheetHeaderColumnMenu
+              v-if="openColumnDropdownField"
+              v-model:is-open="isDropdownVisible"
+              :column="openColumnDropdownField"
+            />
           </template>
         </NcDropdown>
       </template>

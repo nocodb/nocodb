@@ -55,7 +55,9 @@ function normalizeMeta(key: string) {
     {
       'thumbs-up': 'thumb-up',
       'circle-filled': 'moon-full',
-    }[opts.icon as string] ?? opts.icon
+      'circle-check': 'check-circle-outline',
+    }[opts.icon as string] ?? (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
+  console.log({ mta, opts, icn });
   return {
     ...opts,
     ...mta,
@@ -218,14 +220,14 @@ function isShowableValue(value: any) {
           <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
-              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1"
+              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1 max-w-2/5"
               >{{ processOldDataFor(columnKey) }}</pre
             >
           </div>
           <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
-              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1"
+              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1 max-w-2/5"
               >{{ processNewDataFor(columnKey) }}</pre
             >
           </div>

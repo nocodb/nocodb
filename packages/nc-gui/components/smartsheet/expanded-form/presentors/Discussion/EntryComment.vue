@@ -9,9 +9,18 @@ const props = defineProps<{
 
 const { user } = useGlobal()
 
+const { copy } = useCopy()
+
+const { dashboardUrl } = useDashboard()
+
+const route = useRoute()
+
+const meta = inject(MetaInj, ref())
+
+
 /* stores */
 
-const { loadComments, resolveComment, updateComment } = useRowCommentsOrThrow()
+const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -110,6 +119,14 @@ function onCommentBlur() {
   isEditing.value = false
   editCommentValue.value = undefined
 }
+
+async function copyComment(comment: CommentType) {
+  await copy(
+    encodeURI(
+      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
+    ),
+  )
+}
 </script>
 
 <template>
@@ -143,7 +160,7 @@ function onCommentBlur() {
       <div v-if="!editCommentValue" class="flex items-center gap-2">
         <NcTooltip
           v-if="user && props.comment.created_by_email === user.email && hasEditPermission"
-          class="opacity-0 transition pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
         >
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -158,7 +175,7 @@ function onCommentBlur() {
 
         <NcTooltip
           v-if="!props.comment.resolved_by && hasEditPermission"
-          class="opacity-0 transition pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
         >
           <NcButton
             class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
@@ -181,6 +198,44 @@ function onCommentBlur() {
             <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
           </NcButton>
         </NcTooltip>
+
+        <NcDropdown
+          v-if="!editCommentValue"
+          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          overlay-class-name="!min-w-[160px]"
+          placement="bottomRight"
+        >
+          <NcButton
+            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
+            size="xsmall"
+            type="text"
+          >
+            <GeneralIcon class="text-md" icon="threeDotVertical" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu variant="small">
+              <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(props.comment)">
+                <div class="flex gap-2 items-center">
+                  <component :is="iconMap.copy" class="cursor-pointer" />
+                  {{ $t('general.copy') }} URL
+                </div>
+              </NcMenuItem>
+              <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
+                <NcDivider />
+                <NcMenuItem
+                  v-e="['c:row-expand:comment:delete']"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="deleteComment(props.comment.id!)"
+                >
+                  <div class="flex gap-2 items-center">
+                    <component :is="iconMap.delete" class="cursor-pointer" />
+                    {{ $t('general.delete') }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </NcMenu>
+          </template>
+        </NcDropdown>
       </div>
     </div>
     <SmartsheetExpandedFormRichComment

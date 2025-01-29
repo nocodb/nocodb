@@ -71,9 +71,9 @@ export default {
 </script>
 
 <template>
-  <div class="h-full flex flex-row nc-files-mode-container">
+  <div class="h-full flex flex-row nc-discussion-mode-container">
     <div
-      class="h-full overflow-y-auto nc-scrollbar-thin flex flex-col items-center justify-start"
+      class="h-full overflow-y-auto nc-scrollbar-thin flex flex-col items-center justify-start overflow-x-hidden"
       :class="{
         'w-full': !showRightSections,
         'flex-1': showRightSections,
@@ -94,7 +94,7 @@ export default {
         </NcButton>
       </div>
       <div class="w-[680px] max-w-full pb-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-2 xl:px-0">
+        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-6 2xl:px-0">
           <template v-if="group.type === 'audit'">
             <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
           </template>
@@ -102,7 +102,7 @@ export default {
             <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
           </template>
         </div>
-        <div class="w-full border-t border-gray-200 px-2 xl:px-0">
+        <div class="w-full border-t border-gray-200 px-6 2xl:px-0">
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"

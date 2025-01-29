@@ -6,9 +6,9 @@ fi
 
 set -e
 # Constants
-NOCO_HOME="./nocodb"
+NOCO_HOME="$(pwd)/nocodb"
 REQUIRED_PORTS=(80 443)
-state_file="noco.state"
+state_file="$NOCO_HOME/noco.state"
 state_dlim="|"
 
 # Color definitions
@@ -560,6 +560,11 @@ check_existing_installation() {
 	fi
 	mkdir -p "$NOCO_HOME"
 	cd "$NOCO_HOME" || exit 1
+
+	# add more state handling in the future, if we want that
+	# so we do not have carry arround backward compatibility ifs
+	kvstore_get getval state_version > /dev/null || kvstore_set state_version 1
+
 
 	# Check if nocodb is already installed
 	if [ "$NOCO_FOUND" = true ]; then
@@ -1294,10 +1299,6 @@ monitoring_service() {
 
 main() {
 	CONFIG_DOCKER_COMMAND=$([ "$(check_for_docker_sudo)" = "y" ] && echo "sudo docker" || echo "docker")
-
-	# add more state handling in the future, if we want that
-	# so we do not have carry arround backward compatibility ifs
-	kvstore_get getval state_version > /dev/null || kvstore_set state_version 1
 
 	check_existing_installation
 	check_system_requirements

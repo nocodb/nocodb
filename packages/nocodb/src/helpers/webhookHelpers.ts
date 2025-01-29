@@ -436,7 +436,11 @@ export async function handleHttpWebHook(
     user,
     constructWebHookData(hook, model, view, prevData, newData),
   );
-  return axios(req);
+  const response = await axios(req);
+  return {
+    response,
+    payload: apiMeta,
+  };
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -619,11 +623,11 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
-          const parsedPayload ={
+          const parsedPayload = {
             to: parseBody(notification?.payload?.to, newData),
             subject: parseBody(notification?.payload?.subject, newData),
             html: parseBody(notification?.payload?.body, newData),
-          }
+          };
           const res = await (
             await NcPluginMgrv2.emailAdapter(false)
           )?.mailSend(parsedPayload);
@@ -635,14 +639,14 @@ export async function invokeWebhook(
               payload: JSON.stringify(parsedPayload),
               response: JSON.stringify(res),
               triggered_by: user?.email,
-              conditions: JSON.stringify(filters)
+              conditions: JSON.stringify(filters),
             };
           }
         }
         break;
       case 'URL':
         {
-          const res = await handleHttpWebHook(
+          const { response: res, payload } = await handleHttpWebHook(
             hook,
             model,
             view,
@@ -657,7 +661,7 @@ export async function invokeWebhook(
               ...hook,
               fk_hook_id: hook.id,
               type: notification.type,
-              payload: JSON.stringify(notification?.payload),
+              payload: JSON.stringify(payload),
               response: JSON.stringify({
                 status: res.status,
                 statusText: res.statusText,
@@ -671,6 +675,7 @@ export async function invokeWebhook(
                 },
               }),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
             };
           }
         }
@@ -707,6 +712,7 @@ export async function invokeWebhook(
                 },
               }),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
             };
           }
         }

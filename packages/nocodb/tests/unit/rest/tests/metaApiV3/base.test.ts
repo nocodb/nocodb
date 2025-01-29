@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../init';
+import { isEE } from 'playwright/setup/db';
 
 interface CreateBaseArgs {
   title: string;
@@ -10,8 +11,6 @@ interface CreateBaseArgs {
     icon_color?: string;
   };
 }
-
-const isEE = () => process.env.EE === 'true';
 
 export default function () {
   describe(`Base v3`, () => {

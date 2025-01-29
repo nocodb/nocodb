@@ -36,10 +36,11 @@ export default function () {
         'id',
         'email',
         'base_role',
-        'workspace_role',
         'created_at',
-        'updated_at',
+        ...(isEE() ? [
+        'workspace_role',
         'workspace_id',
+          ] :[])
       ]);
 
       expect(user).to.have.property('id').that.is.a('string');

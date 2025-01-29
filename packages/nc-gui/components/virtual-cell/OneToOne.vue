@@ -52,7 +52,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
   }
 }
 
-useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+useSelectedCellKeydownListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       listItemsDlg.value = true

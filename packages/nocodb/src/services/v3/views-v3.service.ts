@@ -237,8 +237,6 @@ export class ViewsV3Service {
         break;
       case ViewTypes.FORM:
         {
-
-
         }
         break;
       case ViewTypes.CALENDAR:

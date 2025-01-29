@@ -149,5 +149,3 @@ watch(activeAutomationId, () => {
     <DashboardTreeViewAutomationList v-if="isExpanded" :base-id="baseId!" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

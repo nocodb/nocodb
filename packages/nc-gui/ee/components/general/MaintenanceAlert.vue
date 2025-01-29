@@ -70,5 +70,3 @@ const dismiss = async () => {
     </NuxtLink>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

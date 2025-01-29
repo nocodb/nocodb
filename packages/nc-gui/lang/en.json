@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -1019,7 +1021,7 @@
     "personalAccessToken": "Personal Access Token",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Shared Base URL",
-    "sharedPublicly": "Shared Publicly",
+    "sharedPublicly": "Shared publicly",
     "importData": "Import data",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

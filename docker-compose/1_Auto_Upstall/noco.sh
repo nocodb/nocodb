@@ -532,6 +532,26 @@ persistent_store_isdeleted() {
 	return 1
 }
 
+migrate_0_1() {
+	generated_password=$(grep POSTGRES_PASSWORD "$NOCO_HOME/docker.env" | cut -d= -f2)
+
+	if [ -n "$generated_password" ]; then
+		kvstore_set generated_password "$generated_password"
+	fi
+
+	kvstore_set state_version 1
+}
+
+migrate() {
+	if ! state_version="$(kvstore_get getval state_version)"; then
+		state_version="0"
+	fi
+
+	case "$state_version" in
+	"0") migrate_0_1
+	esac
+}
+
 # Main functions
 check_existing_installation() {
 	NOCO_FOUND=false
@@ -553,9 +573,7 @@ check_existing_installation() {
 	mkdir -p "$NOCO_HOME"
 	cd "$NOCO_HOME" || exit 1
 
-	# add more state handling in the future, if we want that
-	# so we do not have carry arround backward compatibility ifs
-	kvstore_get getval state_version >/dev/null || kvstore_set state_version 1
+	migrate
 
 	# Check if nocodb is already installed
 	if [ "$NOCO_FOUND" = true ]; then

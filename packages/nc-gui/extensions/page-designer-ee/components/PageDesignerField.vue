@@ -2,6 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
+import { isVirtualCol } from 'nocodb-sdk'
 import type { PageDesignerFieldWidget } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
@@ -65,9 +66,36 @@ const container = useParentElement()
 <template>
   <div v-if="widget">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
-      <SmartsheetRow>
-        <SmartsheetCell :column="widget.field" :model-value="row[widget.field.title]" read-only :edit-enabled="false" />
-      </SmartsheetRow>
+      <div
+        :style="{
+          height: '100%',
+          width: '100%',
+          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+            widget.borderLeft || 0
+          }px`,
+          borderColor: widget.borderColor,
+          borderRadius: `${widget.borderRadius || 0}px`,
+          background: widget.backgroundColor,
+        }"
+      >
+        <SmartsheetRow v-if="row" :row="row">
+          <SmartsheetVirtualCell
+            v-if="isVirtualCol(widget.field)"
+            :column="widget.field"
+            :model-value="row.row?.[widget.field.title]"
+            read-only
+            :edit-enabled="false"
+          />
+          <SmartsheetCell
+            v-else
+            :column="widget.field"
+            :model-value="row.row?.[widget.field.title]"
+            read-only
+            :edit-enabled="false"
+          />
+        </SmartsheetRow>
+        <span v-else class="text-nc-content-gray-muted">{{ widget.field.title }}</span>
+      </div>
     </div>
     <Moveable
       ref="moveableRef"

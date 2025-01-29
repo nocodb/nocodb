@@ -9,17 +9,14 @@ const dragging = ref(false)
 function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('text/plain', JSON.stringify(props.field))
   dragging.value = true
+  setTimeout(() => {
+    dragging.value = false
+  }, 10)
 }
 </script>
 
 <template>
-  <div
-    draggable="true"
-    class="pl-1 flex flex-row items-center hover:bg-gray-50"
-    :class="{ dragging }"
-    @dragend="dragging = false"
-    @dragstart="onDragStart"
-  >
+  <div draggable="true" class="pl-1 flex flex-row items-center hover:bg-gray-50" :class="{ dragging }" @dragstart="onDragStart">
     <div class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2">
       <component :is="icon" class="!text-gray-600 mr-2" />
 
@@ -36,3 +33,9 @@ function onDragStart(e: DragEvent) {
     <div class="flex-1" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.dragging {
+  @apply w-[200px];
+}
+</style>

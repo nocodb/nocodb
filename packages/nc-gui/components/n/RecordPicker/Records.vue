@@ -7,12 +7,12 @@ const props = defineProps<{
   viewMeta: ViewType
   where: string
   fields: string[]
-  data: Record<string, any>[]
-  records: Record<string, any>[]
+  data: Row[]
+  records: Row[]
 }>()
 
 const emits = defineEmits<{
-  resolve: (row: Record<string, any>) => void
+  resolve: [Row]
 }>()
 const meta = toRef(props, 'meta')
 const viewMeta = toRef(props, 'viewMeta')
@@ -202,7 +202,7 @@ const visibleRows = computed(() => {
   })
 })
 
-const resolve = (row) => {
+const resolve = (row: Row) => {
   emits('resolve', row)
 }
 
@@ -281,7 +281,7 @@ const wrapperHeight = computed(() => {
         :fields="_fields"
         :is-loading="row?.rowMeta.isLoading"
         :display-field="pv"
-        @click="resolve({ ...row.row, _rowIndex: row.rowMeta.rowIndex })"
+        @click="resolve(row)"
       />
     </div>
   </div>

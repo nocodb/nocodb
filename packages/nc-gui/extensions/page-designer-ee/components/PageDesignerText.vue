@@ -144,7 +144,7 @@ function getTextualRepresentationForColumn(column: string, record: Record<string
 }
 
 const replacedText = computed(() => {
-  const record = (row.value ?? {}) as Record<string, any>
+  const record = (row.value?.row ?? {}) as Record<string, any>
   return widget.value.value.replace(/{(.*?)}/g, (_, key) => {
     if (key in record) return getTextualRepresentationForColumn(key, record)
     return `{${key}}`

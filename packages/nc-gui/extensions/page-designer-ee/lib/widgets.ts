@@ -61,6 +61,7 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   borderBottom: string
   borderRadius: string
   borderColor: string
+  backgroundColor: string
 }
 
 const BLACK = '#000000'
@@ -116,7 +117,7 @@ export class PageDesignerWidgetFactory {
       type: PageDesignerWidgetType.DIVIDER,
       angle: 0,
       zIndex: 0,
-      cssStyle: `width: 500px; height: 10px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
+      cssStyle: `width: 500px; height: 5px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
     }
   }
 
@@ -130,9 +131,10 @@ export class PageDesignerWidgetFactory {
       borderLeft: '0',
       borderRadius: '0',
       borderColor: BLACK,
+      backgroundColor: WHITE_TRANSPARENT,
       type: PageDesignerWidgetType.FIELD,
       zIndex: 0,
-      cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
+      cssStyle: `width: 100px; height: 100px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 }

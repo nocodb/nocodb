@@ -6,10 +6,10 @@ const props = withDefaults(
     label: string
     tableId: string
     viewId?: string
-    modelValue: Record<string, any>
+    modelValue: Row
     fields?: string[]
     allowRecordCreation?: boolean
-    records?: Record<string, any>[]
+    records?: Row[]
   }>(),
   {
     label: '- select a record -',
@@ -17,7 +17,7 @@ const props = withDefaults(
 )
 
 const emits = defineEmits<{
-  'update:modelValue': (value: Record<string, any>) => void
+  'update:modelValue': (value: Row) => void
 }>()
 
 const searchQuery = ref('')
@@ -107,7 +107,7 @@ onMounted(async () => {
   await loadMetas()
 })
 
-const resolveInput = (row: Record<string, any>) => {
+const resolveInput = (row: Row) => {
   vModel.value = row
   isOpen.value = false
 }

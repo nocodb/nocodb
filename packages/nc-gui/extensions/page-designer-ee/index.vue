@@ -19,7 +19,7 @@ const savedPayload = ref<PageDesignerPayload>({
   currentWidgetId: -1,
 })
 
-const row = ref<Partial<Row>>({})
+const row = ref<Row>()
 const meta = ref<TableType>()
 const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 provide(PageDesignerPayloadInj, savedPayload)
@@ -58,7 +58,7 @@ watch(
   () => savedPayload.value.selectedTableId,
   async (tableId) => {
     if (!tableId) return
-    row.value = {}
+    row.value = undefined
     const tableMeta = await getTableMeta(tableId)
     if (tableMeta) meta.value = tableMeta
   },
@@ -107,7 +107,7 @@ watch(
             v-if="savedPayload.selectedTableId"
             :key="savedPayload.selectedTableId + savedPayload.selectedViewId"
             v-model:model-value="row"
-            :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+            :label="row ? row.row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
             :table-id="savedPayload.selectedTableId"
             :view-id="savedPayload.selectedViewId"
             class="w-full page-designer-record-picker"

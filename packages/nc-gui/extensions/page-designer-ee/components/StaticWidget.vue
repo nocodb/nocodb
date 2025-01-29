@@ -14,6 +14,9 @@ const dragging = ref(false)
 function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('text/plain', props.type.toString())
   dragging.value = true
+  setTimeout(() => {
+    dragging.value = false
+  }, 10)
 }
 </script>
 
@@ -23,7 +26,6 @@ function onDragStart(e: DragEvent) {
     class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-3 cursor-pointer"
     :class="{ first, last, dragging }"
     @dragstart="onDragStart"
-    @dragend="dragging = false"
   >
     <img draggable="false" :src="icon" class="w-10 h-10" />
     <div class="text-center text-nc-content-gray text-[13px] font-bold leading-[18px]">{{ text }}</div>
@@ -42,7 +44,7 @@ function onDragStart(e: DragEvent) {
     @apply bg-nc-bg-gray-extralight;
   }
   &.dragging {
-    @apply rounded-none border-none opacity-50;
+    @apply border-none opacity-50 rounded-lg;
   }
 }
 </style>

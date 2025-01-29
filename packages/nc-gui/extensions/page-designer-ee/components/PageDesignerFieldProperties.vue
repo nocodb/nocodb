@@ -50,17 +50,17 @@ watch(
         </div>
       </div>
     </GroupedSettings>
-    <!-- <GroupedSettings title="Fill">
+    <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Background Color</span>
-          <ColorPropertyPicker v-model="textWidget.backgroundColor" />
+          <ColorPropertyPicker v-model="fieldWidget.backgroundColor" />
         </div>
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <!-- <div class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Text Color</span>
           <ColorPropertyPicker v-model="textWidget.textColor" />
-        </div>
+        </div> -->
       </div>
-    </GroupedSettings> -->
+    </GroupedSettings>
   </div>
 </template>

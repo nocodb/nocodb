@@ -51,7 +51,7 @@ function print() {
             v-if="payload.selectedTableId"
             :key="payload.selectedTableId + payload.selectedViewId"
             v-model:model-value="row"
-            :label="row ? row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+            :label="row ? row.row?.[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
             :table-id="payload.selectedTableId"
             :view-id="payload.selectedViewId"
             class="w-full page-designer-record-picker"

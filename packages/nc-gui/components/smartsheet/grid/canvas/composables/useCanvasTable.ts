@@ -1,4 +1,5 @@
-import { type ColumnType, UITypes, isOrderCol, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isOrderCol, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -10,6 +11,7 @@ import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { getSingleMultiselectColOptions } from '../utils/cell'
+import { useRowReorder } from './useRowReOrder'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -26,6 +28,7 @@ export function useCanvasTable({
   aggregations,
   vSelectedAllRecords,
   selectedRows,
+  updateRecordOrder,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -41,6 +44,7 @@ export function useCanvasTable({
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: ComputedRef<Row[]>
+  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -60,6 +64,11 @@ export function useCanvasTable({
   const dragOver = ref<{ id: string; index: number } | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
+
+  // Row Reorder related states
+  const isDragging = ref(false)
+  const draggedRowIndex = ref(-1)
+  const targetRowIndex = ref(-1)
 
   const { isMobileMode } = useGlobal()
   const { t } = useI18n()
@@ -222,6 +231,23 @@ export function useCanvasTable({
     vSelectedAllRecords,
     isRowDraggingEnabled,
     selectedRows,
+    isDragging,
+    draggedRowIndex,
+    targetRowIndex,
+  })
+
+  const { handleDragStart } = useRowReorder({
+    canvasRef,
+    rowHeight,
+    isDragging,
+    draggedRowIndex,
+    targetRowIndex,
+    cachedRows,
+    scrollTop,
+    scrollToCell,
+    totalRows,
+    triggerRefreshCanvas,
+    updateRecordOrder,
   })
 
   const { fetchChunk, updateVisibleRows } = useDataFetch({
@@ -285,7 +311,7 @@ export function useCanvasTable({
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => updateGridViewColumn(columnId, { width: normalizedWidth })),
   )
-  const { isDragging, startDrag } = useColumnReorder(
+  const { isDragging: isColumnReordering, startDrag } = useColumnReorder(
     canvasRef,
     columns,
     colSlice,
@@ -404,7 +430,7 @@ export function useCanvasTable({
     columnWidths,
     columns,
     canvasRef,
-    isDragging,
+    isDragging: isColumnReordering,
     selection,
     hoverRow,
     resizeableColumn,
@@ -430,5 +456,9 @@ export function useCanvasTable({
     onMouseMoveFillHandlerMove: handleFillMove,
     onMouseUpFillHandlerEnd: handleFillEnd,
     isFillHandlerActive: isFillMode,
+
+    // Row Reorder
+    onMouseDownRowReorderStart: handleDragStart,
+    isRowReorderActive: isDragging,
   }
 }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerTextProperties from './PageDesignerTextProperties.vue'
 import PageDesignerImageProperties from './PageDesignerImageProperties.vue'
+import PageDesignerFieldProperties from './PageDesignerFieldProperties.vue'
 import PageDesignerDividerProperties from './PageDesignerDividerProperties.vue'
 import PageDesignerProperties from './PageDesignerProperties.vue'
 
@@ -10,10 +12,11 @@ const payload = inject(PageDesignerPayloadInj)!
 
 const currentWidgetType = computed(() => payload.value.widgets?.[payload.value.currentWidgetId]?.type)
 
-const widgetTypeToPropertiesComponent = {
+const widgetTypeToPropertiesComponent: Record<PageDesignerWidgetType, Component> = {
   [PageDesignerWidgetType.TEXT]: PageDesignerTextProperties,
   [PageDesignerWidgetType.IMAGE]: PageDesignerImageProperties,
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDividerProperties,
+  [PageDesignerWidgetType.FIELD]: PageDesignerFieldProperties,
 }
 
 const propertiesComponent = computed(() => {

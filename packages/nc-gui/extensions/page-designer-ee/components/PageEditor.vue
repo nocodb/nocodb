@@ -6,6 +6,7 @@ import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
+import PageDesignerField from './PageDesignerField.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -35,6 +36,7 @@ const widgetTypeToComponent = {
   [PageDesignerWidgetType.TEXT]: PageDesignerText,
   [PageDesignerWidgetType.IMAGE]: PageDesignerImage,
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDivider,
+  [PageDesignerWidgetType.FIELD]: PageDesignerField,
 }
 
 const widgetFactoryByType: Record<string, Function> = {
@@ -46,12 +48,23 @@ const widgetFactoryByType: Record<string, Function> = {
 function onDropped(e: DragEvent) {
   const rect = pageRef.value?.getBoundingClientRect()
   if (!rect) return
-  const widgetType = e.dataTransfer?.getData('text/plain') ?? ''
-  const factory = widgetFactoryByType[widgetType]
-  if (!factory) return
+  const widgetData = e.dataTransfer?.getData('text/plain') ?? ''
   const relativeX = e.clientX - rect.left
   const relativeY = e.clientY - rect.top
-  const widget = factory(++payload.value.lastWidgetId, { x: relativeX, y: relativeY })
+  const position = { x: relativeX, y: relativeY }
+  let field, widget: PageDesignerWidget
+  try {
+    field = JSON.parse(widgetData)
+  } catch {
+    return
+  }
+  if (!isNaN(+widgetData)) {
+    const factory = widgetFactoryByType[widgetData]
+    if (!factory) return
+    widget = factory(++payload.value.lastWidgetId, position)
+  } else {
+    widget = PageDesignerWidgetFactory.createEmptyFieldWidget(++payload.value.lastWidgetId, field, position)
+  }
   payload.value.widgets[widget.id] = widget
   payload.value.currentWidgetId = widget.id
 }

@@ -1,7 +1,10 @@
+import type { ColumnType } from 'ant-design-vue/lib/table'
+
 export enum PageDesignerWidgetType {
   TEXT,
   IMAGE,
   DIVIDER,
+  FIELD,
 }
 
 export interface PageDesignerWidget {
@@ -47,6 +50,17 @@ export interface PageDesignerDividerWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.DIVIDER
   backgroundColor: string
   angle: number
+}
+
+export interface PageDesignerFieldWidget extends PageDesignerWidget {
+  type: PageDesignerWidgetType.FIELD
+  field: ColumnType
+  borderLeft: string
+  borderRight: string
+  borderTop: string
+  borderBottom: string
+  borderRadius: string
+  borderColor: string
 }
 
 const BLACK = '#000000'
@@ -103,6 +117,22 @@ export class PageDesignerWidgetFactory {
       angle: 0,
       zIndex: 0,
       cssStyle: `width: 500px; height: 10px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
+    }
+  }
+
+  static createEmptyFieldWidget(id: number, field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
+    return {
+      id,
+      field,
+      borderTop: '0',
+      borderRight: '0',
+      borderBottom: '0',
+      borderLeft: '0',
+      borderRadius: '0',
+      borderColor: BLACK,
+      type: PageDesignerWidgetType.FIELD,
+      zIndex: 0,
+      cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 }

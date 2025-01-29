@@ -8,6 +8,7 @@ import DividerWidgetImage from '../assets/divider-widget.svg'
 import StaticWidget from './StaticWidget.vue'
 import GroupedSettings from './GroupedSettings.vue'
 import TableAndViewPicker from './TableAndViewPicker.vue'
+import FieldElements from './FieldElements.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
@@ -83,6 +84,10 @@ function print() {
             @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget(getNextWidgetId()))"
           ></StaticWidget>
         </div>
+      </div>
+      <div class="flex flex-col gap-4">
+        <span>Field Elements</span>
+        <FieldElements />
       </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">

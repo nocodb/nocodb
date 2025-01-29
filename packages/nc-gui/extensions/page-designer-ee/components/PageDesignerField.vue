@@ -2,19 +2,20 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { PageDesignerDividerWidget } from '../lib/widgets'
-import { PageDesignerPayloadInj } from '../lib/context'
+import type { PageDesignerFieldWidget } from '../lib/widgets'
+import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
 const props = defineProps<{
   id: string | number
 }>()
 
 const payload = inject(PageDesignerPayloadInj)!
-const widget = ref() as Ref<PageDesignerDividerWidget>
+const widget = ref() as Ref<PageDesignerFieldWidget>
+const row = inject(PageDesignerRowInj)!
 watch(
   () => props.id,
   (id) => {
-    widget.value = payload?.value?.widgets[id] as PageDesignerDividerWidget
+    widget.value = payload?.value?.widgets[id] as PageDesignerFieldWidget
   },
   { immediate: true },
 )
@@ -47,8 +48,6 @@ const onResize = (e: OnResize) => {
 
 const onRotate = (e: OnRotate) => {
   e.target.style.transform = e.drag.transform
-  const angle = Math.round(+([...e.drag.transform.matchAll(/rotate\((.*?)deg\)/g)]?.[0]?.[1] ?? 0))
-  widget.value.angle = isNaN(angle) ? 0 : angle
 }
 const onDrag = (e: OnDrag) => {
   e.target.style.transform = e.transform
@@ -60,32 +59,19 @@ const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
 }
 
-watch(
-  () => widget.value.angle,
-  () => {
-    nextTick(() => {
-      moveableRef.value?.updateRect()
-    })
-  },
-)
-
 const container = useParentElement()
 </script>
 
 <template>
   <div v-if="widget">
-    <div ref="targetRef" class="absolute" :style="widget.cssStyle.replace(/rotate\(.*?\)/, `rotate(${widget.angle || 0}deg)`)">
-      <div
-        :style="{
-          background: `${widget.backgroundColor}`,
-          height: '100%',
-          width: '100%',
-        }"
-      ></div>
+    <div ref="targetRef" class="absolute" :style="widget.cssStyle">
+      <SmartsheetRow>
+        <SmartsheetCell :column="widget.field" :model-value="row[widget.field.title]" read-only :edit-enabled="false" />
+      </SmartsheetRow>
     </div>
     <Moveable
       ref="moveableRef"
-      :rotatable="true"
+      :rotatable="false"
       :throttle-rotate="throttleRotate"
       :rotation-position="rotationPosition"
       :target="targetRef"

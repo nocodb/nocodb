@@ -14,7 +14,7 @@ import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
 
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
-import baseTestv3 from './tests/metaApiV3/base.test';
+import baseTestV3 from './tests/metaApiV3/base.test';
 import tableTests from './tests/meta-apis/table.test';
 
 let workspaceTest = () => {};
@@ -60,7 +60,7 @@ function restTests() {
 
   // v3 API tests
   if (testVersion.includes('v3')) {
-    baseTestv3();
+    baseTestV3();
   }
 }
 

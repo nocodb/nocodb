@@ -11,8 +11,6 @@ interface CreateBaseArgs {
   };
 }
 
-const testDev = true;
-
 export default function () {
   describe(`Base v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
@@ -100,8 +98,13 @@ export default function () {
       const bases = listBase.body.list;
       expect(bases).to.be.an('array').that.is.not.empty;
 
-      // There are 2 default WS bases (one created when user signed up, and one created when user created a WS)
-      expect(bases).to.have.lengthOf(5);
+      // There is one default base created for the workspace
+      expect(bases).to.have.lengthOf(4);
+
+      // ensure all the bases have same WS ID (=workspaceId)
+      bases.forEach((base) => {
+        expect(base).to.have.property('workspace_id', workspaceId);
+      });
 
       // Validate count of bases created for the current workspace
       // Skip default base created for the workspace
@@ -152,16 +155,11 @@ export default function () {
         .expect(400);
 
       // validate error response
-      if (!testDev) {
-        expect(Object.keys(errLong.body)).to.include.members([
-          'error',
-          'message',
-        ]);
-        expect(errLong.body.error).to.equal('Invalid request body');
-        expect(errLong.body.message).to.equal(
-          "'title' must NOT have more than 50 characters",
-        );
-      }
+      expect(Object.keys(errLong.body)).to.include.members(['msg', 'errors']);
+      expect(errLong.body.msg).to.equal('Invalid request body');
+      expect(errLong.body.errors[0].message).to.equal(
+        'must NOT have more than 50 characters',
+      );
     });
     it('Read Base v3', async () => {
       const baseObj = await _createBase(baseData);

@@ -14,7 +14,7 @@ import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
 
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
-import baseTest from './tests/metaApiV3/base.test';
+import baseTestv3 from './tests/metaApiV3/base.test';
 import tableTests from './tests/meta-apis/table.test';
 
 let workspaceTest = () => {};
@@ -35,56 +35,32 @@ if (process.env.EE === 'true') {
 const testVersion = ['v1', 'v2', 'v3'];
 
 function restTests() {
-  // authTests();
-  // orgTests();
-  // baseTests();
-  // tableRowTests();
-  // viewRowTests();
-  // columnTypeSpecificTests();
-  // attachmentTests();
-  // filterTest();
-  // groupByTest();
-  // workspaceTest();
-  // formulaTests();
-  // ssoTest();
-  // cloudOrgTest();
-  // typeCastsTest();
-  // readOnlyTest();
-  // aggregationTest();
-  // bulkAggregationTest();
-  // columnTest();
-  // integrationTest();
-  //
-  // if (testVersion.includes('v1')) tableTests('v1');
-  // if (testVersion.includes('v2')) tableTests('v2');
-  // if (testVersion.includes('v3')) tableTests('v3');
+  authTests();
+  orgTests();
+  baseTests();
+  tableRowTests();
+  viewRowTests();
+  columnTypeSpecificTests();
+  attachmentTests();
+  filterTest();
+  groupByTest();
+  workspaceTest();
+  formulaTests();
+  ssoTest();
+  cloudOrgTest();
+  typeCastsTest();
+  readOnlyTest();
+  aggregationTest();
+  bulkAggregationTest();
+  columnTest();
+  integrationTest();
 
-  // if (testVersion.includes('v1')) fieldsTests('v1');
-  // if (testVersion.includes('v2')) fieldsTests('v2');
-  // if (testVersion.includes('v3')) fieldsTests('v3');
-  //
-  // if (testVersion.includes('v1')) filterTests('v1');
-  // if (testVersion.includes('v2')) filterTests('v2');
-  // if (testVersion.includes('v3')) filterTests('v3');
-  //
-  // if (testVersion.includes('v1')) commentTests('v1');
-  // if (testVersion.includes('v2')) commentTests('v2');
-  // if (testVersion.includes('v3')) commentTests('v3');
-  //
-  // if (testVersion.includes('v1')) sortTests('v1');
-  // if (testVersion.includes('v2')) sortTests('v2');
-  // if (testVersion.includes('v3')) sortTests('v3');
-
-  // if (testVersion.includes('v2')) dataAPIsV3Test('v2');
-  // if (testVersion.includes('v3')) dataAPIsV3Test('v3');
-  //
-  // if (testVersion.includes('v2')) baseTest('v2');
-  if (testVersion.includes('v3')) baseTest('v3');
+  if (testVersion.includes('v1')) tableTests('v1');
+  if (testVersion.includes('v2')) dataAPIsV3Test('v2');
 
   // v3 API tests
   if (testVersion.includes('v3')) {
-    baseTestV3();
-    baseUsersTestV3();
+    baseTestv3();
   }
 }
 

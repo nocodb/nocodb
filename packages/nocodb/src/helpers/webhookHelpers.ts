@@ -541,7 +541,7 @@ export async function invokeWebhook(
   let hookLog: HookLogType;
   const startTime = process.hrtime();
   const source = await Source.get(context, model.source_id);
-  let notification;
+  let notification, filters;
   try {
     notification =
       typeof hook.notification === 'string'
@@ -556,7 +556,7 @@ export async function invokeWebhook(
     }
 
     if (hook.condition && !testHook) {
-      const filters = testFilters || (await hook.getFilters(context));
+      filters = testFilters || (await hook.getFilters(context));
 
       if (isBulkOperation) {
         const filteredData = [];
@@ -619,21 +619,23 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
-          const res = await (
-            await NcPluginMgrv2.emailAdapter(false)
-          )?.mailSend({
+          const parsedPayload ={
             to: parseBody(notification?.payload?.to, newData),
             subject: parseBody(notification?.payload?.subject, newData),
             html: parseBody(notification?.payload?.body, newData),
-          });
+          }
+          const res = await (
+            await NcPluginMgrv2.emailAdapter(false)
+          )?.mailSend(parsedPayload);
           if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
               type: notification.type,
-              payload: JSON.stringify(notification?.payload),
+              payload: JSON.stringify(parsedPayload),
               response: JSON.stringify(res),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters)
             };
           }
         }

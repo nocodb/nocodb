@@ -328,7 +328,12 @@ export class BaseUsersService {
       NcError.badRequest(`Insufficient privilege to update user`);
     }
 
-    const oldBaseUser = await BaseUser.get(context, param.baseId, param.userId);
+    const oldBaseUser = await BaseUser.get(
+      context,
+      param.baseId,
+      param.userId,
+      ncMeta,
+    );
 
     await BaseUser.updateRoles(
       context,

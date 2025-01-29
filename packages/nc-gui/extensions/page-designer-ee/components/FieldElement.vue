@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { PageDesignerPayloadInj } from '../lib/context'
+import { type PageDesignerFieldWidget, PageDesignerWidgetFactory } from '../lib/widgets'
+
 const props = defineProps<{
   field: Field
   icon: Component
 }>()
+
+const payload = inject(PageDesignerPayloadInj)!
 
 const dragging = ref(false)
 
@@ -13,10 +18,29 @@ function onDragStart(e: DragEvent) {
     dragging.value = false
   }, 10)
 }
+
+function addWidget(widget: PageDesignerFieldWidget) {
+  payload.value.widgets[widget.id] = widget
+  payload.value.currentWidgetId = widget.id
+}
+
+function getNextWidgetId() {
+  return ++payload.value.lastWidgetId
+}
+
+function onFieldClick() {
+  addWidget(PageDesignerWidgetFactory.createEmptyFieldWidget(getNextWidgetId(), props.field))
+}
 </script>
 
 <template>
-  <div draggable="true" class="pl-1 flex flex-row items-center hover:bg-gray-50" :class="{ dragging }" @dragstart="onDragStart">
+  <div
+    draggable="true"
+    class="pl-1 flex flex-row items-center hover:bg-gray-50 cursor-pointer"
+    :class="{ dragging }"
+    @dragstart="onDragStart"
+    @click="onFieldClick"
+  >
     <div class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2">
       <component :is="icon" class="!text-gray-600 mr-2" />
 

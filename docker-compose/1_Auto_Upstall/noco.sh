@@ -7,8 +7,9 @@ fi
 set -e
 # Constants
 NOCO_HOME="./nocodb"
-CURRENT_PATH=$(pwd)
 REQUIRED_PORTS=(80 443)
+state_file="noco.state"
+state_dlim="|"
 
 # Color definitions
 RED='\033[0;31m'
@@ -47,6 +48,119 @@ print_info() { print_color "$BLUE" "INFO: $1"; }
 print_success() { print_color "$GREEN" "SUCCESS: $1"; }
 print_warning() { print_color "$YELLOW" "WARNING: $1"; }
 print_error() { print_color "$RED" "ERROR: $1"; }
+
+die()
+{
+	: "${1:?}"
+
+	command -v notify-send > /dev/null &&
+		notify-send "upstall" "$1"
+
+	printf "\033[31;1merr: %b\033[0m\n" "$1"
+	exit "${2:-1}"
+}
+
+trim()
+{
+	: "${1:?}"
+
+	_trimstr="${1#"${1%%[![:space:]]*}"}"
+	_trimstr="${_trimstr%"${_trimstr##*[![:space:]]}"}"
+
+	echo "$_trimstr"
+}
+
+kvstore_get()
+{
+	# usage kvstore_get [ getval <key> ]
+	line=
+	_key=
+	_value=
+
+	[ -s "$state_file" ] || return 1
+
+	while read -r line
+	do
+		[ -z "$line" ] && continue
+
+		_key="${line%%"$state_dlim"*}"
+		_key="$(trim "$_key")"
+
+		case "$_key" in
+		\#*) continue
+		esac
+
+		if [ "$1" = "getval" ]; then
+			[ "$2" != "$_key" ] && continue
+
+			_value="${line##*"$state_dlim"}"
+			_value="$(trim "$_value")"
+			echo "$_value"
+			return 0
+		else
+			echo "$_key"
+		fi
+	done < "$state_file"
+
+	unset _key _value
+	[ "$1" = "getval" ] && return 1
+}
+
+kvstore_rm()
+{
+	# usage kvstore_rm <key>
+	: "${1:?}"
+	cl=
+	line=
+	file=
+	old_ifs="$IFS"
+
+	IFS=
+	while read -r line
+	do
+		cl="$line\n"
+
+		key="$(trim "${cl%%"$state_dlim"*}")"
+		# catch match
+		if [ "$key" = "$1" ]; then
+			continue
+		fi
+
+		file="${file}${cl}"
+	done < "$state_file"
+
+	IFS="$old_ifs"
+	# shellcheck disable=SC2059
+	printf "$file" > "$state_file"
+	unset cl line file value old_ifs
+}
+
+kvstore_valverify()
+{
+	# kvstore_valverify <value>
+
+	case "$1" in
+	*"\n"*|*$state_dlim*) return 1 ;;
+	esac
+}
+
+kvstore_set()
+{
+	# kvstore_set <key> <value>
+	: "${1:?}"
+	: "${2:?}"
+
+	key="$(echo "$1" | tr -d "$state_dlim")"
+	key="$(trim "$key")"
+	val="$(trim "$2")"
+
+	kvstore_get getval "$key" > /dev/null &&
+		die "keys must be unique"
+	kvstore_valverify "$val" ||
+		die "invalid: $val"
+
+	echo "${key:?} $state_dlim $val" >> "$state_file"
+}
 
 print_box_message() {
 	local message=("$@")
@@ -94,7 +208,12 @@ urlencode() {
 }
 
 generate_password() {
-	openssl rand -base64 48 | tr -dc 'a-zA-Z0-9_+*' | head -c 32
+	if ! pass="$(kvstore_get getval generated_password)"; then
+		pass="$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 32)"
+		kvstore_set generated_password "$pass"
+	fi
+
+	echo "$pass"
 }
 
 get_public_ip() {
@@ -445,26 +564,21 @@ check_existing_installation() {
 	# Check if nocodb is already installed
 	if [ "$NOCO_FOUND" = true ]; then
 		echo "NocoDB is already installed. And running."
-		echo "Do you want to reinstall NocoDB? [Y/N] (default: N): "
-		read -r REINSTALL
+		reinstall="$(prompt_oneof "Do you want to reinstall NocoDB" "N" "Y")"
 
 		if [ -f "$NOCO_HOME/.COMPOSE_PROJECT_NAME" ]; then
 			COMPOSE_PROJECT_NAME=$(cat "$NOCO_HOME/.COMPOSE_PROJECT_NAME")
 			export COMPOSE_PROJECT_NAME
 		fi
 
-		if [ "$REINSTALL" != "Y" ] && [ "$REINSTALL" != "y" ]; then
+		if [ "$reinstall" == "N" ]; then
 			management_menu
 			exit 0
 		else
 			echo "Reinstalling NocoDB..."
 			$CONFIG_DOCKER_COMMAND compose down -v
-
 			unset COMPOSE_PROJECT_NAME
-			cd /tmp || exit 1
-			rm -rf "$NOCO_HOME"
 
-			cd "$CURRENT_PATH" || exit 1
 			mkdir -p "$NOCO_HOME"
 			cd "$NOCO_HOME" || exit 1
 		fi
@@ -1180,6 +1294,10 @@ monitoring_service() {
 
 main() {
 	CONFIG_DOCKER_COMMAND=$([ "$(check_for_docker_sudo)" = "y" ] && echo "sudo docker" || echo "docker")
+
+	# add more state handling in the future, if we want that
+	# so we do not have carry arround backward compatibility ifs
+	kvstore_get getval state_version > /dev/null || kvstore_set state_version 1
 
 	check_existing_installation
 	check_system_requirements

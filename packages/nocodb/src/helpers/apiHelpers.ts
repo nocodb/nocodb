@@ -1,7 +1,5 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { betterAjvErrors } from '@apideck/better-ajv-errors';
-import type { ValidationError } from '@apideck/better-ajv-errors';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import { swaggerV3 } from '~/schema';
@@ -52,7 +50,7 @@ export const validatePayload = (
 
   // If the request body is not valid, throw error
   if (!valid) {
-    const errors: ErrorObject[] | null | undefined | ValidationError[] =
+    const errors: ErrorObject[] | null | undefined =
       ajv.errors || validate.errors;
 
     if (humanReadableError) {
@@ -64,7 +62,6 @@ export const validatePayload = (
       //       schema.split('swagger-v3.json#/components/schemas/')[1]
       //     ];
       // }
-
       // errors = betterAjvErrors({
       //   schema: validate.schema,
       //   data: payload,

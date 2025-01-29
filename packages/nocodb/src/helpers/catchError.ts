@@ -1,7 +1,6 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
-import type { ValidationError } from '@apideck/better-ajv-errors';
 import type { BaseType, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -512,7 +511,7 @@ export class AjvError extends NcBaseError {
     this.humanReadableError = param.humanReadableError || false;
   }
 
-  errors: ErrorObject[] | ValidationError[];
+  errors: ErrorObject[];
 }
 
 const errorHelpers: {

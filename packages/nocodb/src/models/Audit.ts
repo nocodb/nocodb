@@ -1,10 +1,9 @@
-import { auditGroups, AuditOperationTypes } from 'nocodb-sdk';
+import { AuditOperationTypes } from 'nocodb-sdk';
 import type { AuditV1OperationTypes } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { stringifyMetaProp } from '~/utils/modelUtils';
-import { NcError } from '~/helpers/catchError';
 
 export default class Audit {
   id?: string;
@@ -118,13 +117,11 @@ export default class Audit {
     offset: _offset = 0,
     fk_model_id,
     row_id,
-    type,
   }: {
     limit?: number | string;
     offset?: number | string;
     fk_model_id: string;
     row_id: string;
-    type?: keyof typeof auditGroups;
   }) {
     const limit = Math.max(1, Math.min(+_limit || 25, 1000));
     const offset = Math.max(0, +_offset || 0);
@@ -143,13 +140,6 @@ export default class Audit {
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
-
-    if (type) {
-      if (!auditGroups[type]) {
-        NcError.badRequest('Invalid audit group type');
-      }
-      query.whereIn('op_type', auditGroups[type]);
-    }
 
     const audits = await query;
 

@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { type TableType } from 'nocodb-sdk'
 import PageEditor from './components/PageEditor.vue'
 import { type PageDesignerPayload } from './lib/payload'
-import { PageOrientation, PageType } from './lib/layout'
+import { PageDesignerLayout, PageOrientation, PageType } from './lib/layout'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from './lib/context'
 import TableAndViewPicker from './components/TableAndViewPicker.vue'
 
@@ -64,6 +64,30 @@ watch(
   },
   {
     immediate: true,
+  },
+)
+
+watch(
+  () => {
+    const { orientation, pageType } = savedPayload.value
+    return {
+      orientation,
+      pageType,
+    }
+  },
+  ({ orientation, pageType }) => {
+    let { width, height } = PageDesignerLayout.PageSizesByType[pageType]
+    if (orientation === PageOrientation.LANDSCAPE) {
+      ;[width, height] = [height, width]
+    }
+    useStyleTag(
+      `
+      @page {
+        size: ${width}in ${height}in;
+        margin: 0;
+      }`,
+      { media: 'print', id: 'printStyle' },
+    )
   },
 )
 </script>
@@ -217,8 +241,18 @@ watch(
   }
 }
 @media print {
-  .grid-lines {
+  * {
+    -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
+    color-adjust: exact; /* Firefox 48 – 96 */
+    print-color-adjust: exact;
+  }
+
+  .grid-lines,
+  .nc-moveable {
     @apply !hidden;
+  }
+  .page-widget > .absolute {
+    outline: none !important;
   }
   #printPage {
     @apply m-0 shadow-none;

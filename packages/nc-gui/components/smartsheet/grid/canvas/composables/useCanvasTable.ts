@@ -3,6 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
+import { getSingleMultiselectColOptions } from '../utils/cell'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -10,7 +11,6 @@ import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
-import { getSingleMultiselectColOptions } from '../utils/cell'
 import { useRowReorder } from './useRowReOrder'
 
 export function useCanvasTable({
@@ -243,6 +243,7 @@ export function useCanvasTable({
     draggedRowIndex,
     targetRowIndex,
     cachedRows,
+    partialRowHeight,
     scrollTop,
     scrollToCell,
     totalRows,
@@ -458,6 +459,7 @@ export function useCanvasTable({
     isFillHandlerActive: isFillMode,
 
     // Row Reorder
+    isRowReOrderEnabled: isRowDraggingEnabled,
     onMouseDownRowReorderStart: handleDragStart,
     isRowReorderActive: isDragging,
   }

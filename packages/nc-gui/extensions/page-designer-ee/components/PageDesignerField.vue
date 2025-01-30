@@ -3,13 +3,10 @@ import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
-import type { PageDesignerFieldWidget } from '../lib/widgets'
+import type { PageDesignerFieldWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
-const props = defineProps<{
-  id: string | number
-}>()
-
+const props = defineProps<PageDesignerWidgetComponentProps>()
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerFieldWidget>
 const row = inject(PageDesignerRowInj)!

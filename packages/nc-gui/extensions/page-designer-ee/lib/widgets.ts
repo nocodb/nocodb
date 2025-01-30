@@ -1,6 +1,10 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import type { PageDesignerPayload } from './payload'
 
+export interface PageDesignerWidgetComponentProps {
+  id: number | string
+}
+
 export enum PageDesignerWidgetType {
   TEXT,
   IMAGE,

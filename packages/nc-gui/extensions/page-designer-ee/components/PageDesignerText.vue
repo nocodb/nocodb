@@ -4,12 +4,10 @@ import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import type { PageDesignerTextWidget } from '../lib/widgets'
+import type { PageDesignerTextWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 
-const props = defineProps<{
-  id: number | string
-}>()
+const props = defineProps<PageDesignerWidgetComponentProps>()
 
 const payload = inject(PageDesignerPayloadInj)!
 const meta = inject(PageDesignerTableTypeInj)

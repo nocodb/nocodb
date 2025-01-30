@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, type ColumnType, type TableType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { EmailCellRenderer } from './Email'
@@ -80,6 +80,8 @@ export function useCellRenderer() {
       imageLoader,
       isMysql,
       padding = 10,
+      relatedColObj,
+      relatedTableMeta,
     }: {
       value: any
       row: any
@@ -94,6 +96,8 @@ export function useCellRenderer() {
       imageLoader: ImageWindowLoader
       isMysql: CanvasGridColumn['isMysql']
       padding?: number
+      relatedColObj?: ColumnType
+      relatedTableMeta?: TableType
     },
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -115,6 +119,9 @@ export function useCellRenderer() {
         isMysql,
         t,
         padding,
+        relatedColObj,
+        relatedTableMeta,
+        renderCell
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

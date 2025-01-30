@@ -9,6 +9,9 @@ const vModel = defineModel<string | number>()
 function onBlur() {
   if (vModel.value === '') vModel.value = resetTo ?? min
 }
+watch(vModel, (val) => {
+  if (val && +val < min) vModel.value = min
+})
 </script>
 
 <template>

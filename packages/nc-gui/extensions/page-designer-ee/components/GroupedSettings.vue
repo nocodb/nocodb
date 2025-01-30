@@ -11,7 +11,7 @@ const isOpen = ref(true)
     <header class="flex justify-between items-center">
       <span>{{ title }}</span>
       <NcButton size="xsmall" type="text" class="!w-7 !h-7" @click="isOpen = !isOpen">
-        <GeneralIcon :icon="!isOpen ? 'ncChevronUp' : 'ncChevronDown'" class="w-4 h-4" />
+        <GeneralIcon :icon="isOpen ? 'ncChevronUp' : 'ncChevronDown'" class="w-4 h-4" />
       </NcButton>
     </header>
     <slot v-if="isOpen"></slot>

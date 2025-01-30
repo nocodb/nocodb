@@ -61,7 +61,7 @@ const container = useParentElement()
 </script>
 
 <template>
-  <div v-if="widget && !isRowEmpty(row, widget.field)">
+  <div v-if="widget && !isRowEmpty(row, widget.field)" class="field-widget">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
@@ -82,6 +82,7 @@ const container = useParentElement()
             :model-value="row.row?.[widget.field.title]"
             read-only
             :edit-enabled="false"
+            class="pointer-events-none"
           />
           <SmartsheetCell
             v-else
@@ -89,6 +90,7 @@ const container = useParentElement()
             :model-value="row.row?.[widget.field.title]"
             read-only
             :edit-enabled="false"
+            class="pointer-events-none"
           />
         </SmartsheetRow>
         <span v-else class="text-nc-content-gray-muted">{{ widget.field.title }}</span>
@@ -126,3 +128,14 @@ const container = useParentElement()
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+// .field-widget .nc-cell {
+//   &,
+//   & * {
+//     color: #4a5268 !important;
+//     font-size: 40px !important;
+//     line-height: 50px !important;
+//   }
+// }
+</style>

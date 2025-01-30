@@ -137,9 +137,9 @@ watch(
 .page-designer {
   .page-widget {
     & > .absolute {
-      border-radius: 2px;
       outline: 2px solid transparent;
       transition: outline 200ms ease-in-out;
+      @apply rounded-[2px] cursor-pointer;
     }
     &:hover {
       > .absolute {

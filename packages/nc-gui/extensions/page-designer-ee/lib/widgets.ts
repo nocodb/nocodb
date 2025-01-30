@@ -1,4 +1,4 @@
-import type { ColumnType } from 'ant-design-vue/lib/table'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 import type { PageDesignerPayload } from './payload'
 
 export interface PageDesignerWidgetComponentProps {
@@ -70,7 +70,7 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
 }
 
 const BLACK = '#000000'
-const WHITE_TRANSPARENT = '#ffffff00'
+const WHITE = '#ffffff'
 
 export class PageDesignerWidgetFactory {
   static create(payload: Ref<PageDesignerPayload>, widget: PageDesignerWidget) {
@@ -83,7 +83,7 @@ export class PageDesignerWidgetFactory {
     return {
       id: 0,
       textColor: BLACK,
-      backgroundColor: WHITE_TRANSPARENT,
+      backgroundColor: WHITE,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',
@@ -106,7 +106,7 @@ export class PageDesignerWidgetFactory {
   static createEmptyImageWidget({ x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
     return {
       id: 0,
-      backgroundColor: WHITE_TRANSPARENT,
+      backgroundColor: WHITE,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',
@@ -133,6 +133,12 @@ export class PageDesignerWidgetFactory {
   }
 
   static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
+    let height = 25
+    let width = 200
+    if ([UITypes.Attachment, UITypes.Barcode, UITypes.LongText, UITypes.QrCode].includes(field.uidt! as UITypes)) {
+      height = 200
+      width = 200
+    }
     return {
       id: 0,
       field,
@@ -142,10 +148,10 @@ export class PageDesignerWidgetFactory {
       borderLeft: '0',
       borderRadius: '0',
       borderColor: BLACK,
-      backgroundColor: WHITE_TRANSPARENT,
+      backgroundColor: WHITE,
       type: PageDesignerWidgetType.FIELD,
       zIndex: 0,
-      cssStyle: `width: 100px; height: 100px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }
   }
 }

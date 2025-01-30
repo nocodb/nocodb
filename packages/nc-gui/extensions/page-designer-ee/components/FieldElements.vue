@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import FieldElement from './FieldElement.vue'
 
@@ -11,7 +11,21 @@ const { metaColumnById } = useViewColumnsOrThrow()
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
-const columns = computed(() => (meta?.value?.columns ?? []).filter((column) => row.value && !isRowEmpty(row.value, column)))
+const fieldsToIgnore = new Set([
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+  UITypes.Button,
+  UITypes.GeoData,
+  UITypes.Geometry,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.JSON,
+])
+const columns = computed(() =>
+  (meta?.value?.columns ?? []).filter(
+    (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),
+  ),
+)
 
 const fieldById = computed(() =>
   columns.value.reduce<Record<string, any>>((acc, curr) => {

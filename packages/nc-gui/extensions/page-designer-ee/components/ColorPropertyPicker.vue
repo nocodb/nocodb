@@ -13,10 +13,14 @@ function updatePicked(val: string) {
   <NcDropdown :auto-close="false" :visible="isOpen" :overlay-class-name="isOpen ? 'active' : ''">
     <a-input :value="picked" @click="isOpen = !isOpen">
       <template #prefix>
-        <div :style="`background: ${picked};`" class="h-6 w-6 rounded-full border-1 border-nc-border-gray-medium"></div>
+        <div
+          :style="`background: ${picked};`"
+          class="h-6 w-6 cursor-pointer rounded-full border-1 border-nc-border-gray-medium"
+          @click="isOpen = !isOpen"
+        ></div>
       </template>
       <template #suffix>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="w-4 h-4" @click="isOpen = !isOpen" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="w-4 h-4 cursor-pointer" @click="isOpen = !isOpen" />
       </template>
     </a-input>
     <template #overlay>

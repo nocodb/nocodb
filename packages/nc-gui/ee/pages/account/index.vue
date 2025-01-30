@@ -95,7 +95,7 @@ const logout = async () => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('appStore') && !appInfo.isCloud && !isEeUI"
+                v-if="isUIAllowed('appStore') && (!appInfo.isCloud && !isEeUI || appInfo.isCloud)"
                 key="apps"
                 :class="{
                   active: $route.params.page === 'apps',

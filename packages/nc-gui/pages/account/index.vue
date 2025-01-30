@@ -27,7 +27,7 @@ const logout = async () => {
   })
 }
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && !isEeUI)
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isCloud))
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
@@ -74,7 +74,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <NcDivider class="!mt-0" />
 
               <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
-
               <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"

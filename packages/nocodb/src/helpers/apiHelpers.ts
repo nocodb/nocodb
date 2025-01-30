@@ -50,7 +50,7 @@ export const validatePayload = (
 
   // If the request body is not valid, throw error
   if (!valid) {
-    const errors: ErrorObject[] | null | undefined | ValidationError[] =
+    const errors: ErrorObject[] | null | undefined =
       ajv.errors || validate.errors;
 
     if (humanReadableError) {
@@ -62,7 +62,6 @@ export const validatePayload = (
       //       schema.split('swagger-v3.json#/components/schemas/')[1]
       //     ];
       // }
-
       // errors = betterAjvErrors({
       //   schema: validate.schema,
       //   data: payload,

@@ -1,5 +1,4 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
-import type { auditGroups } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
@@ -20,7 +19,6 @@ export class AuditsController {
     @Query('fk_model_id') fkModelId: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
-    @Query('type') type?: keyof typeof auditGroups,
   ) {
     return new PagedResponseImpl(
       await this.auditsService.auditOnlyList({
@@ -29,7 +27,6 @@ export class AuditsController {
           fk_model_id: fkModelId,
           limit,
           offset,
-          type,
         },
       }),
       {

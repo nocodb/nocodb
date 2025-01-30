@@ -6532,7 +6532,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipValidationAndHooks?: boolean;
     } = {},
     data,
-    { cookie }: { cookie: any },
+    { cookie }: { cookie: NcRequest },
   ) {
     try {
       let count = 0;

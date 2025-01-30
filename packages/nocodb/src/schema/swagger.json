@@ -14449,20 +14449,6 @@
           },
           {
             "schema": {
-              "type": "string",
-              "example": "data",
-              "enum": [
-                "data",
-                "table",
-                "column"
-              ]
-            },
-            "in": "query",
-            "name": "type",
-            "description": "Audit category type"
-          },
-          {
-            "schema": {
               "$ref": "#/components/schemas/Id",
               "example": "md_c6csq89tl37jm5"
             },

@@ -14421,23 +14421,23 @@
         },
         "description": "List all audits",
         "parameters": [
-            {
-              "schema": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "in": "query",
-              "name": "offset"
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
             },
-            {
-              "schema": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "in": "query",
-              "name": "limit"
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
             },
-            {
+            "in": "query",
+            "name": "limit"
+          },
+          {
             "schema": {
               "type": "string",
               "example": "10"
@@ -14446,6 +14446,20 @@
             "name": "row_id",
             "required": true,
             "description": "Row ID"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "data",
+              "enum": [
+                "data",
+                "table",
+                "column"
+              ]
+            },
+            "in": "query",
+            "name": "type",
+            "description": "Audit category type"
           },
           {
             "schema": {
@@ -19980,7 +19994,9 @@
             }
           }
         },
-        "tags": ["Internal"],
+        "tags": [
+          "Internal"
+        ],
         "description": "Trigger an internal operation"
       },
       "get": {
@@ -19999,7 +20015,9 @@
             }
           }
         },
-        "tags": ["Internal"],
+        "tags": [
+          "Internal"
+        ],
         "description": "Trigger an internal operation"
       },
       "parameters": [

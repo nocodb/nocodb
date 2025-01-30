@@ -60,5 +60,3 @@ const handleError = async () => {
     <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
   </video>
 </template>
-
-<style scoped lang="scss"></style>

@@ -132,7 +132,7 @@ const openAttachmentModal = (e: Event) => {
   isNewAttachmentModalOpen.value = true
 }
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return

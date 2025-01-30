@@ -168,7 +168,7 @@ watch(dropdownVisible, (val) => {
   }, 200)
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeydownListener(active, (e) => {
   switch (e.key) {
     case 'Enter':
       dropdownVisible.value = true

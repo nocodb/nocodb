@@ -47,5 +47,3 @@ const { activeError } = useExtensionHelperOrThrow()
     </NcDropdown>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

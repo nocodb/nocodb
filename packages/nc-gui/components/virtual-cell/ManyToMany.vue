@@ -102,7 +102,7 @@ const openListDlg = () => {
   hideBackBtn.value = true
 }
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       listItemsDlg.value = true

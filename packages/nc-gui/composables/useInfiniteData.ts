@@ -229,6 +229,7 @@ export function useInfiniteData(args: {
       limit?: number
       offset?: number
     } = {},
+    _shouldShowLoading?: boolean,
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
 

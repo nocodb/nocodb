@@ -1,27 +1,12 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
-import type { PageDesignerTextWidget } from '../lib/widgets'
+import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
-
-const fontWeightToLabel: Record<string, string> = {
-  '100': 'Thin',
-  '200': 'Extra Light',
-  '300': 'Light',
-  '400': 'Normal',
-  '500': 'Medium',
-  '600': 'Semi Bold',
-  '700': 'Bold',
-  '800': 'Extra Bold',
-  '900': 'Heavy',
-}
-
-const fonts = ['Arial', 'Tahoma', 'Times New Roman', 'Verdana', 'Courier New', 'Georgia', 'Impact', 'Trebuchet MS', 'Manrope']
-const fontWeights = ['400', '700']
 
 const textWidget = ref<PageDesignerTextWidget>()
 watch(
@@ -73,7 +58,7 @@ watch(
           <span>Family</span>
           <NcSelect v-model:value="textWidget.fontFamily" show-search>
             <a-select-option v-for="font of fonts" :key="font" :value="font">
-              {{ font }}
+              <span :style="{ fontFamily: font }">{{ font }}</span>
             </a-select-option>
           </NcSelect>
         </div>
@@ -81,7 +66,7 @@ watch(
           <span>Weight</span>
           <NcSelect v-model:value="textWidget.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-              {{ fontWeightToLabel[weight] }} - {{ weight }}
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
             </a-select-option>
           </NcSelect>
         </div>

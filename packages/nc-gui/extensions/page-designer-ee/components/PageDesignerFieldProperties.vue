@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
-import type { PageDesignerFieldWidget } from '../lib/widgets'
+import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
@@ -16,6 +17,8 @@ watch(
   },
   { immediate: true },
 )
+
+const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
 </script>
 
 <template>
@@ -23,6 +26,62 @@ watch(
     <header class="widget-header">
       <h1 class="m-0">{{ fieldWidget.field.title }}</h1>
     </header>
+    <GroupedSettings v-if="isPlainCell" title="Alignment">
+      <div class="flex gap-3">
+        <a-radio-group v-model:value="fieldWidget.horizontalAlign" class="radio-pills">
+          <a-radio-button value="flex-start">
+            <GeneralIcon icon="ncAlignLeft" />
+          </a-radio-button>
+          <a-radio-button value="center">
+            <GeneralIcon icon="ncAlignCenter" />
+          </a-radio-button>
+          <a-radio-button value="flex-end">
+            <GeneralIcon icon="ncAlignRight" />
+          </a-radio-button>
+        </a-radio-group>
+        <a-radio-group v-model:value="fieldWidget.verticalAlign" class="radio-pills">
+          <a-radio-button value="flex-start">
+            <GeneralIcon icon="ncVerticalAlignTop" />
+          </a-radio-button>
+          <a-radio-button value="center">
+            <GeneralIcon icon="ncVerticalAlignCenter" />
+          </a-radio-button>
+          <a-radio-button value="flex-end">
+            <GeneralIcon icon="ncVerticalAlignBottom" />
+          </a-radio-button>
+        </a-radio-group>
+      </div>
+    </GroupedSettings>
+    <GroupedSettings v-if="isPlainCell" title="Font settings">
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Family</span>
+          <NcSelect v-model:value="fieldWidget.fontFamily" show-search>
+            <a-select-option v-for="font of fonts" :key="font" :value="font">
+              <span :style="{ fontFamily: font }">{{ font }}</span>
+            </a-select-option>
+          </NcSelect>
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Weight</span>
+          <NcSelect v-model:value="fieldWidget.fontWeight">
+            <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
+            </a-select-option>
+          </NcSelect>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Size</span>
+          <NonNullableNumberInput v-model="fieldWidget.fontSize" :reset-to="16" :min="5" class="flex-1" placeholder="16" />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Line Height</span>
+          <NonNullableNumberInput v-model="fieldWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
+        </div>
+      </div>
+    </GroupedSettings>
     <GroupedSettings title="Border">
       <div class="flex gap-2 items-center">
         <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
@@ -56,10 +115,10 @@ watch(
           <span>Background Color</span>
           <ColorPropertyPicker v-model="fieldWidget.backgroundColor" />
         </div>
-        <!-- <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <div v-if="isPlainCell" class="flex flex-col gap-2 flex-1 min-w-0">
           <span>Text Color</span>
-          <ColorPropertyPicker v-model="textWidget.textColor" />
-        </div> -->
+          <ColorPropertyPicker v-model="fieldWidget.textColor" />
+        </div>
       </div>
     </GroupedSettings>
   </div>

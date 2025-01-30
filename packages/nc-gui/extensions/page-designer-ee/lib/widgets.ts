@@ -67,6 +67,13 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   borderRadius: string
   borderColor: string
   backgroundColor: string
+  fontSize: string
+  fontWeight: string
+  fontFamily: string
+  textColor: string
+  lineHeight: string
+  horizontalAlign: 'flex-start' | 'center' | 'flex-end'
+  verticalAlign: 'flex-start' | 'center' | 'flex-end'
 }
 
 const BLACK = '#000000'
@@ -136,8 +143,8 @@ export class PageDesignerWidgetFactory {
     let height = 25
     let width = 200
     if ([UITypes.Attachment, UITypes.Barcode, UITypes.LongText, UITypes.QrCode].includes(field.uidt! as UITypes)) {
-      height = 200
-      width = 200
+      height = 100
+      width = 100
     }
     return {
       id: 0,
@@ -149,9 +156,60 @@ export class PageDesignerWidgetFactory {
       borderRadius: '0',
       borderColor: BLACK,
       backgroundColor: WHITE,
+      textColor: BLACK,
+      fontFamily: 'Manrope',
+      fontSize: '16',
+      fontWeight: '400',
+      lineHeight: '1.4',
+      horizontalAlign: 'flex-start',
+      verticalAlign: 'flex-start',
       type: PageDesignerWidgetType.FIELD,
       zIndex: 0,
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }
   }
 }
+
+export const plainCellFields = new Set([
+  UITypes.SingleLineText,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Date,
+  UITypes.Time,
+  UITypes.DateTime,
+  UITypes.Year,
+  UITypes.LastModifiedBy,
+  UITypes.PhoneNumber,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Formula,
+  UITypes.JSON,
+])
+
+export const fontWeightToLabel: Record<string, string> = {
+  '100': 'Thin',
+  '200': 'Extra Light',
+  '300': 'Light',
+  '400': 'Normal',
+  '500': 'Medium',
+  '600': 'Semi Bold',
+  '700': 'Bold',
+  '800': 'Extra Bold',
+  '900': 'Heavy',
+}
+
+export const fonts = [
+  'Arial',
+  'Tahoma',
+  'Times New Roman',
+  'Verdana',
+  'Courier New',
+  'Georgia',
+  'Impact',
+  'Trebuchet MS',
+  'Manrope',
+]
+export const fontWeights = ['400', '700']

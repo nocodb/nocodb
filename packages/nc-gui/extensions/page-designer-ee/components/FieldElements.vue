@@ -19,7 +19,6 @@ const fieldsToIgnore = new Set([
   UITypes.Geometry,
   UITypes.Lookup,
   UITypes.Rollup,
-  UITypes.JSON,
 ])
 const columns = computed(() =>
   (meta?.value?.columns ?? []).filter(

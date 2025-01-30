@@ -2,8 +2,9 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
+import type { UITypes } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import type { PageDesignerFieldWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
+import { type PageDesignerFieldWidget, type PageDesignerWidgetComponentProps, plainCellFields } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
@@ -58,6 +59,8 @@ const onRenderEnd = () => {
 }
 
 const container = useParentElement()
+
+const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt as UITypes))
 </script>
 
 <template>
@@ -65,6 +68,7 @@ const container = useParentElement()
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
+          display: 'flex',
           height: '100%',
           width: '100%',
           borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
@@ -73,16 +77,31 @@ const container = useParentElement()
           borderColor: widget.borderColor,
           borderRadius: `${widget.borderRadius || 0}px`,
           background: widget.backgroundColor,
+          fontSize: `${widget.fontSize}px`,
+          fontWeight: widget.fontWeight,
+          fontFamily: widget.fontFamily,
+          lineHeight: widget.lineHeight,
+          color: widget.textColor,
+          justifyContent: widget.horizontalAlign,
+          alignItems: widget.verticalAlign,
         }"
       >
         <SmartsheetRow v-if="row" :row="row">
-          <SmartsheetVirtualCell
-            v-if="isVirtualCol(widget.field)"
+          <SmartsheetPlainCell
+            v-if="isPlainCell"
             :column="widget.field"
             :model-value="row.row?.[widget.field.title]"
             read-only
             :edit-enabled="false"
-            class="pointer-events-none"
+            class="pointer-events-none overflow-hidden"
+          ></SmartsheetPlainCell>
+          <SmartsheetVirtualCell
+            v-else-if="isVirtualCol(widget.field)"
+            :column="widget.field"
+            :model-value="row.row?.[widget.field.title]"
+            read-only
+            :edit-enabled="false"
+            class="pointer-events-none overflow-hidden"
           />
           <SmartsheetCell
             v-else
@@ -90,7 +109,7 @@ const container = useParentElement()
             :model-value="row.row?.[widget.field.title]"
             read-only
             :edit-enabled="false"
-            class="pointer-events-none"
+            class="pointer-events-none overflow-hidden"
           />
         </SmartsheetRow>
         <span v-else class="text-nc-content-gray-muted">{{ widget.field.title }}</span>
@@ -130,12 +149,9 @@ const container = useParentElement()
 </template>
 
 <style lang="scss" scoped>
-// .field-widget .nc-cell {
-//   &,
-//   & * {
-//     color: #4a5268 !important;
-//     font-size: 40px !important;
-//     line-height: 50px !important;
-//   }
-// }
+.field-widget {
+  :deep(.plain-cell) {
+    font-family: inherit;
+  }
+}
 </style>

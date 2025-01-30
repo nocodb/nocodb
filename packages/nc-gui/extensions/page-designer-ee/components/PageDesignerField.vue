@@ -61,7 +61,7 @@ const container = useParentElement()
 </script>
 
 <template>
-  <div v-if="widget">
+  <div v-if="widget && !isRowEmpty(row, widget.field)">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{

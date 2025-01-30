@@ -1,15 +1,17 @@
 <script lang="ts" setup>
 import { type ColumnType, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { PageDesignerTableTypeInj } from '../lib/context'
+import { PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import FieldElement from './FieldElement.vue'
 
 const meta = inject(PageDesignerTableTypeInj)
+const row = inject(PageDesignerRowInj)!
+
 const { metaColumnById } = useViewColumnsOrThrow()
 
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
-const columns = computed(() => meta?.value?.columns ?? [])
+const columns = computed(() => (meta?.value?.columns ?? []).filter((column) => row.value && !isRowEmpty(row.value, column)))
 
 const fieldById = computed(() =>
   columns.value.reduce<Record<string, any>>((acc, curr) => {

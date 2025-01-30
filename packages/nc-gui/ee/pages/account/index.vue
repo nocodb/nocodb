@@ -24,6 +24,14 @@ const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!is
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
+watchEffect(() => {
+  if (isSetupPageAllowed.value) {
+    loadSetupApps()
+  }
+})
+
+const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
+
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
 const logout = async () => {
@@ -97,7 +105,8 @@ const logout = async () => {
 
                   <div class="select-none">{{ $t('title.apiTokens') }}</div>
                 </div>
-              </NcMenuItem>              <NcMenuItem
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"
                 class="item"
@@ -105,24 +114,24 @@ const logout = async () => {
                   active: $route.path?.startsWith('/account/setup'),
                 }"
                 @click="navigateTo('/account/setup')"
-            >
-              <div class="flex items-center space-x-2 w-full">
-                <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+              >
+                <div class="flex items-center space-x-2 w-full">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
 
-                <div class="select-none">
-                  {{ $t('labels.setup') }}
-                </div>
-                <span class="flex-grow" />
-                <NcTooltip v-if="isPending">
-                  <template #title>
+                  <div class="select-none">
+                    {{ $t('labels.setup') }}
+                  </div>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
                       <span>
                         {{ $t('activity.pending') }}
                       </span>
-                  </template>
-                  <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
-                </NcTooltip>
-              </div>
-            </NcMenuItem>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcTooltip>
+                </div>
+              </NcMenuItem>
 
               <NcMenuItem
                 v-if="isUIAllowed('globalAudits')"

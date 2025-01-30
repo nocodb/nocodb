@@ -5,7 +5,6 @@ import type { NextFunction, Request, Response } from 'express';
 import { swaggerV3 } from '~/schema';
 import swagger from '~/schema';
 import { NcError } from '~/helpers/catchError';
-// import addErrors from 'ajv-errors';
 
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
@@ -13,7 +12,6 @@ export function parseHrtimeToMilliSeconds(hrtime) {
 }
 
 const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); // Initialize AJV
-// addErrors(ajv);
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);

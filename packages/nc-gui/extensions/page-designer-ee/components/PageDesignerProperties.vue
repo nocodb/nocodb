@@ -21,12 +21,7 @@ const pageOrientationOptions = Object.values(PageOrientation)
 const displayField = computed(() => meta?.value?.columns?.find((c) => c?.pv) || meta?.value?.columns?.[0] || null)
 
 function addWidget(widget: PageDesignerWidget) {
-  payload.value.widgets[widget.id] = widget
-  payload.value.currentWidgetId = widget.id
-}
-
-function getNextWidgetId() {
-  return ++payload.value.lastWidgetId
+  PageDesignerWidgetFactory.create(payload, widget)
 }
 
 function print() {
@@ -68,20 +63,20 @@ function print() {
             :icon="TextWidgetImage"
             text="Text"
             first
-            @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget(getNextWidgetId()))"
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyTextWidget())"
           ></StaticWidget>
           <StaticWidget
             :type="PageDesignerWidgetType.IMAGE"
             :icon="ImageWidgetImage"
             text="Image"
-            @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget(getNextWidgetId()))"
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyImageWidget())"
           ></StaticWidget>
           <StaticWidget
             :type="PageDesignerWidgetType.DIVIDER"
             :icon="DividerWidgetImage"
             text="Divider"
             last
-            @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget(getNextWidgetId()))"
+            @click="addWidget(PageDesignerWidgetFactory.createEmptyDividerWidget())"
           ></StaticWidget>
         </div>
       </div>

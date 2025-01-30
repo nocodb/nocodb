@@ -61,12 +61,12 @@ function onDropped(e: DragEvent) {
   if (!isNaN(+widgetData)) {
     const factory = widgetFactoryByType[widgetData]
     if (!factory) return
-    widget = factory(++payload.value.lastWidgetId, position)
+    widget = factory(position)
   } else {
-    widget = PageDesignerWidgetFactory.createEmptyFieldWidget(++payload.value.lastWidgetId, field, position)
+    widget = PageDesignerWidgetFactory.createEmptyFieldWidget(field, position)
   }
-  payload.value.widgets[widget.id] = widget
-  payload.value.currentWidgetId = widget.id
+  if (!widget) return
+  PageDesignerWidgetFactory.create(payload, widget)
 }
 
 function unselectCurrentWidget() {

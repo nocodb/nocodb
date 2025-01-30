@@ -1,4 +1,5 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
+import type { PageDesignerPayload } from './payload'
 
 export enum PageDesignerWidgetType {
   TEXT,
@@ -68,9 +69,15 @@ const BLACK = '#000000'
 const WHITE_TRANSPARENT = '#ffffff00'
 
 export class PageDesignerWidgetFactory {
-  static createEmptyTextWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerTextWidget {
+  static create(payload: Ref<PageDesignerPayload>, widget: PageDesignerWidget) {
+    widget.id = ++payload.value.lastWidgetId
+    payload.value.widgets[widget.id] = widget
+    payload.value.currentWidgetId = widget.id
+  }
+
+  static createEmptyTextWidget({ x, y } = { x: 0, y: 0 }): PageDesignerTextWidget {
     return {
-      id,
+      id: 0,
       textColor: BLACK,
       backgroundColor: WHITE_TRANSPARENT,
       borderTop: '0',
@@ -92,9 +99,9 @@ export class PageDesignerWidgetFactory {
     }
   }
 
-  static createEmptyImageWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
+  static createEmptyImageWidget({ x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
     return {
-      id,
+      id: 0,
       backgroundColor: WHITE_TRANSPARENT,
       borderTop: '0',
       borderRight: '0',
@@ -110,9 +117,9 @@ export class PageDesignerWidgetFactory {
     }
   }
 
-  static createEmptyDividerWidget(id: number, { x, y } = { x: 0, y: 0 }): PageDesignerDividerWidget {
+  static createEmptyDividerWidget({ x, y } = { x: 0, y: 0 }): PageDesignerDividerWidget {
     return {
-      id,
+      id: 0,
       backgroundColor: BLACK,
       type: PageDesignerWidgetType.DIVIDER,
       angle: 0,
@@ -121,9 +128,9 @@ export class PageDesignerWidgetFactory {
     }
   }
 
-  static createEmptyFieldWidget(id: number, field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
+  static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
     return {
-      id,
+      id: 0,
       field,
       borderTop: '0',
       borderRight: '0',

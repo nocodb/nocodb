@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
-import { type PageDesignerFieldWidget, PageDesignerWidgetFactory } from '../lib/widgets'
+import { PageDesignerWidgetFactory } from '../lib/widgets'
 
 const props = defineProps<{
   field: Field
@@ -19,17 +19,8 @@ function onDragStart(e: DragEvent) {
   }, 10)
 }
 
-function addWidget(widget: PageDesignerFieldWidget) {
-  payload.value.widgets[widget.id] = widget
-  payload.value.currentWidgetId = widget.id
-}
-
-function getNextWidgetId() {
-  return ++payload.value.lastWidgetId
-}
-
 function onFieldClick() {
-  addWidget(PageDesignerWidgetFactory.createEmptyFieldWidget(getNextWidgetId(), props.field))
+  PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyFieldWidget(props.field))
 }
 </script>
 

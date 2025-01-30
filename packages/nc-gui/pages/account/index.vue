@@ -27,7 +27,7 @@ const logout = async () => {
   })
 }
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isCloud))
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 

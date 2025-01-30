@@ -5,6 +5,7 @@ import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
+import { supportedEncodings } from '~/helpers/encodingHelpers'
 
 interface Props {
   modelValue: boolean
@@ -62,6 +63,8 @@ const collapseKey = ref('')
 const temporaryJson = ref({})
 
 const jsonErrorText = ref('')
+
+const fileEncodingMap = ref<{ [key: string]: string }>({})
 
 const useForm = Form.useForm
 
@@ -251,16 +254,23 @@ function rejectDrop(fileList: UploadFile[]) {
 }
 
 function handleChange(info: UploadChangeParam) {
+
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
+    console.log('a')
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
           status: 'done',
+          encoding: 'utf-8',
         })
+      } else {
+        // need to set default encoding to utf-8
+        importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
       }
     } else {
+      console.log('c')
       const reader = new FileReader()
       reader.onload = (e: ProgressEvent<FileReader>) => {
         const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
@@ -274,6 +284,7 @@ function handleChange(info: UploadChangeParam) {
               ...info.file,
               status: 'done',
               data: e.target.result,
+              encoding: 'utf-8',
             })
           }
         }
@@ -286,6 +297,14 @@ function handleChange(info: UploadChangeParam) {
     message.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
     message.error(`${t('msg.error.fileUploadFailed')} ${info.file.name}`)
+  }
+}
+
+function handleEncodingChange(fileUid: string) {
+  console.log(fileUid, value)
+  return (encoding: string) => {
+    fileEncodingMap.value[fileUid] = encoding
+    console.log(fileEncodingMap)
   }
 }
 
@@ -671,7 +690,7 @@ watch(
                       <template #title>
                         {{ file.name }}
                       </template>
-                      <span class="inline-block truncate max-w-[280px]">
+                      <span class="inline-block truncate max-w-[170px]">
                         {{ file.name }}
                       </span>
                     </NcTooltip>
@@ -680,6 +699,16 @@ watch(
                     {{ getReadableFileSize(file.size) }}
                   </div>
                 </div>
+                <NcSelect v-model:value="file.encoding" class="ml-auto w-[120px]">
+                  <a-select-option v-for="enc of supportedEncodings" :key="enc.value" :value="enc.value">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ enc.name }}{{ enc.tooltip ? `(${enc.tooltip})` : '' }}</template>
+                        <span>{{ enc.name }}</span>
+                      </NcTooltip>
+                    </div>
+                  </a-select-option>
+                </NcSelect>
                 <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
                   <GeneralIcon icon="deleteListItem" />
                 </nc-button>

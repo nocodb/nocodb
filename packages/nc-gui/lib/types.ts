@@ -380,6 +380,7 @@ interface CellRendererOptions {
   t: Composer['t']
   padding: number
   renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
+  isUnderLookup?: boolean
 }
 
 interface CellRenderer {

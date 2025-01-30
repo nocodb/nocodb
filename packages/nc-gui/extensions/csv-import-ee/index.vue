@@ -765,7 +765,6 @@ onMounted(async () => {
           }"
         >
           <div
-            v-if="fullscreen"
             class="flex items-center gap-3"
             :class="{
               '-mx-4 px-4 -mt-4 py-4 bg-white': fullscreen,

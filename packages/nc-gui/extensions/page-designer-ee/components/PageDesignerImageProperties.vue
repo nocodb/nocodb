@@ -2,6 +2,7 @@
 import { PageDesignerPayloadInj } from '../lib/context'
 import BorderImage from '../assets/border.svg'
 import type { PageDesignerImageWidget } from '../lib/widgets'
+import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import TabbedSelect from './TabbedSelect.vue'
@@ -17,12 +18,6 @@ watch(
   },
   { immediate: true },
 )
-
-const objectFitLabels: Record<string, string> = {
-  contain: 'Fit',
-  cover: 'Fill',
-  fill: 'Stretch',
-}
 </script>
 
 <template>

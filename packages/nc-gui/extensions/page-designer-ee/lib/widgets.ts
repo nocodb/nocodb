@@ -72,6 +72,7 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   fontFamily: string
   textColor: string
   lineHeight: string
+  objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
 }
@@ -142,9 +143,13 @@ export class PageDesignerWidgetFactory {
   static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
     let height = 30
     let width = 200
-    if ([UITypes.Attachment, UITypes.Barcode, UITypes.LongText, UITypes.QrCode].includes(field.uidt! as UITypes)) {
+    if ([UITypes.Barcode, UITypes.QrCode].includes(field.uidt! as UITypes)) {
       height = 100
       width = 100
+    }
+    if (isAttachment(field) || isTextArea(field)) {
+      height = 200
+      width = 200
     }
     return {
       id: 0,
@@ -163,6 +168,7 @@ export class PageDesignerWidgetFactory {
       lineHeight: '1.4',
       horizontalAlign: 'flex-start',
       verticalAlign: 'flex-start',
+      objectFit: 'contain',
       type: PageDesignerWidgetType.FIELD,
       zIndex: 0,
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
@@ -214,3 +220,9 @@ export const fonts = [
   'Manrope',
 ]
 export const fontWeights = ['400', '700']
+
+export const objectFitLabels: Record<string, string> = {
+  contain: 'Fit',
+  cover: 'Fill',
+  fill: 'Stretch',
+}

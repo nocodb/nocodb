@@ -61,6 +61,12 @@ const onRenderEnd = () => {
 const container = useParentElement()
 
 const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt as UITypes))
+
+const isAttachmentField = computed(() => isAttachment(widget.value.field))
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ?? {})[widget.value.field.title ?? '']?.[0])?.[0])
 </script>
 
 <template>
@@ -85,34 +91,44 @@ const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt a
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
         }"
-        class="px-2 py-1"
+        :class="{ 'px-2 py-1': !isAttachmentField }"
       >
-        <SmartsheetRow v-if="row" :row="row">
-          <SmartsheetPlainCell
-            v-if="isPlainCell"
-            :column="widget.field"
-            :model-value="row.row?.[widget.field.title]"
-            read-only
-            :edit-enabled="false"
-            class="pointer-events-none overflow-hidden"
-          ></SmartsheetPlainCell>
-          <SmartsheetVirtualCell
-            v-else-if="isVirtualCol(widget.field)"
-            :column="widget.field"
-            :model-value="row.row?.[widget.field.title]"
-            read-only
-            :edit-enabled="false"
-            class="pointer-events-none overflow-hidden"
+        <template v-if="row">
+          <img
+            v-if="isAttachmentField"
+            :src="attachmentUrl"
+            class="w-full h-full"
+            :style="{
+              objectFit: widget.objectFit || 'fill',
+            }"
           />
-          <SmartsheetCell
-            v-else
-            :column="widget.field"
-            :model-value="row.row?.[widget.field.title]"
-            read-only
-            :edit-enabled="false"
-            class="pointer-events-none overflow-hidden"
-          />
-        </SmartsheetRow>
+          <SmartsheetRow v-else :row="row">
+            <SmartsheetPlainCell
+              v-if="isPlainCell"
+              :column="widget.field"
+              :model-value="row.row?.[widget.field.title]"
+              read-only
+              :edit-enabled="false"
+              class="pointer-events-none overflow-hidden"
+            ></SmartsheetPlainCell>
+            <SmartsheetVirtualCell
+              v-else-if="isVirtualCol(widget.field)"
+              :column="widget.field"
+              :model-value="row.row?.[widget.field.title]"
+              read-only
+              :edit-enabled="false"
+              class="pointer-events-none overflow-hidden"
+            />
+            <SmartsheetCell
+              v-else
+              :column="widget.field"
+              :model-value="row.row?.[widget.field.title]"
+              read-only
+              :edit-enabled="false"
+              class="pointer-events-none overflow-hidden"
+            />
+          </SmartsheetRow>
+        </template>
         <span v-else class="text-nc-content-gray-muted">{{ widget.field.title }}</span>
       </div>
     </div>

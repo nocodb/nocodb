@@ -3,9 +3,11 @@ import type { UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
+import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import TabbedSelect from './TabbedSelect.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -19,6 +21,8 @@ watch(
 )
 
 const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
+
+const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachment(fieldWidget.value.field))
 </script>
 
 <template>
@@ -81,6 +85,13 @@ const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.
           <NonNullableNumberInput v-model="fieldWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
+    </GroupedSettings>
+    <GroupedSettings v-if="isAttachmentField" title="Fitting">
+      <TabbedSelect v-model="fieldWidget.objectFit" :values="['contain', 'cover', 'fill']">
+        <template #default="{ value }">
+          {{ objectFitLabels[`${value}`] }}
+        </template>
+      </TabbedSelect>
     </GroupedSettings>
     <GroupedSettings title="Border">
       <div class="flex gap-2 items-center">

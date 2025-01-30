@@ -19,7 +19,7 @@ export function useMouseSelection({
   columns: ComputedRef<CanvasGridColumn[]>
   rowHeight: Ref<number>
   triggerReRender: () => void
-  scrollToCell: (row: number, column: number) => void
+  scrollToCell: (row?: number, column?: number) => void
   rowSlice: Ref<{ start: number; end: number }>
   partialRowHeight: Ref<number>
 }) {

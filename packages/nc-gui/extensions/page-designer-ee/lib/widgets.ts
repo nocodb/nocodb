@@ -187,6 +187,7 @@ export const plainCellFields = new Set([
   UITypes.Duration,
   UITypes.Formula,
   UITypes.JSON,
+  UITypes.Checkbox,
 ])
 
 export const fontWeightToLabel: Record<string, string> = {

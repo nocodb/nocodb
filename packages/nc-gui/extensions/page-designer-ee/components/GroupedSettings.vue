@@ -8,9 +8,9 @@ const isOpen = ref(true)
 
 <template>
   <div class="grouped-settings flex flex-col">
-    <header class="flex justify-between items-center">
+    <header class="flex justify-between items-center cursor-pointer" @click="isOpen = !isOpen">
       <span>{{ title }}</span>
-      <NcButton size="xsmall" type="text" class="!w-7 !h-7" @click="isOpen = !isOpen">
+      <NcButton size="xsmall" type="text" class="!w-7 !h-7" @click.stop="isOpen = !isOpen">
         <GeneralIcon :icon="isOpen ? 'ncChevronUp' : 'ncChevronDown'" class="w-4 h-4" />
       </NcButton>
     </header>

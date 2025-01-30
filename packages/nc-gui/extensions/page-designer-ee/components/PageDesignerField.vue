@@ -85,6 +85,7 @@ const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt a
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
         }"
+        class="px-2 py-1"
       >
         <SmartsheetRow v-if="row" :row="row">
           <SmartsheetPlainCell

@@ -10,8 +10,8 @@ function updatePicked(val: string) {
 </script>
 
 <template>
-  <NcDropdown :auto-close="false" :visible="isOpen" :overlay-class-name="isOpen ? 'active' : ''">
-    <a-input :value="picked" @click="isOpen = !isOpen">
+  <NcDropdown :auto-close="false" :visible="isOpen" :overlay-class-name="isOpen ? 'active' : ''" class="color-property-picker">
+    <a-input :value="picked" readonly @click="isOpen = !isOpen">
       <template #prefix>
         <div
           :style="`background: ${picked};`"
@@ -28,6 +28,7 @@ function updatePicked(val: string) {
         v-model="picked"
         v-on-click-outside="() => (isOpen = false)"
         :is-open="isOpen"
+        include-black-and-white-as-default-colors
         @input="updatePicked"
       />
     </template>
@@ -36,5 +37,8 @@ function updatePicked(val: string) {
 
 <style lang="scss" scoped>
 .color-property-picker {
+  :deep(.ant-input) {
+    @apply cursor-pointer;
+  }
 }
 </style>

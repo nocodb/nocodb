@@ -73,15 +73,19 @@ function unselectCurrentWidget() {
   payload.value.currentWidgetId = -1
 }
 
-onKeyStroke('Backspace', () => {
-  if (payload.value.currentWidgetId === -1 || isActiveInputElementExist() || isDrawerOrModalExist() || isNcDropdownOpen()) return
-
+function deleteCurrentWidget() {
   const widget = payload.value.widgets[payload.value.currentWidgetId]
   if (!widget) return
   justDeleted = true
   delete payload.value.widgets[payload.value.currentWidgetId]
   deletedWidgets.push(widget)
   unselectCurrentWidget()
+}
+
+onKeyStroke('Backspace', () => {
+  if (payload.value.currentWidgetId === -1 || isActiveInputElementExist() || isDrawerOrModalExist() || isNcDropdownOpen()) return
+
+  deleteCurrentWidget()
 })
 
 onKeyStroke(['z', 'Z'], (e) => {
@@ -159,12 +163,13 @@ function onWidgetClick(id: string | number) {
             :id="i"
             class="page-widget"
             :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
+            @delete-current-widget="deleteCurrentWidget"
             @mousedown.stop="onWidgetClick(i)"
           />
         </template>
       </div>
     </div>
-    <PropertiesPanel v-if="fullscreen" />
+    <PropertiesPanel v-if="fullscreen" @delete-current-widget="deleteCurrentWidget" />
   </div>
 </template>
 

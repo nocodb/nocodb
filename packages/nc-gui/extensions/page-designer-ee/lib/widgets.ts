@@ -140,7 +140,7 @@ export class PageDesignerWidgetFactory {
   }
 
   static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
-    let height = 25
+    let height = 30
     let width = 200
     if ([UITypes.Attachment, UITypes.Barcode, UITypes.LongText, UITypes.QrCode].includes(field.uidt! as UITypes)) {
       height = 100

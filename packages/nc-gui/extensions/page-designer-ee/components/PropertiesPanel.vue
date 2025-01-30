@@ -8,6 +8,8 @@ import PageDesignerFieldProperties from './PageDesignerFieldProperties.vue'
 import PageDesignerDividerProperties from './PageDesignerDividerProperties.vue'
 import PageDesignerProperties from './PageDesignerProperties.vue'
 
+defineEmits(['deleteCurrentWidget'])
+
 const payload = inject(PageDesignerPayloadInj)!
 
 const currentWidgetType = computed(() => payload.value.widgets?.[payload.value.currentWidgetId]?.type)
@@ -26,7 +28,7 @@ const propertiesComponent = computed(() => {
 
 <template>
   <div class="properties-panel w-[420px]">
-    <component :is="propertiesComponent" />
+    <component :is="propertiesComponent" @delete-current-widget="$emit('deleteCurrentWidget')" />
   </div>
 </template>
 

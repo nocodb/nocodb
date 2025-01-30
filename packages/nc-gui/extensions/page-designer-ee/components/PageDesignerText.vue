@@ -148,10 +148,14 @@ const replacedText = computed(() => {
     return `{${key}}`
   })
 })
+
+function onTextClick() {
+  document.querySelector<HTMLTextAreaElement>('#textWidgetContent')?.focus()
+}
 </script>
 
 <template>
-  <div v-if="widget">
+  <div v-if="widget" @click="onTextClick">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
@@ -167,6 +171,7 @@ const replacedText = computed(() => {
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
         }"
+        class="px-2 py-1"
       >
         <span
           v-if="widget.value"

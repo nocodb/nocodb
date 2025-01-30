@@ -23,7 +23,7 @@ function onDragStart(e: DragEvent) {
 <template>
   <div
     draggable="true"
-    class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-3 cursor-pointer"
+    class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-2 cursor-pointer"
     :class="{ first, last, dragging }"
     @dragstart="onDragStart"
   >

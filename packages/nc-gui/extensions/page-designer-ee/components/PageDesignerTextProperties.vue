@@ -6,9 +6,12 @@ import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
+defineEmits(['deleteCurrentWidget'])
+
 const payload = inject(PageDesignerPayloadInj)!
 
 const textWidget = ref<PageDesignerTextWidget>()
+
 watch(
   () => payload.value.currentWidgetId,
   (id) => {
@@ -24,7 +27,13 @@ watch(
       <h1 class="m-0">Text</h1>
     </header>
     <GroupedSettings title="Content">
-      <a-textarea v-model:value="textWidget.value" :rows="4" placeholder="Lorem ipsum..."></a-textarea>
+      <a-textarea
+        id="textWidgetContent"
+        v-model:value="textWidget.value"
+        :rows="4"
+        placeholder="Lorem ipsum..."
+        @keydown.delete="!textWidget.value && $emit('deleteCurrentWidget')"
+      ></a-textarea>
     </GroupedSettings>
     <GroupedSettings title="Alignment">
       <div class="flex gap-3">

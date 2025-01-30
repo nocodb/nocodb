@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { charsetOptions, type TableType } from 'nocodb-sdk'
+import { type TableType, charsetOptions } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
@@ -149,6 +149,10 @@ if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   )
 }
 
+const filterOption = (input = '', params: { key: string }) => {
+  return params.key?.toLowerCase().includes(input?.toLowerCase())
+}
+
 const isPreImportFileFilled = computed(() => {
   return importState.fileList?.length > 0
 })
@@ -253,7 +257,6 @@ function rejectDrop(fileList: UploadFile[]) {
 }
 
 function handleChange(info: UploadChangeParam) {
-
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
     console.log('a')
@@ -698,8 +701,8 @@ watch(
                     {{ getReadableFileSize(file.size) }}
                   </div>
                 </div>
-                <NcSelect v-model:value="file.encoding" class="ml-auto w-[120px]">
-                  <a-select-option v-for="enc of charsetOptions" :key="enc.value" :value="enc.value">
+                <NcSelect v-model:value="file.encoding" :filter-option="filterOption" class="ml-auto w-[120px]" show-search>
+                  <a-select-option v-for="enc of charsetOptions" :key="enc.label" :value="enc.value">
                     <div class="w-full flex items-center gap-2">
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ enc.label }}</template>

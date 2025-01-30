@@ -2837,7 +2837,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   async bulkDeleteAll(
     args: { where?: string; filterArr?: Filter[] } = {},
-    { cookie }: { cookie?: any } = {},
+    { cookie }: { cookie: NcRequest },
   ) {
     const queries: string[] = [];
     try {

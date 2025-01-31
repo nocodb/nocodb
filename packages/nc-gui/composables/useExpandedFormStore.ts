@@ -494,7 +494,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       while (allAudits.length > 0) {
         const current = allAudits.shift()!
         if (current.op_type === 'DATA_LINK' || current.op_type === 'DATA_UNLINK') {
-          const last = result[result.length - 1]
+          const last = result.findLast((it) => it.op_type === 'DATA_LINK' || it.op_type === 'DATA_UNLINK')
           const details = JSON.parse(current.details)
           if (!last) {
             applyLinkAuditValue(

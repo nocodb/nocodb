@@ -255,7 +255,7 @@ function isShowableValue(value: any) {
                 meta: normalizeMeta(columnKey),
                 colOptions: normalizeColOptions(columnKey),
               }"
-              :model-value="oldData[columnKey]"
+              :model-value="processOldDataFor(columnKey)"
               :edit-enabled="false"
               :read-only="true"
               class="!text-red-700"
@@ -278,7 +278,7 @@ function isShowableValue(value: any) {
                 meta: normalizeMeta(columnKey),
                 colOptions: normalizeColOptions(columnKey),
               }"
-              :model-value="newData[columnKey]"
+              :model-value="processNewDataFor(columnKey)"
               :edit-enabled="false"
               :read-only="true"
               class="!text-green-700"

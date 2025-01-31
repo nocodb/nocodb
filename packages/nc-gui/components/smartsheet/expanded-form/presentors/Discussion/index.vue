@@ -61,7 +61,7 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] h-0 flex-grow ml-12 border-l-1 border-gray-300" />
+      <div class="w-[680px] h-0 flex-grow ml-16.25 border-l-1 border-gray-300" />
       <div class="w-[680px] max-w-full pb-4">
         <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-2 xl:px-0">
           <template v-if="group.type === 'audit'">

@@ -382,10 +382,13 @@ function isShowableValue(value: any) {
 .nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) {
   @apply !h-[20px];
 }
-.nc-expressive-mini-item-cell.cell-removal :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) a {
+.nc-expressive-mini-item-cell .nc-cell-url > div > span {
+  width: auto !important;
+}
+.nc-expressive-mini-item-cell.nc-audit-removal :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) a {
   @apply !line-through !p-0;
 }
-.nc-expressive-mini-item-cell.cell-removal :where(.nc-year-picker, .nc-time-picker, .nc-date-picker) {
+.nc-expressive-mini-item-cell.nc-audit-removal :where(.nc-year-picker, .nc-time-picker, .nc-date-picker) {
   @apply !line-through;
 }
 </style>

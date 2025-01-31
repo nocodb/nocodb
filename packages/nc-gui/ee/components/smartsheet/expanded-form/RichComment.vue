@@ -117,8 +117,8 @@ const editor = useEditor({
 
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
-      if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
-      if (markdown.endsWith('<br /> ')) markdown = markdown.slice(0, -7)
+      if (markdown.endsWith('<br>')) markdown = markdown.slice(0, -4)
+      if (markdown.endsWith('<br> ')) markdown = markdown.slice(0, -5)
     }
 
     vModel.value = isOnlyBrTagsAndSpaces(markdown) ? '' : `${markdown}`

@@ -74,6 +74,42 @@ docker run -d \
   nocodb/nocodb:latest
 ```
 
+## Nix
+
+```
+nix run github:nocodb/nocodb
+```
+
+## NixOS
+To use NocoDB as a NixOS module, a flake.nix would be as follows:
+
+```
+{
+  description = "Bane's NixOS configuration";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nocodb.url = "github:nocodb/nocodb";
+  };
+
+  outputs = inputs@{ nixpkgs, nocodb, ... }: {
+    nixosConfigurations = {
+      hostname = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./configuration.nix
+          nocodb.nixosModules.nocodb
+
+          {
+            services.nocodb.enable = true;
+          }
+        ];
+      };
+    };
+  };
+}
+```
+
 ## Auto-upstall
 Auto-upstall is a single command that sets up NocoDB on a server for production usage.
 Behind the scenes it auto-generates docker-compose for you.

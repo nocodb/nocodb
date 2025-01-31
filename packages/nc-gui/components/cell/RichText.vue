@@ -197,7 +197,7 @@ function focusEditor() {
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
+    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value)
   })
 }
 

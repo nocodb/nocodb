@@ -17,6 +17,9 @@ import AiAzureManifest from '~/integrations/ai/azure/manifest';
 import AiClaudeEntry from '~/integrations/ai/claude/entry';
 import AiClaudeForm from '~/integrations/ai/claude/credentials.form';
 import AiClaudeManifest from '~/integrations/ai/claude/manifest';
+import AiDeepseekEntry from '~/integrations/ai/deepseek/entry';
+import AiDeepseekForm from '~/integrations/ai/deepseek/credentials.form';
+import AiDeepseekManifest from '~/integrations/ai/deepseek/manifest';
 import AiGoogleEntry from '~/integrations/ai/google/entry';
 import AiGoogleForm from '~/integrations/ai/google/credentials.form';
 import AiGoogleManifest from '~/integrations/ai/google/manifest';
@@ -26,6 +29,9 @@ import AiGroqManifest from '~/integrations/ai/groq/manifest';
 import AiNocodbEntry from '~/integrations/ai/nocodb/entry';
 import AiNocodbForm from '~/integrations/ai/nocodb/credentials.form';
 import AiNocodbManifest from '~/integrations/ai/nocodb/manifest';
+import AiOpenaiCompatibleEntry from '~/integrations/ai/openai-compatible/entry';
+import AiOpenaiCompatibleForm from '~/integrations/ai/openai-compatible/credentials.form';
+import AiOpenaiCompatibleManifest from '~/integrations/ai/openai-compatible/manifest';
 import AiOpenaiEntry from '~/integrations/ai/openai/entry';
 import AiOpenaiForm from '~/integrations/ai/openai/credentials.form';
 import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
@@ -63,6 +69,16 @@ export default [
   },
   {
     type: 'ai',
+    sub_type: 'deepseek',
+    wrapper: AiDeepseekEntry,
+    form: AiDeepseekForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiDeepseekManifest,
+    },
+  },
+  {
+    type: 'ai',
     sub_type: 'google',
     wrapper: AiGoogleEntry,
     form: AiGoogleForm,
@@ -89,6 +105,16 @@ export default [
     meta: {
       ...AiCommonManifest,
       ...AiNocodbManifest,
+    },
+  },
+  {
+    type: 'ai',
+    sub_type: 'openai-compatible',
+    wrapper: AiOpenaiCompatibleEntry,
+    form: AiOpenaiCompatibleForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiOpenaiCompatibleManifest,
     },
   },
   {

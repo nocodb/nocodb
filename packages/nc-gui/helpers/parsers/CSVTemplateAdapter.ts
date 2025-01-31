@@ -10,7 +10,6 @@ import {
   isMultiLineTextType,
   isUrlType,
 } from './parserHelpers'
-import { detectLocalFileEncoding, type detectLocalFileEncodingResult } from './localFileEncodingDetector'
 
 export default class CSVTemplateAdapter {
   config: Record<string, any>
@@ -207,11 +206,7 @@ export default class CSVTemplateAdapter {
     }
   }
 
-  async _parseTableData(tableIdx: number, source: UploadFile | string, tn: string) {
-    let encoding: detectLocalFileEncodingResult
-    if (!this.config.importFromURL) {
-      encoding = await detectLocalFileEncoding((source as UploadFile).originFileObj as File)
-    }
+  async _parseTableData(tableIdx: number, source: (UploadFile & { encoding?: string }) | string, tn: string) {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
@@ -220,12 +215,12 @@ export default class CSVTemplateAdapter {
 
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
-
+        console.log((source as { encoding?: string }).encoding)
         parse(parseSource, {
           download: that.config.importFromURL,
           // worker: true,
           skipEmptyLines: 'greedy',
-          encoding: encoding?.encoding,
+          encoding: (source as { encoding?: string })?.encoding,
           step(row) {
             steppers += 1
             if (row && steppers >= +that.config.firstRowAsHeaders + 1) {

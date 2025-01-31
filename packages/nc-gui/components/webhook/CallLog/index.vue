@@ -22,8 +22,11 @@ const currentPage = ref(1)
 
 const currentLimit = ref(10)
 
+const activeItem = ref<HookLogType>()
+
 const showLogs = computed(
   () =>
+    true ||
     !(
       appInfo.value.automationLogLevel === AutomationLogLevel.OFF ||
       (appInfo.value.automationLogLevel === AutomationLogLevel.ALL && !appInfo.value.ee)
@@ -73,7 +76,7 @@ onBeforeMount(async () => {
 <template>
   <a-skeleton v-if="isLoading" />
   <div v-else>
-    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
+    <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
       <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
         The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.
       </span>
@@ -90,11 +93,20 @@ onBeforeMount(async () => {
         For additional configuration options, please refer the documentation
         <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
       </span>
-    </a-card>
+    </a-card> -->
 
     <div v-if="showLogs">
       <a-empty v-if="!hookLogs.length" />
-      <a-layout v-else>
+      <div v-else class="flex">
+        <div class="w-80">
+          <WebhookCallLogList v-model:activeItem="activeItem" :hook-logs="hookLogs" />
+        </div>
+        <div class="flex-grow">
+          <WebhookCallLogDetails :item="activeItem" />
+        </div>
+      </div>
+
+      <!--      <a-layout v-else>
         <a-layout-content>
           <a-collapse v-model:activeKey="activeKey" class="nc-hook-log-collapse">
             <a-collapse-panel v-for="(hookLog, idx) of hookLogs" :key="idx">
@@ -110,9 +122,9 @@ onBeforeMount(async () => {
                       <div v-else class="mx-1 px-2 py-1 text-white rounded text-xs bg-green-500">OK</div>
                     </div>
                     <div
-                      v-else
-                      class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
-                      :class="{ '!bg-green-500': hookLog.response?.status === 200 }"
+                        v-else
+                        class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
+                        :class="{ '!bg-green-500': hookLog.response?.status === 200 }"
                     >
                       {{ hookLog.response?.status }}
                       {{ hookLog.response?.statusText || (hookLog.response?.status === 200 ? 'OK' : 'ERROR') }}
@@ -158,14 +170,14 @@ onBeforeMount(async () => {
         </a-layout-content>
         <a-layout-footer class="!bg-white text-center">
           <a-pagination
-            v-model:current="currentPage"
-            v-model:page-size="currentLimit"
-            :total="+totalRows"
-            show-less-items
-            @change="loadHookLogs"
+              v-model:current="currentPage"
+              v-model:page-size="currentLimit"
+              :total="+totalRows"
+              show-less-items
+              @change="loadHookLogs"
           />
         </a-layout-footer>
-      </a-layout>
+      </a-layout> -->
     </div>
   </div>
 </template>

@@ -71,7 +71,7 @@ export default {
             <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
           </template>
         </div>
-        <div class="w-full border-t border-gray-200 px-2 xl:px-0">
+        <div class="w-full border-t border-gray-300 px-2 xl:px-0">
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"

@@ -95,7 +95,7 @@ const createdBy = computed(() => {
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
-          <span class="text-xs text-gray-600 font-weight-500">
+          <span class="text-[13px] text-gray-600 font-weight-500">
             changed
           </span>
           <span
@@ -105,7 +105,7 @@ const createdBy = computed(() => {
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
-            <span class="text-sm font-weight-500 text-gray-600">
+            <span class="text-[13px] font-weight-500 text-gray-600">
               {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
             </span>
           </span>
@@ -114,7 +114,7 @@ const createdBy = computed(() => {
             class="flex gap-1 flex-wrap mr-1"
           >
             <span
-              class="!text-sm p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
+              class="!text-[13px] p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
@@ -129,7 +129,7 @@ const createdBy = computed(() => {
             class="flex gap-1 flex-wrap"
           >
             <span
-              class="!text-sm p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
+              class="!text-[13px] p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"

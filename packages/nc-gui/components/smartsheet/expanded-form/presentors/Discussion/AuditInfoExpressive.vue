@@ -127,7 +127,7 @@ function isShowableValue(value: any) {
     />
     <div class="ml-6.5">
       <div
-        class="text-sm font-weight-500"
+        class="text-[13px] font-weight-500"
         :class="{
           'inline-flex items-center flex-wrap': true,
         }"
@@ -142,7 +142,7 @@ function isShowableValue(value: any) {
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
             class="!w-[16px] !h-[16px] !m-0 !text-gray-600"
           />
-          <span class="text-sm font-weight-500 text-gray-600">
+          <span class="text-[13px] font-weight-500 text-gray-600">
             {{ columnKey }}
           </span>
         </span>
@@ -166,7 +166,7 @@ function isShowableValue(value: any) {
                       <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                     </div>
                   </div>
-                  <span class="w-0 flex-1 truncate text-sm font-weight-500 text-gray-600">
+                  <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
                     {{ item.title }}
                   </span>
                   <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -198,7 +198,7 @@ function isShowableValue(value: any) {
                       <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                     </div>
                   </div>
-                  <span class="w-0 flex-1 truncate text-sm font-weight-500 text-gray-600">
+                  <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
                     {{ item.title }}
                   </span>
                   <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -213,17 +213,17 @@ function isShowableValue(value: any) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
-            <span v-else class="mr-1">
+            <span v-else class="mr-1 !leading-[18px]">
               {{ block.text }}
             </span>
           </template>
@@ -232,12 +232,12 @@ function isShowableValue(value: any) {
           <div class="w-full">
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
-              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1">{{ processOldDataFor(columnKey) }}</pre>
+              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1">{{ processOldDataFor(columnKey) }}</pre>
           </div>
           <div class="w-full">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
-              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1">{{ processNewDataFor(columnKey) }}</pre>
+              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1">{{ processNewDataFor(columnKey) }}</pre>
           </div>
         </template>
         <template v-else>
@@ -416,6 +416,9 @@ function isShowableValue(value: any) {
 .nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) {
   @apply !h-[20px];
 }
+.nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) span {
+  @apply !text-[13px];
+}
 .nc-expressive-mini-item-cell .nc-cell-url > div > span {
   width: auto !important;
 }
@@ -424,5 +427,11 @@ function isShowableValue(value: any) {
 }
 .nc-expressive-mini-item-cell.nc-audit-removal :where(.nc-year-picker, .nc-time-picker, .nc-date-picker) {
   @apply !line-through;
+}
+.nc-expressive-mini-item-cell :where(.nc-cell-year, .nc-cell-time, .nc-cell-datetime, .nc-cell-date ) span {
+  @apply !text-[13px];
+}
+.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell :where(.nc-cell.nc-cell-percent .nc-cell-field, .nc-cell.nc-cell-duration .nc-cell-field, .nc-cell.nc-cell-currency .nc-cell-field, .nc-cell.nc-cell-decimal .nc-cell-field, .nc-cell.nc-cell-number .nc-cell-field) {
+  font-size: 13px !important;
 }
 </style>

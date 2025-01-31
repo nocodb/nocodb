@@ -551,6 +551,7 @@ import NcDiscordIcon from '~icons/nc-icons/discord.svg'
 import NcVerticalAlignTop from '~icons/nc-icons/align-vertical-top.svg'
 import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
 import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
+import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1489,6 +1490,7 @@ export const iconMap = {
   ncVerticalAlignTop: NcVerticalAlignTop,
   ncVerticalAlignCenter: NcVerticalAlignCenter,
   ncVerticalAlignBottom: NcVerticalAlignBottom,
+  ncAngleRotateCw: NcAngleRotateCw,
   ncHeart: NcHeartIcon,
   ncTrendingUp: NcTrendingUpIcon,
   chevronUpSmall: NcChevronUpSmall,

@@ -149,13 +149,15 @@ const replacedText = computed(() => {
   })
 })
 
-function onTextClick() {
+function focusTextarea() {
   document.querySelector<HTMLTextAreaElement>('#textWidgetContent')?.focus()
 }
+
+onMounted(focusTextarea)
 </script>
 
 <template>
-  <div v-if="widget" @click="onTextClick">
+  <div v-if="widget" @click="focusTextarea">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{

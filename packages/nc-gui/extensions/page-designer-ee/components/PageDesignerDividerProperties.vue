@@ -15,6 +15,14 @@ watch(
   },
   { immediate: true },
 )
+
+watch(
+  () => dividerWidget.value?.angle,
+  (angle) => {
+    if (!angle) return
+    dividerWidget.value!.angle = angle % 360
+  },
+)
 </script>
 
 <template>
@@ -22,19 +30,26 @@ watch(
     <header class="widget-header">
       <h1 class="m-0">Divider</h1>
     </header>
-    <GroupedSettings title="Fill">
+    <GroupedSettings title="Border">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Background Color</span>
+          <span>Thickness</span>
+          <NonNullableNumberInput v-model="dividerWidget.thickness" :min="1" />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <span>Color</span>
           <ColorPropertyPicker v-model="dividerWidget.backgroundColor" />
         </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Orientation">
-      <div class="flex gap-3">
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Angle</span>
+      <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <span>Angle</span>
+        <div class="flex gap-3">
           <NonNullableNumberInput v-model="dividerWidget.angle" />
+          <NcButton size="small" type="secondary" @click="dividerWidget.angle += 90">
+            <GeneralIcon icon="ncAngleRotateCw"></GeneralIcon>
+          </NcButton>
         </div>
       </div>
     </GroupedSettings>

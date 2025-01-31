@@ -55,6 +55,7 @@ export interface PageDesignerDividerWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.DIVIDER
   backgroundColor: string
   angle: number
+  thickness: number
 }
 
 export interface PageDesignerFieldWidget extends PageDesignerWidget {
@@ -130,13 +131,15 @@ export class PageDesignerWidgetFactory {
   }
 
   static createEmptyDividerWidget({ x, y } = { x: 0, y: 0 }): PageDesignerDividerWidget {
+    const thickness = 5
     return {
       id: 0,
       backgroundColor: BLACK,
       type: PageDesignerWidgetType.DIVIDER,
       angle: 0,
       zIndex: 0,
-      cssStyle: `width: 500px; height: 5px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 5px;`,
+      thickness,
+      cssStyle: `width: 500px; height: ${thickness}px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 1px;`,
     }
   }
 

@@ -34,6 +34,7 @@ onMounted(async () => {
   const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
   if (saved) {
     savedPayload.value = saved
+    savedPayload.value.currentWidgetId = -1
   }
 })
 

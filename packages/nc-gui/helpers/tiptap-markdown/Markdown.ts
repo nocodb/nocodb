@@ -42,6 +42,11 @@ export const Markdown = Extension.create<MarkdownOptions, MarkdownStorage>({
       getMarkdown: () => {
         return this.editor.storage.markdown.serializer.serialize(this.editor.state.doc)
       },
+      getHtmlFromMd: (md) => {
+        if (!md) return ''
+
+        return this.editor.storage.markdown.parser.parse(md)
+      },
     }
     this.editor.options.initialContent = this.editor.options.content
     this.editor.options.content = this.editor.storage.markdown.parser.parse(this.editor.options.content)

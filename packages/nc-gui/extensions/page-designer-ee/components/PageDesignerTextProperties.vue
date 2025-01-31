@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../lib/context'
+import { UITypes } from 'nocodb-sdk'
+import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
@@ -11,6 +12,29 @@ defineEmits(['deleteCurrentWidget'])
 const payload = inject(PageDesignerPayloadInj)!
 
 const textWidget = ref<PageDesignerTextWidget>()
+
+const meta = inject(PageDesignerTableTypeInj)
+const row = inject(PageDesignerRowInj)!
+
+const fieldsToIgnore = new Set([
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+  UITypes.Button,
+  UITypes.GeoData,
+  UITypes.Geometry,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Attachment,
+  UITypes.JSON,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.CreatedBy,
+])
+const columns = computed(() =>
+  (meta?.value?.columns ?? []).filter(
+    (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),
+  ),
+)
 
 watch(
   () => payload.value.currentWidgetId,
@@ -27,13 +51,7 @@ watch(
       <h1 class="m-0">Text</h1>
     </header>
     <GroupedSettings title="Content">
-      <a-textarea
-        id="textWidgetContent"
-        v-model:value="textWidget.value"
-        :rows="4"
-        placeholder="Lorem ipsum..."
-        @keydown.delete="!textWidget.value && $emit('deleteCurrentWidget')"
-      ></a-textarea>
+      <AiPromptWithFields id="textWidgetContent" v-model="textWidget.value" :options="columns" placeholder="Lorem ipsum..." />
     </GroupedSettings>
     <GroupedSettings title="Alignment">
       <div class="flex gap-3">
@@ -132,3 +150,15 @@ watch(
     </GroupedSettings>
   </div>
 </template>
+
+<style lang="scss" scoped>
+#textWidgetContent {
+  :deep(.ProseMirror-focused) {
+    @apply !border-nc-border-brand;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
+  }
+  :deep(.ProseMirror) {
+    @apply !rounded-lg;
+  }
+}
+</style>

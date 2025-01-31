@@ -152,7 +152,10 @@ const replacedText = computed(() => {
 })
 
 function focusTextarea() {
-  document.querySelector<HTMLTextAreaElement>('#textWidgetContent')?.focus()
+  const textarea = document.querySelector<HTMLTextAreaElement>('#textWidgetContent')
+  nextTick(() => {
+    textarea?.dispatchEvent(new Event('focusPromptWithFields'))
+  })
 }
 
 onMounted(focusTextarea)

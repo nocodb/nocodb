@@ -13,7 +13,7 @@ export const Removable = {
         className:
           'moveable-removable border-0 border-nc-border-brand text-nc-fill-primary absolute rounded-[4px] cursor-pointer',
         style: {
-          left: `${rect.width - 18}px`,
+          left: `${rect.width - 14}px`,
           top: `-24px`,
         },
         onClick() {

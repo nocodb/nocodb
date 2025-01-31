@@ -185,6 +185,20 @@ onBeforeUnmount(() => {
   tooltipInstances.forEach((instance) => instance?.destroy())
   tooltipInstances.length = 0
 })
+
+const el = useCurrentElement()
+
+// listen to custom event for setting the focus via event dispatching from
+// outside the component where there's no access to editor and its apis
+useEventListener(el, 'focusPromptWithFields', () => {
+  setTimeout(() => {
+    editor.value
+      ?.chain()
+      .focus()
+      .setTextSelection(vModel.value.length * 2)
+      .run()
+  }, 100)
+})
 </script>
 
 <template>

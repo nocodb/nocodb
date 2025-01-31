@@ -6,6 +6,7 @@ import { type PageDesignerPayload } from './lib/payload'
 import { PageDesignerLayout, PageOrientation, PageType } from './lib/layout'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from './lib/context'
 import TableAndViewPicker from './components/TableAndViewPicker.vue'
+import RecordSelector from './components/RecordSelector.vue'
 
 const { extension, fullscreen, getTableMeta } = useExtensionHelperOrThrow()
 
@@ -19,9 +20,21 @@ const savedPayload = ref<PageDesignerPayload>({
   currentWidgetId: -1,
 })
 
+const { viewsByTable } = storeToRefs(useViewsStore())
+
 const row = ref<Row>()
 const meta = ref<TableType>()
-const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
+
+const viewMeta = computed(() =>
+  viewsByTable.value.get(savedPayload.value.selectedTableId ?? '')?.find((view) => view.id === savedPayload.value.selectedViewId),
+)
+
+const { cachedRows, loadData } = useInfiniteData({
+  meta,
+  viewMeta,
+  callbacks: {},
+})
+
 provide(PageDesignerPayloadInj, savedPayload)
 provide(PageDesignerRowInj, row)
 provide(PageDesignerTableTypeInj, meta)
@@ -37,6 +50,26 @@ onMounted(async () => {
     savedPayload.value.currentWidgetId = -1
   }
 })
+
+watch(
+  [
+    () => {
+      const { selectedTableId, selectedViewId } = savedPayload.value
+      return { selectedTableId, selectedViewId }
+    },
+    meta,
+    viewMeta,
+  ],
+  async () => {
+    if (row.value || !meta.value || !viewMeta.value) return
+
+    const rows = await loadData()
+    if (rows.length) {
+      row.value = rows[0]
+      rows.forEach((row) => cachedRows.value.set(row.rowMeta.rowIndex, row))
+    }
+  },
+)
 
 watch(
   () => {
@@ -104,15 +137,7 @@ watch(
           <TableAndViewPicker />
         </div>
         <div class="px-3 flex">
-          <NRecordPicker
-            v-if="savedPayload.selectedTableId"
-            :key="savedPayload.selectedTableId + savedPayload.selectedViewId"
-            v-model:model-value="row"
-            :label="row ? row.row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
-            :table-id="savedPayload.selectedTableId"
-            :view-id="savedPayload.selectedViewId"
-            class="w-full page-designer-record-picker"
-          />
+          <RecordSelector />
         </div>
         <div class="overflow-y-auto flex-1 relative group mt-3 mini-layout">
           <div
@@ -178,12 +203,6 @@ watch(
   }
   .nc-moveable .moveable-control:not(.moveable-rotation-control) {
     @apply rounded-[3px] w-[10px] h-[10px] border-2 border-solid border-nc-border-brand bg-nc-bg-default -mt-[5px] -ml-[5px];
-  }
-
-  .page-designer-record-picker {
-    > div {
-      @apply !justify-start pl-2;
-    }
   }
 
   .radio-pills {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { PageOrientation, PageType } from '../lib/layout'
 import { type PageDesignerWidget, PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
 import TextWidgetImage from '../assets/text-widget.svg'
@@ -9,16 +9,14 @@ import StaticWidget from './StaticWidget.vue'
 import GroupedSettings from './GroupedSettings.vue'
 import TableAndViewPicker from './TableAndViewPicker.vue'
 import FieldElements from './FieldElements.vue'
+import RecordSelector from './RecordSelector.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
-const meta = inject(PageDesignerTableTypeInj)
 
 const pageTypeOptions = Object.values(PageType)
 
 const pageOrientationOptions = Object.values(PageOrientation)
-
-const displayField = computed(() => meta?.value?.columns?.find((c) => c?.pv) || meta?.value?.columns?.[0] || null)
 
 function addWidget(widget: PageDesignerWidget) {
   PageDesignerWidgetFactory.create(payload, widget)
@@ -42,15 +40,7 @@ function print() {
         <TableAndViewPicker />
         <div class="flex flex-col gap-2">
           <span>Record</span>
-          <NRecordPicker
-            v-if="payload.selectedTableId"
-            :key="payload.selectedTableId + payload.selectedViewId"
-            v-model:model-value="row"
-            :label="row ? row.row?.[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
-            :table-id="payload.selectedTableId"
-            :view-id="payload.selectedViewId"
-            class="w-full page-designer-record-picker"
-          />
+          <RecordSelector />
         </div>
       </div>
     </GroupedSettings>

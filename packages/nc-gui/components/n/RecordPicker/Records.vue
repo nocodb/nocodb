@@ -254,6 +254,11 @@ const wrapperHeight = computed(() => {
 </script>
 
 <template>
+  <div v-if="where && !visibleRows.length" class="px-2 py-6 pt-24 text-gray-500 flex flex-col items-center gap-6 text-center">
+    <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No search results found" />
+
+    {{ $t('title.noResultsMatchedYourSearch') }}
+  </div>
   <div ref="scrollWrapper" :style="`height: ${wrapperHeight}px`" class="overflow-auto nc-scrollbar-thin">
     <div
       v-for="row in visibleRows"

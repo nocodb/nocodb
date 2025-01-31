@@ -73,6 +73,7 @@ const container = useParentElement()
           borderColor: widget.borderColor,
           borderRadius: `${widget.borderRadius || 0}px`,
         }"
+        :class="{ 'px-2 py-1': errored || !widget.imageSrc }"
       >
         <img
           v-if="widget.imageSrc"
@@ -85,8 +86,8 @@ const container = useParentElement()
           @error="errored = true"
           @load="errored = false"
         />
-        <div v-if="widget.imageSrc && errored">Unable to load the image</div>
-        <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted">Add an image source</span>
+        <span v-if="widget.imageSrc && errored" class="text-nc-content-gray-muted print-hide">Unable to load the image</span>
+        <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted print-hide">Add an image source</span>
       </div>
     </div>
     <Moveable

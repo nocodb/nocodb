@@ -187,7 +187,7 @@ onMounted(focusTextarea)
         >
           {{ replacedText }}
         </span>
-        <span v-else class="text-nc-content-gray-muted">Lorem ipsum...</span>
+        <span v-else class="print-hide text-nc-content-gray-muted">Lorem ipsum...</span>
       </div>
     </div>
     <Moveable

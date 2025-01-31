@@ -247,7 +247,7 @@ watch(
     color-adjust: exact; /* Firefox 48 – 96 */
     print-color-adjust: exact;
   }
-
+  .print-hide,
   .grid-lines,
   .nc-moveable {
     @apply !hidden;

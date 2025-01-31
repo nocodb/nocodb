@@ -129,7 +129,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
             />
           </SmartsheetRow>
         </template>
-        <span v-else class="text-nc-content-gray-muted">{{ widget.field.title }}</span>
+        <span v-else class="text-nc-content-gray-muted print-hide">{{ widget.field.title }}</span>
       </div>
     </div>
     <Moveable

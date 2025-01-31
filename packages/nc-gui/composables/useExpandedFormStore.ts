@@ -469,7 +469,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       if (type === 'link') {
         if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
-          detail.consolidated_ref_display_values_links.push({ refRowId, value })
+          if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
+            detail.consolidated_ref_display_values_links.push({ refRowId, value })
+          }
         } else {
           detail.consolidated_ref_display_values_unlinks.splice(
             detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId),
@@ -478,7 +480,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         }
       } else {
         if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
-          detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
+          if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
+            detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
+          }
         } else {
           detail.consolidated_ref_display_values_links.splice(
             detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId),

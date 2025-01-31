@@ -45,7 +45,7 @@ const createdBy = computed(() => {
 
 <template>
   <div class="py-4 ml-8.25 mr-6 border-l border-gray-300">
-    <div class="flex items-center h-[32px] gap-3 mb-3">
+    <div class="flex items-center h-[32px] gap-3 mb-2">
       <div class="w-[28px] h-[28px] bg-white flex items-center justify-center bg-white rounded-full border border-1 !border-gray-200 shadow-sm -ml-3.5">
         <GeneralIcon
           icon="ncPenLine"

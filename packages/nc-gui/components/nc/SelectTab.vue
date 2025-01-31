@@ -14,6 +14,7 @@ interface Props {
     icon: keyof typeof iconMap
     title?: string
     value: string
+    hidden?: boolean
   }[]
 }
 
@@ -34,7 +35,7 @@ const modelValue = defineModel<string>()
       }"
     >
       <div
-        v-for="item of props.items"
+        v-for="item of props.items.filter(it => !it.hidden)"
         :key="item.value"
         v-e="[`c:project:mode:${item.value}`]"
         class="tab"

@@ -16,9 +16,9 @@ export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           const isDifferentListType =
             previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'taskList'
 
-          // Add ` <br />\n\n ` if transitioning from a different list type
+          // Add ` <br>\n\n ` if transitioning from a different list type
           if (isDifferentListType) {
-            state.write('<br />\n\n ')
+            state.write('<br>\n\n ')
           }
 
           state.renderList(node, '  ', () => `${this.editor.storage.markdown.options.bulletListMarker || '-'} `)

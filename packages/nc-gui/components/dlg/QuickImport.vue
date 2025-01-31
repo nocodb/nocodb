@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import { type TableType, charsetOptions } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
@@ -62,6 +62,8 @@ const collapseKey = ref('')
 const temporaryJson = ref({})
 
 const jsonErrorText = ref('')
+
+const fileEncodingMap = ref<{ [key: string]: string }>({})
 
 const useForm = Form.useForm
 
@@ -145,6 +147,10 @@ if (isWorkerSupport && process.env.NODE_ENV === 'production') {
     },
     { immediate: true },
   )
+}
+
+const filterOption = (input = '', params: { key: string }) => {
+  return params.key?.toLowerCase().includes(input.toLowerCase())
 }
 
 const isPreImportFileFilled = computed(() => {
@@ -258,7 +264,11 @@ function handleChange(info: UploadChangeParam) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
           status: 'done',
+          encoding: 'utf-8',
         })
+      } else {
+        // need to set default encoding to utf-8
+        importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
       }
     } else {
       const reader = new FileReader()
@@ -274,6 +284,7 @@ function handleChange(info: UploadChangeParam) {
               ...info.file,
               status: 'done',
               data: e.target.result,
+              encoding: 'utf-8',
             })
           }
         }
@@ -661,17 +672,17 @@ watch(
             </p>
 
             <template #itemRender="{ file, actions }">
-              <div class="flex items-center gap-3">
-                <div class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-lg">
+              <div class="flex items-center gap-4">
+                <div class="bg-gray-100 h-10 flex flex-shrink items-center justify-center rounded-lg">
                   <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
                 </div>
-                <div>
+                <div class="flex flex-col flex-grow min-w-[0px]">
                   <div class="text-[14px] text-[#15171A] font-weight-500">
                     <NcTooltip>
                       <template #title>
                         {{ file.name }}
                       </template>
-                      <span class="inline-block truncate max-w-[280px]">
+                      <span class="inline-block truncate w-full">
                         {{ file.name }}
                       </span>
                     </NcTooltip>
@@ -680,7 +691,30 @@ watch(
                     {{ getReadableFileSize(file.size) }}
                   </div>
                 </div>
-                <nc-button type="text" size="xsmall" class="ml-auto" @click="actions?.remove?.()">
+                <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
+                  <NcSelect
+                    v-model:value="file.encoding"
+                    :filter-option="filterOption"
+                    class="w-[120px] max-w-[120px] nc-select-shadow"
+                    show-search
+                  >
+                    <a-select-option v-for="enc of charsetOptions" :key="enc.label" :value="enc.value">
+                      <div class="w-full flex items-center gap-2">
+                        <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                          <template #title>{{ enc.label }}</template>
+                          <span>{{ enc.label }}</span>
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="file.encoding === enc.value"
+                          id="nc-selected-item-icon"
+                          class="text-nc-content-purple-medium w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
+                </a-form-item>
+                <nc-button type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
                   <GeneralIcon icon="deleteListItem" />
                 </nc-button>
               </div>

@@ -702,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Kontynuuj",
-    "toggleExperimentalFeature": "Z łatwością można włączać i wyłączać funkcje eksperymentalne, co pozwala badać i oceniać nadchodzące funkcje.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Zmodyfikowano",
     "configuration": "Konfiguracja",
     "setup": "Instalacja",

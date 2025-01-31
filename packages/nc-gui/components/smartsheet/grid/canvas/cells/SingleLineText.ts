@@ -3,7 +3,7 @@ import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
-    const { renderAsTag, tagPaddingX = 8, tagPaddingY = 4, tagHeight = 24 } = props.tag || {}
+    const { renderAsTag, tagPaddingX = 8, tagHeight = 20, tagRadius = 6, tagBgColor = '#f4f4f0' } = props.tag || {}
 
     const text = value?.toString() ?? ''
 
@@ -15,16 +15,17 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         y: y + padding,
         text,
         maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         render: false,
       })
 
       renderTag(ctx, {
         x: x + padding,
-        y: y + padding,
+        y: y + padding - 4,
         width: textWidth + tagPaddingX * 2,
         height: tagHeight,
-        radius: 12,
-        fillStyle: textColor,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
       })
 
       renderSingleLineText(ctx, {
@@ -35,9 +36,14 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: textColor,
       })
+
+      return {
+        x: x + padding + textWidth + tagPaddingX * 2,
+        y: y + padding - 4 + tagHeight,
+      }
     } else {
       const maxWidth = width - padding * 2
-      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+      const { width: textWidth } = renderSingleLineText(ctx, {
         x: x + padding,
         y: y + padding,
         text,
@@ -46,7 +52,10 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         fillStyle: pv ? '#4351e8' : textColor,
       })
 
-      // const textY = y + height / 2
+      return {
+        x: x + padding + textWidth,
+        y: y + padding + 13 / 2,
+      }
     }
   },
 }

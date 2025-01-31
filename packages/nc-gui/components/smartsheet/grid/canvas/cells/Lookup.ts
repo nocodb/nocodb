@@ -46,6 +46,9 @@ export const LookupCellRenderer: CellRenderer = {
       readonly: true,
       value: arrValue,
       height: isAttachment(lookupColumn) ? props.height : rowHeightInPx['1']!,
+      tag: {
+        renderAsTag: true,
+      },
     }
 
     // Todo: handle x and y value if we are rendering multiple chips also we have to wrap each cell in chip
@@ -68,9 +71,9 @@ export const LookupCellRenderer: CellRenderer = {
         renderCell(ctx, lookupColumn, renderProps)
       } else {
         arrValue.forEach((v) => {
-          renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y })
-          x = _x
-          // y = y + 28
+          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y })
+          x = point?.x ? point?.x + 4 : _x
+          y = point?.y ? point?.y + 4 : _y + 24
         })
       }
     }

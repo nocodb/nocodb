@@ -367,6 +367,7 @@ interface CellRendererOptions {
   column: ColumnType
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
   x: number
   y: number
   width: number
@@ -381,6 +382,15 @@ interface CellRendererOptions {
   padding: number
   renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
   isUnderLookup?: boolean
+  tag?: {
+    renderAsTag?: boolean
+    tagPaddingX?: number
+    tagPaddingY?: number
+    tagHeight?: number
+  }
+  fontSize?: number
+  textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
+  textColor?: string
 }
 
 interface CellRenderer {

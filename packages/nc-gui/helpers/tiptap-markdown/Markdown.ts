@@ -40,7 +40,9 @@ export const Markdown = Extension.create<MarkdownOptions, MarkdownStorage>({
       parser: new MarkdownParser(this.editor, this.options),
       serializer: new MarkdownSerializer(this.editor),
       getMarkdown: () => {
-        return this.editor.storage.markdown.serializer.serialize(this.editor.state.doc)
+        const markdown = this.editor.storage.markdown.serializer.serialize(this.editor.state.doc)
+
+        return markdown.replace(/<br \/>/g, '<br>')
       },
       getHtmlFromMd: (md) => {
         if (!md) return ''

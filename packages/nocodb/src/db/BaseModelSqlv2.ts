@@ -4776,8 +4776,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];
 
       for (const column of this.model.columns) {
-        if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
-          continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -6723,8 +6722,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const base = await this.getSource();
 
       for (const column of this.model.columns) {
-        if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
-          continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -6850,8 +6848,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // qb.del();
 
       for (const column of this.model.columns) {
-        if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
-          continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);

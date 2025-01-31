@@ -121,23 +121,12 @@ function isShowableValue(value: any) {
     <GeneralIcon
       icon="ncNode"
       class="w-[16px] h-[16px] text-gray-500 bg-white absolute left-0 transform -translate-x-1/2"
-      :class="[
-        ['JSON', 'Attachment'].includes(meta[columnKey]?.type) ? 'top-1' : 'top-1/2 -translate-y-2/5',
-      ]"
+      :class="[['JSON', 'Attachment'].includes(meta[columnKey]?.type) ? 'top-1' : 'top-1/2 -translate-y-2/5']"
     />
     <div class="ml-6.5">
-      <div
-        class="text-[13px] font-weight-500"
-        :class="{
-          'inline-flex items-center flex-wrap': true,
-        }"
-      >
-        <span class="text-gray-600 text-xs">
-          changed
-        </span>
-        <span
-          class="rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1"
-        >
+      <div class="text-[13px] font-weight-500 inline-flex items-center flex-wrap">
+        <span class="text-gray-600 text-xs"> changed </span>
+        <span class="rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
           <SmartsheetHeaderCellIcon
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
             class="!w-[16px] !h-[16px] !m-0 !text-gray-600"
@@ -176,10 +165,7 @@ function isShowableValue(value: any) {
               </div>
             </div>
           </div>
-          <div
-            v-if="processNewDataFor(columnKey)?.length > 0"
-            class="w-full mt-1"
-          >
+          <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full mt-1">
             <div class="border-1 border-green-500 rounded-md bg-green-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processNewDataFor(columnKey)"
@@ -232,12 +218,16 @@ function isShowableValue(value: any) {
           <div class="w-full">
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
-              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1">{{ processOldDataFor(columnKey) }}</pre>
+              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1"
+              >{{ processOldDataFor(columnKey) }}</pre
+            >
           </div>
           <div class="w-full">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
-              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1">{{ processNewDataFor(columnKey) }}</pre>
+              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1"
+              >{{ processNewDataFor(columnKey) }}</pre
+            >
           </div>
         </template>
         <template v-else>
@@ -247,7 +237,8 @@ function isShowableValue(value: any) {
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
               '!px-0.25 !py-0.25': shouldUseUniformPadding(columnKey),
-            }">
+            }"
+          >
             <SmartsheetCell
               :column="{
                 uidt: meta[columnKey]?.type,
@@ -270,7 +261,8 @@ function isShowableValue(value: any) {
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
               '!px-0.25 !py-0.25': shouldUseUniformPadding(columnKey),
-            }">
+            }"
+          >
             <SmartsheetCell
               :column="{
                 uidt: meta[columnKey]?.type,
@@ -428,10 +420,17 @@ function isShowableValue(value: any) {
 .nc-expressive-mini-item-cell.nc-audit-removal :where(.nc-year-picker, .nc-time-picker, .nc-date-picker) {
   @apply !line-through;
 }
-.nc-expressive-mini-item-cell :where(.nc-cell-year, .nc-cell-time, .nc-cell-datetime, .nc-cell-date ) span {
+.nc-expressive-mini-item-cell :where(.nc-cell-year, .nc-cell-time, .nc-cell-datetime, .nc-cell-date) span {
   @apply !text-[13px];
 }
-.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell :where(.nc-cell.nc-cell-percent .nc-cell-field, .nc-cell.nc-cell-duration .nc-cell-field, .nc-cell.nc-cell-currency .nc-cell-field, .nc-cell.nc-cell-decimal .nc-cell-field, .nc-cell.nc-cell-number .nc-cell-field) {
+.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell
+  :where(
+    .nc-cell.nc-cell-percent .nc-cell-field,
+    .nc-cell.nc-cell-duration .nc-cell-field,
+    .nc-cell.nc-cell-currency .nc-cell-field,
+    .nc-cell.nc-cell-decimal .nc-cell-field,
+    .nc-cell.nc-cell-number .nc-cell-field
+  ) {
   font-size: 13px !important;
 }
 </style>

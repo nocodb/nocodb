@@ -76,6 +76,7 @@ interface Row {
   oldRow: Record<string, any>
   rowMeta: {
     // Used in InfiniteScroll Grid View
+    isLastRow?: number
     rowIndex?: number
     isLoading?: boolean
     isValidationFailed?: boolean

@@ -19,13 +19,17 @@ import { NavigateDir } from '~/lib/enums'
 const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
-    return list.map((row, index) => ({
-      row: { ...row },
-      oldRow: { ...row },
-      rowMeta: {
-        rowIndex: (pageInfo.page! - 1) * pageInfo.pageSize! + index,
-      },
-    }))
+    return list.map((row, index) => {
+      const rowIndex = (pageInfo.page! - 1) * pageInfo.pageSize! + index
+      return {
+        row: { ...row },
+        oldRow: { ...row },
+        rowMeta: {
+          rowIndex,
+          isLastRow: rowIndex === pageInfo.totalRows! - 1,
+        },
+      }
+    })
   }
 
   // If no pageInfo, fall back to params

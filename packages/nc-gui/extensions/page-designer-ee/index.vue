@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { type TableType } from 'nocodb-sdk'
+import type { EventHook } from '@vueuse/core'
 import PageEditor from './components/PageEditor.vue'
 import { type PageDesignerPayload } from './lib/payload'
 import { PageDesignerLayout, PageOrientation, PageType } from './lib/layout'
-import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from './lib/context'
+import { PageDesignerEventHookInj, PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from './lib/context'
 import TableAndViewPicker from './components/TableAndViewPicker.vue'
 import RecordSelector from './components/RecordSelector.vue'
 
+const KV_STORE_KEY = 'pageDesigner'
+
 const { extension, fullscreen, getTableMeta } = useExtensionHelperOrThrow()
 
-const KV_STORE_KEY = 'pageDesigner'
+const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
+
+provide(PageDesignerEventHookInj, eventHook)
 
 const savedPayload = ref<PageDesignerPayload>({
   widgets: {},
@@ -43,14 +48,6 @@ async function saveChanges() {
   await extension.value.kvStore.set(KV_STORE_KEY, savedPayload.value)
 }
 
-onMounted(async () => {
-  const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
-  if (saved) {
-    savedPayload.value = saved
-    savedPayload.value.currentWidgetId = -1
-  }
-})
-
 watch(
   [
     () => {
@@ -70,6 +67,29 @@ watch(
     }
   },
 )
+
+async function loadRecordAtIndex(index: number) {
+  const rows = await loadData({ offset: index })
+  if (!rows.length) return
+
+  rows.forEach((row) => cachedRows.value.set(row.rowMeta.rowIndex, row))
+  return rows[0]
+}
+
+async function onEventHookTrigger(event: typeof eventHook extends EventHook<infer U> ? U : never) {
+  const currentRowIdx = row.value?.rowMeta.rowIndex ?? 0
+  if (event === 'nextRecord') {
+    const nextIndex = currentRowIdx + 1
+    if (cachedRows.value.has(nextIndex)) row.value = cachedRows.value.get(nextIndex)
+    else {
+      const newRow = await loadRecordAtIndex(nextIndex)
+      if (newRow) row.value = newRow
+    }
+  } else if (event === 'previousRecord' && currentRowIdx > 0) {
+    const previousIndex = currentRowIdx - 1
+    if (cachedRows.value.has(previousIndex)) row.value = cachedRows.value.get(previousIndex)
+  }
+}
 
 watch(
   () => {
@@ -124,6 +144,19 @@ watch(
     )
   },
 )
+
+onMounted(async () => {
+  const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
+  if (saved) {
+    savedPayload.value = saved
+    savedPayload.value.currentWidgetId = -1
+  }
+  eventHook.on(onEventHookTrigger)
+})
+
+onUnmounted(() => {
+  eventHook.off(onEventHookTrigger)
+})
 </script>
 
 <template>

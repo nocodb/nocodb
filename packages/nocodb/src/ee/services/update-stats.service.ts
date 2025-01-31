@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { CacheScope } from '~/utils/globals';
@@ -12,6 +12,7 @@ export const UPDATE_WORKSPACE_COUNTER = '__nc_update_workspace_counter';
 
 @Injectable()
 export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
+  private logger = new Logger(UpdateStatsService.name);
   private unsubscribe: (() => void)[];
 
   constructor(
@@ -92,13 +93,22 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     this.unsubscribe = [
       this.eventEmitter.on(UPDATE_MODEL_STAT, (arg) => {
         const { context, ...rest } = arg;
-        return this.updateModelStat(context, rest);
+        return this.updateModelStat(context, rest).catch((e) => {
+          this.logger.error('Error in UPDATE_MODEL_STAT');
+          this.logger.error(e);
+        });
       }),
       this.eventEmitter.on(UPDATE_WORKSPACE_STAT, (arg) => {
-        return this.updateWorkspaceStat(arg);
+        return this.updateWorkspaceStat(arg).catch((e) => {
+          this.logger.error('Error in UPDATE_WORKSPACE_STAT');
+          this.logger.error(e);
+        });
       }),
       this.eventEmitter.on(UPDATE_WORKSPACE_COUNTER, (arg) => {
-        return this.updateWorkspaceCounter(arg);
+        return this.updateWorkspaceCounter(arg).catch((e) => {
+          this.logger.error('Error in UPDATE_WORKSPACE_COUNTER');
+          this.logger.error(e);
+        });
       }),
     ];
   }

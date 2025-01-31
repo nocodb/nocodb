@@ -935,7 +935,7 @@ export const filterAndMapAliasToColProps = (
 export function remapWithAlias({ data, columns }) {
   const remapped = {};
   for (const [k, v] of Object.entries(data)) {
-    const col = columns.find((c) => c.column_name === k);
+    const col = columns.find((c) => c.column_name === k || c.title === k);
     if (col) {
       remapped[col.title] = v;
     }

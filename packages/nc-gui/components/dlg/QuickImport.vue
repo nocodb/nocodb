@@ -259,7 +259,6 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    console.log('a')
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
@@ -272,7 +271,6 @@ function handleChange(info: UploadChangeParam) {
         importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
       }
     } else {
-      console.log('c')
       const reader = new FileReader()
       reader.onload = (e: ProgressEvent<FileReader>) => {
         const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
@@ -299,14 +297,6 @@ function handleChange(info: UploadChangeParam) {
     message.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
     message.error(`${t('msg.error.fileUploadFailed')} ${info.file.name}`)
-  }
-}
-
-function handleEncodingChange(fileUid: string) {
-  console.log(fileUid, value)
-  return (encoding: string) => {
-    fileEncodingMap.value[fileUid] = encoding
-    console.log(fileEncodingMap)
   }
 }
 

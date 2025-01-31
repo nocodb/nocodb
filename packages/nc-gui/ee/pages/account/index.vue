@@ -20,6 +20,18 @@ const selectedKeys = computed(() => {
   return [$route.params.nestedPage ?? $route.params.page]
 })
 
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
+
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
+watchEffect(() => {
+  if (isSetupPageAllowed.value) {
+    loadSetupApps()
+  }
+})
+
+const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
+
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
 const logout = async () => {
@@ -95,20 +107,32 @@ const logout = async () => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('appStore') && !appInfo.isCloud && !isEeUI"
-                key="apps"
-                :class="{
-                  active: $route.params.page === 'apps',
-                }"
+                v-if="isSetupPageAllowed"
+                key="profile"
                 class="item"
-                @click="navigateTo('/account/apps')"
+                :class="{
+                  active: $route.path?.startsWith('/account/setup'),
+                }"
+                @click="navigateTo('/account/setup')"
               >
-                <div class="flex items-center space-x-2">
-                  <component :is="iconMap.appStore" />
+                <div class="flex items-center space-x-2 w-full">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
 
-                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+                  <div class="select-none">
+                    {{ $t('labels.setup') }}
+                  </div>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
+                      <span>
+                        {{ $t('activity.pending') }}
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
+
               <NcMenuItem
                 v-if="isUIAllowed('globalAudits')"
                 key="audits"

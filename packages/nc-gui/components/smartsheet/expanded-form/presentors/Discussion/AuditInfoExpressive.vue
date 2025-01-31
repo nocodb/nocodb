@@ -57,7 +57,6 @@ function normalizeMeta(key: string) {
       'circle-filled': 'moon-full',
       'circle-check': 'check-circle-outline',
     }[opts.icon as string] ?? (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
-  console.log({ mta, opts, icn });
   return {
     ...opts,
     ...mta,
@@ -233,7 +232,7 @@ function isShowableValue(value: any) {
           </div>
         </template>
         <template v-else>
-          <span
+          <div
             v-if="isShowableValue(processOldDataFor(columnKey))"
             class="nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 mr-1 border-red-200 rounded-md bg-red-50 line-through"
             :class="{
@@ -256,8 +255,8 @@ function isShowableValue(value: any) {
                 'min-w-[100px]': normalizeMeta(columnKey).is_progress,
               }"
             />
-          </span>
-          <span
+          </div>
+          <div
             v-if="isShowableValue(processNewDataFor(columnKey))"
             class="nc-expressive-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
             :class="{
@@ -280,7 +279,7 @@ function isShowableValue(value: any) {
                 'min-w-[100px]': normalizeMeta(columnKey).is_progress,
               }"
             />
-          </span>
+          </div>
         </template>
       </div>
     </div>

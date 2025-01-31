@@ -4,8 +4,10 @@ import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
 import type { PageDesignerImageWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
 import { PageDesignerPayloadInj } from '../lib/context'
+import { Removable } from '../lib/removable'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
+defineEmits(['deleteCurrentWidget'])
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerImageWidget>
 watch(
@@ -92,6 +94,8 @@ const container = useParentElement()
     </div>
     <Moveable
       ref="moveableRef"
+      :ables="[Removable]"
+      :props="{ removable: true, deleteWidget: () => $emit('deleteCurrentWidget') }"
       :rotatable="false"
       :throttle-rotate="throttleRotate"
       :rotation-position="rotationPosition"

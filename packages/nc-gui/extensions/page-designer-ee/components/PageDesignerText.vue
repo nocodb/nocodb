@@ -6,8 +6,10 @@ import { UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sd
 import dayjs from 'dayjs'
 import type { PageDesignerTextWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
+import { Removable } from '../lib/removable'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
+defineEmits(['deleteCurrentWidget'])
 
 const payload = inject(PageDesignerPayloadInj)!
 const meta = inject(PageDesignerTableTypeInj)
@@ -192,6 +194,8 @@ onMounted(focusTextarea)
     </div>
     <Moveable
       ref="moveableRef"
+      :ables="[Removable]"
+      :props="{ removable: true, deleteWidget: () => $emit('deleteCurrentWidget') }"
       :rotatable="false"
       :throttle-rotate="throttleRotate"
       :rotation-position="rotationPosition"

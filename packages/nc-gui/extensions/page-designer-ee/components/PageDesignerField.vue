@@ -6,8 +6,11 @@ import type { UITypes } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import { type PageDesignerFieldWidget, type PageDesignerWidgetComponentProps, plainCellFields } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
+import { Removable } from '../lib/removable'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
+defineEmits(['deleteCurrentWidget'])
+
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerFieldWidget>
 const row = inject(PageDesignerRowInj)!
@@ -134,6 +137,8 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
     </div>
     <Moveable
       ref="moveableRef"
+      :ables="[Removable]"
+      :props="{ removable: true, deleteWidget: () => $emit('deleteCurrentWidget') }"
       :rotatable="false"
       :throttle-rotate="throttleRotate"
       :rotation-position="rotationPosition"

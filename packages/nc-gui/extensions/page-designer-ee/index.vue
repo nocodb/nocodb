@@ -147,8 +147,13 @@ watch(
         outline: 2px solid gray;
       }
     }
-    &.active-page-widget > .absolute {
-      outline: 2px solid #3366ff;
+    &.active-page-widget {
+      & > .absolute {
+        outline: 2px solid #3366ff;
+      }
+      .moveable-removable {
+        @apply flex;
+      }
     }
   }
   .page-widget:not(.active-page-widget) {
@@ -156,6 +161,9 @@ watch(
     .moveable-rotation-line {
       @apply invisible;
     }
+  }
+  .nc-moveable .moveable-removable {
+    @apply hidden;
   }
   .nc-moveable .moveable-line {
     @apply bg-transparent;

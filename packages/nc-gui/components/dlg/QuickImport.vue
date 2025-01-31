@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import { charsetOptions, type TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { supportedEncodings } from '~/helpers/encodingHelpers'
 
 interface Props {
   modelValue: boolean
@@ -700,11 +699,11 @@ watch(
                   </div>
                 </div>
                 <NcSelect v-model:value="file.encoding" class="ml-auto w-[120px]">
-                  <a-select-option v-for="enc of supportedEncodings" :key="enc.value" :value="enc.value">
+                  <a-select-option v-for="enc of charsetOptions" :key="enc.value" :value="enc.value">
                     <div class="w-full flex items-center gap-2">
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                        <template #title>{{ enc.name }}{{ enc.tooltip ? `(${enc.tooltip})` : '' }}</template>
-                        <span>{{ enc.name }}</span>
+                        <template #title>{{ enc.label }}</template>
+                        <span>{{ enc.label }}</span>
                       </NcTooltip>
                     </div>
                   </a-select-option>

@@ -112,12 +112,13 @@ function onCommentBlur() {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border !border-gray-200 border-1 shadow-sm relative group my-4 nc-audit-comment-block">
-    <div class="flex items-center gap-2 bg-gray-50 pl-5 pr-3 py-2 border-b border-gray-200 rounded-t-lg">
+  <div class="bg-white rounded-lg border !border-gray-200 border-1 relative group my-4 nc-audit-comment-block">
+    <div class="flex items-center gap-2 bg-gray-50 pl-5 pr-3 py-1.9 border-b border-gray-200 rounded-t-lg">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
           display_name: props.comment.displayName,
+          meta: props.comment.created_by_meta
         }"
         class="w-[24px] aspect-square"
       />

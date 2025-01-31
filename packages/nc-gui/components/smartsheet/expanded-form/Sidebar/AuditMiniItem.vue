@@ -131,7 +131,7 @@ function shouldShowRaw(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header">
+    <div class="flex items-center gap-2 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
       <SmartsheetHeaderCellIcon
         :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
         class="!m-0"
@@ -159,7 +159,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-sm font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -191,7 +191,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-sm font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -205,13 +205,13 @@ function shouldShowRaw(key: string) {
       <template v-else-if="shouldShowRaw(columnKey)">
         <div
           v-if="isShowableValue(oldData[columnKey])"
-          class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
+          class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
         >
           {{ oldData[columnKey] }}
         </div>
         <div
           v-if="isShowableValue(newData[columnKey])"
-          class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
+          class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
         >
           {{ newData[columnKey] }}
         </div>
@@ -221,13 +221,13 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
             >
               {{ block.text }}
             </span>
@@ -242,12 +242,12 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
-              class="text-sm text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
+              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre
               v-else-if="block.op === 'added'"
-              class="text-sm text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
+              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre v-else class="inline">{{ block.text }}</pre>
@@ -335,7 +335,7 @@ function shouldShowRaw(key: string) {
   }
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
-  @apply !p-0 transform -translate-y-[2px];
+  @apply !p-0 transform -translate-y-[1px];
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-percent) {
   & > div > div {
@@ -381,7 +381,7 @@ function shouldShowRaw(key: string) {
     & > .ant-tag {
       @apply !m-0 !p-0 !bg-transparent !text-inherit;
       & > span > div + div {
-        @apply flex items-center !text-sm font-weight-500;
+        @apply flex items-center !text-[13px] font-weight-500;
       }
       & > span {
         @apply gap-1;
@@ -428,5 +428,11 @@ function shouldShowRaw(key: string) {
   .ant-tag div + div {
     text-decoration: line-through;
   }
+}
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell .nc-cell .nc-cell-field.nc-cell-field {
+  font-size: 13px !important;
+}
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell .nc-cell :where(.nc-date-picker) span {
+  font-size: 13px !important;
 }
 </style>

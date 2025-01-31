@@ -37,6 +37,10 @@ const createdBy = (
   }
 }
 
+const isCreatedByYou = computed(() => {
+  return createdBy(props.comment) === 'You'
+})
+
 const editedAt = (comment: CommentType) => {
   if (comment.updated_at !== comment.created_at && comment.updated_at) {
     const str = timeAgo(comment.updated_at).replace(' ', '_')
@@ -55,9 +59,6 @@ function editComment(comment: CommentType) {
     ...comment,
   }
   isEditing.value = true
-  // nextTick(() => {
-  //   scrollToComment(comment.id!)
-  // })
 }
 
 function onCancel(e: KeyboardEvent) {
@@ -113,7 +114,11 @@ function onCommentBlur() {
 
 <template>
   <div class="bg-white rounded-lg border !border-gray-200 border-1 relative group my-4 nc-audit-comment-block">
-    <div class="flex items-center gap-2 bg-gray-50 px-4 py-1.9 border-b border-gray-200 rounded-t-lg">
+    <div
+      class="flex items-center gap-2 bg-gray-50 px-4 py-1.9 border-b border-gray-200 rounded-t-lg"
+      :class="{
+        '!bg-[#F0F3FF]': isCreatedByYou
+      }">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
@@ -123,7 +128,7 @@ function onCommentBlur() {
         class="w-[24px] aspect-square"
       />
 
-      <span class="font-medium text-sm">
+      <span class="font-medium text-sm" :class="{ 'text-brand-600': isCreatedByYou }">
         {{ createdBy(props.comment) }}
       </span>
       <span class="text-xs text-gray-500">
@@ -182,8 +187,9 @@ function onCommentBlur() {
       v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
       v-model:value="value"
       autofocus
+      autofocus-to-end
       :hide-options="false"
-      class="cursor-text expanded-form-comment-input !py-2 !px-4 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+      class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
       data-testid="expanded-form-comment-input"
       sync-value-change
       @save="onEditComment"
@@ -194,7 +200,7 @@ function onCommentBlur() {
     <SmartsheetExpandedFormRichComment
       v-else
       :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-      class="!text-small !leading-18px !text-gray-800 px-4 py-4"
+      class="!text-small !leading-18px !text-gray-800 px-4 py-3"
       read-only
       sync-value-change
     />
@@ -204,10 +210,10 @@ function onCommentBlur() {
 <style scoped lang="scss">
 .nc-audit-comment-block::before {
   content: '';
-  @apply absolute -top-4.5 left-8 w-[1px] h-4.5 bg-gray-300;
+  @apply absolute -top-4.5 left-6.75 h-4.5 border-l-1 border-gray-300;
 }
 .nc-audit-comment-block::after {
   content: '';
-  @apply absolute -bottom-4.5 left-8 w-[1px] h-4.5 bg-gray-300;
+  @apply absolute -bottom-4.5 left-6.75 h-4.5 border-l-1 border-gray-300;
 }
 </style>

@@ -14,6 +14,7 @@ const props = withDefaults(
     readOnly?: boolean
     syncValueChange?: boolean
     autofocus?: boolean
+    autofocusToEnd?: boolean
     placeholder?: string
     renderAsText?: boolean
   }>(),
@@ -91,6 +92,13 @@ const editor = useEditor({
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
+  onCreate: () => {
+    if (props.autofocusToEnd) {
+      nextTick(() => {
+        editor.value?.commands.setContent(vModel.value)
+      })
+    }
+  },
   onFocus: () => {
     isFocused.value = true
     emits('focus')
@@ -303,7 +311,7 @@ defineExpose({
           size="xsmall"
           @click="saveComment"
         >
-          <GeneralIcon icon="send" />
+          <GeneralIcon icon="ncSendAlt" />
         </NcButton>
       </div>
     </template>

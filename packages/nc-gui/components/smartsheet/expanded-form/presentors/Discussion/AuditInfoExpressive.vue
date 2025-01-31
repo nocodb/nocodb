@@ -215,14 +215,14 @@ function isShowableValue(value: any) {
           </template>
         </template>
         <template v-else-if="meta[columnKey]?.type === 'JSON'">
-          <div class="w-full">
+          <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
               class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1"
               >{{ processOldDataFor(columnKey) }}</pre
             >
           </div>
-          <div class="w-full">
+          <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
               class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1"
@@ -313,7 +313,7 @@ function isShowableValue(value: any) {
   }
 }
 .nc-expressive-mini-item-cell :deep(.nc-cell-rating .ant-rate) {
-  @apply !p-0;
+  @apply !p-0 transform -translate-y-[1px];
 }
 .nc-expressive-mini-item-cell :deep(.nc-cell-percent) {
   & > div > div {
@@ -433,5 +433,8 @@ function isShowableValue(value: any) {
     .nc-cell.nc-cell-number .nc-cell-field
   ) {
   font-size: 13px !important;
+}
+.nc-expressive-mini-item-cell .nc-cell-field.text-ellipsis {
+  @apply flex items-center;
 }
 </style>

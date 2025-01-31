@@ -194,10 +194,10 @@ function onCommentBlur() {
 <style scoped lang="scss">
 .nc-audit-comment-block::before {
   content: '';
-  @apply absolute -top-4.5 left-5.75 w-[1px] h-4.5 bg-gray-200;
+  @apply absolute -top-4.5 left-5.75 w-[1px] h-4.5 bg-gray-300;
 }
 .nc-audit-comment-block::after {
   content: '';
-  @apply absolute -bottom-4.5 left-5.75 w-[1px] h-4.5 bg-gray-200;
+  @apply absolute -bottom-4.5 left-5.75 w-[1px] h-4.5 bg-gray-300;
 }
 </style>

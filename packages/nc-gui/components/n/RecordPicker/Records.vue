@@ -37,36 +37,23 @@ const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = 
   disableSmartsheet: true,
 })
 
-const { isMobileMode } = useGlobal()
-
 const _fields = computedInject(FieldsInj, (_fields) => {
   if (_Fields.value?.length) {
-    return (meta.value.columns ?? [])
-      .filter(
-        (col) =>
-          _Fields.value.includes(col.title) &&
-          !isSystemColumn(col) &&
-          !isPrimary(col) &&
-          !isLinksOrLTAR(col) &&
-          !isAttachment(col) &&
-          !isCreatedOrLastModifiedTimeCol(col),
-      )
-      .slice(0, isMobileMode.value ? 1 : 3)
-  }
-
-  return (meta.value.columns ?? [])
-    .filter(
+    return (meta.value.columns ?? []).filter(
       (col) =>
+        _Fields.value.includes(col.title) &&
         !isSystemColumn(col) &&
         !isPrimary(col) &&
         !isLinksOrLTAR(col) &&
-        !isAttachment(col) &&
         !isCreatedOrLastModifiedTimeCol(col),
     )
+  }
+
+  return (meta.value.columns ?? [])
+    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col))
     .sort((a, b) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
-    .slice(0, isMobileMode.value ? 1 : 3)
 })
 
 const scrollWrapper = ref()

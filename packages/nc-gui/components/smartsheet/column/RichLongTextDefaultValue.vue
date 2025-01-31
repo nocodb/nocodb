@@ -16,7 +16,7 @@ const { isAiModeFieldModal } = usePredictFields()
 const cdfValue = computed({
   get: () => vModel.value.cdf,
   set: (value) => {
-    if (value === '<br />') {
+    if (value === '<br />' || value === '<br>') {
       vModel.value.cdf = null
     } else {
       vModel.value.cdf = value

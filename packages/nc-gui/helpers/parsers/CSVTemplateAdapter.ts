@@ -215,7 +215,6 @@ export default class CSVTemplateAdapter {
 
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
-        console.log((source as { encoding?: string }).encoding)
         parse(parseSource, {
           download: that.config.importFromURL,
           // worker: true,

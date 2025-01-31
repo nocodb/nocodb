@@ -150,7 +150,7 @@ if (isWorkerSupport && process.env.NODE_ENV === 'production') {
 }
 
 const filterOption = (input = '', params: { key: string }) => {
-  return params.key?.toLowerCase().includes(input?.toLowerCase())
+  return params.key?.toLowerCase().includes(input.toLowerCase())
 }
 
 const isPreImportFileFilled = computed(() => {

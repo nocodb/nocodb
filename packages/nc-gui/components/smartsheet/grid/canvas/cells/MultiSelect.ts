@@ -22,6 +22,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
     const optionsMap = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap
     let count = 0
+    let line = 1
     for (const option of selectedOptions) {
       const text = option?.trim() ?? ''
 
@@ -35,7 +36,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
       if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
         const ellipsisWidth = ctx.measureText('...').width
-        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0) {
+
+        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
             x: x + padding + tagSpacing, // Align `...` at the end
@@ -54,6 +56,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         // Wrap to the next line
         x = _x + padding // Reset x to start of the row
         y += tagHeight + tagSpacing // Move to the next line
+        line += 1
       }
 
       renderTag(ctx, {

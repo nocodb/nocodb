@@ -70,10 +70,12 @@ const isAttachmentField = computed(() => isAttachment(widget.value.field))
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ?? {})[widget.value.field.title ?? '']?.[0])?.[0])
+
+const fieldTitle = computed(() => widget.value.field.title ?? '')
 </script>
 
 <template>
-  <div v-if="widget && !isRowEmpty(row, widget.field)" class="field-widget">
+  <div v-if="widget && !isRowEmpty(row!, widget.field)" class="field-widget">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
@@ -109,7 +111,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
             <SmartsheetPlainCell
               v-if="isPlainCell"
               :column="widget.field"
-              :model-value="row.row?.[widget.field.title]"
+              :model-value="row.row?.[fieldTitle]"
               read-only
               :edit-enabled="false"
               class="pointer-events-none overflow-hidden"
@@ -117,7 +119,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
             <SmartsheetVirtualCell
               v-else-if="isVirtualCol(widget.field)"
               :column="widget.field"
-              :model-value="row.row?.[widget.field.title]"
+              :model-value="row.row?.[fieldTitle]"
               read-only
               :edit-enabled="false"
               class="pointer-events-none overflow-hidden"
@@ -125,14 +127,14 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
             <SmartsheetCell
               v-else
               :column="widget.field"
-              :model-value="row.row?.[widget.field.title]"
+              :model-value="row.row?.[fieldTitle]"
               read-only
               :edit-enabled="false"
               class="pointer-events-none overflow-hidden"
             />
           </SmartsheetRow>
         </template>
-        <span v-else class="text-nc-content-gray-muted print-hide">{{ widget.field.title }}</span>
+        <span v-else class="text-nc-content-gray-muted print-hide">{{ fieldTitle }}</span>
       </div>
     </div>
     <Moveable

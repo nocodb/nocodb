@@ -197,8 +197,7 @@ onUnmounted(() => {
   .page-widget {
     & > .absolute {
       outline: 2px solid #ddd;
-      transition: outline 200ms ease-in-out;
-      @apply rounded-[2px] cursor-pointer;
+      @apply rounded-[2px] cursor-pointer transition-[outline] duration-200 ease-in-out;
     }
     &:hover {
       > .absolute {
@@ -263,14 +262,14 @@ onUnmounted(() => {
 
   .border-inputs {
     .ant-input {
-      @apply !rounded-lg h-8 w-8 text-center;
-      padding: 2px;
+      @apply !rounded-lg h-8 w-8 text-center p-[2px];
+
       -moz-appearance: textfield; /*For FireFox*/
 
       &::-webkit-inner-spin-button {
         /*For Webkits like Chrome and Safari*/
         -webkit-appearance: none;
-        margin: 0;
+        @apply m-0;
       }
     }
   }
@@ -319,13 +318,10 @@ onUnmounted(() => {
     @apply m-0 shadow-none;
   }
   body {
-    visibility: hidden;
+    @apply invisible;
   }
   #printPage {
-    visibility: visible;
-    position: absolute;
-    left: 0;
-    top: 0;
+    @apply visible absolute left-0 top-0;
   }
 }
 </style>

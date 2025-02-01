@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
-import { UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
+import { type ColumnType, UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import type { PageDesignerTextWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
@@ -27,7 +27,7 @@ const columnByTitle = computed(() => {
   return (meta.value.columns ?? []).reduce((map, cur) => {
     map[cur?.title ?? ''] = cur
     return map
-  }, {} as Record<string, any>)
+  }, {} as Record<string, ColumnType>)
 })
 
 const draggable = true
@@ -90,13 +90,13 @@ const unsupportedTypes = [
 const dateTimeTypes = [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.LastModifiedBy]
 const timeTypes = [UITypes.Time]
 
-const getDateTimeFormat = (columnMeta) => {
-  const dateFormat = parseProp(columnMeta)?.date_format ?? dateFormats[0]
-  const timeFormat = parseProp(columnMeta)?.time_format ?? timeFormats[0]
+const getDateTimeFormat = (colMeta: any) => {
+  const dateFormat = colMeta?.date_format ?? dateFormats[0]
+  const timeFormat = colMeta?.time_format ?? timeFormats[0]
   return `${dateFormat} ${timeFormat}`
 }
 
-const getDecimal = (value, colMeta) => {
+const getDecimal = (value: any, colMeta: any) => {
   if (value === null) return null
 
   if (isNaN(Number(value))) return null
@@ -112,30 +112,32 @@ const getDecimal = (value, colMeta) => {
 }
 
 function getTextualRepresentationForColumn(column: string, record: Record<string, unknown>) {
-  const colMeta = columnByTitle.value[column]
-  const uidt = colMeta.uidt as UITypes
   const raw = `{${column}}`
+  const colType = columnByTitle.value[column]
+  if (!colType) return raw
+
+  const colMeta = parseProp(colType.meta)
+  const uidt = colType.uidt as UITypes
   const value = record[column]
-  const isRichTextLongText = uidt === UITypes.LongText && colMeta.meta.richMode
+  const isRichTextLongText = uidt === UITypes.LongText && colMeta.richMode
   if (isRichTextLongText || unsupportedTypes.includes(uidt)) return raw
   else if (uidt === UITypes.Currency) {
-    const currencyMeta = colMeta.meta
-    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+    return new Intl.NumberFormat(colMeta.currency_locale || 'en-US', {
       style: 'currency',
-      currency: currencyMeta.currency_code || 'USD',
+      currency: colMeta.currency_code || 'USD',
     }).format(value as number)
   } else if (uidt === UITypes.Checkbox) return !!value
   else if (uidt === UITypes.Percent) return value && !isNaN(Number(value)) ? `${value}%` : value ?? raw
   else if (dateTimeTypes.includes(uidt)) {
-    const dateObj = dayjs(value)
+    const dateObj = dayjs(value as string)
     if (!dateObj.isValid()) return raw
     return dateObj.utc().local().format(getDateTimeFormat(colMeta))
   } else if (timeTypes.includes(uidt)) {
-    const dateObj = dayjs(value)
+    const dateObj = dayjs(value as string)
     if (!dateObj.isValid()) return raw
-    return dateObj.format(parseProp(colMeta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+    return dateObj.format(colMeta.is12hrFormat ? 'hh:mm A' : 'HH:mm')
   } else if (uidt === UITypes.Duration) {
-    return convertMS2Duration(value, parseProp(colMeta)?.duration || 0) ?? raw
+    return convertMS2Duration(value, colMeta?.duration || 0) ?? raw
   } else if (uidt === UITypes.Decimal) {
     return getDecimal(value, colMeta) ?? raw
   } else if (Array.isArray(value)) return value.join(', ')

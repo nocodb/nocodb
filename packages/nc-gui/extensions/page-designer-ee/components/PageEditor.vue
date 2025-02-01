@@ -177,22 +177,18 @@ function onWidgetClick(id: string | number) {
 .print-page-layout-wrapper {
   @apply bg-nc-bg-gray-extralight;
   .page {
-    margin: 40px;
-    @apply bg-nc-bg-default;
+    @apply bg-nc-bg-default m-[40px];
     box-shadow: 0px 0px 12px 2px rgba(0, 0, 0, 0.08);
     .grid-lines {
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
+      @apply opacity-0 transition-opacity duration-[0.5s] ease-in-out;
       > div {
-        background: lightgray;
-        opacity: 40%;
-        position: absolute;
+        @apply opacity-[40%] absolute bg-nc-bg-gray-dark;
       }
     }
 
     &:hover {
       .grid-lines {
-        opacity: 1;
+        @apply opacity-100;
       }
     }
   }

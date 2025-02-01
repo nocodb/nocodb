@@ -20,13 +20,9 @@ const isOpen = ref(true)
 
 <style lang="scss" scoped>
 .grouped-settings {
-  padding: 16px 24px;
-  gap: 16px;
+  @apply gap-4 py-4 px-6 border-b-1 border-nc-border-gray-medium;
   header > span {
-    font-size: 16px;
-    font-weight: 700;
+    @apply text-[16px] font-700;
   }
-  border-bottom: 1px solid;
-  @apply border-nc-border-gray-medium;
 }
 </style>

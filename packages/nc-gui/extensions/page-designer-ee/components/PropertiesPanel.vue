@@ -34,7 +34,6 @@ const propertiesComponent = computed(() => {
 
 <style lang="scss" scoped>
 .properties-panel {
-  border-left: 1px solid;
-  @apply border-nc-border-gray-medium;
+  @apply border-l-1 border-nc-border-gray-medium;
 }
 </style>

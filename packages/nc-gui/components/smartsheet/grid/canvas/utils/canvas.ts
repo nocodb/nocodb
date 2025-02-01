@@ -1,10 +1,22 @@
 import { LRUCache } from 'lru-cache'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
-import type { RenderSingleLineTextProps, RenderTagProps } from './types'
+import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
 })
+
+const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> = new LRUCache({
+  max: 1000,
+})
+
+/**
+ * It is required to remove cache on row height change or even we can clear cache on unmount table component
+ */
+export const clearTextCache = () => {
+  singleLineTextCache.clear()
+  multiLineTextCache.clear()
+}
 
 interface TruncateTextWithInfoType {
   text: string
@@ -154,6 +166,23 @@ export const renderCheckbox = (
   }
 }
 
+const drawUnderline = (
+  ctx: CanvasRenderingContext2D,
+  { x, y, width, fontSize = 13, strokeStyle }: { x: number; y: number; width: number; fontSize?: number; strokeStyle?: string },
+) => {
+  ctx.beginPath()
+
+  ctx.moveTo(x, y + fontSize / 2)
+  ctx.lineTo(x + width, y + fontSize / 2)
+
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle
+  }
+
+  ctx.lineWidth = 1
+  ctx.stroke()
+}
+
 export const renderSingleLineText = (
   ctx: CanvasRenderingContext2D,
   params: RenderSingleLineTextProps,
@@ -223,22 +252,165 @@ export const renderSingleLineText = (
     ctx.fillText(truncatedText, x, y + yOffset)
 
     if (underline) {
-      ctx.beginPath()
-      ctx.moveTo(x, y + yOffset + fontSize / 2)
-      ctx.lineTo(x + width, y + yOffset + fontSize / 2)
-
-      if (fillStyle) {
-        ctx.strokeStyle = fillStyle
-      }
-      ctx.lineWidth = 1
-
-      ctx.stroke()
+      drawUnderline(ctx, { x, y: y + yOffset, fontSize, width, strokeStyle: fillStyle })
     }
 
     return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
   }
 
   return { text: truncatedText, width }
+}
+
+const wrapTextToLines = (
+  ctx: CanvasRenderingContext2D,
+  { text, maxWidth, maxLines }: { text: string; maxWidth: number; maxLines: number },
+): string[] => {
+  const words = text.split(' ')
+  let lines: string[] = []
+  let currentLine = ''
+  let currentLineWidth = 0
+
+  for (const word of words) {
+    const wordWidth = ctx.measureText(`${currentLine ? ' ' : ''}${word}`).width
+
+    if (currentLineWidth + wordWidth > maxWidth) {
+      lines.push(currentLine)
+      currentLine = word
+      currentLineWidth = ctx.measureText(word).width
+
+      if (lines.length === maxLines) {
+        lines[lines.length - 1] += '...' // Truncate with ellipsis
+        break
+      }
+    } else {
+      currentLine += (currentLine ? ' ' : '') + word
+      currentLineWidth += wordWidth
+    }
+  }
+
+  if (lines.length < maxLines && currentLine) {
+    lines.push(currentLine)
+  }
+
+  return lines
+}
+
+const renderLines = (
+  ctx: CanvasRenderingContext2D,
+  {
+    lines,
+    x,
+    y,
+    textAlign,
+    verticalAlign,
+    lineHeight,
+    fontSize,
+    fillStyle,
+    underline,
+  }: {
+    lines: string[]
+    x: number
+    y: number
+    textAlign: CanvasTextAlign
+    verticalAlign: CanvasTextBaseline
+    lineHeight: number
+    fontSize: number
+    fillStyle?: string
+    underline?: boolean
+  },
+) => {
+  lines.forEach((line, index) => {
+    const lineY = y + index * lineHeight
+    ctx.fillText(line, x, lineY)
+
+    if (underline) {
+      drawUnderline(ctx, { x, y: lineY, width: ctx.measureText(line).width, fontSize })
+    }
+  })
+}
+
+export const renderMultiLineText = (
+  ctx: CanvasRenderingContext2D,
+  params: RenderMultiLineTextProps,
+): {
+  lines: string[]
+  width: number
+  x?: number
+  y?: number
+} => {
+  const {
+    x = 0,
+    y = 0,
+    text,
+    fillStyle,
+    height,
+    fontSize = 13, // In grid by default we have 13px font size
+    lineHeight = 16, // In grid by default we have 16px line height
+    fontFamily = '500 13px Manrope',
+    textAlign = 'left',
+    verticalAlign = 'middle',
+    render = true,
+    underline,
+    py = 10,
+  } = params
+  let { maxWidth = Infinity, maxLines } = params
+
+  if (maxWidth < 0) {
+    maxWidth = 0
+  }
+
+  if (ncIsUndefined(maxLines)) {
+    if (rowHeightInPx['1'] === height) {
+      maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
+    } else if (height) {
+      maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
+    } else {
+      maxLines = 1
+    }
+  }
+
+  let lines: string[] = []
+  let width = 0
+
+  if (fontFamily) {
+    ctx.font = fontFamily
+  }
+
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}`
+  const cachedText = multiLineTextCache.get(cacheKey)
+
+  if (cachedText) {
+    lines = cachedText.lines
+    width = cachedText.width
+  } else {
+    lines = wrapTextToLines(ctx, { text, maxWidth, maxLines })
+    width = Math.min(...lines.map((line) => ctx.measureText(line).width), maxWidth)
+
+    multiLineTextCache.set(cacheKey, { lines, width })
+  }
+
+  if (render) {
+    const yOffset =
+      verticalAlign === 'middle'
+        ? height && rowHeightInPx['1'] === height
+          ? height / 2
+          : fontSize / 2 + (py ?? 0)
+        : 0 + (py ?? 0)
+
+    ctx.textAlign = textAlign
+    ctx.textBaseline = verticalAlign
+
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle
+      ctx.strokeStyle = fillStyle
+    }
+    // Render the text lines
+    renderLines(ctx, { lines, x, y: y + yOffset, textAlign, verticalAlign, lineHeight, fontSize, fillStyle, underline })
+
+    return { lines, width, x: x + width, y: y + yOffset + (lines.length - 1) * lineHeight }
+  }
+
+  return { lines, width }
 }
 
 export const renderTag = (ctx: CanvasRenderingContext2D, { x, y, height, width, fillStyle, radius }: RenderTagProps) => {

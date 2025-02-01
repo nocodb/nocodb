@@ -184,7 +184,7 @@ onUnmounted(() => {
               Edit Layout
             </NcButton>
           </div>
-          <PageEditor style="zoom: 50%" />
+          <PageEditor mini-preview />
         </div>
       </div>
       <PageEditor v-else />
@@ -214,6 +214,17 @@ onUnmounted(() => {
       }
       .moveable-removable {
         @apply flex;
+      }
+    }
+  }
+  .mini-layout {
+    .grid-lines {
+      @apply hidden;
+    }
+    .page-widget {
+      @apply pointer-events-none;
+      > .absolute {
+        outline: none !important;
       }
     }
   }

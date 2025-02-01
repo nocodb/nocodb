@@ -8,6 +8,10 @@ import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 import PageDesignerField from './PageDesignerField.vue'
 
+const props = defineProps<{
+  miniPreview?: boolean
+}>()
+
 const payload = inject(PageDesignerPayloadInj)!
 
 let deletedWidgets: PageDesignerWidget[] = []
@@ -129,11 +133,23 @@ watch(
 function onWidgetClick(id: string | number) {
   payload.value.currentWidgetId = id
 }
+
+const el = useTemplateRef('el')
+const { width } = useElementBounding(el)
+
+const zoomLevel = computed(() => {
+  if (!props.miniPreview) return 100
+
+  const zoom = ((width.value - 80) / pageSize.value.width) * 100
+  if (zoom > 100) return 100
+  return zoom
+})
 </script>
 
 <template>
-  <div class="h-full w-full flex">
+  <div class="h-full w-full flex" :style="{ zoom: `${zoomLevel}%` }">
     <div
+      ref="el"
       class="print-page-layout-wrapper flex-1 overflow-auto grid place-items-center"
       @drop="onDropped"
       @mousedown="unselectCurrentWidget"

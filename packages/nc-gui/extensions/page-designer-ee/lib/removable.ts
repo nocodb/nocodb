@@ -11,10 +11,11 @@ export const Removable = {
       {
         key: 'removable',
         className:
-          'moveable-removable border-0 border-nc-border-brand text-nc-fill-primary absolute rounded-[4px] cursor-pointer',
+          'moveable-removable absolute w-5 h-5 px-2 bg-white rounded-md  border-1 cursor-pointer border-nc-border-gray-medium justify-center items-center gap-2 inline-flex',
         style: {
-          left: `${rect.width - 14}px`,
-          top: `-24px`,
+          left: `${rect.width - 9}px`,
+          top: `-10px`,
+          boxShadow: '0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02)',
         },
         onClick() {
           moveable.props?.deleteWidget()
@@ -23,9 +24,9 @@ export const Removable = {
       renderer.createElement(
         'span',
         {
-          class: 'material-symbols text-red-500 text-[18px]',
+          class: 'material-symbols text-nc-content-gray-subtle text-[16px]',
         },
-        'delete',
+        'close',
       ),
     )
   },

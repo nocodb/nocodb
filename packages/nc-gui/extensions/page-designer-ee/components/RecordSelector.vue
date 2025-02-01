@@ -20,24 +20,30 @@ const eventHook = inject(PageDesignerEventHookInj)!
       class="page-designer-record-picker flex-1"
     />
     <div class="flex record-navigator">
-      <NcButton
-        size="small"
-        type="secondary"
-        class="prev"
-        :disabled="row?.rowMeta.rowIndex === 0"
-        @click="eventHook.trigger('previousRecord')"
-      >
-        <GeneralIcon icon="arrowLeft" />
-      </NcButton>
-      <NcButton
-        size="small"
-        type="secondary"
-        class="next"
-        :disabled="!!row?.rowMeta.isLastRow"
-        @click="eventHook.trigger('nextRecord')"
-      >
-        <GeneralIcon icon="arrowRight" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton
+          size="small"
+          type="secondary"
+          class="prev"
+          :disabled="row?.rowMeta.rowIndex === 0"
+          @click="eventHook.trigger('previousRecord')"
+        >
+          <GeneralIcon icon="arrowLeft" />
+        </NcButton>
+        <template #title>Previous Record</template>
+      </NcTooltip>
+      <NcTooltip>
+        <NcButton
+          size="small"
+          type="secondary"
+          class="next"
+          :disabled="!!row?.rowMeta.isLastRow"
+          @click="eventHook.trigger('nextRecord')"
+        >
+          <GeneralIcon icon="arrowRight" />
+        </NcButton>
+        <template #title>Next Record</template>
+      </NcTooltip>
     </div>
   </div>
 </template>

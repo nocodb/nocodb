@@ -197,7 +197,8 @@ onUnmounted(() => {
   .page-widget {
     & > .absolute {
       outline: 2px solid #ddd;
-      @apply rounded-[2px] cursor-pointer transition-[outline] duration-200 ease-in-out;
+      transition: outline 200ms ease-in-out;
+      @apply rounded-[2px] cursor-pointer;
     }
     &:hover {
       > .absolute {

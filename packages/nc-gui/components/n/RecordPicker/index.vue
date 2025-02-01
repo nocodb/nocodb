@@ -191,6 +191,7 @@ const resolveInput = (row: Row) => {
     }
   }
   input {
+    @apply !caret-nc-fill-primary;
     &::placeholder {
       @apply text-gray-500;
     }

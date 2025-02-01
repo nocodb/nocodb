@@ -179,6 +179,7 @@ onMounted(focusTextarea)
           borderRadius: `${widget.borderRadius || 0}px`,
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
+          overflow: 'hidden',
         }"
         class="px-2 py-1"
       >

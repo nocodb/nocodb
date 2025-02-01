@@ -95,6 +95,7 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
           color: widget.textColor,
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
+          overflow: 'hidden',
         }"
         :class="{ 'px-2 py-1': !isAttachmentField }"
       >

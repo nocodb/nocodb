@@ -137,5 +137,8 @@ const getIcon = (c: ColumnType) =>
   :deep(.nc-field-elements-search .ant-input::placeholder) {
     @apply text-gray-500;
   }
+  :deep(.nc-field-elements-search input) {
+    @apply !rounded-none caret-nc-fill-primary;
+  }
 }
 </style>

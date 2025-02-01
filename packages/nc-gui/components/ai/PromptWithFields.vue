@@ -32,7 +32,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'keydown'])
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -203,7 +203,13 @@ useEventListener(el, 'focusPromptWithFields', () => {
 
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
-    <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
+    <EditorContent
+      ref="editorDom"
+      :editor="editor"
+      @keydown="$emit('keydown', $event)"
+      @keydown.alt.enter.stop
+      @keydown.shift.enter.stop
+    />
 
     <NcButton
       size="xs"

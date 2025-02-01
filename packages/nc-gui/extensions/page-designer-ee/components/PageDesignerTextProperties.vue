@@ -51,7 +51,13 @@ watch(
       <h1 class="m-0">Text</h1>
     </header>
     <GroupedSettings title="Content">
-      <AiPromptWithFields id="textWidgetContent" v-model="textWidget.value" :options="columns" placeholder="Lorem ipsum..." />
+      <AiPromptWithFields
+        id="textWidgetContent"
+        v-model="textWidget.value"
+        :options="columns"
+        placeholder="Lorem ipsum..."
+        @keydown.delete="!textWidget.value && $emit('deleteCurrentWidget')"
+      />
     </GroupedSettings>
     <GroupedSettings title="Alignment">
       <div class="flex gap-3">

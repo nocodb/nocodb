@@ -89,6 +89,8 @@ export class PageDesignerWidgetFactory {
   }
 
   static createEmptyTextWidget({ x, y } = { x: 0, y: 0 }): PageDesignerTextWidget {
+    const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.TEXT)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
     return {
       id: 0,
       textColor: BLACK,
@@ -108,11 +110,13 @@ export class PageDesignerWidgetFactory {
       type: PageDesignerWidgetType.TEXT,
       value: '',
       zIndex: 0,
-      cssStyle: `width: 200px; height: 30px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 
   static createEmptyImageWidget({ x, y } = { x: 0, y: 0 }): PageDesignerImageWidget {
+    const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.IMAGE)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
     return {
       id: 0,
       backgroundColor: WHITE,
@@ -126,12 +130,13 @@ export class PageDesignerWidgetFactory {
       imageSrc: '',
       objectFit: 'contain',
       zIndex: 0,
-      cssStyle: `width: 200px; height: 200px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 30px;`,
     }
   }
 
   static createEmptyDividerWidget({ x, y } = { x: 0, y: 0 }): PageDesignerDividerWidget {
-    const thickness = 5
+    const { width, height: thickness } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.DIVIDER)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height: thickness })
     return {
       id: 0,
       backgroundColor: BLACK,
@@ -139,21 +144,13 @@ export class PageDesignerWidgetFactory {
       angle: 0,
       zIndex: 0,
       thickness,
-      cssStyle: `width: 500px; height: ${thickness}px; transform: translate(${x}px, ${y}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 1px;`,
+      cssStyle: `width: ${width}px; height: ${thickness}px; transform: translate(${newX}px, ${newY}px) rotate(0deg); max-width: auto;max-height: auto;min-width: 10px;min-height: 1px;`,
     }
   }
 
   static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
-    let height = 30
-    let width = 200
-    if ([UITypes.Barcode, UITypes.QrCode].includes(field.uidt! as UITypes)) {
-      height = 100
-      width = 100
-    }
-    if (isAttachment(field) || isTextArea(field)) {
-      height = 200
-      width = 200
-    }
+    const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.FIELD, field)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
     return {
       id: 0,
       field,
@@ -174,7 +171,7 @@ export class PageDesignerWidgetFactory {
       objectFit: 'contain',
       type: PageDesignerWidgetType.FIELD,
       zIndex: 0,
-      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${x}px, ${y}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }
   }
 }
@@ -227,4 +224,39 @@ export const objectFitLabels: Record<string, string> = {
   contain: 'Fit',
   cover: 'Fill',
   fill: 'Stretch',
+}
+
+export function getInitialSizeHeightOfWidget(type: PageDesignerWidgetType, field?: ColumnType) {
+  let width = 200
+  let height = 200
+  if (field) {
+    width = 200
+    height = 30
+    if ([UITypes.Barcode, UITypes.QrCode].includes(field.uidt! as UITypes)) {
+      width = 100
+      height = 100
+    }
+    if (isAttachment(field) || isTextArea(field)) {
+      width = 200
+      height = 200
+    }
+  } else if (type === PageDesignerWidgetType.DIVIDER) {
+    width = 500
+    height = 5
+  } else if (type === PageDesignerWidgetType.IMAGE) {
+    width = 200
+    height = 200
+  } else if (type === PageDesignerWidgetType.TEXT) {
+    width = 200
+    height = 30
+  }
+  return { height, width }
+}
+
+export function centerCursor({ x, y }: { x: number; y: number }, { width, height }: { width: number; height: number }) {
+  if (x === 0 && y === 0) return { x, y }
+
+  x -= width / 2
+  y -= height / 2
+  return { x, y }
 }

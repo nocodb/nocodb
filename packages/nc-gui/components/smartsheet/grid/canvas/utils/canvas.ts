@@ -437,12 +437,24 @@ export const renderMultiLineText = (
   return { lines, width }
 }
 
-export const renderTag = (ctx: CanvasRenderingContext2D, { x, y, height, width, fillStyle, radius }: RenderTagProps) => {
+export const renderTag = (
+  ctx: CanvasRenderingContext2D,
+  { x, y, height, width, fillStyle, radius, borderColor, borderWidth }: RenderTagProps,
+) => {
   if (width < 0) {
     width = 0
   }
-  ctx.fillStyle = fillStyle
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle
+  }
   ctx.beginPath()
   ctx.roundRect(x, y, width, height, radius)
   ctx.fill()
+
+  // Add border if borderColor and borderWidth are provided
+  if (borderColor && borderWidth) {
+    ctx.strokeStyle = borderColor
+    ctx.lineWidth = borderWidth
+    ctx.stroke()
+  }
 }

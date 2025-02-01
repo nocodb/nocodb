@@ -9,9 +9,8 @@ const eventHook = inject(PageDesignerEventHookInj)!
 </script>
 
 <template>
-  <div class="flex gap-3 w-full">
+  <div v-if="payload.selectedTableId" class="flex gap-3 w-full">
     <NRecordPicker
-      v-if="payload.selectedTableId"
       :key="payload.selectedTableId + payload.selectedViewId"
       v-model:model-value="row"
       :label="row ? row.row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"

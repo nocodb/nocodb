@@ -2,8 +2,6 @@
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 
-const emit = defineEmits(['saveChanges'])
-
 const savedPayloads = inject(PageDesignerPayloadInj)!
 const views = ref<ViewType[]>([])
 
@@ -35,15 +33,6 @@ const viewList = computed(() => {
   )
 })
 
-const router = useRouter()
-const route = router.currentRoute
-
-const activeTableId = computed(() => route.value.params.viewId as string | undefined)
-
-const activeViewTitleOrId = computed(() => {
-  return route.value.params.viewTitle
-})
-
 const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
@@ -53,26 +42,18 @@ async function reloadViews() {
   views.value = await getViewsForTable(savedPayloads.value.selectedTableId)
 }
 
-async function onTableSelect(tableId?: string) {
-  if (!tableId) {
-    savedPayloads.value.selectedTableId = activeTableId.value
-    await reloadViews()
-    savedPayloads.value.selectedViewId = activeViewTitleOrId.value
-      ? views.value.find((view) => view.type === ViewTypes.GRID && view.id === activeViewTitleOrId.value)?.id
-      : views.value.find((view) => view.is_default)?.id
-  } else {
-    savedPayloads.value.selectedTableId = tableId
-    await reloadViews()
-    savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
-  }
+watch(() => savedPayloads.value.selectedTableId, reloadViews)
 
-  emit('saveChanges')
+async function onTableSelect(tableId?: string) {
+  if (!tableId) return
+
+  savedPayloads.value.selectedTableId = tableId
+  await reloadViews()
+  savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
 }
 
 const onViewSelect = async (viewId: string) => {
   savedPayloads.value.selectedViewId = viewId
-
-  emit('saveChanges')
 }
 
 onMounted(async () => {
@@ -80,10 +61,6 @@ onMounted(async () => {
   if (savedPayloads.value.selectedTableId && !availableTableIds.has(savedPayloads.value.selectedTableId)) {
     savedPayloads.value.selectedTableId = ''
     savedPayloads.value.selectedViewId = ''
-  }
-  await reloadViews()
-  if (!savedPayloads.value.selectedTableId && tableList.value.find((table) => table.value === activeTableId.value)) {
-    onTableSelect()
   }
 })
 </script>

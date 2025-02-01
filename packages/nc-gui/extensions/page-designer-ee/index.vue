@@ -11,7 +11,7 @@ import RecordSelector from './components/RecordSelector.vue'
 
 const KV_STORE_KEY = 'pageDesigner'
 
-const { extension, fullscreen, getTableMeta } = useExtensionHelperOrThrow()
+const { extension, fullscreen, getTableMeta, activeTableId, activeViewId, getViewsForTable } = useExtensionHelperOrThrow()
 
 const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
 
@@ -58,7 +58,7 @@ watch(
     viewMeta,
   ],
   async () => {
-    if (row.value || !meta.value || !viewMeta.value) return
+    if (row.value || !meta.value || !viewMeta.value || meta.value.id !== savedPayload.value.selectedTableId) return
 
     const rows = await loadData()
     if (rows.length) {
@@ -150,6 +150,13 @@ onMounted(async () => {
   if (saved) {
     savedPayload.value = saved
     savedPayload.value.currentWidgetId = -1
+  } else {
+    savedPayload.value.selectedTableId = activeTableId.value ?? ''
+    savedPayload.value.selectedViewId = activeViewId.value ?? ''
+    if (savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
+      const views = await getViewsForTable(savedPayload.value.selectedTableId)
+      savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id
+    }
   }
   eventHook.on(onEventHookTrigger)
 })

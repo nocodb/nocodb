@@ -73,7 +73,6 @@ async function _formulaQueryBuilder(params: {
   baseUsers?: (Partial<User> & BaseUser)[];
 }) {
   const getLinkedColumnDisplayValue = async (params: {
-    baseModelSqlv2: BaseModelSqlv2;
     model: Model;
     aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
   }) => {
@@ -83,18 +82,15 @@ async function _formulaQueryBuilder(params: {
     }
     const formulOption = await params.model.displayValue.getColOptions<
       FormulaColumn | ButtonColumn
-    >(params.baseModelSqlv2.context);
+    >(baseModelSqlv2.context);
     if (displayValueColumn.uidt !== UITypes.Formula) {
       return displayValueColumn.column_name;
     } else {
       const innerQb = await _formulaQueryBuilder({
-        baseModelSqlv2: await Model.getBaseModelSQL(
-          params.baseModelSqlv2.context,
-          {
-            model: params.model,
-            dbDriver: params.baseModelSqlv2.dbDriver,
-          },
-        ),
+        baseModelSqlv2: await Model.getBaseModelSQL(baseModelSqlv2.context, {
+          model: params.model,
+          dbDriver: baseModelSqlv2.dbDriver,
+        }),
         _tree: formulOption.formula,
         alias,
         model: params.model,
@@ -672,7 +668,6 @@ async function _formulaQueryBuilder(params: {
           let selectQb;
           if (relationType === RelationTypes.BELONGS_TO) {
             const linkedDisplayValue = await getLinkedColumnDisplayValue({
-              baseModelSqlv2: baseModelSqlv2,
               model: parentModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
             });
@@ -708,7 +703,6 @@ async function _formulaQueryBuilder(params: {
                 ]),
               );
             const childDisplayValue = await getLinkedColumnDisplayValue({
-              baseModelSqlv2,
               model: childModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
             });

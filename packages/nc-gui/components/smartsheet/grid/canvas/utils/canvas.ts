@@ -261,35 +261,49 @@ export const renderSingleLineText = (
   return { text: truncatedText, width }
 }
 
-const wrapTextToLines = (
+export const wrapTextToLines = (
   ctx: CanvasRenderingContext2D,
   { text, maxWidth, maxLines }: { text: string; maxWidth: number; maxLines: number },
 ): string[] => {
-  const words = text.split(' ')
-  let lines: string[] = []
-  let currentLine = ''
-  let currentLineWidth = 0
+  const lines: string[] = []
+  let remainingText = text
 
-  for (const word of words) {
-    const wordWidth = ctx.measureText(`${currentLine ? ' ' : ''}${word}`).width
+  while (remainingText.length > 0 && lines.length < maxLines) {
+    let start = 0
+    let end = remainingText.length
+    let line = ''
+    let width = 0
 
-    if (currentLineWidth + wordWidth > maxWidth) {
-      lines.push(currentLine)
-      currentLine = word
-      currentLineWidth = ctx.measureText(word).width
+    // Binary search to find the maximum number of characters that fit in maxWidth
+    while (start < end) {
+      const mid = Math.floor((start + end) / 2)
+      const testText = remainingText.slice(0, mid + 1)
+      const testWidth = ctx.measureText(testText).width
 
-      if (lines.length === maxLines) {
-        lines[lines.length - 1] += '...' // Truncate with ellipsis
-        break
+      if (testWidth <= maxWidth) {
+        line = testText // Current mid fits, so store it
+        width = testWidth
+        start = mid + 1 // Try a longer line
+      } else {
+        end = mid // Try a shorter line
       }
-    } else {
-      currentLine += (currentLine ? ' ' : '') + word
-      currentLineWidth += wordWidth
     }
-  }
 
-  if (lines.length < maxLines && currentLine) {
-    lines.push(currentLine)
+    // Handle truncation for the last line if we hit maxLines
+    if (lines.length === maxLines - 1 && remainingText.length > line.length) {
+      const ellipsis = '...'
+      const ellipsisWidth = ctx.measureText(ellipsis).width
+
+      while (width + ellipsisWidth > maxWidth && line.length > 0) {
+        line = line.slice(0, -1) // Remove one character at a time
+        width = ctx.measureText(line).width
+      }
+
+      line += ellipsis // Add ellipsis to the last line
+    }
+
+    lines.push(line) // Add the calculated line
+    remainingText = remainingText.slice(line.length) // Remove the rendered part from remaining text
   }
 
   return lines

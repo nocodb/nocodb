@@ -123,11 +123,12 @@ export function useCellRenderer() {
     } else {
       renderSingleLineText(ctx, {
         x: x + padding,
-        y: y + padding,
+        y: y,
         text: value?.toString() ?? '',
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#4351e8' : textColor,
         height,
+        py: padding,
       })
     }
   }

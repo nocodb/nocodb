@@ -397,7 +397,7 @@ interface CellRendererOptions {
 }
 
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x: number; y: number }
+  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
   [key: string]: any
 }
 

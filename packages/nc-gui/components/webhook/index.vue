@@ -620,7 +620,7 @@ onMounted(async () => {
             }"
             @click="activeTab = HookTab.Configuration"
           >
-            <div class="tab-title nc-tab">{{ $t('general.cofiguration') }}</div>
+            <div class="tab-title nc-tab">{{ $t('labels.configuration') }}</div>
           </div>
           <div
             v-e="['c:webhook:log']"
@@ -630,7 +630,7 @@ onMounted(async () => {
             }"
             @click="activeTab = HookTab.Log"
           >
-            <div class="tab-title nc-tab">{{ $t('general.log') }}</div>
+            <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
           </div>
         </div>
 
@@ -1032,7 +1032,7 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div v-else-if="activeTab === HookTab.Log">
+    <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">
       <WebhookCallLog :hook="hook" />
     </div>
   </NcModal>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {HookLogType} from 'nocodb-sdk'
+import type { HookLogType } from 'nocodb-sdk'
 
 interface Props {
   item: HookLogType
@@ -11,6 +11,7 @@ defineProps<Props>()
 <template>
   <div class="container">
     <template v-if="item">
+      <pre>{{item}}</pre>
       <div class="font-weight-bold">{{ item.created_at }}</div>
 
       <a-alert class="mt-2 mb-3" type="success" show-icon>
@@ -48,67 +49,84 @@ defineProps<Props>()
         </div>
       </div>
 
-
       <div class="request-response-wrapper">
         <div class="request-wrapper">
-
-
           <div class="request-response-title">Request</div>
-
           <div class="headers">
             <div class="log-detail-item">
               <span class="label">Request Time</span>
               <span class="value">{{ item.created_at }}</span>
             </div>
           </div>
-
-          <pre>{{ item.payload }}</pre>
+          <h4>Payload</h4>
+          <LazyMonacoEditor
+            :model-value="item.payload"
+            class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
+            hide-minimap
+            disable-deep-compare
+            read-only
+            :monaco-config="{
+              lineNumbers: 'on',
+            }"
+            @keydown.enter.stop
+            @keydown.alt.stop
+          />
         </div>
         <div class="response-wrapper">
           <div class="request-response-title">Response</div>
-          <pre>{{ item.response }}</pre>
+          <h4>Payload</h4>
+          <LazyMonacoEditor
+            :model-value="item.response"
+            class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
+            hide-minimap
+            disable-deep-compare
+            read-only
+            :monaco-config="{
+              lineNumbers: 'on',
+            }"
+            @keydown.enter.stop
+            @keydown.alt.stop
+          />
         </div>
       </div>
-
     </template>
   </div>
 </template>
 
 <style scoped lang="scss">
 .container {
-  @apply p-2;
-}
+  @apply p-2 h-full overflow-auto;
+  .log-details {
+    @apply flex flex-col gap-2;
 
-.log-details {
-  @apply flex flex-col gap-2;
+    .log-detail-item {
+      @apply flex flex-row;
+      .label {
+        @apply w-30 font-bold;
+      }
 
-  .log-detail-item {
-    @apply flex flex-row;
-    .label {
-      @apply w-30 font-bold;
+      .value {
+        @apply text-gray-500;
+      }
     }
 
-    .value {
-      @apply text-gray-500;
+    .headers {
+      @apply flex flex-row;
+      .label {
+        @apply w-30 font-bold;
+      }
+
+      .value {
+        @apply text-gray-500;
+      }
     }
   }
-  .headers {
-    @apply flex flex-row;
-    .label {
-      @apply w-30 font-bold;
-    }
 
-    .value {
-      @apply text-gray-500;
-    }
-  }
   .request-response-wrapper {
     @apply flex flex-row gap-2 w-full;
-    .request-wrapper, .response-wrapper {
-      @apply flex flex-col gap-2 min-w-10 flex-shrink;
-      pre {
-        @apply bg-gray-100 p-2;
-      }
+    .request-wrapper,
+    .response-wrapper {
+      @apply flex flex-col gap-2 min-w-10 flex-1;
     }
   }
 }

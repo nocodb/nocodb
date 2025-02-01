@@ -6,6 +6,7 @@ export const Removable = {
   events: [],
   render(moveable: Moveable, renderer: any) {
     const rect = moveable.getRect()
+    const rotatable = moveable.props?.rotatable
     return renderer.createElement(
       'div',
       {
@@ -13,8 +14,8 @@ export const Removable = {
         className:
           'moveable-removable absolute w-5 h-5 px-2 bg-white rounded-md  border-1 cursor-pointer border-nc-border-gray-medium justify-center items-center gap-2 inline-flex',
         style: {
-          left: `${rect.width - 9}px`,
-          top: `-10px`,
+          left: `${rect.width - (rotatable ? 15 : 9)}px`,
+          top: rotatable ? `-30px` : `-10px`,
           boxShadow: '0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02)',
         },
         onClick() {

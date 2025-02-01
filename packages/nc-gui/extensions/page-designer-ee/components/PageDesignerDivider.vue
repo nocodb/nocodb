@@ -37,7 +37,7 @@ const throttleRotate = 0
 
 const resizable = true
 const throttleResize = 1
-const renderDirections = ['n', 'e', 'w', 's']
+const renderDirections = ['e', 'w']
 const onResize = (e: OnResize) => {
   e.target.style.width = `${e.width}px`
   e.target.style.height = `${e.height}px`

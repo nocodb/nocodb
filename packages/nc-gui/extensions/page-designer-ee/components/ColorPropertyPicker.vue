@@ -7,11 +7,19 @@ const isOpen = ref(false)
 function updatePicked(val: string) {
   picked.value = val
 }
+
+const uniqueClass = `color-property-picker-${useId()}`
 </script>
 
 <template>
-  <NcDropdown :auto-close="false" :visible="isOpen" :overlay-class-name="isOpen ? 'active' : ''" class="color-property-picker">
-    <a-input :value="picked" readonly @click="isOpen = !isOpen">
+  <NcDropdown
+    :auto-close="false"
+    :visible="isOpen"
+    :overlay-class-name="isOpen ? 'active' : ''"
+    class="color-property-picker"
+    :class="[uniqueClass]"
+  >
+    <a-input :value="picked?.toUpperCase()" readonly @click="isOpen = !isOpen">
       <template #prefix>
         <div
           :style="`background: ${picked};`"
@@ -26,7 +34,7 @@ function updatePicked(val: string) {
     <template #overlay>
       <GeneralAdvanceColorPicker
         v-model="picked"
-        v-on-click-outside="() => (isOpen = false)"
+        v-on-click-outside="[() => (isOpen = false), { ignore: [`.${uniqueClass}`] }]"
         :is-open="isOpen"
         include-black-and-white-as-default-colors
         @input="updatePicked"

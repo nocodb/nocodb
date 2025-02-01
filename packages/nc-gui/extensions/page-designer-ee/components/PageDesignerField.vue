@@ -4,7 +4,12 @@ import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
 import type { UITypes } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import { type PageDesignerFieldWidget, type PageDesignerWidgetComponentProps, plainCellFields } from '../lib/widgets'
+import {
+  type PageDesignerFieldWidget,
+  type PageDesignerWidgetComponentProps,
+  horizontalAlignTotextAlignMap,
+  plainCellFields,
+} from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { Removable } from '../lib/removable'
 
@@ -95,6 +100,7 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
           color: widget.textColor,
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
+          textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           overflow: 'hidden',
         }"
         :class="{ 'px-2 py-1': !isAttachmentField }"

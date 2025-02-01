@@ -70,7 +70,7 @@ function print() {
           ></StaticWidget>
         </div>
       </div>
-      <div v-if="row" class="flex flex-col gap-4">
+      <div v-if="row" class="flex flex-col gap-2">
         <span>Field Elements</span>
         <FieldElements />
       </div>

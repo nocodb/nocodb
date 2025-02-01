@@ -103,13 +103,13 @@ const getIcon = (c: ColumnType) =>
     </div>
 
     <div
-      class="flex flex-col nc-scrollbar-thin h-[280px] overflow-y-auto border-t-1 border-nc-border-gray-medium"
+      class="flex flex-col nc-scrollbar-thin max-h-[205px] overflow-y-auto border-t-1 border-nc-border-gray-medium"
       style="scrollbar-gutter: stable !important"
     >
       <div>
         <div
           v-if="filterQuery.length && !filteredFieldList.length"
-          class="px-2 py-10 text-gray-500 flex flex-col items-center gap-6 text-center"
+          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
         >
           <img
             src="~assets/img/placeholder/no-search-result-found.png"

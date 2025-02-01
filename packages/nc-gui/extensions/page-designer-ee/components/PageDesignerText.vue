@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { type ColumnType, UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import type { PageDesignerTextWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
+import { type PageDesignerTextWidget, type PageDesignerWidgetComponentProps, horizontalAlignTotextAlignMap } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { Removable } from '../lib/removable'
 
@@ -191,6 +191,8 @@ onMounted(focusTextarea)
             fontFamily: widget.fontFamily,
             lineHeight: widget.lineHeight,
             color: widget.textColor,
+            whiteSpace: 'pre-wrap',
+            textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           }"
         >
           {{ replacedText }}

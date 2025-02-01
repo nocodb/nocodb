@@ -274,3 +274,9 @@ export function centerCursor({ x, y }: { x: number; y: number }, { width, height
   y -= height / 2
   return { x, y }
 }
+
+export const horizontalAlignTotextAlignMap = {
+  'flex-start': 'left',
+  'center': 'center',
+  'flex-end': 'right',
+} as const

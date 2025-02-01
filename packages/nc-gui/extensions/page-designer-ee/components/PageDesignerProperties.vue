@@ -39,14 +39,14 @@ function print() {
       <div class="flex flex-col gap-4">
         <TableAndViewPicker />
         <div class="flex flex-col gap-2">
-          <span>Record</span>
+          <label>Record</label>
           <RecordSelector />
         </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Add Elements">
       <div class="flex flex-col gap-4">
-        <span>Drag and drop elements into the edit area.</span>
+        <span class="text-nc-content-gray-subtle2 font-500">Drag and drop elements into the edit area.</span>
         <div class="flex">
           <StaticWidget
             :type="PageDesignerWidgetType.TEXT"
@@ -71,18 +71,18 @@ function print() {
         </div>
       </div>
       <div v-if="row" class="flex flex-col gap-2">
-        <span>Field Elements</span>
+        <label>Field Elements</label>
         <FieldElements />
       </div>
     </GroupedSettings>
     <GroupedSettings title="Page Settings">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <span>Page Name</span>
+          <label>Page Name</label>
           <a-input v-model:value="payload.pageName" placeholder="Page Name"></a-input>
         </div>
         <div class="flex flex-col gap-2">
-          <span>Size</span>
+          <label>Size</label>
           <NcSelect v-model:value="payload.pageType">
             <a-select-option v-for="pageType of pageTypeOptions" :key="pageType" :value="pageType">
               {{ pageType }}
@@ -90,7 +90,7 @@ function print() {
           </NcSelect>
         </div>
         <div class="flex flex-col gap-2">
-          <span>Layout</span>
+          <label>Layout</label>
           <NcSelect v-model:value="payload.orientation">
             <a-select-option v-for="orientation of pageOrientationOptions" :key="orientation" :value="orientation">
               {{ orientation }}

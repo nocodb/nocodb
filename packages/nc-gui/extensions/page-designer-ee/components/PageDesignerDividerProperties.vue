@@ -33,18 +33,18 @@ watch(
     <GroupedSettings title="Border">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Thickness</span>
+          <label>Thickness</label>
           <NonNullableNumberInput v-model="dividerWidget.thickness" :min="1" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Color</span>
+          <label>Color</label>
           <ColorPropertyPicker v-model="dividerWidget.backgroundColor" />
         </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Orientation">
       <div class="flex flex-col gap-2 flex-1 min-w-0">
-        <span>Angle</span>
+        <label>Angle</label>
         <div class="flex gap-3">
           <NonNullableNumberInput v-model="dividerWidget.angle" />
           <NcButton size="small" type="secondary" @click="dividerWidget.angle += 90">

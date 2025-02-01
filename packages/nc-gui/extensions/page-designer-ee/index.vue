@@ -194,6 +194,9 @@ onUnmounted(() => {
 
 <style lang="scss">
 .page-designer {
+  label {
+    @apply font-500 text-nc-content-gray;
+  }
   .page-widget {
     & > .absolute {
       outline: 2px solid #ddd;

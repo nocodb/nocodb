@@ -88,7 +88,7 @@ watch(
     <GroupedSettings title="Font settings">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Family</span>
+          <label>Family</label>
           <NcSelect v-model:value="textWidget.fontFamily" show-search>
             <a-select-option v-for="font of fonts" :key="font" :value="font">
               <span :style="{ fontFamily: font }">{{ font }}</span>
@@ -96,7 +96,7 @@ watch(
           </NcSelect>
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Weight</span>
+          <label>Weight</label>
           <NcSelect v-model:value="textWidget.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
               <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
@@ -106,11 +106,11 @@ watch(
       </div>
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Size</span>
+          <label>Size</label>
           <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="5" class="flex-1" placeholder="16" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Line Height</span>
+          <label>Line Height</label>
           <NonNullableNumberInput v-model="textWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
@@ -132,11 +132,11 @@ watch(
         </div>
         <div class="flex-1 flex flex-col gap-2">
           <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <span>Border Color</span>
+            <label>Border Color</label>
             <ColorPropertyPicker v-model="textWidget.borderColor" />
           </div>
           <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <span>Border Radius</span>
+            <label>Border Radius</label>
             <NonNullableNumberInput v-model="textWidget.borderRadius" />
           </div>
         </div>
@@ -145,11 +145,11 @@ watch(
     <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Background Color</span>
+          <label>Background Color</label>
           <ColorPropertyPicker v-model="textWidget.backgroundColor" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <span>Text Color</span>
+          <label>Text Color</label>
           <ColorPropertyPicker v-model="textWidget.textColor" />
         </div>
       </div>

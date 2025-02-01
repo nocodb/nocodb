@@ -165,6 +165,7 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
+    underline,
   } = params
   let { maxWidth = Infinity } = params
 
@@ -205,6 +206,19 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     }
 
     ctx.fillText(truncatedText, x, y + yOffset)
+
+    if (underline) {
+      ctx.beginPath()
+      ctx.moveTo(x, y + fontSize)
+      ctx.lineTo(x + width, y + fontSize)
+
+      if (fillStyle) {
+        ctx.strokeStyle = fillStyle
+      }
+      ctx.lineWidth = 1
+
+      ctx.stroke()
+    }
   }
 
   return { text: truncatedText, width }

@@ -10,6 +10,7 @@ export interface RenderSingleLineTextProps {
   verticalAlign?: 'top' | 'middle' | 'bottom'
   fillStyle?: string
   height?: number
+  underline?: boolean
 
   /**
    * Need to render or just return truncated text

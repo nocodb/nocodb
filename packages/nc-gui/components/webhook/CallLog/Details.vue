@@ -5,26 +5,34 @@ interface Props {
   item: HookLogType
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const parsedPayload = computed(() => {
+  try {
+    return typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)
+  } catch {
+    return {}
+  }
+})
+const parsedRespondePayload = computed(() => {
+  try {
+    return typeof props.item.response === 'object' ? props.item.response : JSON.stringify(props.item.response, null, 2)
+  } catch {
+    return {}
+  }
+})
 </script>
 
 <template>
   <div class="container">
     <template v-if="item">
-      <pre>{{item}}</pre>
+      <!--      <pre>{{item}}</pre> -->
       <div class="font-weight-bold">{{ item.created_at }}</div>
 
-      <a-alert class="mt-2 mb-3" type="success" show-icon>
-        <template #message>
-          <div class="flex flex-row justify-between items-center py-1">
-            <div>Succeeded in {{ item.execution_time }} ms</div>
-            <div>
-              <GeneralIcon v-if="item.error" icon="checkFill" class=""></GeneralIcon>
-              <GeneralIcon v-else icon="checkFill" class=""></GeneralIcon>
-            </div>
-          </div>
-        </template>
-      </a-alert>
+      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-4">
+        <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
+        <div>{{ item.error ? 'Failed' : 'Succeded' }} in {{ item.execution_time }} ms</div>
+      </div>
 
       <div class="log-details">
         <div class="log-detail-item">
@@ -51,41 +59,13 @@ defineProps<Props>()
 
       <div class="request-response-wrapper">
         <div class="request-wrapper">
-          <div class="request-response-title">Request</div>
-          <div class="headers">
-            <div class="log-detail-item">
-              <span class="label">Request Time</span>
-              <span class="value">{{ item.created_at }}</span>
-            </div>
-          </div>
-          <h4>Payload</h4>
-          <LazyMonacoEditor
-            :model-value="item.payload"
-            class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
-            hide-minimap
-            disable-deep-compare
-            read-only
-            :monaco-config="{
-              lineNumbers: 'on',
-            }"
-            @keydown.enter.stop
-            @keydown.alt.stop
-          />
+          <WebhookCallLogReqResDetailCard title="Request" :headers="parsedPayload.headers" :payload="parsedPayload.data" />
         </div>
         <div class="response-wrapper">
-          <div class="request-response-title">Response</div>
-          <h4>Payload</h4>
-          <LazyMonacoEditor
-            :model-value="item.response"
-            class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
-            hide-minimap
-            disable-deep-compare
-            read-only
-            :monaco-config="{
-              lineNumbers: 'on',
-            }"
-            @keydown.enter.stop
-            @keydown.alt.stop
+          <WebhookCallLogReqResDetailCard
+            title="Response"
+            :headers="parsedRespondePayload.headers"
+            :payload="parsedRespondePayload.data"
           />
         </div>
       </div>
@@ -95,7 +75,7 @@ defineProps<Props>()
 
 <style scoped lang="scss">
 .container {
-  @apply p-2 h-full overflow-auto;
+  @apply p-6 h-full overflow-auto flex-col flex gap-6;
   .log-details {
     @apply flex flex-col gap-2;
 
@@ -126,7 +106,7 @@ defineProps<Props>()
     @apply flex flex-row gap-2 w-full;
     .request-wrapper,
     .response-wrapper {
-      @apply flex flex-col gap-2 min-w-10 flex-1;
+      @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;
     }
   }
 }

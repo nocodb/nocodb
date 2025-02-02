@@ -57,6 +57,14 @@ const parsedRespondePayload = computed(() => {
           <span class="label">Test call</span>
           <span class="value capitalize">{{ !!item.test_call }}</span>
         </div>
+        <div class="log-detail-item" v-if="item.error_code">
+          <span class="label">Error code</span>
+          <span class="value capitalize">{{ item.error_code }}</span>
+        </div>
+        <div class="log-detail-item" v-if="item.error_message">
+          <span class="label">Error message</span>
+          <span class="value capitalize">{{ item.error_message }}</span>
+        </div>
       </div>
 
       <div class="request-response-wrapper">

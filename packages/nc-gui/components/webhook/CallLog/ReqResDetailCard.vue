@@ -19,6 +19,14 @@ const copyPayload = async () => {
     message.error(e.message)
   }
 }
+
+const formattedPayload = computed(() => {
+  try {
+    return typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : JSON.stringify(JSON.parse(props.payload),null,2)
+  } catch {
+    return props.payload;
+  }
+})
 </script>
 
 <template>
@@ -39,7 +47,7 @@ const copyPayload = async () => {
         <GeneralIcon icon="copy" class="cursor-pointer" @click="copyPayload" />
       </div>
       <LazyMonacoEditor
-        :model-value="payload"
+        :model-value="formattedPayload"
         class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
         hide-minimap
         disable-deep-compare

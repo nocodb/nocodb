@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { HookLogType } from 'nocodb-sdk'
+import {hookLogFormatter} from "../../../utils/datetimeUtils";
 
 interface Props {
   item: HookLogType
@@ -26,8 +27,7 @@ const parsedRespondePayload = computed(() => {
 <template>
   <div class="container">
     <template v-if="item">
-      <!--      <pre>{{item}}</pre> -->
-      <div class="font-weight-bold">{{ item.created_at }}</div>
+      <div class="font-weight-bold">{{ hookLogFormatter(item.created_at) }}</div>
 
       <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-4">
         <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
@@ -37,7 +37,7 @@ const parsedRespondePayload = computed(() => {
       <div class="log-details">
         <div class="log-detail-item">
           <span class="label">Request Time</span>
-          <span class="value">{{ item.created_at }}</span>
+          <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
         <div class="log-detail-item">
           <span class="label">Size</span>

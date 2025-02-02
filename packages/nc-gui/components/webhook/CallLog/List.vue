@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { HookLogType } from 'nocodb-sdk'
+import {hookLogFormatter} from "../../../utils/datetimeUtils";
 
 interface Props {
   hookLogs: HookLogType[]
@@ -31,7 +32,7 @@ const emit = defineEmits<Emit>()
           <GeneralIcon v-else icon="checkFill" class="text-white"></GeneralIcon>
         </div>
         <div class="flex flex-col">
-          <h4 class="font-weight-bold">{{ log.created_at }}</h4>
+          <h4 class="font-weight-bold">{{ hookLogFormatter(log.created_at) }}</h4>
           <span>Succeeded in {{ log.execution_time }} ms</span>
         </div>
       </div>

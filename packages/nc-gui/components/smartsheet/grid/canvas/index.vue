@@ -4,6 +4,7 @@ import type { CellRange } from '../../../../composables/useMultiSelect/cellRange
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
+import { useGridCellHandler } from './cells'
 
 const props = defineProps<{
   totalRows: number
@@ -108,6 +109,7 @@ const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
+const { handleCellClick } = useGridCellHandler()
 
 const {
   rowSlice,
@@ -418,6 +420,15 @@ async function handleMouseDown(e: MouseEvent) {
         })
         triggerRefreshCanvas()
         return
+      } else {
+        const row = cachedRows.value.get(rowIndex)
+        await handleCellClick({
+          event: e,
+          row: row!,
+          column: clickedColumn,
+          value: row?.row[clickedColumn.title],
+          mousePosition: { x, y },
+        })
       }
       if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
         if (clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return

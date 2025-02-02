@@ -604,14 +604,19 @@ onMounted(async () => {
   <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
     <template #header>
       <div class="flex w-full items-center p-4 justify-between">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 flex-1">
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">
-            {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
+            <template v-if="activeTab === HookTab.Configuration">
+              {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
+            </template>
+            <template v-else>
+              {{ $t('activity.webhookLogs') }}
+            </template>
           </span>
         </div>
 
-        <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+        <div v-if="hook" class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
           <div
             v-e="['c:webhook:edit']"
             class="tab"
@@ -634,33 +639,38 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="flex justify-end items-center gap-3">
-          <NcTooltip :disabled="!testConnectionError">
-            <template #title>
-              {{ testConnectionError }}
-            </template>
-            <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
-              <template #icon>
-                <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
-                <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
+        <div class="flex justify-end items-center gap-3 flex-1">
+          <template v-if="activeTab === HookTab.Configuration">
+            <NcTooltip :disabled="!testConnectionError">
+              <template #title>
+                {{ testConnectionError }}
               </template>
-              <span>
-                {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
-              </span>
+              <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
+                <template #icon>
+                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
+                  <GeneralIcon
+                    v-else-if="testConnectionError"
+                    icon="alertTriangleSolid"
+                    class="!text-red-700 w-4 h-4 flex-none"
+                  />
+                </template>
+                <span>
+                  {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
+                </span>
+              </NcButton>
+            </NcTooltip>
+
+            <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
+              {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
             </NcButton>
-          </NcTooltip>
-
-          <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
-            {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
-          </NcButton>
-
+          </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]" v-if="activeTab === HookTab.Configuration">
+    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"

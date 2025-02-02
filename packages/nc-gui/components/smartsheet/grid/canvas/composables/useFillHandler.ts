@@ -309,6 +309,11 @@ export function useFillHandler({
                 isFillMode.value = false
               })
             })
+            .catch((_e) => {
+              selection.value.clear()
+              fillStartCell.value = null
+              isFillMode.value = false
+            })
           return
         }
 

@@ -43,7 +43,7 @@ defineProps<Props>()
 
 <style scoped lang="scss">
 .detail-card {
-  @apply flex flex-col w-full border-1 border-gray-200 rounded-md bg-gray-50;
+  @apply flex flex-col w-full border-1 border-gray-200 rounded-lg bg-gray-50;
   & > div:not(:last-child) {
     @apply border-b border-gray-200;
   }

@@ -702,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Doorgaan",
-    "toggleExperimentalFeature": "Schakel experimentele functies gemakkelijk in of uit, zodat je toekomstige functionaliteiten kunt verkennen en evalueren.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Gewijzigd op",
     "configuration": "Configuratie",
     "setup": "Installatie",

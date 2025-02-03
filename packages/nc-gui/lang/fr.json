@@ -702,7 +702,7 @@
     "newSnapshot": "Nouvel instantané",
     "searchASnapshot": "Rechercher un instantané",
     "continue": "Poursuivre",
-    "toggleExperimentalFeature": "Activez ou désactivez facilement les fonctionnalités expérimentales, vous permettant d'explorer et d'évaluer les fonctionnalités à venir.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Modifié le",
     "configuration": "Configuration",
     "setup": "Réglage",

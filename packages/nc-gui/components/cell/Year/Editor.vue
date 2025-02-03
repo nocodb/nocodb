@@ -265,7 +265,7 @@ useSelectedCellKeydownListener(
   },
   {
     immediate: true,
-    isGridCell: isGrid.value,
+    isGridCell: true,
   },
 )
 

@@ -27,6 +27,7 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
+import { LtarCellRenderer } from './LTAR'
 export function useGridCellHandler() {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -64,6 +65,7 @@ export function useGridCellHandler() {
   cellTypesRegistry.set(UITypes.Rollup, RollupCellRenderer)
   cellTypesRegistry.set(UITypes.Links, LinksCellRenderer)
   cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
+  // cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

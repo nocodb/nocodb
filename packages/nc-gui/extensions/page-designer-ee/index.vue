@@ -145,19 +145,23 @@ watch(
   },
 )
 
+async function tryInitializeTableAndView() {
+  if (savedPayload.value.selectedTableId) return
+  savedPayload.value.selectedTableId = activeTableId.value ?? ''
+  savedPayload.value.selectedViewId = activeViewId.value ?? ''
+  if (savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
+    const views = await getViewsForTable(savedPayload.value.selectedTableId)
+    savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id
+  }
+}
+
 onMounted(async () => {
   const saved = (await extension.value.kvStore.get(KV_STORE_KEY)) as PageDesignerPayload
   if (saved) {
     savedPayload.value = saved
     savedPayload.value.currentWidgetId = -1
-  } else {
-    savedPayload.value.selectedTableId = activeTableId.value ?? ''
-    savedPayload.value.selectedViewId = activeViewId.value ?? ''
-    if (savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
-      const views = await getViewsForTable(savedPayload.value.selectedTableId)
-      savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id
-    }
   }
+  tryInitializeTableAndView()
   eventHook.on(onEventHookTrigger)
 })
 

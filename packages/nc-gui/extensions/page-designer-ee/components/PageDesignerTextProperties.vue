@@ -53,6 +53,7 @@ watch(
     <GroupedSettings title="Content">
       <AiPromptWithFields
         id="textWidgetContent"
+        :key="payload.currentWidgetId"
         v-model="textWidget.value"
         :options="columns"
         placeholder="Lorem ipsum..."

@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import type { HookLogType } from 'nocodb-sdk'
-import {hookLogFormatter} from "../../../utils/datetimeUtils";
+import type { HookLogType, PaginatedType } from 'nocodb-sdk'
+import { hookLogFormatter } from '../../../utils/datetimeUtils'
 
 interface Props {
   hookLogs: HookLogType[]
   activeItem: HookLogType
+  logPaginationData: PaginatedType
 }
 
 interface Emit {
   'update:activeItem': (hookLog: HookLogType) => void
+  'reload': () => void
+  'page-size-change': (pageSize: number) => void
+  'page-change': (page: number) => void
 }
 
 defineProps<Props>()
@@ -38,6 +42,16 @@ const emit = defineEmits<Emit>()
         </div>
       </div>
     </template>
+    <div class="flex flex-col items-center gap-2">
+      <NcPagination
+        :current="logPaginationData.page"
+        :page-size="logPaginationData.pageSize"
+        :total="+logPaginationData.totalRows"
+        show-less-items
+        @update:page-size="emit('page-size-change', $event)"
+        @update:current="emit('page-change', $event)"
+      />
+    </div>
   </div>
 </template>
 

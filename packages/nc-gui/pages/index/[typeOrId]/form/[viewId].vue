@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { InputPassword } from 'ant-design-vue'
+import { setI18nLanguage } from '~/plugins/a.i18n'
 
 definePageMeta({
   public: true,
@@ -25,6 +26,10 @@ if (!notFound.value) {
   useProvideSmartsheetStore(sharedView, meta, true)
 
   applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
+
+  if (sharedViewMeta.value.language) {
+    setI18nLanguage(sharedViewMeta.value.language)
+  }
 }
 
 const form = reactive({

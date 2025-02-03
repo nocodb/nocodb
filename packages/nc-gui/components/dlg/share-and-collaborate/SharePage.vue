@@ -7,6 +7,8 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
@@ -22,6 +24,7 @@ const isUpdating = ref({
   password: false,
   download: false,
   customUrl: false,
+  language: false,
 })
 
 const activeView = computed<(ViewType & { meta: object & Record<string, any> }) | undefined>({
@@ -52,6 +55,40 @@ const isPublicShared = computed(() => {
 const url = computed(() => {
   return sharedViewUrl() ?? ''
 })
+
+const languages = computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
+
+const languageOptions = computed(() => {
+  return languages.value.map(([key, lang]) => ({
+    label: Language[key] || lang,
+    value: key,
+  }))
+})
+
+const languageSetLocal = ref(false)
+
+const languageSet = computed(() => {
+  return !!activeView.value?.meta?.language || languageSetLocal.value
+})
+
+const toggleLanguageSet = async () => {
+  languageSetLocal.value = !languageSet.value
+  if (!activeView.value) return
+  if (isUpdating.value.language) return
+
+  isUpdating.value.language = true
+  try {
+    if (!languageSetLocal.value) {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, language: null } }
+    } else {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, language: 'en' } }
+    }
+
+    await updateSharedView()
+  } finally {
+    isUpdating.value.language = false
+  }
+}
 
 const passwordProtectedLocal = ref(false)
 
@@ -105,7 +142,7 @@ const togglePasswordProtected = async () => {
   }
 }
 
-const withRTL = computed({
+const withLanguage = computed({
   get: () => {
     if (!activeView.value?.meta) return false
 
@@ -113,16 +150,16 @@ const withRTL = computed({
       activeView.value.meta = JSON.parse(activeView.value.meta)
     }
 
-    return !!(activeView.value?.meta as any)?.rtl
+    return (activeView.value?.meta as any)?.language
   },
-  set: (rtl) => {
+  set: (language) => {
     if (!activeView.value?.meta) return
 
     if (typeof activeView.value?.meta === 'string') {
       activeView.value.meta = JSON.parse(activeView.value.meta)
     }
 
-    activeView.value.meta = { ...(activeView.value.meta as any), rtl }
+    activeView.value.meta = { ...(activeView.value.meta as any), language }
     updateSharedView()
   },
 })
@@ -367,14 +404,14 @@ const copyCustomUrl = async (custUrl = '') => {
             </div>
           </Transition>
         </div>
-        <div class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md">
-          <div
-            v-if="
-              activeView &&
-              [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
-            "
-            class="flex flex-row items-center justify-between"
-          >
+        <div
+          v-if="
+            activeView &&
+            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+          "
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
             <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
             <a-switch
               v-model:checked="allowCSVDownload"
@@ -385,38 +422,62 @@ const copyCustomUrl = async (custUrl = '') => {
               size="small"
             />
           </div>
+        </div>
 
-          <template v-if="activeView?.type === ViewTypes.FORM">
+        <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem">
+          <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
             <div class="flex flex-row items-center justify-between">
-              <div class="text-black flex items-center space-x-1">
-                <div>
-                  {{ $t('activity.surveyMode') }}
-                </div>
-                <NcTooltip class="flex items-center">
-                  <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                  <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
-                </NcTooltip>
+              <div class="flex text-black">
+                {{ $t('labels.language') }}
               </div>
               <a-switch
-                v-model:checked="surveyMode"
-                v-e="['c:share:view:surver-mode:toggle']"
-                data-testid="nc-modal-share-view__surveyMode"
+                v-e="['c:share:view:language:toggle']"
+                :checked="languageSet"
+                :loading="isUpdating.language"
+                class="share-language-toggle !mt-0.25"
+                data-testid="share-language-toggle"
                 size="small"
-              >
-              </a-switch>
+                @click="toggleLanguageSet"
+              />
             </div>
-            <div v-if="!isEeUI" class="flex flex-row items-center justify-between">
-              <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
-              <a-switch
-                v-model:checked="withRTL"
-                v-e="['c:share:view:rtl-orientation:toggle']"
-                data-testid="nc-modal-share-view__RTL"
-                size="small"
-              >
-              </a-switch>
+            <Transition mode="out-in" name="layout">
+              <div v-if="languageSet" class="flex gap-2 mt-2 w-2/3">
+                <NcSelect
+                  v-model:value="withLanguage"
+                  data-testid="nc-modal-share-view__Language"
+                  :options="languageOptions"
+                  size="small"
+                  class="w-full"
+                />
+              </div>
+            </Transition>
+          </div>
+        </template>
+
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-black flex items-center space-x-1">
+              <div>
+                {{ $t('activity.surveyMode') }}
+              </div>
+              <NcTooltip class="flex items-center">
+                <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
             </div>
-          </template>
+            <a-switch
+              v-model:checked="surveyMode"
+              v-e="['c:share:view:surver-mode:toggle']"
+              data-testid="nc-modal-share-view__surveyMode"
+              size="small"
+            >
+            </a-switch>
+          </div>
         </div>
+
         <div
           v-if="activeView?.type === ViewTypes.FORM"
           class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"

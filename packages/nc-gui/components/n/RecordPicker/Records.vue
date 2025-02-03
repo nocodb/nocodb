@@ -7,12 +7,12 @@ const props = defineProps<{
   viewMeta: ViewType
   where: string
   fields: string[]
-  data: Record<string, any>[]
-  records: Record<string, any>[]
+  data: Row[]
+  records: Row[]
 }>()
 
 const emits = defineEmits<{
-  resolve: (row: Record<string, any>) => void
+  resolve: [Row]
 }>()
 const meta = toRef(props, 'meta')
 const viewMeta = toRef(props, 'viewMeta')
@@ -37,36 +37,23 @@ const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = 
   disableSmartsheet: true,
 })
 
-const { isMobileMode } = useGlobal()
-
 const _fields = computedInject(FieldsInj, (_fields) => {
   if (_Fields.value?.length) {
-    return (meta.value.columns ?? [])
-      .filter(
-        (col) =>
-          _Fields.value.includes(col.title) &&
-          !isSystemColumn(col) &&
-          !isPrimary(col) &&
-          !isLinksOrLTAR(col) &&
-          !isAttachment(col) &&
-          !isCreatedOrLastModifiedTimeCol(col),
-      )
-      .slice(0, isMobileMode.value ? 1 : 3)
-  }
-
-  return (meta.value.columns ?? [])
-    .filter(
+    return (meta.value.columns ?? []).filter(
       (col) =>
+        _Fields.value.includes(col.title) &&
         !isSystemColumn(col) &&
         !isPrimary(col) &&
         !isLinksOrLTAR(col) &&
-        !isAttachment(col) &&
         !isCreatedOrLastModifiedTimeCol(col),
     )
+  }
+
+  return (meta.value.columns ?? [])
+    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col))
     .sort((a, b) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
-    .slice(0, isMobileMode.value ? 1 : 3)
 })
 
 const scrollWrapper = ref()
@@ -202,7 +189,7 @@ const visibleRows = computed(() => {
   })
 })
 
-const resolve = (row) => {
+const resolve = (row: Row) => {
   emits('resolve', row)
 }
 
@@ -267,6 +254,11 @@ const wrapperHeight = computed(() => {
 </script>
 
 <template>
+  <div v-if="where && !visibleRows.length" class="px-2 py-6 pt-24 text-gray-500 flex flex-col items-center gap-6 text-center">
+    <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No search results found" />
+
+    {{ $t('title.noResultsMatchedYourSearch') }}
+  </div>
   <div ref="scrollWrapper" :style="`height: ${wrapperHeight}px`" class="overflow-auto nc-scrollbar-thin">
     <div
       v-for="row in visibleRows"
@@ -281,7 +273,7 @@ const wrapperHeight = computed(() => {
         :fields="_fields"
         :is-loading="row?.rowMeta.isLoading"
         :display-field="pv"
-        @click="resolve(row.row)"
+        @click="resolve(row)"
       />
     </div>
   </div>

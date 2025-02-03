@@ -618,10 +618,6 @@ const modalProps = computed(() => {
   return {}
 })
 
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 watch(
   () => comments.value.length,
   (commentCount) => {

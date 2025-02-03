@@ -94,10 +94,6 @@ onMounted(() => {
   onInit()
 })
 
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)

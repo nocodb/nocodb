@@ -1,0 +1,128 @@
+<script setup lang="ts">
+import Moveable from 'vue3-moveable'
+import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
+import { ref } from 'vue'
+import type { PageDesignerImageWidget, PageDesignerWidgetComponentProps } from '../lib/widgets'
+import { PageDesignerPayloadInj } from '../lib/context'
+import { Removable } from '../lib/removable'
+
+const props = defineProps<PageDesignerWidgetComponentProps>()
+defineEmits(['deleteCurrentWidget'])
+const payload = inject(PageDesignerPayloadInj)!
+const widget = ref() as Ref<PageDesignerImageWidget>
+watch(
+  () => props.id,
+  (id) => {
+    widget.value = payload?.value?.widgets[id] as PageDesignerImageWidget
+  },
+  { immediate: true },
+)
+
+const draggable = true
+const throttleDrag = 1
+const edgeDraggable = false
+const startDragRotate = 0
+const throttleDragRotate = 0
+const scalable = false
+const keepRatio = false
+const throttleScale = 0
+const snappable = true
+const snapGridWidth = 10
+const snapGridHeight = 10
+const isDisplayGridGuidelines = false
+const targetRef = ref<HTMLElement>()
+const moveableRef = ref(null)
+const rotationPosition = 'top'
+const throttleRotate = 0
+
+const resizable = true
+const throttleResize = 1
+const renderDirections = ['se']
+const onResize = (e: OnResize) => {
+  e.target.style.width = `${e.width}px`
+  e.target.style.height = `${e.height}px`
+  e.target.style.transform = e.drag.transform
+}
+
+const onRotate = (e: OnRotate) => {
+  e.target.style.transform = e.drag.transform
+}
+const onDrag = (e: OnDrag) => {
+  e.target.style.transform = e.transform
+}
+const onScale = (e: OnScale) => {
+  e.target.style.transform = e.drag.transform
+}
+const onRenderEnd = () => {
+  widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
+}
+
+const errored = ref(false)
+const container = useParentElement()
+</script>
+
+<template>
+  <div v-if="widget">
+    <div ref="targetRef" class="absolute" :style="widget.cssStyle">
+      <div
+        :style="{
+          background: `${widget.backgroundColor}`,
+          height: '100%',
+          width: '100%',
+          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+            widget.borderLeft || 0
+          }px`,
+          borderColor: widget.borderColor,
+          borderRadius: `${widget.borderRadius || 0}px`,
+        }"
+        :class="{ 'px-2 py-1': errored || !widget.imageSrc }"
+      >
+        <img
+          v-if="widget.imageSrc"
+          :src="widget.imageSrc"
+          class="w-full h-full"
+          :class="{ hidden: errored }"
+          :style="{
+            objectFit: widget.objectFit || 'fill',
+          }"
+          @error="errored = true"
+          @load="errored = false"
+        />
+        <span v-if="widget.imageSrc && errored" class="text-nc-content-gray-muted print-hide">Unable to load the image</span>
+        <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted print-hide">Add an image source</span>
+      </div>
+    </div>
+    <Moveable
+      ref="moveableRef"
+      :ables="[Removable]"
+      :props="{ removable: true, deleteWidget: () => $emit('deleteCurrentWidget') }"
+      :rotatable="false"
+      :throttle-rotate="throttleRotate"
+      :rotation-position="rotationPosition"
+      :target="targetRef"
+      :draggable="draggable"
+      :throttle-drag="throttleDrag"
+      :edge-draggable="edgeDraggable"
+      :start-drag-rotate="startDragRotate"
+      :throttle-drag-rotate="throttleDragRotate"
+      :scalable="scalable"
+      :keep-ratio="keepRatio"
+      :throttle-scale="throttleScale"
+      :snappable="snappable"
+      :snap-grid-width="snapGridWidth"
+      :snap-grid-height="snapGridHeight"
+      :is-display-grid-guidelines="isDisplayGridGuidelines"
+      :resizable="resizable"
+      :throttle-resize="throttleResize"
+      :render-directions="renderDirections"
+      :origin="false"
+      :container="container"
+      class-name="nc-moveable"
+      @render-end="onRenderEnd"
+      @resize="onResize"
+      @rotate="onRotate"
+      @drag="onDrag"
+      @scale="onScale"
+    />
+  </div>
+</template>

@@ -6,10 +6,10 @@ const props = withDefaults(
     label: string
     tableId: string
     viewId?: string
-    modelValue: Record<string, any>
+    modelValue: Row
     fields?: string[]
     allowRecordCreation?: boolean
-    records?: Record<string, any>[]
+    records?: Row[]
   }>(),
   {
     label: '- select a record -',
@@ -17,7 +17,7 @@ const props = withDefaults(
 )
 
 const emits = defineEmits<{
-  'update:modelValue': (value: Record<string, any>) => void
+  'update:modelValue': (value: Row) => void
 }>()
 
 const searchQuery = ref('')
@@ -107,7 +107,7 @@ onMounted(async () => {
   await loadMetas()
 })
 
-const resolveInput = (row: Record<string, any>) => {
+const resolveInput = (row: Row) => {
   vModel.value = row
   isOpen.value = false
 }
@@ -120,8 +120,11 @@ const resolveInput = (row: Record<string, any>) => {
     :class="`.nc-${randomClass}`"
     :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
-    <NcButton type="secondary" size="small">
-      {{ props.label }}
+    <NcButton type="secondary" size="small" icon-position="right" full-width>
+      <span class="truncate text-left">{{ props.label }}</span>
+      <template #icon>
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" />
+      </template>
     </NcButton>
 
     <template #overlay>
@@ -188,6 +191,7 @@ const resolveInput = (row: Record<string, any>) => {
     }
   }
   input {
+    @apply !caret-nc-fill-primary;
     &::placeholder {
       @apply text-gray-500;
     }

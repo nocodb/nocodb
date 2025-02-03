@@ -884,7 +884,9 @@ a {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }
 
-.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn):not(.nc-sidebar-script-node-context-btn) {
+.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn):not(
+    .nc-sidebar-script-node-context-btn
+  ) {
   @apply hidden group-hover:(inline-block);
 }
 

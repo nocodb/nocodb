@@ -107,7 +107,7 @@ const parsedRespondePayload = computed(() => {
   }
 
   .request-response-wrapper {
-    @apply flex flex-row gap-3.5 w-full;
+    @apply flex flex-row gap-3.5 w-full items-stretch ;
     .request-wrapper,
     .response-wrapper {
       @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;

@@ -67,14 +67,10 @@ export async function validateCondition(
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
     if (filter.is_group) {
-      res = await validateCondition(
-        context,
-        filter.children || (await filter.getChildren(context)),
-        data,
-        {
-          client,
-        },
-      );
+      filter.children = filter.children || (await filter.getChildren(context));
+      res = await validateCondition(context, filter.children, data, {
+        client,
+      });
     } else {
       const column = await filter.getColumn(context);
       const field = column.title;
@@ -569,6 +565,32 @@ export async function handleHttpWebHook({
   };
 }
 
+// flatten filter tree and id dummy id if no id is present
+function flattenFilter(
+  filters: Filter[],
+  flattenedFilters = [],
+  parentId = null,
+) {
+  for (const filter of filters) {
+    // if parent id is present then set it as fk_parent_id
+    if (parentId && !filter.fk_parent_id) {
+      filter.fk_parent_id = parentId;
+    }
+
+    if (filter.is_group) {
+      flattenedFilters.push(filter);
+      // this is to group the filters
+      if (!filter.id) {
+        filter.id = uuidv4();
+      }
+      flattenFilter(filter.children, flattenedFilters, filter.id);
+    } else {
+      flattenedFilters.push(filter);
+    }
+  }
+  return flattenedFilters;
+}
+
 export async function invokeWebhook(
   context: NcContext,
   param: {
@@ -793,7 +815,9 @@ export async function invokeWebhook(
         triggered_by: user?.email,
         conditions: filters
           ? JSON.stringify(
-              addDummyRootAndNest(filterBuilder().build(filters) as Filter[]),
+              addDummyRootAndNest(
+                filterBuilder().build(flattenFilter(filters)) as Filter[],
+              ),
             )
           : null,
         response: e.response

@@ -2836,7 +2836,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[] } = {},
+    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
     { cookie }: { cookie: NcRequest },
   ) {
     const queries: string[] = [];
@@ -2863,6 +2863,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             is_group: true,
             logical_op: 'and',
           }),
+          ...(args.viewId
+            ? await Filter.rootFilterList(this.context, {
+                viewId: args.viewId,
+              })
+            : []),
         ],
         qb,
       );

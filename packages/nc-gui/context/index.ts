@@ -100,3 +100,4 @@ export const ActiveSourceInj: InjectionKey<
 export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
 export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
   Symbol('field-name-alias')
+export const IsCanvasInjectionInj: InjectionKey<boolean> = Symbol('is-canvas-injection')

@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -700,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "បើក ឬបិទមុខងារពិសោធន៍ដោយភាពងាយស្រួល ដែលអនុញ្ញាតឱ្យអ្នករុករក និងវាយតម្លៃមុខងារដែលនឹងមកដល់នាពេលខាងមុខ។",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "បានផ្លាស់ប្តូរកាលបរិច្ឆេទ",
     "configuration": "ការកំណត់រចនាសម្ព័ន្ធ",
     "setup": "រៀបចំ",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

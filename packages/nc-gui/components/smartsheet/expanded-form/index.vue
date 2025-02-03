@@ -438,7 +438,7 @@ const addNewRow = () => {
 }
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
-useActiveKeyupListener(
+useActiveKeydownListener(
   isExpanded,
   async (e: KeyboardEvent) => {
     if (!e.altKey) return
@@ -724,15 +724,24 @@ export default {
         </div>
         <div class="ml-auto">
           <NcSelectTab
-            v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
+            v-if="
+              isEeUI &&
+              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
+                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
+            "
             v-model="activeViewMode"
             class="nc-expanded-form-mode-switch"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
             :items="[
-              { icon: 'fields', value: 'field' },
-              { icon: 'file', value: 'attachment' },
-              // { icon: 'ncMessageSquare', value: 'discussion' },
+              { icon: 'fields', value: 'field', tooltip: 'Fields' },
+              { icon: 'file', value: 'attachment', tooltip: 'File Preview', hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) },
+              {
+                icon: 'ncMessageSquare',
+                value: 'discussion',
+                tooltip: 'Discussion',
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE),
+              },
             ]"
           />
         </div>

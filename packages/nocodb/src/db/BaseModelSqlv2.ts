@@ -4776,7 +4776,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];
 
       for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -5352,6 +5352,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             typeof data[col.title] === 'string'
               ? JSON.parse(data[col.title])
               : data[col.title];
+          if (nestedData.length === 0) {
+            continue;
+          }
         } catch {
           continue;
         }
@@ -6529,7 +6532,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipValidationAndHooks?: boolean;
     } = {},
     data,
-    { cookie }: { cookie?: any } = {},
+    { cookie }: { cookie: NcRequest },
   ) {
     try {
       let count = 0;
@@ -6719,7 +6722,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const base = await this.getSource();
 
       for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -6809,7 +6812,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async bulkDeleteAll(
     args: { where?: string; filterArr?: Filter[] } = {},
-    { cookie }: { cookie?: any } = {},
+    { cookie }: { cookie: NcRequest },
   ) {
     let trx: Knex.Transaction;
     try {
@@ -6845,7 +6848,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // qb.del();
 
       for (const column of this.model.columns) {
-        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+        if (!isLinksOrLTAR(column)) continue;
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -10334,7 +10337,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           const baseUsers = await BaseUser.getUsersList(this.context, {
             base_id: this.model.base_id,
-            include_ws_deleted: false,
+            // deleted user may still exists on some fields
+            // it's still valid as a historical record
+            include_ws_deleted: true,
           });
 
           if (typeof data[column.column_name] === 'object') {

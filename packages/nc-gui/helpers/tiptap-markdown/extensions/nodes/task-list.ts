@@ -17,9 +17,9 @@ export const TaskList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           // Check if the previous node is a different type of list
           const isDifferentListType =
             previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'bulletList'
-          // Add ` <br />\n\n ` if transitioning from a different list type
+          // Add ` <br>\n\n ` if transitioning from a different list type
           if (isDifferentListType) {
-            state.write('<br />\n\n ')
+            state.write('<br>\n\n ')
           }
 
           // Use BulletList's serialize logic

@@ -14,5 +14,3 @@ const { extensionId } = defineProps<Prop>()
     </template>
   </NuxtErrorBoundary>
 </template>
-
-<style scoped lang="scss"></style>

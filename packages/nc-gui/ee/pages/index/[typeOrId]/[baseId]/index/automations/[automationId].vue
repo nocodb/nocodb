@@ -11,5 +11,3 @@ useProvideScriptStore({
 <template>
   <LazySmartsheetAutomation />
 </template>
-
-<style scoped lang="scss"></style>

@@ -63,7 +63,7 @@ const FEATURES = [
     id: 'extensions',
     title: 'Extensions',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
-    enabled: (window as any)?.isPlaywright,
+    enabled: ncIsPlaywright(),
     isEngineering: true,
   },
   {
@@ -84,7 +84,15 @@ const FEATURES = [
   {
     id: 'expanded_form_file_preview_mode',
     title: 'Expanded form file preview mode',
-    description: 'Preview mode allow you to see attachments inline',
+    description: 'Preview mode allows you to see attachments inline',
+    enabled: false,
+    isEE: true,
+    isEngineering: true,
+  },
+  {
+    id: 'expanded_form_discussion_mode',
+    title: 'Expanded form discussion mode',
+    description: 'Discussion mode allows you to see the comments and records audits combined in one place',
     enabled: false,
     isEE: true,
     isEngineering: true,

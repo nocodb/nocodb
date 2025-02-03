@@ -59,5 +59,3 @@ const toggleScriptSettings = () => {
     </NcButton>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

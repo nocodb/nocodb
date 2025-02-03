@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "당신",
     "read": "읽음",
-    "unread": "읽지 않음"
+    "unread": "읽지 않음",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "스크립트",
@@ -700,7 +702,7 @@
     "newSnapshot": "새 스냅샷",
     "searchASnapshot": "스냅샷 검색",
     "continue": "계속",
-    "toggleExperimentalFeature": "실험 기능을 쉽게 활성화 또는 비활성화하여 향후 출시될 기능들을 탐색하고 평가할 수 있습니다.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
     "setup": "설정",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "AI 연동 생성",
     "suggestTablesViews": "테이블 & 뷰 제안",
     "configureAiButton": "AI 버튼 구성",
-    "viewHide": "뷰 보임 여부 "
+    "viewHide": "뷰 보임 여부 ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

@@ -14,9 +14,9 @@ import genRollupSelectv2 from '../genRollupSelectv2';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
 import type { User } from '~/models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -72,6 +72,38 @@ async function _formulaQueryBuilder(params: {
   column?: Column;
   baseUsers?: (Partial<User> & BaseUser)[];
 }) {
+  const getLinkedColumnDisplayValue = async (params: {
+    model: Model;
+    aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
+  }) => {
+    const displayValueColumn = params.model?.displayValue;
+    if (!displayValueColumn) {
+      return undefined;
+    }
+    const formulOption = await params.model.displayValue.getColOptions<
+      FormulaColumn | ButtonColumn
+    >(baseModelSqlv2.context);
+    if (displayValueColumn.uidt !== UITypes.Formula) {
+      return displayValueColumn.column_name;
+    } else {
+      const innerQb = await _formulaQueryBuilder({
+        baseModelSqlv2: await Model.getBaseModelSQL(baseModelSqlv2.context, {
+          model: params.model,
+          dbDriver: baseModelSqlv2.dbDriver,
+        }),
+        _tree: formulOption.formula,
+        alias,
+        model: params.model,
+        column: params.model.displayValue,
+        aliasToColumn: params.aliasToColumn,
+        tableAlias,
+        parsedTree: formulOption.getParsedTree(),
+        baseUsers,
+      });
+      return innerQb;
+    }
+  };
+
   const {
     baseModelSqlv2,
     _tree,
@@ -635,8 +667,16 @@ async function _formulaQueryBuilder(params: {
 
           let selectQb;
           if (relationType === RelationTypes.BELONGS_TO) {
+            const linkedDisplayValue = await getLinkedColumnDisplayValue({
+              model: parentModel,
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
+            });
             selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
-              .select(parentModel?.displayValue?.column_name)
+              .select(
+                typeof linkedDisplayValue === 'string'
+                  ? linkedDisplayValue
+                  : knex.raw(linkedDisplayValue.builder).wrap('(', ')'),
+              )
               .where(
                 `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
                   parentColumn.column_name
@@ -662,18 +702,23 @@ async function _formulaQueryBuilder(params: {
                   }.${parentColumn.column_name}`,
                 ]),
               );
-
+            const childDisplayValue = await getLinkedColumnDisplayValue({
+              model: childModel,
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
+            });
             selectQb = (fn) =>
               knex
                 .raw(
                   getAggregateFn(fn)({
                     qb,
                     knex,
-                    cn: childModel?.displayValue?.column_name,
+                    cn:
+                      typeof childDisplayValue === 'string'
+                        ? childDisplayValue
+                        : childDisplayValue.builder,
                   }),
                 )
                 .wrap('(', ')');
-
             // getAggregateFn();
           } else if (relationType == RelationTypes.MANY_TO_MANY) {
             // todo:
@@ -1333,7 +1378,6 @@ async function _formulaQueryBuilder(params: {
     }
   };
   const builder = (await fn(tree, alias)).builder;
-
   return { builder };
 }
 

@@ -499,7 +499,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
       NcError.internalServerError('Workspace is already upgraded');
     }
 
-    if (process.env.NC_DISABLE_MUX === 'true') {
+    if (
+      process.env.NC_DISABLE_MUX === 'true' &&
+      process.env.NC_CLOUD === 'true'
+    ) {
       await this.createWorkspaceSubdomain({
         titleOrId: workspace.id,
         user: param.user?.email ?? param.user?.id,
@@ -514,6 +517,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
         plan: WorkspacePlan.BUSINESS,
       });
     }
+
+    await Workspace.updateStatusAndPlan(param.workspaceId, {
+      plan: WorkspacePlan.BUSINESS,
+    });
 
     return workspace;
   }

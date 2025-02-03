@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "Você",
     "read": "Lida",
-    "unread": "Não lida"
+    "unread": "Não lida",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -700,7 +702,7 @@
     "newSnapshot": "Novo Snapshot",
     "searchASnapshot": "Buscar um snapshot",
     "continue": "",
-    "toggleExperimentalFeature": "Habilite ou desabilite recursos experimentais com facilidade, permitindo que você explore e avalie funcionalidades futuras.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Modificado em",
     "configuration": "Configuração",
     "setup": "Configuração",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "Criar integração de IA",
     "suggestTablesViews": "Sugerir Tabelas e Visualizações",
     "configureAiButton": "Configurar Botão de IA",
-    "viewHide": "Visibilidade da visualização "
+    "viewHide": "Visibilidade da visualização ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",

@@ -166,14 +166,6 @@ export const allIntegrations: IntegrationItemType[] = [
     type: IntegrationCategoryType.DATABASE,
   },
 
-  // AI
-  {
-    title: 'objects.syncData.ollama',
-    sub_type: SyncDataType.OLLAMA,
-    icon: iconMap.ollama,
-    type: `${IntegrationCategoryType.AI}-coming-soon`,
-  },
-
   // Communication
   {
     title: 'general.slack',

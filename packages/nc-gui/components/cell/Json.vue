@@ -128,7 +128,7 @@ watch(editEnabled, () => {
   setLocalValue(vModel.value)
 })
 
-useSelectedCellKeyupListener(active, (e) => {
+useSelectedCellKeydownListener(active, (e) => {
   if (readOnly.value) return
   switch (true) {
     case e.key === 'Enter':

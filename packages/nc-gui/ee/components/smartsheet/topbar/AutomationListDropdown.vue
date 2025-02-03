@@ -135,5 +135,3 @@ function openAutomationCreateDialog() {
     </template>
   </NcDropdown>
 </template>
-
-<style scoped lang="scss"></style>

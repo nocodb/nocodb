@@ -9,6 +9,7 @@ import { BaseUser, User } from '~/models';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUser } from '~/models';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
@@ -27,16 +28,16 @@ export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
       req: NcRequest;
     },
   ): Promise<any> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUserCreate',
+      param.baseUsers,
+      true,
+    );
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        // todo: enable later
-        // validatePayload(
-        //   'swagger.json#/components/schemas/ProjectUserV3Req',
-        //   baseUser,
-        // );
-
         // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
         // if (!baseUser.workspace_role) {
         // get the user from workspace

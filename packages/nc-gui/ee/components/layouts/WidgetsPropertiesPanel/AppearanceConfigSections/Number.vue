@@ -6,5 +6,3 @@
     </a-collapse-panel>
   </a-collapse>
 </template>
-
-<style scoped lang="scss"></style>

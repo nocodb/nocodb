@@ -594,18 +594,18 @@ const selectedBase = computed(() => {
               @click.stop
             >
               <div class="nc-audit-custom-date-range-input">
-                <LazyCellDatePicker
+                <LazyCellDate
                   :model-value="auditLogsQuery.startDate"
                   @update:model-value="handleUpdateCustomDateRange($event, 'startDate')"
                 >
-                </LazyCellDatePicker>
+                </LazyCellDate>
               </div>
               <div class="nc-audit-custom-date-range-input">
-                <LazyCellDatePicker
+                <LazyCellDate
                   :model-value="auditLogsQueryEndDate"
                   @update:model-value="handleUpdateCustomDateRange($event, 'endDate')"
                 >
-                </LazyCellDatePicker>
+                </LazyCellDate>
               </div>
             </div>
           </div>

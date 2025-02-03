@@ -163,9 +163,9 @@ interface SharedView {
   meta: SharedViewMeta
 }
 
-type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+type importFileList = (UploadFile & { data: string | ArrayBuffer; encoding?: string })[]
 
-type streamImportFileList = UploadFile[]
+type streamImportFileList = (UploadFile & { encoding?: string })[]
 
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 

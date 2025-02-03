@@ -617,6 +617,8 @@ import NcHeading2 from '~icons/nc-icons-v2/heading-2'
 import NcHeading3 from '~icons/nc-icons-v2/heading-3'
 import NcQuote from '~icons/nc-icons-v2/quote'
 
+import NcPenLine from '~icons/nc-icons-v2/pen-line.svg'
+import NcNode from '~icons/nc-icons-v2/nc-node.svg'
 import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
@@ -712,6 +714,7 @@ import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1529,6 +1532,8 @@ export const iconMap = {
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
+  ncPenLine: h(NcPenLine, { stroke: 'transparent' }),
+  ncNode: h(NcNode, { stroke: 'transparent' }),
   importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
   importCsv: h(NcImportCsv, { stroke: 'transparent' }),
   importJson: h(NcImportJson, { stroke: 'transparent' }),
@@ -1630,6 +1635,7 @@ export const iconMap = {
   ncLogoZendesk: h(NcLogoZendesk, { stroke: 'transparent' }),
   ncLogoZohoColored: h(NcLogoZohoColored, { stroke: 'transparent' }),
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
+  ncSendAlt: h(NcSendAlt, { stroke: 'transparent' }),
   ncAiPlay: AiPlayIcon,
 }
 

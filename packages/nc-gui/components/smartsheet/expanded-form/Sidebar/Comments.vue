@@ -262,6 +262,12 @@ function resetTooltipInstances() {
   tooltipInstances.length = 0
 }
 
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.key !== 'Escape') {
+    event.stopPropagation()
+  }
+}
+
 watch(
   comments,
   () => {
@@ -463,11 +469,13 @@ onBeforeUnmount(() => {
                 v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
                 v-model:value="value"
                 autofocus
+                autofocus-to-end
                 :hide-options="false"
                 class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 data-testid="expanded-form-comment-input"
                 @save="onEditComment"
                 @keydown.esc="onCancel"
+                @keydown="handleKeyPress"
                 @blur="
                   () => {
                     editCommentValue = undefined
@@ -497,7 +505,7 @@ onBeforeUnmount(() => {
           :autofocus="isExpandedFormCommentMode"
           data-testid="expanded-form-comment-input"
           @focus="isExpandedFormCommentMode = false"
-          @keydown.stop
+          @keydown="handleKeyPress"
           @save="saveComment"
           @keydown.enter.exact.prevent="saveComment"
         />

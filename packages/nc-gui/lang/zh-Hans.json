@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "您",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -700,7 +702,7 @@
     "newSnapshot": "新建快照",
     "searchASnapshot": "搜索快照",
     "continue": "继续",
-    "toggleExperimentalFeature": "轻松启用或禁用实验功能，允许您探索和评估即将推出的功能。",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "修改于",
     "configuration": "配置",
     "setup": "设置",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "创建 AI 集成",
     "suggestTablesViews": "建议表格 & 视图",
     "configureAiButton": "配置 AI 按钮",
-    "viewHide": "查看可见性 "
+    "viewHide": "查看可见性 ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

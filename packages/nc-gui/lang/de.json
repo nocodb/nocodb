@@ -307,7 +307,9 @@
     "nocoAI": "NocoAI",
     "you": "Sie",
     "read": "Gelesen",
-    "unread": "Ungelesen"
+    "unread": "Ungelesen",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Skript",
@@ -700,7 +702,7 @@
     "newSnapshot": "Neuer Snapshot",
     "searchASnapshot": "Snapshot suchen",
     "continue": "Weiter",
-    "toggleExperimentalFeature": "Schalten Sie experimentelle Funktionen zum Ausprobieren einfach ein und aus.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Geändert am",
     "configuration": "Konfiguration",
     "setup": "Einrichtung",
@@ -1111,7 +1113,10 @@
     "createAiIntegration": "KI-Integration erstellen",
     "suggestTablesViews": "Tabellen und Ansichten vorschlagen",
     "configureAiButton": "KI-Schaltfläche konfigurieren",
-    "viewHide": "Sichtbarkeit anzeigen"
+    "viewHide": "Sichtbarkeit anzeigen",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",

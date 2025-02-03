@@ -1,7 +1,7 @@
 import { isClient } from '@vueuse/core'
 import type { ComputedRef, Ref } from 'vue'
 
-function useSelectedCellKeyupListener(
+function useSelectedCellKeydownListener(
   selected: Ref<boolean | undefined> | ComputedRef<boolean | undefined>,
   handler: (e: KeyboardEvent) => void,
   { immediate = false, isGridCell = true }: { immediate?: boolean; isGridCell?: boolean } = {},
@@ -10,7 +10,7 @@ function useSelectedCellKeyupListener(
     if (cmdKActive()) return
 
     /**
-     * If `useSelectedCellKeyupListener` used for grid cell and active element is not in grid then prevent
+     * If `useSelectedCellKeydownListener` used for grid cell and active element is not in grid then prevent
      */
     if (isGridCell) {
       if (isExpandedFormOpenExist() || isExpandedCellInputExist() || isFieldEditOrAddDropdownOpen()) {
@@ -50,4 +50,4 @@ function useSelectedCellKeyupListener(
   }
 }
 
-export { useSelectedCellKeyupListener, useSelectedCellKeyupListener as useActiveKeyupListener }
+export { useSelectedCellKeydownListener, useSelectedCellKeydownListener as useActiveKeydownListener }

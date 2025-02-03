@@ -199,7 +199,7 @@ export const useNotification = defineStore('notificationStore', () => {
     await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
     // For playwright, polling will cause the test to hang indefinitely
     // as we wait for the networkidle event. So, we disable polling for playwright
-    if (!(window as any).isPlaywright) {
+    if (!ncIsPlaywright()) {
       clearPolling().catch((e) => console.log(e))
       pollNotifications().catch((e) => console.log(e))
     }

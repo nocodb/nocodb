@@ -2,17 +2,17 @@
 import { AttachmentValidationType, InputType, SelectValidationType, StringValidationType, UITypes } from 'nocodb-sdk'
 import type { ColumnType, Validation } from 'nocodb-sdk'
 
-import DatePicker from '~/components/cell/DatePicker.vue'
-import YearPicker from '~/components/cell/YearPicker.vue'
-import TimePicker from '~/components/cell/TimePicker.vue'
-import Duration from '~/components/cell/Duration.vue'
-import Percent from '~/components/cell/Percent.vue'
-import Currency from '~/components/cell/Currency.vue'
-import Decimal from '~/components/cell/Decimal.vue'
-import Integer from '~/components/cell/Integer.vue'
-import Float from '~/components/cell/Float.vue'
-import Text from '~/components/cell/Text.vue'
-import User from '~/components/cell/User.vue'
+import DatePicker from '~/components/cell/Date/index.vue'
+import YearPicker from '~/components/cell/Year/index.vue'
+import TimePicker from '~/components/cell/Time/index.vue'
+import Duration from '~/components/cell/Duration/index.vue'
+import Percent from '~/components/cell/Percent/index.vue'
+import Currency from '~/components/cell/Currency/index.vue'
+import Decimal from '~/components/cell/Decimal/index.vue'
+import Integer from '~/components/cell/Integer/index.vue'
+import Float from '~/components/cell/Float/index.vue'
+import Text from '~/components/cell/Text/index.vue'
+import User from '~/components/cell/User/index.vue'
 
 interface Props {
   column: ColumnType

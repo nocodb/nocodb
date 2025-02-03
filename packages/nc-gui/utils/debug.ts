@@ -1,6 +1,6 @@
 import { debug } from 'debug'
 export class NcDebug {
-  private static logger: any;
+  private static logger: any
 
   static initLogger() {
     if (!NcDebug.logger) {

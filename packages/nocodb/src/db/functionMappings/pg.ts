@@ -76,14 +76,16 @@ const pg = {
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
-    const expr1_typecast = [FormulaDataTypes.DATE].includes(
-      pt.arguments[0].dataType,
-    )
+    const expr1_typecast = [
+      FormulaDataTypes.DATE,
+      FormulaDataTypes.STRING,
+    ].includes(pt.arguments[0].dataType)
       ? '::TIMESTAMP'
       : '';
-    const expr2_typecast = [FormulaDataTypes.DATE].includes(
-      pt.arguments[1].dataType,
-    )
+    const expr2_typecast = [
+      FormulaDataTypes.DATE,
+      FormulaDataTypes.STRING,
+    ].includes(pt.arguments[1].dataType)
       ? '::TIMESTAMP'
       : '';
 

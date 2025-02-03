@@ -702,7 +702,7 @@
     "newSnapshot": "תמונת מצב חדשה",
     "searchASnapshot": "חפש תמונת מצב",
     "continue": "המשך",
-    "toggleExperimentalFeature": "הפעל או השבת תכונות ניסוייות בקלות, מה שמאפשר לך לחקור ולהעריך פונקציות עתידיות.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "שונה ב",
     "configuration": "תצורה",
     "setup": "הגדרות",

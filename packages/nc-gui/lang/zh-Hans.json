@@ -702,7 +702,7 @@
     "newSnapshot": "新建快照",
     "searchASnapshot": "搜索快照",
     "continue": "继续",
-    "toggleExperimentalFeature": "轻松启用或禁用实验功能，允许您探索和评估即将推出的功能。",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "修改于",
     "configuration": "配置",
     "setup": "设置",

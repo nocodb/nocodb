@@ -469,6 +469,7 @@ onBeforeUnmount(() => {
                 v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
                 v-model:value="value"
                 autofocus
+                autofocus-to-end
                 :hide-options="false"
                 class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
                 data-testid="expanded-form-comment-input"

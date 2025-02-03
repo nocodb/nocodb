@@ -13,7 +13,9 @@ interface Props {
   items: {
     icon: keyof typeof iconMap
     title?: string
+    tooltip?: string
     value: string
+    hidden?: boolean
   }[]
 }
 
@@ -33,22 +35,26 @@ const modelValue = defineModel<string>()
         '!cursor-not-allowed opacity-50': props.disabled,
       }"
     >
-      <div
-        v-for="item of props.items"
+      <NcTooltip
+        v-for="item of props.items.filter((it) => !it.hidden)"
         :key="item.value"
-        v-e="[`c:project:mode:${item.value}`]"
-        class="tab"
-        :class="{
-          'pointer-events-none': props.disabled,
-          'active': modelValue === item.value,
-        }"
-        @click="modelValue = item.value"
-      >
-        <GeneralIcon :icon="item.icon" class="tab-icon" />
-        <div v-if="item.title" class="tab-title nc-tab">
-          {{ $t(item.title) }}
+        :disabled="!item.tooltip || props.disabled">
+        <template #title>{{ item.tooltip }}</template>
+        <div
+          v-e="[`c:project:mode:${item.value}`]"
+          class="tab"
+          :class="{
+            'pointer-events-none': props.disabled,
+            'active': modelValue === item.value,
+          }"
+          @click="modelValue = item.value"
+        >
+          <GeneralIcon :icon="item.icon" class="tab-icon" />
+          <div v-if="item.title" class="tab-title nc-tab">
+            {{ $t(item.title) }}
+          </div>
         </div>
-      </div>
+      </NcTooltip>
     </div>
   </NcTooltip>
 </template>

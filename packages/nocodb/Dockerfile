@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y \
 RUN python3 --version && python --version
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy application dependency manifests to the container image.
 COPY --link ./package.json ./package.json

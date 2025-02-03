@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",

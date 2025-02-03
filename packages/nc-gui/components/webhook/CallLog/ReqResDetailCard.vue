@@ -33,7 +33,7 @@ const formattedPayload = computed(() => {
   <div class="detail-card">
     <div class="detail-title font-weight-bold">{{ title }}</div>
     <div v-if="headers" class="detail-headers">
-      <span class="text-sm text-gray-500 font-weight-bold">Header</span>
+      <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
       <div class="log-details">
         <div v-for="(value, key) in headers" class="log-detail-item">
           <span class="label">{{ key }}</span>
@@ -43,7 +43,7 @@ const formattedPayload = computed(() => {
     </div>
     <div v-if="payload" class="detail-payload">
       <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between">
-        Payload
+        <span class="text-xs leading-[18px]">Payload</span>
         <GeneralIcon icon="copy" class="cursor-pointer" @click="copyPayload" />
       </div>
       <LazyMonacoEditor
@@ -70,18 +70,18 @@ const formattedPayload = computed(() => {
   }
 
   & > div {
-    @apply p-3;
+    @apply px-3 py-2;
   }
   .log-details {
-    @apply flex flex-col gap-2 mt-2;
+    @apply flex flex-col gap-1 mt-2;
     .log-detail-item {
       @apply flex flex-row w-full;
       .label {
-        @apply min-w-40 font-bold overflow-ellipsis whitespace-nowrap overflow-hidden;
+        @apply min-w-40 font-weight-bold overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
       }
 
       .value {
-        @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden;
+        @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden  text-small1;
       }
     }
   }

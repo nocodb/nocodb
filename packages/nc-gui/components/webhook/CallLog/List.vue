@@ -37,8 +37,8 @@ const emit = defineEmits<Emit>()
         </div>
         <div class="flex flex-col">
           <h4 class="font-weight-bold">{{ hookLogFormatter(log.created_at) }}</h4>
-          <span v-if="log.error" class="text-gray-600">Failed in {{ log.execution_time }} ms</span>
-          <span v-else class="text-gray-600">Succeeded in {{ log.execution_time }} ms</span>
+          <span v-if="log.error" class="text-gray-600 text-small1">Failed in {{ log.execution_time }} ms</span>
+          <span v-else class="text-gray-600 text-small1">Succeeded in {{ log.execution_time }} ms</span>
         </div>
       </div>
     </template>

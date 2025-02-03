@@ -2062,8 +2062,8 @@ function handleBinaryExpressionForDateAndTime(params: {
           sourceBinaryNode.right,
           {
             type: 'Literal',
-            value: 'minute',
-            raw: '"minute"',
+            value: 'minutes',
+            raw: '"minutes"',
             dataType: 'string',
           },
         ],
@@ -2086,8 +2086,8 @@ function handleBinaryExpressionForDateAndTime(params: {
           sourceBinaryNode.right,
           {
             type: 'Literal',
-            value: 'minute',
-            raw: '"minute"',
+            value: 'minutes',
+            raw: '"minutes"',
             dataType: 'string',
           },
         ],
@@ -2144,8 +2144,8 @@ function handleBinaryExpressionForDateAndTime(params: {
           },
           {
             type: 'Literal',
-            value: 'minute',
-            raw: '"minute"',
+            value: 'minutes',
+            raw: '"minutes"',
             dataType: 'string',
           },
         ],
@@ -2167,8 +2167,8 @@ function handleBinaryExpressionForDateAndTime(params: {
           },
           {
             type: 'Literal',
-            value: 'minute',
-            raw: '"minute"',
+            value: 'minutes',
+            raw: '"minutes"',
             dataType: 'string',
           },
         ],

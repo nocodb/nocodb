@@ -77,8 +77,6 @@ export function useGridViewData(
     where,
   })
 
-  const { allFilters } = useSmartsheetStoreOrThrow()
-
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()
   }
@@ -725,6 +723,7 @@ export function useGridViewData(
   async function bulkDeleteAll() {
     try {
       isBulkOperationInProgress.value = true
+
       await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
         where: where?.value,
         viewId: viewMeta.value?.id,

@@ -32,7 +32,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'keydown'])
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -185,11 +185,31 @@ onBeforeUnmount(() => {
   tooltipInstances.forEach((instance) => instance?.destroy())
   tooltipInstances.length = 0
 })
+
+const el = useCurrentElement()
+
+// listen to custom event for setting the focus via event dispatching from
+// outside the component where there's no access to editor and its apis
+useEventListener(el, 'focusPromptWithFields', () => {
+  setTimeout(() => {
+    editor.value
+      ?.chain()
+      .focus()
+      .setTextSelection(vModel.value.length * 2)
+      .run()
+  }, 100)
+})
 </script>
 
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
-    <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
+    <EditorContent
+      ref="editorDom"
+      :editor="editor"
+      @keydown="$emit('keydown', $event)"
+      @keydown.alt.enter.stop
+      @keydown.shift.enter.stop
+    />
 
     <NcButton
       size="xs"

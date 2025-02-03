@@ -23,6 +23,8 @@ const displayField = toRef(props, 'displayField')
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { isMobileMode } = useGlobal()
+
 interface Attachment {
   url: string
   title: string
@@ -47,6 +49,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     return []
   }
 })
+
+const limitedFields = computed(() => props.fields.filter((field) => !isAttachment(field)).slice(0, isMobileMode.value ? 1 : 3))
 
 useProvideSmartsheetRowStore(row)
 </script>
@@ -84,11 +88,15 @@ useProvideSmartsheetRowStore(row)
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
-            <LazySmartsheetPlainCell :model-value="row.row[displayField.title]" :column="displayField" />
+            <LazySmartsheetPlainCell
+              :model-value="row.row[displayField.title]"
+              :column="displayField"
+              class="font-semibold text-brand-500 nc-display-value leading-[20px]"
+            />
           </div>
 
-          <div v-if="fields.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
-            <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
+          <div v-if="limitedFields.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
+            <div v-for="field in limitedFields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
               <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1]">
                 <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
                   <template #title>

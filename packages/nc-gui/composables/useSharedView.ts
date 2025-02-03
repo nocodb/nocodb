@@ -11,6 +11,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { setI18nLanguage } from '~/plugins/a.i18n'
 
 export function useSharedView() {
   const router = useRouter()
@@ -82,6 +83,10 @@ export function useSharedView() {
     if (localPassword) password.value = localPassword
     sharedView.value = { title: '', ...viewMeta } as ViewType
     meta.value = { ...viewMeta.model }
+
+    if (parseProp(viewMeta.meta)?.language) {
+      setI18nLanguage(parseProp(viewMeta.meta).language)
+    }
 
     let order = 1
 

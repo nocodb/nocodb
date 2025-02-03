@@ -10,7 +10,7 @@ const props = defineProps<Props>()
 
 const parsedPayload = computed(() => {
   try {
-    return (typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)) ||{}
+    return (typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)) || {}
   } catch {
     return {}
   }
@@ -31,7 +31,7 @@ const parsedRespondePayload = computed(() => {
 
       <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-3" :class="item.error ? 'bg-orange-50' : 'bg-warn-50'">
         <GeneralIcon :icon="item.error ? 'ncAlertCircleFilled' : 'checkFill'" class="text-white w-4 h-4 mt-0.75" />
-        <div>{{ item.error ? $t('labels.failed'): $t('labels.succeeded')   }} in {{ item.execution_time }} ms</div>
+        <div>{{ item.error ? $t('labels.failed') : $t('labels.succeeded') }} in {{ item.execution_time }} ms</div>
       </div>
 
       <div class="log-details">
@@ -57,11 +57,11 @@ const parsedRespondePayload = computed(() => {
           <span class="label">Test call</span>
           <span class="value capitalize">{{ !!item.test_call }}</span>
         </div>
-        <div class="log-detail-item" v-if="item.error_code">
+        <div v-if="item.error_code" class="log-detail-item">
           <span class="label">Error code</span>
           <span class="value capitalize">{{ item.error_code }}</span>
         </div>
-        <div class="log-detail-item" v-if="item.error_message">
+        <div v-if="item.error_message" class="log-detail-item">
           <span class="label">Error message</span>
           <span class="value capitalize">{{ item.error_message }}</span>
         </div>
@@ -69,7 +69,12 @@ const parsedRespondePayload = computed(() => {
 
       <div class="request-response-wrapper">
         <div class="request-wrapper">
-          <WebhookCallLogReqResDetailCard title="Request" :headers="parsedPayload.headers" :payload="parsedPayload.data" />
+          <WebhookCallLogReqResDetailCard
+            title="Request"
+            :headers="parsedPayload.headers"
+            :payload="parsedPayload.data"
+            :params="parsedPayload.params"
+          />
         </div>
         <div class="response-wrapper">
           <WebhookCallLogReqResDetailCard

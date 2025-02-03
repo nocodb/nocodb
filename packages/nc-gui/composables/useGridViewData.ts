@@ -77,6 +77,8 @@ export function useGridViewData(
     where,
   })
 
+  const { allFilters } = useSmartsheetStoreOrThrow()
+
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()
   }
@@ -723,11 +725,18 @@ export function useGridViewData(
   async function bulkDeleteAll() {
     try {
       isBulkOperationInProgress.value = true
-
-      await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
-        where: where?.value,
-        viewId: viewMeta.value?.id,
-      })
+      // if there is filter applied on view, do not delete all records
+      if (allFilters.value.length > 0) {
+        const rowsToRemove = Array.from(cachedRows.value.values()).map((k) => toRaw(k.row))
+        await $api.dbDataTableRow.delete(meta.value?.id as string, rowsToRemove.length === 1 ? rowsToRemove[0] : rowsToRemove, {
+          viewId: viewMeta.value?.id as string,
+        })
+      } else {
+        await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
+          where: where?.value,
+          viewId: viewMeta.value?.id,
+        })
+      }
     } catch (error) {
     } finally {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)

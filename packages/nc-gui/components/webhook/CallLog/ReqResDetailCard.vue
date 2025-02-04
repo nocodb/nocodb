@@ -31,6 +31,7 @@ const formattedPayload = computed(() => {
   }
 })
 </script>
+
 <template>
   <div class="detail-card">
     <div class="detail-title font-weight-bold">{{ title }}</div>
@@ -40,7 +41,10 @@ const formattedPayload = computed(() => {
         <div class="log-details">
           <div v-for="(value, key) in headers" class="log-detail-item">
             <span class="label">{{ key }}</span>
-            <span class="value">{{ value }}</span>
+            <nc-tooltip class="text-small1">
+              <template #title>{{ value }}</template>
+              <span class="value"> {{ value }}</span>
+            </nc-tooltip>
           </div>
         </div>
       </div>
@@ -49,7 +53,10 @@ const formattedPayload = computed(() => {
         <div class="log-details">
           <div v-for="(value, key) in params" class="log-detail-item">
             <span class="label">{{ key }}</span>
-            <span class="value">{{ value }}</span>
+            <nc-tooltip class="text-small1">
+              <template #title>{{ value }}</template>
+              <span class="value"> {{ value }}</span>
+            </nc-tooltip>
           </div>
         </div>
       </div>

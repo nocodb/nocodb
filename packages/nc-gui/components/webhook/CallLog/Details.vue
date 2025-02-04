@@ -52,12 +52,16 @@ const hookType = (item: HookLogType) => {
 
       <div class="log-details">
         <div class="log-detail-item">
-          <span class="label">Request Time</span>
-          <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
+          <span class="label">Execution Time</span>
+          <span class="value">{{ item.execution_time }} ms</span>
         </div>
         <div class="log-detail-item">
           <span class="label">Webhook Type</span>
           <span class="value">{{ hookType(item) }}</span>
+        </div>
+        <div class="log-detail-item">
+          <span class="label">Request Time</span>
+          <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
         <div class="log-detail-item">
           <span class="label">ID</span>

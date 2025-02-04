@@ -27,11 +27,9 @@ const parsedRespondePayload = computed(() => {
 <template>
   <div class="container">
     <template v-if="item">
-      <div class="font-weight-bold text-base">{{ hookLogFormatter(item.created_at) }}</div>
-
-      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-3" :class="item.error ? 'bg-orange-50' : 'bg-warn-50'">
-        <GeneralIcon :icon="item.error ? 'ncAlertCircleFilled' : 'checkFill'" class="text-white w-4 h-4 mt-0.75" />
-        <div>{{ item.error ? $t('labels.failed') : $t('labels.succeeded') }} in {{ item.execution_time }} ms</div>
+      <div class="log-url-wrapper" v-if="parsedPayload.method && parsedPayload.url">
+        <div class="log-method">{{ parsedPayload.method }}</div>
+        <div class="log-url">{{parsedPayload.url}}</div>
       </div>
 
       <div class="log-details">
@@ -39,12 +37,6 @@ const parsedRespondePayload = computed(() => {
           <span class="label">Request Time</span>
           <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
-        <!--
-        <div class="log-detail-item">
-          <span class="label">Size</span>
-          <span class="value">{{ item.size }}</span>
-        </div>
-        -->
         <div class="log-detail-item">
           <span class="label">ID</span>
           <span class="value">{{ item.id }}</span>
@@ -73,7 +65,7 @@ const parsedRespondePayload = computed(() => {
             title="Request"
             :headers="parsedPayload.headers"
             :payload="parsedPayload.data"
-            :params="parsedPayload.params"
+            :params="parsedPayload.params"O
           />
         </div>
         <div class="response-wrapper">
@@ -111,6 +103,16 @@ const parsedRespondePayload = computed(() => {
     .request-wrapper,
     .response-wrapper {
       @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;
+    }
+  }
+
+  .log-url-wrapper{
+    @apply flex flex-row gap-2 items-center h-20px;
+    .log-method {
+      @apply bg-gray-200 rounded-md leading-20px px-1 text-gray-600;
+    }
+    .log-url{
+      @apply text-small1 text-primary font-weight-default;
     }
   }
 }

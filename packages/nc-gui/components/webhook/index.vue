@@ -15,6 +15,11 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['close', 'update:value'])
 
+enum HookTab {
+  Configuration = 'configuration',
+  Log = 'log',
+}
+
 const { eventList } = toRefs(props)
 
 const { t } = useI18n()
@@ -454,6 +459,8 @@ const sampleData = ref()
 
 const containerElem = ref()
 
+const activeTab = ref<HookTab>(HookTab.Configuration)
+
 const [isVisible, toggleVisibility] = useToggle()
 
 const toggleSamplePayload = () => {
@@ -604,6 +611,29 @@ onMounted(async () => {
           </span>
         </div>
 
+        <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+          <div
+            v-e="['c:webhook:edit']"
+            class="tab"
+            :class="{
+              active: activeTab === HookTab.Configuration,
+            }"
+            @click="activeTab = HookTab.Configuration"
+          >
+            <div class="tab-title nc-tab">{{ $t('general.cofiguration') }}</div>
+          </div>
+          <div
+            v-e="['c:webhook:log']"
+            class="tab"
+            :class="{
+              active: activeTab === HookTab.Log,
+            }"
+            @click="activeTab = HookTab.Log"
+          >
+            <div class="tab-title nc-tab">{{ $t('general.log') }}</div>
+          </div>
+        </div>
+
         <div class="flex justify-end items-center gap-3">
           <NcTooltip :disabled="!testConnectionError">
             <template #title>
@@ -630,7 +660,7 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]" v-if="activeTab === HookTab.Configuration">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
@@ -1002,6 +1032,9 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    <div v-else-if="activeTab === HookTab.Log">
+      <WebhookCallLog :hook="hook" />
+    </div>
   </NcModal>
 </template>
 
@@ -1156,5 +1189,27 @@ onMounted(async () => {
 
 :deep(.mtk1) {
   @apply text-[#000000D9];
+}
+
+.tab {
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+}
+
+.tab-icon {
+  font-size: 1rem !important;
+  @apply w-4;
+}
+.tab .tab-title {
+  @apply min-w-0 text-sm;
+  word-break: keep-all;
+  white-space: nowrap;
+  display: inline;
+  line-height: 0.95;
+}
+
+.active {
+  @apply bg-white text-brand-600 hover:text-brand-600;
+
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

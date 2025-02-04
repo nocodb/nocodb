@@ -5,7 +5,20 @@ interface Props {
   payload: unknown
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const { copy } = useCopy()
+
+const { t } = useI18n()
+
+const copyPayload = async () => {
+  try {
+    await copy(typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : props.payload)
+    message.success(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>

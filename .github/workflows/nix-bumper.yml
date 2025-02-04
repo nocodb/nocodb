@@ -10,17 +10,17 @@ on:
 
 jobs:
   bumper:
-    runs-on: self-hosted
+    runs-on: nix
 
     permissions:
       contents: "write"
-      id-token: "write"
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+    # nix runner already has Nix insatlled
+    # - name: Install Nix
+    #   uses: DeterminateSystems/nix-installer-action@main
+    # - uses: DeterminateSystems/magic-nix-cache-action@main
     - name: Run Bumper
       run: nix run .#bumper

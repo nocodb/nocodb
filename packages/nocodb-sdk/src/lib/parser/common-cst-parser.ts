@@ -8,11 +8,14 @@ type ConstructorOpt = {
     DBL_QUOTE_IDENTIFIER?: string | null;
   };
 };
-export type VariableRule = Rule<{
-  IDENTIFIER?: Token[];
-  SUP_SGL_QUOTE_IDENTIFIER?: Token[];
-  SUP_DBL_QUOTE_IDENTIFIER?: Token[];
-}>;
+export type VariableRule = Rule<
+  {
+    IDENTIFIER?: Token[];
+    SUP_SGL_QUOTE_IDENTIFIER?: Token[];
+    SUP_DBL_QUOTE_IDENTIFIER?: Token[];
+  },
+  'VARIABLE'
+>;
 
 export const parseVariable = (
   variable: VariableRule | VariableRule[]

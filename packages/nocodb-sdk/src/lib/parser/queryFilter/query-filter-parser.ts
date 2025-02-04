@@ -1,4 +1,6 @@
 import {
+  BINARY_LOGICAL_OPERATOR,
+  NOT_OPERATOR,
   QUERY_FILTER_TOKENS,
   QueryFilterLexer,
   TOKEN_OPERATOR,
@@ -22,16 +24,41 @@ export class QueryFilterParser extends CommonCstParser {
     // not mandatory, using $ (or any other sign) to reduce verbosity (this. this. this. this. .......)
     const $ = this;
 
+    $.RULE('logical_clause', () => {
+      $.SUBRULE($['paren_clause'], { LABEL: 'lhc' });
+      $.OPTION(() => {
+        $.CONSUME(BINARY_LOGICAL_OPERATOR);
+        $.SUBRULE2($['paren_clause'], { LABEL: 'rhc' });
+      });
+    });
+
     // the parsing methods
     // we define the "rules" of how the syntax will be defined
-    $.RULE('call_expression', () => {
+    $.RULE('paren_clause', () => {
+      $.OPTION(() => {
+        $.CONSUME(NOT_OPERATOR);
+      });
       $.CONSUME(COMMON_TOKEN.PAREN_START);
+      $.OR([
+        { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
+        { ALT: () => $.SUBRULE($['multi_clause'], { LABEL: 'clause' }) },
+      ]);
+      $.CONSUME(COMMON_TOKEN.PAREN_END);
+    });
+    $.RULE('multi_clause', () => {
+      $.AT_LEAST_ONE_SEP({
+        SEP: BINARY_LOGICAL_OPERATOR,
+        DEF: () => {
+          $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
+        },
+      });
+    });
+    $.RULE('call_expression', () => {
       $.CONSUME(COMMON_TOKEN.IDENTIFIER);
       $.CONSUME2(COMMON_TOKEN.COMMA);
       $.CONSUME(TOKEN_OPERATOR);
       $.CONSUME3(COMMON_TOKEN.COMMA);
-      $.SUBRULE(($ as any).expression_arguments);
-      $.CONSUME(COMMON_TOKEN.PAREN_END);
+      $.SUBRULE($['expression_arguments']);
     });
     $.RULE('expression_arguments', () => {
       $.OR([
@@ -54,7 +81,7 @@ export class QueryFilterParser extends CommonCstParser {
   }
 
   parse() {
-    return (this as any).call_expression();
+    return (this as any).multi_clause();
   }
 
   static async parse(text: string) {
@@ -64,7 +91,6 @@ export class QueryFilterParser extends CommonCstParser {
     parser.input = lexResult.tokens;
     // any top level rule may be used as an entry point
     const cst = parser.parse();
-
     return {
       cst: cst,
       lexErrors: lexResult.errors,

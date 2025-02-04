@@ -4,9 +4,16 @@ describe('query-filter-parser', () => {
   it('will parse eq expression with double quote', async () => {
     const text = `(field1, eq, "hello, 'world")`;
     const expectedParsedCst = {
-      field: 'field1',
-      comparison_op: 'eq',
-      value: '"hello, \'world"',
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field1',
+          comparison_op: 'eq',
+          value: '"hello, \'world"',
+        },
+      ],
     };
     const result = await QueryFilterParser.parse(text);
     expect(result.parsedCst).toEqual(expectedParsedCst);
@@ -14,9 +21,16 @@ describe('query-filter-parser', () => {
   it('will parse eq expression with single quote', async () => {
     const text = `(field1, eq, 'hello, "world')`;
     const expectedParsedCst = {
-      field: 'field1',
-      comparison_op: 'eq',
-      value: "'hello, \"world'",
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field1',
+          comparison_op: 'eq',
+          value: "'hello, \"world'",
+        },
+      ],
     };
     const result = await QueryFilterParser.parse(text);
     expect(result.parsedCst).toEqual(expectedParsedCst);
@@ -30,9 +44,16 @@ describe('query-filter-parser', () => {
     const text = '(field1, eq, today)';
     const result = await QueryFilterParser.parse(text);
     const expectedParsedCst = {
-      field: 'field1',
-      comparison_op: 'eq',
-      comparison_sub_op: 'today',
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field1',
+          comparison_op: 'eq',
+          comparison_sub_op: 'today',
+        },
+      ],
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
@@ -40,10 +61,63 @@ describe('query-filter-parser', () => {
     const text = '(field1, isWithin, nextNumberOfDays, 10)';
     const result = await QueryFilterParser.parse(text);
     const expectedParsedCst = {
-      field: 'field1',
-      comparison_op: 'isWithin',
-      comparison_sub_op: 'nextNumberOfDays',
-      value: '10',
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field1',
+          comparison_op: 'isWithin',
+          comparison_sub_op: 'nextNumberOfDays',
+          value: '10',
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  it('will parse complex nested logic', async () => {
+    const text =
+      '~not(field1, isWithin, nextNumberOfDays, 10)~and((field2, eq, 2)~or(field2, eq, 3))~or(field3, not, 4)';
+    const result = await QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field1',
+          comparison_op: 'isWithin',
+          logical_op: 'not',
+          comparison_sub_op: 'nextNumberOfDays',
+          value: '10',
+        },
+        {
+          is_group: true,
+          logical_op: 'and',
+          children: [
+            {
+              is_group: false,
+              field: 'field2',
+              comparison_op: 'eq',
+              value: '2',
+            },
+            {
+              is_group: false,
+              field: 'field2',
+              comparison_op: 'eq',
+              logical_op: 'or',
+              value: '3',
+            },
+          ],
+        },
+        {
+          is_group: false,
+          field: 'field3',
+          comparison_op: 'not',
+          logical_op: 'or',
+          value: '4',
+        },
+      ],
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });

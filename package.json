@@ -16,8 +16,8 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "lerna": "^7.4.2",
     "husky": "^8.0.3",
+    "lerna": "^7.4.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -61,5 +61,9 @@
       "ws@<8.17.1": ">=8.17.1",
       "@azure/msal-node": "^2.16.2"
     }
+  },
+  "dependencies": {
+    "is-odd": "^3.0.1",
+    "nocodb": "^0.260.4"
   }
 }

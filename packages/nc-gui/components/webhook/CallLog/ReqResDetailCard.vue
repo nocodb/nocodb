@@ -30,9 +30,7 @@ const formattedPayload = computed(() => {
     return props.payload
   }
 })
-
 </script>
-
 <template>
   <div class="detail-card">
     <div class="detail-title font-weight-bold">{{ title }}</div>

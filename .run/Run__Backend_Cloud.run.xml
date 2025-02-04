@@ -8,6 +8,7 @@
     <node-interpreter value="project" />
     <envs>
       <env name="NC_ALLOW_LOCAL_EXTERNAL_DBS" value="true" />
+      <env name="NC_AUTOMATION_LOG_LEVEL" value="ALL" />
       <env name="NC_DISABLE_MUX" value="true" />
     </envs>
     <method v="2" />

@@ -51,3 +51,7 @@ export const timeAgo = (date: string) => {
 
   return `${years}y ago`
 }
+
+export const hookLogFormatter = (date: string) => {
+  return date && dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}

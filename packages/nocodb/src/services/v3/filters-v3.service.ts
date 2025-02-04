@@ -23,6 +23,73 @@ function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
 }
 
+export function addDummyRootAndNest(filters: any[]): any[] {
+  // If empty, return as it is
+  if (filters.length === 0) {
+    return filters;
+  }
+
+  // Create a map of filters by parent_id for easy lookup
+  const filterMap = new Map<string | null, any[]>();
+  filters.forEach((filter) => {
+    const parentId = filter.parent_id || null;
+    if (!filterMap.has(parentId)) {
+      filterMap.set(parentId, []);
+    }
+    filterMap.get(parentId)!.push(filter);
+  });
+
+  // Helper function to determine group_operator for a group
+  const getGroupOperatorFromFirstChild = (
+    groupId: string | null,
+  ): 'AND' | 'OR' | null => {
+    const children = filterMap.get(groupId) || [];
+    return children.length > 0 && children[0].logical_op
+      ? // if the second child is a logical operator, return it or fallback to the first child
+        // since in the current implementation, the first child logical op doesn't matter and it always and
+        (children[1] || children[0]).logical_op?.toUpperCase()
+      : null;
+  };
+
+  // Build a nested structure recursively
+  const buildNestedStructure = (parentId: string | null): any[] => {
+    const children = filterMap.get(parentId) || [];
+    return children.map((child) => {
+      const isGroup = !!child.is_group;
+      const groupOperator = isGroup
+        ? getGroupOperatorFromFirstChild(child.id)
+        : undefined;
+      const currentItem = {
+        ...child,
+        parent_id: undefined, // Root-level items have no parent_id
+        group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
+        logical_op: undefined, // Remove logical_op from filters
+        filters: isGroup ? buildNestedStructure(child.id) : undefined, // Recursively nest children for groups
+        is_group: undefined,
+      };
+
+      if (!isGroup) {
+        delete currentItem.logical_op; // Remove logical_op from non-groups
+      }
+
+      return currentItem;
+    });
+  };
+
+  // Build the nested structure starting from the dummy root
+  const nestedFilters = buildNestedStructure(null);
+
+  // Add the dummy root group
+  return [
+    {
+      id: 'root',
+      group_operator:
+        nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
+      filters: nestedFilters,
+    },
+  ];
+}
+
 @Injectable()
 export class FiltersV3Service {
   constructor(
@@ -372,154 +439,7 @@ export class FiltersV3Service {
       });
     }
 
-    return this.addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
-  }
-
-  private addDummyRootAndNest(filters: any[]): any[] {
-    // If empty, return as it is
-    if (filters.length === 0) {
-      return filters;
-    }
-
-    // Create a map of filters by parent_id for easy lookup
-    const filterMap = new Map<string | null, any[]>();
-    filters.forEach((filter) => {
-      const parentId = filter.parent_id || null;
-      if (!filterMap.has(parentId)) {
-        filterMap.set(parentId, []);
-      }
-      filterMap.get(parentId)!.push(filter);
-    });
-
-    // Helper function to determine group_operator for a group
-    const getGroupOperatorFromFirstChild = (
-      groupId: string | null,
-    ): 'AND' | 'OR' | null => {
-      const children = filterMap.get(groupId) || [];
-      return children.length > 0 && children[0].logical_op
-        ? // if the second child is a logical operator, return it or fallback to the first child
-          // since in the current implementation, the first child logical op doesn't matter and it always and
-          (children[1] || children[0]).logical_op?.toUpperCase()
-        : null;
-    };
-
-    // Build a nested structure recursively
-    const buildNestedStructure = (parentId: string | null): any[] => {
-      const children = filterMap.get(parentId) || [];
-      return children.map((child) => {
-        const isGroup = !!child.is_group;
-        const groupOperator = isGroup
-          ? getGroupOperatorFromFirstChild(child.id)
-          : undefined;
-        const currentItem = {
-          ...child,
-          parent_id: undefined, // Root-level items have no parent_id
-          group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
-          logical_op: undefined, // Remove logical_op from filters
-          filters: isGroup ? buildNestedStructure(child.id) : undefined, // Recursively nest children for groups
-          is_group: undefined,
-        };
-
-        if (!isGroup) {
-          delete currentItem.logical_op; // Remove logical_op from non-groups
-        }
-
-        return currentItem;
-      });
-    };
-
-    // Build the nested structure starting from the dummy root
-    const nestedFilters = buildNestedStructure(null);
-
-    // Add the dummy root group
-    return [
-      {
-        id: 'root',
-        group_operator:
-          nestedFilters.length > 0
-            ? getGroupOperatorFromFirstChild(null)
-            : null,
-        filters: nestedFilters,
-      },
-    ];
-  }
-
-  private addDummyRootAndFlattenByLevels(filters: any[]): any[] {
-    // if empty return as it is
-    if (filters.length === 0) {
-      return filters;
-    }
-
-    // Create a map of filters by parent_id for easy lookup
-    const filterMap = new Map<string | null, any[]>();
-    filters.forEach((filter) => {
-      const parentId = filter.parent_id || null;
-      if (!filterMap.has(parentId)) {
-        filterMap.set(parentId, []);
-      }
-      filterMap.get(parentId)!.push(filter);
-    });
-
-    // Helper function to determine group_operator for a group
-    const getGroupOperatorFromFirstChild = (
-      groupId: string | null,
-    ): 'AND' | 'OR' | null => {
-      const children = filterMap.get(groupId) || [];
-      return children.length > 0 && children[0].logical_op
-        ? children[0].logical_op
-        : null;
-    };
-
-    // Flatten filters by levels
-    const flattenByLevels = (): any[] => {
-      const result: any[] = [];
-      const queue: { parentId: string | null; level: number }[] = [
-        { parentId: null, level: 0 },
-      ];
-
-      while (queue.length > 0) {
-        const { parentId, level } = queue.shift()!;
-        const children = filterMap.get(parentId) || [];
-        for (const child of children) {
-          const isGroup = !!child.is_group;
-          const groupOperator = isGroup
-            ? getGroupOperatorFromFirstChild(child.id)
-            : undefined;
-          const currentItem = {
-            ...child,
-            parent_id: parentId === 'root' ? null : parentId, // Remove parent_id for root-level items
-            group_operator: isGroup ? groupOperator : undefined, // Only groups get updated group_operator
-            logical_op: undefined, // Remove logical_op from filters
-          };
-          if (!isGroup) {
-            delete currentItem.logical_op; // Remove logical_op from filters
-          }
-          result.push(currentItem);
-          if (isGroup) {
-            queue.push({ parentId: child.id, level: level + 1 });
-          }
-        }
-      }
-
-      return result;
-    };
-
-    // Build the flat list ordered by levels
-    const flattenedFilters = flattenByLevels();
-
-    // Add the dummy root group
-    return [
-      {
-        id: 'root',
-        is_group: true,
-        group_operator:
-          flattenedFilters.length > 0
-            ? getGroupOperatorFromFirstChild(null)
-            : null,
-        parent_id: null, // Root has no parent_id
-      },
-      ...flattenedFilters,
-    ];
+    return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
   }
 
   async filterReplace(

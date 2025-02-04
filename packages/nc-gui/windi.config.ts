@@ -89,6 +89,7 @@ export default defineConfig({
       fontSize: {
         tiny: ['11px', '14px'],
         small: ['13px', '16px'],
+        small1: ['13px', '18px'],
       },
       fontWeight: {
         thin: 150,

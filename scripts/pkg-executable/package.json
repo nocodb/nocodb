@@ -27,13 +27,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/common": "^10.3.8",
-    "@nestjs/core": "^10.3.8",
+    "@nestjs/common": "^10.3.10",
+    "@nestjs/core": "^10.3.10",
     "express": "^4.18.3",
     "nocodb": "0.204.9"
   },
   "overrides": {
-    "sqlite3": "5.1.6"
+    "sqlite3": "5.1.7"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^1.0.11"

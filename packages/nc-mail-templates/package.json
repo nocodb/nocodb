@@ -18,7 +18,7 @@
     "vue-extensible-mail": "^0.0.3 "
   },
   "devDependencies": {
-    "tsx": "^4.10.4",
-    "@types/html-entities-decoder": "^1.0.2"
+    "tsx": "^4.10.5",
+    "@types/html-entities-decoder": "^1.0.3"
   }
 }

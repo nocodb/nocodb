@@ -134,7 +134,6 @@ describe('Formula parsing and type validation', () => {
         clientOrSqlUi: 'pg',
         getMeta: async () => ({}),
       });
-      console.log(result);
       expect(result.dataType).toEqual(FormulaDataTypes.DATE);
     });
   })

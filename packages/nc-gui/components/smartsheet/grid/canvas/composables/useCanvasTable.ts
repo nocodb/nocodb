@@ -397,7 +397,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell } = useGridCellHandler({ getCellPosition, actionManager })
+  const { handleCellClick, renderCell } = useGridCellHandler({ getCellPosition, actionManager, updateOrSaveRow })
 
   const { canvasRef, renderCanvas } = useCanvasRender({
     width,

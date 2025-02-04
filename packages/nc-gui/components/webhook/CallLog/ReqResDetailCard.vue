@@ -30,6 +30,7 @@ const formattedPayload = computed(() => {
     return props.payload
   }
 })
+
 </script>
 
 <template>
@@ -73,7 +74,7 @@ const formattedPayload = computed(() => {
             inherit: true,
             rules: [],
             colors: {
-              'editor.background': '#00000000',
+              'editor.background': '#f9f9fa',
             },
           }"
           @keydown.enter.stop
@@ -108,11 +109,11 @@ const formattedPayload = computed(() => {
       .log-detail-item {
         @apply flex flex-row w-full;
         .label {
-          @apply min-w-40 text-gray-700 overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
+          @apply min-w-40 font-weight-600 text-gray-700 overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
         }
 
         .value {
-          @apply min-w-0 font-weight-600 overflow-ellipsis whitespace-nowrap overflow-hidden leading-[20px];
+          @apply min-w-0 overflow-ellipsis whitespace-nowrap overflow-hidden text-gray-600  text-small1;
         }
       }
     }

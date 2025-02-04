@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { HookLogType } from 'nocodb-sdk'
-import { hookLogFormatter } from '../../../utils/datetimeUtils'
+import type {HookLogType} from 'nocodb-sdk'
+import {hookLogFormatter} from '../../../utils/datetimeUtils'
 
 interface Props {
   item: HookLogType
@@ -22,6 +22,24 @@ const parsedRespondePayload = computed(() => {
     return {}
   }
 })
+
+const hookType = (item: HookLogType) => {
+  if (item.operation === 'update') {
+    return 'On Record Update'
+  } else if (item.operation === 'insert') {
+    return 'On Record Insert'
+  } else if (item.operation === 'delete') {
+    return 'On Record Delete'
+  } else if (item.operation === 'bulkDelete' || item.operation === 'bulkDeleteAll') {
+    return 'On Bulk Record Delete'
+  } else if (item.operation === 'bulkInsert') {
+    return 'On Bulk Record Insert'
+  } else if (item.operation === 'bulkUpdate' || item.operation === 'bulkUpdateAll') {
+    return 'On Bulk Record Update'
+  }
+
+  return 'On Record Insert'
+}
 </script>
 
 <template>
@@ -29,13 +47,17 @@ const parsedRespondePayload = computed(() => {
     <template v-if="item">
       <div class="log-url-wrapper" v-if="parsedPayload.method && parsedPayload.url">
         <div class="log-method">{{ parsedPayload.method }}</div>
-        <div class="log-url">{{parsedPayload.url}}</div>
+        <div class="log-url">{{ parsedPayload.url }}</div>
       </div>
 
       <div class="log-details">
         <div class="log-detail-item">
           <span class="label">Request Time</span>
           <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
+        </div>
+        <div class="log-detail-item">
+          <span class="label">Webhook Type</span>
+          <span class="value">{{ hookType(item) }}</span>
         </div>
         <div class="log-detail-item">
           <span class="label">ID</span>
@@ -47,32 +69,32 @@ const parsedRespondePayload = computed(() => {
         </div>
         <div class="log-detail-item">
           <span class="label">Test call</span>
-          <span class="value capitalize">{{ !!item.test_call }}</span>
+          <span class="value">{{ !!item.test_call }}</span>
         </div>
         <div v-if="item.error_code" class="log-detail-item">
           <span class="label">Error code</span>
-          <span class="value capitalize">{{ item.error_code }}</span>
+          <span class="value">{{ item.error_code }}</span>
         </div>
         <div v-if="item.error_message" class="log-detail-item">
           <span class="label">Error message</span>
-          <span class="value capitalize">{{ item.error_message }}</span>
+          <span class="value">{{ item.error_message }}</span>
         </div>
       </div>
 
       <div class="request-response-wrapper">
         <div class="request-wrapper">
           <WebhookCallLogReqResDetailCard
-            title="Request"
-            :headers="parsedPayload.headers"
-            :payload="parsedPayload.data"
-            :params="parsedPayload.params"O
+              title="Request"
+              :headers="parsedPayload.headers"
+              :payload="parsedPayload.data"
+              :params="parsedPayload.params" O
           />
         </div>
         <div class="response-wrapper">
           <WebhookCallLogReqResDetailCard
-            title="Response"
-            :headers="parsedRespondePayload.headers"
-            :payload="parsedRespondePayload.data"
+              title="Response"
+              :headers="parsedRespondePayload.headers"
+              :payload="parsedRespondePayload.data"
           />
         </div>
       </div>
@@ -84,7 +106,7 @@ const parsedRespondePayload = computed(() => {
 .container {
   @apply p-6 h-full overflow-auto flex-col flex gap-6;
   .log-details {
-    @apply flex flex-col gap-2;
+    @apply grid grid-cols-2 gap-2;
 
     .log-detail-item {
       @apply flex flex-row;
@@ -106,12 +128,13 @@ const parsedRespondePayload = computed(() => {
     }
   }
 
-  .log-url-wrapper{
+  .log-url-wrapper {
     @apply flex flex-row gap-2 items-center h-20px;
     .log-method {
       @apply bg-gray-200 rounded-md leading-20px px-1 text-gray-600;
     }
-    .log-url{
+
+    .log-url {
       @apply text-small1 text-primary font-weight-default;
     }
   }

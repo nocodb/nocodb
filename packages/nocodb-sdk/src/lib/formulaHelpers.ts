@@ -2074,6 +2074,30 @@ function handleBinaryExpressionForDateAndTime(params: {
         dataType: FormulaDataTypes.NUMERIC,
       } as CallExpressionNode;
     }
+    // when it's date - date, show the difference in minute
+    else if (
+      [FormulaDataTypes.DATE].includes(sourceBinaryNode.left.dataType) &&
+      [FormulaDataTypes.DATE].includes(sourceBinaryNode.right.dataType)
+    ) {
+      res = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [
+          sourceBinaryNode.left,
+          sourceBinaryNode.right,
+          {
+            type: 'Literal',
+            value: 'minute',
+            raw: '"minute"',
+            dataType: 'string',
+          },
+        ],
+        callee: {
+          type: 'Identifier',
+          name: 'DATETIME_DIFF',
+        },
+        dataType: FormulaDataTypes.NUMERIC,
+      } as CallExpressionNode;
+    }
     // else interval and date can be addedd seamlessly A - B
     // with result as DATE
     // may be changed if we find other db use case

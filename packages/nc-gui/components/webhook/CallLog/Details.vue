@@ -10,14 +10,14 @@ const props = defineProps<Props>()
 
 const parsedPayload = computed(() => {
   try {
-    return typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)
+    return (typeof props.item.payload === 'object' ? props.item.payload : JSON.stringify(props.item.payload, null, 2)) ||{}
   } catch {
     return {}
   }
 })
 const parsedRespondePayload = computed(() => {
   try {
-    return typeof props.item.response === 'object' ? props.item.response : JSON.stringify(props.item.response, null, 2)
+    return (typeof props.item.response === 'object' ? props.item.response : JSON.stringify(props.item.response, null, 2)) || {}
   } catch {
     return {}
   }

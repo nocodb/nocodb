@@ -78,6 +78,10 @@ const size = computed({
 
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
+
 const tempPageVal = ref(page.value)
 </script>
 

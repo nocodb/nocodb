@@ -431,15 +431,31 @@ export async function handleHttpWebHook(
     });
   }
 
-  const req = axiosRequestMake(
+  const reqPayload = axiosRequestMake(
     apiMeta,
     user,
     constructWebHookData(hook, model, view, prevData, newData),
   );
-  const response = await axios(req);
+  const response = await axios(reqPayload);
   return {
     response,
-    payload: apiMeta,
+    payload: {
+      ...reqPayload,
+      headers: {
+        ...(response.config?.headers || {}),
+        ...(reqPayload.headers || {}),
+        // ...(axios.config?.headers || {}),
+      },
+      // exclude http/https agent filters
+      httpAgent: undefined,
+      httpsAgent: undefined,
+    },
+    responsePayload: {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      data: response.data,
+    },
   };
 }
 
@@ -646,7 +662,11 @@ export async function invokeWebhook(
         break;
       case 'URL':
         {
-          const { response: res, payload } = await handleHttpWebHook(
+          const {
+            response: res,
+            payload,
+            responsePayload,
+          } = await handleHttpWebHook(
             hook,
             model,
             view,
@@ -662,18 +682,7 @@ export async function invokeWebhook(
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(payload),
-              response: JSON.stringify({
-                status: res.status,
-                statusText: res.statusText,
-                headers: res.headers,
-                config: {
-                  url: res.config.url,
-                  method: res.config.method,
-                  data: res.config.data,
-                  headers: res.config.headers,
-                  params: res.config.params,
-                },
-              }),
+              response: JSON.stringify(responsePayload),
               triggered_by: user?.email,
               conditions: JSON.stringify(filters),
             };

@@ -1,11 +1,21 @@
-import { renderMultiLineText, renderSpinner, truncateText } from '../utils/canvas'
+import { isBoxHovered, renderIconButton, renderMultiLineText, renderSpinner, truncateText } from '../utils/canvas'
 
-const getButtonDimensions = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  label: string = 'Generate',
-  hasIcon: boolean = true,
-) => {
+const getButtonDimensions = ({
+  ctx,
+  width,
+  label = 'Generate',
+  hasIcon,
+}: {
+  ctx?: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+  width: number
+  label?: string
+  hasIcon?: boolean
+}) => {
+  if (!ctx) {
+    const canvas = new OffscreenCanvas(0, 0)
+    ctx = canvas.getContext('2d')!
+  }
+
   const horizontalPadding = 12
   const buttonHeight = 24
   const buttonMinWidth = 32
@@ -62,7 +72,11 @@ const renderAIButton = (
     loadingStartTime?: number
   },
 ) => {
-  const dims = getButtonDimensions(ctx, width)
+  const dims = getButtonDimensions({
+    ctx,
+    width,
+    hasIcon: true
+  })
   const startX = x + (width - dims.buttonWidth) / 2
   const startY = y + 4
 
@@ -120,6 +134,8 @@ export const AILongTextCellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
     const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition } = props
 
+    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
     const horizontalPadding = 12
 
     if (!value) {
@@ -152,6 +168,37 @@ export const AILongTextCellRenderer = {
         height,
       })
 
+      if (isHovered) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 24,
+          buttonY: y + 7,
+          buttonSize: 18,
+          borderRadius: 3,
+          iconData: {
+            size: 13,
+            xOffset: (18 - 13) / 2,
+            yOffset: (18 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+        })
+        renderIconButton(ctx, {
+          buttonX: x + width - 44,
+          buttonY: y + 7,
+          buttonSize: 18,
+          borderRadius: 3,
+          iconData: {
+            size: 13,
+            xOffset: (18 - 13) / 2,
+            yOffset: (18 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'refresh',
+        })
+      }
+
       return {
         x: xOffset,
         y: yOffset,
@@ -162,5 +209,34 @@ export const AILongTextCellRenderer = {
       x,
       y,
     }
+  },
+  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, disabled }) {
+    if (!row || !column?.id || !mousePosition || disabled?.isInvalid) return
+
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    if (!value || !value?.value) {
+      const { buttonWidth } = getButtonDimensions({
+        width,
+        hasIcon: true,
+      })
+
+      const buttonBounds = {
+        x: x + (width - buttonWidth) / 2,
+        y: y + 4,
+        width: buttonWidth,
+        height: 24,
+      }
+
+      if (isBoxHovered(buttonBounds, mousePosition)) {
+        console.log('click button')
+        await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true })
+        return true
+      } else {
+        console.log('click outside button')
+        return false
+      }
+    }
+    return false
   },
 }

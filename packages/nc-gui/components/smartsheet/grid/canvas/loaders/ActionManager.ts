@@ -119,10 +119,15 @@ export class ActionManager {
     column: CanvasGridColumn,
     extra: {
       row?: Row[]
+      isAiPromptCol?: boolean
     },
   ) {
     const colOptions = column?.columnObj.colOptions
     if (!colOptions) return
+
+    if (extra?.isAiPromptCol) {
+      colOptions.type = 'ai'
+    }
 
     const { runScript } = useScriptExecutor()
 
@@ -157,7 +162,9 @@ export class ActionManager {
           break
         }
         case 'ai': {
-          const outputColumnIds = colOptions.output_column_ids?.split(',').filter(Boolean) || []
+          const outputColumnIds = extra?.isAiPromptCol
+            ? [column.id]
+            : colOptions.output_column_ids?.split(',').filter(Boolean) || []
           const outputColumns = outputColumnIds.map((id) => this.meta.value?.columnsById[id])
 
           await this.executeAction(rowIds, column.id, outputColumnIds, async () => {

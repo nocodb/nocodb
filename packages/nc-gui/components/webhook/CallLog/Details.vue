@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type {HookLogType} from 'nocodb-sdk'
-import {hookLogFormatter} from '../../../utils/datetimeUtils'
+import type { HookLogType } from 'nocodb-sdk'
+import { hookLogFormatter } from '../../../utils/datetimeUtils'
 
 interface Props {
   item: HookLogType
@@ -45,7 +45,7 @@ const hookType = (item: HookLogType) => {
 <template>
   <div class="container">
     <template v-if="item">
-      <div class="log-url-wrapper" v-if="parsedPayload.method && parsedPayload.url">
+      <div v-if="parsedPayload.method && parsedPayload.url" class="log-url-wrapper">
         <div class="log-method">{{ parsedPayload.method }}</div>
         <div class="log-url">{{ parsedPayload.url }}</div>
       </div>
@@ -84,17 +84,17 @@ const hookType = (item: HookLogType) => {
       <div class="request-response-wrapper">
         <div class="request-wrapper">
           <WebhookCallLogReqResDetailCard
-              title="Request"
-              :headers="parsedPayload.headers"
-              :payload="parsedPayload.data"
-              :params="parsedPayload.params" O
+            title="Request"
+            :headers="parsedPayload.headers"
+            :payload="parsedPayload.data"
+            :params="parsedPayload.params"
           />
         </div>
         <div class="response-wrapper">
           <WebhookCallLogReqResDetailCard
-              title="Response"
-              :headers="parsedRespondePayload.headers"
-              :payload="parsedRespondePayload.data"
+            title="Response"
+            :headers="parsedRespondePayload.headers"
+            :payload="parsedRespondePayload.data"
           />
         </div>
       </div>
@@ -121,7 +121,7 @@ const hookType = (item: HookLogType) => {
   }
 
   .request-response-wrapper {
-    @apply flex flex-row gap-3.5 w-full items-stretch ;
+    @apply flex flex-row gap-3.5 w-full items-stretch;
     .request-wrapper,
     .response-wrapper {
       @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;

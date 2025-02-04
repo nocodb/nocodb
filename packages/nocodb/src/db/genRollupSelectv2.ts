@@ -9,6 +9,7 @@ import type {
   RollupColumn,
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
+import { RelationManager } from '~/db/relation-manager';
 import { Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 
@@ -56,16 +57,14 @@ export default async function ({
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
       >(context);
-      // for M2M and Belongs to relation, the relation stored in column option is reversed
-      const isReverseRelation =
-        [RelationTypes.MANY_TO_MANY, RelationTypes.BELONGS_TO].includes(
-          relationColumnOption.type as RelationTypes,
-        ) || relationColumn.meta?.bt;
+
       const formulaQb = await formulaQueryBuilderv2(
         baseModelSqlv2,
         formulOption.formula,
         undefined,
-        isReverseRelation ? parentModel : childModel,
+        RelationManager.isRelationReversed(relationColumn, relationColumnOption)
+          ? parentModel
+          : childModel,
         rollupColumn,
         {},
         undefined,

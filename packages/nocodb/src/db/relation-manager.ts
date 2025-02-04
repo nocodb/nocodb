@@ -57,6 +57,17 @@ export class RelationManager {
     return this.relationContext;
   }
 
+  // for M2M and Belongs to relation, the relation stored in column option is reversed
+  // parent become child, child become parent from the viewpoint of col options
+  static isRelationReversed(
+    relationColumn: Column<any>,
+    colOptions: LinkToAnotherRecordColumn,
+  ) {
+    const isBelongsTo =
+      colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
+    return isBelongsTo || colOptions.type === RelationTypes.MANY_TO_MANY;
+  }
+
   static async getRelationManager(
     baseModel: IBaseModelSqlV2,
     colId: string,
@@ -77,8 +88,6 @@ export class RelationManager {
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       baseModel.context,
     );
-    const isBt =
-      colOptions.type === RelationTypes.BELONGS_TO || column.meta?.bt;
 
     const childColumn = await colOptions.getChildColumn(baseModel.context);
     const parentColumn = await colOptions.getParentColumn(baseModel.context);
@@ -112,13 +121,12 @@ export class RelationManager {
       childId:
         // in bt or mm child id and row id is swapped
         // due to table definition
-        isBt || colOptions.type === RelationTypes.MANY_TO_MANY
+        RelationManager.isRelationReversed(column, colOptions)
           ? id.rowId
           : id.childId,
-      parentId:
-        isBt || colOptions.type === RelationTypes.MANY_TO_MANY
-          ? id.childId
-          : id.rowId,
+      parentId: RelationManager.isRelationReversed(column, colOptions)
+        ? id.childId
+        : id.rowId,
     });
   }
 

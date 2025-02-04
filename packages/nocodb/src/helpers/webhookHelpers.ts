@@ -543,7 +543,7 @@ function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {
     httpAgent: undefined,
     httpsAgent: undefined,
     timeout: undefined,
-    withCredentials: undefined
+    withCredentials: undefined,
   };
 }
 

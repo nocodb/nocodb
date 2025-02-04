@@ -1,5 +1,6 @@
 import jsep from 'jsep';
 import {
+  ComparisonOperators,
   FormulaDataTypes,
   jsepCurlyHook,
   LongTextAiMetaProp,
@@ -1246,44 +1247,46 @@ async function _formulaQueryBuilder(params: {
       let right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
-      // comparing a date with empty string would throw
-      // `ERROR: zero-length delimited identifier` in Postgres
-      if (
-        knex.clientType() === 'pg' &&
-        columnIdToUidt[pt.left.name] === UITypes.Date
-      ) {
-        // The correct way to compare with Date should be using
-        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
-        // This is to prevent empty data returned to UI due to incorrect SQL
-        if (pt.right.value === '') {
-          if (pt.operator === '=') {
-            sql = `${left} IS NULL ${colAlias}`;
-          } else {
+      if (ComparisonOperators.includes(pt.operator)) {
+        // comparing a date with empty string would throw
+        // `ERROR: zero-length delimited identifier` in Postgres
+        if (
+          knex.clientType() === 'pg' &&
+          columnIdToUidt[pt.left.name] === UITypes.Date
+        ) {
+          // The correct way to compare with Date should be using
+          // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+          // This is to prevent empty data returned to UI due to incorrect SQL
+          if (pt.right.value === '') {
+            if (pt.operator === '=') {
+              sql = `${left} IS NULL ${colAlias}`;
+            } else {
+              sql = `${left} IS NOT NULL ${colAlias}`;
+            }
+          } else if (!validateDateWithUnknownFormat(pt.right.value)) {
+            // left tree value is date but right tree value is not date
+            // return true if left tree value is not null, else false
             sql = `${left} IS NOT NULL ${colAlias}`;
           }
-        } else if (!validateDateWithUnknownFormat(pt.right.value)) {
-          // left tree value is date but right tree value is not date
-          // return true if left tree value is not null, else false
-          sql = `${left} IS NOT NULL ${colAlias}`;
         }
-      }
-      if (
-        knex.clientType() === 'pg' &&
-        columnIdToUidt[pt.right.name] === UITypes.Date
-      ) {
-        // The correct way to compare with Date should be using
-        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
-        // This is to prevent empty data returned to UI due to incorrect SQL
-        if (pt.left.value === '') {
-          if (pt.operator === '=') {
-            sql = `${right} IS NULL ${colAlias}`;
-          } else {
+        if (
+          knex.clientType() === 'pg' &&
+          columnIdToUidt[pt.right.name] === UITypes.Date
+        ) {
+          // The correct way to compare with Date should be using
+          // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+          // This is to prevent empty data returned to UI due to incorrect SQL
+          if (pt.left.value === '') {
+            if (pt.operator === '=') {
+              sql = `${right} IS NULL ${colAlias}`;
+            } else {
+              sql = `${right} IS NOT NULL ${colAlias}`;
+            }
+          } else if (!validateDateWithUnknownFormat(pt.left.value)) {
+            // right tree value is date but left tree value is not date
+            // return true if right tree value is not null, else false
             sql = `${right} IS NOT NULL ${colAlias}`;
           }
-        } else if (!validateDateWithUnknownFormat(pt.left.value)) {
-          // right tree value is date but left tree value is not date
-          // return true if right tree value is not null, else false
-          sql = `${right} IS NOT NULL ${colAlias}`;
         }
       }
 

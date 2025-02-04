@@ -65,6 +65,12 @@ const cellIcon = (column: ColumnType) =>
 onMounted(() => {
   if (!isCanvasInjected) return
   modalVisible.value = true
+  const canvasCellWrapper = document.querySelector<HTMLElement>('.nc-canvas-table-editable-cell-wrapper')
+  if (!canvasCellWrapper) return
+  canvasCellWrapper.style.background = 'transparent'
+  const barcodeVirtualCell = canvasCellWrapper.querySelector<HTMLElement>('.nc-virtual-cell-barcode')
+  if (!barcodeVirtualCell) return
+  barcodeVirtualCell.style.display = 'none'
 })
 </script>
 

@@ -62,7 +62,7 @@ export function useCanvasRender({
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
-  renderCell: (ctx: CanvasRenderingContext2D, column: CanvasGridColumn, options: RenderCellOptions) => void
+  renderCell: (ctx: CanvasRenderingContext2D, column: CanvasGridColumn, options) => void
   meta: ComputedRef<TableType>
 }) {
   const canvasRef = ref()
@@ -585,6 +585,7 @@ export function useCanvasRender({
               isMysql: column.isMysql,
               relatedColObj: column.relatedColObj,
               relatedTableMeta: column.relatedTableMeta,
+              disabled: column?.isInvalidColumn,
               mousePosition,
               pk,
             })
@@ -643,6 +644,7 @@ export function useCanvasRender({
                   relatedColObj: column.relatedColObj,
                   relatedTableMeta: column.relatedTableMeta,
                   mousePosition,
+                  disabled: column?.isInvalidColumn,
                   pk,
                 })
               }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HookLogType } from 'nocodb-sdk'
-import {hookLogFormatter} from "../../../utils/datetimeUtils";
+import { hookLogFormatter } from '../../../utils/datetimeUtils'
 
 interface Props {
   item: HookLogType
@@ -29,8 +29,8 @@ const parsedRespondePayload = computed(() => {
     <template v-if="item">
       <div class="font-weight-bold">{{ hookLogFormatter(item.created_at) }}</div>
 
-      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-4">
-        <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
+      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-4" :class="item.error ? 'bg-orange-50' : 'bg-warn-50'">
+        <GeneralIcon :icon="item.error ? 'ncAlertCircleFilled' : 'checkFill'" class="text-white w-4 h-4 mt-0.75" />
         <div>{{ item.error ? 'Failed' : 'Succeded' }} in {{ item.execution_time }} ms</div>
       </div>
 
@@ -105,7 +105,7 @@ const parsedRespondePayload = computed(() => {
   }
 
   .request-response-wrapper {
-    @apply flex flex-row gap-2 w-full;
+    @apply flex flex-row gap-3.5 w-full;
     .request-wrapper,
     .response-wrapper {
       @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;

@@ -616,7 +616,7 @@ onMounted(async () => {
           </span>
         </div>
 
-        <div v-if="hook" class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+        <div v-if="hook && isEeUI" class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
           <div
             v-e="['c:webhook:edit']"
             class="tab"

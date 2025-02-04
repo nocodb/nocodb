@@ -12,7 +12,7 @@ on:
 
 jobs:
   commits_check_job:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Commits Check
     steps:
       - name: Get PR Commits

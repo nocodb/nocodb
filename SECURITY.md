@@ -1,6 +1,7 @@
 # Security Policy
 
 ### Reporting a Vulnerability
+
 Please report (suspected) security vulnerabilities to security@nocodb.com
 
 - You will receive a response from us within 7 working days. 

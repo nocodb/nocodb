@@ -24,6 +24,9 @@
         {
           docker = pkgs.callPackage ./nix/docker.nix { };
           nocodb = pkgs.callPackage ./nix/package.nix { };
+          bumper = pkgs.callPackage ./nix/bumper { };
+
+          pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;
           default = self.packages.${system}.nocodb;
         }
       );

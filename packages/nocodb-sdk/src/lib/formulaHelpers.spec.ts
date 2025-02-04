@@ -75,7 +75,7 @@ describe('Formula parsing and type validation', () => {
     expect(result1.dataType).toEqual(FormulaDataTypes.NUMERIC);
   });
 
-  describe.only('Date and time interaction', () => {
+  describe('Date and time interaction', () => {
     it('Time - time equals numeric', async () => {
       const result = await validateFormulaAndExtractTreeWithType({
         formula: '{Time1} - {Time2}',
@@ -96,7 +96,7 @@ describe('Formula parsing and type validation', () => {
       });
       expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
     });
-    it('Time + time equals numeric', async () => {
+    it('Time - time equals numeric', async () => {
       const result = await validateFormulaAndExtractTreeWithType({
         formula: '{Time1} - {Time2}',
         columns: [

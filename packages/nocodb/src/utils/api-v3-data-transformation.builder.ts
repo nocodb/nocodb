@@ -4,7 +4,14 @@ import {
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
-import type { ColumnType, FilterType, SortType } from 'nocodb-sdk';
+import type {
+  ColumnType,
+  FieldV3Type,
+  FilterGroupV3Type,
+  FilterType,
+  FilterV3Type,
+  SortType,
+} from 'nocodb-sdk';
 import type {
   CalendarViewColumn,
   Column,
@@ -15,6 +22,11 @@ import type {
 } from '~/models';
 import type { Sort } from '~/models';
 import type { Filter } from '~/models';
+
+// Utility type to map input type to corresponding output type
+type MatchInputToOutput<TInput, TOutput> = TInput extends any[]
+  ? TOutput[]
+  : TOutput;
 
 const convertToSnakeCase = (str: string) => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
@@ -143,19 +155,19 @@ export class ApiV3DataTransformationBuilder<
     return this;
   }
 
-  build(data: Input | Input[]): Output | Output[] {
+  build(data: Input | Input[]): MatchInputToOutput<Input, Output> {
     if (Array.isArray(data)) {
       return data.map((item) =>
         this.transformations.reduce(
           (result, transform) => transform(result),
           item,
         ),
-      ) as Output[];
+      ) as MatchInputToOutput<Input, Output>;
     }
     return this.transformations.reduce(
       (result, transform) => transform(result),
       data,
-    ) as Output;
+    ) as MatchInputToOutput<Input, Output>;
   }
 
   excludeNulls<S = Input, T = Output>() {
@@ -196,6 +208,29 @@ export class ApiV3DataTransformationBuilder<
       return result as unknown as T;
     });
   }
+
+  orderProps<S = Input | Output, T = Output>(order: string[]) {
+    // order props by order column and missing one keep at the end
+    this.transformations.push((data: S) => {
+      // Initialize the ordered object with properties based on the order array
+      const ordered = order.reduce((acc, key) => {
+        if (key in (data as object)) {
+          acc[key] = data[key];
+        }
+        return acc;
+      }, {} as T);
+
+      // Add remaining properties from data that are not in the order array
+      Object.keys(data).forEach((key) => {
+        if (!order.includes(key)) {
+          ordered[key as keyof T] = data[key];
+        }
+      });
+
+      return ordered;
+    });
+    return this;
+  }
 }
 
 // builder which does the reverse of the above
@@ -217,6 +252,7 @@ export const builderGenerator = <
   nestedExtract?: Record<string, string[]>;
   excludeNullProps?: boolean;
   booleanProps?: string[];
+  orderProps?: string[];
   meta?: {
     snakeCase?: boolean;
     camelCase?: boolean;
@@ -244,6 +280,10 @@ export const builderGenerator = <
 
     if ('allowed' in rest || 'excluded' in rest) {
       builder.filterColumns(rest);
+    }
+
+    if ('orderProps' in rest) {
+      builder.orderProps(rest.orderProps);
     }
     if (meta) {
       builder.metaTransform(meta);
@@ -288,120 +328,130 @@ export const colOptionBuilder = builderGenerator({
   },
 });
 
-export const columnBuilder = builderGenerator<Column | ColumnType>({
-  allowed: ['id', 'title', 'uidt', 'cdf', 'description', 'meta', 'colOptions'],
-  mappings: {
-    uidt: 'type',
-    cdf: 'default_value',
-    meta: 'options',
-  },
-  excludeNullProps: true,
-  meta: {
-    snakeCase: true,
-    metaProps: ['meta'],
+export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
+  {
+    allowed: [
+      'id',
+      'title',
+      'uidt',
+      'cdf',
+      'description',
+      'meta',
+      'colOptions',
+    ],
     mappings: {
-      is12hrFormat: '12hr_format',
-      isLocaleString: 'locale_string',
-      richMode: 'rich_text',
-      // duration: 'duration_format',
+      uidt: 'type',
+      cdf: 'default_value',
+      meta: 'options',
     },
-    excluded: [
-      'defaultViewColOrder',
-      'defaultViewColVisibility',
-      'singular',
-      'plural',
-    ],
-    skipTransformFor: [
-      'currency_locale',
-      'currency_code',
-      'icon',
-      'iconIdx',
-      'duration',
-    ],
+    excludeNullProps: true,
+    meta: {
+      snakeCase: true,
+      metaProps: ['meta'],
+      mappings: {
+        is12hrFormat: '12hr_format',
+        isLocaleString: 'locale_string',
+        richMode: 'rich_text',
+        // duration: 'duration_format',
+      },
+      excluded: [
+        'defaultViewColOrder',
+        'defaultViewColVisibility',
+        'singular',
+        'plural',
+      ],
+      skipTransformFor: [
+        'currency_locale',
+        'currency_code',
+        'icon',
+        'iconIdx',
+        'duration',
+      ],
+    },
+    transformFn: (data) => {
+      let options: Record<string, any> = data.options || {};
+      if (data.colOptions) {
+        switch (data.type) {
+          case UITypes.SingleSelect:
+          case UITypes.MultiSelect:
+            {
+              const choices = data.colOptions.options.map((opt) => {
+                const res: Record<string, unknown> = {
+                  title: opt.title,
+                  color: opt.color,
+                };
+                if (opt.id) res.id = opt.id;
+                return res;
+              });
+              options.choices = choices;
+            }
+            break;
+          default:
+            {
+              console.log(data.colOptions);
+              const additionalOptions =
+                colOptionBuilder().build(data.colOptions) || {};
+              Object.assign(options, additionalOptions);
+            }
+            break;
+        }
+      }
+
+      if (data.type === UITypes.Checkbox) {
+        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (iconIdx) {
+          options.icon = checkboxIconList[iconIdx]?.label;
+        } else if (icon) {
+          options.icon = checkboxIconList.find(
+            (ic) => ic.checked === icon?.['checked'],
+          )?.label;
+        }
+      } else if (data.type === UITypes.Rating) {
+        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (iconIdx !== undefined && iconIdx !== null) {
+          options.icon = ratingIconList[iconIdx]?.label;
+        } else if (icon) {
+          options.icon = ratingIconList.find(
+            (ic) => ic.full === icon?.['full'],
+          )?.label;
+        }
+      } else if (data.type === UITypes.Duration) {
+        const { duration, duration_format, ...rest } = data.options as Record<
+          string,
+          any
+        >;
+        const durationFormat = duration ?? duration_format;
+        // extract option meta and include only label and color
+        options = rest;
+
+        if (durationFormat !== undefined && durationFormat !== null) {
+          options.duration_format = durationOptions[durationFormat]?.title;
+        }
+      }
+
+      options = options || data.options;
+
+      // exclude rollup function if Links
+      if (data.type === UITypes.Links && options && options.rollup_function) {
+        options.rollup_function = undefined;
+      }
+
+      return {
+        ...data,
+        colOptions: undefined,
+        options: options && Object.keys(options)?.length ? options : undefined,
+      };
+    },
   },
-  transformFn: (data) => {
-    let options: Record<string, any> = data.options || {};
-    if (data.colOptions) {
-      switch (data.type) {
-        case UITypes.SingleSelect:
-        case UITypes.MultiSelect:
-          {
-            const choices = data.colOptions.options.map((opt) => {
-              const res: Record<string, unknown> = {
-                title: opt.title,
-                color: opt.color,
-              };
-              if (opt.id) res.id = opt.id;
-              return res;
-            });
-            options.choices = choices;
-          }
-          break;
-        default:
-          {
-            console.log(data.colOptions);
-            const additionalOptions =
-              colOptionBuilder().build(data.colOptions) || {};
-            Object.assign(options, additionalOptions);
-          }
-          break;
-      }
-    }
-
-    if (data.type === UITypes.Checkbox) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
-
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (iconIdx) {
-        options.icon = checkboxIconList[iconIdx]?.label;
-      } else if (icon) {
-        options.icon = checkboxIconList.find(
-          (ic) => ic.checked === icon?.['checked'],
-        )?.label;
-      }
-    } else if (data.type === UITypes.Rating) {
-      const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
-
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (iconIdx !== undefined && iconIdx !== null) {
-        options.icon = ratingIconList[iconIdx]?.label;
-      } else if (icon) {
-        options.icon = ratingIconList.find(
-          (ic) => ic.full === icon?.['full'],
-        )?.label;
-      }
-    } else if (data.type === UITypes.Duration) {
-      const { duration, duration_format, ...rest } = data.options as Record<
-        string,
-        any
-      >;
-      const durationFormat = duration ?? duration_format;
-      // extract option meta and include only label and color
-      options = rest;
-
-      if (durationFormat !== undefined && durationFormat !== null) {
-        options.duration_format = durationOptions[durationFormat]?.title;
-      }
-    }
-
-    options = options || data.options;
-
-    // exclude rollup function if Links
-    if (data.type === UITypes.Links && options && options.rollup_function) {
-      options.rollup_function = undefined;
-    }
-
-    return {
-      ...data,
-      colOptions: undefined,
-      options: options && Object.keys(options)?.length ? options : undefined,
-    };
-  },
-});
+);
 
 export const columnOptionsV3ToV2Builder = builderGenerator({
   allowed: [
@@ -431,9 +481,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
   },
 });
 
-export const columnV3ToV2Builder = builderGenerator<
-  (Column | ColumnType) & { type?: UITypes | string }
->({
+export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
   allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
   mappings: {
     type: 'uidt',
@@ -521,15 +569,17 @@ export const columnV3ToV2Builder = builderGenerator<
         meta.duration = durationIdx;
       }
     }
+    // if multi select then accept array of default values
+    else if (data.uidt === UITypes.MultiSelect) {
+      data.cdf = Array.isArray(data.cdf) ? data.cdf.join(',') : data.cdf;
+    }
 
     let additionalPayloadData = {};
 
     if (columnsWithOptions.includes(data.uidt) && data.meta) {
       additionalPayloadData =
         columnOptionsV3ToV2Builder().build(data.meta) || {};
-      // meta = {};
     }
-    console.log(additionalPayloadData);
 
     return {
       ...data,
@@ -577,7 +627,10 @@ export const filterBuilder = builderGenerator<FilterType | Filter>({
   booleanProps: ['is_group'],
 });
 
-export const filterRevBuilder = builderGenerator<Filter | FilterType>({
+export const filterRevBuilder = builderGenerator<
+  FilterGroupV3Type | FilterV3Type,
+  FilterType
+>({
   allowed: [
     'id',
     'field_id',
@@ -608,10 +661,19 @@ export const viewColumnBuilder = builderGenerator<
   ViewColumn[],
   Partial<ViewColumn>[]
 >({
-  allowed: ['fk_column_id', 'width', 'show', 'formatting'],
+  allowed: [
+    'fk_column_id',
+    'width',
+    'show',
+    'formatting',
+    'label',
+    'help',
+    'description',
+    'required',
+  ],
   mappings: {
     fk_column_id: 'field_id',
   },
   excludeNullProps: true,
-  booleanProps: ['show'],
+  booleanProps: ['show', 'required'],
 });

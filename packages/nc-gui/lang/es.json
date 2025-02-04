@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Todas las integraciones",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Modificado el",
     "configuration": "Configuración",
     "setup": "Configuración",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Duplicar vista",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Duplicar vista en cuadrcula",
     "createGridView": "Crear vista en cuadrícula",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Token de acceso personal",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "URL de base compartida",
+    "sharedPublicly": "Shared publicly",
     "importData": "Importar datos",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Ver adjuntos",
     "attachmentDrop": "Haga clic o suelte un archivo en la celda",
     "addFiles": "Añadir archivo(s)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Ocultar en la IU",
     "addBase": "Añadir Base",
     "addParameter": "Añadir parámetro",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Al eliminar esta pila también se eliminará la opción de selección `{stackToBeDeleted}` de la `{groupingField}`. Los registros pasarán a la pila de no categorizados.",
       "computedFieldEditWarning": "Campo calculado: el contenido es de sólo lectura. Utilice el menú de edición de columnas para reconfigurar",
       "computedFieldDeleteWarning": "Campo calculado: el contenido es de sólo lectura. No se puede borrar el contenido.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "No más registros",
       "tokenNameNotEmpty": "El nombre del token no debe estar vacío",
       "tokenNameMaxLength": "El nombre del token no debe exceder los 255 caracteres",

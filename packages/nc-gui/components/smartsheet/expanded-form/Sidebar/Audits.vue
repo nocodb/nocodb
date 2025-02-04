@@ -3,20 +3,20 @@ import { type AuditType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { audits, isAuditLoading } = useExpandedFormStoreOrThrow()
+const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, mightHaveMoreAudits } =
+  useExpandedFormStoreOrThrow()
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
 
-function scrollToAudit(auditId?: string) {
-  if (!auditId) return
+watch(primaryKey, () => {
+  resetAuditPages()
+})
 
-  const auditEl = auditsWrapperEl.value?.querySelector(`.nc-audit-item.${auditId}`)
-  if (auditEl) {
-    auditEl.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    })
-  }
+function scrollToLastAudit() {
+  auditsWrapperEl.value?.scrollBy({
+    top: 50000,
+    behavior: 'smooth',
+  })
 }
 
 const createdByAudit = (
@@ -35,12 +35,23 @@ const createdByAudit = (
   }
 }
 
+const shouldSkipAuditsScroll = ref(false)
+
+function initLoadMoreAudits() {
+  shouldSkipAuditsScroll.value = true
+  loadMoreAudits()
+}
+
 watch(
-  () => audits.value.length,
-  (auditCount) => {
+  consolidatedAudits,
+  () => {
+    if (shouldSkipAuditsScroll.value) {
+      shouldSkipAuditsScroll.value = true
+      return
+    }
     nextTick(() => {
       setTimeout(() => {
-        scrollToAudit(audits.value[auditCount - 1]?.id)
+        scrollToLastAudit()
       }, 500)
     })
   },
@@ -72,12 +83,12 @@ function isV0Audit(audit: AuditType) {
 
 <template>
   <div class="h-full">
-    <div v-if="isAuditLoading && audits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
+    <div v-if="isAuditLoading && consolidatedAudits.length === 0" class="flex flex-col items-center justify-center w-full h-full">
       <GeneralLoader size="xlarge" />
     </div>
 
     <div v-else ref="auditsWrapperEl" class="flex flex-col h-full nc-scrollbar-thin pb-1">
-      <template v-if="audits.length === 0">
+      <template v-if="consolidatedAudits.length === 0">
         <div class="flex flex-col text-center justify-center h-full">
           <div class="text-center text-3xl text-gray-600">
             <MdiHistory />
@@ -87,7 +98,10 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-for="audit of audits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
+        <div v-if="mightHaveMoreAudits" class="p-3 text-center">
+          <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
+        </div>
+        <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
           <div class="group gap-3 overflow-hidden px-3 py-2 transition hover:bg-gray-100">
             <div class="flex items-start justify-between">
               <div class="flex items-start gap-3 flex-1 w-full">
@@ -95,6 +109,7 @@ function isV0Audit(audit: AuditType) {
                   :user="{
                     email: audit?.created_by_email || audit?.user,
                     display_name: audit?.created_display_name || audit?.user,
+                    meta: audit?.created_by_meta,
                   }"
                   class="mt-0.5"
                   size="medium"
@@ -104,7 +119,10 @@ function isV0Audit(audit: AuditType) {
                     {{ createdByAudit(audit) }}
                   </div>
                   <div class="text-xs text-gray-500">
-                    {{ timeAgo(audit.created_at!) }}
+                    <NcTooltip>
+                      <template #title>{{ parseStringDateTime(audit.created_at) }}</template>
+                      {{ timeAgo(audit.created_at!) }}
+                    </NcTooltip>
                   </div>
                 </div>
               </div>
@@ -120,39 +138,40 @@ function isV0Audit(audit: AuditType) {
               </div>
             </div>
             <div v-else-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
-            <div v-else-if="audit?.op_type === 'DATA_LINK'" class="pl-9">
+            <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
               <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
                   <SmartsheetHeaderVirtualCellIcon
                     :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
                     class="!m-0"
                   />
-                  {{ safeJsonParse(audit.details).ref_table_title }}
+                  {{ safeJsonParse(audit.details).link_field_title }}
                 </div>
-                <div class="!border-none">
-                  <span
-                    class="!text-sm px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50"
+                <div class="!border-none audit-link-container">
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0"
+                    class="audit-link-removal"
                   >
-                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
-                  </span>
-                  was linked
-                </div>
-              </div>
-            </div>
-            <div v-else-if="audit?.op_type === 'DATA_UNLINK'" class="pl-9">
-              <div class="rounded-lg border-1 border-gray-200 bg-gray-50 divide-y py-2 px-3">
-                <div class="flex items-center gap-2 !text-gray-600 text-xs nc-audit-mini-item-header mb-3">
-                  <SmartsheetHeaderVirtualCellIcon
-                    :column-meta="{ uidt: 'Links', colOptions: { type: safeJsonParse(audit.details).type } }"
-                    class="!m-0"
-                  />
-                  {{ safeJsonParse(audit.details).ref_table_title }}
-                </div>
-                <div class="!border-none">
-                  <span class="!text-sm px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50">
-                    {{ safeJsonParse(audit.details).ref_display_value || 'Record' }}
-                  </span>
-                  was unlinked
+                    <span
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
+                      :key="entry.refRowId"
+                      class="audit-link-item"
+                    >
+                      {{ entry.value }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0"
+                    class="audit-link-addition"
+                  >
+                    <span
+                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_links"
+                      :key="entry.refRowId"
+                      class="audit-link-item"
+                    >
+                      {{ entry.value }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -179,5 +198,20 @@ function isV0Audit(audit: AuditType) {
 
 :deep(.green.lighten-4) {
   @apply bg-green-100 rounded-md !mr-3;
+}
+.audit-link-container {
+  @apply flex flex-row flex-wrap gap-2;
+  .audit-link-addition {
+    @apply flex gap-2 flex-wrap;
+    span {
+      @apply !text-[13px] px-1 py-0.5 text-green-700 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 decoration-clone;
+    }
+  }
+  .audit-link-removal {
+    @apply flex gap-2 flex-wrap;
+    span {
+      @apply !text-[13px] px-1 py-0.5 text-red-700 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 decoration-clone line-through;
+    }
+  }
 }
 </style>

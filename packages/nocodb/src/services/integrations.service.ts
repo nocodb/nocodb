@@ -98,8 +98,6 @@ export class IntegrationsService {
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,
-      limit: param.limit,
-      offset: param.offset,
       includeSourceCount: true,
       query: param.query,
     });
@@ -280,8 +278,6 @@ export class IntegrationsService {
         includeDatabaseInfo: true,
         type: IntegrationsType.Database,
         sub_type: ClientType.SQLITE,
-        limit: 1000,
-        offset: 0,
         includeSourceCount: false,
         query: '',
       });
@@ -308,8 +304,6 @@ export class IntegrationsService {
         (
           await Integration.list({
             userId: param.req.user?.id,
-            limit: 1000,
-            offset: 0,
             includeSourceCount: false,
             query: '',
           })

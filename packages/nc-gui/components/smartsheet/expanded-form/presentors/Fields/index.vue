@@ -4,7 +4,6 @@ import { type ColumnType } from 'nocodb-sdk'
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   rowId?: string
   fields: ColumnType[]
   hiddenFields: ColumnType[]
@@ -28,7 +27,7 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 /* stores */
 
-const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
@@ -55,12 +54,7 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsColumns
-        :store="props.store"
-        :fields="fields"
-        :hidden-fields="hiddenFields"
-        :is-loading="isLoading"
-      />
+      <SmartsheetExpandedFormPresentorsFieldsColumns :fields="fields" :hidden-fields="hiddenFields" :is-loading="isLoading" />
 
       <div
         v-if="canEdit"
@@ -132,96 +126,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar :store="store" />
+      <SmartsheetExpandedFormSidebar />
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-:deep(.ant-select-selector) {
-  @apply !xs:(h-full);
-}
-
-.nc-data-cell {
-  @apply !rounded-lg;
-  transition: all 0.3s;
-
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
-    @apply !border-1;
-    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-    }
-  }
-
-  &.nc-readonly-div-data-cell,
-  &.nc-system-field {
-    @apply !border-gray-200;
-
-    .nc-cell,
-    .nc-virtual-cell {
-      @apply text-gray-400;
-    }
-  }
-  &.nc-readonly-div-data-cell:focus-within,
-  &.nc-system-field:focus-within {
-    @apply !border-gray-200;
-  }
-
-  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !shadow-selected;
-  }
-
-  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
-  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
-    @apply !border-none px-0 !rounded-none;
-    :deep(.nc-virtual-cell-qrcode),
-    :deep(.nc-virtual-cell-barcode) {
-      @apply px-0;
-      & > div {
-        @apply !px-0;
-      }
-      .barcode-wrapper {
-        @apply ml-0;
-      }
-    }
-    :deep(.nc-virtual-cell-qrcode) {
-      img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
-      }
-    }
-    :deep(.nc-virtual-cell-barcode) {
-      .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
-        svg {
-          @apply !h-full;
-        }
-      }
-    }
-  }
-}
-
-.nc-mentioned-cell {
-  box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
-}
-
-.nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
-}
-
-:deep(.nc-system-field input) {
-  @apply bg-transparent;
-}
-:deep(.nc-data-cell .nc-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
-  @apply px-0;
-}
-</style>

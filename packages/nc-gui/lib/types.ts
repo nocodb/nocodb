@@ -1,7 +1,6 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
 import type {
-  AuditOperationTypes,
   BaseType,
   ColumnType,
   FilterType,
@@ -77,6 +76,7 @@ interface Row {
   oldRow: Record<string, any>
   rowMeta: {
     // Used in InfiniteScroll Grid View
+    isLastRow?: number
     rowIndex?: number
     isLoading?: boolean
     isValidationFailed?: boolean
@@ -163,9 +163,9 @@ interface SharedView {
   meta: SharedViewMeta
 }
 
-type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+type importFileList = (UploadFile & { data: string | ArrayBuffer; encoding?: string })[]
 
-type streamImportFileList = UploadFile[]
+type streamImportFileList = (UploadFile & { encoding?: string })[]
 
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 
@@ -283,7 +283,8 @@ interface ImageCropperProps {
 }
 
 interface AuditLogsQuery {
-  type?: AuditOperationTypes
+  type?: string[]
+  workspaceId?: string
   baseId?: string
   sourceId?: string
   user?: string
@@ -297,7 +298,7 @@ interface AuditLogsQuery {
   }
 }
 
-interface NcTableColumnProps {
+interface NcTableColumnProps<T extends object = Record<string, any>> {
   key: 'name' | 'action' | string
   // title is column header cell value and we can also pass i18n value as this is just used to render in UI
   title: string
@@ -311,7 +312,7 @@ interface NcTableColumnProps {
   justify?: 'justify-center' | 'justify-start' | 'justify-end'
   showOrderBy?: boolean
   // dataIndex is used as key to extract data from row object
-  dataIndex?: string
+  dataIndex?: keyof T | (string & Record<never, never>)
   // name can be used as value, which will be used to display in header if title is absent and in data-test-id
   name?: string
   [key: string]: any

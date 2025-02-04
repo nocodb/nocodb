@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "אתה",
     "read": "נקרא",
-    "unread": "לא נקרא"
+    "unread": "לא נקרא",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "כל האינטגרציות",
@@ -699,7 +702,7 @@
     "newSnapshot": "תמונת מצב חדשה",
     "searchASnapshot": "חפש תמונת מצב",
     "continue": "המשך",
-    "toggleExperimentalFeature": "הפעל או השבת תכונות ניסוייות בקלות, מה שמאפשר לך לחקור ולהעריך פונקציות עתידיות.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "שונה ב",
     "configuration": "תצורה",
     "setup": "הגדרות",
@@ -902,6 +905,7 @@
     "createViews": "יצירת {count} תצוגות",
     "createViews_plural": "יצירת {count} תצוגה",
     "duplicateView": "שכפול תצוגה",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "שכפול תצוגת רשת",
     "createGridView": "צור תצוגת רשת",
     "createGridViewPlural": "יצירת תצוגת רשת",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "טוקן גישה אישי",
     "whereToFind": "איפה למצוא?",
     "sharedBaseUrl": "URL בסיסי משותף",
+    "sharedPublicly": "Shared publicly",
     "importData": "ייבא נתונים",
     "importDataFrom": "ייבא נתונים מ",
     "importSecondaryViews": "ייבא תצוגות משניות",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "יצירת אינטגרציה בינה מלאכותית",
     "suggestTablesViews": "הצע טבלאות ותצוגות",
     "configureAiButton": "הגדרת כפתור AI",
-    "viewHide": "הצג נראות "
+    "viewHide": "הצג נראות ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "הצג קבצים מצורפים",
     "attachmentDrop": "לחץ או גרור קובץ לתא",
     "addFiles": "הוסף קבצים",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "הסתר בממשק משתמש",
     "addBase": "הוסף בסיס",
     "addParameter": "הוסף פרמטר",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "מחיקת העמודה הזו תסיר גם את האפשרות שנבחרה `{stackToBeDeleted}` מהשדה `{groupingField}`. הרשומות יועברו לעמודה שאינה מסודרת.",
       "computedFieldEditWarning": "שדה מחושב: התוכן הוא לקריאה בלבד. השתמש בתפריט עריכת העמודה כדי להגדיר מחדש",
       "computedFieldDeleteWarning": "שדה מחושב: התוכן הוא לקריאה בלבד. לא ניתן לנקות את התוכן.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "אין עוד רשומות",
       "tokenNameNotEmpty": "שם האסימון לא יכול להיות ריק",
       "tokenNameMaxLength": "שם האסימון לא יכול להיות ארוך יותר מ-255 תווים",

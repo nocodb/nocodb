@@ -186,7 +186,6 @@ p {
         }
 
         &.nc-cell-json {
-          @apply min-h-[38px] h-auto;
           & > div {
             @apply w-full;
           }

@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Всі інтеграції",
@@ -699,7 +702,7 @@
     "newSnapshot": "Новий знімок",
     "searchASnapshot": "Пошук знімка",
     "continue": "Продовжити",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Змінено на",
     "configuration": "Конфігурація",
     "setup": "Налаштування",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Дублювати вигляд",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Дублювати вигляд сітки",
     "createGridView": "Створити вигляд сітки",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Жетон для персонального доступу",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Спільна база URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Імпорт даних",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Переглянути вкладення",
     "attachmentDrop": "Клацніть або перетягніть файл у комірку",
     "addFiles": "Додати файл(и)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Приховати в UI",
     "addBase": "Додати базу",
     "addParameter": "Додати параметр",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Видалення цієї таблички також вилучить опцію вибору `{stackToBeDeleted}` з таблички `{groupingField}`. Записи буде переміщено до не категоризованої таблички.",
       "computedFieldEditWarning": "Обчислюване поле: вміст доступний лише для читання. Використовуйте меню редагування стовпця для зміни конфігурації",
       "computedFieldDeleteWarning": "Обчислюване поле: вміст доступний лише для читання. Не вдалося очистити вміст.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Більше записів немає",
       "tokenNameNotEmpty": "Назва жетону не може бути порожнім",
       "tokenNameMaxLength": "Назва жетону не повинно перевищувати 255 символів",

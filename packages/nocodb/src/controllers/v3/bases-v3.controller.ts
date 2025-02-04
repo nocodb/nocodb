@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectReqType } from 'nocodb-sdk';
+import { BaseCreateV3Type, BaseUpdateV3Type } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -60,7 +60,7 @@ export class BasesV3Controller {
   async baseUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Body() body: Record<string, any>,
+    @Body() body: BaseUpdateV3Type,
     @Req() req: NcRequest,
   ) {
     const base = await this.baseV3Service.baseUpdate(context, {
@@ -95,7 +95,7 @@ export class BasesV3Controller {
   @Post('/api/v3/meta/workspaces/:workspaceId/bases')
   async baseCreate(
     @TenantContext() context: NcContext,
-    @Body() baseBody: ProjectReqType,
+    @Body() baseBody: BaseCreateV3Type,
     @Req() req: NcRequest,
     @Param('workspaceId') workspaceId: string,
   ) {

@@ -126,6 +126,134 @@ enum AuditV1OperationTypes {
   USER_PROFILE_UPDATE = 'USER_PROFILE_UPDATE',
 }
 
+export const auditV1OperationTypesAlias = Object.values(
+  AuditV1OperationTypes
+).reduce((acc, key) => {
+  // Convert snake_case or UPPER_SNAKE_CASE to readable format
+  const readableKey = key
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .toLowerCase() // Convert to lowercase
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase()); // Capitalize each word
+  acc[key] = readableKey;
+  return acc;
+}, {} as Record<string, string>);
+
+/**
+ * For audit logs table filter usecase only
+ */
+export interface AuditV1OperationsCategoryItemType {
+  label: string;
+  value: string;
+  types: Array<AuditV1OperationTypes>;
+}
+
+/**
+ * For audit logs table filter usecase only
+ */
+export const auditV1OperationsCategory: Record<
+  string,
+  AuditV1OperationsCategoryItemType
+> = {
+  DATA: {
+    label: 'general.data',
+    value: 'DATA',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) => key.startsWith('DATA_') || key.startsWith('AIRTABLE_')
+    ),
+  },
+  FIELD: {
+    label: 'objects.column',
+    value: 'FIELD',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) =>
+        key.startsWith('FIELD_') ||
+        key.startsWith('FORM_COLUMN_') ||
+        key.startsWith('VIEW_COLUMN_') ||
+        key.startsWith('LINK_FILTER_')
+    ),
+  },
+  VIEW: {
+    label: 'objects.view',
+    value: 'VIEW',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) => key.startsWith('VIEW_') && !key.startsWith('VIEW_COLUMN_')
+    ),
+  },
+  TABLE: {
+    label: 'objects.table',
+    value: 'TABLE',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('TABLE_')
+    ),
+  },
+  BASE: {
+    label: 'objects.project',
+    value: 'BASE',
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) =>
+        key.startsWith('BASE_') ||
+        key.startsWith('SNAPSHOT_') ||
+        key.startsWith('UI_ACL')
+    ),
+  },
+  SOURCE: {
+    label: 'general.source',
+    value: 'SOURCE',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SOURCE_')
+    ),
+  },
+  SHARED: {
+    label: 'general.shared',
+    value: 'SHARED',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SHARED_')
+    ),
+  },
+  USER: {
+    label: 'objects.user',
+    value: 'USER',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('USER_')
+    ),
+  },
+  WORKSPACE: {
+    label: 'objects.workspace',
+    value: 'WORKSPACE',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('WORKSPACE_')
+    ),
+  },
+  HOOK: {
+    label: 'objects.webhook',
+    value: 'HOOK',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('HOOK_')
+    ),
+  },
+  INTEGRATION: {
+    label: 'general.integration',
+    value: 'INTEGRATION',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('INTEGRATION_')
+    ),
+  },
+  API: {
+    label: 'title.apiTokens',
+    value: 'API',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('API_')
+    ),
+  },
+  ORG: {
+    label: 'general.organization',
+    value: 'ORG',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('ORG_')
+    ),
+  },
+};
+
 export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_INSERT
   | AuditV1OperationTypes.DATA_BULK_UPDATE

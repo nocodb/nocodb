@@ -168,9 +168,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                 },
               ]"
               :style="{
-                width: col.width,
+                width: col.width ? `${col.width}px` : undefined,
                 flexBasis: !col.width ? col.basis : undefined,
-                maxWidth: col.width ? col.width : undefined,
+                maxWidth: col.width ? `${col.width}px` : undefined,
               }"
               :data-test-id="`nc-table-header-cell-${col.name || col.key}`"
               @click="col.showOrderBy && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
@@ -234,9 +234,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                   },
                 ]"
                 :style="{
-                  width: col.width,
+                  width: col.width ? `${col.width}px` : undefined,
                   flexBasis: !col.width ? col.basis : undefined,
-                  maxWidth: col.width ? col.width : undefined,
+                  maxWidth: col.width ? `${col.width}px` : undefined,
                 }"
                 :data-test-id="`nc-table-cell-${col.name || col.key}`"
               >

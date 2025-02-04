@@ -13,6 +13,7 @@
 import type { StyleValue } from '@vue/runtime-dom'
 
 defineProps<{
+  mKey?: string
   style?: StyleValue
   disabled?: boolean | number
 }>()
@@ -24,7 +25,7 @@ defineOptions({
 
 <template>
   <div class="w-full" :style="style">
-    <a-menu-item v-bind="$attrs" :disabled="Boolean(disabled)" class="nc-menu-item">
+    <a-menu-item :key="mKey" v-bind="$attrs" :disabled="Boolean(disabled)" class="nc-menu-item">
       <div class="nc-menu-item-inner">
         <slot />
       </div>

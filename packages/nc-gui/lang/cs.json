@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Všechny integrace",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Upraveno dne",
     "configuration": "Konfigurace",
     "setup": "Nastavení",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Duplikovat pohled",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Duplikovat mřížkový pohled",
     "createGridView": "Vytvořit mřížkový pohled",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Osobní přístupový token",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Sdílet URL projektu",
+    "sharedPublicly": "Shared publicly",
     "importData": "Importovat data",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Zobrazit přílohy",
     "attachmentDrop": "Klikněte nebo přetáhněte soubor do buňky",
     "addFiles": "Přidat soubor(y)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Skrýt v uživatelském rozhraní",
     "addBase": "Přidat základ",
     "addParameter": "Přidat parametr",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Odstraněním tohoto zásobníku se také odstraní možnost výběru `{stackToBeDeleted}` z `{groupingField}`. Záznamy se přesunou do zásobníku nezařazených záznamů.",
       "computedFieldEditWarning": "Vypočtené pole: obsah je určen pouze pro čtení. Ke změně konfigurace sloupce použijte nabídku úprav sloupce",
       "computedFieldDeleteWarning": "Vypočtené pole: obsah je určen pouze pro čtení. Nelze vymazat obsah.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Žádné další záznamy",
       "tokenNameNotEmpty": "Název tokenu nesmí být prázdný",
       "tokenNameMaxLength": "Název tokenu by neměl obsahovat více než 255 znaků",

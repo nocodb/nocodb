@@ -1,60 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type {
+  BaseUpdateV3Type,
+  BaseV3Type,
   ProjectReqType,
-  ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { NcError } from '~/helpers/catchError';
 import { Base, BaseUser, Source } from '~/models';
-import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BasesService } from '~/services/bases.service';
 import { RootScopes } from '~/utils/globals';
+import { validatePayload } from '~/helpers';
+import { baseBuilder, sourceBuilder } from '~/utils/builders/base';
 
 @Injectable()
 export class BasesV3Service {
-  protected builder;
-  protected sourceBuilder;
-
-  constructor(protected readonly basesService: BasesService) {
-    this.builder = builderGenerator({
-      allowed: [
-        'id',
-        'title',
-        'description',
-        'created_at',
-        'updated_at',
-        'meta',
-        'sources',
-        'fk_workspace_id',
-      ],
-      mappings: {
-        name: 'title',
-        isMeta: 'is_meta',
-        source: 'sources',
-        fk_workspace_id: 'workspace_id',
-      },
-      meta: {
-        snakeCase: true,
-        metaProps: ['meta'],
-      },
-    });
-    this.sourceBuilder = builderGenerator({
-      allowed: [
-        'id',
-        'alias',
-        'type',
-        'is_schema_readonly',
-        'is_data_readonly',
-        'integration_id',
-      ],
-      mappings: {
-        alias: 'title',
-        isMeta: 'is_meta',
-        source: 'sources',
-      },
-    });
-  }
+  constructor(protected readonly basesService: BasesService) {}
 
   protected async getBaseList(
     context: NcContext,
@@ -78,27 +40,34 @@ export class BasesV3Service {
   ) {
     const bases = await this.getBaseList(context, param);
 
+    const formattedBases: BaseV3Type[] = [];
+
     for (const base of bases) {
-      const sources = this.sourceBuilder().build(
+      const sources = sourceBuilder().build(
         (await new Base(base as Partial<Base>).getSources()).filter(
           (s) => !new Source(s).isMeta(),
         ),
       );
-      base.sources = sources.length ? sources : undefined;
+      formattedBases.push({
+        ...baseBuilder().build(base),
+        sources: sources.length ? sources : undefined,
+      });
     }
-    return this.builder().build(bases);
+    return formattedBases;
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {
-    const base = await Base.get(context, param.baseId);
+    const base: Base | BaseV3Type = await Base.get(context, param.baseId);
 
-    const sources = this.sourceBuilder().build(
+    const sources = sourceBuilder().build(
       (await new Base(base as Partial<Base>).getSources()).filter(
         (s) => !new Source(s).isMeta(),
       ),
     );
-    base.sources = sources.length ? sources : undefined;
-    return this.builder().build(base);
+    return {
+      ...baseBuilder().build(base),
+      sources: sources.length ? sources : undefined,
+    } as BaseV3Type;
   }
 
   async getProjectWithInfo(
@@ -107,26 +76,31 @@ export class BasesV3Service {
   ) {
     const base = await this.basesService.getProjectWithInfo(context, param);
 
+    if (!base) NcError.notFound('Base not found');
+
     // filter non-meta sources
     const sources = base.sources.filter((s) => !new Source(s).isMeta());
 
     return {
-      ...this.builder().build(base),
-      sources: sources?.length
-        ? this.sourceBuilder().build(sources)
-        : undefined,
-    };
+      ...baseBuilder().build(base),
+      sources: sources?.length ? sourceBuilder().build(sources) : undefined,
+    } as BaseV3Type;
   }
 
   async baseUpdate(
     context: NcContext,
     param: {
       baseId: string;
-      base: ProjectUpdateReqType;
+      base: BaseUpdateV3Type;
       user: UserType;
       req: NcRequest;
     },
   ) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUpdate',
+      param.base,
+      true,
+    );
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
     if (meta?.icon_color) {
@@ -144,6 +118,12 @@ export class BasesV3Service {
     req: any;
     workspaceId: string;
   }) {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseCreate',
+      param.base,
+      true,
+    );
+
     const base = {
       ...param.base,
       fk_workspace_id: param.workspaceId,

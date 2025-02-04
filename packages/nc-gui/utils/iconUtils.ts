@@ -224,6 +224,7 @@ import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
 import NcNocoDB from '~icons/nc-icons/nocodb'
+import NcNocoDB1 from '~icons/nc-icons/nocodb1'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -293,6 +294,7 @@ import NcClaude from '~icons/nc-icons/claude'
 import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
+import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
 
 // Buttons Icons V2
 
@@ -546,6 +548,10 @@ import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
 import NcRedditIcon from '~icons/nc-icons/reddit.svg'
 import NcTwitterIcon from '~icons/nc-icons/twitter-x-line.svg'
 import NcDiscordIcon from '~icons/nc-icons/discord.svg'
+import NcVerticalAlignTop from '~icons/nc-icons/align-vertical-top.svg'
+import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
+import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
+import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -611,6 +617,8 @@ import NcHeading2 from '~icons/nc-icons-v2/heading-2'
 import NcHeading3 from '~icons/nc-icons-v2/heading-3'
 import NcQuote from '~icons/nc-icons-v2/quote'
 
+import NcPenLine from '~icons/nc-icons-v2/pen-line.svg'
+import NcNode from '~icons/nc-icons-v2/nc-node.svg'
 import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
@@ -706,6 +714,7 @@ import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -908,7 +917,8 @@ export const iconMap = {
   cellAi: h(NcCellAi, { stroke: 'transparent' }),
   camera: NcCamera,
   megaPhone: NcMegaPhone,
-  nocodb: NcNocoDB,
+  nocodb: h(NcNocoDB, { stroke: 'transparent' }),
+  nocodb1: h(NcNocoDB1, { stroke: 'transparent' }),
   bulb: NcBulb,
   snow: NcSnow,
 
@@ -1230,6 +1240,7 @@ export const iconMap = {
   ollama: NcOllama,
   groq: NcGroq,
   posthog: h(NcPosthog, { stroke: 'transparent' }),
+  nocodbPg: h(NcNocodbPg, { stroke: 'transparent' }),
   refreshCw: NcRefreshCW,
   iconReddit: NcRedditIcon,
   iconTwitter: NcTwitterIcon,
@@ -1479,6 +1490,10 @@ export const iconMap = {
   ncShieldOff: NcShieldOffIcon,
   ncMousePointer: NcMousePointerIcon,
   ncAlignLeft: NcAlignLeftIcon,
+  ncVerticalAlignTop: NcVerticalAlignTop,
+  ncVerticalAlignCenter: NcVerticalAlignCenter,
+  ncVerticalAlignBottom: NcVerticalAlignBottom,
+  ncAngleRotateCw: NcAngleRotateCw,
   ncHeart: NcHeartIcon,
   ncTrendingUp: NcTrendingUpIcon,
   chevronUpSmall: NcChevronUpSmall,
@@ -1517,6 +1532,8 @@ export const iconMap = {
   ncFileSearch: h(NcFileSearch, { stroke: 'transparent' }),
   ncFileTypeJson: h(NcFileTypeJson, { stroke: 'transparent' }),
   ncErd: h(NcErd, { stroke: 'transparent' }),
+  ncPenLine: h(NcPenLine, { stroke: 'transparent' }),
+  ncNode: h(NcNode, { stroke: 'transparent' }),
   importAirtable: h(NcImportAirtable, { stroke: 'transparent' }),
   importCsv: h(NcImportCsv, { stroke: 'transparent' }),
   importJson: h(NcImportJson, { stroke: 'transparent' }),
@@ -1618,6 +1635,7 @@ export const iconMap = {
   ncLogoZendesk: h(NcLogoZendesk, { stroke: 'transparent' }),
   ncLogoZohoColored: h(NcLogoZohoColored, { stroke: 'transparent' }),
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
+  ncSendAlt: h(NcSendAlt, { stroke: 'transparent' }),
   ncAiPlay: AiPlayIcon,
 }
 

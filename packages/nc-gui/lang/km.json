@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "ការរួមបញ្ចូលទាំងអស់",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "បើក ឬបិទមុខងារពិសោធន៍ដោយភាពងាយស្រួល ដែលអនុញ្ញាតឱ្យអ្នករុករក និងវាយតម្លៃមុខងារដែលនឹងមកដល់នាពេលខាងមុខ។",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "បានផ្លាស់ប្តូរកាលបរិច្ឆេទ",
     "configuration": "ការកំណត់រចនាសម្ព័ន្ធ",
     "setup": "រៀបចំ",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "ស្ទួនមើល",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "ស្ទួនទិដ្ឋភាពក្រឡា",
     "createGridView": "បង្កើតទិដ្ឋភាពក្រឡា",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "កូនសូមការចូលទៅ",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "ទីលានដែលបានចែករំលែក URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "នាំចូលទិន្នន័យ",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "មើលឯកសារភ្ជាប់",
     "attachmentDrop": "ចុច ឬទម្លាក់ឯកសារដើម្បីបញ្ចូលបន្ទាត់",
     "addFiles": "បន្ថែមឯកសារ(ច្រើន)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "លាក់នៅ UI",
     "addBase": "បន្ថែមមូលដ្ឋាន",
     "addParameter": "បន្ថែមប៉ារ៉ាម៉ែត្រ",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "ការលុប កំពសុំនេះនឹងផងដែរ យកចេញ ជម្រើស ទទេ `{stackToBeDeleted}` ពី `{groupingField}`។ រូបភាព នៅកំពសុំដោយមិនមានគុណភាព។",
       "computedFieldEditWarning": "ខ្លឹមសារគឺអានបានតែប៉ុណ្ណោះ",
       "computedFieldDeleteWarning": "ខ្លឹមសារគឺអានបានតែប៉ុណ្ណោះ",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "មិនមានកំណត់ត្រាមាននៅ",
       "tokenNameNotEmpty": "ឈ្មោះ Token មិនគួរតែទទេ",
       "tokenNameMaxLength": "ឈ្មោះ Token មិនគួរមានតួអក្សរច្រើនជាង 255 តួ",

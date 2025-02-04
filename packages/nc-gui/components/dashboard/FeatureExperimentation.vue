@@ -23,10 +23,6 @@ onMounted(() => {
   selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
 })
 
-const isChanged = computed(() => {
-  return features.value.some((feature) => selectedFeatures.value[feature.id] !== feature.enabled)
-})
-
 watch(value, (val) => {
   if (val) {
     selectedFeatures.value = Object.fromEntries(features.value.map((feature) => [feature.id, feature.enabled]))
@@ -61,50 +57,54 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="value" size="small">
-    <div class="flex flex-col gap-3">
-      <div>
-        <h1 class="text-base text-gray-800 font-semibold">
-          <component :is="iconMap.bulb" class="text-gray-500 h-5 mr-1 pb-1" @click="handleClick" />
+  <a-drawer v-model:visible="value" class="nc-features-drawer" :mask-style="{ background: 'transparent' }" width="min(32vw, 458px)" :closable="false">
+    <div class="flex flex-col h-full">
+      <div class="flex items-center gap-3 px-2 !pl-4 border-b-1 !h-11 border-gray-200">
+        <component :is="iconMap.bulb" class="text-gray-700 opacity-85 h-5 w-5" @click="handleClick" />
+        <h1 class="text-base !text-gray-700 font-weight-700 p-0 m-0">
           {{ $t('general.featurePreview') }}
         </h1>
-        <div class="text-gray-600 leading-5">
-          {{ $t('labels.toggleExperimentalFeature') }}
+        <nc-button type="text" class="!w-8 !h-8 !min-w-0 ml-auto" @click="value = false">
+          <GeneralIcon icon="close" class="!text-gray-700" />
+        </nc-button>
+      </div>
+
+      <div class="text-sm font-weight-500 text-gray-600 leading-5 m-4 mb-0">
+        {{ $t('labels.toggleExperimentalFeature') }}
+      </div>
+
+      <div class="overflow-y-auto nc-scrollbar-thin h-0 flex-grow m-4 !rounded-lg">
+        <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
+          <template v-for="feature in features" :key="feature.id">
+            <div
+              v-if="(!feature.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn)"
+              class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
+            >
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-800 !font-weight-600">
+                  {{ feature.title }}
+                </div>
+                <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
+              </div>
+
+              <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
+                {{ feature.description }}
+              </div>
+            </div>
+          </template>
         </div>
       </div>
-
-      <div
-        ref="contentRef"
-        class="border-1 rounded-md min-h-[50px] max-h-[234px] nc-scrollbar-md overflow-y-auto border-gray-200"
-      >
-        <template v-for="feature in features" :key="feature.id">
-          <div
-            v-if="(!feature.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn)"
-            class="border-b-1 px-3 flex gap-2 flex-col py-2 border-gray-200 last:border-b-0"
-          >
-            <div class="flex items-center justify-between">
-              <div class="text-gray-800 font-medium">
-                {{ feature.title }}
-              </div>
-              <NcSwitch v-model:checked="selectedFeatures[feature.id]" />
-            </div>
-
-            <div class="text-gray-500 leading-4 text-[13px]">
-              {{ feature.description }}
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <div class="flex w-full gap-2 justify-end">
-        <NcButton type="secondary" size="small" @click="value = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-
-        <NcButton :disabled="!isChanged" size="small" @click="saveExperimentalFeatures">
-          {{ $t('general.save') }}
-        </NcButton>
-      </div>
     </div>
-  </NcModal>
+  </a-drawer>
 </template>
+
+<style lang="scss">
+.nc-features-drawer {
+  .ant-drawer-content-wrapper {
+    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)];
+    .ant-drawer-body {
+      @apply p-0;
+    }
+  }
+}
+</style>

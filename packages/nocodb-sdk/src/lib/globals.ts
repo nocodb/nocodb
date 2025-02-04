@@ -128,6 +128,7 @@ export enum NcErrorType {
   ERROR_DUPLICATE_RECORD = 'ERROR_DUPLICATE_RECORD',
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   INVALID_OFFSET_VALUE = 'INVALID_OFFSET_VALUE',
+  INVALID_PAGE_VALUE = 'INVALID_PAGE_VALUE',
   INVALID_LIMIT_VALUE = 'INVALID_LIMIT_VALUE',
   INVALID_FILTER = 'INVALID_FILTER',
   INVALID_SHARED_VIEW_PASSWORD = 'INVALID_SHARED_VIEW_PASSWORD',
@@ -150,6 +151,8 @@ export enum NcErrorType {
 }
 
 export const LongTextAiMetaProp = 'ai';
+
+export const NO_SCOPE = 'nc';
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 

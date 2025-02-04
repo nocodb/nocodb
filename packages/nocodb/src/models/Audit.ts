@@ -112,7 +112,20 @@ export default class Audit {
     }
   }
 
-  public static async auditList(args) {
+  public static async auditList({
+    limit: _limit = 25,
+    offset: _offset = 0,
+    fk_model_id,
+    row_id,
+  }: {
+    limit?: number | string;
+    offset?: number | string;
+    fk_model_id: string;
+    row_id: string;
+  }) {
+    const limit = Math.max(1, Math.min(+_limit || 25, 1000));
+    const offset = Math.max(0, +_offset || 0);
+
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
       .join(
@@ -121,14 +134,51 @@ export default class Audit {
         `${MetaTable.AUDIT}.user`,
       )
       .select(`${MetaTable.AUDIT}.*`, `${MetaTable.USERS}.display_name`)
-      .where('row_id', args.row_id)
-      .where('fk_model_id', args.fk_model_id)
+      .where('row_id', row_id)
+      .where('fk_model_id', fk_model_id)
       .where('op_type', '!=', AuditOperationTypes.COMMENT)
-      .orderBy('created_at', 'desc');
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
 
     const audits = await query;
 
     return audits?.map((a) => new Audit(a));
+  }
+
+  public static async auditCount({
+    fk_model_id,
+    row_id,
+  }: {
+    fk_model_id: string;
+    row_id: string;
+  }) {
+    return await Noco.ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        xcCondition: {
+          _and: [
+            {
+              row_id: {
+                eq: row_id,
+              },
+            },
+            {
+              fk_model_id: {
+                eq: fk_model_id,
+              },
+            },
+            {
+              op_type: {
+                neq: AuditOperationTypes.COMMENT,
+              },
+            },
+          ],
+        },
+      },
+    );
   }
 
   static async baseAuditList(

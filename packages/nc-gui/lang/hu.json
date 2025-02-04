@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "Te",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Összes integráció",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Módosítva",
     "configuration": "Konfiguráció",
     "setup": "Beállítás",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Nézet duplikálása",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Rács nézet másolása",
     "createGridView": "Rács nézet létrehozása",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Személyes hozzáférési token",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Megosztott alap URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Adat importálása",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "MI gomb konfigurálása",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Mellékletek megtekintése",
     "attachmentDrop": "Kattintson vagy húzzon egy fájlt a cellába",
     "addFiles": "Fájl(ok) hozzáadása",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Elrejtés a felületen",
     "addBase": "Bázis hozáádaása",
     "addParameter": "Paraméter hozzáadása",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Ennek a kötegnek a törlése eltávolítja a kiválasztott opciót `{stackToBeDeleted}` a `{groupingField}`-ből is. A rekordok az osztályozatlan kötegbe kerülnek át.",
       "computedFieldEditWarning": "a tartalom csak olvasható",
       "computedFieldDeleteWarning": "a tartalom csak olvasható",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Nincs több rekord",
       "tokenNameNotEmpty": "A token neve nem lehet üres",
       "tokenNameMaxLength": "A token neve nem lehet több mint 255 karakter",

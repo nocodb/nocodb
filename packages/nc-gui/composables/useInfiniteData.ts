@@ -19,13 +19,17 @@ import { NavigateDir } from '~/lib/enums'
 const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
-    return list.map((row, index) => ({
-      row: { ...row },
-      oldRow: { ...row },
-      rowMeta: {
-        rowIndex: (pageInfo.page! - 1) * pageInfo.pageSize! + index,
-      },
-    }))
+    return list.map((row, index) => {
+      const rowIndex = (pageInfo.page! - 1) * pageInfo.pageSize! + index
+      return {
+        row: { ...row },
+        oldRow: { ...row },
+        rowMeta: {
+          rowIndex,
+          isLastRow: rowIndex === pageInfo.totalRows! - 1,
+        },
+      }
+    })
   }
 
   // If no pageInfo, fall back to params
@@ -229,6 +233,7 @@ export function useInfiniteData(args: {
       limit?: number
       offset?: number
     } = {},
+    _shouldShowLoading?: boolean,
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
 
@@ -724,6 +729,7 @@ export function useInfiniteData(args: {
     column: ColumnType,
     type: RelationTypes,
     { metaValue = meta.value }: { metaValue?: TableType } = {},
+    options?: { suppressError?: boolean },
   ): Promise<void> => {
     try {
       await $api.dbTableRow.nestedAdd(
@@ -736,14 +742,20 @@ export function useInfiniteData(args: {
         encodeURIComponent(relatedRowId),
       )
     } catch (e: any) {
-      const errorMessage = await extractSdkResponseErrorMsg(e)
-      message.error(`Failed to link record: ${errorMessage}`)
+      if (!options?.suppressError) {
+        const errorMessage = await extractSdkResponseErrorMsg(e)
+        message.error(`Failed to link record: ${errorMessage}`)
+      }
       throw e
     }
     callbacks?.syncVisibleData?.()
   }
 
-  const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
+  const recoverLTARRefs = async (
+    row: Record<string, any>,
+    { metaValue = meta.value }: { metaValue?: TableType } = {},
+    options?: { suppressError?: boolean },
+  ) => {
     const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
 
     if (!id) return
@@ -761,14 +773,14 @@ export function useInfiniteData(args: {
         for (const relatedRow of relatedRows) {
           const relatedId = extractPkFromRow(relatedRow, relatedTableMeta?.columns as ColumnType[])
           if (relatedId) {
-            await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
+            await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta }, options)
           }
         }
       } else if (isBt(column) && row[column.title!]) {
         const relatedId = extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[])
 
         if (relatedId) {
-          await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
+          await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta }, options)
         }
       }
     }
@@ -812,8 +824,17 @@ export function useInfiniteData(args: {
                 row.row = { ...pkData, ...row.row }
 
                 await insertRow(row, ltarState, {}, true)
+                // refreshing the view
+                cachedRows.value.clear()
+                chunkStates.value = []
 
-                await recoverLTARRefs(row.row)
+                try {
+                  await recoverLTARRefs(row.row, undefined, { suppressError: true })
+                } catch (ex) {
+                  // expected and silenced
+                  // the relation should already exists on above operation (insertRow)
+                  // this is left to keep things unchanged
+                }
               },
               args: [clone(row), {}],
             },

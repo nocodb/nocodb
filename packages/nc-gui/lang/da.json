@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Alle integrationer",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Ændret den",
     "configuration": "Konfiguration",
     "setup": "Opsætning",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Kopiér visning",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Duplikér Gittervisning",
     "createGridView": "Opret Gittervisning",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Personlig adgangstoken",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Delt Basis URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Import af data",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Se vedhæftede filer",
     "attachmentDrop": "Klik eller slip en fil i celle",
     "addFiles": "Tilføj fil(er)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Skjul i UI",
     "addBase": "Tilføj base",
     "addParameter": "Tilføj parameter",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Hvis du sletter denne stak, fjernes også valgmuligheden `{stackToBeDeleted}` fra `{groupingField}`. Posterne vil blive flyttet til stakken \"uncategorized\".",
       "computedFieldEditWarning": "Beregnet felt: indholdet er skrivebeskyttet. Brug kolonne-redigeringsmenuen til at omkonfigurere",
       "computedFieldDeleteWarning": "Beregnet felt: indholdet er skrivebeskyttet. Det er ikke muligt at slette indholdet.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Ikke flere optegnelser",
       "tokenNameNotEmpty": "Token-navnet må ikke være tomt",
       "tokenNameMaxLength": "Token-navnet må ikke være mere end 255 tegn",

@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Alle Integraties",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Doorgaan",
-    "toggleExperimentalFeature": "Schakel experimentele functies gemakkelijk in of uit, zodat je toekomstige functionaliteiten kunt verkennen en evalueren.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Gewijzigd op",
     "configuration": "Configuratie",
     "setup": "Installatie",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Dupliceer weergave",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Duplicaat Gridweergave",
     "createGridView": "Maak rasterweergave",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Persoonlijke Toegangstoken",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Gedeelde Basis-URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Gegevens importeren",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Bekijk Bijlagen",
     "attachmentDrop": "Klik of plaats een bestand in de cel",
     "addFiles": "Bestand(en) Toevoegen",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Verbergen in UI",
     "addBase": "Basis Toevoegen",
     "addParameter": "Parameter Toevoegen",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Door deze stapel te verwijderen wordt ook de selectieoptie `{stackToBeDeleted}` van de `{groupingField}` verwijderd. De records worden verplaatst naar de ongecategoriseerde stapel.",
       "computedFieldEditWarning": "Berekend veld: de inhoud is alleen leesbaar. Gebruik het kolombewerkingsmenu om opnieuw te configureren",
       "computedFieldDeleteWarning": "Berekend veld: inhoud is alleen-lezen. Kan inhoud niet wissen.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Geen records meer",
       "tokenNameNotEmpty": "Tokennaam mag niet leeg zijn",
       "tokenNameMaxLength": "Tokennaam mag niet meer dan 255 tekens bevatten",

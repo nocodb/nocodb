@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Kaikki integraatiot",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Muutettu",
     "configuration": "Konfiguraatio",
     "setup": "Asetukset",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Näkymän monistaminen",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Kopioi verkkonäkymä",
     "createGridView": "Luo verkkonäkymä",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Henkilökohtainen käyttövaltuusmerkki",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Jaettu perus-URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Tuo tietoja",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Näytä liitetiedostot",
     "attachmentDrop": "Napsauta tai pudota tiedosto soluun",
     "addFiles": "Lisää tiedosto(ja)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Piilota käyttöliittymässä",
     "addBase": "Lisää perus",
     "addParameter": "Lisää parametri",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Tämän pinon poistaminen poistaa myös valintavaihtoehdon `{stackToBeDeleted}` valikosta `{groupingField}`. Tietueet siirtyvät luokittelemattomaan pinoon.",
       "computedFieldEditWarning": "Laskettu kenttä: sisältö on vain luettavissa. Käytä sarakkeen muokkausvalikkoa uudelleenmäärittämiseen",
       "computedFieldDeleteWarning": "Laskettu kenttä: sisältö on vain luettavissa. Sisältöä ei voi tyhjentää.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Ei enää tallenteita",
       "tokenNameNotEmpty": "Tunnuksen nimi ei saa olla tyhjä",
       "tokenNameMaxLength": "Tunnuksen nimen pituus ei saa ylittää 255 merkkiä",

@@ -14,9 +14,23 @@ export class AuditsService {
     query: {
       row_id: string;
       fk_model_id: string;
+      limit?: string | number;
+      offset?: string | number;
     };
   }) {
     return await Audit.auditList(param.query);
+  }
+
+  async auditOnlyCount(param: {
+    query?: {
+      row_id: string;
+      fk_model_id: string;
+    };
+  }) {
+    return await Audit.auditCount({
+      fk_model_id: param.query.fk_model_id,
+      row_id: param.query.row_id,
+    });
   }
 
   async auditList(param: { query: any; baseId: string }) {

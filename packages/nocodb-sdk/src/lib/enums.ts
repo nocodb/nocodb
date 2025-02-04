@@ -404,6 +404,7 @@ export enum SSLUsage {
 
 export enum SyncDataType {
   // Database
+  NOCODB = 'nocodb',
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
   ORACLE = 'oracle',

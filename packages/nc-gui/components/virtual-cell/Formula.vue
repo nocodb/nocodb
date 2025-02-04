@@ -15,6 +15,7 @@ const result = computed(() =>
 )
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
@@ -51,7 +52,7 @@ const isGrid = inject(IsGridInj, ref(false))
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
-      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="!isUnderLookup && showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
       <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">

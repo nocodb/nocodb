@@ -93,7 +93,7 @@ const openChildList = () => {
   hideBackBtn.value = false
 }
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       if (listItemsDlg.value) return

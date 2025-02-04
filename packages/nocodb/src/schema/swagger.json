@@ -14360,6 +14360,10 @@
                           "id": "d22zkup0c0l80"
                         }
                       }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Pagination Info"
                     }
                   },
                   "required": [
@@ -14417,6 +14421,22 @@
         },
         "description": "List all audits",
         "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
           {
             "schema": {
               "type": "string",
@@ -19930,6 +19950,87 @@
           "in": "query",
           "description": "Trigger AI action with custom record data provided in request body as rows",
           "required": false
+        }
+      ]
+    },
+    "/api/v2/internal/:workspaceId/:baseId": {
+      "post": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-post-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "tags": [
+          "Internal"
+        ],
+        "description": "Trigger an internal operation"
+      },
+      "get": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-get-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Internal"
+        ],
+        "description": "Trigger an internal operation"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "operation",
+          "in": "query",
+          "description": "Operation to trigger",
+          "required": true
         }
       ]
     }

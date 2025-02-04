@@ -557,6 +557,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const stackTitle = row.row[groupingField.value]
       const oldStackTitle = row.oldRow[groupingField.value]
 
+      // if the update happen on linked table, do not attempt to update stack
+      if (!stackTitle || oldStackTitle) {
+        return
+      }
       if (isNewRow) {
         // add a new record
         if (stackTitle) {

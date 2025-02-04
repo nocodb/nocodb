@@ -206,7 +206,7 @@ export default class CSVTemplateAdapter {
     }
   }
 
-  async _parseTableData(tableIdx: number, source: UploadFile | string, tn: string) {
+  async _parseTableData(tableIdx: number, source: (UploadFile & { encoding?: string }) | string, tn: string) {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
@@ -215,11 +215,11 @@ export default class CSVTemplateAdapter {
 
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
-
         parse(parseSource, {
           download: that.config.importFromURL,
           // worker: true,
           skipEmptyLines: 'greedy',
+          encoding: (source as { encoding?: string })?.encoding,
           step(row) {
             steppers += 1
             if (row && steppers >= +that.config.firstRowAsHeaders + 1) {

@@ -76,7 +76,7 @@ export class SortsService {
 
   async sortCreate(
     context: NcContext,
-    param: { viewId: any; sort: SortReqType; req: NcRequest },
+    param: { viewId: string; sort: SortReqType; req: NcRequest },
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 

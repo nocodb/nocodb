@@ -6,6 +6,44 @@ import dayjs from 'dayjs';
 import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
 import { dateFormats } from './dateTimeHelper';
 
+export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
+export const ComparisonOperators = ['==', '<', '>', '<=', '>=', '!='] as const;
+type ArithmeticOperator = (typeof ArithmeticOperators)[number];
+type ComparisonOperator = (typeof ComparisonOperators)[number];
+type BaseFormulaNode = {
+  type: JSEPNode;
+  dataType: FormulaDataTypes;
+};
+interface BinaryExpressionNode extends BaseFormulaNode {
+  operator: ArithmeticOperator | ComparisonOperator;
+  type: JSEPNode.BINARY_EXP;
+  right: ParsedFormulaNode;
+  left: ParsedFormulaNode;
+}
+interface CallExpressionNode extends BaseFormulaNode {
+  type: JSEPNode.CALL_EXP;
+  arguments: ParsedFormulaNode[];
+  callee: {
+    type: 'Identifier';
+    name: 'DATETIME_DIFF';
+  };
+}
+interface IdentifierNode extends BaseFormulaNode {
+  type: JSEPNode.IDENTIFIER;
+  name: string;
+  raw: string;
+}
+interface LiteralNode extends BaseFormulaNode {
+  type: JSEPNode.LITERAL;
+  value: string;
+  raw: string;
+}
+type ParsedFormulaNode =
+  | BinaryExpressionNode
+  | CallExpressionNode
+  | IdentifierNode
+  | LiteralNode;
+
 // opening and closing string code
 const OCURLY_CODE = 123; // '{'
 const CCURLY_CODE = 125; // '}'
@@ -245,6 +283,7 @@ export enum FormulaDataTypes {
   COND_EXP = 'conditional_expression',
   NULL = 'null',
   BOOLEAN = 'boolean',
+  INTERVAL = 'interval',
   UNKNOWN = 'unknown',
 }
 
@@ -1609,6 +1648,9 @@ async function extractColumnIdentifierType({
         res.dataType = FormulaDataTypes.NUMERIC;
       }
       break;
+    case UITypes.Time:
+      res.dataType = FormulaDataTypes.INTERVAL;
+      break;
     case UITypes.ID:
     case UITypes.ForeignKey:
     case UITypes.SpecificDBType:
@@ -1632,7 +1674,6 @@ async function extractColumnIdentifierType({
       }
       break;
     // not supported
-    case UITypes.Time:
     case UITypes.Lookup:
     case UITypes.Barcode:
     case UITypes.Button:
@@ -1929,7 +1970,21 @@ export async function validateFormulaAndExtractTreeWithType({
       res.left = await validateAndExtract(parsedTree.left);
       res.right = await validateAndExtract(parsedTree.right);
 
-      if (['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)) {
+      if (
+        handleBinaryExpressionForDateAndTime({ sourceBinaryNode: res as any })
+      ) {
+        Object.assign(
+          res,
+          handleBinaryExpressionForDateAndTime({ sourceBinaryNode: res as any })
+        );
+        if (res.type !== JSEPNode.BINARY_EXP) {
+          res.left = undefined;
+          res.right = undefined;
+          res.operator = undefined;
+        }
+      } else if (
+        ['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)
+      ) {
         res.dataType = FormulaDataTypes.COND_EXP;
       } else if (parsedTree.operator === '+') {
         res.dataType = FormulaDataTypes.NUMERIC;
@@ -1970,7 +2025,6 @@ export async function validateFormulaAndExtractTreeWithType({
         'Compound statement is not supported'
       );
     }
-
     return res;
   };
 
@@ -1979,6 +2033,181 @@ export async function validateFormulaAndExtractTreeWithType({
   const parsedFormula = jsep(formula);
   const result = await validateAndExtract(parsedFormula);
   return result;
+}
+
+function handleBinaryExpressionForDateAndTime(params: {
+  sourceBinaryNode: BinaryExpressionNode;
+}): BaseFormulaNode | undefined {
+  const { sourceBinaryNode } = params;
+  let res: BaseFormulaNode;
+
+  if (
+    [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL].includes(
+      sourceBinaryNode.left.dataType
+    ) &&
+    [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL].includes(
+      sourceBinaryNode.right.dataType
+    ) &&
+    sourceBinaryNode.operator === '-'
+  ) {
+    // when it's interval and interval, we return diff in minute (numeric)
+    if (
+      [FormulaDataTypes.INTERVAL].includes(sourceBinaryNode.left.dataType) &&
+      [FormulaDataTypes.INTERVAL].includes(sourceBinaryNode.right.dataType)
+    ) {
+      res = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [
+          sourceBinaryNode.left,
+          sourceBinaryNode.right,
+          {
+            type: 'Literal',
+            value: 'minutes',
+            raw: '"minutes"',
+            dataType: 'string',
+          },
+        ],
+        callee: {
+          type: 'Identifier',
+          name: 'DATETIME_DIFF',
+        },
+        dataType: FormulaDataTypes.NUMERIC,
+      } as CallExpressionNode;
+    }
+    // when it's date - date, show the difference in minute
+    else if (
+      [FormulaDataTypes.DATE].includes(sourceBinaryNode.left.dataType) &&
+      [FormulaDataTypes.DATE].includes(sourceBinaryNode.right.dataType)
+    ) {
+      res = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [
+          sourceBinaryNode.left,
+          sourceBinaryNode.right,
+          {
+            type: 'Literal',
+            value: 'minutes',
+            raw: '"minutes"',
+            dataType: 'string',
+          },
+        ],
+        callee: {
+          type: 'Identifier',
+          name: 'DATETIME_DIFF',
+        },
+        dataType: FormulaDataTypes.NUMERIC,
+      } as CallExpressionNode;
+    }
+    // else interval and date can be addedd seamlessly A - B
+    // with result as DATE
+    // may be changed if we find other db use case
+    else if (
+      [FormulaDataTypes.INTERVAL, FormulaDataTypes.DATE].includes(
+        sourceBinaryNode.left.dataType
+      ) &&
+      [FormulaDataTypes.INTERVAL, FormulaDataTypes.DATE].includes(
+        sourceBinaryNode.right.dataType
+      ) &&
+      sourceBinaryNode.left.dataType != sourceBinaryNode.right.dataType
+    ) {
+      res = {
+        type: JSEPNode.BINARY_EXP,
+        left: sourceBinaryNode.left,
+        right: sourceBinaryNode.right,
+        operator: '-',
+        dataType: FormulaDataTypes.DATE,
+      } as BinaryExpressionNode;
+    }
+  } else if (
+    [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL].includes(
+      sourceBinaryNode.left.dataType
+    ) &&
+    [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL].includes(
+      sourceBinaryNode.right.dataType
+    ) &&
+    sourceBinaryNode.operator === '+'
+  ) {
+    // when it's interval and interval, we return addition in minute (numeric)
+    if (
+      [FormulaDataTypes.INTERVAL].includes(sourceBinaryNode.left.dataType) &&
+      [FormulaDataTypes.INTERVAL].includes(sourceBinaryNode.right.dataType)
+    ) {
+      const left = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [
+          sourceBinaryNode.left,
+          {
+            type: 'Literal',
+            value: '00:00:00',
+            raw: '"00:00:00"',
+            dataType: FormulaDataTypes.INTERVAL,
+          },
+          {
+            type: 'Literal',
+            value: 'minutes',
+            raw: '"minutes"',
+            dataType: 'string',
+          },
+        ],
+        callee: {
+          type: 'Identifier',
+          name: 'DATETIME_DIFF',
+        },
+        dataType: FormulaDataTypes.NUMERIC,
+      } as CallExpressionNode;
+      const right = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [
+          sourceBinaryNode.right,
+          {
+            type: 'Literal',
+            value: '00:00:00',
+            raw: '"00:00:00"',
+            dataType: FormulaDataTypes.INTERVAL,
+          },
+          {
+            type: 'Literal',
+            value: 'minutes',
+            raw: '"minutes"',
+            dataType: 'string',
+          },
+        ],
+        callee: {
+          type: 'Identifier',
+          name: 'DATETIME_DIFF',
+        },
+        dataType: FormulaDataTypes.NUMERIC,
+      } as CallExpressionNode;
+      return {
+        type: JSEPNode.BINARY_EXP,
+        left,
+        right,
+        operator: '+',
+        dataType: FormulaDataTypes.NUMERIC,
+      } as BinaryExpressionNode;
+    }
+    // else interval and date can be addedd seamlessly A + B
+    // with result as DATE
+    // may be changed if we find other db use case
+    else if (
+      [FormulaDataTypes.INTERVAL, FormulaDataTypes.DATE].includes(
+        sourceBinaryNode.left.dataType
+      ) &&
+      [FormulaDataTypes.INTERVAL, FormulaDataTypes.DATE].includes(
+        sourceBinaryNode.right.dataType
+      ) &&
+      sourceBinaryNode.left.dataType != sourceBinaryNode.right.dataType
+    ) {
+      res = {
+        type: JSEPNode.BINARY_EXP,
+        left: sourceBinaryNode.left,
+        right: sourceBinaryNode.right,
+        operator: '+',
+        dataType: FormulaDataTypes.DATE,
+      } as BinaryExpressionNode;
+    }
+  }
+  return res;
 }
 
 function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {

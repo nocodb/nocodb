@@ -34,9 +34,9 @@ provide(ColumnInj, column)
     <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="modelValue" />
     <LazyCellPercent v-else-if="isPercent(column)" :model-value="modelValue" />
     <LazyCellRating v-else-if="isRating(column)" :model-value="modelValue" />
-    <LazyCellDatePicker v-else-if="isDate(column, '')" :model-value="modelValue" />
-    <LazyCellDateTimePicker v-else-if="isDateTime(column, '')" :model-value="modelValue" />
-    <LazyCellTimePicker v-else-if="isTime(column, '')" :model-value="modelValue" />
+    <LazyCellDateReadonly v-else-if="isDate(column, '')" :model-value="modelValue" />
+    <LazyCellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="modelValue" />
+    <LazyCellTime v-else-if="isTime(column, '')" :model-value="modelValue" />
     <LazyCellEmail v-else-if="isEmail(column)" :model-value="modelValue" />
     <LazyCellUrl v-else-if="isURL(column)" :model-value="modelValue" />
     <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="modelValue" />
@@ -59,7 +59,7 @@ provide(ColumnInj, column)
 }
 
 .nc-cell {
-  @apply text-sm text-gray-600;
+  @apply text-sm;
   font-weight: 500;
 
   :deep(.nc-cell-field) {

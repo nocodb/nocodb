@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Tüm Entegrasyonlar",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Güncellenme tarihi",
     "configuration": "Yapılandırma",
     "setup": "Kurulum",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Görünümü Kopyala",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Tablo Görünümü Kopyala",
     "createGridView": "Tablo görünümü oluştur",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Kişisel Erişim Jetonu",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Paylaşılan Proje URL'si",
+    "sharedPublicly": "Shared publicly",
     "importData": "Veri İçe Aktarma",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Ekleri Görüntüle",
     "attachmentDrop": "Tıklayın ya da hücreye bir dosya bırakın",
     "addFiles": "Dosya(lar) Ekle",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Arayüzde Gizle",
     "addBase": "Proje Ekle",
     "addParameter": "Parametre Ekle",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Bu yığını silmek, `{groupingField}` içinden `{stackToBeDeleted}` seçeneğini de kaldıracaktır. Kayıtlar, kategorize edilmeyen yığına taşınacaktır.",
       "computedFieldEditWarning": "Hesaplanan alan: içerik salt okunurdur. Yeniden yapılandırmak için sütun düzenleme menüsünü kullanın",
       "computedFieldDeleteWarning": "Hesaplanan alan: içerik salt okunurdur. İçerik temizlenemiyor.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Daha fazla kayıt yok",
       "tokenNameNotEmpty": "Token adı boş olmamalıdır",
       "tokenNameMaxLength": "Token adı 255 karakterden fazla olmamalıdır",

@@ -453,7 +453,7 @@ onBeforeUnmount(() => {
                           container-class-name="!max-h-[171px]"
                         >
                           <template #listItem="{ option, isSelected }">
-                            <NcCheckbox :checked="isSelected()" />
+                            <NcCheckbox :checked="isSelected" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
                               <component :is="cellIcon(option)" class="!mx-0" />
@@ -625,7 +625,7 @@ onBeforeUnmount(() => {
                                       <NcListRecordItem
                                         :row="option.row || {}"
                                         :columns="meta?.columns || []"
-                                        :is-selected="isSelected()"
+                                        :is-selected="isSelected"
                                         class="!cursor-pointer"
                                         display-value-class-name="!text-nc-content-gray"
                                       />

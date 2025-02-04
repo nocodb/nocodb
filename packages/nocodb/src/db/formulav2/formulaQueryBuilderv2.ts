@@ -1,5 +1,6 @@
 import jsep from 'jsep';
 import {
+  ComparisonOperators,
   FormulaDataTypes,
   jsepCurlyHook,
   LongTextAiMetaProp,
@@ -14,9 +15,9 @@ import genRollupSelectv2 from '../genRollupSelectv2';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
 import type { User } from '~/models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -72,6 +73,38 @@ async function _formulaQueryBuilder(params: {
   column?: Column;
   baseUsers?: (Partial<User> & BaseUser)[];
 }) {
+  const getLinkedColumnDisplayValue = async (params: {
+    model: Model;
+    aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
+  }) => {
+    const displayValueColumn = params.model?.displayValue;
+    if (!displayValueColumn) {
+      return undefined;
+    }
+    const formulOption = await params.model.displayValue.getColOptions<
+      FormulaColumn | ButtonColumn
+    >(baseModelSqlv2.context);
+    if (displayValueColumn.uidt !== UITypes.Formula) {
+      return displayValueColumn.column_name;
+    } else {
+      const innerQb = await _formulaQueryBuilder({
+        baseModelSqlv2: await Model.getBaseModelSQL(baseModelSqlv2.context, {
+          model: params.model,
+          dbDriver: baseModelSqlv2.dbDriver,
+        }),
+        _tree: formulOption.formula,
+        alias,
+        model: params.model,
+        column: params.model.displayValue,
+        aliasToColumn: params.aliasToColumn,
+        tableAlias,
+        parsedTree: formulOption.getParsedTree(),
+        baseUsers,
+      });
+      return innerQb;
+    }
+  };
+
   const {
     baseModelSqlv2,
     _tree,
@@ -635,8 +668,16 @@ async function _formulaQueryBuilder(params: {
 
           let selectQb;
           if (relationType === RelationTypes.BELONGS_TO) {
+            const linkedDisplayValue = await getLinkedColumnDisplayValue({
+              model: parentModel,
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
+            });
             selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
-              .select(parentModel?.displayValue?.column_name)
+              .select(
+                typeof linkedDisplayValue === 'string'
+                  ? linkedDisplayValue
+                  : knex.raw(linkedDisplayValue.builder).wrap('(', ')'),
+              )
               .where(
                 `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
                   parentColumn.column_name
@@ -662,18 +703,23 @@ async function _formulaQueryBuilder(params: {
                   }.${parentColumn.column_name}`,
                 ]),
               );
-
+            const childDisplayValue = await getLinkedColumnDisplayValue({
+              model: childModel,
+              aliasToColumn: { ...aliasToColumn, [col.id]: null },
+            });
             selectQb = (fn) =>
               knex
                 .raw(
                   getAggregateFn(fn)({
                     qb,
                     knex,
-                    cn: childModel?.displayValue?.column_name,
+                    cn:
+                      typeof childDisplayValue === 'string'
+                        ? childDisplayValue
+                        : childDisplayValue.builder,
                   }),
                 )
                 .wrap('(', ')');
-
             // getAggregateFn();
           } else if (relationType == RelationTypes.MANY_TO_MANY) {
             // todo:
@@ -1201,44 +1247,46 @@ async function _formulaQueryBuilder(params: {
       let right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
-      // comparing a date with empty string would throw
-      // `ERROR: zero-length delimited identifier` in Postgres
-      if (
-        knex.clientType() === 'pg' &&
-        columnIdToUidt[pt.left.name] === UITypes.Date
-      ) {
-        // The correct way to compare with Date should be using
-        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
-        // This is to prevent empty data returned to UI due to incorrect SQL
-        if (pt.right.value === '') {
-          if (pt.operator === '=') {
-            sql = `${left} IS NULL ${colAlias}`;
-          } else {
+      if (ComparisonOperators.includes(pt.operator)) {
+        // comparing a date with empty string would throw
+        // `ERROR: zero-length delimited identifier` in Postgres
+        if (
+          knex.clientType() === 'pg' &&
+          columnIdToUidt[pt.left.name] === UITypes.Date
+        ) {
+          // The correct way to compare with Date should be using
+          // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+          // This is to prevent empty data returned to UI due to incorrect SQL
+          if (pt.right.value === '') {
+            if (pt.operator === '=') {
+              sql = `${left} IS NULL ${colAlias}`;
+            } else {
+              sql = `${left} IS NOT NULL ${colAlias}`;
+            }
+          } else if (!validateDateWithUnknownFormat(pt.right.value)) {
+            // left tree value is date but right tree value is not date
+            // return true if left tree value is not null, else false
             sql = `${left} IS NOT NULL ${colAlias}`;
           }
-        } else if (!validateDateWithUnknownFormat(pt.right.value)) {
-          // left tree value is date but right tree value is not date
-          // return true if left tree value is not null, else false
-          sql = `${left} IS NOT NULL ${colAlias}`;
         }
-      }
-      if (
-        knex.clientType() === 'pg' &&
-        columnIdToUidt[pt.right.name] === UITypes.Date
-      ) {
-        // The correct way to compare with Date should be using
-        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
-        // This is to prevent empty data returned to UI due to incorrect SQL
-        if (pt.left.value === '') {
-          if (pt.operator === '=') {
-            sql = `${right} IS NULL ${colAlias}`;
-          } else {
+        if (
+          knex.clientType() === 'pg' &&
+          columnIdToUidt[pt.right.name] === UITypes.Date
+        ) {
+          // The correct way to compare with Date should be using
+          // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+          // This is to prevent empty data returned to UI due to incorrect SQL
+          if (pt.left.value === '') {
+            if (pt.operator === '=') {
+              sql = `${right} IS NULL ${colAlias}`;
+            } else {
+              sql = `${right} IS NOT NULL ${colAlias}`;
+            }
+          } else if (!validateDateWithUnknownFormat(pt.left.value)) {
+            // right tree value is date but left tree value is not date
+            // return true if right tree value is not null, else false
             sql = `${right} IS NOT NULL ${colAlias}`;
           }
-        } else if (!validateDateWithUnknownFormat(pt.left.value)) {
-          // right tree value is date but left tree value is not date
-          // return true if right tree value is not null, else false
-          sql = `${right} IS NOT NULL ${colAlias}`;
         }
       }
 
@@ -1333,7 +1381,6 @@ async function _formulaQueryBuilder(params: {
     }
   };
   const builder = (await fn(tree, alias)).builder;
-
   return { builder };
 }
 

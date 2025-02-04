@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import type {
+  BaseUserCreateV3Type,
+  BaseUserUpdateV3Type,
+  ProjectUserReqType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
@@ -7,6 +11,7 @@ import { NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { validatePayload } from '~/helpers';
 
 @Injectable()
 export class BaseUsersV3Service {
@@ -59,20 +64,20 @@ export class BaseUsersV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: any[]; //ProjectUserReqType[];
+      baseUsers: BaseUserCreateV3Type;
       req: NcRequest;
     },
   ): Promise<any> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUserCreate',
+      param.baseUsers,
+      true,
+    );
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        // todo: enable later
-        // validatePayload(
-        //   'swagger.json#/components/schemas/ProjectUserV3Req',
-        //   baseUser,
-        // );
-
         let user: User;
         if (baseUser.id) {
           user = await User.get(baseUser.id, ncMeta);
@@ -120,20 +125,21 @@ export class BaseUsersV3Service {
   async baseUserUpdate(
     context: NcContext,
     param: {
-      baseUsers: any[]; // ProjectUserReqType[];
+      baseUsers: BaseUserUpdateV3Type;
       req: any;
       baseId: string;
     },
   ): Promise<any> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseUserUpdate',
+      param.baseUsers,
+      true,
+    );
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
       for (const baseUser of param.baseUsers) {
-        // validatePayload(
-        //   'swagger.json#/components/schemas/ProjectUserV3Req',
-        //   baseUser,
-        // );
-
         let userId = baseUser.id;
 
         if (!baseUser.id && baseUser.email) {

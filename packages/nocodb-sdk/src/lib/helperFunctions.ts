@@ -1,7 +1,8 @@
 import UITypes, { isNumericCol } from './UITypes';
 import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
-import { IntegrationsType } from './Api';
+import { ColumnType, FormulaType, IntegrationsType } from './Api';
+import { FormulaDataTypes } from './formulaHelpers';
 
 // import {RelationTypes} from "./globals";
 
@@ -59,7 +60,16 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
   const rolesArr = Object.keys(roles).filter((r) => roles[r]);
   return rolesArr.join(',');
 };
-
+const getAvailableRollupForColumn = (column: ColumnType) => {
+  if ([UITypes.Formula].includes(column.uidt as UITypes)) {
+    return getAvailableRollupForFormulaType(
+      (column.colOptions as FormulaType as any).parsed_tree?.dataType ??
+        FormulaDataTypes.UNKNOWN
+    );
+  } else {
+    return getAvailableRollupForUiType(column.uidt);
+  }
+};
 const getAvailableRollupForUiType = (type: string) => {
   if (
     [
@@ -119,6 +129,37 @@ const getAvailableRollupForUiType = (type: string) => {
     'sumDistinct',
     'avgDistinct',
   ];
+};
+
+const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
+  switch (type) {
+    case FormulaDataTypes.DATE:
+    case FormulaDataTypes.INTERVAL: {
+      return ['count', 'min', 'max', 'countDistinct'];
+    }
+    case FormulaDataTypes.NUMERIC: {
+      return [
+        'sum',
+        'count',
+        'min',
+        'max',
+        'avg',
+        'countDistinct',
+        'sumDistinct',
+        'avgDistinct',
+      ];
+    }
+    case FormulaDataTypes.BOOLEAN: {
+      return ['count', 'sum'];
+    }
+    case FormulaDataTypes.STRING: {
+      return ['count', 'countDistinct'];
+    }
+    case FormulaDataTypes.UNKNOWN:
+    default: {
+      return ['count'];
+    }
+  }
 };
 
 const getRenderAsTextFunForUiType = (type: UITypes) => {
@@ -199,7 +240,9 @@ export {
   isSelfReferencingTableColumn,
   extractRolesObj,
   stringifyRolesObj,
+  getAvailableRollupForColumn,
   getAvailableRollupForUiType,
+  getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
   populateUniqueFileName,
   roundUpToPrecision,

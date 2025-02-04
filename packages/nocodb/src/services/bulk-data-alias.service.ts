@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
@@ -44,7 +45,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       chunkSize?: number;
       foreign_key_checks?: boolean;
       skip_hooks?: boolean;
@@ -75,7 +76,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       raw?: boolean;
     },
   ) {
@@ -91,7 +92,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       query: any;
     },
   ) {
@@ -106,7 +107,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -121,12 +122,13 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       query: any;
+      req: NcRequest;
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDeleteAll',
-      options: [param.query],
+      options: [param.query, { cookie: param.req }],
     });
   }
 
@@ -134,7 +136,7 @@ export class BulkDataAliasService {
     context: NcContext,
     param: PathParams & {
       body: any;
-      cookie: any;
+      cookie: NcRequest;
       undo: boolean;
     },
   ) {

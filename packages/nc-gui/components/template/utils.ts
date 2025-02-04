@@ -18,25 +18,17 @@ export const tableColumns: NcTableColumnProps[] = [
 
 export const srcDestMappingColumns: NcTableColumnProps[] = [
   {
-    title: 'Source column',
+    title: 'Field',
     dataIndex: 'source_column',
     key: 'source_column',
     minWidth: 200,
-    padding: '0px 12px',
+    padding: '0px 0px 0px 12px',
   },
   {
-    title: 'Destination column',
+    title: 'NocoDB Field',
     dataIndex: 'destination_column',
     key: 'destination_column',
     minWidth: 200,
-    padding: '0px 12px',
-  },
-  {
-    title: 'Action',
-    key: 'action',
-    justify: 'justify-center',
-    width: 60,
-    minWidth: 60,
-    padding: '0px 12px',
+    padding: '0px 12px 0px 0px',
   },
 ]

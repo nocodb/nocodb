@@ -1,8 +1,10 @@
-import { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
+import { Model } from '~/models';
+import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 
 @Injectable()
 export class DataV3Service {
@@ -23,9 +25,36 @@ export class DataV3Service {
       ...param,
       apiVersion: NcApiVersion.V3,
     });
+
+    // extract nested page limit
+    const nestedLimit =
+      +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
+    const nestedPage = Math.max(+param.query?.nestedPage || 1, 1);
+
+    // check if nested next page is available
+    // - check for all nested list
+    // - check if any Links have limit + 1 record
+    const columns = await Model.get(context, param.modelId).then((model) =>
+      model.getColumns(context),
+    );
+    let nestedNextPageAvail = false;
+    for (const column of columns) {
+      if (column.uidt === UITypes.LinkToAnotherRecord) {
+        // slice if more than limit and mark as more available
+        for (const row of pagedData.list) {
+          if (row[column.id]?.length > nestedLimit) {
+            row[column.id] = row[column.id].slice(0, nestedLimit);
+            nestedNextPageAvail = true;
+          }
+        }
+      }
+    }
+
     return new PagedResponseV3Impl(pagedData, {
       tableId: param.modelId,
       baseUrl: param.req.ncSiteUrl,
+      nestedNextPageAvail,
+      nestedPrevPageAvail: nestedPage > 1,
     });
   }
 

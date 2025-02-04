@@ -57,15 +57,17 @@ const pg = {
   },
   DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
-      builder: knex.raw(
-        `(${(await fn(pt.arguments[0])).builder})${
-          pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : ''
-        } + (${(await fn(pt.arguments[1])).builder} ||
+      builder: knex
+        .raw(
+          `(${(await fn(pt.arguments[0])).builder})${
+            pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : ''
+          } + (${(await fn(pt.arguments[1])).builder} ||
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         '',
       )}')::interval${colAlias}`,
-      ),
+        )
+        .wrap('(', ')'),
     };
   },
   DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -74,44 +76,57 @@ const pg = {
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
+    const expr1_typecast = [
+      FormulaDataTypes.DATE,
+      FormulaDataTypes.STRING,
+    ].includes(pt.arguments[0].dataType)
+      ? '::TIMESTAMP'
+      : '';
+    const expr2_typecast = [
+      FormulaDataTypes.DATE,
+      FormulaDataTypes.STRING,
+    ].includes(pt.arguments[1].dataType)
+      ? '::TIMESTAMP'
+      : '';
+
     let sql;
     const unit = convertUnits(rawUnit, 'pg');
     switch (unit) {
       case 'second':
-        sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER`;
+        sql = `EXTRACT(EPOCH from (${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast}))::INTEGER`;
         break;
       case 'minute':
-        sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER / 60`;
+        sql = `EXTRACT(EPOCH from (${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast}))::INTEGER / 60`;
         break;
       case 'milliseconds':
-        sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER * 1000`;
+        sql = `EXTRACT(EPOCH from (${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast}))::INTEGER * 1000`;
         break;
       case 'hour':
-        sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER / 3600`;
+        sql = `EXTRACT(EPOCH from (${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast}))::INTEGER / 3600`;
         break;
       case 'week':
-        sql = `TRUNC(DATE_PART('day', ${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP) / 7)`;
+        sql = `TRUNC(DATE_PART('day', ${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast}) / 7)`;
         break;
       case 'month':
         sql = `(
-                DATE_PART('year', ${datetime_expr1}::TIMESTAMP) -
-                DATE_PART('year', ${datetime_expr2}::TIMESTAMP)
+                DATE_PART('year', ${datetime_expr1}${expr1_typecast}) -
+                DATE_PART('year', ${datetime_expr2}${expr2_typecast})
                ) * 12 + (
-                DATE_PART('month', ${datetime_expr1}::TIMESTAMP) -
-                DATE_PART('month', ${datetime_expr2}::TIMESTAMP)
+                DATE_PART('month', ${datetime_expr1}${expr1_typecast}) -
+                DATE_PART('month', ${datetime_expr2}${expr2_typecast})
                )`;
         break;
       case 'quarter':
-        sql = `((EXTRACT(QUARTER FROM ${datetime_expr1}::TIMESTAMP) +
+        sql = `((EXTRACT(QUARTER FROM ${datetime_expr1}${expr1_typecast}) +
                     DATE_PART('year', AGE(${datetime_expr1}, '1900/01/01')) * 4) - 1) -
-                ((EXTRACT(QUARTER FROM ${datetime_expr2}::TIMESTAMP) +
+                ((EXTRACT(QUARTER FROM ${datetime_expr2}${expr2_typecast}) +
                     DATE_PART('year', AGE(${datetime_expr2}, '1900/01/01')) * 4) - 1)`;
         break;
       case 'year':
         sql = `DATE_PART('year', AGE(${datetime_expr1}, ${datetime_expr2}))`;
         break;
       case 'day':
-        sql = `DATE_PART('day', ${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP)`;
+        sql = `DATE_PART('day', ${datetime_expr1}${expr1_typecast} - ${datetime_expr2}${expr2_typecast})`;
         break;
       default:
         sql = '';
@@ -255,7 +270,8 @@ const pg = {
       builder: knex.raw(
         // use `SUBSTRING` since REGEXP_MATCH returns array value
         // `REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) ${colAlias}`,
-        `SUBSTRING(${source}::TEXT from ${pattern}::TEXT) ${colAlias}`,
+        `SUBSTRING(??::TEXT from ??::TEXT) ${colAlias}`,
+        [source, pattern],
       ),
     };
   },

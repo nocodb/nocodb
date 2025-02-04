@@ -41,6 +41,7 @@ export interface AppInfo {
   giftUrl: string
   feedEnabled: boolean
   sentryDSN: string
+  isOnPrem: boolean
 }
 
 export interface StoredState {

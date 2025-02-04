@@ -24,7 +24,7 @@ import { NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class OrgUsersController {
-  constructor(private readonly orgUsersService: OrgUsersService) {}
+  constructor(protected readonly orgUsersService: OrgUsersService) {}
 
   @Get('/api/v1/users')
   @Acl('userList', {

@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
+import { NcDebug } from 'nc-gui/utils/debug';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -17,8 +18,8 @@ import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
-import { Integration } from '~/models';
 import { getAppUrl } from '~/utils/appUrl';
+import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
@@ -106,6 +107,7 @@ export default class Noco {
       bufferLogs: true,
     });
     this.initCustomLogger(nestApp);
+    NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();
 
     if ((module as any).hot) {
@@ -129,6 +131,7 @@ export default class Noco {
     }
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+    NcDebug.log('Websocket adapter initialized');
 
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
@@ -137,14 +140,17 @@ export default class Noco {
     nestApp.use(cookieParser());
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+    NcDebug.log('Websocket adapter initialized');
 
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );
 
     await nestApp.init();
+    NcDebug.log('Nest app initialized');
 
     await nestApp.enableShutdownHooks();
+    NcDebug.log('Shutdown hooks enabled');
 
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     server.use(express.static(path.join(__dirname, 'public')));
@@ -154,6 +160,11 @@ export default class Noco {
     }
 
     await Integration.init();
+    NcDebug.log('Integration initialized');
+
+    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+      await DataReflection.init();
+    }
 
     return nestApp.getHttpAdapter().getInstance();
   }

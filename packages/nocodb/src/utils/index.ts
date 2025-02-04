@@ -9,3 +9,4 @@ export * from './encryptDecrypt';
 export * from './audit';
 
 export const isEE = false;
+export const isOnPrem = false;

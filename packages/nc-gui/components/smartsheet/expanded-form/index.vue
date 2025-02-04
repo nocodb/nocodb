@@ -131,13 +131,25 @@ const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fie
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
-  return (meta.value?.columns ?? [])
-    .filter(
-      (col) =>
-        !fields.value?.includes(col) &&
-        (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
-    )
-    .filter((col) => !isSystemColumn(col))
+  const hiddenFields = (meta.value?.columns ?? []).filter(
+    (col) =>
+      !isSystemColumn(col) &&
+      !fields.value?.includes(col) &&
+      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+  )
+  if (props.useMetaFields) {
+    return maintainDefaultViewOrder.value
+      ? hiddenFields.sort((a, b) => {
+          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+        })
+      : hiddenFields
+  }
+  // record from same view and same table (not linked)
+  else {
+    return hiddenFields.sort((a, b) => {
+      return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
+    })
+  }
 })
 
 const isKanban = inject(IsKanbanInj, ref(false))
@@ -426,7 +438,7 @@ const addNewRow = () => {
 }
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
-useActiveKeyupListener(
+useActiveKeydownListener(
   isExpanded,
   async (e: KeyboardEvent) => {
     if (!e.altKey) return
@@ -688,7 +700,7 @@ export default {
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
-            <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
+            <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
               <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
                 {{ tableTitle }}
@@ -712,15 +724,24 @@ export default {
         </div>
         <div class="ml-auto">
           <NcSelectTab
-            v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
+            v-if="
+              isEeUI &&
+              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
+                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
+            "
             v-model="activeViewMode"
             class="nc-expanded-form-mode-switch"
             :disabled="!isUIAllowed('viewCreateOrEdit')"
             :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
             :items="[
-              { icon: 'fields', value: 'field' },
-              { icon: 'file', value: 'attachment' },
-              // { icon: 'ncMessageSquare', value: 'discussion' },
+              { icon: 'fields', value: 'field', tooltip: 'Fields' },
+              { icon: 'file', value: 'attachment', tooltip: 'File Preview', hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) },
+              {
+                icon: 'ncMessageSquare',
+                value: 'discussion',
+                tooltip: 'Discussion',
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE),
+              },
             ]"
           />
         </div>
@@ -829,7 +850,6 @@ export default {
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
         <template v-if="activeViewMode === 'field'">
           <SmartsheetExpandedFormPresentorsFields
-            :store="expandedFormStore"
             :row-id="rowId"
             :fields="fields ?? []"
             :hidden-fields="hiddenFields"
@@ -848,7 +868,6 @@ export default {
         </template>
         <template v-else-if="activeViewMode === 'attachment'">
           <SmartsheetExpandedFormPresentorsAttachments
-            :store="expandedFormStore"
             :row-id="rowId"
             :view="props.view"
             :fields="fields ?? []"
@@ -867,10 +886,7 @@ export default {
           />
         </template>
         <template v-else-if="activeViewMode === 'discussion'">
-          <SmartsheetExpandedFormPresentorsDiscussion
-            :store="expandedFormStore"
-            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
-          />
+          <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>
     </div>
@@ -941,98 +957,5 @@ export default {
 
 .nc-drawer-expanded-form .nc-modal {
   @apply !p-0;
-}
-</style>
-
-<style lang="scss" scoped>
-:deep(.ant-select-selector) {
-  @apply !xs:(h-full);
-}
-
-.nc-data-cell {
-  @apply !rounded-lg;
-  transition: all 0.3s;
-
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(
-      :has(.nc-cell-ai-button)
-    ) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(
-      :has(.nc-cell-ai-button)
-    ) {
-    @apply !border-1;
-    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(:has(.nc-cell-ai-button)) {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-    }
-  }
-
-  &.nc-readonly-div-data-cell,
-  &.nc-system-field {
-    @apply !border-gray-200;
-
-    .nc-cell,
-    .nc-virtual-cell {
-      @apply text-gray-400;
-    }
-  }
-  &.nc-readonly-div-data-cell:focus-within,
-  &.nc-system-field:focus-within {
-    @apply !border-gray-200;
-  }
-
-  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !shadow-selected;
-  }
-
-  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
-  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
-    @apply !border-none px-0 !rounded-none;
-    :deep(.nc-virtual-cell-qrcode),
-    :deep(.nc-virtual-cell-barcode) {
-      @apply px-0;
-      & > div {
-        @apply !px-0;
-      }
-      .barcode-wrapper {
-        @apply ml-0;
-      }
-    }
-    :deep(.nc-virtual-cell-qrcode) {
-      img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
-      }
-    }
-    :deep(.nc-virtual-cell-barcode) {
-      .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
-        svg {
-          @apply !h-full;
-        }
-      }
-    }
-  }
-}
-
-.nc-mentioned-cell {
-  box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
-}
-
-.nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
-}
-
-:deep(.nc-system-field input) {
-  @apply bg-transparent;
-}
-:deep(.nc-data-cell .nc-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
-  @apply px-0;
 }
 </style>

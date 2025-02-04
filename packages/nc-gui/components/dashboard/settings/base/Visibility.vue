@@ -98,5 +98,3 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

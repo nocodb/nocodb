@@ -58,6 +58,16 @@ export class ViewsV3Service {
           // handle view specific data
         }
 
+        // if description empty then set it to undefined
+        if (!formattedData.description) {
+          formattedData.description = undefined;
+        }
+
+        // if meta empty then set it to undefined
+        if (!formattedData.meta || !Object.keys(formattedData.meta).length) {
+          formattedData.meta = undefined;
+        }
+
         return formattedData;
       },
     });
@@ -130,6 +140,16 @@ export class ViewsV3Service {
             start_field_id: range.fk_from_column_id ?? undefined,
             end_field_id: range.fk_to_column_id ?? undefined,
           }));
+        }
+
+        // if description empty then set it to undefined
+        if (!formattedData.description) {
+          formattedData.description = undefined;
+        }
+
+        // if meta empty then set it to undefined
+        if (!formattedData.meta || !Object.keys(formattedData.meta).length) {
+          formattedData.meta = undefined;
         }
 
         return formattedData;

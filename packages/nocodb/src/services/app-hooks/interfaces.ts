@@ -88,7 +88,7 @@ export interface ProjectUpdateEvent extends NcBaseEvent {
 }
 
 export interface TableUpdateEvent extends NcBaseEvent {
-  table: TableType;
+  table: Partial<TableType>;
   prevTable: TableType;
 }
 

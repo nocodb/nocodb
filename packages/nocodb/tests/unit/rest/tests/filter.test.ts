@@ -394,6 +394,9 @@ function filterNumberBased() {
           column_name: 'Duration',
           title: 'Duration',
           uidt: UITypes.Duration,
+          meta: {
+            duration: 0,
+          },
         },
         {
           column_name: 'Rating',

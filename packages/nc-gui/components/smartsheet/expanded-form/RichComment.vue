@@ -14,6 +14,7 @@ const props = withDefaults(
     readOnly?: boolean
     syncValueChange?: boolean
     autofocus?: boolean
+    autofocusToEnd?: boolean
     placeholder?: string
     renderAsText?: boolean
   }>(),
@@ -65,6 +66,16 @@ const tiptapExtensions = [
   Markdown.configure({ breaks: true, transformPastedText: false }),
 ]
 
+function isOnlyBrTagsAndSpaces(str?: string) {
+  if (!str || !str?.trim()) {
+    return true
+  }
+
+  // Match any number of <br> tags with optional spaces
+  const regex = /^\s*(<br\s*\/?>\s*)*$/i
+  return regex.test(str)
+}
+
 const editor = useEditor({
   content: vModel.value,
   extensions: tiptapExtensions,
@@ -73,13 +84,21 @@ const editor = useEditor({
 
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
-      if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
+      if (markdown.endsWith('<br>')) markdown = markdown.slice(0, -4)
+      if (markdown.endsWith('<br> ')) markdown = markdown.slice(0, -5)
     }
 
-    vModel.value = markdown === '<br />' ? '' : `${markdown}`
+    vModel.value = isOnlyBrTagsAndSpaces(markdown) ? '' : `${markdown}`
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
+  onCreate: () => {
+    if (props.autofocusToEnd) {
+      nextTick(() => {
+        editor.value?.commands.setContent(vModel.value)
+      })
+    }
+  },
   onFocus: () => {
     isFocused.value = true
     emits('focus')
@@ -202,6 +221,11 @@ const emitSave = (event: KeyboardEvent) => {
 let timerId: any
 
 const handleEnterDown = (event: KeyboardEvent) => {
+  if (!vModel.value?.length) {
+    setEditorContent('')
+    return
+  }
+
   if (timerId) {
     clearTimeout(timerId)
   }
@@ -227,6 +251,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
   } else if (event.key === 'Escape') {
     isFocused.value = false
     emits('blur')
+
+    document.querySelector('.nc-drawer-expanded-form.active > div[tabindex="0"]')?.focus?.()
   }
 }
 
@@ -238,6 +264,7 @@ const saveComment = (e) => {
 
 defineExpose({
   setEditorContent,
+  focusEditor,
 })
 </script>
 
@@ -284,7 +311,7 @@ defineExpose({
           size="xsmall"
           @click="saveComment"
         >
-          <GeneralIcon icon="send" />
+          <GeneralIcon icon="ncSendAlt" />
         </NcButton>
       </div>
     </template>

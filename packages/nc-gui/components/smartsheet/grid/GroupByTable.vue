@@ -332,5 +332,3 @@ async function deleteSelectedRowsWrapper() {
     @prev="goToPreviousRow"
   />
 </template>
-
-<style scoped lang="scss"></style>

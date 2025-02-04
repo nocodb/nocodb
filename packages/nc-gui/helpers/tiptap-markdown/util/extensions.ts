@@ -1,49 +1,8 @@
 import type { AnyExtension } from '@tiptap/core'
-import { Bold, Code, HTMLMark, Italic, Link, Strike, Underline } from '../extensions/marks'
-import {
-  Blockquote,
-  BulletList,
-  CodeBlock,
-  HTMLNode,
-  HardBreak,
-  Heading,
-  HorizontalRule,
-  Image,
-  ListItem,
-  OrderedList,
-  Paragraph,
-  Table,
-  TaskItem,
-  TaskList,
-} from '../extensions/nodes'
+import markdownExtensions from '../extensions/defaultMarkdownExtensions'
 
 const getDefaultMarkdownSpec = (extension: AnyExtension) => {
-  return [
-    // Nodes
-    Blockquote,
-    BulletList,
-    CodeBlock,
-    HardBreak,
-    Heading,
-    HorizontalRule,
-    HTMLNode,
-    Image,
-    ListItem,
-    OrderedList,
-    Paragraph,
-    Table,
-    TaskItem,
-    TaskList,
-
-    // Marks
-    Bold,
-    Code,
-    HTMLMark,
-    Italic,
-    Link,
-    Strike,
-    Underline,
-  ].find((e: AnyExtension) => e.name === extension.name)?.storage?.markdown
+  return markdownExtensions.find((e: AnyExtension) => e.name === extension.name)?.storage?.markdown
 }
 
 export function getMarkdownSpec(extension: AnyExtension) {

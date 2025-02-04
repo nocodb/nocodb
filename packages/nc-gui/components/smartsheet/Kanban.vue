@@ -859,6 +859,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                     <div
                                       v-for="col in fieldsWithoutDisplay"
                                       :key="`record-${record.row.id}-${col.id}`"
+                                      class="nc-card-col-wrapper"
                                       :class="{
                                         '!children:pointer-events-auto':
                                           isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
@@ -1280,17 +1281,41 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-base leading-8 text-gray-800;
+  @apply my-0 text-xl leading-8 text-gray-600;
 
   .nc-cell,
   .nc-virtual-cell {
-    @apply text-base leading-6;
+    @apply text-xl leading-8;
 
     :deep(.nc-cell-field),
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-base leading-6 text-gray-800;
+      @apply !text-xl leading-8 text-gray-600;
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-xl leading-8 text-gray-600;
+      }
+    }
+  }
+}
+
+.nc-card-col-wrapper {
+  @apply !text-small !leading-[18px];
+
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply !text-small !leading-[18px];
+
+    :deep(.nc-cell-field),
+    :deep(input),
+    :deep(textarea),
+    :deep(.nc-cell-field-link) {
+      @apply !text-small leading-[18px];
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-small leading-[18px];
+      }
     }
   }
 }
@@ -1302,17 +1327,6 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   }
 }
 
-:deep(.nc-cell),
-:deep(.nc-virtual-cell) {
-  @apply text-small leading-[18px];
-
-  .nc-cell-field,
-  input,
-  textarea,
-  .nc-cell-field-link {
-    @apply !text-small !leading-[18px];
-  }
-}
 :deep(.nc-cell) {
   &.nc-cell-longtext {
     .long-text-wrapper {

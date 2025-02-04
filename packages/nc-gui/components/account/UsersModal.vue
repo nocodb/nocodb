@@ -23,6 +23,8 @@ const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
 
+const { appInfo } = useGlobal()
+
 const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
@@ -201,7 +203,7 @@ const userRoleOptions = [
                   </a-form-item>
                 </div>
 
-                <div class="flex flex-col w-2/4">
+                <div v-show="!isEeUI" class="flex flex-col w-2/4">
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 

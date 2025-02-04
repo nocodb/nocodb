@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "फ्रेशडेस्क"
+      "freshdesk": "फ्रेशडेस्क",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "सभी एकीकरण",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "पर संशोधित",
     "configuration": "कॉन्फ़िगरेशन",
     "setup": "सेटअप",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "प्रतिलिपि दृश्य",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "डुप्लिकेट ग्रिड व्यू",
     "createGridView": "ग्रिड व्यू बनाएं",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "व्यक्तिगत एक्सेस टोकन",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "साझा आधार URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "डेटा आयात करें",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "अनुलग्नकों को देखें",
     "attachmentDrop": "क्लिक करें या एक फ़ाइल को सेल में छोड़ें",
     "addFiles": "फाइल(s) जोड़ें",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "UI में छुपाएं",
     "addBase": "बेस जोड़ें",
     "addParameter": "पैरामीटर जोड़ें",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "इस स्टैक को हटाने से चयन विकल्प '{stackToBeDeleted}' भी '{groupingField}' से हट जाएगा। अभिलेख बिना वर्गीकृत स्टैक में स्थानांतरित हो जाएंगे।",
       "computedFieldEditWarning": "सामग्री केवल-पढ़ी है",
       "computedFieldDeleteWarning": "सामग्री केवल-पढ़ी है",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "कोई और रिकॉर्ड नहीं",
       "tokenNameNotEmpty": "टोकन नाम खाली नहीं होना चाहिए",
       "tokenNameMaxLength": "टोकन नाम 255 वर्णों से अधिक नहीं होना चाहिए",

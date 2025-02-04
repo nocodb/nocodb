@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "ಎಲ್ಲಾ ಒಕ್ಕೂಟಗಳು",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "ನವೀಕರಿಸಲಾಗಿದೆ",
     "configuration": "ಸಂರಚನೆ",
     "setup": "ಹೊಂದಾಣಿಕೆ",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "ನಕಲಿ ವೀಕ್ಷಣೆ",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "ನಕಲಿ ಇರವು ವೀಕ್ಷಣೆ",
     "createGridView": "ಇರವು ವೀಕ್ಷಣೆ ಸೃಷ್ಟಿಸಿ",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "ವೈಯಕ್ತಿಕ ಪ್ರವೇಶ ಟೋಕನ್",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "ಹಂಚಿದ ಮೂಲ URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "ದತ್ತಾಂಶವನ್ನು ಆಮದು ಮಾಡು",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "ಅಟಾಚ್‌ಮೆಂಟ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
     "attachmentDrop": "ಫೈಲ್ ಕ್ಲಿಕ್ಕಿಸಿ ಅಥವಾ ಸೆಲ್‌ಗೆ ಬಿಡಿ",
     "addFiles": "ಫೈಲ್(ಗಳು) ಸೇರಿಸಿ",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "UIದಲ್ಲಿ ಮರೆಮಾಡಿ",
     "addBase": "ಬೇಸ್ ಸೇರು",
     "addParameter": "ಪ್ಯಾರಾಮೀಟರ್ ಸೇರಿಸಿ",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "ಈ ಕೇರ್ ತೆಗೆದುಹಾಕುವುದರಿಂದ `{groupingField}` ರಿಂದ `{stackToBeDeleted}` ಆಯ್ಕೆ ಅಪ್ಸನ್ ಕೂಡ ತೆಗೆಯಲಾಗುತ್ತದೆ. ದಾಖಲೆಗಳನ್ನು ವರ್ಗೀಕರಿಸದ ಕೇರ್ಗೆ ವರ್ಗಾಯಿಸಲಾಗುತ್ತದೆ.",
       "computedFieldEditWarning": "ವಿಷಯಗಳು ವಾಚನ-ಮಾತ್ರವಾಗಿವೆ",
       "computedFieldDeleteWarning": "ವಿಷಯಗಳು ವಾಚನ-ಮಾತ್ರವಾಗಿವೆ",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "ಇನ್ನು ಹೆಚ್ಚಿನ ದಾಖಲೆಗಳು ಲಭ್ಯವಿಲ್ಲ",
       "tokenNameNotEmpty": "ಟೋಕೆನ್ ಹೆಸರನ್ನು ಖಾಲಿ ಇರಬಾರದು",
       "tokenNameMaxLength": "ಟೋಕೆನ್ ಹೆಸರು 255 ಅಕ್ಷರಗಳನ್ನು ಮೀರಿಸಬಾರದು",

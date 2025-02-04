@@ -118,8 +118,8 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               vModel.uidt,
             ) || isCurrentDate
           "
-          class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
-          @click="updateCdfValue(null)"
+          class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 default-value-clear"
+          @click.stop="updateCdfValue(null)"
         />
       </div>
     </div>

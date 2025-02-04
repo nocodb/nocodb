@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "എല്ലാ സംയോജനങ്ങൾ",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "മാറ്റിയ തീയതി",
     "configuration": "ക്രമീകരണം",
     "setup": "ക്രമീകരിക്കുക",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "പകര്‍ത്തിയ കാഴ്ച",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "യഥാ കണ്ട്രക്ട് ചട്ടം കാഴ്ച",
     "createGridView": "ചട്ടം കാഴ്ച സൃഷ്ടിക്കുക",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "വ്യക്തിഗത ആക്സസ് ടോക്കൺ",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "പങ്കിടുന്ന അടിസ്ഥാന URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "ഡേറ്റ നിരക്കുക",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "അറ്റാച്ചുമെന്റുകൾ കാണുക",
     "attachmentDrop": "ഓരോ സെലിലും ക്ലിക്കുചെയ്യുക അല്ലെങ്കിൽ ഒരു ഫയൽ ഇടുക",
     "addFiles": "ഫയലുകൾ ചേർക്കുക",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "UI-ൽ മറയ്ക്കുക",
     "addBase": "അഡ്ഡ് ബേസ്",
     "addParameter": "അഡ്ഡ് പാരാമീറ്റർ",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "ഈ സ്റ്റാക്ക് നീക്കം ചെയ്യുന്നതിലൂടെ `{stackToBeDeleted}` എന്ന തിരഞ്ഞെടുപ്പും `{groupingField}` മുതൽ നീക്കംചെയ്യപ്പെടും. രേഖകൾ വർഗ്ഗീകരണമില്ലാത്ത സ്റ്റാക്കിലേക്ക് നീങ്ങും.",
       "computedFieldEditWarning": "ഉള്ളടക്കങ്ങൾ വായനക്കായിരിക്കും",
       "computedFieldDeleteWarning": "ഉള്ളടക്കങ്ങൾ വായനക്കായിരിക്കും",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "കൂടുതൽ രേഖകളില്ല",
       "tokenNameNotEmpty": "ടോക്കൺ നാമം ശൂന്യമായിരിക്കരുത്",
       "tokenNameMaxLength": "ടോക്കൺ നാമം 255 അക്ഷരങ്ങളെ കടക്കരുത്",

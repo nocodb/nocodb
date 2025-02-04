@@ -11,8 +11,7 @@ export function parseHrtimeToMilliSeconds(hrtime) {
   return milliseconds;
 }
 
-const ajv = new Ajv({ strictSchema: false, strict: false }); // Initialize AJV
-
+const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); // Initialize AJV
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3, 'swagger-v3.json');
 addFormats(ajv);
@@ -40,7 +39,11 @@ export const getAjvValidatorMw = (schema: string) => {
 };
 
 // a function to validate the payload against the schema
-export const validatePayload = (schema: string, payload: any) => {
+export const validatePayload = (
+  schema: string,
+  payload: any,
+  humanReadableError = false,
+) => {
   const validate = ajv.getSchema(schema);
   // Validate the request body against the schema
   const valid = validate(payload);
@@ -50,10 +53,27 @@ export const validatePayload = (schema: string, payload: any) => {
     const errors: ErrorObject[] | null | undefined =
       ajv.errors || validate.errors;
 
+    if (humanReadableError) {
+      // let extractedSchema;
+      // // extract schema from swagger json
+      // if (schema.startsWith('swagger-v3.json#/components/schemas/')) {
+      //   extractedSchema =
+      //     swaggerV3.components.schemas[
+      //       schema.split('swagger-v3.json#/components/schemas/')[1]
+      //     ];
+      // }
+      // errors = betterAjvErrors({
+      //   schema: validate.schema,
+      //   data: payload,
+      //   errors,
+      // });
+    }
+
     // If the request body is invalid, throw error with error message  and errors
     NcError.ajvValidationError({
       message: 'Invalid request body',
       errors,
+      humanReadableError,
     });
   }
 };

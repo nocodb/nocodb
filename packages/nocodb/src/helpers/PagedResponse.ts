@@ -2,6 +2,24 @@ import { extractLimitAndOffset } from '.';
 import type { PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 
+// a utility function which accept baseUrl, path and query params and constructs a url
+export function constructUrl({
+  baseUrl,
+  path,
+  query,
+}: {
+  baseUrl: string;
+  path: string;
+  query?: Record<string, any>;
+}) {
+  let url = `${baseUrl}${path}`;
+  if (query) {
+    const queryStr = new URLSearchParams(query).toString();
+    url = `${url}?${queryStr}`;
+  }
+  return url;
+}
+
 export class PagedResponseImpl<T> {
   constructor(
     list: T[],
@@ -12,6 +30,7 @@ export class PagedResponseImpl<T> {
       l?: number;
       o?: number;
       limitOverride?: number;
+      page?: number;
     } = {},
     additionalProps?: Record<string, any>,
   ) {
@@ -62,24 +81,63 @@ export class PagedResponseV3Impl<T> {
     {
       baseUrl = '',
       tableId,
+      nestedNextPageAvail,
+      nestedPrevPageAvail,
+      queryParams = {},
     }: {
       baseUrl?: string;
       tableId: string;
+      nestedNextPageAvail?: boolean;
+      nestedPrevPageAvail?: boolean;
+      queryParams?: Record<string, any>;
     },
   ) {
     this.list = pagedResponse.list;
     const pageInfo: PaginatedV3Type = {};
 
+    const commonProps = {
+      baseUrl,
+      path: `/api/v3/tables/${tableId}/records`,
+    };
+
+    const commonQueryParams = {};
+
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
-      pageInfo.prev = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
-        pagedResponse.pageInfo.page - 1
-      }`;
+      pageInfo.prev = constructUrl({
+        ...commonProps,
+        query: { ...commonQueryParams, page: pagedResponse.pageInfo.page - 1 },
+      });
     }
 
     if (!pagedResponse.pageInfo.isLastPage && pagedResponse.pageInfo.page) {
-      pageInfo.next = `${baseUrl}/api/v3/tables/${tableId}/records?page=${
-        pagedResponse.pageInfo.page + 1
-      }`;
+      pageInfo.next = constructUrl({
+        ...commonProps,
+        query: { ...commonQueryParams, page: pagedResponse.pageInfo.page + 1 },
+      });
+    }
+
+    const nestedPage = Math.max(+queryParams?.nestedPage, 1);
+
+    if (nestedNextPageAvail) {
+      pageInfo.nestedNext = constructUrl({
+        ...commonProps,
+        query: {
+          ...commonQueryParams,
+          page: pagedResponse.pageInfo.page,
+          nestedPage: nestedPage + 1,
+        },
+      });
+    }
+
+    if (nestedPrevPageAvail) {
+      pageInfo.nestedPrev = constructUrl({
+        ...commonProps,
+        query: {
+          ...commonQueryParams,
+          page: pagedResponse.pageInfo.page,
+          nestedPage: nestedPage - 1,
+        },
+      });
     }
 
     this.pageInfo = pageInfo;

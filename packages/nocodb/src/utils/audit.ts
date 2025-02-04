@@ -2,6 +2,7 @@ import {
   checkboxIconList,
   durationOptions,
   isSystemColumn,
+  isVirtualCol,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -53,6 +54,7 @@ export const removeBlankPropsAndMask = (
   obj,
   _excludedProps: string[] = [],
   includeNull = false,
+  includeBlanks = false,
 ) => {
   const excludedProps = [
     ..._excludedProps,
@@ -70,7 +72,7 @@ export const removeBlankPropsAndMask = (
       ([key, value]) =>
         (includeNull || value !== null) &&
         value !== undefined &&
-        value !== '' &&
+        (includeBlanks || value !== '') &&
         (!excludedProps || !excludedProps.includes(key)),
     ),
   );
@@ -635,10 +637,12 @@ export const populateUpdatePayloadDiff = ({
   parseMeta = false,
   metaProps,
   excludeNull = false,
+  excludeBlanks = false,
   replaceAlias = false,
   boolProps,
   aliasMap,
   keepUnderModified = false,
+  keepNested = false,
 }: {
   prev: any;
   next: any;
@@ -646,10 +650,12 @@ export const populateUpdatePayloadDiff = ({
   parseMeta?: boolean;
   metaProps?: string[];
   excludeNull?: boolean;
+  excludeBlanks?: boolean;
   replaceAlias?: boolean;
   boolProps?: string[];
   aliasMap?: Record<string, string>;
   keepUnderModified?: boolean;
+  keepNested?: boolean;
 }): UpdatePayload | UpdateDestructedPayload | false => {
   if (parseMeta)
     parseMetaIfFound({ payloads: [next, prev], metaProps: metaProps });
@@ -699,18 +705,25 @@ export const populateUpdatePayloadDiff = ({
     prev = mapAlias(prev);
   }
 
-  const updatedProps = removeBlankPropsAndMask(
+  let updatedProps = removeBlankPropsAndMask(
     diff(prev, next),
     exclude,
     !excludeNull,
+    !excludeBlanks,
   );
 
   if (!Object.keys(updatedProps).length) return false;
 
-  const prevState = diff(
-    extractPropsFromPrev(next, updatedProps),
-    extractPropsFromPrev(prev, updatedProps),
-  ) as Record<string, unknown>;
+  let prevState: Record<string, any>;
+  if (keepNested) {
+    prevState = extractPropsFromPrev(prev, updatedProps);
+    updatedProps = extractPropsFromPrev(next, updatedProps);
+  } else {
+    prevState = diff(
+      extractPropsFromPrev(next, updatedProps),
+      extractPropsFromPrev(prev, updatedProps),
+    ) as Record<string, unknown>;
+  }
 
   return keepUnderModified
     ? {
@@ -922,7 +935,7 @@ export const filterAndMapAliasToColProps = (
 export function remapWithAlias({ data, columns }) {
   const remapped = {};
   for (const [k, v] of Object.entries(data)) {
-    const col = columns.find((c) => c.column_name === k);
+    const col = columns.find((c) => c.column_name === k || c.title === k);
     if (col) {
       remapped[col.title] = v;
     }
@@ -985,4 +998,13 @@ export const extractColsMetaForAudit = (
       }
       return acc;
     }, {} as Record<string, ColumnMeta>);
+};
+
+export const extractExcludedColumnNames = (columns: ColumnType[]) => {
+  return columns.reduce((colNames: string[], col) => {
+    if (isSystemColumn(col) || isVirtualCol(col)) {
+      colNames.push(col.title);
+    }
+    return colNames;
+  }, [] as string[]);
 };

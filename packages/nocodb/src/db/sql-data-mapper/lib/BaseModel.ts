@@ -1523,6 +1523,7 @@ export interface XcFilter {
   aggregation?: XcAggregation[];
   column_name?: string;
   page?: string | number;
+  nestedLimit?: string | number;
 }
 
 export interface XcFilterWithAlias extends XcFilter {

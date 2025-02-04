@@ -326,7 +326,11 @@ const parseValue = (value: any, col: ColumnType): string => {
     return getIntValue(value)
   }
   if (isJSON(col)) {
-    return JSON.stringify(value, null, 2)
+    try {
+      return JSON.stringify(JSON.parse(value), null, 2)
+    } catch {
+      return value
+    }
   }
   if (isRollup(col)) {
     return getRollupValue(value, col)

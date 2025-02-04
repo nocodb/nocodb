@@ -1,17 +1,7 @@
-import type { AuditType, BaseType, PaginatedType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import type { AuditLogsQuery } from '~/lib/types'
-
-const defaultAuditLogsQuery = {
-  baseId: undefined,
-  sourceId: undefined,
-  orderBy: {
-    created_at: 'desc',
-    user: undefined,
-  },
-} as Partial<AuditLogsQuery>
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()
@@ -251,14 +241,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
-
-  const audits = ref<null | Array<AuditType>>(null)
-
-  const auditPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
-
-  const loadAudits = async (..._args: any) => {}
-
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -305,11 +287,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     getPlanLimit,
     workspaceRole,
     moveToOrg,
-    auditLogsQuery,
-    audits,
-    auditPaginationData,
     navigateToFeed,
-    loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
     isFeedPageOpened,

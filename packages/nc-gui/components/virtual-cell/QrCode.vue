@@ -66,6 +66,18 @@ const copyAsPng = async () => {
   const success = await copyPNGToClipboard(blob)
   if (!success) throw new Error(t('msg.error.notSupported'))
 }
+
+const height = computed(() => {
+  if (isExpandedFormOpen.value) {
+    return undefined
+  }
+
+  if (!rowHeight.value) {
+    return '1.8rem'
+  }
+
+  return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight.value}`]! - 20}px`
+})
 </script>
 
 <template>
@@ -134,14 +146,15 @@ const copyAsPng = async () => {
     v-if="showQrCode"
     class="nc-qrcode-container w-full flex"
     :class="{
-      'flex-start pl-2': isExpandedFormOpen,
+      'flex-start h-20': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
     <img
       v-if="rowHeight"
-      :style="{
-        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      :style="{ height }"
+      :class="{
+        'border-1': isExpandedFormOpen,
       }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
@@ -182,6 +195,17 @@ const copyAsPng = async () => {
   .ant-modal-footer {
     padding: 8px 12px;
     border: none;
+  }
+}
+
+.nc-data-cell {
+  &:has(.nc-virtual-cell-qrcode) {
+    @apply !border-none;
+    box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
   }
 }
 </style>

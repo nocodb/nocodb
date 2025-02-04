@@ -45,8 +45,7 @@ export class ColumnPageObject extends BasePage {
       },
       click: async () => {
         if (await showDefautlValueBtn.isVisible()) {
-          await showDefautlValueBtn.waitFor();
-          await showDefautlValueBtn.click({ force: true });
+          await showDefautlValueBtn.click();
 
           await showDefautlValueBtn.waitFor({ state: 'hidden' });
           await this.get().locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });

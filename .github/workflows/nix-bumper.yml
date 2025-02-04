@@ -1,0 +1,26 @@
+name: "bumper"
+
+on:
+  push:
+    branches:
+      - "develop"
+  pull_request_target:
+    branches:
+      - "develop"
+
+jobs:
+  bumper:
+    runs-on: self-hosted
+
+    permissions:
+      contents: "write"
+      id-token: "write"
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - name: Run Bumper
+      run: nix run .#bumper

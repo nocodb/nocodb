@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "সমস্ত ইন্টিগ্রেশন",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "পরিবর্তন করা হয়েছে",
     "configuration": "কনফিগারেশন",
     "setup": "সেটআপ",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "দর্শন ডুপ্লিকেট",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "ডুপ্লিকেট গ্রিড ভিউ",
     "createGridView": "গ্রিড ভিউ তৈরি করুন",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "ব্যক্তিগত অ্যাক্সেস টোকেন",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "শেয়ার্ড বেস ইউআরএল",
+    "sharedPublicly": "Shared publicly",
     "importData": "ডেটা আমদানি করুন",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "সংযুক্তি দেখুন",
     "attachmentDrop": "ক্লিক করুন অথবা ফাইলটিকে সেলে ফেলে দিন",
     "addFiles": "ফাইল(গুলি) যোগ করুন",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "UI-তে লুকান",
     "addBase": "বেস যোগ করুন",
     "addParameter": "প্যারামিটার যুক্ত করুন",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "এই স্ট্যাকটি মুছে ফেলা হলে `{groupingField}` থেকে `{stackToBeDeleted}` নির্বাচিত অপশনও সরিয়ে ফেলা হবে। রেকর্ডগুলি অপরিবর্তিত স্ট্যাকে স্থানান্তরিত হবে।",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "আর কোন রেকর্ড নেই",
       "tokenNameNotEmpty": "টোকেনের নাম খালি হওয়া উচিত নয়",
       "tokenNameMaxLength": "টোকেনের নাম ২৫৫ অক্ষরের বেশি হওয়া উচিত নয়",

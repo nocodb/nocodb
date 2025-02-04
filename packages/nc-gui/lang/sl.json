@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "Vse integracije",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "Spremenjeno dne",
     "configuration": "Konfiguracija",
     "setup": "Nastavi",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "Podvoji pogled",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "Podvoji pogled mreže",
     "createGridView": "Ustvarite pogled na mrežo",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "Osebni dostopni žeton",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Deli osnovni URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "Uvoz podatkov",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "Ogled priponk",
     "attachmentDrop": "Klikni ali spusti datoteko v celico",
     "addFiles": "Dodaj datoteko(e)",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "Skrij v vmesniku",
     "addBase": "Dodaj bazo",
     "addParameter": "Dodaj parameter",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "Z brisanjem tega sklada se odstrani tudi možnost izbire `{stackToBeDeleted}` iz `{groupingField}`. Zapisi se bodo premaknili v kup nekategoriziranih zapisov.",
       "computedFieldEditWarning": "Izračunano polje: vsebina je namenjena samo branju. Uporabite meni za urejanje stolpcev, da ponovno konfigurirate",
       "computedFieldDeleteWarning": "Izračunano polje: vsebina je namenjena samo branju. Vsebine ni mogoče izbrisati.",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Ni več zapisov",
       "tokenNameNotEmpty": "Ime žetona ne sme biti prazno",
       "tokenNameMaxLength": "Ime žetona ne sme biti daljše od 255 znakov",

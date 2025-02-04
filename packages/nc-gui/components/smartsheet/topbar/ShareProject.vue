@@ -11,5 +11,3 @@ const { isMobileMode } = storeToRefs(useConfigStore())
     <LazyGeneralShareProject is-view-toolbar />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

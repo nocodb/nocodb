@@ -307,7 +307,9 @@
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
-    "unread": "Unread"
+    "unread": "Unread",
+    "shared": "Shared",
+    "organization": "Organization"
   },
   "objects": {
     "script": "Script",
@@ -425,7 +427,8 @@
       "claude": "Claude",
       "ollama": "Ollama",
       "groq": "Groq",
-      "freshdesk": "FreshDesk"
+      "freshdesk": "FreshDesk",
+      "nocodb": "NocoDB"
     },
     "integrationCategories": {
       "allIntegrations": "सबै एकीकरणहरू",
@@ -699,7 +702,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
     "modifiedOn": "परिवर्तित मिति",
     "configuration": "कन्फिगरेसन",
     "setup": "सेटअप",
@@ -902,6 +905,7 @@
     "createViews": "Create {count} view",
     "createViews_plural": "Create {count} views",
     "duplicateView": "हेर्ने तरिका प्रतिलिपि बनाउनुहोस्",
+    "noTableViews": "This table has no views.",
     "duplicateGridView": "ग्रिड दृश्य प्रतिलिपि गर्नुहोस्",
     "createGridView": "ग्रिड दृश्य सिर्जना गर्नुहोस्",
     "createGridViewPlural": "Create Grid View(s)",
@@ -1017,6 +1021,7 @@
     "personalAccessToken": "व्यक्तिगत पहुँच टोकन",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "साझा बेस URL",
+    "sharedPublicly": "Shared publicly",
     "importData": "डाटा आयात गर्नुहोस्",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1108,7 +1113,10 @@
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button",
-    "viewHide": "View visibility "
+    "viewHide": "View visibility ",
+    "osBrowser": "OS, Browser",
+    "rowId": "Row Id",
+    "showJsonPayload": "Show JSON payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1155,6 +1163,7 @@
     "viewAttachment": "संलग्नहरू हेर्नुहोस्",
     "attachmentDrop": "कोषमा फाइल क्लिक गर्नुहोस् वा ड्रप गर्नुहोस्",
     "addFiles": "फाइल(हरू) थप्नुहोस्",
+    "uploadFiles": "Upload File(s)",
     "hideInUI": "UI मा लुकाउनुहोस्",
     "addBase": "बेस थप गर्नुहोस्",
     "addParameter": "प्यारामिटर थप्नुहोस्",
@@ -1814,6 +1823,7 @@
       "deleteKanbanStackConfirmation": "यस स्ट्याकलाई मेटाउँदा `{stackToBeDeleted}` चयन विकल्पलाई `{groupingField}` बाट पनि हटाइनेछ। अभिलेखहरू वर्गिकीकरण नभएको स्ट्याकमा सर्नेछन्।",
       "computedFieldEditWarning": "सामग्रीहरू केवल-पढ्न मात्र हुन्",
       "computedFieldDeleteWarning": "सामग्रीहरू केवल-पढ्न मात्र हुन्",
+      "fieldReadonly": "This field is read-only",
       "noMoreRecords": "अझै अभिलेखहरू छैनन्",
       "tokenNameNotEmpty": "टोकन नाम खाली हुनु हुँदैन",
       "tokenNameMaxLength": "टोकन नाम २५५ वर्ण भन्दा बढी हुनु हुँदैन",

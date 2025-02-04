@@ -166,19 +166,19 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const addIntegration = async (integration: IntegrationItemType) => {
-    activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.subType)
+    activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.sub_type)
     activeIntegrationItem.value = integration
 
-    if (integration.dynamic === true && !(integration.subType in integrationForms)) {
-      const integrationInfo = await $api.integrations.info(integration.type, integration.subType)
+    if (integration.dynamic === true && !(integration.sub_type in integrationForms)) {
+      const integrationInfo = await $api.integrations.info(integration.type, integration.sub_type)
 
       if (integrationInfo?.form) {
-        integrationForms[integration.subType] = integrationInfo.form
+        integrationForms[integration.sub_type] = integrationInfo.form
 
         activeIntegrationItem.value.form = integrationInfo.form
       }
     } else if (integration.dynamic === true) {
-      activeIntegrationItem.value.form = integrationForms[integration.subType]
+      activeIntegrationItem.value.form = integrationForms[integration.sub_type]
     }
 
     pageMode.value = IntegrationsPageMode.ADD
@@ -391,21 +391,21 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       activeIntegration.value = integrationWithConfig
 
       const integrationItem = allIntegrations.find(
-        (item) => item.type === integration.type && item.subType === integration.sub_type,
+        (item) => item.type === integration.type && item.sub_type === integration.sub_type,
       )!
 
       activeIntegrationItem.value = integrationItem
 
-      if (integrationItem.dynamic === true && !(integrationItem.subType in integrationForms)) {
-        const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.subType)
+      if (integrationItem.dynamic === true && !(integrationItem.sub_type in integrationForms)) {
+        const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.sub_type)
 
         if (integrationInfo?.form) {
-          integrationForms[integrationItem.subType] = integrationInfo.form
+          integrationForms[integrationItem.sub_type] = integrationInfo.form
 
           activeIntegrationItem.value.form = integrationInfo.form
         }
       } else if (integrationItem.dynamic === true) {
-        activeIntegrationItem.value.form = integrationForms[integrationItem.subType]
+        activeIntegrationItem.value.form = integrationForms[integrationItem.sub_type]
       }
 
       pageMode.value = IntegrationsPageMode.EDIT
@@ -451,7 +451,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     const dynamicIntegrations = (await $api.integrations.list()) as {
       type: IntegrationsType
-      subType: string
+      sub_type: string
       meta: {
         title?: string
         icon?: string
@@ -473,7 +473,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           if (isValidURL(di.meta.icon)) {
             icon = h('img', {
               src: di.meta.icon,
-              alt: di.meta.title || di.subType,
+              alt: di.meta.title || di.sub_type,
             })
           }
         }
@@ -482,8 +482,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       const integration: IntegrationItemType = {
-        title: di.meta.title || di.subType,
-        subType: di.subType,
+        title: di.meta.title || di.sub_type,
+        sub_type: di.sub_type,
         icon,
         type: di.type,
         isAvailable: true,
@@ -504,7 +504,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     const map: Record<string, any> = {}
 
     for (const integration of allIntegrations) {
-      map[integration.subType] = integration.icon
+      map[integration.sub_type] = integration.icon
     }
 
     return map

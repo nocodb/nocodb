@@ -11,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type { FilterReqType } from 'nocodb-sdk';
+import { FilterCreateV3Type, FilterUpdateV3Type } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -74,7 +74,7 @@ export class FiltersV3Controller {
     @Param('viewId') viewId: string,
     @Param('linkColumnId') linkColumnId: string,
     @Param('hookId') hookId: string,
-    @Body() body: FilterGroup,
+    @Body() body: FilterCreateV3Type,
     @Req() req: NcRequest,
   ) {
     const filter = await this.filtersV3Service.filterCreate(context, {
@@ -90,7 +90,7 @@ export class FiltersV3Controller {
   @Acl('filterUpdate')
   async filterUpdate(
     @TenantContext() context: NcContext,
-    @Body() body: FilterReqType & { id: string },
+    @Body() body: FilterUpdateV3Type,
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
   ) {
@@ -108,7 +108,7 @@ export class FiltersV3Controller {
   @Acl('filterUpdate')
   async filterReplace(
     @TenantContext() context: NcContext,
-    @Body() body: FilterGroup,
+    @Body() body: FilterCreateV3Type,
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
   ) {

@@ -17,6 +17,7 @@ export function extractLimitAndOffset(
     l?: number | string;
     o?: number | string;
     limitOverride?: number;
+    page?: number | string;
   } = {},
 ) {
   const obj: {
@@ -38,10 +39,13 @@ export function extractLimitAndOffset(
     defaultLimitConfig.limitMin,
   );
 
-  // skip any invalid offset, ignore negative and non-integer values
-  const offset = +(args.offset || args.o) || 0;
-  obj.offset = Math.max(Number.isInteger(offset) ? offset : 0, 0);
-
+  if (args.page) {
+    obj.offset = Math.max((+args.page - 1) * obj.limit, 0);
+  } else {
+    // skip any invalid offset, ignore negative and non-integer values
+    const offset = +(args.offset || args.o) || 0;
+    obj.offset = Math.max(Number.isInteger(offset) ? offset : 0, 0);
+  }
   // override limit if provided
   if (args.limitOverride) {
     obj.limit = +args.limitOverride;

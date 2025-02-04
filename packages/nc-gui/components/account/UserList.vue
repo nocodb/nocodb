@@ -288,6 +288,7 @@ const userRoleOptions = [
                 </div>
                 <NcSelect
                   v-else-if="el.id !== loggedInUser?.id"
+                  v-show="!isEeUI"
                   v-model:value="el.roles"
                   class="w-55 nc-user-roles"
                   :dropdown-match-select-width="false"

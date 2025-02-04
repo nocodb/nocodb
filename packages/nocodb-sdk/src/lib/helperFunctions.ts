@@ -149,9 +149,11 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
         'avgDistinct',
       ];
     }
-    case FormulaDataTypes.STRING:
     case FormulaDataTypes.BOOLEAN: {
       return ['count', 'sum'];
+    }
+    case FormulaDataTypes.STRING: {
+      return ['count', 'countDistinct'];
     }
     case FormulaDataTypes.UNKNOWN:
     default: {

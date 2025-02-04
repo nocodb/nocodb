@@ -625,7 +625,7 @@ onMounted(async () => {
             }"
             @click="activeTab = HookTab.Configuration"
           >
-            <div class="tab-title nc-tab">{{ $t('labels.configuration') }}</div>
+            <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
           </div>
           <div
             v-e="['c:webhook:log']"

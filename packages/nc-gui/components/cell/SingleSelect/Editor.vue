@@ -133,6 +133,7 @@ useSelectedCellKeydownListener(
   },
   {
     immediate: true,
+    isGridCell: true,
   },
 )
 

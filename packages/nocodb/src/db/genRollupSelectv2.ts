@@ -56,11 +56,16 @@ export default async function ({
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
       >(context);
+      // for M2M and Belongs to relation, the relation stored in column option is reversed
+      const isReverseRelation =
+        [RelationTypes.MANY_TO_MANY, RelationTypes.BELONGS_TO].includes(
+          relationColumnOption.type as RelationTypes,
+        ) || relationColumn.meta?.bt;
       const formulaQb = await formulaQueryBuilderv2(
         baseModelSqlv2,
         formulOption.formula,
         undefined,
-        childModel,
+        isReverseRelation ? parentModel : childModel,
         rollupColumn,
         {},
         undefined,

@@ -1,9 +1,6 @@
 name: "bumper"
 
 on:
-  push:
-    branches:
-      - "develop"
   pull_request_target:
     branches:
       - "develop"
@@ -16,11 +13,8 @@ jobs:
       contents: "write"
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    # nix runner already has Nix insatlled
-    # - name: Install Nix
-    #   uses: DeterminateSystems/nix-installer-action@main
-    # - uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Run Bumper
-      run: nix run .#bumper
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Run Bumper
+        run: nix run .#bumper

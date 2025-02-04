@@ -76,14 +76,16 @@ const pg = {
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
-    const expr1_typecast =
-      pt.arguments[0].dataType === FormulaDataTypes.UNKNOWN
-        ? ''
-        : '::TIMESTAMP';
-    const expr2_typecast =
-      pt.arguments[1].dataType === FormulaDataTypes.UNKNOWN
-        ? ''
-        : '::TIMESTAMP';
+    const expr1_typecast = [FormulaDataTypes.DATE].includes(
+      pt.arguments[0].dataType,
+    )
+      ? '::TIMESTAMP'
+      : '';
+    const expr2_typecast = [FormulaDataTypes.DATE].includes(
+      pt.arguments[1].dataType,
+    )
+      ? '::TIMESTAMP'
+      : '';
 
     let sql;
     const unit = convertUnits(rawUnit, 'pg');

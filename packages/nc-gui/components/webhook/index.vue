@@ -603,7 +603,7 @@ onMounted(async () => {
 <template>
   <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
     <template #header>
-      <div class="flex w-full items-center p-4 justify-between">
+      <div class="flex w-full items-center px-4 py-2 justify-between">
         <div class="flex items-center gap-3 flex-1">
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">

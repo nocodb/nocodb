@@ -27,11 +27,11 @@ const parsedRespondePayload = computed(() => {
 <template>
   <div class="container">
     <template v-if="item">
-      <div class="font-weight-bold">{{ hookLogFormatter(item.created_at) }}</div>
+      <div class="font-weight-bold text-base">{{ hookLogFormatter(item.created_at) }}</div>
 
-      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-4" :class="item.error ? 'bg-orange-50' : 'bg-warn-50'">
+      <div class="flex items-start gap-3 bg-green-50 rounded-md w-full p-3" :class="item.error ? 'bg-orange-50' : 'bg-warn-50'">
         <GeneralIcon :icon="item.error ? 'ncAlertCircleFilled' : 'checkFill'" class="text-white w-4 h-4 mt-0.75" />
-        <div>{{ item.error ? 'Failed' : 'Succeded' }} in {{ item.execution_time }} ms</div>
+        <div>{{ item.error ? $t('labels.failed'): $t('labels.succeeded')   }} in {{ item.execution_time }} ms</div>
       </div>
 
       <div class="log-details">
@@ -92,22 +92,11 @@ const parsedRespondePayload = computed(() => {
     .log-detail-item {
       @apply flex flex-row;
       .label {
-        @apply w-30 font-bold;
+        @apply w-30 font-bold  text-small1;
       }
 
       .value {
-        @apply text-gray-500;
-      }
-    }
-
-    .headers {
-      @apply flex flex-row;
-      .label {
-        @apply w-30 font-bold;
-      }
-
-      .value {
-        @apply text-gray-500;
+        @apply text-gray-500  text-small1;
       }
     }
   }

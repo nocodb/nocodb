@@ -45,7 +45,7 @@ const emit = defineEmits<Emit>()
   @apply p-2 h-full overflow-auto;
 
   .item {
-    @apply cursor-pointer flex gap-3 p-3 rounded-md;
+    @apply cursor-pointer flex gap-3 p-3 rounded-lg;
     &:hover {
       @apply bg-gray-50;
     }

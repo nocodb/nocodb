@@ -39,10 +39,12 @@ const parsedRespondePayload = computed(() => {
           <span class="label">Request Time</span>
           <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
+        <!--
         <div class="log-detail-item">
           <span class="label">Size</span>
           <span class="value">{{ item.size }}</span>
         </div>
+        -->
         <div class="log-detail-item">
           <span class="label">ID</span>
           <span class="value">{{ item.id }}</span>
@@ -53,7 +55,7 @@ const parsedRespondePayload = computed(() => {
         </div>
         <div class="log-detail-item">
           <span class="label">Test call</span>
-          <span class="value">{{ item.test_call }}</span>
+          <span class="value capitalize">{{ !!item.test_call }}</span>
         </div>
       </div>
 

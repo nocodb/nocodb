@@ -108,11 +108,11 @@ const formattedPayload = computed(() => {
       .log-detail-item {
         @apply flex flex-row w-full;
         .label {
-          @apply min-w-40 font-weight-bold overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
+          @apply min-w-40 text-gray-700 overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
         }
 
         .value {
-          @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden  text-small1;
+          @apply min-w-0 font-weight-600 overflow-ellipsis whitespace-nowrap overflow-hidden leading-[20px];
         }
       }
     }

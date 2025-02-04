@@ -2116,7 +2116,7 @@ function handleBinaryExpressionForDateAndTime(params: {
             type: 'Literal',
             value: '00:00:00',
             raw: '"00:00:00"',
-            dataType: 'string',
+            dataType: FormulaDataTypes.INTERVAL,
           },
           {
             type: 'Literal',
@@ -2139,7 +2139,7 @@ function handleBinaryExpressionForDateAndTime(params: {
             type: 'Literal',
             value: '00:00:00',
             raw: '"00:00:00"',
-            dataType: 'string',
+            dataType: FormulaDataTypes.INTERVAL,
           },
           {
             type: 'Literal',

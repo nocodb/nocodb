@@ -141,9 +141,9 @@ watch(
 onMounted(() => {
   if (!isCanvasInjected || !clientMousePosition) return
   setTimeout(() => {
-    if (getElementAtMouse('.nc-canvas-links-icon-plus', clientMousePosition)) {
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
       openListDlg()
-    } else if (getElementAtMouse('.nc-canvas-links-text', clientMousePosition)) {
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
       openChildList()
     }
     // if we open immediately, the background seems stuck and

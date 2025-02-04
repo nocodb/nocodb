@@ -841,8 +841,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7
       nc-lib-gui:
-        specifier: 0.260.2
-        version: 0.260.2
+        specifier: 0.260.3
+        version: 0.260.3
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(reflect-metadata@0.2.1))(ioredis@5.4.1)(reflect-metadata@0.2.1)
@@ -1062,7 +1062,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.6.8
-        version: 1.6.8(debug@4.3.7)
+        version: 1.6.8(debug@4.3.4)
       dayjs:
         specifier: ^1.11.11
         version: 1.11.11
@@ -4141,6 +4141,7 @@ packages:
   '@playwright/test@1.43.1':
     resolution: {integrity: sha512-HgtQzFgNEEo4TE22K/X7sYTYNqEMMTZmFS8kTq6m8hXj+m1D8TgwgIbumHddJa9h4yl4GkKb8/bgAl2+g7eDgA==}
     engines: {node: '>=16'}
+    deprecated: Please update to the latest version of Playwright to test up-to-date browsers.
     hasBin: true
 
   '@polka/url@1.0.0-next.21':
@@ -10864,6 +10865,7 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.isinteger@4.0.4:
     resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
@@ -11520,8 +11522,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.260.2:
-    resolution: {integrity: sha512-ioz1W4vMmRHULhH7qB2qXwoBa+a5m211kGjn1oFjzXIllh/zwUDGO5qJcbykI8g6jzooAXmbZtkUKoUsVjlmEQ==}
+  nc-lib-gui@0.260.3:
+    resolution: {integrity: sha512-WuIF6cHWHex2nFmCKhB8s0CuOnJ3i0lSBF6Mm6oDDqMZCquAhb02/W7at5IhYTz7ICVMvieVOo5E8TggsfBH7Q==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -22570,7 +22572,7 @@ snapshots:
       vue-demi: 0.14.7(vue@3.5.13(typescript@5.6.2))
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.6.8(debug@4.3.7)
+      axios: 1.6.8(debug@4.3.4)
       change-case: 5.4.4
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -29430,7 +29432,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.260.2:
+  nc-lib-gui@0.260.3:
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:
@@ -29943,7 +29945,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.6.8(debug@4.3.7)
+      axios: 1.6.8(debug@4.3.4)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -32636,7 +32638,7 @@ snapshots:
   swagger-typescript-api@10.0.3(encoding@0.1.13):
     dependencies:
       '@types/swagger-schema-official': 2.0.22
-      axios: 1.6.8(debug@4.3.7)
+      axios: 1.6.8(debug@4.3.4)
       commander: 9.4.1
       cosmiconfig: 7.0.1
       eta: 1.12.3

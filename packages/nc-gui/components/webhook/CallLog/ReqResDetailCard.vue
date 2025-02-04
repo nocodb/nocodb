@@ -3,6 +3,7 @@ interface Props {
   title: string
   headers: Record<string, any>
   payload: unknown
+  params?: Record<string, any>
 }
 
 const props = defineProps<Props>()
@@ -38,6 +39,15 @@ const formattedPayload = computed(() => {
       <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
       <div class="log-details">
         <div v-for="(value, key) in headers" class="log-detail-item">
+          <span class="label">{{ key }}</span>
+          <span class="value">{{ value }}</span>
+        </div>
+      </div>
+    </div>
+    <div v-if="params" class="detail-headers">
+      <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
+      <div class="log-details">
+        <div v-for="(value, key) in params" class="log-detail-item">
           <span class="label">{{ key }}</span>
           <span class="value">{{ value }}</span>
         </div>

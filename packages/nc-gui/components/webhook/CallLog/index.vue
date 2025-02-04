@@ -22,7 +22,19 @@ const currentPage = ref(1)
 
 const currentLimit = ref(10)
 
-const activeItem = ref<HookLogType>()
+const _activeItem = ref<HookLogType>()
+const activeItem = computed<HookLogType>({
+  get: () => {
+    if (_activeItem.value) {
+      return _activeItem.value
+    }
+    // return first item by default if not set
+    return hookLogs.value?.[0]
+  },
+  set: (val) => {
+    _activeItem.value = val
+  },
+})
 
 const showLogs = computed(
   () =>
@@ -75,7 +87,7 @@ onBeforeMount(async () => {
 
 <template>
   <a-skeleton v-if="isLoading" />
-  <div v-else  class="h-full">
+  <div v-else class="h-full">
     <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
       <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
         The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.

@@ -35,78 +35,96 @@ const formattedPayload = computed(() => {
 <template>
   <div class="detail-card">
     <div class="detail-title font-weight-bold">{{ title }}</div>
-    <div v-if="headers" class="detail-headers">
-      <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
-      <div class="log-details">
-        <div v-for="(value, key) in headers" class="log-detail-item">
-          <span class="label">{{ key }}</span>
-          <span class="value">{{ value }}</span>
+    <div class="content">
+      <div v-if="headers" class="detail-headers">
+        <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
+        <div class="log-details">
+          <div v-for="(value, key) in headers" class="log-detail-item">
+            <span class="label">{{ key }}</span>
+            <span class="value">{{ value }}</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-if="params" class="detail-headers">
-      <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
-      <div class="log-details">
-        <div v-for="(value, key) in params" class="log-detail-item">
-          <span class="label">{{ key }}</span>
-          <span class="value">{{ value }}</span>
+      <div v-if="params && Object.keys(params).length" class="detail-params">
+        <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
+        <div class="log-details">
+          <div v-for="(value, key) in params" class="log-detail-item">
+            <span class="label">{{ key }}</span>
+            <span class="value">{{ value }}</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-if="payload" class="detail-payload">
-      <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between">
-        <span class="text-xs leading-[18px]">Payload</span>
-        <GeneralIcon icon="copy" class="cursor-pointer" @click="copyPayload" />
+      <div v-if="payload && Object.keys(payload).length" class="detail-payload">
+        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between">
+          <span class="text-xs leading-[18px]">Payload</span>
+          <GeneralIcon icon="copy" class="cursor-pointer" @click="copyPayload" />
+        </div>
+        <LazyMonacoEditor
+          :model-value="formattedPayload"
+          class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
+          hide-minimap
+          disable-deep-compare
+          read-only
+          :monaco-config="{
+            lineNumbers: 'on',
+          }"
+          :monaco-custom-theme="{
+            base: 'vs',
+            inherit: true,
+            rules: [],
+            colors: {
+              'editor.background': '#00000000',
+            },
+          }"
+          @keydown.enter.stop
+          @keydown.alt.stop
+        />
       </div>
-      <LazyMonacoEditor
-        :model-value="formattedPayload"
-        class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
-        hide-minimap
-        disable-deep-compare
-        read-only
-        :monaco-config="{
-          lineNumbers: 'on',
-        }"
-        :monaco-custom-theme="{
-          base: 'vs',
-          inherit: true,
-          rules: [],
-          colors: {
-            'editor.background': '#00000000',
-          },
-        }"
-        @keydown.enter.stop
-        @keydown.alt.stop
-      />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .detail-card {
-  @apply flex flex-col w-full border-1 border-gray-200 rounded-lg bg-gray-50;
-  & > div:not(:last-child) {
-    @apply border-b border-gray-200;
+  @apply flex flex-col w-full border-1 border-gray-200 rounded-lg bg-gray-50 h-full;
+
+  & > .detail-title {
+    @apply border-b border-gray-200  px-3 py-2;
   }
 
-  & > div {
-    @apply px-3 py-2;
-  }
-  .log-details {
-    @apply flex flex-col gap-1 mt-2;
-    .log-detail-item {
-      @apply flex flex-row w-full;
-      .label {
-        @apply min-w-40 font-weight-bold overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
-      }
+  .content {
+    @apply flex-grow max-h-117 overflow-auto flex flex-col;
 
-      .value {
-        @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden  text-small1;
+    & > div:not(:last-child) {
+      @apply border-b border-gray-200;
+    }
+
+    & > div {
+      @apply px-3 py-2;
+    }
+
+    .log-details {
+      @apply flex flex-col gap-1 mt-2;
+      .log-detail-item {
+        @apply flex flex-row w-full;
+        .label {
+          @apply min-w-40 font-weight-bold overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
+        }
+
+        .value {
+          @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden  text-small1;
+        }
       }
     }
-  }
-  :deep(.monaco-editor) {
-    @apply !outline-none;
+
+    :deep(.monaco-editor) {
+      @apply !outline-none;
+    }
+
+    .detail-params,
+    .detail-headers {
+      @apply flex-grow;
+    }
   }
 }
 </style>

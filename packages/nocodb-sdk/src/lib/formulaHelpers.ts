@@ -1978,9 +1978,9 @@ export async function validateFormulaAndExtractTreeWithType({
           handleBinaryExpressionForDateAndTime({ sourceBinaryNode: res as any })
         );
         if (res.type !== JSEPNode.BINARY_EXP) {
-          delete res.left;
-          delete res.right;
-          delete res.operator;
+          res.left = undefined;
+          res.right = undefined;
+          res.operator = undefined;
         }
       } else if (
         ['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)

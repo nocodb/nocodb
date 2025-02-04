@@ -22,9 +22,11 @@ const copyPayload = async () => {
 
 const formattedPayload = computed(() => {
   try {
-    return typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : JSON.stringify(JSON.parse(props.payload),null,2)
+    return typeof props.payload === 'object'
+      ? JSON.stringify(props.payload, null, 2)
+      : JSON.stringify(JSON.parse(props.payload), null, 2)
   } catch {
-    return props.payload;
+    return props.payload
   }
 })
 </script>
@@ -55,6 +57,14 @@ const formattedPayload = computed(() => {
         :monaco-config="{
           lineNumbers: 'on',
         }"
+        :monaco-custom-theme="{
+          base: 'vs',
+          inherit: true,
+          rules: [],
+          colors: {
+            'editor.background': '#00000000',
+          },
+        }"
         @keydown.enter.stop
         @keydown.alt.stop
       />
@@ -84,6 +94,9 @@ const formattedPayload = computed(() => {
         @apply min-w-0 text-gray-500 overflow-ellipsis whitespace-nowrap overflow-hidden  text-small1;
       }
     }
+  }
+  :deep(.monaco-editor) {
+    @apply !outline-none;
   }
 }
 </style>

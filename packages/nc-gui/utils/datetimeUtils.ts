@@ -53,5 +53,5 @@ export const timeAgo = (date: string) => {
 }
 
 export const hookLogFormatter = (date: string) => {
-  return date && dayjs(date).format('HH:mm:ss • DD MMMM YYYY')
+  return date && dayjs(date).format('YYYY-MM-DD HH:MM:ss')
 }

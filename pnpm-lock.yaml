@@ -841,8 +841,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7
       nc-lib-gui:
-        specifier: 0.260.3
-        version: 0.260.3
+        specifier: 0.260.4
+        version: 0.260.4
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(reflect-metadata@0.2.1))(ioredis@5.4.1)(reflect-metadata@0.2.1)
@@ -11522,8 +11522,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.260.3:
-    resolution: {integrity: sha512-WuIF6cHWHex2nFmCKhB8s0CuOnJ3i0lSBF6Mm6oDDqMZCquAhb02/W7at5IhYTz7ICVMvieVOo5E8TggsfBH7Q==}
+  nc-lib-gui@0.260.4:
+    resolution: {integrity: sha512-1OjLZ/aaEJQCMOB2aOAamH3F4uMfBIV/0nifiHXPX9tZH3CD3PccBEcJ7WDRv8wnHtzhhSpar++iuoHYGax0EA==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -29432,7 +29432,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.260.3:
+  nc-lib-gui@0.260.4:
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:

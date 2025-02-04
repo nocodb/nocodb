@@ -15,6 +15,8 @@ import type { HookLogType, TableType, UserType, ViewType } from 'nocodb-sdk';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Filter, HookLog, Source } from '~/models';
+import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
@@ -540,6 +542,8 @@ function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {
     // exclude http/https agent filters
     httpAgent: undefined,
     httpsAgent: undefined,
+    timeout: undefined,
+    withCredentials: undefined
   };
 }
 
@@ -787,7 +791,11 @@ export async function invokeWebhook(
         error_message: e.message,
         error: JSON.stringify(e),
         triggered_by: user?.email,
-        conditions: filters ? JSON.stringify(filters) : null,
+        conditions: filters
+          ? JSON.stringify(
+              addDummyRootAndNest(filterBuilder().build(filters) as Filter[]),
+            )
+          : null,
         response: e.response
           ? JSON.stringify(extractResPayloadForLog(e.response))
           : null,

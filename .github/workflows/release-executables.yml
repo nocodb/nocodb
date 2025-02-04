@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Get pnpm store directory
@@ -178,7 +178,7 @@ jobs:
 
   publish-mac-executables-and-homebrew:
     needs: [sign-mac-executables,build-executables]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@master
         with:

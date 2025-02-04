@@ -6,6 +6,8 @@ import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
 import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
+import { ActionManager } from '../loaders/ActionManager'
+import { useGridCellHandler } from '../cells'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -124,6 +126,7 @@ export function useCanvasTable({
   const targetRowIndex = ref(-1)
 
   const { isMobileMode } = useGlobal()
+  const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
   const {
@@ -142,12 +145,15 @@ export function useCanvasTable({
   const { metas, getMeta } = useMetas()
   const { isMysql } = useBase()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { aiIntegrations } = useNocoAi()
-
+  const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
+  const automationStore = useAutomationStore()
   const fields = inject(FieldsInj, ref([]))
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const isLocked = inject(IsLockedInj, ref(false))
+
+  const { loadAutomation } = automationStore
+  const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -390,6 +396,9 @@ export function useCanvasTable({
       fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
+
+  const { handleCellClick, renderCell } = useGridCellHandler({ getCellPosition, actionManager })
+
   const { canvasRef, renderCanvas } = useCanvasRender({
     width,
     mousePosition,
@@ -417,6 +426,9 @@ export function useCanvasTable({
     isDragging,
     draggedRowIndex,
     targetRowIndex,
+    actionManager,
+    renderCell,
+    meta,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -701,6 +713,10 @@ export function useCanvasTable({
     await bulkUpdateRows(rows, props)
   }
 
+  function generateRows(columnId: string, rowIds: string[]) {
+    return _generateRows(meta.value?.id, columnId, rowIds)
+  }
+
   function makeCellEditable(rowIndex: number, clickedColumn: CanvasGridColumn) {
     const column = metaColumnById.value[clickedColumn.id]
     const row = cachedRows.value.get(rowIndex)
@@ -847,5 +863,10 @@ export function useCanvasTable({
     clearCell,
     copyValue,
     clearSelectedRangeOfCells,
+
+    // Action Manager
+    actionManager,
+    handleCellClick,
+    renderCell,
   }
 }

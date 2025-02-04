@@ -40,7 +40,10 @@ const formattedPayload = computed(() => {
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
         <div class="log-details">
           <div v-for="(value, key) in headers" class="log-detail-item">
-            <span class="label">{{ key }}</span>
+            <nc-tooltip class="text-small1 min-w-40">
+              <template #title>{{ key }}</template>
+              <span class="label"> {{ key }}</span>
+            </nc-tooltip>
             <nc-tooltip class="text-small1">
               <template #title>{{ value }}</template>
               <span class="value"> {{ value }}</span>
@@ -52,7 +55,10 @@ const formattedPayload = computed(() => {
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
         <div class="log-details">
           <div v-for="(value, key) in params" class="log-detail-item">
-            <span class="label">{{ key }}</span>
+            <nc-tooltip class="text-small1 min-w-40">
+              <template #title>{{ key }}</template>
+              <span class="label"> {{ key }}</span>
+            </nc-tooltip>
             <nc-tooltip class="text-small1">
               <template #title>{{ value }}</template>
               <span class="value"> {{ value }}</span>
@@ -114,7 +120,7 @@ const formattedPayload = computed(() => {
       .log-detail-item {
         @apply flex flex-row w-full;
         .label {
-          @apply min-w-40 font-weight-600 text-gray-700 overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase;
+          @apply min-w-40 font-weight-600 text-gray-700 overflow-ellipsis whitespace-nowrap overflow-hidden text-small1 lowercase overflow-ellipsis whitespace-nowrap overflow-hidden;
         }
 
         .value {

@@ -101,10 +101,6 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   }
   return 0
 }
-
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
 </script>
 
 <template>

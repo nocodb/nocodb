@@ -10,13 +10,6 @@ const dialogShow = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'CTRL'
-}
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 const shortcutList = [
   {
     title: 'General',

@@ -101,7 +101,7 @@ onBeforeMount(async () => {
         <div class="min-w-80 border-r-1 h-full">
           <WebhookCallLogList v-model:activeItem="activeItem" :hook-logs="hookLogs" />
         </div>
-        <div class="flex-grow">
+        <div class="flex-grow min-w-100">
           <WebhookCallLogDetails :item="activeItem" />
         </div>
       </div>

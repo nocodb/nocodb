@@ -18,7 +18,7 @@ const emit = defineEmits<Emit>()
 <template>
   <div class="container">
     <template v-for="(log, i) of hookLogs" :key="log.id">
-      <a-divider v-if="i" class="!my-1" />
+      <a-divider v-if="i" class="!my-0" />
       <div
         class="item"
         :class="{

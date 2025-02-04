@@ -4,6 +4,8 @@ on:
   pull_request_target:
     branches:
       - "develop"
+    paths:
+      - "pnpm-lock.yaml"
 
 jobs:
   bumper:

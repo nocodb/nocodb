@@ -17,6 +17,7 @@ import type { NcContext } from '~/interface/config';
 import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { isEE } from '~/utils';
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
@@ -404,7 +405,6 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
 
 function populateAxiosReq({
   apiMeta: _apiMeta,
-  user,
   hook,
   model,
   view,
@@ -708,7 +708,10 @@ export async function invokeWebhook(
           const res = await (
             await NcPluginMgrv2.emailAdapter(false)
           )?.mailSend(parsedPayload);
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
@@ -737,7 +740,10 @@ export async function invokeWebhook(
             reqPayload,
           });
 
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
@@ -763,7 +769,10 @@ export async function invokeWebhook(
             }),
           );
 
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,

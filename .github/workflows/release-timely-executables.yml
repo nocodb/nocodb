@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -181,7 +181,7 @@ jobs:
 
   publish-mac-executables:
     needs: sign-mac-executables
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@master
         with:

@@ -23,7 +23,7 @@ on:
         type: string
 jobs:
   close-issues:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@master
       - name: close-resolved-issues

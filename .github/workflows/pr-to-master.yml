@@ -28,7 +28,7 @@ on:
         
 jobs:
   pr-to-master:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - run: |
           echo 'triggering pr-to-master'

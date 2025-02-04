@@ -8,7 +8,7 @@ import {
   type TableType,
   UITypes,
 } from 'nocodb-sdk'
-import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -75,7 +75,8 @@ const columns = computed<ColumnType[]>(() => {
   }
 
   return metas.value[selectedTable.value.id]?.columns.filter(
-    (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
+    (c: ColumnType) =>
+      (!isVirtualCol(c.uidt as UITypes) || [UITypes.Formula].includes(c.uidt as UITypes)) && (!isSystemColumn(c) || c.pk),
   )
 })
 
@@ -125,7 +126,7 @@ const availableRollupPerColumn = computed(() => {
   const fnMap: Record<string, { text: string; value: string }[]> = {}
   columns.value?.forEach((column) => {
     if (!column?.id) return
-    fnMap[column.id] = allFunctions.filter((func) => getAvailableRollupForUiType(column.uidt as UITypes).includes(func.value))
+    fnMap[column.id] = allFunctions.filter((func) => getAvailableRollupForColumn(column).includes(func.value))
   })
   return fnMap
 })

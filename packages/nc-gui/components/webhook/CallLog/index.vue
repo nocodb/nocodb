@@ -75,7 +75,7 @@ onBeforeMount(async () => {
 
 <template>
   <a-skeleton v-if="isLoading" />
-  <div v-else>
+  <div v-else  class="h-full">
     <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
       <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
         The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.
@@ -95,10 +95,10 @@ onBeforeMount(async () => {
       </span>
     </a-card> -->
 
-    <div v-if="showLogs">
+    <template v-if="showLogs">
       <a-empty v-if="!hookLogs.length" />
-      <div v-else class="flex">
-        <div class="w-80">
+      <div v-else class="flex h-full">
+        <div class="min-w-80 border-r-1 h-full">
           <WebhookCallLogList v-model:activeItem="activeItem" :hook-logs="hookLogs" />
         </div>
         <div class="flex-grow">
@@ -178,7 +178,7 @@ onBeforeMount(async () => {
           />
         </a-layout-footer>
       </a-layout> -->
-    </div>
+    </template>
   </div>
 </template>
 

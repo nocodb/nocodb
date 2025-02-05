@@ -34,6 +34,17 @@ export const parseVariable = (
   }
 };
 
+export const parseVariableAsString = (
+  variable: VariableRule | VariableRule[]
+) => {
+  const result = parseVariable(variable);
+  if (Array.isArray(result)) {
+    return result.join(' ');
+  } else {
+    return result;
+  }
+};
+
 export const trimQuote = (value?: string) => {
   if (value === undefined) {
     return value;

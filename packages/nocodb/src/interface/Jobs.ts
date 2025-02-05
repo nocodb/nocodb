@@ -1,5 +1,7 @@
 import type {
   AttachmentResType,
+  DeploymentType,
+  InstallationType,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -199,4 +201,10 @@ export interface RestoreSnapshotJobData extends JobData {
   };
   snapshot: SnapshotType;
   req: NcRequest;
+}
+
+export interface ImageDeploymentJobData extends JobData {
+  req: NcContext;
+  deployment: DeploymentType;
+  installation: InstallationType;
 }

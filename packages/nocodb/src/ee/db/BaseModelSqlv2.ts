@@ -54,6 +54,8 @@ import {
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
+  isEE,
+  isOnPrem,
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
@@ -2516,6 +2518,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+      return;
+    }
     if (!refDisplayValue) {
       refDisplayValue = await this.readByPkFromModel(
         refModel,
@@ -2591,6 +2597,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+      return;
+    }
+
     if (!refDisplayValue) {
       refDisplayValue = await this.readByPkFromModel(
         refModel,
@@ -3108,45 +3119,48 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
-    const formattedOldData = formatDataForAudit(oldData, this.model.columns);
-    const formattedData = formatDataForAudit(data, this.model.columns);
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      const formattedOldData = formatDataForAudit(oldData, this.model.columns);
+      const formattedData = formatDataForAudit(data, this.model.columns);
 
-    const updateDiff = populateUpdatePayloadDiff({
-      keepUnderModified: true,
-      prev: formattedOldData,
-      next: formattedData,
-      exclude: extractExcludedColumnNames(this.model.columns),
-      excludeNull: false,
-      excludeBlanks: false,
-      keepNested: true,
-    }) as UpdatePayload;
+      const updateDiff = populateUpdatePayloadDiff({
+        keepUnderModified: true,
+        prev: formattedOldData,
+        next: formattedData,
+        exclude: extractExcludedColumnNames(this.model.columns),
+        excludeNull: false,
+        excludeBlanks: false,
+        keepNested: true,
+      }) as UpdatePayload;
 
-    if (updateDiff) {
-      await Audit.insert(
-        await generateAuditV1Payload<DataUpdatePayload>(
-          AuditV1OperationTypes.DATA_UPDATE,
-          {
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: id,
-            },
-            details: {
-              old_data: updateDiff.previous_state,
-              data: updateDiff.modifications,
-              column_meta: extractColsMetaForAudit(
-                this.model.columns.filter(
-                  (c) => c.title in updateDiff.modifications,
+      if (updateDiff) {
+        await Audit.insert(
+          await generateAuditV1Payload<DataUpdatePayload>(
+            AuditV1OperationTypes.DATA_UPDATE,
+            {
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: id,
+              },
+              details: {
+                old_data: updateDiff.previous_state,
+                data: updateDiff.modifications,
+                column_meta: extractColsMetaForAudit(
+                  this.model.columns.filter(
+                    (c) => c.title in updateDiff.modifications,
+                  ),
+                  data,
+                  oldData,
                 ),
-                data,
-                oldData,
-              ),
+              },
+              req,
             },
-            req,
-          },
-        ),
-      );
+          ),
+        );
+      }
     }
 
     const ignoreWebhook = req.query?.ignoreWebhook;
@@ -3172,7 +3186,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    if (newData && newData.length > 0) {
+    // disable external source audit in cloud
+    if (
+      !(isEE && !isOnPrem && !(await this.getSource())?.isMeta()) &&
+      newData &&
+      newData.length > 0
+    ) {
       const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
@@ -3255,6 +3274,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     data?: Record<string, any>;
     req: NcRequest;
   }) {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+      return;
+    }
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
       auditUpdateObj.push(

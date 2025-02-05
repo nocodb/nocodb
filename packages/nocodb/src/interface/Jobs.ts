@@ -206,5 +206,6 @@ export interface RestoreSnapshotJobData extends JobData {
 export interface ImageDeploymentJobData extends JobData {
   req: NcContext;
   deployment: DeploymentType;
+  initialDeployment?: boolean;
   installation: InstallationType;
 }

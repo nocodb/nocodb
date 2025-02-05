@@ -30,6 +30,7 @@ import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
 import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
+import { FormulaCellRenderer } from './Formula'
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
@@ -82,6 +83,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
   cellTypesRegistry.set(UITypes.Button, ButtonCellRenderer)
   cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
+  cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

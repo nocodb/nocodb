@@ -1,4 +1,4 @@
-import { timeFormats, type ColumnType, type SelectOptionsType, type SelectOptionType } from 'nocodb-sdk'
+import { type ColumnType, type SelectOptionType, type SelectOptionsType, timeFormats } from 'nocodb-sdk'
 
 export const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
@@ -8,21 +8,21 @@ export const timeFormatsObj = {
 
 export const timeCellMaxWidthMap = {
   [timeFormats[0]]: {
-    12: 'max-w-[85px]',
-    24: 'max-w-[65px]',
+    12: 85,
+    24: 65,
   },
   [timeFormats[1]]: {
-    12: 'max-w-[100px]',
-    24: 'max-w-[80px]',
+    12: 100,
+    24: 80,
   },
   [timeFormats[2]]: {
-    12: 'max-w-[130px]',
-    24: 'max-w-[110px]',
+    12: 130,
+    24: 110,
   },
 }
 
 export const getSingleMultiselectColOptions = (column: ColumnType) => {
-  let colOptions: {
+  const colOptions: {
     options: (SelectOptionType & { value: string })[]
     optionsMap: Record<string, SelectOptionType & { value: string }>
   } = {

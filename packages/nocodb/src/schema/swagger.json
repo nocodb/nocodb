@@ -29217,10 +29217,26 @@
           }
         }
       },
-      "Installation": {},
-      "Deployment": {},
-      "DeploymentLogs": {},
-      "Image": {},
+      "Installation": {
+        "description": "Example response",
+        "type": "object",
+        "properties": {}
+      },
+      "Deployment": {
+        "description": "Example response",
+        "type": "object",
+        "properties": {}
+      },
+      "DeploymentLogs": {
+        "description": "Example response",
+        "type": "object",
+        "properties": {}
+      },
+      "Image": {
+        "description": "Example response",
+        "type": "object",
+        "properties": {}
+      },
       "BadRequest": {
         "description": "BadReqeust",
         "content": {

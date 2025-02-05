@@ -683,6 +683,9 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "youCantDeleteInstallationWhileOperationIsInProgress": "You can't delete the installation while an operation is in progress",
+    "youAreAlreadyOnTheLatestVersion": "You are already on the latest version",
+    "updateAvailable": "Update available",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "goToInstallation": "Go to Installation",
@@ -858,6 +861,7 @@
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
     "tableIdColon": "TABLE ID: {tableId}",
+    "installationIdColon": "ID: {installationId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "viewIdColon": "VIEW ID: {viewId}",
     "toAddress": "To Address",
@@ -899,6 +903,7 @@
     "forRole": "for role",
     "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Click to copy Table ID",
+    "clickToCopyInstallationID": "Click to copy Installation ID",
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",

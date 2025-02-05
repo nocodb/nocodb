@@ -238,7 +238,11 @@ const getAst = async (
       apiVersion === NcApiVersion.V3
     ) {
       isRequested = false;
-    } else if (col.uidt === UITypes.ForeignKey && !getHiddenColumn) {
+    } else if (
+      col.uidt === UITypes.ForeignKey &&
+      !getHiddenColumn &&
+      !view?.show_system_fields
+    ) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;

@@ -463,8 +463,11 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-  if (rowIndex === rowSlice.value.end) {
-    addEmptyRow()
+  if (rowIndex === totalRows.value) {
+    await addEmptyRow()
+    selection.value.clear()
+    activeCell.value.row = rowIndex
+    activeCell.value.column = 1
     return
   }
 

@@ -98,7 +98,7 @@
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
-    "featurePreview": "Feature Preview",
+    "featurePreview": "Experimental Features",
     "scripts": "Scripts",
     "configure": "Configure",
     "switch": "Switch",
@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -702,7 +704,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
+    "toggleExperimentalFeature": "Easily toggle experimental features on or off to explore upcoming functionalities.",
     "modifiedOn": "Modified on",
     "configuration": "Configuration",
     "setup": "Setup",
@@ -1021,7 +1023,7 @@
     "personalAccessToken": "Personal Access Token",
     "whereToFind": "Where to find?",
     "sharedBaseUrl": "Shared Base URL",
-    "sharedPublicly": "Shared publicly",
+    "sharedPublicly": "Shared Publicly",
     "importData": "Import data",
     "importDataFrom": "Import data from",
     "importSecondaryViews": "Import secondary views",
@@ -1116,7 +1118,7 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show json payload"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
+    "webhookLogs": "Webhook: Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",

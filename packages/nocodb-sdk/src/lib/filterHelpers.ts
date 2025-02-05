@@ -119,21 +119,26 @@ function mapFilterGroupSubType(
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false
 ): FilterType {
-  return {
-    is_group: filter.is_group,
-    logical_op: filter.logical_op,
-    children: filter.children
-      .map((k) =>
-        k.is_group
-          ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid)
-          : mapFilterClauseSubType(
-              k as FilterClauseSubType,
-              aliasColObjMap,
-              throwErrorIfInvalid
-            )
-      )
-      .filter((k) => k),
-  } as FilterType;
+  const children = filter.children
+    .map((k) =>
+      k.is_group
+        ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid)
+        : mapFilterClauseSubType(
+            k as FilterClauseSubType,
+            aliasColObjMap,
+            throwErrorIfInvalid
+          )
+    )
+    .filter((k) => k);
+  if (children.length === 1) {
+    return children[0];
+  } else {
+    return {
+      is_group: filter.is_group,
+      logical_op: filter.logical_op,
+      children: children,
+    } as FilterType;
+  }
 }
 function mapFilterClauseSubType(
   filter: FilterClauseSubType,

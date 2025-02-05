@@ -39,6 +39,9 @@ export enum JobTypes {
   UseWorker = 'use-worker',
   CreateSnapshot = 'create-snapshot',
   RestoreSnapshot = 'restore-snapshot',
+
+  // EE Cloud
+  ImageDeployment = 'image-deployment',
 }
 
 export const SKIP_STORING_JOB_META = [

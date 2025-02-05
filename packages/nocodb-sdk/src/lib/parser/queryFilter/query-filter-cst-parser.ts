@@ -4,6 +4,7 @@ import {
   parseVariableAsString,
   VariableRule,
 } from '../common-cst-parser';
+import { NcSDKError } from '~/lib/errorUtils';
 
 export interface CstExpressionArguments
   extends Rule<
@@ -143,6 +144,7 @@ export const parseCallExpression = (
   }
   handleBlankOperator(result);
   handleInOperator(result);
+  handleOperatorAndValue(result);
   return result;
 };
 
@@ -172,6 +174,41 @@ const handleBlankOperator = (filter: FilterClauseSubType) => {
 const handleInOperator = (filter: FilterClauseSubType) => {
   if (filter.comparison_op === 'in' && !Array.isArray(filter.value)) {
     filter.value = (filter.value as string)?.split(',');
+  }
+};
+
+const handleOperatorAndValue = (filter: FilterClauseSubType) => {
+  if (
+    Array.isArray(filter.value) &&
+    [
+      'eq',
+      'neq',
+      'not',
+      'like',
+      'nlike',
+      'empty',
+      'notempty',
+      'null',
+      'notnull',
+      'checked',
+      'notchecked',
+      'blank',
+      'notblank',
+      'allof',
+      'anyof',
+      'nallof',
+      'nanyof',
+      'gt',
+      'lt',
+      'gte',
+      'lte',
+      'ge',
+      'le',
+      'isnot',
+      'is',
+    ].includes(filter.comparison_op)
+  ) {
+    throw new NcSDKError('Value not valid for selected operator');
   }
 };
 

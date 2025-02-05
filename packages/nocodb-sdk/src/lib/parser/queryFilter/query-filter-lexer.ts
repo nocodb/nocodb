@@ -1,6 +1,12 @@
 import { createToken, Lexer } from 'chevrotain';
 import { COMMON_TOKEN } from '../common-token';
 
+export const GROUPBY_COMPARISON_OPS = <const>[
+  // these are used for groupby
+  'gb_eq',
+  'gb_null',
+];
+
 export const COMPARISON_OPS = <const>[
   'eq',
   'neq',
@@ -15,9 +21,6 @@ export const COMPARISON_OPS = <const>[
   'notchecked',
   'blank',
   'notblank',
-  'isnotblank',
-  'is_not_blank',
-  'is_notblank',
   'allof',
   'anyof',
   'nallof',
@@ -34,8 +37,14 @@ export const COMPARISON_OPS = <const>[
   'isWithin',
   'btw',
   'nbtw',
-  'gb_eq',
-  'gb_null',
+];
+
+export const COMPARISON_OPS_ALIAS = <const>[
+  'isblank',
+  'is_blank',
+  'isnotblank',
+  'is_not_blank',
+  'is_notblank',
 ];
 
 export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
@@ -65,7 +74,13 @@ export const COMPARISON_SUB_OPS = <const>[
 
 export const TOKEN_OPERATOR = createToken({
   name: 'OPERATOR',
-  pattern: new RegExp(`\\b(${COMPARISON_OPS.join('|')})\\b`),
+  pattern: new RegExp(
+    `\\b(${[
+      ...COMPARISON_OPS,
+      ...COMPARISON_OPS_ALIAS,
+      ...GROUPBY_COMPARISON_OPS,
+    ].join('|')})\\b`
+  ),
   longer_alt: COMMON_TOKEN.IDENTIFIER,
 });
 export const TOKEN_SUBOPERATOR = createToken({

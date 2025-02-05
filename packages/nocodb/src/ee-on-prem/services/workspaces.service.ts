@@ -50,6 +50,19 @@ export class WorkspacesService extends WorkspacesServiceEE {
       );
     }
 
+    if (this.licenseService.getMaxWorkspaces()) {
+      // get total non-deleted workspaces
+      const workspacesCount = await Workspace.count({
+        deleted: false,
+      });
+
+      if (workspacesCount >= this.licenseService.getMaxWorkspaces()) {
+        NcError.notAllowed(
+          `Maximum workspace limit reached. Please upgrade to create more workspaces.`,
+        );
+      }
+    }
+
     if (this.licenseService.getOneWorkspace()) {
       const firstWorkspace = await Workspace.getFirstWorkspace();
       if (firstWorkspace) {
@@ -66,6 +79,19 @@ export class WorkspacesService extends WorkspacesServiceEE {
       const firstWorkspace = await Workspace.getFirstWorkspace();
       if (firstWorkspace) {
         return;
+      }
+    }
+
+    if(this.licenseService.getMaxWorkspaces()) {
+      // get total non-deleted workspaces
+      const workspacesCount = await Workspace.count({
+        deleted: false,
+      });
+
+      if (workspacesCount >= this.licenseService.getMaxWorkspaces()) {
+        NcError.notAllowed(
+          `Maximum workspace limit reached. Please upgrade to create more workspaces.`,
+        );
       }
     }
 

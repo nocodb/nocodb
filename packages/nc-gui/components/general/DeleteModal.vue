@@ -26,6 +26,7 @@ const { t } = useI18n()
 const deleteLabel = computed(() => props.deleteLabel ?? t('general.delete'))
 
 const onDelete = async () => {
+  if (isLoading.value) return
   isLoading.value = true
   try {
     await props.onDelete()
@@ -82,7 +83,7 @@ watch(visible, (value) => {
         </a-alert>
       </template>
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <NcButton type="secondary" size="small" @click="visible = false">
+        <NcButton :disabled="isLoading" type="secondary" size="small" @click="visible = false">
           {{ $t('general.cancel') }}
         </NcButton>
 

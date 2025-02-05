@@ -1,16 +1,76 @@
 import { createToken, Lexer } from 'chevrotain';
 import { COMMON_TOKEN } from '../common-token';
 
+export const COMPARISON_OPS = <const>[
+  'eq',
+  'neq',
+  'not',
+  'like',
+  'nlike',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+  'blank',
+  'notblank',
+  'isnotblank',
+  'is_not_blank',
+  'is_notblank',
+  'allof',
+  'anyof',
+  'nallof',
+  'nanyof',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'in',
+  'isnot',
+  'is',
+  'isWithin',
+  'btw',
+  'nbtw',
+  'gb_eq',
+  'gb_null',
+];
+
+export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
+  'pastWeek',
+  'pastMonth',
+  'pastYear',
+  'nextWeek',
+  'nextMonth',
+  'nextYear',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
+export const COMPARISON_SUB_OPS = <const>[
+  'today',
+  'tomorrow',
+  'yesterday',
+  'oneWeekAgo',
+  'oneWeekFromNow',
+  'oneMonthAgo',
+  'oneMonthFromNow',
+  'daysAgo',
+  'daysFromNow',
+  'exactDate',
+  ...IS_WITHIN_COMPARISON_SUB_OPS,
+];
+
 export const TOKEN_OPERATOR = createToken({
   name: 'OPERATOR',
-  pattern:
-    /\b(eq|neq|not|like|nlike|empty|notempty|null|notnull|checked|notchecked|blank|notblank|allof|anyof|nallof|nanyof|gt|lt|gte|lte|ge|le|in|isnot|is|isWithin|btw|nbtw)\b/,
+  pattern: new RegExp(`\\b(${COMPARISON_OPS.join('|')})\\b`),
   longer_alt: COMMON_TOKEN.IDENTIFIER,
 });
 export const TOKEN_SUBOPERATOR = createToken({
   name: 'SUBOPERATOR',
-  pattern:
-    /\b(today|tomorrow|yesterday|oneWeekAgo|oneWeekFromNow|oneMonthAgo|oneMonthFromNow|daysAgo|daysFromNow|exactDate|pastWeek|pastMonth|pastYear|nextWeek|nextMonth|nextYear|pastNumberOfDays|nextNumberOfDays)\b/,
+  pattern: new RegExp(`\\b(${COMPARISON_SUB_OPS.join('|')})\\b`),
   longer_alt: COMMON_TOKEN.IDENTIFIER,
 });
 

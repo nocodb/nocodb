@@ -55,8 +55,10 @@ export class QueryFilterParser extends CommonCstParser {
       $.CONSUME(COMMON_TOKEN.IDENTIFIER);
       $.CONSUME2(COMMON_TOKEN.COMMA);
       $.CONSUME(TOKEN_OPERATOR);
-      $.CONSUME3(COMMON_TOKEN.COMMA);
-      $.SUBRULE($['expression_arguments']);
+      $.OPTION(() => {
+        $.CONSUME3(COMMON_TOKEN.COMMA);
+        $.SUBRULE($['expression_arguments']);
+      });
     });
     $.RULE('expression_arguments', () => {
       $.OR([
@@ -82,7 +84,7 @@ export class QueryFilterParser extends CommonCstParser {
     return (this as any).multi_clause();
   }
 
-  static async parse(text: string) {
+  static parse(text: string) {
     const parser = new QueryFilterParser();
     const lexResult = QueryFilterLexer.tokenize(text);
     // setting a new input will RESET the parser instance's state.
@@ -94,9 +96,7 @@ export class QueryFilterParser extends CommonCstParser {
       lexErrors: lexResult.errors,
       parseErrors: parser.errors,
       parsedCst:
-        parser.errors && parser.errors.length === 0
-          ? await parseCst(cst)
-          : undefined,
+        parser.errors && parser.errors.length === 0 ? parseCst(cst) : undefined,
     };
   }
 }

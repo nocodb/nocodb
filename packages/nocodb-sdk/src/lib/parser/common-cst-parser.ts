@@ -28,10 +28,17 @@ export const parseVariable = (
   } else {
     return (
       variable.children.IDENTIFIER?.[0]?.image ??
-      variable.children.SUP_SGL_QUOTE_IDENTIFIER?.[0]?.image ??
-      variable.children.SUP_DBL_QUOTE_IDENTIFIER?.[0]?.image
+      trimQuote(variable.children.SUP_SGL_QUOTE_IDENTIFIER?.[0]?.image) ??
+      trimQuote(variable.children.SUP_DBL_QUOTE_IDENTIFIER?.[0]?.image)
     );
   }
+};
+
+export const trimQuote = (value?: string) => {
+  if (value === undefined) {
+    return value;
+  }
+  return value?.substring(1, value.length - 1);
 };
 
 export abstract class CommonCstParser extends CstParser {
@@ -54,17 +61,17 @@ export abstract class CommonCstParser extends CstParser {
         $.OR([
           {
             ALT: () => {
-              $.CONSUME(COMMON_TOKEN.IDENTIFIER);
-            },
-          },
-          {
-            ALT: () => {
               $.CONSUME(COMMON_TOKEN.SUP_SGL_QUOTE_IDENTIFIER);
             },
           },
           {
             ALT: () => {
               $.CONSUME(COMMON_TOKEN.SUP_DBL_QUOTE_IDENTIFIER);
+            },
+          },
+          {
+            ALT: () => {
+              $.CONSUME(COMMON_TOKEN.IDENTIFIER);
             },
           },
         ]);

@@ -43,13 +43,13 @@ export const COMMON_TOKEN = {
   IDENTIFIER: IDENTIFIER,
   SUP_SGL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_SGL_QUOTE_IDENTIFIER',
-    pattern: /'[a-zA-Z0-9!@#$%^&*_+\-=[\]{};:\\|.<>/?," ]+'/,
+    pattern: /'[a-zA-Z0-9!@#$%^&*_+\-=[\](){};:\\|.<>/?," ]+'/,
     // pattern: /[a-zA-Z]\w*/,
     longer_alt: IDENTIFIER,
   }),
   SUP_DBL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_DBL_QUOTE_IDENTIFIER',
-    pattern: /"[a-zA-Z0-9!@#$%^&*_+\-=[\]{};:\\|.<>/?,' ]+"/,
+    pattern: /"[a-zA-Z0-9!@#$%^&*_+\-=[\](){};:\\|.<>/?,' ]+"/,
     longer_alt: IDENTIFIER,
     // pattern: /[a-zA-Z]\w*/,
   }),

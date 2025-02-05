@@ -7,7 +7,7 @@ export function maskKnexConfig(payload: Partial<{ config: any }>) {
     payload.config.connection &&
     payload.config.connection.password
   ) {
-    delete payload.config.connection.password;
+    payload.config.connection.password = null;
   }
 
   return payload;

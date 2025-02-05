@@ -382,32 +382,32 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'duration'">
         <LazyCellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDurationEditor v-else v-model="vModel" />
+        <CellDurationEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'email'">
         <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellEmailEditor v-else v-model="vModel" />
+        <CellEmailEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'url'">
         <LazyCellUrlReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellUrlEditor v-else v-model="vModel" />
+        <CellUrlEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'phoneNumber'">
         <LazyCellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellPhoneNumberEditor v-else v-model="vModel" />
+        <CellPhoneNumberEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'percent'">
         <LazyCellPercentReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
-        <LazyCellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
+        <CellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
       </template>
 
       <template v-else-if="cellType === 'currency'">
         <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
+        <CellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
       </template>
 
       <LazyCellUser
@@ -419,24 +419,24 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'decimal'">
         <LazyCellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDecimalEditor v-else v-model="vModel" />
+        <CellDecimalEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'float'">
         <LazyCellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellFloatEditor v-else v-model="vModel" />
+        <CellFloatEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'integer'">
         <LazyCellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellIntegerEditor v-else v-model="vModel" />
+        <CellIntegerEditor v-else v-model="vModel" />
       </template>
 
       <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
 
       <template v-else>
         <LazyCellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellTextEditor v-else v-model="vModel" />
+        <CellTextEditor v-else v-model="vModel" />
       </template>
 
       <div v-if="showLockedOverlay" class="nc-locked-overlay" />

@@ -2262,7 +2262,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         rspFromRecordAPI = await ncAxiosGet({
           url: `/api/${API_VERSION}/tables/${tblCity.id}/records`,
           query: {
-            where: `where=(Id,eq,${i})`,
+            where: `(Id,eq,${i})`,
           },
         });
 
@@ -2318,7 +2318,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
         query: {
-          where: `where=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2364,7 +2364,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         rspFromRecordAPI = await ncAxiosGet({
           url: `/api/${API_VERSION}/tables/${tblCity.id}/records`,
           query: {
-            where: `where=(Id,eq,${i})`,
+            where: `(Id,eq,${i})`,
           },
         });
 
@@ -2420,7 +2420,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
         query: {
-          where: `where=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2460,7 +2460,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         rspFromRecordAPI = await ncAxiosGet({
           url: `/api/${API_VERSION}/tables/${tblCity.id}/records`,
           query: {
-            where: `where=(Id,eq,${i})`,
+            where: `(Id,eq,${i})`,
           },
         });
 

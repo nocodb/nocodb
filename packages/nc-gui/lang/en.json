@@ -377,6 +377,11 @@
       "tall": "Tall",
       "extra": "Extra"
     },
+    "providers": {
+      "aws": "Amazon Web Services",
+      "azure": "Microsoft Azure",
+      "google": "Google Cloud"
+    },
     "externalDb": "External Database",
     "syncData": {
       "appleNumbers": "Apple numbers",
@@ -512,6 +517,7 @@
   },
   "title": {
     "creatingScript": "Creating Script",
+    "deployNocoDBOnPremise": "Deploy NocoDB On-Premise",
     "searchWebhook": "Search webhook",
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
@@ -678,6 +684,21 @@
   "labels": {
     "failed": "Failed",
     "succeeded": "Succeeded",
+    "secretKey": "Secret Key",
+    "region": "Region",
+    "awsAccountNumber": "AWS Account Number",
+    "awsSecretAccessKey": "AWS Secret access key",
+    "enterTwelveDigitCode": "Enter 12 digit account number",
+    "nameYourInstallation": "Name your installation",
+    "startDeployment": "Start Deployment",
+    "newAWSInstallation": "New AWS Installation",
+    "newAWSSubText": "Deploy NocoDB on your AWS servers. ",
+    "emptyInstallations": "No Installations",
+    "addNewInstallation": "New Installation",
+    "onPremSubTitle": "Deploy NocoDB on your infrastructure for enhanced data security, compliance, and performance. Gain complete control over your setup while ensuring seamless access and scalability for your organization.",
+    "installation": "Installation",
+    "installationName": "Installation Name",
+    "onPremise": "On Premise",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -1121,6 +1142,7 @@
     "showJsonPayload": "Show JSON payload"
   },
   "activity": {
+    "installations": "Installations",
     "clickToResolve": "Click to resolve",
     "resolvedBy": "Resolved by",
     "leaveWorkspace": "Leave workspace",
@@ -1854,6 +1876,14 @@
       "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
+      "installationNameRequired": "Installation name required",
+      "minThreeChars": "Minimum 3 characters",
+      "awsAccountRequired": "AWS Account ID is required",
+      "secretKeyRequired": "Secret key is required",
+      "invalidAWSAccountFormat": "Invalid AWS Account Number",
+      "regionRequired": "AWS Region is required",
+      "invalidRegion": "Invalid region",
+      "invalidSecretKey": "Invalid secret key",
       "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",

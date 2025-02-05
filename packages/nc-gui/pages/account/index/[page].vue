@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const { appInfo } = useGlobal()
 </script>
 
 <template>

@@ -44,6 +44,7 @@ export enum JobTypes {
 
   // EE Cloud
   ImageDeployment = 'image-deployment',
+  InstallationCleanup = 'cleanup-installation',
 }
 
 export const SKIP_STORING_JOB_META = [

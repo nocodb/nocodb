@@ -23,6 +23,14 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'control_plane',
+    title: 'NocoDB Control Plane',
+    description: 'Deploy NocoDB to your platform of choice with the NocoDB Control Plane in one click. ',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts (Beta)',
     description: 'Enable NocoDB Scripts to automate repetetive workflow',

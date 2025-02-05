@@ -3,7 +3,6 @@ import { createToken, Lexer } from 'chevrotain';
 const IDENTIFIER = createToken({
   name: 'IDENTIFIER',
   pattern: /[a-zA-Z0-9!@#$%^&*_+\-=[\]{};:\\|.<>/? ]+/,
-  // pattern: /[a-zA-Z]\w*/,
 });
 export const COMMON_TOKEN = {
   PAREN_START: createToken({ name: 'PAREN_START', pattern: /\(/ }),

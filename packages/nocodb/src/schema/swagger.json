@@ -29217,6 +29217,10 @@
           }
         }
       },
+      "Installation": {},
+      "Deployment": {},
+      "DeploymentLogs": {},
+      "Image": {},
       "BadRequest": {
         "description": "BadReqeust",
         "content": {

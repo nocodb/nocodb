@@ -209,7 +209,7 @@ export function useCanvasTable({
           f.extra = getSingleMultiselectColOptions(f)
         }
 
-        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || isAddingEmptyRowAllowed.value)
+        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
 
         return {
           id: f.id,
@@ -227,7 +227,10 @@ export function useCanvasTable({
           relatedColObj,
           relatedTableMeta,
           isMysql,
-          isInvalidColumn: isInvalid,
+          isInvalidColumn: {
+            ...isInvalid,
+            tooltip: t(isInvalid.tooltip),
+          },
         }
       })
       .filter((c) => !!c)

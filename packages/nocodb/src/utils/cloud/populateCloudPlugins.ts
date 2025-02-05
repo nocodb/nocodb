@@ -5,11 +5,12 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   if (
-    !process.env.NC_CLOUD_S3_ACCESS_KEY ||
-    !process.env.NC_CLOUD_S3_ACCESS_SECRET ||
-    !process.env.NC_CLOUD_S3_BUCKET_NAME ||
-    !process.env.NC_CLOUD_S3_REGION ||
-    !process.env.NC_CLOUD_S3_ACL
+    (!process.env.NC_CLOUD_S3_ACCESS_KEY ||
+      !process.env.NC_CLOUD_S3_ACCESS_SECRET ||
+      !process.env.NC_CLOUD_S3_BUCKET_NAME ||
+      !process.env.NC_CLOUD_S3_REGION ||
+      !process.env.NC_CLOUD_S3_ACL) &&
+    process.env.NODE_ENV !== 'development'
   ) {
     throw new Error('S3 env variables not found');
   }

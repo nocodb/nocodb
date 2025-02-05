@@ -314,6 +314,7 @@
   "objects": {
     "script": "Script",
     "scripts": "Scripts",
+    "url": "Url",
     "files": "files",
     "owner": "Owner",
     "member": "Member",
@@ -684,6 +685,7 @@
   "labels": {
     "failed": "Failed",
     "succeeded": "Succeeded",
+    "goToInstallation": "Go to Installation",
     "secretKey": "Secret Key",
     "region": "Region",
     "awsAccountNumber": "AWS Account Number",

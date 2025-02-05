@@ -6,9 +6,11 @@ const props = withDefaults(
     onDelete: () => Promise<void>
     deleteLabel?: string | undefined
     showDefaultDeleteMsg?: boolean
+    maskClosable?: boolean
   }>(),
   {
     showDefaultDeleteMsg: true,
+    maskClosable: true,
   },
 )
 
@@ -59,7 +61,7 @@ watch(visible, (value) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" size="small" centered>
+  <GeneralModal v-model:visible="visible" :mask-closable="maskClosable" size="small" centered>
     <div ref="modalRef" class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-gray-800">{{ deleteLabel }} {{ props.entityName }}</div>
 

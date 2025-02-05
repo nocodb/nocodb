@@ -683,6 +683,7 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "confirmUpdate": "Confirm update",
     "youCantDeleteInstallationWhileOperationIsInProgress": "You can't delete the installation while an operation is in progress",
     "youAreAlreadyOnTheLatestVersion": "You are already on the latest version",
     "updateAvailable": "Update available",

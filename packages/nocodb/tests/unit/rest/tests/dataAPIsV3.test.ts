@@ -2568,7 +2568,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       let rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
         query: {
-          where: `w=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2628,7 +2628,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
         query: {
-          where: `w=(Id,eq,2)`,
+          where: `(Id,eq,2)`,
         },
       });
 
@@ -2664,7 +2664,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
         query: {
-          where: `w=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2729,7 +2729,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
         query: {
-          where: `w=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2764,7 +2764,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         rspFromRecordAPI = await ncAxiosGet({
           url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
           query: {
-            where: `w=(Id,eq,${i})`,
+            where: `(Id,eq,${i})`,
           },
         });
         expect(rspFromLinkAPI.body.list.length).to.equal(1);
@@ -2841,7 +2841,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
         query: {
-          where: `w=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2882,7 +2882,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         rspFromRecordAPI = await ncAxiosGet({
           url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
           query: {
-            where: `w=(Id,eq,${i})`,
+            where: `(Id,eq,${i})`,
           },
         });
         if (i % 2 === 0) {
@@ -2960,7 +2960,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       let respFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
         query: {
-          where: `w=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 
@@ -2995,7 +2995,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       respFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
         query: {
-          where: `w=(Id,eq,2)`,
+          where: `(Id,eq,2)`,
         },
       });
 

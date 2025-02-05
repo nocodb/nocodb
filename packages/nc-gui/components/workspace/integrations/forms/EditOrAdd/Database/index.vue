@@ -94,6 +94,12 @@ const advancedOptionsExpansionPanel = ref<string[]>([])
 
 const isLoading = ref<boolean>(false)
 
+const maskedPassword = ref<boolean>(false)
+
+const maskedPasswordHelp = computed(() => {
+  return maskedPassword.value ? 'Re-enter your password to test or update connection' : undefined
+})
+
 const isDisabledSubmitBtn = computed(() => {
   if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
@@ -492,6 +498,13 @@ const activeIntegrationIcon = computed(() => {
   return integrationsIconMap[activeIntegrationType]
 })
 
+const onFocusPassword = () => {
+  if (maskedPassword.value) {
+    formState.value.dataSource.connection.password = ''
+    maskedPassword.value = false
+  }
+}
+
 // reset test status on config change
 watch(
   formState,
@@ -530,6 +543,12 @@ onMounted(async () => {
       sslUse: SSLUsage.No,
       is_private: activeIntegration.value?.is_private,
     }
+
+    if (formState.value.dataSource?.connection?.password === null) {
+      maskedPassword.value = true
+      formState.value.dataSource.connection.password = '*'.repeat(8)
+    }
+
     activeIntegrationformState.value = JSON.parse(JSON.stringify(formState.value))
     updateSSLUse(true)
   }
@@ -590,7 +609,7 @@ watch(
             class="nc-extdb-btn-test-connection"
             :class="{ 'pointer-events-none': testSuccess }"
             :loading="testingConnection"
-            :disabled="isLoading"
+            :disabled="isLoading || maskedPassword"
             icon-position="right"
             @click="testConnection()"
           >
@@ -764,9 +783,13 @@ watch(
                           class="nc-form-item-connection-password"
                           v-bind="validateInfos['dataSource.connection.password']"
                         >
+                          <template #help>
+                            <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
+                          </template>
                           <a-input-password
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).password"
                             class="nc-extdb-host-password"
+                            @focus="onFocusPassword"
                           />
                         </a-form-item>
                       </a-col>
@@ -892,9 +915,13 @@ watch(
                       <a-col :span="12">
                         <!-- Password -->
                         <a-form-item :label="$t('labels.password')">
+                          <template #help>
+                            <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
+                          </template>
                           <a-input-password
                             v-model:value="(formState.dataSource.connection as DefaultConnection).password"
                             class="nc-extdb-host-password"
+                            @focus="onFocusPassword"
                           />
                         </a-form-item>
                       </a-col>

@@ -20,6 +20,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { maskKnexConfig } from '~/helpers/responseHelpers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -51,6 +52,10 @@ export class IntegrationsController {
       (integration.is_private && req.user.id !== integration.created_by)
     )
       integration.config = undefined;
+
+    if (integration.type === IntegrationsType.Database) {
+      maskKnexConfig(integration);
+    }
 
     return integration;
   }

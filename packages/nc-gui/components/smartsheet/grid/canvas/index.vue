@@ -1094,6 +1094,16 @@ onBeforeUnmount(() => {
 .nc-canvas-table-editable-cell-wrapper {
   @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
 
+  :deep(.nc-cell-longtext) {
+    .nc-readonly-rich-text-wrapper {
+      @apply !pl-2 pt-0.5;
+    }
+
+    .nc-text-area-expand-btn {
+      @apply !pr-1 !pt-1;
+    }
+  }
+
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

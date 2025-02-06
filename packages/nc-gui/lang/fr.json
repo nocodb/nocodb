@@ -676,6 +676,8 @@
     "customUrl": "URL personnalisée"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "Pas d'image",
     "quickNavigation": "Navigation Rapide",
     "recent": "Récent",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "Supprimer toutes les entrées",
     "assignView": "Affecter la vue",
     "webhookDetails": "Détails du Webhook",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Afficher les samedis et dimanches",
     "renameBase": "Renommer la Base",
     "renameWorkspace": "Renommer l'espace de travail",

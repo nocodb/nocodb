@@ -94,7 +94,7 @@
   },
   "general": {
     "supported": "지원",
-    "usage": "Usage",
+    "usage": "사용법",
     "snapshot": "스냅샷",
     "snapshots": "스냅샷",
     "baseSnapshots": "프로젝트 스냅샷",
@@ -308,8 +308,8 @@
     "you": "당신",
     "read": "읽음",
     "unread": "읽지 않음",
-    "shared": "Shared",
-    "organization": "Organization"
+    "shared": "공유된 뷰가 성공적으로 삭제되었습니다",
+    "organization": "조직"
   },
   "objects": {
     "script": "스크립트",
@@ -676,6 +676,8 @@
     "customUrl": "사용자 정의 URL"
   },
   "labels": {
+    "failed": "실패",
+    "succeeded": "성공",
     "noImage": "이미지 없음",
     "quickNavigation": "목차",
     "recent": "최근",
@@ -702,7 +704,7 @@
     "newSnapshot": "새 스냅샷",
     "searchASnapshot": "스냅샷 검색",
     "continue": "계속",
-    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
+    "toggleExperimentalFeature": "실험적 기능을 활성화하거나 비활성화하여 향후 기능을 탐색합니다.",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
     "setup": "설정",
@@ -905,7 +907,7 @@
     "createViews": "{count} 뷰 생성",
     "createViews_plural": "{count} 뷰 생성",
     "duplicateView": "뷰 복제",
-    "noTableViews": "This table has no views.",
+    "noTableViews": "이 테이블에는 뷰가 없습니다.",
     "duplicateGridView": "그리드 뷰 복제",
     "createGridView": "그리드 뷰 생성",
     "createGridViewPlural": "그리드 뷰 생성(s)",
@@ -1021,7 +1023,7 @@
     "personalAccessToken": "개인 액세스 토큰",
     "whereToFind": "어디에서 찾을 수 있습니까?",
     "sharedBaseUrl": "Base URL 공유",
-    "sharedPublicly": "Shared publicly",
+    "sharedPublicly": "공개적으로 공유됨",
     "importData": "데이터 가져오기",
     "importDataFrom": "데이터 가져오기 위치",
     "importSecondaryViews": "보조 보기 가져오기",
@@ -1114,9 +1116,9 @@
     "suggestTablesViews": "테이블 & 뷰 제안",
     "configureAiButton": "AI 버튼 구성",
     "viewHide": "뷰 보임 여부 ",
-    "osBrowser": "OS, Browser",
-    "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "osBrowser": "OS, 브라우저",
+    "rowId": "행 ID",
+    "showJsonPayload": "JSON 페이로드 표시"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "모든 레코드 삭제",
     "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
+    "webhookLogs": "웹후크 로그",
     "showSaturdaysAndSundays": "토요일 & 일요일 보기",
     "renameBase": "프로젝트 이름 바꾸기",
     "renameWorkspace": "작업공간 이름 변경",
@@ -1163,7 +1166,7 @@
     "viewAttachment": "첨부 파일 보기",
     "attachmentDrop": "셀에 파일을 클릭하거나 끌어다 놓습니다",
     "addFiles": "파일 추가",
-    "uploadFiles": "Upload File(s)",
+    "uploadFiles": "파일업로드",
     "hideInUI": "UI에서 숨기기",
     "addBase": "프로젝트 추가",
     "addParameter": "매개 변수 추가",
@@ -1823,7 +1826,7 @@
       "deleteKanbanStackConfirmation": "이 스택을 삭제하면 '{groupingField}'에서 '{stackToBeDeleted}' 선택 옵션도 제거됩니다. 레코드가 분류되지 않은 스택으로 이동합니다.",
       "computedFieldEditWarning": "계산 필드: 내용이 읽기 전용입니다. 열 편집 메뉴를 사용하여 재구성합니다",
       "computedFieldDeleteWarning": "콘텐츠는 읽기 전용입니다",
-      "fieldReadonly": "This field is read-only",
+      "fieldReadonly": "이 필드는 읽기 전용입니다",
       "noMoreRecords": "더 이상 레코드가 없습니다",
       "tokenNameNotEmpty": "토큰 이름은 비워 둘 수 없습니다",
       "tokenNameMaxLength": "토큰 이름은 255자를 넘지 않아야 합니다",

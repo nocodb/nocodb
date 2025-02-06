@@ -1,26 +1,22 @@
 name: "bumper"
 
 on:
-  push:
-    branches:
-      - "develop"
   pull_request_target:
     branches:
       - "develop"
+    paths:
+      - "pnpm-lock.yaml"
 
 jobs:
   bumper:
-    runs-on: self-hosted
+    runs-on: nix
 
     permissions:
       contents: "write"
-      id-token: "write"
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Run Bumper
-      run: nix run .#bumper
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Run Bumper
+        run: nix run .#bumper

@@ -676,6 +676,8 @@
     "customUrl": "カスタムURL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "画像なし",
     "quickNavigation": "クイックナビゲーション",
     "recent": "最近",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "すべてのレコードを削除",
     "assignView": "ビューを割り当てる",
     "webhookDetails": "Webhookの詳細",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "土曜日と日曜日を表示",
     "renameBase": "ベース名を変更",
     "renameWorkspace": "作業スペースの名前を変更",

@@ -210,10 +210,6 @@ const handleSearchConnection = useDebounceFn(() => {
   loadConnections()
 }, 250)
 
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 const isUserDeleted = (userId?: string) => {
   if (!userId) return false
 

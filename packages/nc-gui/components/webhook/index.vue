@@ -15,6 +15,11 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['close', 'update:value'])
 
+enum HookTab {
+  Configuration = 'configuration',
+  Log = 'log',
+}
+
 const { eventList } = toRefs(props)
 
 const { t } = useI18n()
@@ -454,6 +459,8 @@ const sampleData = ref()
 
 const containerElem = ref()
 
+const activeTab = ref<HookTab>(HookTab.Configuration)
+
 const [isVisible, toggleVisibility] = useToggle()
 
 const toggleSamplePayload = () => {
@@ -596,41 +603,74 @@ onMounted(async () => {
 <template>
   <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
     <template #header>
-      <div class="flex w-full items-center p-4 justify-between">
-        <div class="flex items-center gap-3">
+      <div class="flex w-full items-center px-4 py-2 justify-between">
+        <div class="flex items-center gap-3 flex-1">
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">
-            {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
+            <template v-if="activeTab === HookTab.Configuration">
+              {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
+            </template>
+            <template v-else>
+              {{ $t('activity.webhookLogs') }}
+            </template>
           </span>
         </div>
 
-        <div class="flex justify-end items-center gap-3">
-          <NcTooltip :disabled="!testConnectionError">
-            <template #title>
-              {{ testConnectionError }}
-            </template>
-            <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
-              <template #icon>
-                <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
-                <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
+        <div v-if="hook && isEeUI" class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+          <div
+            v-e="['c:webhook:edit']"
+            class="tab"
+            :class="{
+              active: activeTab === HookTab.Configuration,
+            }"
+            @click="activeTab = HookTab.Configuration"
+          >
+            <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
+          </div>
+          <div
+            v-e="['c:webhook:log']"
+            class="tab"
+            :class="{
+              active: activeTab === HookTab.Log,
+            }"
+            @click="activeTab = HookTab.Log"
+          >
+            <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end items-center gap-3 flex-1">
+          <template v-if="activeTab === HookTab.Configuration">
+            <NcTooltip :disabled="!testConnectionError">
+              <template #title>
+                {{ testConnectionError }}
               </template>
-              <span>
-                {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
-              </span>
+              <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
+                <template #icon>
+                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
+                  <GeneralIcon
+                    v-else-if="testConnectionError"
+                    icon="alertTriangleSolid"
+                    class="!text-red-700 w-4 h-4 flex-none"
+                  />
+                </template>
+                <span>
+                  {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
+                </span>
+              </NcButton>
+            </NcTooltip>
+
+            <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
+              {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
             </NcButton>
-          </NcTooltip>
-
-          <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
-            {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
-          </NcButton>
-
+          </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
@@ -1002,6 +1042,9 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">
+      <WebhookCallLog :hook="hook" />
+    </div>
   </NcModal>
 </template>
 
@@ -1156,5 +1199,27 @@ onMounted(async () => {
 
 :deep(.mtk1) {
   @apply text-[#000000D9];
+}
+
+.tab {
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+}
+
+.tab-icon {
+  font-size: 1rem !important;
+  @apply w-4;
+}
+.tab .tab-title {
+  @apply min-w-0 text-sm;
+  word-break: keep-all;
+  white-space: nowrap;
+  display: inline;
+  line-height: 0.95;
+}
+
+.active {
+  @apply bg-white text-brand-600 hover:text-brand-600;
+
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

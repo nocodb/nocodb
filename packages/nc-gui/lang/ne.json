@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "वेबहुक विवरणहरू",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "बेस नाम परिवर्तन गर्नुहोस्",
     "renameWorkspace": "वर्कस्पेस नाम परिवर्तन गर्नुहोस्",

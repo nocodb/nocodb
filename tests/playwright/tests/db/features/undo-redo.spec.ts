@@ -600,6 +600,12 @@ test.describe('Undo Redo - LTAR', () => {
       requestUrlPathToMatch: `/api/v1/db/data/noco`,
       responseJsonMatcher: json => json.pageInfo,
     });
+    // adding a delay to make tests more consistent
+    await new Promise<void>(resolve =>
+      setTimeout(() => {
+        resolve();
+      }, 50)
+    );
     await verifyRecords(values);
   }
 

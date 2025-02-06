@@ -1043,14 +1043,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'Ctrl'
-}
-
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 onKeyDown('ArrowDown', () => {
   const index = fields.value.findIndex((f) => compareCols(f, activeField.value))
   if (index === -1) changeField(fields.value[0])

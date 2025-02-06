@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "删除所有记录",
     "assignView": "指定视图",
     "webhookDetails": "Webhook 详情",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "显示周六和周日",
     "renameBase": "重命名项目",
     "renameWorkspace": "重命名工作区",

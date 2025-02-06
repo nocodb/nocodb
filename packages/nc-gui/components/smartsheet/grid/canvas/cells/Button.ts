@@ -428,12 +428,12 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const startX = x + (width - buttonWidth) / 2
     const startY = y + 4
-
-    if (isBoxHovered({ x: startX, y: startY, height: buttonHeight, width: buttonWidth }, mousePosition)) {
+    const box = { x: startX, y: startY, height: buttonHeight, width: buttonWidth }
+    if (isBoxHovered(box, mousePosition)) {
       showTooltip({
         position: {
-          x: mousePosition.x,
-          y: mousePosition.y - 40,
+          x: box.x + box.width / 2,
+          y: box.y - 30,
         },
         text: tooltip,
       })

@@ -680,11 +680,10 @@ export default function (API_VERSION: 'v2' | 'v3') {
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: {
           where:
-            '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,Allahabad, India)',
+            '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,"Allahabad, India")',
           limit: 400,
         },
       });
-
       expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
       const filteredArray = rsp.body.list.map(
         (r: any) => r.SingleLineText + ' ' + r.MultiLineText,

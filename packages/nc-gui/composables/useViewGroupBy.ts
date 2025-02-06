@@ -356,39 +356,39 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
-        if (!options?.triggerChildOnly) {
-          const response = !isPublic
-            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-                offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-                limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+        // if (!options?.triggerChildOnly) {
+        const response = !isPublic
+          ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+              offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
+              limit: groupByGroupLimit.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: `${nestedWhere}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+              column_name: groupby.column.title,
+            } as any)
+          : await api.public.dataGroupBy(
+              sharedView.value!.uuid!,
+              {
+                offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
+                limit: groupByGroupLimit.value,
                 ...params,
-                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                where: `${nestedWhere}`,
+                where: nestedWhere,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
-              } as any)
-            : await api.public.dataGroupBy(
-                sharedView.value!.uuid!,
-                {
-                  offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-                  limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-                  ...params,
-                  where: nestedWhere,
-                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                  column_name: groupby.column.title,
-                  sortsArr: sorts.value,
-                  filtersArr: nestedFilters.value,
+                sortsArr: sorts.value,
+                filtersArr: nestedFilters.value,
+              },
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
                 },
-                {
-                  headers: {
-                    'xc-password': sharedViewPassword.value,
-                  },
-                },
-              )
+              },
+            )
 
-          group = await processGroupData(response, group)
-        }
+        group = await processGroupData(response, group)
+        // }
 
         if (appInfo.value.ee && group?.children?.length) {
           const aggregationAliasMapper = new AliasMapper()
@@ -431,84 +431,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
               if (child) {
                 Object.assign(child.aggregations, value)
-              }
-            })
-          }
-        }
-
-        if (group?.children?.length && group.nestedIn.length === groupBy.value.length - 1) {
-          const aliasMapper = new AliasMapper()
-
-          const childViewFilters = group?.children?.map((childGroup) => {
-            return {
-              alias: aliasMapper.generateAlias(childGroup.key),
-              where: calculateNestedWhere(childGroup.nestedIn, where?.value),
-              offset:
-                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
-              limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            }
-          })
-
-          if (childViewFilters.length > 0) {
-            const bulkData = !isPublic
-              ? await api.dbDataTableBulkList.dbDataTableBulkList(
-                  meta.value.id,
-                  {
-                    viewId: view.value.id,
-                  },
-                  childViewFilters,
-                  {},
-                )
-              : await fetchBulkListData({}, childViewFilters)
-
-            await aliasMapper.process(bulkData, (originalKey, value: any) => {
-              const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
-              if (child) {
-                child.count = value.pageInfo.totalRows ?? 0
-                child.rows = formatData(value.list)
-                child.paginationData = value.pageInfo
-              }
-            })
-          }
-        }
-
-        if (group?.children?.length && group.nestedIn.length < groupBy.value.length - 1) {
-          const aliasMapper = new AliasMapper()
-
-          const childGroupFilters = group?.children?.map((childGroup) => {
-            const childGroupBy = groupBy.value[childGroup.nestedIn.length]
-            const childNestedWhere = calculateNestedWhere(childGroup.nestedIn, where?.value)
-
-            return {
-              alias: aliasMapper.generateAlias(childGroup.key),
-              offset:
-                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${childNestedWhere}`,
-              sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
-              column_name: childGroupBy.column.title,
-            }
-          })
-
-          if (childGroupFilters?.length > 0) {
-            const bulkGroupData = !isPublic
-              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(
-                  meta.value.id,
-                  {
-                    viewId: view.value.id,
-                  },
-                  childGroupFilters,
-                )
-              : await fetchBulkGroupData({}, childGroupFilters)
-
-            await aliasMapper.process(bulkGroupData, async (originalKey, value) => {
-              const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-              if (child) {
-                Object.assign(child, await processGroupData(value, child))
               }
             })
           }

@@ -6,6 +6,10 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import {
+  REGEXSTR_INTL_LETTER,
+  REGEXSTR_NUMERIC_ARABIC,
+} from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,
@@ -464,7 +468,10 @@ export async function populateRollupForLTAR({
 
 export const sanitizeColumnName = (name: string, sourceType?: DriverClient) => {
   if (process.env.NC_SANITIZE_COLUMN_NAME === 'false') return name;
-  let columnName = name.replace(/\W/g, '_');
+  let columnName = name.replace(
+    new RegExp(`[^${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}_]`, 'g'),
+    '_',
+  );
 
   // if column name only contains _ then return as 'field'
   if (/^_+$/.test(columnName)) columnName = 'field';

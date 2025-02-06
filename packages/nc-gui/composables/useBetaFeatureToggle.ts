@@ -98,14 +98,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'expanded_form_record_audits',
-    title: 'Expanded form record audits',
-    description: 'Record audits allow you to see each change on a record and who made it',
-    enabled: false,
-    isEE: true,
-    isEngineering: true,
-  },
-  {
     id: 'language',
     title: 'Language',
     description: 'Community/AI Translated',

@@ -531,21 +531,24 @@ async function handleMouseDown(e: MouseEvent) {
       } else {
         const row = cachedRows.value.get(rowIndex)
         const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
-        const res = await handleCellClick({
-          event: e,
-          row: row!,
-          column: clickedColumn,
-          value: row?.row[clickedColumn.title],
-          mousePosition: { x, y },
-          pk,
-        })
+        if (row) {
+          const res = await handleCellClick({
+            event: e,
+            row: row!,
+            column: clickedColumn,
+            value: row?.row[clickedColumn.title],
+            mousePosition: { x, y },
+            pk,
+          })
 
-        if (res) return
+          if (res) return
+        }
       }
+      const NO_EDITABLE_CELL = [UITypes.Rating, UITypes.Checkbox]
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
       if (e.detail === 2 && columnUIType === UITypes.Lookup) {
         makeCellEditable(rowIndex, clickedColumn)
-      } else if (columnUIType === UITypes.Rating) {
+      } else if (NO_EDITABLE_CELL.includes(columnUIType)) {
         // Rating is functional as is
       } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]

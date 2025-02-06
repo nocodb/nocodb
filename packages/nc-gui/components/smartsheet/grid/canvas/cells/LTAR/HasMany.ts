@@ -6,9 +6,6 @@ export const HasManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, padding } = props
 
-    const buttonSize = 24
-    const borderRadius = 6
-
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
@@ -29,68 +26,70 @@ export const HasManyCellRenderer: CellRenderer = {
     }, []) as { value: any; items: Record<string, any> }[]
 
     // Todo: Handle non select type, attachment, checkbox, lookup cell render
-    {
-      const initialX = x + 4
-      const initialWidth = width - 8
 
-      let currentX = initialX
-      let currentY = y + 2
-      let currentWidth = initialWidth
+    const initialX = x + 4
+    const initialWidth = width - 8
 
-      const renderProps: CellRendererOptions = {
-        ...props,
-        column: hmColumn,
-        relatedColObj: undefined,
-        relatedTableMeta: undefined,
-        readonly: true,
-        height: isAttachment(hmColumn) ? props.height : rowHeightInPx['1']!,
-        padding: 10,
-        textColor: themeV3Colors.brand['500'],
-        tag: {
-          renderAsTag: true,
-          tagBgColor: themeV3Colors.brand['50'],
-          tagHeight: 24,
-        },
-        meta: relatedTableMeta,
+    let currentX = initialX
+    let currentY = y + 2
+    let currentWidth = initialWidth
+
+    const renderProps: CellRendererOptions = {
+      ...props,
+      column: hmColumn,
+      relatedColObj: undefined,
+      relatedTableMeta: undefined,
+      readonly: true,
+      height: isAttachment(hmColumn) ? props.height : rowHeightInPx['1']!,
+      padding: 10,
+      textColor: themeV3Colors.brand['500'],
+      tag: {
+        renderAsTag: true,
+        tagBgColor: themeV3Colors.brand['50'],
+        tagHeight: 24,
+      },
+      meta: relatedTableMeta,
+    }
+
+    const maxLines = rowHeightTruncateLines(height, true)
+    let line = 1
+
+    for (const cell of cells) {
+      const point = PlainCellRenderer.render(ctx, {
+        ...renderProps,
+        value: cell.value,
+        x: currentX,
+        y: currentY,
+        width: currentWidth,
+      })
+
+      if (point?.x) {
+        if (point?.x >= x + initialWidth - padding * 2 - 50) {
+          currentX = initialX
+          currentWidth = initialWidth
+          currentY = point?.y ? point?.y : currentY + 28
+          line += 1
+        } else {
+          currentWidth = currentX + currentWidth - point?.x
+          currentX = point?.x
+        }
+      } else {
+        currentX = initialX
+        currentY = currentY + 28
+
+        currentWidth = initialWidth
+        line += 1
       }
 
-      const maxLines = rowHeightTruncateLines(height, true)
-      let line = 1
-
-      for (const cell of cells) {
-        const point = PlainCellRenderer.render(ctx, {
-          ...renderProps,
-          value: cell.value,
-          x: currentX,
-          y: currentY,
-          width: currentWidth,
-        })
-
-        if (point?.x) {
-          if (point?.x >= x + initialWidth - padding * 2 - 50) {
-            currentX = initialX
-            currentWidth = initialWidth
-            currentY = point?.y ? point?.y : currentY + 28
-            line += 1
-          } else {
-            currentWidth = currentX + currentWidth - point?.x
-            currentX = point?.x
-          }
-        } else {
-          currentX = initialX
-          currentY = currentY + 28
-
-          currentWidth = initialWidth
-          line += 1
-        }
-
-        if (line > maxLines) {
-          break
-        }
+      if (line > maxLines) {
+        break
       }
     }
 
     if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+      const buttonSize = 24
+      const borderRadius = 6
+
       renderIconButton(ctx, {
         buttonX: x + width - 57,
         buttonY: y + 4,

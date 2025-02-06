@@ -370,6 +370,7 @@ interface CellRendererOptions {
   column: ColumnType
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
+  meta?: TableType
   metas?: { [idOrTitle: string]: TableType | any }
   x: number
   y: number
@@ -381,7 +382,9 @@ interface CellRendererOptions {
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
   actionManager: ActionManager
-  isMysql: CanvasGridColumn['isMysql']
+  isMysql: (sourceId?: string) => boolean
+  isMssql: (sourceId?: string) => boolean
+  isXcdbBase: (sourceId?: string) => boolean
   t: Composer['t']
   padding: number
   renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
@@ -408,6 +411,7 @@ interface CellRendererOptions {
     x: number
     y: number
   }
+  sqlUis?: Record<string, any>
 }
 
 interface CellRenderer {
@@ -474,7 +478,6 @@ interface CanvasGridColumn {
   agg_prefix: string
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
-  isMysql: (sourceId?: string) => boolean
   isInvalidColumn?: {
     isInvalid: boolean
     tooltip: string

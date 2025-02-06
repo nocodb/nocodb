@@ -1,8 +1,16 @@
 import { createToken, Lexer } from 'chevrotain';
-
+import {
+  REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR,
+  REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
+  REGEXSTR_INTL_LETTER,
+  REGEXSTR_NUMERIC_ARABIC,
+  REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR,
+} from '../regex';
 const IDENTIFIER = createToken({
   name: 'IDENTIFIER',
-  pattern: /[a-zA-Z0-9!@#$%^&*_+\-=[\]{};:\\|.<>/? ]+/,
+  pattern: new RegExp(
+    `[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_IDENTIFIER_SPECIAL_CHAR}]+`
+  ),
 });
 export const COMMON_TOKEN = {
   PAREN_START: createToken({ name: 'PAREN_START', pattern: /\(/ }),
@@ -42,13 +50,17 @@ export const COMMON_TOKEN = {
   IDENTIFIER: IDENTIFIER,
   SUP_SGL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_SGL_QUOTE_IDENTIFIER',
-    pattern: /'[a-zA-Z0-9!@#$%^&*_+\-=[\](){};:\\|.<>/?," ]+'/,
+    pattern: new RegExp(
+      `'[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR}]+'`
+    ),
     // pattern: /[a-zA-Z]\w*/,
     longer_alt: IDENTIFIER,
   }),
   SUP_DBL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_DBL_QUOTE_IDENTIFIER',
-    pattern: /"[a-zA-Z0-9!@#$%^&*_+\-=[\](){};:\\|.<>/?,' ]+"/,
+    pattern: new RegExp(
+      `"[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR}]+"`
+    ),
     longer_alt: IDENTIFIER,
     // pattern: /[a-zA-Z]\w*/,
   }),

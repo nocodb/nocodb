@@ -9,25 +9,24 @@ export const REGEXSTR_INTL_LETTER = [
   REGEXSTR_CHINESE,
   REGEXSTR_CYRILLIC,
   REGEXSTR_HIRA_KATA_KANA,
-].join();
+].join('');
 export const REGEXSTR_NUMERIC_ARABIC = <const>'0-9';
 export const REGEXSTR_IDENTIFIER_SPECIAL_CHAR = <const>(
-  '!@#$%^&*_+-=[]{};:\\|.<>/?'
+  '!@#$%^&*_+\\-=[\\]{};:\\\\|.<>/?'
 );
 export const REGEXSTR_IDENTIFIER = [
   REGEXSTR_INTL_LETTER,
   REGEXSTR_NUMERIC_ARABIC,
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-].join();
+].join('');
 export const REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR = [
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-  '"(),',
-].join();
+  '"(), ',
+].join('');
 export const REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR = [
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-  "'(),",
-].join();
-
+  "'(), ",
+].join('');
 export const REGEXP_ALPHABET = new RegExp(`[${REGEXSTR_ALPHABET}]*`);
 export const REGEXP_CHINESE = new RegExp(`[${REGEXSTR_CHINESE}]*`);
 export const REGEXP_MANDARIN = REGEXP_CHINESE;

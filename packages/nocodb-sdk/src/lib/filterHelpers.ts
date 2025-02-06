@@ -116,6 +116,18 @@ export function extractFilterFromXwhere(
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false
 ): FilterType[] {
+  for(const columnName of Object.keys(aliasColObjMap)) {
+    const column = aliasColObjMap[columnName]
+    aliasColObjMap[column.id] = column;
+  }
+  return innerExtractFilterFromXwhere(str, aliasColObjMap, throwErrorIfInvalid);
+}
+
+function innerExtractFilterFromXwhere(
+  str: string | string[],
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid = false
+): FilterType[] {
   if (!str) {
     return [];
   } // if array treat it as `and` group

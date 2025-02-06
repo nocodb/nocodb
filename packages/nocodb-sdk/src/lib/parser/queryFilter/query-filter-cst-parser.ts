@@ -1,5 +1,9 @@
 import type { Rule, Token } from '../common-type';
-import { parseVariable, VariableRule } from '../common-cst-parser';
+import {
+  parseVariable,
+  parseVariableAsString,
+  VariableRule,
+} from '../common-cst-parser';
 
 export interface CstExpressionArguments
   extends Rule<
@@ -46,7 +50,7 @@ export interface CstCallExpression
   extends Rule<
     {
       PAREN_START: Token[];
-      IDENTIFIER: Token[];
+      VARIABLE: VariableRule[];
       COMMA: Token[];
       OPERATOR: Token[];
       expression_arguments: CstExpressionArguments[];
@@ -124,7 +128,7 @@ export const parseCallExpression = (
 
   const result: FilterClauseSubType = {
     is_group: false,
-    field: cst.children.IDENTIFIER[0].image,
+    field: parseVariableAsString(cst.children.VARIABLE),
     comparison_op: operator as any,
     logical_op: opt?.logicalOperator,
   };

@@ -52,7 +52,7 @@ export class QueryFilterParser extends CommonCstParser {
       $.CONSUME(COMMON_TOKEN.PAREN_END);
     });
     $.RULE('call_expression', () => {
-      $.CONSUME(COMMON_TOKEN.IDENTIFIER);
+      $.SUBRULE($['VARIABLE']);
       $.CONSUME2(COMMON_TOKEN.COMMA);
       $.CONSUME(TOKEN_OPERATOR);
       $.OPTION(() => {

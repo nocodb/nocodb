@@ -91,8 +91,8 @@ describe('query-filter-parser', () => {
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
-  it('will parse value with parentheses', async () => {
-    const text = '(field1,eq,"(hello)")';
+  it('will parse value and field with parentheses', async () => {
+    const text = '("field(1)",eq,"(hello)")';
     const result = QueryFilterParser.parse(text);
     const expectedParsedCst = {
       is_group: true,
@@ -100,7 +100,7 @@ describe('query-filter-parser', () => {
       children: [
         {
           is_group: false,
-          field: 'field1',
+          field: 'field(1)',
           comparison_op: 'eq',
           value: '(hello)',
         },

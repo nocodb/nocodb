@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Detaily Webhooku",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Premenovanie Základu",
     "renameWorkspace": "Premenovať pracovný priestor",

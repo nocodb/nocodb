@@ -53,39 +53,11 @@ const creatingSource = ref(false)
 
 const step = ref(1)
 
-const progressQueue = ref<Record<string, any>[]>([])
-
-const progress = ref<Record<string, any>[]>([])
-
-const logRef = ref<typeof AntCard>()
+const progressRef = ref()
 
 const advancedOptionsExpansionPanel = ref<string[]>([])
 
 const isLoading = ref<boolean>(false)
-
-const _pushProgress = async () => {
-  if (progressQueue.value.length) {
-    if (!creatingSource.value) {
-      progress.value.push(...progressQueue.value.splice(0, progressQueue.value.length))
-    } else {
-      progress.value.push(progressQueue.value.shift()!)
-    }
-  }
-
-  await nextTick(() => {
-    const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
-    if (!container) return
-    container.scrollTop = container.scrollHeight
-  })
-}
-
-const pushProgress = async (message: string, status: JobStatus | 'progress') => {
-  progressQueue.value.push({ msg: message, status })
-
-  setTimeout(() => {
-    _pushProgress()
-  }, 100 * progressQueue.value.length)
-}
 
 const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
   const config = getDefaultConnectionConfig(client)
@@ -283,16 +255,22 @@ onUnmounted(() => {
   if (timerRef) clearTimeout(timerRef)
 })
 
-function loadWorkspacesWithInterval() {
+function loadWorkspacesWithInterval(initial = false) {
   ;(async () => {
     try {
       if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
         if (randomMessages.length) {
           const random = Math.floor(Math.random() * randomMessages.length)
-          pushProgress(randomMessages[random], 'progress')
+          progressRef.value?.pushProgress(randomMessages[random], 'progress')
           randomMessages.splice(random, 1)
         }
         await loadWorkspaces(true)
+
+        // if initial load call immediately, else call every 5 seconds
+        if (initial) {
+          loadWorkspacesWithInterval()
+        }
+
         // keep checking for workspace status every 5 seconds if workspace is upgrading
         timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
       } else {
@@ -300,7 +278,7 @@ function loadWorkspacesWithInterval() {
           await loadProject(baseId.value, true)
           await loadProjectTables(baseId.value, true)
         }
-        pushProgress('Done!', 'progress')
+        progressRef.value?.pushProgress('Done!', JobStatus.COMPLETED)
         creatingSource.value = false
         onDashboard()
       }
@@ -377,23 +355,23 @@ const createSource = async () => {
             emit('sourceCreated')
             if (data.data?.result.needUpgrade) {
               activeWorkspace.value.status = WorkspaceStatus.CREATING
-              loadWorkspacesWithInterval()
+              loadWorkspacesWithInterval(true)
             } else {
               if (baseId.value) {
                 await loadProject(baseId.value, true)
                 await loadProjectTables(baseId.value, true)
               }
-              pushProgress('Done!', 'progress')
+              progressRef.value?.pushProgress('Done!', JobStatus.COMPLETED)
               creatingSource.value = false
               onDashboard()
             }
           } else if (data.status === JobStatus.FAILED) {
-            pushProgress('Failed to create source!', 'progress')
-            if (data.data?.error?.message) pushProgress(data.data?.error.message, data.status)
+            if (data.data?.error?.message) progressRef.value?.pushProgress(data.data?.error.message, data.status)
+            progressRef.value?.pushProgress('Failed to create source!', JobStatus.FAILED)
             creatingSource.value = false
             goBack.value = true
           } else if (!data?.status && data.data?.message) {
-            pushProgress(data.data.message, 'progress')
+            progressRef.value?.pushProgress(data.data.message, 'progress')
           }
         }
       },
@@ -513,8 +491,6 @@ const refreshState = async (keepForm = false) => {
   creatingSource.value = false
   goToDashboard.value = false
   testingConnection.value = false
-  progressQueue.value = []
-  progress.value = []
   step.value = 1
 }
 
@@ -966,38 +942,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
               <!--         Inferring schema from your data source -->
               <div class="mb-4 prose-xl font-bold">Inferring schema from your data source</div>
 
-              <a-card
-                ref="logRef"
-                :body-style="{
-                  backgroundColor: '#000000',
-                  height: goToDashboard ? '200px' : '400px',
-                  overflow: 'auto',
-                  borderRadius: '8px',
-                }"
-              >
-                <div v-for="({ msg, status }, i) in progress" :key="i">
-                  <div v-if="status === JobStatus.FAILED" class="flex items-center">
-                    <component :is="iconMap.closeCircle" class="text-red-500" />
-
-                    <span class="text-red-500 ml-2">{{ msg }}</span>
-                  </div>
-
-                  <div v-else class="flex items-center">
-                    <MdiCurrencyUsd class="text-green-500" />
-
-                    <span class="text-green-500 ml-2">{{ msg }}</span>
-                  </div>
-                </div>
-
-                <div
-                  v-if="!goToDashboard && progress[progress.length - 1]?.status !== JobStatus.FAILED"
-                  class="flex items-center"
-                >
-                  <!--            Importing -->
-                  <component :is="iconMap.loading" class="text-green-500 animate-spin" />
-                  <span class="text-green-500 ml-2">Setting up...</span>
-                </div>
-              </a-card>
+              <GeneralProgressPanel ref="progressRef" class="max-h-[600px]" />
 
               <div v-if="goToDashboard">
                 <a-form :model="useCaseFormState" name="useCase" autocomplete="off" @finish="onUseCaseFormSubmit">

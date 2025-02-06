@@ -421,7 +421,7 @@ interface CellRenderer {
     pk: any
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
-    updateOrSaveRow?: (
+    updateOrSaveRow: (
       row: Row,
       property?: string,
       ltarState?: Record<string, any>,
@@ -430,7 +430,23 @@ interface CellRenderer {
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
-  }) => Promise<void>
+  }) => Promise<boolean>
+  handleKeyDown?: (options: {
+    e: KeyboardEvent
+    row: Row
+    column: ColumnType
+    value: any
+    pk: any
+    updateOrSaveRow: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+  }) => Promise<boolean>
   [key: string]: any
 }
 

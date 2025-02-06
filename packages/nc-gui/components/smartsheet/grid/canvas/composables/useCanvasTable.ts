@@ -405,7 +405,7 @@ export function useCanvasTable({
     actionManager,
     updateOrSaveRow,
     makeCellEditable,
-    meta: meta.value,
+    meta,
   })
 
   const { canvasRef, renderCanvas } = useCanvasRender({

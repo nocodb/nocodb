@@ -48,8 +48,6 @@ const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
-const { gridViewPageSize } = useGlobal()
-
 const scrollLeft = toRef(props, 'scrollLeft')
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())

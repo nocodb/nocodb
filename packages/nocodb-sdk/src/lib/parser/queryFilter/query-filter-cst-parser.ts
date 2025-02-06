@@ -9,24 +9,37 @@ export interface CstExpressionArguments
     },
     'expression_arguments'
   > {}
+
+export interface CstMultiClause
+  extends Rule<
+    {
+      clause: (CstAndOrClause | CstNotClause | CstParenClause)[];
+    },
+    'multi_clause'
+  > {}
+export interface CstAndOrClause
+  extends Rule<
+    {
+      clause: CstParenClause[];
+      operator: Token[];
+    },
+    'and_or_clause'
+  > {}
+export interface CstNotClause
+  extends Rule<
+    {
+      clause: CstParenClause[];
+    },
+    'not_clause'
+  > {}
 export interface CstParenClause
   extends Rule<
     {
-      NOT_OPERATOR: Token[];
       clause: (CstMultiClause | CstCallExpression)[];
       PAREN_START: Token[];
       PAREN_END: Token[];
     },
     'paren_clause'
-  > {}
-
-export interface CstMultiClause
-  extends Rule<
-    {
-      clause: CstParenClause[];
-      BINARY_LOGICAL_OPERATOR: Token[];
-    },
-    'multi_clause'
   > {}
 
 export interface CstCallExpression
@@ -69,32 +82,38 @@ export const parseMultiClause = async (
   };
   for (let index = 0; index < cst.children.clause.length; index++) {
     const clause = cst.children.clause[index];
-    const logicalOpNode =
-      index > 0 ? cst.children.BINARY_LOGICAL_OPERATOR[index - 1] : undefined;
     result.children.push(
-      await parseParenClause(clause, {
-        logicalOperator: logicalOpNode
-          ? logicalOpNode.image.replace('~', '')
-          : undefined,
-      })
+      clause.name === 'and_or_clause'
+        ? await parseAndOrClause(clause)
+        : clause.name === 'not_clause'
+        ? await parseNotClause(clause)
+        : await parseParenClause(clause)
     );
   }
   return result;
 };
+
+export const parseNotClause = async (cst: CstNotClause) => {
+  return parseParenClause(cst.children.clause[0], {
+    logicalOperator: 'not',
+  });
+};
+
+export const parseAndOrClause = async (cst: CstAndOrClause) => {
+  return parseParenClause(cst.children.clause[0], {
+    logicalOperator: cst.children.operator[0].image.replace('~', ''),
+  });
+};
+
 export const parseParenClause = async (
   cst: CstParenClause,
   opt?: { logicalOperator?: string }
 ) => {
-  const isNot: boolean =
-    cst.children.NOT_OPERATOR !== undefined &&
-    cst.children.NOT_OPERATOR.length > 0;
   const clause = cst.children.clause[0];
   if (clause.name === 'multi_clause') {
     return await parseMultiClause(clause, opt);
   } else {
-    return await parseCallExpression(clause, {
-      logicalOperator: isNot ? 'not' : opt.logicalOperator,
-    });
+    return await parseCallExpression(clause, opt);
   }
 };
 export const parseCallExpression = async (
@@ -107,7 +126,7 @@ export const parseCallExpression = async (
     is_group: false,
     field: cst.children.IDENTIFIER[0].image,
     comparison_op: operator as any,
-    logical_op: opt.logicalOperator,
+    logical_op: opt?.logicalOperator,
   };
   result.comparison_sub_op = cst.children.expression_arguments[0].children
     .SUBOPERATOR?.[0]?.image as any;

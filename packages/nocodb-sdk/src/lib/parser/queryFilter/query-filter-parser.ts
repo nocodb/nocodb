@@ -24,34 +24,32 @@ export class QueryFilterParser extends CommonCstParser {
     // not mandatory, using $ (or any other sign) to reduce verbosity (this. this. this. this. .......)
     const $ = this;
 
-    $.RULE('logical_clause', () => {
-      $.SUBRULE($['paren_clause'], { LABEL: 'lhc' });
-      $.OPTION(() => {
-        $.CONSUME(BINARY_LOGICAL_OPERATOR);
-        $.SUBRULE2($['paren_clause'], { LABEL: 'rhc' });
-      });
-    });
-
     // the parsing methods
     // we define the "rules" of how the syntax will be defined
-    $.RULE('paren_clause', () => {
-      $.OPTION(() => {
-        $.CONSUME(NOT_OPERATOR);
+    $.RULE('multi_clause', () => {
+      $.OR([
+        { ALT: () => $.SUBRULE($['not_clause'], { LABEL: 'clause' }) },
+        { ALT: () => $.SUBRULE($['paren_clause'], { LABEL: 'clause' }) },
+      ]);
+      $.MANY({
+        DEF: () => $.SUBRULE($['and_or_clause'], { LABEL: 'clause' }),
       });
+    });
+    $.RULE('and_or_clause', () => {
+      $.CONSUME(BINARY_LOGICAL_OPERATOR, { LABEL: 'operator' });
+      $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
+    });
+    $.RULE('not_clause', () => {
+      $.CONSUME(NOT_OPERATOR);
+      $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
+    });
+    $.RULE('paren_clause', () => {
       $.CONSUME(COMMON_TOKEN.PAREN_START);
       $.OR([
         { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
         { ALT: () => $.SUBRULE($['multi_clause'], { LABEL: 'clause' }) },
       ]);
       $.CONSUME(COMMON_TOKEN.PAREN_END);
-    });
-    $.RULE('multi_clause', () => {
-      $.AT_LEAST_ONE_SEP({
-        SEP: BINARY_LOGICAL_OPERATOR,
-        DEF: () => {
-          $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
-        },
-      });
     });
     $.RULE('call_expression', () => {
       $.CONSUME(COMMON_TOKEN.IDENTIFIER);

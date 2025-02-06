@@ -12,7 +12,7 @@ export interface Token {
   tokenType: TokenType[];
 }
 
-export interface Rule<T> {
-  name: string;
+export interface Rule<T, N> {
+  name: N;
   children: T;
 }

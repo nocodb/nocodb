@@ -1,11 +1,17 @@
 import { ColumnType, FilterType } from '~/lib/Api';
 import { UITypes } from '~/lib/index';
 import { NcSDKError } from '~/lib/errorUtils';
-import { QueryFilterParser } from './parser/queryFilter/query-filter-parser';
+import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
-} from './parser/queryFilter/query-filter-cst-parser';
+} from '~/lib/parser/queryFilter/query-filter-cst-parser';
+export {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '~/lib/parser/queryFilter/query-filter-lexer';
 
 /**
  * Converts a flat array of filter objects into a nested tree structure
@@ -54,8 +60,8 @@ export function extractFilterFromXwhere(
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false
 ): FilterType[] {
-  for(const columnName of Object.keys(aliasColObjMap)) {
-    const column = aliasColObjMap[columnName]
+  for (const columnName of Object.keys(aliasColObjMap)) {
+    const column = aliasColObjMap[columnName];
     aliasColObjMap[column.id] = column;
   }
   return innerExtractFilterFromXwhere(str, aliasColObjMap, throwErrorIfInvalid);

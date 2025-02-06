@@ -7,6 +7,7 @@ export * from '~/lib/globals';
 export * from '~/lib/helperFunctions';
 export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
+export * from '~/lib/regex';
 export {
   default as UITypes,
   UITypesName,

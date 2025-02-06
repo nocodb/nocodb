@@ -481,6 +481,21 @@ interface CanvasGridColumn {
   }
 }
 
+interface ParsePlainCellValueProps {
+  value: any
+  params: {
+    col: ColumnType
+    abstractType: unknown
+    meta: TableType
+    metas: { [idOrTitle: string]: TableType | any }
+    baseUsers?: Map<string, User[]>
+    isMysql: (sourceId?: string) => boolean
+    isMssql: (sourceId?: string) => boolean
+    isXcdbBase: (sourceId?: string) => boolean
+    t: Composer['t']
+  }
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -523,4 +538,5 @@ export type {
   CellRendererOptions,
   CanvasGridColumn,
   FillHandlerPosition,
+  ParsePlainCellValueProps,
 }

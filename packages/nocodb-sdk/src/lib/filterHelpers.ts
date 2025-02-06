@@ -60,6 +60,9 @@ export function extractFilterFromXwhere(
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false
 ): FilterType[] {
+  if (!str) {
+    return [];
+  }
   for (const columnName of Object.keys(aliasColObjMap)) {
     const column = aliasColObjMap[columnName];
     aliasColObjMap[column.id] = column;

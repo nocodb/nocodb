@@ -676,6 +676,8 @@
     "customUrl": "사용자 정의 URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "이미지 없음",
     "quickNavigation": "목차",
     "recent": "최근",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "모든 레코드 삭제",
     "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "토요일 & 일요일 보기",
     "renameBase": "프로젝트 이름 바꾸기",
     "renameWorkspace": "작업공간 이름 변경",

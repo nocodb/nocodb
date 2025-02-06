@@ -676,6 +676,8 @@
     "customUrl": "כתובת URL מותאמת אישית"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "אין תמונה",
     "quickNavigation": "ניווט מהיר",
     "recent": "\tאחרונים",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "מחק את כל הרשומות",
     "assignView": "הקצאת תצוגה",
     "webhookDetails": "פרטי Webhook",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "הצג שבתות וימי ראשון",
     "renameBase": "שנה את שם הבסיס",
     "renameWorkspace": "שנה את שם מרחב העבודה",

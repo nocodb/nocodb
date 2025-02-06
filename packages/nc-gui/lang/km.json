@@ -676,6 +676,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -1132,6 +1134,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "ព័ត៌មានលម្អិតរបស់ Webhook",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "ផ្លាស់ប្ដូរឈ្មោះមូលដ្ឋាន",
     "renameWorkspace": "ផ្លាស់ប្ដូរឈ្មោះកន្លែងធ្វើការ",

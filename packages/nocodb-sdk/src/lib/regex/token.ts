@@ -1,4 +1,5 @@
 export const REGEXSTR_ALPHABET = <const>'A-Za-z';
+export const REGEXSTR_WHITESPACE = <const>' ';
 export const REGEXSTR_CHINESE = <const>'一-龠';
 export const REGEXSTR_MANDARIN = REGEXSTR_CHINESE;
 export const REGEXSTR_HIRA_KATA_KANA = <const>'ぁ-ゔァ-ヴー々〆〤ヶ';

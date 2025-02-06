@@ -82,6 +82,8 @@ import {
 import {
   extractExcludedColumnNames,
   getAliasGenerator,
+  isEE,
+  isOnPrem,
   nocoExecute,
   populateUpdatePayloadDiff,
 } from '~/utils';
@@ -7087,35 +7089,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .filter((c) => isVirtualCol(c) || isSystemColumn(c))
         .map((c) => c.title),
     ]);
-    await Audit.insert(
-      await generateAuditV1Payload<DataInsertPayload>(
-        AuditV1OperationTypes.DATA_INSERT,
-        {
-          context: {
-            ...this.context,
-            source_id: this.model.source_id,
-            fk_model_id: this.model.id,
-            row_id: id,
-          },
-          details: {
-            data: formatDataForAudit(filteredAuditData, this.model.columns),
-            column_meta: extractColsMetaForAudit(
-              this.model.columns,
-              filteredAuditData,
-            ),
-          },
-          req,
-        },
-      ),
-    );
 
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      await Audit.insert(
+        await generateAuditV1Payload<DataInsertPayload>(
+          AuditV1OperationTypes.DATA_INSERT,
+          {
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: id,
+            },
+            details: {
+              data: formatDataForAudit(filteredAuditData, this.model.columns),
+              column_meta: extractColsMetaForAudit(
+                this.model.columns,
+                filteredAuditData,
+              ),
+            },
+            req,
+          },
+        ),
+      );
+    }
     await this.handleRichTextMentions(null, data, req);
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
     let parentAuditId;
-    if (!req.ncParentAuditId) {
+
+    // disable external source audit in cloud
+    if (
+      !req.ncParentAuditId &&
+      !(isEE && !isOnPrem && !(await this.getSource())?.isMeta())
+    ) {
       parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
@@ -7136,39 +7146,49 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       req.ncParentAuditId = parentAuditId;
     }
-    // data here is not mapped to column alias
-    await Audit.insert(
-      await Promise.all(
-        data.map((d) => {
-          const data = remapWithAlias({ data: d, columns: this.model.columns });
 
-          return generateAuditV1Payload<DataInsertPayload>(
-            AuditV1OperationTypes.DATA_INSERT,
-            {
-              context: {
-                ...this.context,
-                source_id: this.model.source_id,
-                fk_model_id: this.model.id,
-                row_id: this.extractPksValues(data, true),
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      // data here is not mapped to column alias
+      await Audit.insert(
+        await Promise.all(
+          data.map((d) => {
+            const data = remapWithAlias({
+              data: d,
+              columns: this.model.columns,
+            });
+
+            return generateAuditV1Payload<DataInsertPayload>(
+              AuditV1OperationTypes.DATA_INSERT,
+              {
+                context: {
+                  ...this.context,
+                  source_id: this.model.source_id,
+                  fk_model_id: this.model.id,
+                  row_id: this.extractPksValues(data, true),
+                },
+                details: {
+                  data: formatDataForAudit(
+                    removeBlankPropsAndMask(data, [
+                      'created_at',
+                      'updated_at',
+                      'created_by',
+                      'updated_by',
+                    ]),
+                    this.model.columns,
+                  ),
+                  column_meta: extractColsMetaForAudit(
+                    this.model.columns,
+                    data,
+                  ),
+                },
+                req,
               },
-              details: {
-                data: formatDataForAudit(
-                  removeBlankPropsAndMask(data, [
-                    'created_at',
-                    'updated_at',
-                    'created_by',
-                    'updated_by',
-                  ]),
-                  this.model.columns,
-                ),
-                column_meta: extractColsMetaForAudit(this.model.columns, data),
-              },
-              req,
-            },
-          );
-        }),
-      ),
-    );
+            );
+          }),
+        ),
+      );
+    }
 
     await this.handleRichTextMentions(null, data, req);
   }
@@ -7176,24 +7196,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
 
-    await Audit.insert(
-      await generateAuditV1Payload<DataDeletePayload>(
-        AuditV1OperationTypes.DATA_DELETE,
-        {
-          details: {
-            data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-            column_meta: extractColsMetaForAudit(this.model.columns, data),
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      await Audit.insert(
+        await generateAuditV1Payload<DataDeletePayload>(
+          AuditV1OperationTypes.DATA_DELETE,
+          {
+            details: {
+              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
+              column_meta: extractColsMetaForAudit(this.model.columns, data),
+            },
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+              row_id: id,
+            },
+            req,
           },
-          context: {
-            ...this.context,
-            source_id: this.model.source_id,
-            fk_model_id: this.model.id,
-            row_id: id,
-          },
-          req,
-        },
-      ),
-    );
+        ),
+      );
+    }
 
     await this.handleHooks('after.delete', null, data, req);
   }
@@ -7210,51 +7233,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
-    await Audit.insert(
-      await generateAuditV1Payload<DataBulkDeletePayload>(
-        AuditV1OperationTypes.DATA_BULK_DELETE,
-        {
-          details: {},
-          context: {
-            ...this.context,
-            source_id: this.model.source_id,
-            fk_model_id: this.model.id,
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      await Audit.insert(
+        await generateAuditV1Payload<DataBulkDeletePayload>(
+          AuditV1OperationTypes.DATA_BULK_DELETE,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
           },
-          req,
-          id: parentAuditId,
-        },
-      ),
-    );
+        ),
+      );
+    }
     req.ncParentAuditId = parentAuditId;
 
     const column_meta = extractColsMetaForAudit(this.model.columns);
-    await Audit.insert(
-      await Promise.all(
-        data?.map?.((d) =>
-          generateAuditV1Payload<DataDeletePayload>(
-            AuditV1OperationTypes.DATA_DELETE,
-            {
-              details: {
-                data: d
-                  ? formatDataForAudit(
-                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
-                      this.model.columns,
-                    )
-                  : null,
-                column_meta,
+
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      await Audit.insert(
+        await Promise.all(
+          data?.map?.((d) =>
+            generateAuditV1Payload<DataDeletePayload>(
+              AuditV1OperationTypes.DATA_DELETE,
+              {
+                details: {
+                  data: d
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                        this.model.columns,
+                      )
+                    : null,
+                  column_meta,
+                },
+                context: {
+                  ...this.context,
+                  source_id: this.model.source_id,
+                  fk_model_id: this.model.id,
+                  row_id: this.extractPksValues(d, true),
+                },
+                req,
               },
-              context: {
-                ...this.context,
-                source_id: this.model.source_id,
-                fk_model_id: this.model.id,
-                row_id: this.extractPksValues(d, true),
-              },
-              req,
-            },
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   public async afterBulkUpdate(
@@ -7271,87 +7301,90 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (newData && newData.length > 0) {
       const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
-      await Audit.insert(
-        await generateAuditV1Payload<DataBulkUpdatePayload>(
-          AuditV1OperationTypes.DATA_BULK_UPDATE,
-          {
-            details: {},
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
+      // disable external source audit in cloud
+      if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+        await Audit.insert(
+          await generateAuditV1Payload<DataBulkUpdatePayload>(
+            AuditV1OperationTypes.DATA_BULK_UPDATE,
+            {
+              details: {},
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+              },
+              req,
+              id: parentAuditId,
             },
-            req,
-            id: parentAuditId,
-          },
-        ),
-      );
+          ),
+        );
 
-      req.ncParentAuditId = parentAuditId;
+        req.ncParentAuditId = parentAuditId;
 
-      await Audit.insert(
-        await Promise.all(
-          newData.map(async (d, i) => {
-            const formattedOldData = formatDataForAudit(
-              prevData?.[i]
-                ? formatDataForAudit(
-                    removeBlankPropsAndMask(prevData?.[i], [
-                      'CreatedAt',
-                      'UpdatedAt',
-                    ]),
-                    this.model.columns,
-                  )
-                : null,
-              this.model.columns,
-            );
-            const formattedData = formatDataForAudit(
-              d
-                ? formatDataForAudit(
-                    removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
-                    this.model.columns,
-                  )
-                : null,
-              this.model.columns,
-            );
-
-            const updateDiff = populateUpdatePayloadDiff({
-              keepUnderModified: true,
-              prev: formattedOldData,
-              next: formattedData,
-              exclude: extractExcludedColumnNames(this.model.columns),
-              excludeNull: false,
-              excludeBlanks: false,
-              keepNested: true,
-            }) as UpdatePayload;
-
-            if (updateDiff) {
-              return await generateAuditV1Payload<DataUpdatePayload>(
-                AuditV1OperationTypes.DATA_UPDATE,
-                {
-                  context: {
-                    ...this.context,
-                    source_id: this.model.source_id,
-                    fk_model_id: this.model.id,
-                    row_id: this.extractPksValues(d, true),
-                  },
-                  details: {
-                    old_data: updateDiff.previous_state,
-                    data: updateDiff.modifications,
-                    column_meta: extractColsMetaForAudit(
-                      this.model.columns.filter(
-                        (c) => c.title in updateDiff.modifications,
-                      ),
-                      d,
-                      prevData?.[i],
-                    ),
-                  },
-                  req,
-                },
+        await Audit.insert(
+          await Promise.all(
+            newData.map(async (d, i) => {
+              const formattedOldData = formatDataForAudit(
+                prevData?.[i]
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(prevData?.[i], [
+                        'CreatedAt',
+                        'UpdatedAt',
+                      ]),
+                      this.model.columns,
+                    )
+                  : null,
+                this.model.columns,
               );
-            }
-          }),
-        ),
-      );
+              const formattedData = formatDataForAudit(
+                d
+                  ? formatDataForAudit(
+                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                      this.model.columns,
+                    )
+                  : null,
+                this.model.columns,
+              );
+
+              const updateDiff = populateUpdatePayloadDiff({
+                keepUnderModified: true,
+                prev: formattedOldData,
+                next: formattedData,
+                exclude: extractExcludedColumnNames(this.model.columns),
+                excludeNull: false,
+                excludeBlanks: false,
+                keepNested: true,
+              }) as UpdatePayload;
+
+              if (updateDiff) {
+                return await generateAuditV1Payload<DataUpdatePayload>(
+                  AuditV1OperationTypes.DATA_UPDATE,
+                  {
+                    context: {
+                      ...this.context,
+                      source_id: this.model.source_id,
+                      fk_model_id: this.model.id,
+                      row_id: this.extractPksValues(d, true),
+                    },
+                    details: {
+                      old_data: updateDiff.previous_state,
+                      data: updateDiff.modifications,
+                      column_meta: extractColsMetaForAudit(
+                        this.model.columns.filter(
+                          (c) => c.title in updateDiff.modifications,
+                        ),
+                        d,
+                        prevData?.[i],
+                      ),
+                    },
+                    req,
+                  },
+                );
+              }
+            }),
+          ),
+        );
+      }
     }
 
     await this.handleRichTextMentions(prevData, newData, req);
@@ -7394,45 +7427,48 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       Object.assign(data, newData);
     }
 
-    const formattedOldData = formatDataForAudit(oldData, this.model.columns);
-    const formattedData = formatDataForAudit(data, this.model.columns);
+    // disable external source audit in cloud
+    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      const formattedOldData = formatDataForAudit(oldData, this.model.columns);
+      const formattedData = formatDataForAudit(data, this.model.columns);
 
-    const updateDiff = populateUpdatePayloadDiff({
-      keepUnderModified: true,
-      prev: formattedOldData,
-      next: formattedData,
-      exclude: extractExcludedColumnNames(this.model.columns),
-      excludeNull: false,
-      excludeBlanks: false,
-      keepNested: true,
-    }) as UpdatePayload;
+      const updateDiff = populateUpdatePayloadDiff({
+        keepUnderModified: true,
+        prev: formattedOldData,
+        next: formattedData,
+        exclude: extractExcludedColumnNames(this.model.columns),
+        excludeNull: false,
+        excludeBlanks: false,
+        keepNested: true,
+      }) as UpdatePayload;
 
-    if (updateDiff) {
-      await Audit.insert(
-        await generateAuditV1Payload<DataUpdatePayload>(
-          AuditV1OperationTypes.DATA_UPDATE,
-          {
-            context: {
-              ...this.context,
-              source_id: this.model.source_id,
-              fk_model_id: this.model.id,
-              row_id: id,
-            },
-            details: {
-              old_data: updateDiff.previous_state,
-              data: updateDiff.modifications,
-              column_meta: extractColsMetaForAudit(
-                this.model.columns.filter(
-                  (c) => c.title in updateDiff.modifications,
+      if (updateDiff) {
+        await Audit.insert(
+          await generateAuditV1Payload<DataUpdatePayload>(
+            AuditV1OperationTypes.DATA_UPDATE,
+            {
+              context: {
+                ...this.context,
+                source_id: this.model.source_id,
+                fk_model_id: this.model.id,
+                row_id: id,
+              },
+              details: {
+                old_data: updateDiff.previous_state,
+                data: updateDiff.modifications,
+                column_meta: extractColsMetaForAudit(
+                  this.model.columns.filter(
+                    (c) => c.title in updateDiff.modifications,
+                  ),
+                  data,
+                  oldData,
                 ),
-                data,
-                oldData,
-              ),
+              },
+              req,
             },
-            req,
-          },
-        ),
-      );
+          ),
+        );
+      }
     }
 
     const ignoreWebhook = req.query?.ignoreWebhook;
@@ -7759,6 +7795,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+      return;
+    }
+
     if (!refDisplayValue) {
       refDisplayValue = await this.readByPkFromModel(
         refModel,
@@ -7881,6 +7922,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     refDisplayValue: unknown;
     type: RelationTypes;
   }): Promise<void> {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+      return;
+    }
     if (!refDisplayValue) {
       refDisplayValue = await this.readByPkFromModel(
         refModel,
@@ -10676,6 +10721,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data?: Record<string, any>;
     req: NcRequest;
   }) {
+    // disable external source audit in cloud
+    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) return;
+
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
       auditUpdateObj.push(

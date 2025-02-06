@@ -57,7 +57,10 @@ export class QueryFilterParser extends CommonCstParser {
       $.CONSUME(TOKEN_OPERATOR);
       $.OPTION(() => {
         $.CONSUME3(COMMON_TOKEN.COMMA);
-        $.SUBRULE($['expression_arguments']);
+        // even after comma, the expression arguments can be blank
+        $.OPTION2(() => {
+          $.SUBRULE($['expression_arguments']);
+        });
       });
     });
     $.RULE('expression_arguments', () => {

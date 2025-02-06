@@ -209,6 +209,11 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
     ].includes(filter.comparison_op)
   ) {
     throw new NcSDKError('Value not valid for selected operator');
+  } else if (
+    Array.isArray(filter.value) &&
+    ['gb_eq'].includes(filter.comparison_op)
+  ) {
+    filter.value = filter.value.join(',');
   }
 };
 

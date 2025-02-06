@@ -493,6 +493,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
     tagHeight = 20,
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
+    tagSpacing = 4,
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -502,7 +503,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
   const initialY = rowHeightInPx['1'] === height ? y + height / 2 - tagHeight / 2 : y + padding - 4
 
   const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
-    x: x + padding + tagPaddingX,
+    x: x + tagSpacing + tagPaddingX,
     y,
     text,
     maxWidth,
@@ -511,7 +512,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
   })
 
   renderTag(ctx, {
-    x: x + padding,
+    x: x + tagSpacing,
     y: initialY,
     width: textWidth + tagPaddingX * 2,
     height: tagHeight,
@@ -522,17 +523,18 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
   })
 
   renderSingleLineText(ctx, {
-    x: x + padding + tagPaddingX,
-    y,
+    x: x + tagSpacing + tagPaddingX,
+    y: initialY,
     text: truncatedText,
-    maxWidth,
+    maxWidth: maxWidth,
+    height: tagHeight,
     fontFamily: '500 13px Manrope',
     fillStyle: textColor,
     isTagLabel: true,
   })
 
   return {
-    x: x + padding + textWidth + tagPaddingX * 2,
+    x: x + tagSpacing + textWidth + tagPaddingX * 2,
     y: initialY + tagHeight,
   }
 }

@@ -61,7 +61,7 @@ export interface FilterClauseSubType {
   logical_op?: string;
   comparison_op: string;
   comparison_sub_op?: string;
-  value?: any;
+  value?: string | string[];
 }
 export interface FilterGroupSubType {
   is_group: true;
@@ -71,7 +71,7 @@ export interface FilterGroupSubType {
 
 export type FilterSubtype = (FilterClauseSubType | FilterGroupSubType)[];
 
-export const parseMultiClause = async (
+export const parseMultiClause = (
   cst: CstMultiClause,
   opt?: { logicalOperator?: string }
 ) => {
@@ -84,39 +84,39 @@ export const parseMultiClause = async (
     const clause = cst.children.clause[index];
     result.children.push(
       clause.name === 'and_or_clause'
-        ? await parseAndOrClause(clause)
+        ? parseAndOrClause(clause)
         : clause.name === 'not_clause'
-        ? await parseNotClause(clause)
-        : await parseParenClause(clause)
+        ? parseNotClause(clause)
+        : parseParenClause(clause)
     );
   }
   return result;
 };
 
-export const parseNotClause = async (cst: CstNotClause) => {
+export const parseNotClause = (cst: CstNotClause) => {
   return parseParenClause(cst.children.clause[0], {
     logicalOperator: 'not',
   });
 };
 
-export const parseAndOrClause = async (cst: CstAndOrClause) => {
+export const parseAndOrClause = (cst: CstAndOrClause) => {
   return parseParenClause(cst.children.clause[0], {
     logicalOperator: cst.children.operator[0].image.replace('~', ''),
   });
 };
 
-export const parseParenClause = async (
+export const parseParenClause = (
   cst: CstParenClause,
   opt?: { logicalOperator?: string }
 ) => {
   const clause = cst.children.clause[0];
   if (clause.name === 'multi_clause') {
-    return await parseMultiClause(clause, opt);
+    return parseMultiClause(clause, opt);
   } else {
-    return await parseCallExpression(clause, opt);
+    return parseCallExpression(clause, opt);
   }
 };
-export const parseCallExpression = async (
+export const parseCallExpression = (
   cst: CstCallExpression,
   opt?: { logicalOperator?: string }
 ) => {
@@ -128,17 +128,49 @@ export const parseCallExpression = async (
     comparison_op: operator as any,
     logical_op: opt?.logicalOperator,
   };
-  result.comparison_sub_op = cst.children.expression_arguments[0].children
-    .SUBOPERATOR?.[0]?.image as any;
-  if (cst.children.expression_arguments[0].children.VARIABLE) {
-    result.value = parseVariable(
-      cst.children.expression_arguments[0].children.VARIABLE
-    );
+  if (cst.children.expression_arguments) {
+    result.comparison_sub_op = cst.children.expression_arguments[0].children
+      .SUBOPERATOR?.[0]?.image as any;
+    if (cst.children.expression_arguments[0].children.VARIABLE) {
+      result.value = parseVariable(
+        cst.children.expression_arguments[0].children.VARIABLE
+      );
+    }
   }
-
+  handleBlankOperator(result);
+  handleInOperator(result);
   return result;
 };
 
-export const parseCst = async (cst: CstMultiClause) => {
-  return await parseMultiClause(cst);
+const handleBlankOperator = (filter: FilterClauseSubType) => {
+  switch (filter.comparison_op) {
+    case 'is':
+      if (filter.value === 'blank') {
+        filter.comparison_op = 'blank';
+        filter.value = undefined;
+      } else if (filter.value === 'notblank') {
+        filter.comparison_op = 'notblank';
+        filter.value = undefined;
+      }
+      break;
+    case 'isblank':
+    case 'is_blank':
+      filter.comparison_op = 'blank';
+      break;
+    case 'isnotblank':
+    case 'is_not_blank':
+    case 'is_notblank':
+      filter.comparison_op = 'notblank';
+      break;
+  }
+};
+
+const handleInOperator = (filter: FilterClauseSubType) => {
+  if (filter.comparison_op === 'in' && !Array.isArray(filter.value)) {
+    filter.value = (filter.value as string)?.split(',');
+  }
+};
+
+export const parseCst = (cst: CstMultiClause) => {
+  return parseMultiClause(cst);
 };

@@ -73,6 +73,22 @@ describe('query-filter-parser', () => {
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
+  it('will parse blank value', async () => {
+    const text = '(Category,gb_eq,)';
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Category',
+          comparison_op: 'gb_eq',
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
   it('will parse suboperator with value', async () => {
     const text = '(field1, isWithin, nextNumberOfDays, 10)';
     const result = QueryFilterParser.parse(text);

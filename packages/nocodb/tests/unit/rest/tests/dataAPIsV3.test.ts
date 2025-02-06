@@ -1119,7 +1119,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         query: {
           where: 'abc',
         },
-        status: 422,
+        status: 400,
       });
       await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${table.id}/records`,

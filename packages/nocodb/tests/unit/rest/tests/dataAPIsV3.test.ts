@@ -2197,7 +2197,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       let rspFromRecordAPI = await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
         query: {
-          where: `where=(Id,eq,1)`,
+          where: `(Id,eq,1)`,
         },
       });
 

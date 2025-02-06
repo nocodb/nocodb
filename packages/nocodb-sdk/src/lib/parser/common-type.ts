@@ -2,13 +2,13 @@ import { TokenType } from 'chevrotain';
 
 export interface Token {
   image: string;
-  startOffset: string;
-  endOffset: string;
-  startLine: string;
-  endLine: string;
-  startColumn: string;
-  endColumn: string;
-  tokenTypeIdx: string;
+  startOffset: number;
+  endOffset: number;
+  startLine: number;
+  endLine: number;
+  startColumn: number;
+  endColumn: number;
+  tokenTypeIdx: number;
   tokenType: TokenType[];
 }
 

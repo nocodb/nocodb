@@ -1,6 +1,17 @@
 import { ColumnType, FilterType } from '~/lib/Api';
 import { UITypes } from '~/lib/index';
-import { BadRequest, NcSDKError } from '~/lib/errorUtils';
+import { NcSDKError } from '~/lib/errorUtils';
+import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
+import {
+  FilterClauseSubType,
+  FilterGroupSubType,
+} from '~/lib/parser/queryFilter/query-filter-cst-parser';
+export {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '~/lib/parser/queryFilter/query-filter-lexer';
 
 /**
  * Converts a flat array of filter objects into a nested tree structure
@@ -44,68 +55,6 @@ export function buildFilterTree(items: FilterType[]) {
   return rootItems;
 }
 
-export const GROUPBY_COMPARISON_OPS = <const>[
-  // these are used for groupby
-  'gb_eq',
-  'gb_null',
-];
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];
-
 export function extractFilterFromXwhere(
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
@@ -114,9 +63,22 @@ export function extractFilterFromXwhere(
   if (!str) {
     return [];
   }
+  for (const columnName of Object.keys(aliasColObjMap)) {
+    const column = aliasColObjMap[columnName];
+    aliasColObjMap[column.id] = column;
+  }
+  return innerExtractFilterFromXwhere(str, aliasColObjMap, throwErrorIfInvalid);
+}
 
-  // if array treat it as `and` group
-  if (Array.isArray(str)) {
+function innerExtractFilterFromXwhere(
+  str: string | string[],
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid = false
+): FilterType[] {
+  if (!str) {
+    return [];
+  } // if array treat it as `and` group
+  else if (Array.isArray(str)) {
     // calling recursively for nested query
     const nestedFilters = [].concat(
       ...str.map((s) =>
@@ -142,179 +104,77 @@ export function extractFilterFromXwhere(
       'Invalid filter format. Expected string or array of strings.'
     );
   }
-
-  let nestedArrayConditions = [];
-
-  let openIndex = str.indexOf('((');
-
-  if (openIndex === -1) openIndex = str.indexOf('(~');
-
-  let nextOpenIndex = openIndex;
-
-  let closingIndex = str.indexOf('))');
-
-  // if it's a simple query simply return array of conditions
-  if (openIndex === -1) {
-    if (str && str != '~not')
-      nestedArrayConditions = str.split(
-        /(?=~(?:or(?:not)?|and(?:not)?|not)\()/
-      );
-    return extractCondition(
-      nestedArrayConditions || [],
-      aliasColObjMap,
-      throwErrorIfInvalid
-    );
-  }
-
-  // iterate until finding right closing
-  while (
-    (nextOpenIndex = str
-      .substring(0, closingIndex)
-      .indexOf('((', nextOpenIndex + 1)) != -1
+  const parseResult = QueryFilterParser.parse(str);
+  if (
+    (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
+    throwErrorIfInvalid
   ) {
-    closingIndex = str.indexOf('))', closingIndex + 1);
+    throw parseResult.lexErrors[0] ?? parseResult.parseErrors[0];
   }
+  const filterSubType = parseResult.parsedCst;
+  return [
+    mapFilterGroupSubType(filterSubType, aliasColObjMap, throwErrorIfInvalid),
+  ];
+}
 
-  if (closingIndex === -1)
-    throw new Error(
-      `${str
-        .substring(0, openIndex + 1)
-        .slice(-10)} : Closing bracket not found`
-    );
-
-  // getting operand starting index
-  const operandStartIndex = str.lastIndexOf('~', openIndex);
-  const operator =
-    operandStartIndex != -1
-      ? str.substring(operandStartIndex + 1, openIndex)
-      : '';
-  const lhsOfNestedQuery = str.substring(0, openIndex);
-
-  nestedArrayConditions.push(
-    ...extractFilterFromXwhere(
-      lhsOfNestedQuery,
-      aliasColObjMap,
-      throwErrorIfInvalid
-    ),
-    // calling recursively for nested query
-    {
-      is_group: true,
-      logical_op: operator,
-      children: extractFilterFromXwhere(
-        str.substring(openIndex + 1, closingIndex + 1),
-        aliasColObjMap
-      ),
-    },
-    // RHS of nested query(recursion)
-    ...extractFilterFromXwhere(
-      str.substring(closingIndex + 2),
-      aliasColObjMap,
-      throwErrorIfInvalid
+function mapFilterGroupSubType(
+  filter: FilterGroupSubType,
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid = false
+): FilterType {
+  const children = filter.children
+    .map((k) =>
+      k.is_group
+        ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid)
+        : mapFilterClauseSubType(
+            k as FilterClauseSubType,
+            aliasColObjMap,
+            throwErrorIfInvalid
+          )
     )
-  );
-  return nestedArrayConditions;
-}
-
-// mark `op` and `sub_op` any for being assignable to parameter of type
-export function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
-  if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
-    throw new BadRequest(`${op} is not supported.`);
-  }
-
-  if (sub_op) {
-    if (
-      ![
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(uidt)
-    ) {
-      throw new BadRequest(
-        `'${sub_op}' is not supported for UI Type'${uidt}'.`
-      );
-    }
-    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
-      throw new BadRequest(`'${sub_op}' is not supported.`);
-    }
-    if (
-      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
-      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
-    ) {
-      throw new BadRequest(`'${sub_op}' is not supported for '${op}'`);
-    }
+    .filter((k) => k);
+  if (children.length === 1) {
+    return children[0];
+  } else {
+    return {
+      is_group: filter.is_group,
+      logical_op: filter.logical_op,
+      children: children,
+    } as FilterType;
   }
 }
-
-export function extractCondition(
-  nestedArrayConditions,
-  aliasColObjMap,
-  throwErrorIfInvalid
-) {
-  return nestedArrayConditions?.map((str) => {
-    let [logicOp, alias, op, value] =
-      str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-
-    if (!alias && !op && !value) {
-      // try match with blank filter format
-      [logicOp, alias, op, value] =
-        str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
-    }
-
-    // handle isblank and isnotblank filter format
-    switch (op) {
-      case 'is':
-        if (value === 'blank') {
-          op = 'blank';
-          value = undefined;
-        } else if (value === 'notblank') {
-          op = 'notblank';
-          value = undefined;
-        }
-        break;
-      case 'isblank':
-      case 'is_blank':
-        op = 'blank';
-        break;
-      case 'isnotblank':
-      case 'is_not_blank':
-      case 'is_notblank':
-        op = 'notblank';
-        break;
-    }
-
-    let sub_op = null;
-
-    if (aliasColObjMap[alias]) {
-      if (
-        [
-          UITypes.Date,
-          UITypes.DateTime,
-          UITypes.LastModifiedTime,
-          UITypes.CreatedTime,
-        ].includes(aliasColObjMap[alias].uidt)
-      ) {
-        value = value?.split(',');
-        // the first element would be sub_op
-        sub_op = value?.[0];
-        // remove the first element which is sub_op
-        value?.shift();
-        value = value?.[0];
-      } else if (op === 'in') {
-        value = value.split(',');
-      }
-
-      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
-    } else if (throwErrorIfInvalid) {
+function mapFilterClauseSubType(
+  filter: FilterClauseSubType,
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid = false
+): FilterType | undefined {
+  const aliasCol = aliasColObjMap[filter.field];
+  if (!aliasCol) {
+    if (throwErrorIfInvalid) {
       throw new NcSDKError('INVALID_FILTER');
     }
-
-    return {
-      comparison_op: op,
-      ...(sub_op && { comparison_sub_op: sub_op }),
-      fk_column_id: aliasColObjMap[alias]?.id,
-      logical_op: logicOp,
-      value,
-    };
-  });
+    return undefined;
+  }
+  const result: FilterType = {
+    fk_column_id: aliasCol.id,
+    is_group: false,
+    logical_op: filter.logical_op as any,
+    comparison_op: filter.comparison_op as any,
+    comparison_sub_op: filter.comparison_sub_op as any,
+    value: filter.value,
+  };
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedTime,
+    ].includes(aliasCol.uidt as any)
+  ) {
+    result.value =
+      !!result.value && Array.isArray(result.value)
+        ? result.value
+        : result.value?.split(',');
+  }
+  return result;
 }

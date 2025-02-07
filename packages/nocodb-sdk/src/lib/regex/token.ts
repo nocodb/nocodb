@@ -5,12 +5,19 @@ export const REGEXSTR_MANDARIN = REGEXSTR_CHINESE;
 export const REGEXSTR_HIRA_KATA_KANA = <const>'ぁ-ゔァ-ヴー々〆〤ヶ';
 export const REGEXSTR_JAPANESE = REGEXSTR_HIRA_KATA_KANA;
 export const REGEXSTR_CYRILLIC = <const>'\u0400-\u04FF';
+export const REGEXSTR_HANGUI = <const>'\u3131-\uD79D';
+export const REGEXSTR_KOREAN = REGEXSTR_HANGUI;
+export const REGEXSTR_ARABIC = <const>'\u0621-\u064A';
+
 export const REGEXSTR_INTL_LETTER = [
   REGEXSTR_ALPHABET,
   REGEXSTR_CHINESE,
   REGEXSTR_CYRILLIC,
   REGEXSTR_HIRA_KATA_KANA,
+  REGEXSTR_KOREAN,
+  REGEXSTR_ARABIC,
 ].join('');
+
 export const REGEXSTR_NUMERIC_ARABIC = <const>'0-9';
 export const REGEXSTR_IDENTIFIER_SPECIAL_CHAR = <const>(
   '!@#$%^&*_+\\-=[\\]{};:\\\\|.<>/?'

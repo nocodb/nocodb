@@ -189,4 +189,38 @@ describe('query-filter-parser', () => {
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
+  it('will parse keyword as value', async () => {
+    const text = '(Category,is,blank)';
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Category',
+          comparison_op: 'blank',
+          value: undefined,
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  it('will parse empty quote as value', async () => {
+    const text = "(Category,eq,'')";
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Category',
+          comparison_op: 'eq',
+          value: '',
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
 });

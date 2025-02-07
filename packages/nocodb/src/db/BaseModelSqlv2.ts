@@ -8658,6 +8658,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       );
                     }
                   } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment?.url.startsWith('data:')) {
+                      continue;
+                    }
+
                     promises.push(
                       PresignedUrl.signAttachment({
                         attachment: lookedUpAttachment,
@@ -8735,6 +8739,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     );
                   }
                 } else if (attachment?.url) {
+                  if (attachment?.url.startsWith('data:')) {
+                    continue;
+                  }
+
                   promises.push(
                     PresignedUrl.signAttachment({
                       attachment,
@@ -10244,8 +10252,41 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (typeof data[column.column_name] === 'string') {
                 data[column.column_name] = JSON.parse(data[column.column_name]);
               }
+
+              if (!Array.isArray(data[column.column_name])) {
+                NcError.invalidAttachmentJson(data[column.column_name]);
+              }
             } catch (e) {
               NcError.invalidAttachmentJson(data[column.column_name]);
+            }
+
+            // Confirm that all urls are valid urls
+            for (const attachment of data[column.column_name]) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+
+              if (attachment.url) {
+                if (attachment.url.startsWith('data:')) {
+                  NcError.unprocessableEntity(
+                    `Attachment urls do not support data urls`,
+                  );
+                }
+
+                if (!/^https?:\/\//i.test(attachment.url)) {
+                  NcError.unprocessableEntity(
+                    `Attachment url '${attachment.url}' is not a valid url`,
+                  );
+                }
+
+                if (attachment.url.length > 8 * 1024) {
+                  NcError.unprocessableEntity(
+                    `Attachment url '${attachment.url}' is too long`,
+                  );
+                }
+              }
             }
           }
 

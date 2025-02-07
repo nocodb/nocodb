@@ -1,5 +1,6 @@
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, row }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, row, tag = {} }) => {
+    const { renderAsTag } = tag
     padding = 4
     if (!value || value === 'ERR!') {
       if (value === 'ERR!') {
@@ -25,11 +26,21 @@ export const QRCodeCellRenderer: CellRenderer = {
     })
 
     if (qrCanvas) {
-      const xPos = x + (width - size) / 2
+      const xPos = renderAsTag ? x + padding : x + (width - size) / 2
       const yPos = y + (height - size) / 2
       imageLoader.renderQRCode(ctx, qrCanvas, xPos, yPos, size)
+
+      return {
+        x: x + padding + size,
+        y: yPos * 2,
+      }
     } else {
       imageLoader.renderPlaceholder(ctx, x + padding, y + padding, size, 'qr_code')
+
+      return {
+        x: x + padding + size,
+        y: y + padding + size,
+      }
     }
   },
 }

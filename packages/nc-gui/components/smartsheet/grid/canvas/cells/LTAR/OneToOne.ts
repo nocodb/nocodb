@@ -21,7 +21,7 @@ export const OneToOneCellRenderer: CellRenderer = {
     if (!ooColumn) return
 
     if (isValidValue(value)) {
-      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? (hasValue ? 16 : 14) : 0) - 8
+      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? (hasValue ? 16 : 14) : 0) - 0
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'

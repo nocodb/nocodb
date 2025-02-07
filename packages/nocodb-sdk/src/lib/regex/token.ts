@@ -5,9 +5,29 @@ export const REGEXSTR_MANDARIN = REGEXSTR_CHINESE;
 export const REGEXSTR_HIRA_KATA_KANA = <const>'ぁ-ゔァ-ヴー々〆〤ヶ';
 export const REGEXSTR_JAPANESE = REGEXSTR_HIRA_KATA_KANA;
 export const REGEXSTR_CYRILLIC = <const>'\u0400-\u04FF';
-export const REGEXSTR_HANGUI = <const>'\u3131-\uD79D';
-export const REGEXSTR_KOREAN = REGEXSTR_HANGUI;
+export const REGEXSTR_HANGUL = <const>(
+  '\u1100-\u11FF\u3130-\u318F\uA960-\uA97F\uAC00-\uD7AF\uD7B0-\uD7FF'
+);
+export const REGEXSTR_KOREAN = REGEXSTR_HANGUL;
 export const REGEXSTR_ARABIC = <const>'\u0621-\u064A';
+export const REGEXSTR_DEVANAGARI = <const>'\u0900-\u097F';
+export const REGEXSTR_GREEK = <const>'\u0370-\u03FF';
+export const REGEXSTR_HEBREW = <const>'\u0590-\u05FF';
+export const REGEXSTR_THAI = <const>'\u0E00-\u0E7F';
+export const REGEXSTR_TAMIL = <const>'\u0B80-\u0BFF';
+export const REGEXSTR_ARMENIAN = <const>'\u0530-\u058F';
+export const REGEXSTR_BENGALI = <const>'\u0980-\u09FF';
+export const REGEXSTR_GEORGIAN = <const>'\u10A0-\u10FF';
+export const REGEXSTR_GUJARATI = <const>'\u0A80-\u0AFF';
+export const REGEXSTR_KANNADA = <const>'\u0C80-\u0CFF';
+export const REGEXSTR_KHMER = <const>'\u1780-\u17FF';
+export const REGEXSTR_MALAYALAM = <const>'\u0D00-\u0D7F';
+export const REGEXSTR_MONGOLIAN = <const>'\u1800-\u18AF';
+export const REGEXSTR_MYANMAR = <const>'\u1000-\u109F';
+export const REGEXSTR_SINHALA = <const>'\u0D80-\u0DFF';
+export const REGEXSTR_SYRIAC = <const>'\u0700-\u074F';
+// alphabet is ommitted to prevent duplicates
+export const REGEXSTR_VIETNAMESE = <const>'\u0300-\u036F'; // Latin characters with diacritics
 
 export const REGEXSTR_INTL_LETTER = [
   REGEXSTR_ALPHABET,

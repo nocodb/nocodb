@@ -3,13 +3,24 @@ import { getSingleMultiselectColOptions } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode]
+const renderAsCell = [
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.User,
+  UITypes.Checkbox,
+  UITypes.Attachment,
+  UITypes.Rating,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Lookup,
+]
 const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10 } = props
     let x = _x
-    let y = _y + (renderOnly1Row ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
+    let y = _y
     let width = _width - ellipsisWidth
     // If it is empty text then no need to render
     if (!isValidValue(value) || !metas) return
@@ -27,6 +38,8 @@ export const LookupCellRenderer: CellRenderer = {
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
     if (!lookupColumn) return
+
+    y = y + (renderOnly1Row.includes(lookupColumn.uidt) ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
@@ -91,10 +104,10 @@ export const LookupCellRenderer: CellRenderer = {
 
               x = _x
               width = _width - ellipsisWidth
-              y = point?.y ? point?.y : y + 24
+              y = point?.y && y !== point?.y ? point?.y : y + 24
               line += 1
             } else {
-              width = x + width - (point?.x - 2 * 4) - padding * 2
+              width = x + width - (point?.x - 2 * 4) - padding * 2 - ellipsisWidth
               x = point?.x
             }
           } else {
@@ -139,15 +152,17 @@ export const LookupCellRenderer: CellRenderer = {
         for (const v of arrValue) {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 
-          if (point?.x) {
+          if (point?.x && !point?.nextLine) {
             if (point?.x >= _x + _width - padding * 2 - 50) {
               x = _x
               width = _width
-              y = point?.y ? point?.y : y + 24
+
+              y = point?.y && y !== point?.y ? point?.y : y + 24
               line += 1
               if (renderOnly1Row.includes(lookupColumn.uidt)) break
             } else {
-              width = x + width - (point?.x - 2 * 4) - padding * 2
+              width = _x + _width - (point?.x - 2 * 4) - padding * 2
+
               x = point?.x
             }
           } else {
@@ -162,6 +177,8 @@ export const LookupCellRenderer: CellRenderer = {
           if (line > maxLines) {
             break
           }
+
+          count++
         }
       }
     }

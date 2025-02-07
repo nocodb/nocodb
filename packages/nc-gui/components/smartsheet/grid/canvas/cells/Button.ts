@@ -439,4 +439,13 @@ export const ButtonCellRenderer: CellRenderer = {
       })
     }
   },
+  async handleKeyDown(ctx) {
+    const { e, row, column, actionManager, pk } = ctx
+    if (e.key === 'Enter') {
+      await actionManager.executeButtonAction([pk], column, { row: [row] })
+      return true
+    }
+
+    return false
+  },
 }

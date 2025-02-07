@@ -546,6 +546,7 @@ async function handleMouseDown(e: MouseEvent) {
             mousePosition: { x, y },
             pk,
           })
+          triggerRefreshCanvas()
 
           if (res) return
         }
@@ -1109,6 +1110,10 @@ onBeforeUnmount(() => {
   }
 
   :deep(.nc-multi-select) {
+    @apply !h-auto;
+  }
+
+  :deep(.nc-single-select) {
     @apply !h-auto;
   }
 

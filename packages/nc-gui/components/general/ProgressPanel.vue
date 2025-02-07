@@ -67,7 +67,6 @@ onMounted(() => {
 <template>
   <a-card
     ref="logRef"
-    class="w-full h-full"
     :body-style="{
       'overflow': 'auto',
       'width': '100%',

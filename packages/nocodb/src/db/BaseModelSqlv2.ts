@@ -10253,7 +10253,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 data[column.column_name] = JSON.parse(data[column.column_name]);
               }
 
-              if (!Array.isArray(data[column.column_name])) {
+              if (
+                data[column.column_name] &&
+                !Array.isArray(data[column.column_name])
+              ) {
                 NcError.invalidAttachmentJson(data[column.column_name]);
               }
             } catch (e) {
@@ -10261,7 +10264,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             }
 
             // Confirm that all urls are valid urls
-            for (const attachment of data[column.column_name]) {
+            for (const attachment of data[column.column_name] || []) {
               if (!('url' in attachment) && !('path' in attachment)) {
                 NcError.unprocessableEntity(
                   'Attachment object must contain either url or path',

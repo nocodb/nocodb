@@ -13,6 +13,8 @@ const { base } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
+const progressRef = ref()
+
 const isLoading = ref(false)
 
 const isDifferent = ref(false)
@@ -41,11 +43,22 @@ async function loadMetaDiff() {
 
 const { $poller } = useNuxtApp()
 
+const triggeredSync = ref(false)
+
+const syncCompleted = ref(false)
+
+const onBack = () => {
+  triggeredSync.value = false
+  syncCompleted.value = false
+}
+
 async function syncMetaDiff() {
   try {
     if (!base.value?.id || !isDifferent.value) return
 
     isLoading.value = true
+    triggeredSync.value = true
+
     const jobData = await $api.source.metaDiffSync(base.value?.id, props.sourceId)
 
     $poller.subscribe(
@@ -68,10 +81,18 @@ async function syncMetaDiff() {
             await loadTables()
             await loadMetaDiff()
             emit('baseSynced')
+
+            progressRef.value.pushProgress('Done!', data.status)
+
+            syncCompleted.value = true
             isLoading.value = false
-          } else if (status === JobStatus.FAILED) {
-            message.error('Failed to sync base metadata')
+          } else if (data.status === JobStatus.FAILED) {
+            progressRef.value.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
+            syncCompleted.value = true
             isLoading.value = false
+          } else {
+            // Job is still in progress
+            progressRef.value.pushProgress(data.data?.message)
           }
         }
       },
@@ -144,7 +165,14 @@ const customRow = (record: Record<string, any>) => ({
           </div>
         </a-button>
       </div>
+      <div v-if="triggeredSync" class="flex flex-col justify-center items-center h-full">
+        <GeneralProgressPanel ref="progressRef" class="w-1/2" />
+        <div v-if="syncCompleted" class="flex justify-center">
+          <NcButton html-type="submit" class="mt-4 mb-8" size="medium" @click="onBack"> Back </NcButton>
+        </div>
+      </div>
       <NcTable
+        v-else
         :columns="columns"
         :data="metadiff ?? []"
         row-height="44px"

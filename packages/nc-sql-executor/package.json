@@ -11,18 +11,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@databricks/sql": "^1.7.1",
+    "@databricks/sql": "^1.9.0",
     "@fastify/static": "^6.12.0",
-    "dayjs": "^1.11.10",
-    "fastify": "^4.24.3",
-    "knex": "^3.0.1",
-    "mysql2": "^3.9.4",
+    "dayjs": "^1.11.13",
+    "fastify": "^4.29.0",
+    "knex": "^3.1.0",
     "knex-databricks": "link:../nc-knex-dialects/knex-databricks",
     "knex-snowflake": "link:../nc-knex-dialects/knex-snowflake",
+    "mysql2": "^3.12.0",
     "object-hash": "^3.0.0",
-    "pg": "^8.11.3",
+    "pg": "^8.13.1",
     "process": "^0.11.10",
-    "snowflake-sdk": "^1.6.11"
+    "snowflake-sdk": "^1.15.0"
   },
   "devDependencies": {
     "@types/node": "18.19.55"

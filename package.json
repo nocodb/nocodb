@@ -17,8 +17,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "husky": "^8.0.0",
-    "lerna": "^7.0.2",
+    "husky": "^8.0.3",
+    "lerna": "^7.4.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -51,21 +51,21 @@
   },
   "pnpm": {
     "overrides": {
-      "vue": "latest",
-      "typescript": "latest",
-      "ajv@<6.12.3": ">=6.12.3",
-      "node.extend@<1.1.7": ">=1.1.7",
-      "tough-cookie": "^5.0.0",
+      "@azure/msal-node": "^2.16.2",
       "@babel/traverse@<7.23.2": ">=7.23.2",
-      "follow-redirects@<1.15.4": ">=1.15.4",
+      "ajv@<6.12.3": ">=6.12.3",
       "axios@>=0.8.1 <0.28.0": ">=0.28.0",
+      "follow-redirects@<1.15.4": ">=1.15.4",
       "ip@<1.1.9": ">=1.1.9",
       "ip@=2.0.0": ">=2.0.1",
-      "xml2js@<0.5.0": ">=0.5.0",
-      "ufo": ">=1.5.3",
+      "node.extend@<1.1.7": ">=1.1.7",
+      "tough-cookie": "^5.1.0",
+      "typescript": "latest",
+      "ufo": ">=1.5.4",
+      "vue": "latest",
+      "whatwg-url": "13.0.0",
       "ws@<8.17.1": ">=8.17.1",
-      "@azure/msal-node": "^2.16.2",
-      "whatwg-url": "13.0.0"
+      "xml2js@<0.5.0": ">=0.5.0"
     },
     "supportedArchitectures": {
       "os": [

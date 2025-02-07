@@ -36,7 +36,7 @@ import { FormulaCellRenderer } from './Formula'
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
     row: Row,
     property?: string,

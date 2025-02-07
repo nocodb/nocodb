@@ -194,9 +194,10 @@ watch(inputWrapperRef, () => {
 
 const el = useCurrentElement()
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
-  if (isCanvasInjected && !isExpanded.value && !isEditColumn.value && !isForm.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpanded.value && !isEditColumn.value && !isForm.value) {
     forcedNextTick(() => {
       openJSONEditor()
     })

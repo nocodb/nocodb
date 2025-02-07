@@ -33,6 +33,16 @@ export const parseVariable = (
     );
   }
 };
+export const parseVariableAsArray = (
+  variable: VariableRule | VariableRule[]
+): string[] => {
+  const result = parseVariable(variable);
+  if (!Array.isArray(result)) {
+    return [result];
+  } else {
+    return result;
+  }
+};
 
 export const parseVariableAsString = (
   variable: VariableRule | VariableRule[]

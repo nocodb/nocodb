@@ -4,7 +4,6 @@ import {
   QUERY_FILTER_TOKENS,
   QueryFilterLexer,
   TOKEN_OPERATOR,
-  TOKEN_SUBOPERATOR,
 } from './query-filter-lexer';
 import { COMMON_TOKEN } from '../common-token';
 import { CommonCstParser } from '../common-cst-parser';
@@ -64,16 +63,6 @@ export class QueryFilterParser extends CommonCstParser {
       });
     });
     $.RULE('expression_arguments', () => {
-      $.OR([
-        { ALT: () => $.CONSUME(TOKEN_SUBOPERATOR) },
-        {
-          ALT: () => {
-            $.SUBRULE($['VARIABLE']);
-          },
-        },
-      ]);
-      $.OPTION(() => $.CONSUME(COMMON_TOKEN.COMMA));
-
       $.MANY_SEP({
         SEP: COMMON_TOKEN.COMMA,
         DEF: () => {

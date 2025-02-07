@@ -1,6 +1,5 @@
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import { UITypes } from 'nocodb-sdk'
-import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -48,6 +47,19 @@ export const PhoneNumberCellRenderer: CellRenderer = {
       return true
     }
 
+    return false
+  },
+  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const padding = 10
+    const text = value?.toString() ?? ''
+    const isValid = text && isMobilePhone(text)
+    if (!isValid) return false
+
+    if (isBoxHovered({ x, y, width: width - padding * 2, height }, mousePosition)) {
+      window.open(`tel:${text}`, '_blank')
+      return true
+    }
     return false
   },
 }

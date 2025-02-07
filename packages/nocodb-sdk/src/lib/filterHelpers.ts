@@ -1,5 +1,4 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { UITypes } from '~/lib/index';
 import { NcSDKError } from '~/lib/errorUtils';
 import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
 import {
@@ -163,18 +162,18 @@ function mapFilterClauseSubType(
     comparison_sub_op: filter.comparison_sub_op as any,
     value: filter.value,
   };
-  if (
-    [
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.LastModifiedTime,
-      UITypes.CreatedTime,
-    ].includes(aliasCol.uidt as any)
-  ) {
-    result.value =
-      !!result.value && Array.isArray(result.value)
-        ? result.value
-        : result.value?.split(',');
-  }
+  // if (
+  //   [
+  //     UITypes.Date,
+  //     UITypes.DateTime,
+  //     UITypes.LastModifiedTime,
+  //     UITypes.CreatedTime,
+  //   ].includes(aliasCol.uidt as any)
+  // ) {
+  //   result.value =
+  //     !!result.value && Array.isArray(result.value)
+  //       ? result.value
+  //       : result.value?.split(',');
+  // }
   return result;
 }

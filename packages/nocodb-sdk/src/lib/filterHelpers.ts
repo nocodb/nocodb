@@ -1,11 +1,11 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { UITypes } from '~/lib/index';
 import { NcSDKError } from '~/lib/errorUtils';
 import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
 } from '~/lib/parser/queryFilter/query-filter-cst-parser';
+
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -143,6 +143,7 @@ function mapFilterGroupSubType(
     } as FilterType;
   }
 }
+
 function mapFilterClauseSubType(
   filter: FilterClauseSubType,
   aliasColObjMap: { [columnAlias: string]: ColumnType },
@@ -163,18 +164,5 @@ function mapFilterClauseSubType(
     comparison_sub_op: filter.comparison_sub_op as any,
     value: filter.value,
   };
-  if (
-    [
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.LastModifiedTime,
-      UITypes.CreatedTime,
-    ].includes(aliasCol.uidt as any)
-  ) {
-    result.value =
-      !!result.value && Array.isArray(result.value)
-        ? result.value
-        : result.value?.split(',');
-  }
   return result;
 }

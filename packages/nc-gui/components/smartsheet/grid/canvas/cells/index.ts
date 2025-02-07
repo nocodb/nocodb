@@ -93,6 +93,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
+  cellTypesRegistry.set(UITypes.SpecificDBType, SingleLineTextCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,
@@ -188,7 +189,8 @@ export function useGridCellHandler(params: {
     selected: boolean
     imageLoader: ImageWindowLoader
   }) => {
-    if (!params?.getCellPosition) return
+    if (!ctx.column?.columnObj?.uidt) return
+
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     if (cellHandler?.handleClick) {
@@ -231,7 +233,8 @@ export function useGridCellHandler(params: {
     selected: boolean
     imageLoader: ImageWindowLoader
   }) => {
-    if (!params?.getCellPosition) return
+    if (!ctx.column?.columnObj?.uidt) return
+
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     if (cellHandler?.handleHover) {

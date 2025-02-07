@@ -52,7 +52,7 @@ export const DateCellRenderer: CellRenderer = {
 
   async handleClick(ctx) {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
-    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+    const bound = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 8
 
     const offscreenCanvas = new OffscreenCanvas(0, 0)
@@ -83,7 +83,7 @@ export const DateCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(clickableArea, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex, column)
+        makeCellEditable(row, column)
         return true
       }
     }

@@ -56,7 +56,7 @@ export const HasManyCellRenderer: CellRenderer = {
     const maxLines = rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
-    let count = 1
+    const count = 1
 
     for (const cell of cells) {
       const point = PlainCellRenderer.render(ctx, {

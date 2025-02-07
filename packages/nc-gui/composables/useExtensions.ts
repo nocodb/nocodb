@@ -72,7 +72,32 @@ abstract class ExtensionType {
 
 export { ExtensionType }
 
+enum ExtensionLib {
+  assets = 'assets',
+  modules = 'modules',
+  markdowns = 'markdownModules',
+}
+
 export const useExtensions = createSharedComposable(() => {
+  const globs = {
+    [ExtensionLib.assets]: import.meta.glob('../extensions/*/assets/*', { query: '?url', import: 'default' }),
+    [ExtensionLib.modules]: import.meta.glob('../extensions/*/*.json', { import: 'default' }),
+    [ExtensionLib.markdowns]: import.meta.glob('../extensions/*/*.md', {
+      query: '?raw',
+      import: 'default',
+    }),
+  } as const
+
+  const extensionAssets: {
+    [ExtensionLib.assets]: Record<string, string>
+    [ExtensionLib.modules]: Record<string, ExtensionManifest>
+    [ExtensionLib.markdowns]: Record<string, string>
+  } = {
+    [ExtensionLib.assets]: {},
+    [ExtensionLib.modules]: {},
+    [ExtensionLib.markdowns]: {},
+  }
+
   const { baseExtensions } = extensionsState()
 
   const { $api, $e } = useNuxtApp()
@@ -119,7 +144,7 @@ export const useExtensions = createSharedComposable(() => {
   watch(
     base,
     () => {
-      extensionPanelSize.value = +panelState.value[base.value.id!]?.width || 40
+      extensionPanelSize.value = +(panelState.value[base.value.id!]?.width || 40)
       isPanelExpanded.value = panelState.value[base.value.id!]?.isOpen || false
     },
     { immediate: true },
@@ -298,7 +323,9 @@ export const useExtensions = createSharedComposable(() => {
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
     } else {
-      return new URL(`../extensions/${pathOrUrl}`, import.meta.url).href
+      const file = extensionAssets[ExtensionLib.assets][`../extensions/${pathOrUrl}`]
+
+      return file || ''
     }
   }
 
@@ -435,25 +462,28 @@ export const useExtensions = createSharedComposable(() => {
 
   // Function to load extensions
   onMounted(async () => {
+    for (const [key, glob] of Object.entries(globs)) {
+      for (const path of Object.keys(glob)) {
+        if (!glob[path]) continue
+
+        try {
+          if (key in extensionAssets) {
+            extensionAssets[key as ExtensionLib][path] = (await glob[path]()) as any
+          }
+        } catch (error) {
+          console.error(`Failed to load file at ${path} for ${key}:`, error)
+        }
+      }
+    }
+
     try {
-      // Load all JSON modules from the specified glob pattern
-      const modules = import.meta.glob('../extensions/*/*.json')
-
-      const markdownModules = import.meta.glob('../extensions/*/*.md', {
-        query: '?raw',
-        import: 'default',
-      })
-
-      const extensionCount = Object.keys(modules).length
+      const extensionCount = Object.keys(extensionAssets[ExtensionLib.modules]).length
       let disabledCount = 0
 
       // Array to hold the promises
-      const promises = Object.keys(modules).map(async (path) => {
-        try {
-          // Load the module
-          const mod = (await modules[path]()) as any
-          const manifest = mod.default as ExtensionManifest
 
+      for (const [path, manifest] of Object.entries(extensionAssets[ExtensionLib.modules])) {
+        try {
           if (!Array.isArray(manifest.links)) {
             manifest.links = []
           }
@@ -472,9 +502,9 @@ export const useExtensions = createSharedComposable(() => {
             if (manifest.description) {
               const markdownPath = `../extensions/${manifest.description}`
 
-              if (markdownModules[markdownPath] && manifest?.id) {
+              if (extensionAssets[ExtensionLib.markdowns][markdownPath] && manifest?.id) {
                 try {
-                  const markdownContent = await markdownModules[markdownPath]()
+                  const markdownContent = extensionAssets[ExtensionLib.markdowns][markdownPath]
 
                   descriptionContent.value[manifest.id] = `${markdownContent}`
                 } catch (markdownError) {
@@ -488,10 +518,7 @@ export const useExtensions = createSharedComposable(() => {
         } catch (error) {
           console.error(`Failed to load module at ${path}:`, error)
         }
-      })
-
-      // Wait for all modules to be processed
-      await Promise.all(promises)
+      }
 
       if (availableExtensions.value.length + disabledCount === extensionCount) {
         // Sort extensions

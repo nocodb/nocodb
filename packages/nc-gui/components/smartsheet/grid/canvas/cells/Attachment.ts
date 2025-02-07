@@ -126,16 +126,16 @@ export const AttachmentCellRenderer: CellRenderer = {
       const row = Math.floor(index / itemsPerRow)
       const col = index % itemsPerRow
 
-      const isLastRow = row === Math.floor((index + 1) / itemsPerRow)
+      const isLastRow = row === Math.floor((totalItems - 1) / itemsPerRow) // Last row check based on total items
       const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
-      const rowStartX = x + horizontalPadding + (width - horizontalPadding * 2 - currentRowWidth) / 2
+      const rowStartX = x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
       if (isImage(item.title, item.mimetype || item.type)) {
-        const size = getAttachmentSize(rowHeight)
+        const size = getAttachmentSize(rowHeight!)
         const url = getPossibleAttachmentSrc(item, size)?.[0]
 
         if (!url) {

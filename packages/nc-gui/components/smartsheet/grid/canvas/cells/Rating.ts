@@ -69,7 +69,7 @@ const inactiveColor = '#d9d9d9'
 
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, tag = {} } = props
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, readonly, tag = {} } = props
 
     const {
       renderAsTag,
@@ -92,7 +92,7 @@ export const RatingCellRenderer: CellRenderer = {
     const needsEllipsis = iconsToShow < ratingMeta.max
 
     let hoveredIconIndex = -1
-    if (mousePosition) {
+    if (mousePosition && !readonly) {
       const { x: mouseX, y: mouseY } = mousePosition
       const relativeX = mouseX - startX
       const relativeY = mouseY - startY

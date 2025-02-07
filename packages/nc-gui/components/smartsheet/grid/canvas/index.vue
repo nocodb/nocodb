@@ -1170,6 +1170,9 @@ onBeforeUnmount(() => {
   :deep(.nc-single-select) {
     @apply !h-auto;
   }
+  :deep(.nc-cell-json) {
+    @apply !py-1;
+  }
 
   :deep(.nc-cell-datetime) {
     @apply !py-1 !px-2;

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Card as AntCard } from 'ant-design-vue'
 import { JobStatus } from '#imports'
 
 const { modelValue, baseId, sourceId, transition } = defineProps<{
@@ -29,9 +28,9 @@ const showGoToDashboardButton = ref(false)
 
 const step = ref(1)
 
-const progress = ref<Record<string, any>[]>([])
+const progressRef = ref()
 
-const logRef = ref<typeof AntCard>()
+const lastProgress = ref()
 
 const enableAbort = ref(false)
 
@@ -62,33 +61,26 @@ const syncSource = ref({
   },
 })
 
-const pushProgress = async (message: string, status: JobStatus | 'progress') => {
-  progress.value.push({ msg: message, status })
-
-  await nextTick(() => {
-    const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
-    if (!container) return
-    container.scrollTop = container.scrollHeight
-  })
+const onLog = (data: { message: string }) => {
+  progressRef.value?.pushProgress(data.message, 'progress')
+  lastProgress.value = { msg: data.message, status: 'progress' }
 }
 
 const onStatus = async (status: JobStatus, data?: any) => {
+  lastProgress.value = { msg: data?.message, status }
+
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
     await loadTables()
-    pushProgress('Done!', status)
+    progressRef.value?.pushProgress('Done!', status)
     refreshCommandPalette()
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
     await loadTables()
     goBack.value = true
-    pushProgress(data.error.message, status)
+    progressRef.value?.pushProgress(data.error.message, status)
     refreshCommandPalette()
   }
-}
-
-const onLog = (data: { message: string }) => {
-  pushProgress(data.message, 'progress')
 }
 
 const validators = computed(() => ({
@@ -279,29 +271,8 @@ onMounted(async () => {
   await loadSyncSrc()
 })
 
-function downloadLogs(filename: string) {
-  let text = ''
-  for (const o of document.querySelectorAll('.nc-modal-airtable-import .log-message')) {
-    text += `${o.textContent}\n`
-  }
-  const element = document.createElement('a')
-  element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`)
-  element.setAttribute('download', filename)
-
-  element.style.display = 'none'
-  document.body.appendChild(element)
-
-  element.click()
-
-  document.body.removeChild(element)
-}
-
 const isInProgress = computed(() => {
-  return (
-    !progress.value ||
-    !progress.value.length ||
-    ![JobStatus.COMPLETED, JobStatus.FAILED].includes(progress.value[progress.value.length - 1]?.status)
-  )
+  return !lastProgress.value || ![JobStatus.COMPLETED, JobStatus.FAILED].includes(lastProgress.value?.status)
 })
 
 const detailsIsShown = ref(false)
@@ -430,51 +401,15 @@ const collapseKey = ref('')
     </div>
 
     <div v-if="step === 2">
-      <a-card
-        v-if="detailsIsShown"
-        ref="logRef"
-        class="nc-import-logs-container"
-        :body-style="{
-          'backgroundColor': '#101015',
-          'height': '200px',
-          'overflow': 'auto',
-          'borderRadius': '0.5rem',
-          'padding': '16px !important',
-          'scrollbar-color': 'var(--scrollbar-thumb) var(--scrollbar-track)',
-          'scrollbar-width': 'thin',
-          '--scrollbar-thumb': '#E7E7E9',
-          '--scrollbar-track': 'transparent',
-        }"
-      >
-        <a-button
-          v-if="showGoToDashboardButton || goBack"
-          class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
-          size="small"
-          @click="downloadLogs('at-import-logs.txt')"
-        >
-          <nc-tooltip>
-            <template #title>Download Logs</template>
-            <component :is="iconMap.download" />
-          </nc-tooltip>
-        </a-button>
-
-        <div v-for="({ msg, status }, i) in progress" :key="i" class="my-1">
-          <div v-if="status === JobStatus.FAILED" class="flex items-start">
-            <span class="text-red-400 ml-2 log-message">{{ msg }}</span>
-          </div>
-          <div v-else class="flex items-start">
-            <span class="text-green-400 ml-2 log-message">{{ msg }}</span>
-          </div>
-        </div>
-      </a-card>
-      <div v-else class="flex items-start gap-2">
+      <GeneralProgressPanel v-show="detailsIsShown" ref="progressRef" class="w-full h-[200px]" />
+      <div v-show="!detailsIsShown" class="flex items-start gap-2">
         <template v-if="isInProgress">
           <component :is="iconMap.loading" class="text-primary animate-spin mt-1" />
           <span>
-            {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+            {{ lastProgress?.msg ?? '---' }}
           </span>
         </template>
-        <template v-else-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED">
+        <template v-else-if="lastProgress?.status === JobStatus.FAILED">
           <a-alert class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full">
             >
             <template #message>
@@ -485,7 +420,7 @@ const collapseKey = ref('')
             </template>
             <template #description>
               <div class="text-gray-500 text-[13px] leading-5 ml-6">
-                {{ progress?.[progress?.length - 1]?.msg ?? '---' }}
+                {{ lastProgress?.msg ?? '---' }}
               </div>
             </template>
           </a-alert>
@@ -497,9 +432,7 @@ const collapseKey = ref('')
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <nc-button v-if="progress?.[progress?.length - 1]?.status === JobStatus.FAILED" size="small" @click="step = 1">
-          Retry import
-        </nc-button>
+        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
         <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
       </div>
     </div>

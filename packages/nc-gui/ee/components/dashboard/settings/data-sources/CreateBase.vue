@@ -942,7 +942,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
               <!--         Inferring schema from your data source -->
               <div class="mb-4 prose-xl font-bold">Inferring schema from your data source</div>
 
-              <GeneralProgressPanel ref="progressRef" class="max-h-[600px]" />
+              <GeneralProgressPanel ref="progressRef" class="h-full max-h-[600px]" />
 
               <div v-if="goToDashboard">
                 <a-form :model="useCaseFormState" name="useCase" autocomplete="off" @finish="onUseCaseFormSubmit">

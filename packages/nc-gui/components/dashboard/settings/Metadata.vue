@@ -19,11 +19,17 @@ const isLoading = ref(false)
 
 const isDifferent = ref(false)
 
+const triggeredSync = ref(false)
+
+const syncCompleted = ref(false)
+
 const metadiff = ref<any[]>([])
 
-async function loadMetaDiff() {
+async function loadMetaDiff(afterSync = false) {
   try {
     if (!base.value?.id) return
+
+    if (triggeredSync.value && !syncCompleted.value && !afterSync) return
 
     isLoading.value = true
     isDifferent.value = false
@@ -38,14 +44,11 @@ async function loadMetaDiff() {
     console.error(e)
   } finally {
     isLoading.value = false
+    if (afterSync) syncCompleted.value = true
   }
 }
 
 const { $poller } = useNuxtApp()
-
-const triggeredSync = ref(false)
-
-const syncCompleted = ref(false)
 
 const onBack = () => {
   triggeredSync.value = false
@@ -78,14 +81,14 @@ async function syncMetaDiff() {
           if (data.status === JobStatus.COMPLETED) {
             // Table metadata recreated successfully
             message.info(t('msg.info.metaDataRecreated'))
-            await loadTables()
-            await loadMetaDiff()
-            emit('baseSynced')
-
             progressRef.value.pushProgress('Done!', data.status)
 
-            syncCompleted.value = true
             isLoading.value = false
+
+            await loadTables()
+            await loadMetaDiff(true)
+
+            emit('baseSynced')
           } else if (data.status === JobStatus.FAILED) {
             progressRef.value.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
             syncCompleted.value = true
@@ -157,7 +160,7 @@ const customRow = (record: Record<string, any>) => ({
         <a-button
           v-e="['a:proj-meta:meta-data:reload']"
           class="self-start !rounded-md nc-btn-metasync-reload"
-          @click="loadMetaDiff"
+          @click="loadMetaDiff()"
         >
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
@@ -165,10 +168,21 @@ const customRow = (record: Record<string, any>) => ({
           </div>
         </a-button>
       </div>
-      <div v-if="triggeredSync" class="flex flex-col justify-center items-center h-full">
-        <GeneralProgressPanel ref="progressRef" class="w-1/2" />
-        <div v-if="syncCompleted" class="flex justify-center">
-          <NcButton html-type="submit" class="mt-4 mb-8" size="medium" @click="onBack"> Back </NcButton>
+      <div v-if="triggeredSync" class="flex flex-col justify-center items-center h-full overflow-y-auto">
+        <GeneralProgressPanel ref="progressRef" class="w-1/2 h-full" />
+        <div class="flex justify-center">
+          <NcButton
+            html-type="submit"
+            class="mt-4 mb-8"
+            :class="{
+              'sync-completed': syncCompleted,
+            }"
+            size="medium"
+            :disabled="!syncCompleted"
+            @click="onBack"
+          >
+            Back
+          </NcButton>
         </div>
       </div>
       <NcTable

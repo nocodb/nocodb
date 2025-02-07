@@ -10246,7 +10246,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               }
 
               if (
-                data[column.column_name] !== null &&
+                data[column.column_name] &&
                 !Array.isArray(data[column.column_name])
               ) {
                 NcError.invalidAttachmentJson(data[column.column_name]);

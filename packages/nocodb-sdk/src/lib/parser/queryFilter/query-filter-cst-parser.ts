@@ -148,12 +148,8 @@ export const parseCallExpression = (
     if (result.comparison_sub_op) {
       variables.shift();
     }
-    result.value =
-      variables.length === 1
-        ? variables[0]
-        : variables.length === 0
-        ? undefined
-        : variables;
+    // keep variable as comma separated string if not in operator
+    result.value = operator === 'in' ? variables : variables.join(',');
   }
   handleBlankOperator(result);
   handleInOperator(result);

@@ -540,6 +540,7 @@ async function handleMouseDown(e: MouseEvent) {
         const row = cachedRows.value.get(rowIndex)
         const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
         if (row) {
+          const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
           const res = await handleCellClick({
             event: e,
             row: row!,
@@ -547,6 +548,8 @@ async function handleMouseDown(e: MouseEvent) {
             value: row?.row[clickedColumn.title],
             mousePosition: { x, y },
             pk,
+            selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
+            imageLoader,
           })
           triggerRefreshCanvas()
 
@@ -1144,7 +1147,18 @@ onBeforeUnmount(() => {
   }
 
   :deep(.nc-cell-attachment) {
-    @apply !pl-1 !pt-1.75;
+    [data-row-height='1'] {
+      @apply -mt-[2px];
+      .empty-add-files {
+        @apply mt-[3px];
+      }
+    }
+    [data-row-height]:not([data-row-height='1']) {
+      button.add-files,
+      button.view-attachments {
+        @apply mt-[4px];
+      }
+    }
   }
 
   :deep(.nc-multi-select) {

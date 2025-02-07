@@ -172,7 +172,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     if (isHovered && attachments.length > 0) {
-      const buttonY = y + 8
+      const buttonY = y + 5
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,
@@ -192,7 +192,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (readonly) return
 
       renderIconButton(ctx, {
-        buttonX: x + 14,
+        buttonX: x + 11,
         buttonY,
         buttonSize: 18,
         borderRadius: 6,
@@ -224,9 +224,11 @@ export const AttachmentCellRenderer: CellRenderer = {
       const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
-      const buttonY = y + 8
+      const buttonY = y + 3
       const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
-      // Should we add a tooltip here?
+      console.log(buttonBox)
+      // TODO: Show the tooltip when drag and drop is supported
+      // for now, the tooltip does not make sense
       return
     }
     const rowHeight = pxToRowHeight[height] ?? 1
@@ -304,7 +306,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
     if (!attachments.length) return
 
-    const buttonY = y + 8
+    const buttonY = y + 5
     const maximizeBox = {
       x: x + width - 30,
       y: buttonY,
@@ -313,7 +315,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
 
     const attachBox = {
-      x: x + 14,
+      x: x + 11,
       y: buttonY,
       width: 18,
       height: 18,
@@ -338,5 +340,118 @@ export const AttachmentCellRenderer: CellRenderer = {
         text: getI18n().global.t('activity.addFiles'),
       })
     }
+  },
+  async handleClick({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, makeCellEditable }) {
+    const { hideTooltip } = useTooltipStore()
+    hideTooltip()
+    const enableEdit = () => makeCellEditable(row.rowMeta.rowIndex!, column)
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    let attachments: Attachment[] = []
+    try {
+      attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
+    } catch {
+      attachments = []
+    }
+    if (selected && attachments.length === 0) {
+      const buttonWidth = 84
+      const buttonHeight = 24
+      const buttonX = x + (width - buttonWidth) / 2
+      const buttonY = y + 3
+      const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
+      if (isBoxHovered(buttonBox, mousePosition)) {
+        enableEdit()
+        return true
+      }
+    }
+    const rowHeight = pxToRowHeight[height] ?? 1
+
+    const { getPossibleAttachmentSrc } = useAttachment()
+    const horizontalPadding = 10
+    const verticalPadding = rowHeight === 1 ? 4 : 8
+    const itemSize = rowHeight === 1 ? 24 : rowHeight === 2 ? 32 : 64
+    const gap = 8
+
+    const itemsPerRow = Math.floor((width - horizontalPadding * 2 + gap) / (itemSize + gap))
+    const totalItems = attachments.length
+    const itemsInLastRow = totalItems % itemsPerRow || itemsPerRow
+
+    const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
+    const maxVisibleItems = maxRows * itemsPerRow
+
+    const imageBoxes: (RenderRectangleProps & { title: string })[] = []
+
+    attachments.slice(0, maxVisibleItems).forEach((item, index) => {
+      if (!item) return
+
+      const row = Math.floor(index / itemsPerRow)
+      const col = index % itemsPerRow
+
+      const isLastRow = row === Math.floor((index + 1) / itemsPerRow)
+      const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
+
+      const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
+      const rowStartX = x + horizontalPadding + (width - horizontalPadding * 2 - currentRowWidth) / 2
+
+      const itemX = rowStartX + col * (itemSize + gap)
+      const itemY = y + verticalPadding + row * (itemSize + gap)
+
+      if (isImage(item.title, item.mimetype || item.type)) {
+        const size = getAttachmentSize(rowHeight)
+        const url = getPossibleAttachmentSrc(item, size)?.[0]
+
+        if (!url) {
+          // broken_image
+          return
+        }
+
+        const img = imageLoader.loadOrGetImage(url)
+        if (img) {
+          imageBoxes.push({
+            x: itemX,
+            y: itemY,
+            width: itemSize,
+            height: itemSize,
+            title: item.title ?? url,
+          })
+        }
+      } else if (item.title) {
+        imageBoxes.push({
+          x: itemX,
+          y: itemY,
+          width: itemSize,
+          height: itemSize,
+          title: item.title,
+        })
+      }
+    })
+
+    const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
+    if (hoveredPreview) {
+      enableEdit()
+      return true
+    }
+    if (!attachments.length) return false
+
+    const buttonY = y + 5
+    const maximizeBox = {
+      x: x + width - 30,
+      y: buttonY,
+      width: 18,
+      height: 18,
+    }
+
+    const attachBox = {
+      x: x + 11,
+      y: buttonY,
+      width: 18,
+      height: 18,
+    }
+
+    if (isBoxHovered(maximizeBox, mousePosition) || isBoxHovered(attachBox, mousePosition)) {
+      enableEdit()
+      return true
+    }
+    return false
   },
 }

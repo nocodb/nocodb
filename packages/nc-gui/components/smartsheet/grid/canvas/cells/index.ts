@@ -184,6 +184,8 @@ export function useGridCellHandler(params: {
     value: any
     mousePosition: { x: number; y: number }
     pk: any
+    selected: boolean
+    imageLoader: ImageWindowLoader
   }) => {
     if (!params?.getCellPosition) return
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)

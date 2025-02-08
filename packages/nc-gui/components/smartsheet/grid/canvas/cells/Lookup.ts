@@ -1,4 +1,4 @@
-import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType } from 'nocodb-sdk'
+import { type ColumnType, type LookupType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { getSingleMultiselectColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'

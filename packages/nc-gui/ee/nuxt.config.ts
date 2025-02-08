@@ -306,7 +306,7 @@ export default defineNuxtConfig({
         'xlsx',
         'youtube-vue3',
         'lru-cache',
-        'qrcode'
+        'qrcode',
       ],
       esbuildOptions: {
         define: {

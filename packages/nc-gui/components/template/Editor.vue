@@ -243,7 +243,7 @@ function isSelect(col: ColumnType) {
   return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
 }
 
-function deleteTable(tableIdx: number) {
+function _deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
 }
 

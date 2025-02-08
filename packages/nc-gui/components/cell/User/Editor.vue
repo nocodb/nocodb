@@ -205,7 +205,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const toggleMenu = () => {
+function toggleMenu() {
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value

@@ -1,9 +1,6 @@
-import { isBoxHovered, renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-
-const offscreenCanvas = new OffscreenCanvas(0, 0)
-const defaultContext = offscreenCanvas.getContext('2d')!
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -143,7 +140,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     const boxes: (RenderRectangleProps & { text: string })[] = []
     let count = 0
     let line = 1
-    const ctx = defaultContext
+    const ctx = defaultOffscreen2DContext
     for (const option of selectedOptions) {
       const text = option?.trim() ?? ''
 

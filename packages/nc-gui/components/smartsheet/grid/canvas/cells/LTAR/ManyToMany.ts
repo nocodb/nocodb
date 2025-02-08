@@ -145,5 +145,17 @@ export const ManyToManyCellRenderer: CellRenderer = {
       })
     }
   },
-  handleClick: async () => {},
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    const rowIndex = row.rowMeta.rowIndex!
+    const { x, y, width } = getCellPosition(column, rowIndex)
+    const buttonSize = 24
+    if (
+      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
+      isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
+    ) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+    return false
+  },
 }

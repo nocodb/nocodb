@@ -1,4 +1,4 @@
-import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -43,5 +43,19 @@ export const LinksCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    const rowIndex = row.rowMeta.rowIndex!
+    const { x, y, width, height } = getCellPosition(column, rowIndex)
+    const padding = 10
+    const buttonSize = 16
+    if (
+      isBoxHovered({ x: x + width - 16 - padding, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition) ||
+      isBoxHovered({ x: x + padding, y, height, width: width - padding * 2 }, mousePosition)
+    ) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+    return false
   },
 }

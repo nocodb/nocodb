@@ -527,7 +527,6 @@ async function handleMouseDown(e: MouseEvent) {
       }
     })
   } else if (y > 32 && y < height.value - 36) {
-    console.log('right click', y, height.value)
     // Row Selection
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value.row = -1
@@ -609,11 +608,10 @@ async function handleMouseDown(e: MouseEvent) {
 
 function scrollToCell(row?: number, column?: number) {
   if (!containerRef.value) return
-
   row = row ?? activeCell.value.row
   column = column ?? activeCell.value.column
 
-  if (!row || !column) return
+  if (typeof row !== 'number' || !column) return
 
   const cellTop = row * rowHeight.value
   const cellBottom = cellTop + rowHeight.value + 96

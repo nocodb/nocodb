@@ -1,10 +1,8 @@
 import { createToken, Lexer } from 'chevrotain';
 import {
-  REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR,
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
   REGEXSTR_INTL_LETTER,
   REGEXSTR_NUMERIC_ARABIC,
-  REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR,
   REGEXSTR_WHITESPACE,
 } from '../regex';
 const IDENTIFIER = createToken({
@@ -51,18 +49,17 @@ export const COMMON_TOKEN = {
   IDENTIFIER: IDENTIFIER,
   SUP_SGL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_SGL_QUOTE_IDENTIFIER',
-    pattern: new RegExp(
-      `'[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR}]+'`
-    ),
-    // pattern: /[a-zA-Z]\w*/,
+    pattern: /'((?:\\'|[^'])+)'/,
     longer_alt: IDENTIFIER,
   }),
   SUP_DBL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_DBL_QUOTE_IDENTIFIER',
-    pattern: new RegExp(
-      `"[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR}]+"`
-    ),
+    pattern: /"((?:\\"|[^"])+)"/,
     longer_alt: IDENTIFIER,
-    // pattern: /[a-zA-Z]\w*/,
+  }),
+  SUP_BACK_QUOTE_IDENTIFIER: createToken({
+    name: 'SUP_BACK_QUOTE_IDENTIFIER',
+    pattern: /`((?:\\`|[^`])+)`/,
+    longer_alt: IDENTIFIER,
   }),
 };

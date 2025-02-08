@@ -11,6 +11,7 @@ export function useMouseSelection({
   scrollToCell,
   rowSlice,
   partialRowHeight,
+  totalRows,
 }: {
   selection: Ref<CellRange>
   activeCell: Ref<{ row: number; column: number }>
@@ -22,6 +23,7 @@ export function useMouseSelection({
   scrollToCell: (row?: number, column?: number) => void
   rowSlice: Ref<{ start: number; end: number }>
   partialRowHeight: Ref<number>
+  totalRows: Ref<number>
 }) {
   const isSelecting = ref(false)
 
@@ -78,12 +80,17 @@ export function useMouseSelection({
     const cell = findCellFromPosition(e.clientX - rect.left, e.clientY - rect.top)
 
     if (cell.col !== -1) {
+      // Clamp cell.row between 0 and totalRows - 1
+      cell.row = Math.max(0, Math.min(cell.row, totalRows.value - 1))
+
       const maxRow = Math.max(selection.value._start?.row ?? 0, cell.row)
       const minRow = Math.min(selection.value._start?.row ?? 0, cell.row)
 
       if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
         const direction = cell.row > (selection.value._start?.row ?? 0) ? 1 : -1
-        cell.row = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
+        const newRow = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
+        // Clamp the new row value between 0 and totalRows - 1
+        cell.row = Math.max(0, Math.min(newRow, totalRows.value - 1))
       }
 
       selection.value.endRange(cell)
@@ -92,7 +99,6 @@ export function useMouseSelection({
       triggerReRender()
     }
   }
-
   const handleMouseUp = () => {
     isSelecting.value = false
   }

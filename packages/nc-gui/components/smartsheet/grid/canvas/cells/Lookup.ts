@@ -60,6 +60,12 @@ export const LookupCellRenderer: CellRenderer = {
 
     if (!arrValue.length) return
 
+    // Begin clipping
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(_x, _y, _width, height) // Define the clipping rectangle
+    ctx.clip()
+
     const renderProps: CellRendererOptions = {
       ...props,
       column: lookupColumn,
@@ -113,10 +119,14 @@ export const LookupCellRenderer: CellRenderer = {
           x,
           y,
           width,
-          tag: { ...renderProps.tag, renderAsTag: false },
+          tag: { ...renderProps.tag, renderAsTag: renderOnly1Row.includes(lookupColumn.uidt) },
         })
 
-        if (point?.x) {
+        if (renderOnly1Row.includes(lookupColumn.uidt)) {
+          if (point?.x) {
+            x = point?.x
+          }
+        } else if (point?.x) {
           if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
             if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
               flag = true
@@ -202,5 +212,8 @@ export const LookupCellRenderer: CellRenderer = {
         handleRenderDefault()
       }
     }
+
+    // Restore context after clipping
+    ctx.restore()
   },
 }

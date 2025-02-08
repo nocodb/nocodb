@@ -83,8 +83,6 @@ declare module 'vue' {
     AUpload: typeof import('ant-design-vue/es')['Upload']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
     BiMarkdownFill: typeof import('~icons/bi/markdown-fill')['default']
-    CilFullscreen: typeof import('~icons/cil/fullscreen')['default']
-    CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     IcBaselineArrowOutward: typeof import('~icons/ic/baseline-arrow-outward')['default']
     IcBaselineDragIndicator: typeof import('~icons/ic/baseline-drag-indicator')['default']

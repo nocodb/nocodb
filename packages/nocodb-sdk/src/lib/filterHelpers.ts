@@ -11,7 +11,7 @@ export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   GROUPBY_COMPARISON_OPS,
-  IS_WITHIN_COMPARISON_SUB_OPS
+  IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 
 /**
@@ -259,10 +259,20 @@ export function extractCondition(
       throw new NcSDKError('INVALID_FILTER');
     }
 
+    let columnId = aliasColObjMap[alias]?.id;
+
+    // if not found then check if it's a valid column id
+    if (
+      !columnId &&
+      Object.values(aliasColObjMap).some((col: ColumnType) => col?.id === alias)
+    ) {
+      columnId = alias;
+    }
+
     return {
       comparison_op: op,
       ...(sub_op && { comparison_sub_op: sub_op }),
-      fk_column_id: aliasColObjMap[alias]?.id,
+      fk_column_id: columnId,
       logical_op: logicOp,
       value,
     };

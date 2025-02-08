@@ -39,6 +39,7 @@ export function useCanvasRender({
   renderCell,
   meta,
   editEnabled,
+  totalWidth,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -52,6 +53,7 @@ export function useCanvasRender({
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
+  totalWidth: ComputedRef<number>
   selection: Ref<CellRange>
   isAiFillMode: ComputedRef<boolean>
   isRowDraggingEnabled: ComputedRef<boolean>
@@ -558,6 +560,9 @@ export function useCanvasRender({
     }
     let fillHandlerRendered = false
 
+    const adjustedWidth =
+      totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+
     let warningRow: { row: Row; yOffset: number } | null = null
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
@@ -569,7 +574,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-        ctx.fillRect(0, yOffset, width.value - 256, rowHeight.value)
+        ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         if (row) {
           const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
@@ -738,7 +743,7 @@ export function useCanvasRender({
         } else {
           // Loading state
           ctx.fillStyle = '#ffffff'
-          ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+          ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         }
 
         if (rowIdx === draggedRowIndex.value) {
@@ -749,7 +754,7 @@ export function useCanvasRender({
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
-        ctx.lineTo(width.value - 256, yOffset + rowHeight.value)
+        ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
         ctx.stroke()
 
         if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
@@ -761,14 +766,14 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: width.value }, mousePosition)
+    const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: adjustedWidth }, mousePosition)
     ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
-    ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+    ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
     // Bottom border for new row
     ctx.strokeStyle = '#f4f4f5'
     ctx.beginPath()
     ctx.moveTo(0, yOffset + rowHeight.value)
-    ctx.lineTo(width.value, yOffset + rowHeight.value)
+    ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
     ctx.stroke()
 
     spriteLoader.renderIcon(ctx, {
@@ -779,17 +784,13 @@ export function useCanvasRender({
       size: 14,
     })
 
-    if (!fillHandlerRendered) {
-      renderFillHandle(ctx, true)
-    }
-
     if (warningRow) {
       const orange = '#fcbe3a'
       // Warning top border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(0, warningRow.yOffset - 2)
-      ctx.lineTo(width.value, warningRow.yOffset)
+      ctx.lineTo(adjustedWidth, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -797,7 +798,7 @@ export function useCanvasRender({
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(0, warningRow.yOffset + rowHeight.value)
-      ctx.lineTo(width.value, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth, warningRow.yOffset + rowHeight.value)
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -811,6 +812,9 @@ export function useCanvasRender({
         fontSize: 12,
         fontFamily: '600 12px Manrope',
       })
+    }
+    if (!fillHandlerRendered) {
+      renderFillHandle(ctx, true)
     }
   }
 

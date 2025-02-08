@@ -804,7 +804,6 @@ export function useCopyPaste({
   async function copyValue(ctx?: Cell) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        console.log(selection.value.start)
         const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
         const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
 

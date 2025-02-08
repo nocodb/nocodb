@@ -369,7 +369,7 @@ export function useCanvasRender({
 
     ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
     ctx.beginPath()
-    ctx.arc(fillHandler.x, fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
+    ctx.arc(fillHandler.x + (renderOverFixed ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
     ctx.fill()
 
     if (isFillMode.value) {

@@ -680,7 +680,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         url: `/api/${API_VERSION}/tables/${table.id}/records`,
         query: {
           where:
-            '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,"Allahabad, India")',
+            '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,Allahabad, India)',
           limit: 400,
         },
       });
@@ -1118,7 +1118,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         query: {
           where: 'abc',
         },
-        status: 400,
+        status: 422,
       });
       await ncAxiosGet({
         url: `/api/${API_VERSION}/tables/${table.id}/records`,

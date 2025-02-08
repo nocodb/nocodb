@@ -82,27 +82,24 @@ export const TOKEN_OPERATOR = createToken({
     ].join('|')})\\b`
   ),
   longer_alt: COMMON_TOKEN.IDENTIFIER,
+  categories: [COMMON_TOKEN.IDENTIFIER],
 });
-export const TOKEN_SUBOPERATOR = createToken({
-  name: 'SUBOPERATOR',
-  pattern: new RegExp(`\\b(${COMPARISON_SUB_OPS.join('|')})\\b`),
-  longer_alt: COMMON_TOKEN.IDENTIFIER,
-});
-
 export const BINARY_LOGICAL_OPERATOR = createToken({
   name: 'BINARY_LOGICAL_OPERATOR',
   pattern: /~or|~and/,
+  longer_alt: COMMON_TOKEN.IDENTIFIER,
+  categories: [COMMON_TOKEN.IDENTIFIER],
 });
 export const NOT_OPERATOR = createToken({
   name: 'NOT_OPERATOR',
   pattern: /~not/,
   longer_alt: COMMON_TOKEN.IDENTIFIER,
+  categories: [COMMON_TOKEN.IDENTIFIER],
 });
 
 export const QUERY_FILTER_TOKENS = [
   COMMON_TOKEN.WHITESPACE_SKIP,
   TOKEN_OPERATOR,
-  TOKEN_SUBOPERATOR,
   BINARY_LOGICAL_OPERATOR,
   NOT_OPERATOR,
   COMMON_TOKEN.PAREN_START,

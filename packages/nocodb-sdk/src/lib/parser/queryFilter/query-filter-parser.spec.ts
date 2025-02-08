@@ -35,6 +35,23 @@ describe('query-filter-parser', () => {
     const result = QueryFilterParser.parse(text);
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
+  it('will parse eq expression with mandarin, japanese and cryillic', async () => {
+    const text = `(Тест, eq, "新年快乐おはよう")`;
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Тест',
+          comparison_op: 'eq',
+          value: '新年快乐おはよう',
+        },
+      ],
+    };
+    const result = QueryFilterParser.parse(text);
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
   it('will parse wrong expression', async () => {
     const text = '(field1)';
     const result = QueryFilterParser.parse(text);
@@ -68,6 +85,7 @@ describe('query-filter-parser', () => {
           field: 'field1',
           comparison_op: 'eq',
           comparison_sub_op: 'today',
+          value: '',
         },
       ],
     };
@@ -84,6 +102,7 @@ describe('query-filter-parser', () => {
           is_group: false,
           field: 'Category',
           comparison_op: 'gb_eq',
+          value: '',
         },
       ],
     };
@@ -165,6 +184,40 @@ describe('query-filter-parser', () => {
           comparison_op: 'not',
           logical_op: 'or',
           value: '4',
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  it('will parse keyword as value', async () => {
+    const text = '(Category,is,blank)';
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Category',
+          comparison_op: 'blank',
+          value: undefined,
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  it('will parse empty quote as value', async () => {
+    const text = "(Category,eq,'')";
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'Category',
+          comparison_op: 'eq',
+          value: '',
         },
       ],
     };

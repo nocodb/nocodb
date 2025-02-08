@@ -1,10 +1,11 @@
 import type { Rule, Token } from '../common-type';
 import {
-  parseVariable,
+  parseVariableAsArray,
   parseVariableAsString,
   VariableRule,
 } from '../common-cst-parser';
 import { NcSDKError } from '~/lib/errorUtils';
+import { COMPARISON_SUB_OPS } from './query-filter-lexer';
 
 export interface CstExpressionArguments
   extends Rule<
@@ -133,14 +134,22 @@ export const parseCallExpression = (
     comparison_op: operator as any,
     logical_op: opt?.logicalOperator,
   };
-  if (cst.children.expression_arguments) {
-    result.comparison_sub_op = cst.children.expression_arguments[0].children
-      .SUBOPERATOR?.[0]?.image as any;
-    if (cst.children.expression_arguments[0].children.VARIABLE) {
-      result.value = parseVariable(
-        cst.children.expression_arguments[0].children.VARIABLE
-      );
+  if (
+    cst.children.expression_arguments &&
+    cst.children.expression_arguments[0].children.VARIABLE
+  ) {
+    const variables = parseVariableAsArray(
+      cst.children.expression_arguments[0].children.VARIABLE
+    );
+    result.comparison_sub_op = COMPARISON_SUB_OPS.includes(variables[0] as any)
+      ? variables[0]
+      : undefined;
+    // if identified as sub op, pop first variable
+    if (result.comparison_sub_op) {
+      variables.shift();
     }
+    // keep variable as comma separated string if not in operator
+    result.value = operator === 'in' ? variables : variables.join(',');
   }
   handleBlankOperator(result);
   handleInOperator(result);
@@ -217,7 +226,7 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
   } // for equality, replace with empty string if value is undefined
   else if (
     filter.value === undefined &&
-    ['eq', 'gb_eq'].includes(filter.comparison_op)
+    ['eq', 'neq', 'gb_eq'].includes(filter.comparison_op)
   ) {
     filter.value = '';
   }

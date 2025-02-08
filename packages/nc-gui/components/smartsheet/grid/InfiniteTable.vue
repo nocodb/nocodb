@@ -1434,8 +1434,8 @@ let lastRenderStart = -1
 let lastRenderEnd = -1
 
 // Optimized binary search to determine the visible column range
-const binarySearchForStart = (scrollLeft) => {
-  if (prevScrollLeft === scrollLeft && prevScrollWidth === gridWrapper.value.clientWidth) {
+const binarySearchForStart = (scrollLeft: number, clientWidth: number) => {
+  if (prevScrollLeft === scrollLeft && prevScrollWidth === clientWidth) {
     // Return cached results if the scroll position and grid width haven't changed
     return { renderStart: lastRenderStart, renderEnd: lastRenderEnd }
   }
@@ -1459,12 +1459,12 @@ const binarySearchForStart = (scrollLeft) => {
   }
 
   // Find the ending column using a simple linear scan starting from renderStart
-  let renderEnd = colPositions.value.findIndex((pos) => pos > gridWrapper.value.clientWidth + scrollLeft)
+  let renderEnd = colPositions.value.findIndex((pos) => pos > clientWidth + scrollLeft)
   renderEnd = renderEnd === -1 ? colPositions.value.length : renderEnd
 
   // Cache the results
   prevScrollLeft = scrollLeft
-  prevScrollWidth = gridWrapper.value.clientWidth
+  prevScrollWidth = clientWidth
   lastRenderStart = renderStart
   lastRenderEnd = renderEnd
 
@@ -1513,7 +1513,7 @@ const calculateSlices = () => {
   lastScrollTop.value = scrollTop.value
 
   // Determine visible column range using binary search
-  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value)
+  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value, gridWrapper.value.clientWidth)
 
   // Add virtual margins to the calculated ranges
   const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)

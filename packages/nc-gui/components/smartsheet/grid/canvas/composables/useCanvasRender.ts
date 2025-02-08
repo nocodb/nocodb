@@ -70,6 +70,7 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref()
   function renderHeader(ctx: CanvasRenderingContext2D) {
+    const canvasWidth = width.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
@@ -240,7 +241,27 @@ export function useCanvasRender({
 
         const availableTextWidth = width - (26 + iconSpace)
         const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-        ctx.fillText(truncatedText, xOffset + (column.uidt ? 26 : 10), 16)
+        const x = xOffset + (column.uidt ? 26 : 10)
+        const y = 16
+        if (column.id === 'row_number') {
+          if (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) {
+            const checkSize = 16
+            const isCheckboxHovered = isBoxHovered({ x, y: y - 8, width: checkSize, height: checkSize }, mousePosition)
+            renderCheckbox(
+              ctx,
+              x,
+              y - 8,
+              vSelectedAllRecords.value,
+              false,
+              spriteLoader,
+              isCheckboxHovered ? '#3366FF' : '#6B7280',
+            )
+          } else {
+            ctx.fillText(truncatedText, x, y)
+          }
+        } else {
+          ctx.fillText(truncatedText, x, y)
+        }
 
         let rightOffset = xOffset + width - rightPadding
 

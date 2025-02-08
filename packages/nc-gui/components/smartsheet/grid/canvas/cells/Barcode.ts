@@ -14,11 +14,21 @@ export const BarcodeCellRenderer: CellRenderer = {
 
     const tempCanvas = document.createElement('canvas')
 
+    const maxWidth = 131.2 // Max width constraint (could be a fixed value or calculated elsewhere)
+    const availableWidth = Math.min(width - padding * 2, maxWidth) // Use props.width as the actual column width
+    let maxHeight = height - padding * 2
+
+    if (pxToRowHeight[height] === 1) {
+      maxHeight = height - 4
+    } else {
+      maxHeight = height - 20
+    }
+
     try {
       JsBarcode(tempCanvas, value.toString(), {
         format,
-        width: 2,
-        height: height - padding * 2,
+        // width: 2,
+        // height: height - padding * 2,
         displayValue: false,
         lineColor: '#000000',
         margin: 0,
@@ -26,13 +36,27 @@ export const BarcodeCellRenderer: CellRenderer = {
         font: 'Manrope',
       })
 
-      const availableWidth = renderAsTag ? Math.min(75, width - padding * 2) : width - padding * 2
-      const xPos = x + padding
+      // Calculate the aspect ratio of the generated barcode
+      const aspectRatio = tempCanvas.width / tempCanvas.height
 
-      ctx.drawImage(tempCanvas, xPos, y + padding, availableWidth, height - padding * 2)
+      // Determine the scaling factor based on max width and height
+      const scaleFactor = Math.min(maxWidth / tempCanvas.width, maxHeight / tempCanvas.height)
+
+      // Calculate the new width and height for the barcode
+      const newWidth = tempCanvas.width * scaleFactor
+
+      // If the width exceeds the available width, scale it down accordingly
+      const finalWidth = renderAsTag ? Math.min(75, width - padding * 2) : newWidth > availableWidth ? availableWidth : newWidth
+
+      // Calculate the final height to maintain the aspect ratio
+      const finalHeight = renderAsTag ? height - padding * 2 : finalWidth / aspectRatio // Adjust the height to maintain the aspect ratio
+      // Determine the xPos for centering the barcode (if not rendering as a tag)
+      const xPos = renderAsTag ? x + padding : x + (width - finalWidth) / 2
+
+      ctx.drawImage(tempCanvas, xPos, y + height / 2 - finalHeight / 2, finalWidth, finalHeight)
 
       return {
-        x: xPos + availableWidth + 8,
+        x: xPos + finalWidth + 8,
         y: y + height - padding * 2,
       }
     } catch (error) {

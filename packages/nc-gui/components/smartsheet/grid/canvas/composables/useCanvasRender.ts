@@ -490,7 +490,7 @@ export function useCanvasRender({
           color: '#6B7280',
         })
         currentX += 24
-      } else {
+      } else if (!isHover) {
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'

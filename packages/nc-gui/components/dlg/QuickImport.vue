@@ -141,7 +141,10 @@ if (isWorkerSupport) {
     dialogShow,
     async (val) => {
       if (val) {
-        importWorker = new Worker(await getCrossOriginWorkerURL(importWorkerUrl), { type: 'module' })
+        importWorker = new Worker(
+          await getCrossOriginWorkerURL(importWorkerUrl),
+          process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+        )
       } else {
         importWorker?.terminate()
       }

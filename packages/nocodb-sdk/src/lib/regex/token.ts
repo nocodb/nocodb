@@ -66,11 +66,15 @@ export const REGEXSTR_IDENTIFIER = [
 ].join('');
 export const REGEXSTR_SGL_QUOTED_IDENTIFIER_SPECIAL_CHAR = [
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-  '"(), ',
+  '`"(),` ',
 ].join('');
 export const REGEXSTR_DBL_QUOTED_IDENTIFIER_SPECIAL_CHAR = [
   REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-  "'(), ",
+  "`'(), ",
+].join('');
+export const REGEXSTR_BACK_QUOTED_IDENTIFIER_SPECIAL_CHAR = [
+  REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
+  `'"(), `,
 ].join('');
 export const REGEXP_ALPHABET = new RegExp(`[${REGEXSTR_ALPHABET}]*`);
 export const REGEXP_CHINESE = new RegExp(`[${REGEXSTR_CHINESE}]*`);

@@ -22,7 +22,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -34,6 +34,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return
     const columnObj = column.columnObj
 
     if (e.key.length === 1 && columnObj.title) {

@@ -21,20 +21,20 @@ export const GeoDataCellRenderer: CellRenderer = {
       ctx.fillRect(buttonX, y + 2, buttonWidth, height - 4)
 
       // Map marker icon
-      ctx.fillStyle = selected ? '#4351e8' : '#6b7280'
+      ctx.fillStyle = selected ? '#3366FF' : '#6b7280'
       ctx.font = '12px Material Icons'
       ctx.fillText('place', buttonX + padding, textY)
 
       // Button text
       ctx.font = `${pv ? 600 : 500} 13px Manrope`
-      ctx.fillStyle = selected ? '#4351e8' : '#6b7280'
+      ctx.fillStyle = selected ? '#3366FF' : '#6b7280'
       const iconWidth = ctx.measureText('place').width
       ctx.fillText(displayText, buttonX + padding + iconWidth + 6, textY)
     } else {
       // Draw normal text
       const maxWidth = width - padding * 2
       const truncatedText = truncateText(ctx, displayText, maxWidth)
-      ctx.fillStyle = selected || pv ? '#4351e8' : '#4a5268'
+      ctx.fillStyle = selected || pv ? '#3366FF' : '#4a5268'
       ctx.fillText(truncatedText, x + padding, textY)
     }
   },

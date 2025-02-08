@@ -32,15 +32,16 @@ const overlayStyle = toRef(props, 'overlayStyle')
 
 const autoClose = computed(() => props.autoClose)
 
+const visible = useVModel(props, 'visible', emits)
+
 const overlayClassNameComputed = computed(() => {
   let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-200 shadow-lg'
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }
+  className += visible.value ? ' active' : ' '
   return className
 })
-
-const visible = useVModel(props, 'visible', emits)
 
 onKeyStroke('Escape', () => {
   if (visible.value && autoClose.value) {

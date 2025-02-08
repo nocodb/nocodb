@@ -7,7 +7,7 @@ export async function initWorker(url: string) {
       const workerURL = await getCrossOriginWorkerURL(url)
       worker = new Worker(workerURL)
     } else {
-      worker = new Worker(url, {
+      worker = new Worker(new URL(url, import.meta.url), {
         type: 'module',
       })
     }

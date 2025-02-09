@@ -4,6 +4,7 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
+import getCrossOriginWorkerURL from 'crossoriginworker'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
@@ -135,12 +136,15 @@ watch(dialogShow, (newValue) => {
 })
 
 // watch dialogShow to init or terminate worker
-if (isWorkerSupport && process.env.NODE_ENV === 'production') {
+if (isWorkerSupport) {
   watch(
     dialogShow,
     async (val) => {
       if (val) {
-        importWorker = await initWorker(importWorkerUrl)
+        importWorker = new Worker(
+          await getCrossOriginWorkerURL(importWorkerUrl),
+          process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+        )
       } else {
         importWorker?.terminate()
       }

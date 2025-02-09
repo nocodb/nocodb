@@ -1,29 +1,40 @@
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
+import getCrossOriginWorkerURL from 'crossoriginworker'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&url'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&url'
+import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&url'
 
-export default defineNuxtPlugin(() => {
-  import('monaco-editor/esm/vs/language/typescript/ts.worker?worker&inline').then((md) => {
-    const TypeScriptWorker = md.default
+export default defineNuxtPlugin(async () => {
+  const editorWorker = new Worker(
+    await getCrossOriginWorkerURL(EditorWorker),
+    process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+  )
+  const jsonWorker = new Worker(
+    await getCrossOriginWorkerURL(JsonWorker),
+    process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+  )
+  const tsWorker = new Worker(
+    await getCrossOriginWorkerURL(TypeScriptWorker),
+    process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+  )
 
-    /**
-     * Adding monaco editor to Vite
-     *
-     **/
-    self.MonacoEnvironment = window.MonacoEnvironment = {
-      async getWorker(_: any, label: string) {
-        switch (label) {
-          case 'typescript':
-          case 'javascript': {
-            return new TypeScriptWorker()
-          }
-          case 'json': {
-            return new JsonWorker()
-          }
-          default: {
-            return new EditorWorker()
-          }
+  /**
+   * Adding monaco editor to Vite
+   *
+   **/
+  self.MonacoEnvironment = window.MonacoEnvironment = {
+    async getWorker(_: any, label: string) {
+      switch (label) {
+        case 'typescript':
+        case 'javascript': {
+          return tsWorker
         }
-      },
-    }
-  })
+        case 'json': {
+          return jsonWorker
+        }
+        default: {
+          return editorWorker
+        }
+      }
+    },
+  }
 })

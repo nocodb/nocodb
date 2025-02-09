@@ -447,11 +447,7 @@ export const renderMultiLineText = (
 
   if (render) {
     const yOffset =
-      verticalAlign === 'middle'
-        ? height && rowHeightInPx['1'] === height
-          ? height / 2
-          : fontSize / 2 + (py ?? 0)
-        : (py ?? 0)
+      verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
 
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign

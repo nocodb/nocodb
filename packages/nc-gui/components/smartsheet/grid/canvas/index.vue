@@ -230,6 +230,10 @@ const {
 
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
+const fixedLeftWidth = computed(() => {
+  return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+})
+
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
@@ -262,7 +266,7 @@ const calculateSlices = () => {
   const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
   const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
   const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
-  const newEndRow = Math.min(totalRows.value, Math.max(endRowIndex, startRowIndex + 50))
+  const newEndRow = Math.min(totalRows.value, endRowIndex)
 
   const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
   const endColIndex = Math.min(
@@ -1141,46 +1145,57 @@ onBeforeUnmount(() => {
             />
           </template>
         </NcDropdown>
+        <div class="absolute pointer-events-none inset-0">
+          <div
+            v-if="editEnabled?.row"
+            :key="editEnabled?.rowIndex"
+            :style="{
+              top: '32px',
+              bottom: `36px`,
+              marginTop: `${
+                rowHeight *
+                (editEnabled.rowIndex < rowSlice.start
+                  ? rowSlice.start
+                  : editEnabled.rowIndex > rowSlice.end
+                  ? rowSlice.end - 3
+                  : editEnabled.rowIndex + 1)
+              }px`,
+              left: `${editEnabled.fixed ? editEnabled.x : Math.max(fixedLeftWidth, editEnabled.x - scrollLeft)}px`,
+              width: `${editEnabled.width}px`,
+              minHeight: `${editEnabled.minHeight}px`,
+              height: `${editEnabled.height}px`,
+              borderRadius: '2px',
+              willChange: 'top, bottom, left, width, height',
+            }"
+            class="nc-canvas-table-editable-cell-wrapper"
+            :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
+          >
+            <LazySmartsheetRow :row="editEnabled.row">
+              <template #default="{ state }">
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
+                  v-model="editEnabled.row.row[editEnabled.column.title]"
+                  :column="editEnabled.column"
+                  :row="editEnabled.row"
+                  active
+                  @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                  @navigate="onNavigate"
+                />
+                <SmartsheetCell
+                  v-else
+                  v-model="editEnabled.row.row[editEnabled.column.title]"
+                  :column="editEnabled.column"
+                  :row-index="editEnabled.rowIndex"
+                  active
+                  edit-enabled
+                  @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                  @navigate="onNavigate"
+                />
+              </template>
+            </LazySmartsheetRow>
+          </div>
+        </div>
       </div>
-      <div
-        v-if="editEnabled?.row"
-        :key="editEnabled?.rowIndex"
-        :style="{
-          top: `${rowHeight * editEnabled.rowIndex + 32}px`,
-          left: `${editEnabled.x + (editEnabled.fixed ? scrollLeft : 0)}px`,
-          width: `${editEnabled.width}px`,
-          minHeight: `${editEnabled.minHeight}px`,
-          height: `${editEnabled.height}px`,
-          borderRadius: '2px',
-        }"
-        class="nc-canvas-table-editable-cell-wrapper"
-        :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
-      >
-        <LazySmartsheetRow :row="editEnabled.row">
-          <template #default="{ state }">
-            <LazySmartsheetVirtualCell
-              v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
-              v-model="editEnabled.row.row[editEnabled.column.title]"
-              :column="editEnabled.column"
-              :row="editEnabled.row"
-              active
-              @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
-              @navigate="onNavigate"
-            />
-            <SmartsheetCell
-              v-else
-              v-model="editEnabled.row.row[editEnabled.column.title]"
-              :column="editEnabled.column"
-              :row-index="editEnabled.rowIndex"
-              active
-              edit-enabled
-              @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
-              @navigate="onNavigate"
-            />
-          </template>
-        </LazySmartsheetRow>
-      </div>
-
       <template v-if="overlayStyle">
         <NcDropdown :visible="isDropdownVisible" :overlay-style="overlayStyle" @visible-change="onVisibilityChange">
           <div></div>
@@ -1212,7 +1227,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px] overflow-hidden;
+  @apply sticky bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px] overflow-hidden;
 
   &.row-height-1 {
     :deep(.nc-multi-select) {

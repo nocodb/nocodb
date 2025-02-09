@@ -291,7 +291,7 @@ export function useCanvasRender({
               vSelectedAllRecords.value,
               false,
               spriteLoader,
-              isCheckboxHovered ? '#3366FF' : '#6B7280',
+              isCheckboxHovered ? '#3366FF' : '#D9D9D9',
             )
           } else {
             ctx.fillText(truncatedText, x, y)
@@ -488,15 +488,15 @@ export function useCanvasRender({
       if (isChecked || isHover) {
         renderCheckbox(
           ctx,
-          currentX,
+          currentX + 6,
           yOffset + (rowHeight.value - 16) / 2,
           isChecked,
           isDisabled,
           spriteLoader,
-          isCheckboxHovered ? '#3366FF' : '#6B7280',
+          isCheckboxHovered ? '#3366FF' : '#D9D9D9',
         )
         isCheckboxRendered = true
-        currentX += 24
+        currentX += 30
       }
     } else {
       if (isHover && isRowDraggingEnabled.value) {
@@ -527,7 +527,7 @@ export function useCanvasRender({
         isChecked,
         isDisabled,
         spriteLoader,
-        isCheckboxHovered ? '#3366FF' : '#6B7280',
+        isCheckboxHovered ? '#3366FF' : '#D9D9D9',
       )
       currentX += 24
     }

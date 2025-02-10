@@ -110,4 +110,15 @@ export const DateTimeCellRenderer: CellRenderer = {
     }
     return false
   },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+    if (column.readonly) return
+
+    if (/^[0-9]$/.test(e.key)) {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
 }

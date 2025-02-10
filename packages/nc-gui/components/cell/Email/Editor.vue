@@ -65,9 +65,7 @@ onBeforeUnmount(() => {
 
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && !isUnderLookup.value) {
-    forcedNextTick(() => {
-      inputRef.value?.focus()
-    })
+    inputRef.value?.focus()
   }
 })
 </script>

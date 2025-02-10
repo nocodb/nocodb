@@ -63,14 +63,12 @@ export const UrlCellRenderer: CellRenderer = {
       })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return
     const columnObj = column.columnObj
-
-    if (e.key.length === 1) {
-      row.row[columnObj.title] = e.key
+    if (e.key.length === 1 && columnObj.title) {
+      row.row[columnObj.title] = ''
       makeCellEditable(row, column)
-      updateOrSaveRow(row, columnObj.title)
       return true
     }
 

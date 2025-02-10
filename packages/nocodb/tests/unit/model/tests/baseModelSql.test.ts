@@ -400,7 +400,7 @@ function baseModelSqlTests() {
     });*/
   });
 
-  it.only('Nested insert', async () => {
+  it('Nested insert', async () => {
     const childTable = await createTable(context, base, {
       title: 'Child Table',
       table_name: 'child_table',

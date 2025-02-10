@@ -67,7 +67,7 @@ export default async function ({
           : childModel,
         rollupColumn,
         {},
-        undefined,
+        refTableAlias,
         false,
         formulOption.getParsedTree(),
         undefined,

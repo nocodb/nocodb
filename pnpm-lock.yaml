@@ -54,6 +54,9 @@ importers:
       '@ckpack/vue-color':
         specifier: ^1.6.0
         version: 1.6.0(vue@3.5.13)
+      '@floating-ui/vue':
+        specifier: ^1.1.6
+        version: 1.1.6(vue@3.5.13)
       '@iconify/vue':
         specifier: ^4.3.0
         version: 4.3.0(vue@3.5.13)
@@ -755,7 +758,7 @@ importers:
         version: 0.11.10
       snowflake-sdk:
         specifier: ^1.15.0
-        version: 1.15.0(asn1.js@5.4.1)(debug@4.4.0)(encoding@0.1.13)
+        version: 1.15.0(asn1.js@5.4.1)(encoding@0.1.13)
     devDependencies:
       '@types/node':
         specifier: 18.19.55
@@ -4381,6 +4384,18 @@ packages:
 
   '@fastify/static@6.12.0':
     resolution: {integrity: sha512-KK1B84E6QD/FcQWxDI2aiUCwHxMJBI1KeCUzm1BwYpPY1b742+jeKruGHP2uOluuM6OkBPI8CIANrXcCRtC2oQ==}
+
+  '@floating-ui/core@1.6.9':
+    resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
+
+  '@floating-ui/dom@1.6.13':
+    resolution: {integrity: sha512-umqzocjDgNRGTuO7Q8CU32dkHkECqI8ZdMZ5Swb6QAM0t5rnlrN3lGo1hdpscRd3WS8T6DKYK4ephgIH9iRh3w==}
+
+  '@floating-ui/utils@0.2.9':
+    resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@floating-ui/vue@1.1.6':
+    resolution: {integrity: sha512-XFlUzGHGv12zbgHNk5FN2mUB7ROul3oG2ENdTpWdE+qMFxyNxWSRmsoyhiEnpmabNm6WnUvR1OvJfUfN4ojC1A==}
 
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
@@ -18495,50 +18510,6 @@ packages:
       '@vue/composition-api':
         optional: true
 
-  vue-demi@0.14.6:
-    resolution: {integrity: sha512-8QA7wrYSHKaYgUxDA5ZC24w+eHm3sYCbp0EzcDwKqN3p6HqtTCGR/GVsPyZW92unff4UlcSh++lmqDWN3ZIq4w==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: latest
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
-  vue-demi@0.14.7:
-    resolution: {integrity: sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: latest
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
-  vue-demi@0.14.8:
-    resolution: {integrity: sha512-Uuqnk9YE9SsWeReYqK2alDI5YzciATE0r2SkA6iMAtuXvNTMNACJLJEXNXaEy94ECuBe4Sk6RzRU80kjdbIo1Q==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^3.0.0-0 || ^2.6.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
-  vue-demi@0.14.9:
-    resolution: {integrity: sha512-dC1TJMODGM8lxhP6wLToncaDPPNB3biVxxRDuNCYpuXwi70ou7NsGd97KVTJ2omepGId429JZt8oaZKeXbqxwg==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^3.0.0-0 || ^2.6.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
   vue-devtools-stub@0.1.0:
     resolution: {integrity: sha512-RutnB7X8c5hjq39NceArgXg28WZtZpGc3+J16ljMiYnFhKvd8hITxSWQSQ5bvldxMDU6gG5mkxl1MTQLXckVSQ==}
 
@@ -24189,6 +24160,26 @@ snapshots:
       glob: 8.1.0
       p-limit: 3.1.0
 
+  '@floating-ui/core@1.6.9':
+    dependencies:
+      '@floating-ui/utils': 0.2.9
+
+  '@floating-ui/dom@1.6.13':
+    dependencies:
+      '@floating-ui/core': 1.6.9
+      '@floating-ui/utils': 0.2.9
+
+  '@floating-ui/utils@0.2.9': {}
+
+  '@floating-ui/vue@1.1.6(vue@3.5.13)':
+    dependencies:
+      '@floating-ui/dom': 1.6.13
+      '@floating-ui/utils': 0.2.9
+      vue-demi: 0.14.10(vue@3.5.13)
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+
   '@gar/promisify@1.1.3':
     optional: true
 
@@ -24530,15 +24521,15 @@ snapshots:
 
   '@intlify/unplugin-vue-i18n@6.0.3(@vue/compiler-dom@3.5.13)(eslint@8.57.1)(rollup@4.28.0)(vue-i18n@9.14.2(vue@3.5.13))(vue@3.5.13)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.1(eslint@8.57.1)
-      '@intlify/bundle-utils': 10.0.0(vue-i18n@9.14.2(vue@3.5.13(typescript@5.7.3)))
+      '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.1)
+      '@intlify/bundle-utils': 10.0.0(vue-i18n@9.14.2(vue@3.5.13))
       '@intlify/shared': 11.1.0
-      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))
-      '@rollup/pluginutils': 5.1.4(rollup@4.34.6)
-      '@typescript-eslint/scope-manager': 8.23.0
-      '@typescript-eslint/typescript-estree': 8.23.0(typescript@5.7.3)
-      debug: 4.4.0(supports-color@5.5.0)
-      fast-glob: 3.3.3
+      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13))(vue@3.5.13)
+      '@rollup/pluginutils': 5.1.3(rollup@4.28.0)
+      '@typescript-eslint/scope-manager': 8.18.2
+      '@typescript-eslint/typescript-estree': 8.18.2
+      debug: 4.3.7
+      fast-glob: 3.3.2
       js-yaml: 4.1.0
       json5: 2.2.3
       pathe: 1.1.2
@@ -24555,7 +24546,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))':
+  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13))(vue@3.5.13)':
     dependencies:
       '@babel/parser': 7.26.3
     optionalDependencies:
@@ -28902,8 +28893,8 @@ snapshots:
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/type-utils': 5.62.0(eslint@8.57.1)
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)
-      debug: 4.4.0(supports-color@9.4.0)
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.7.3)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.3.2
@@ -29014,8 +29005,8 @@ snapshots:
   '@typescript-eslint/type-utils@5.62.0(eslint@8.57.1)(typescript@5.7.3)':
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.7.3)
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)
-      debug: 4.4.0(supports-color@9.4.0)
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.7.3)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       tsutils: 3.21.0(typescript@5.7.3)
     optionalDependencies:
@@ -29136,7 +29127,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@typescript-eslint/utils@5.62.0(eslint@8.57.1)':
+  '@typescript-eslint/utils@5.62.0(eslint@8.57.1)(typescript@5.7.3)':
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.1)
       '@types/json-schema': 7.0.12
@@ -29723,8 +29714,8 @@ snapshots:
 
   '@vueuse/core@7.5.5(vue@3.5.13)':
     dependencies:
-      '@vueuse/shared': 7.5.5(vue@3.5.13(typescript@5.7.3))
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.7.3))
+      '@vueuse/shared': 7.5.5(vue@3.5.13)
+      vue-demi: 0.14.9(vue@3.5.13)
     optionalDependencies:
       vue: 3.5.13
 
@@ -29735,7 +29726,7 @@ snapshots:
       vue-demi: 0.14.10(vue@3.5.13)
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@3.2.7)
       change-case: 4.1.2
       fuse.js: 6.6.2
       jwt-decode: 3.1.2
@@ -29782,14 +29773,14 @@ snapshots:
 
   '@vueuse/shared@10.11.0(vue@3.5.13)':
     dependencies:
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.7.3))
+      vue-demi: 0.14.9(vue@3.5.13)
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
 
   '@vueuse/shared@12.5.0(typescript@5.7.3)':
     dependencies:
-      vue-demi: 0.14.8(vue@3.5.13)
+      vue-demi: 0.14.10(vue@3.5.13)
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
@@ -29802,7 +29793,7 @@ snapshots:
 
   '@vueuse/shared@7.5.5(vue@3.5.13)':
     dependencies:
-      vue-demi: 0.14.9(vue@3.5.13)
+      vue-demi: 0.14.10(vue@3.5.13)
     optionalDependencies:
       vue: 3.5.13
 
@@ -33023,7 +33014,7 @@ snapshots:
 
   eslint-plugin-antfu@0.26.3(eslint@8.57.1):
     dependencies:
-      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.7.3)
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)
     transitivePeerDependencies:
       - eslint
       - supports-color
@@ -41127,6 +41118,45 @@ snapshots:
       - proxy-agent
       - supports-color
 
+  snowflake-sdk@1.15.0(asn1.js@5.4.1)(encoding@0.1.13):
+    dependencies:
+      '@aws-sdk/client-s3': 3.743.0
+      '@aws-sdk/node-http-handler': 3.374.0
+      '@azure/storage-blob': 12.18.0(encoding@0.1.13)
+      '@google-cloud/storage': 7.15.0(encoding@0.1.13)
+      '@techteamer/ocsp': 1.0.1
+      asn1.js: 5.4.1
+      asn1.js-rfc2560: 5.0.1(asn1.js@5.4.1)
+      asn1.js-rfc5280: 3.0.0
+      axios: 1.7.9(debug@3.2.7)
+      big-integer: 1.6.51
+      bignumber.js: 9.1.2
+      binascii: 0.0.2
+      bn.js: 5.2.1
+      browser-request: 0.3.3
+      expand-tilde: 2.0.2
+      fast-xml-parser: 4.5.1
+      fastest-levenshtein: 1.0.16
+      generic-pool: 3.9.0
+      glob: 10.4.5
+      https-proxy-agent: 7.0.6
+      jsonwebtoken: 9.0.2
+      mime-types: 2.1.35
+      mkdirp: 1.0.4
+      moment: 2.29.4
+      moment-timezone: 0.5.43
+      open: 7.4.2
+      python-struct: 1.1.3
+      simple-lru-cache: 0.0.2
+      toml: 3.0.0
+      uuid: 8.3.2
+      winston: 3.10.0
+    transitivePeerDependencies:
+      - aws-crt
+      - debug
+      - encoding
+      - supports-color
+
   snowflake-sdk@1.8.0(asn1.js@5.4.1)(encoding@0.1.13):
     dependencies:
       '@azure/storage-blob': 12.15.0(encoding@0.1.13)
@@ -43262,10 +43292,6 @@ snapshots:
       vue: 3.5.13
 
   vue-demi@0.14.8(vue@3.5.13):
-    dependencies:
-      vue: 3.5.13
-
-  vue-demi@0.14.9(vue@3.5.13):
     dependencies:
       vue: 3.5.13
 

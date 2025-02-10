@@ -46,6 +46,7 @@
     "@aws-amplify/core": "^5.8.14",
     "@aws-amplify/ui-vue": "^3.1.30",
     "@ckpack/vue-color": "^1.6.0",
+    "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",
     "@pinia/nuxt": "^0.5.5",
     "@sentry/tracing": "^7.120.3",

@@ -268,7 +268,7 @@ export const renderSingleLineText = (
     truncatedText = cachedText.text
     width = cachedText.width
   } else {
-    const res = truncateText(ctx, text, maxWidth, true) as TruncateTextWithInfoType
+    const res = truncateText(ctx, text, maxWidth, true)
     truncatedText = res.text
     width = res.width
 
@@ -316,14 +316,14 @@ export const wrapTextToLines = (
     let line = ''
     let width = 0
 
-    // Binary search to find the maximum number of characters that fit in maxWidth
+    // Binary search to find the maximum number of characters that fit within maxWidth
     while (start < end) {
       const mid = Math.floor((start + end) / 2)
       const testText = remainingText.slice(0, mid + 1)
       const testWidth = ctx.measureText(testText).width
 
       if (testWidth <= maxWidth) {
-        line = testText // Current mid fits, so store it
+        line = testText // Store the valid part of the text
         width = testWidth
         start = mid + 1 // Try a longer line
       } else {
@@ -331,7 +331,15 @@ export const wrapTextToLines = (
       }
     }
 
-    // Handle truncation for the last line if we hit maxLines
+    // Check if the line ends in the middle of a word
+    const lastSpaceIndex = line.lastIndexOf(' ')
+    if (lastSpaceIndex !== -1 && remainingText[line.length] !== ' ' && lines.length < maxLines - 1) {
+      // If the line ends mid-word, break at the last space
+      line = line.slice(0, lastSpaceIndex)
+      width = ctx.measureText(line).width
+    }
+
+    // Handle truncation with ellipsis for the last line
     if (lines.length === maxLines - 1 && remainingText.length > line.length) {
       const ellipsis = '...'
       const ellipsisWidth = ctx.measureText(ellipsis).width
@@ -341,11 +349,11 @@ export const wrapTextToLines = (
         width = ctx.measureText(line).width
       }
 
-      line += ellipsis // Add ellipsis to the last line
+      line += ellipsis // Add ellipsis to indicate truncation
     }
 
-    lines.push(line) // Add the calculated line
-    remainingText = remainingText.slice(line.length) // Remove the rendered part from remaining text
+    lines.push(line) // Store the current line
+    remainingText = remainingText.slice(line.length).trimStart() // Remove the rendered part and trim leading spaces
   }
 
   return lines

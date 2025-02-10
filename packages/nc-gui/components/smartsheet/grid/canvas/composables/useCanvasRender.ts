@@ -192,7 +192,7 @@ export function useCanvasRender({
         rightOffset -= 18
         spriteLoader.renderIcon(ctx, {
           icon: 'ncInfo',
-          size: 14,
+          size: 13,
           color: '#6B7280',
           x: rightOffset - scrollLeft.value,
           y: 9,
@@ -365,7 +365,7 @@ export function useCanvasRender({
           rightOffset -= 18
           spriteLoader.renderIcon(ctx, {
             icon: 'ncInfo',
-            size: 14,
+            size: 13,
             color: '#6B7280',
             x: rightOffset,
             y: 9,

@@ -232,29 +232,18 @@ const getAst = async (
     }
     let isRequested;
 
+    const isForeignKey = col.uidt === UITypes.ForeignKey;
+    const isInFields = fields?.length && fields.includes(col.title);
+
     // exclude system column and foreign key from API response for v3
-    if (
-      (col.system || col.uidt === UITypes.ForeignKey) &&
-      apiVersion === NcApiVersion.V3
-    ) {
-      isRequested = false;
-    } else if (
-      col.uidt === UITypes.ForeignKey &&
-      !getHiddenColumn &&
-      !view?.show_system_fields
-    ) {
+    if ((col.system || isForeignKey) && apiVersion === NcApiVersion.V3) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
-    } else if (
-      getHiddenColumn &&
-      [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.ForeignKey].includes(
-        col.uidt,
-      )
-    ) {
-      isRequested = value;
+    } else if (isForeignKey) {
+      isRequested = view?.show_system_fields || getHiddenColumn || isInFields;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
@@ -268,10 +257,10 @@ const getAst = async (
           view.show_system_fields ||
           (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
           col.pv) &&
-        (!fields?.length || fields.includes(col.title)) &&
+        (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = fields.includes(col.title) && value;
+      isRequested = isInFields && value;
     } else {
       isRequested = value;
     }

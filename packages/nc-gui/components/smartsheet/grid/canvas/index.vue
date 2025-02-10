@@ -604,6 +604,8 @@ const handleMouseUp = async (e: MouseEvent) => {
   e.preventDefault()
   onMouseUpFillHandlerEnd()
 
+  if (editEnabled.value) return
+
   if (onMouseUpSelectionHandler(e)) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
@@ -659,7 +661,7 @@ const handleMouseUp = async (e: MouseEvent) => {
         return
       }
 
-      // If user is clicking on a existing column
+      // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       if (clickedColumn) {
         // If the user clicked on a column, check if the user is trying to edit the column

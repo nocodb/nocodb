@@ -1,12 +1,11 @@
 {
   lib,
   dockerTools,
-  callPackage,
+  nocodb,
   bash,
   coreutils,
 }:
 let
-  nocodb = callPackage ../../package.nix { };
   port = 80;
 in
 dockerTools.buildLayeredImage {

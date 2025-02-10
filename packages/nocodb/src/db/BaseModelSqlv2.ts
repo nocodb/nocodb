@@ -6404,16 +6404,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (!raw) {
         while (updatePkValues.length) {
+          const pks = updatePkValues.splice(0, readChunkSize)
           const updatedRecords = await this.list(
             {
-              pks: updatePkValues.splice(0, readChunkSize).join(','),
+              pks: pks.join(','),
             },
             {
               limitOverride: readChunkSize,
             },
           );
 
-          newData.push(...updatedRecords);
+          // order records in the same order as the input data
+          newData.push(
+            ...updatedRecords.sort((record1, record2) => {
+              const pk1 = getCompositePkValue(this.model.primaryKeys, record1);
+              const pk2 = getCompositePkValue(this.model.primaryKeys, record2);
+              return pks.indexOf(pk1) - pks.indexOf(pk2);
+            }),
+          );
         }
       }
 

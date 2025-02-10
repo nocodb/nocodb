@@ -73,10 +73,12 @@ export default class Audit {
 
       const insertAudit = async () => {
         if (Array.isArray(audit)) {
-          const insertObjs = audit.map((a) => ({
-            ...extractProps(a, propsToExtract),
-            details: stringifyMetaProp(a, 'details'),
-          }));
+          const insertObjs = audit
+            .filter((k) => k)
+            .map((a) => ({
+              ...extractProps(a, propsToExtract),
+              details: stringifyMetaProp(a, 'details'),
+            }));
 
           return await ncMeta.bulkMetaInsert(
             RootScopes.ROOT,

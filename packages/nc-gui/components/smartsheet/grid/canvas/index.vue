@@ -512,6 +512,12 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (!clickedColumn?.columnObj) return
 
+  // If the new cell user clicked is not the active cell
+  // call onActiveCellChanged to clear invalid rows and reorder records locally if required
+  if (rowIndex !== activeCell.value?.row) {
+    onActiveCellChanged()
+  }
+
   // If the user is trying to open the context menu
   if (clickType === MouseClickType.RIGHT_CLICK) {
     activeCell.value.row = rowIndex
@@ -748,12 +754,6 @@ const handleMouseUp = async (e: MouseEvent) => {
     selection.value.clear()
     requestAnimationFrame(triggerRefreshCanvas)
     return
-  }
-
-  // If the new cell user clicked is not the active cell
-  // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row) {
-    onActiveCellChanged()
   }
 
   if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
@@ -1179,6 +1179,7 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  onActiveCellChanged()
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
@@ -1358,7 +1359,7 @@ watch(columns, () => {
       </div>
       <template v-if="overlayStyle">
         <NcDropdown
-            :trigger="['click']"
+          :trigger="['click']"
           :visible="isDropdownVisible"
           :overlay-class-name="`!bg-transparent ${
             !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''

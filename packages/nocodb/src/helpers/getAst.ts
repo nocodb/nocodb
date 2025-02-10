@@ -175,10 +175,7 @@ const getAst = async (
     }
   }
 
-  const columns =
-    getHiddenColumn === true
-      ? model.columns
-      : await stripMmColumns(context, model.columns);
+  const columns = model.columns;
 
   const ast: Ast = await columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
@@ -242,8 +239,6 @@ const getAst = async (
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
-    } else if (isForeignKey) {
-      isRequested = view?.show_system_fields || getHiddenColumn || isInFields;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
@@ -371,24 +366,6 @@ type RequestQuery = {
   nested?: {
     [field: string]: RequestQuery;
   };
-};
-
-const stripMmColumns = async (context: NcContext, columns: Column<any>[]) => {
-  const modelIdMap: { [key: string]: string } = {};
-  const exclude: { [key: string]: boolean } = {};
-  for (const linkColumn of columns.filter((k) =>
-    [UITypes.Links, UITypes.LinkToAnotherRecord].includes(k.uidt),
-  )) {
-    const colOptions = (await linkColumn.getColOptions(
-      context,
-    )) as LinkToAnotherRecordColumn;
-    if (colOptions.type === 'mm') {
-      exclude[colOptions.fk_mm_model_id] = true;
-    } else if (colOptions.type === 'hm') {
-      modelIdMap[linkColumn.id] = colOptions.fk_related_model_id;
-    }
-  }
-  return columns.filter((col) => !exclude[modelIdMap[col.id]]);
 };
 
 export interface DependantFields {

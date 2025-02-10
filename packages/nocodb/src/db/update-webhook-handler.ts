@@ -56,7 +56,7 @@ export class UpdateWebhookHandler {
       this.rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: false },
+      { ignoreView: true },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData);
@@ -70,7 +70,7 @@ export class UpdateWebhookHandler {
       this.rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: false },
+      { ignoreView: true },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData, this.nextData);

@@ -65,6 +65,8 @@ export class BulkDataAliasService {
           skip_hooks: param.skip_hooks,
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
+          autoCreateMissingOptions:
+            (param.cookie?.query?.auto_insert_option ?? '') === 'true',
           undo: param.undo,
         },
       ],

@@ -2,6 +2,7 @@ import {
   AppEvents,
   AuditV1OperationTypes,
   convertDurationToSeconds,
+  enumColors,
   extractFilterFromXwhere,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
@@ -75,7 +76,7 @@ import {
   UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
-import { NcError } from '~/helpers/catchError';
+import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
@@ -1536,6 +1537,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
+      autoCreateMissingOptions = false,
       allowSystemColumn = false,
       undo = false,
     }: {
@@ -1546,6 +1548,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
+      autoCreateMissingOptions?: boolean;
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
       undo?: boolean;
@@ -1706,8 +1709,33 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 insertObj[sanitize(col.column_name)] = val;
               }
             }
-
-            await this.validateOptions(col, insertObj);
+            try {
+              await this.validateOptions(col, insertObj);
+            } catch (ex) {
+              if (
+                ex instanceof OptionsNotExistsError &&
+                autoCreateMissingOptions
+              ) {
+                await Column.update(this.context, col.id, {
+                  ...col,
+                  colOptions: {
+                    options: [
+                      ...col.colOptions.options,
+                      ...ex.options.map((k, index) => ({
+                        fk_column_id: col.id,
+                        title: k,
+                        color: enumColors.get(
+                          'light',
+                          (col.colOptions.options ?? []).length + index,
+                        ),
+                      })),
+                    ],
+                  },
+                });
+              } else {
+                throw ex;
+              }
+            }
 
             // validate data
             if (col?.meta?.validate && col?.validate) {

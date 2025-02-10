@@ -478,11 +478,13 @@ async function handleMouseDown(e: MouseEvent) {
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
+  const row = cachedRows.value.get(rowIndex)
+
+  if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
   if (x < 80) {
-    const row = cachedRows.value.get(rowIndex)
-    if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
+    if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true })
     return
   }

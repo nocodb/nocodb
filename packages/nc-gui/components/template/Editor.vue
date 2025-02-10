@@ -33,6 +33,8 @@ dayjs.extend(utc)
 
 const { t } = useI18n()
 
+const { getMeta } = useMetas()
+
 const meta = inject(MetaInj, ref())
 
 const columns = computed(() => meta.value?.columns || [])
@@ -79,6 +81,8 @@ const hasSelectColumn = ref<boolean[]>([])
 const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
+
+const autoInsertOption = ref<{ [key: string]: boolean }>({})
 
 const inputRefs = ref<HTMLInputElement[]>([])
 
@@ -448,10 +452,11 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
+              const autoInsertOptionQuery = autoInsertOption.value[k] ? '&auto_insert_option=true' : ''
               const res = await $fetch.raw(
                 `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
                   operationId ? `&operation_id=${operationId}` : ''
-                }`,
+                }${autoInsertOptionQuery}`,
                 {
                   baseURL,
                   method: 'POST',
@@ -467,6 +472,9 @@ async function importTemplate() {
               operationId = res.headers?.['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
+              if (autoInsertOption.value[k]) {
+                await getMeta(tableId, true)
+              }
             }
           })(key),
         ),
@@ -719,6 +727,15 @@ function toggleTableSelecteds(table: any) {
   }
 }
 
+function toggleAutoInsertOption(tableName: string) {
+  console.log('tableName', tableName, autoInsertOption.value[tableName] === undefined, autoInsertOption.value[tableName])
+  autoInsertOption.value = {
+    ...autoInsertOption.value,
+    [tableName]: autoInsertOption.value[tableName] === undefined ? true : !autoInsertOption.value[tableName],
+  }
+  console.log('tableName', tableName, autoInsertOption.value, autoInsertOption.value[tableName])
+}
+
 const currentColumnToEdit = ref('')
 </script>
 
@@ -767,6 +784,12 @@ const currentColumnToEdit = ref('')
             </span>
           </template>
 
+          <div class="pt-1 pb-3 px-4 flex justify-end">
+            <label>
+              <span class="mr-2">Auto insert missing select options</span>
+              <NcSwitch v-model:checked="autoInsertOption[table.table_name]" />
+            </label>
+          </div>
           <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
             <NcTable
               class="template-form flex-1"

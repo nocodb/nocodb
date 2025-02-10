@@ -159,10 +159,8 @@ onMounted(() => {
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
-  if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-lookup-cell', clientMousePosition)) {
-    dropdownVisible.value = true
-  }
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedForm.value || !isGrid.value) return
+  dropdownVisible.value = true
 })
 
 onUnmounted(() => {

@@ -2,24 +2,34 @@
   lib,
   dockerTools,
   callPackage,
+  bash,
+  coreutils,
 }:
 let
-  nocodb = callPackage ./package.nix { };
+  nocodb = callPackage ../../package.nix { };
   port = 80;
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb";
-  contents = [ dockerTools.binSh ];
+  name = "nocodb_aio";
+
+  contents = [
+    dockerTools.binSh
+    nocodb
+    coreutils
+  ];
 
   config = {
+    WorkingDir = "/var/lib";
+
     Env = [
       "PORT=${builtins.toString port}"
     ];
     ExposedPorts = {
       "${builtins.toString port}/tcp" = { };
     };
+
     Entrypoint = [
-      (lib.getExe nocodb)
+      (lib.getExe bash)
     ];
   };
 }

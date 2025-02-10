@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, type ViewType, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  type TableType,
+  UITypes,
+  type ViewType,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { IsCanvasInjectionInj } from '../../../../context'
@@ -101,6 +109,7 @@ const _isContextMenuOpen = ref(false)
 const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
@@ -296,9 +305,13 @@ const onVisibilityChange = (value) => {
   if (value) {
     isDropdownVisible.value = true
   } else if (isCreateOrEditColumnDropdownOpen.value) {
-    isDropdownVisible.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
-    isCreateOrEditColumnDropdownOpen.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
-    editColumn.value = null
+    const keepOpen = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    isDropdownVisible.value = keepOpen
+    isCreateOrEditColumnDropdownOpen.value = keepOpen
+    if (!keepOpen) {
+      editColumn.value = null
+      columnOrder.value = null
+    }
   }
 }
 
@@ -1022,15 +1035,18 @@ async function expandRows({
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
+
   function closeDlg() {
     isExpandTableModalOpen.value = false
     close(1000)
   }
+
   async function closeDialog(expand: boolean) {
     options.continue = true
     options.expand = expand
     close(1000)
   }
+
   await until(isExpandTableModalOpen).toBe(false)
   return options
 }
@@ -1039,26 +1055,37 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
   await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
-function addEmptyColumn() {
+function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null) {
+  columnOrder.value = columnOrderData
+  editColumn.value = null
+  openColumnDropdownField.value = null
   if (!isAddingColumnAllowed.value) return
   $e('c:shortcut', { key: 'ALT + C' })
   containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
 
-  isCreateOrEditColumnDropdownOpen.value = true
+  // Wait for the scroll to end since the column will be added at the end
+  // and calculation of the column position will be wrong if the scroll is not completed
+  waitForScrollEnd(containerRef.value).then(() => {
+    const rect = canvasRef.value?.getBoundingClientRect()
 
-  const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-  const plusColumnX = totalColumnsWidth - scrollLeft.value
+    const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+    const plusColumnX = totalColumnsWidth - scrollLeft.value
 
-  overlayStyle.value = {
-    top: `calc(100svh + 32px)`,
-    left: `calc(100svw + ${plusColumnX - 200}px)`,
-    width: `${width.value}px`,
-    height: `${height.value}px`,
-    position: 'fixed',
-  }
+    const plusColumnWidth = 60
 
-  isDropdownVisible.value = true
-  triggerRefreshCanvas()
+    overlayStyle.value = {
+      top: `${rect.top}px`,
+      left: `${plusColumnX + rect.left}px`,
+      width: `${plusColumnWidth}px`,
+      height: '32px',
+      position: 'fixed',
+    }
+
+    isDropdownVisible.value = true
+    isCreateOrEditColumnDropdownOpen.value = true
+
+    requestAnimationFrame(triggerRefreshCanvas)
+  })
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
@@ -1332,12 +1359,14 @@ const editEnabledCellPosition = computed(() => {
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
               @edit="handleEditColumn"
+              @add-column="addEmptyColumn"
             />
             <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
               <LazySmartsheetColumnEditOrAddProvider
                 :key="editColumn?.id || 'new'"
                 ref="columnEditOrAddProviderRef"
-                :column="editColumn"
+                :column="columnOrder ? null : editColumn"
+                :column-position="columnOrder"
                 :edit-description="isEditColumnDescription"
                 @submit="closeAddColumnDropdownMenu(!editColumn?.id)"
                 @cancel="closeAddColumnDropdownMenu(!editColumn?.id)"
@@ -1410,6 +1439,7 @@ const editEnabledCellPosition = computed(() => {
         @apply mt-[3px];
       }
     }
+
     [data-row-height]:not([data-row-height='1']) {
       button.add-files,
       button.view-attachments {
@@ -1417,6 +1447,7 @@ const editEnabledCellPosition = computed(() => {
       }
     }
   }
+
   :deep(.nc-single-select) {
     @apply !h-auto !px-2;
   }
@@ -1431,6 +1462,7 @@ const editEnabledCellPosition = computed(() => {
   :deep(.nc-cell-currency) {
     @apply !h-auto;
   }
+
   :deep(.nc-cell-json) {
     @apply !py-1;
   }
@@ -1438,6 +1470,7 @@ const editEnabledCellPosition = computed(() => {
   :deep(.nc-cell-datetime) {
     @apply !py-1 !px-2;
   }
+
   :deep(.nc-cell-date),
   :deep(.nc-cell-year),
   :deep(.nc-cell-time) {

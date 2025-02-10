@@ -9,6 +9,8 @@ const iconSize = 14
 const ellipsisWidth = 15
 
 const getUserIcon = (userMeta?: any) => {
+  const { getPossibleAttachmentSrc } = useAttachment()
+
   if (!userMeta) {
     return {
       icon: '',
@@ -145,27 +147,64 @@ export const UserFieldCellRenderer: CellRenderer = {
         fillStyle: '#e7e7e9',
       })
 
-      // icon/image/emoji rendering
+      // #region  icon/image/emoji rendering
       const userIcon = getUserIcon(user.meta)
 
       const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
-      const circleSize = 17
+      const initials = usernameInitials(displayName, user.email ?? '')
+      const circleSize = 19
       const circleRadius = circleSize / 2
-      const enableBackground = false
+      const enableBackground = !isImage
+      const bgColor = isImage ? 'transparent' : backgroundColor(displayName, user.email ?? '', userIcon)
+      const textColor = isColorDark(bgColor) ? 'white' : 'black'
+
+      const url = isImage ? (userIcon.icon as string[])?.[0] ?? '' : ''
+      const icon = userIcon.icon as string
       if (enableBackground) {
-        roundedRect(ctx, x, y + 8, circleSize, circleSize, circleRadius, {
-          backgroundColor: isImage ? 'transparent' : backgroundColor(displayName, user.email ?? '', userIcon),
+        roundedRect(ctx, x, y + 6.5, circleSize, circleSize, circleRadius, {
+          backgroundColor: bgColor,
         })
       }
       let needsPlaceholder = true
       if (isImage) {
-        const img = imageLoader.loadOrGetImage(userIcon.icon[0])
+        const img = imageLoader.loadOrGetImage(url)
         if (img) {
           imageLoader.renderImage(ctx, img, x, y + 6, circleSize, circleSize, circleRadius, { border: false })
           needsPlaceholder = false
         }
       } else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
-        // render emoji
+        if (isUnicodeEmoji(icon)) {
+          // render emoji
+          renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon })
+          needsPlaceholder = false
+        } else {
+          // TODO: render non unicode icon
+          // spriteLoader.renderIcon(ctx, {
+          //   color: 'black',
+          //   icon: icon as IconMapKey,
+          //   size: 12,
+          //   x: x + 3,
+          //   y: y + 1,
+          // })
+        }
+      } else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
+        // render icon
+        spriteLoader.renderIcon(ctx, {
+          color: 'black',
+          icon: icon as IconMapKey,
+          size: 12,
+          x: x + 4,
+          y: y + 9.5,
+        })
+        needsPlaceholder = false
+      } else if (initials) {
+        renderSingleLineText(ctx, {
+          x: x + 2,
+          y,
+          text: initials.toLocaleUpperCase(),
+          fontFamily: '600 10px Manrope',
+          fillStyle: textColor,
+        })
         needsPlaceholder = false
       }
 
@@ -173,12 +212,12 @@ export const UserFieldCellRenderer: CellRenderer = {
         spriteLoader.renderIcon(ctx, {
           icon: 'user',
           size: iconSize,
-          x: x + tagPadding,
+          x: x + 2.5,
           y: y + 6 + (tagHeight - iconSize) / 2,
-          color: '#0b1d05',
+          color: textColor,
         })
       }
-      // end
+      // #endregion
 
       renderSingleLineText(ctx, {
         x: x + tagPadding + iconSize + 4,

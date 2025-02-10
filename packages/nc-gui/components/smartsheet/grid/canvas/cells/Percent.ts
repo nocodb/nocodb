@@ -1,4 +1,4 @@
-import { renderSingleLineText, roundedRect } from '../utils/canvas';
+import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -20,6 +20,8 @@ export const PercentCellRenderer: CellRenderer = {
       roundedRect(ctx, x + padding, barY, width - padding * 2, barHeight, barHeight / 2, {
         backgroundColor: '#E5E5E5',
       })
+      if (percent === 0) return
+
       roundedRect(ctx, x + padding, barY, barWidth, barHeight, barHeight / 2, {
         backgroundColor: '#3366FF',
       })

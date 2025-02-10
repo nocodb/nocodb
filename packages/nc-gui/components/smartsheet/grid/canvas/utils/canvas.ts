@@ -230,8 +230,8 @@ export const renderSingleLineText = (
 ): {
   text: string
   width: number
-  x?: number
-  y?: number
+  x: number
+  y: number
 } => {
   const {
     x = 0,
@@ -256,6 +256,7 @@ export const renderSingleLineText = (
 
   let truncatedText = ''
   let width = 0
+  const originalFontFamily = ctx.font
 
   if (fontFamily) {
     ctx.font = fontFamily
@@ -275,14 +276,14 @@ export const renderSingleLineText = (
     singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   }
 
-  if (render) {
-    const yOffset =
-      verticalAlign === 'middle'
-        ? height && (rowHeightInPx['1'] === height || isTagLabel)
-          ? height / 2
-          : fontSize / 2 + (py ?? 0)
-        : py ?? 0
+  const yOffset =
+    verticalAlign === 'middle'
+      ? height && (rowHeightInPx['1'] === height || isTagLabel)
+        ? height / 2
+        : fontSize / 2 + (py ?? 0)
+      : py ?? 0
 
+  if (render) {
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
 
@@ -296,11 +297,15 @@ export const renderSingleLineText = (
     if (underline) {
       drawUnderline(ctx, { x, y: y + yOffset, fontSize, width, strokeStyle: fillStyle })
     }
-
-    return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
+  } else {
+    /**
+     * Set fontFamily is required for measureText to get currect matrics and
+     * it also imp to reset font style if we are not rendering text
+     */
+    ctx.font = originalFontFamily
   }
 
-  return { text: truncatedText, width }
+  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
 }
 
 export const wrapTextToLines = (
@@ -404,8 +409,8 @@ export const renderMultiLineText = (
 ): {
   lines: string[]
   width: number
-  x?: number
-  y?: number
+  x: number
+  y: number
 } => {
   const {
     x = 0,
@@ -440,6 +445,7 @@ export const renderMultiLineText = (
 
   let lines: string[] = []
   let width = 0
+  const originalFontFamily = ctx.font
 
   if (fontFamily) {
     ctx.font = fontFamily
@@ -458,10 +464,10 @@ export const renderMultiLineText = (
     multiLineTextCache.set(cacheKey, { lines, width })
   }
 
-  if (render) {
-    const yOffset =
-      verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
+  const yOffset =
+    verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
 
+  if (render) {
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
 
@@ -471,11 +477,15 @@ export const renderMultiLineText = (
     }
     // Render the text lines
     renderLines(ctx, { lines, x, y: y + yOffset, textAlign, verticalAlign, lineHeight, fontSize, fillStyle, underline })
-
-    return { lines, width, x: x + width, y: y + yOffset + (lines.length - 1) * lineHeight }
+  } else {
+    /**
+     * Set fontFamily is required for measureText to get currect matrics and
+     * it also imp to reset font style if we are not rendering text
+     */
+    ctx.font = originalFontFamily
   }
 
-  return { lines, width }
+  return { lines, width, x: x + width, y: y + yOffset + (lines.length - 1) * lineHeight }
 }
 
 export const renderTag = (

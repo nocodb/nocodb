@@ -29,8 +29,6 @@ import type Base from '~/models/Base';
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const customerColumnsListStr = columns
-    // ForeignKey now only shown when getHidden is selected
-    .filter(c => c.uidt !== UITypes.ForeignKey)
     .map((c) => c.title)
     .sort()
     .join(',');

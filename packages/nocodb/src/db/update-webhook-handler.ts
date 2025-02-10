@@ -1,5 +1,5 @@
+import { NcApiVersion, type NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { NcContext } from 'nocodb-sdk';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import Noco from '~/Noco';
 
@@ -56,7 +56,7 @@ export class UpdateWebhookHandler {
       this.rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: false },
+      { ignoreView: true, apiVersion: NcApiVersion.V3 },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData);
@@ -70,7 +70,7 @@ export class UpdateWebhookHandler {
       this.rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: false },
+      { ignoreView: true, apiVersion: NcApiVersion.V3 },
     );
     if (this.webhookContext.ignoreWebhook !== false) {
       this.sendWebhook(hookName, this.prevData, this.nextData);

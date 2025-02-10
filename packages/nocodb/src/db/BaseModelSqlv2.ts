@@ -6403,19 +6403,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!raw) {
-        while (updatePkValues.length) {
-          const pks = updatePkValues.splice(0, readChunkSize);
-          const updatedRecords = await this.list(
-            {
-              pks: pks.join(','),
-            },
-            {
-              limitOverride: readChunkSize,
-            },
-          );
+        const pks = updatePkValues.splice(0, readChunkSize);
 
-          // order records in the same order as the input data
-          newData.push(...this.orderRecordsByPks(updatedRecords, pks));
+        const updatedRecords = await this.list(
+          {
+            pks: pks.join(','),
+          },
+          {
+            limitOverride: readChunkSize,
+          },
+        );
+
+        const pkMap = new Map(
+          updatedRecords.map((record) => [
+            getCompositePkValue(this.model.primaryKeys, record),
+            record,
+          ]),
+        );
+
+        for (const pk of pks) {
+          if (pkMap.has(pk)) {
+            newData.push(pkMap.get(pk));
+          }
         }
       }
 
@@ -6438,24 +6447,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (transaction) await transaction.rollback();
       throw e;
     }
-  }
-
-  protected orderRecordsByPks(updatedRecords, pks: any[]) {
-    return updatedRecords.sort((record1, record2) => {
-      const pk1 = getCompositePkValue(this.model.primaryKeys, record1);
-      const pk2 = getCompositePkValue(this.model.primaryKeys, record2);
-      let index1 = pks.indexOf(pk1);
-      if (index1 === -1) {
-        // if not found convert to string and try again
-        index1 = pks.findIndex((pk) => pk?.toString() === pk1?.toString());
-      }
-      let index2 = pks.indexOf(pk2);
-      if (index2 === -1) {
-        // if not found convert to string and try again
-        index2 = pks.findIndex((pk) => pk?.toString() === pk2?.toString());
-      }
-      return index1 - index2;
-    });
   }
 
   async updateLTARCols({

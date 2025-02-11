@@ -1324,6 +1324,7 @@ reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
 
 onMounted(async () => {
+  console.log('debug')
   clearTextCache()
   await syncCount()
   calculateSlices()

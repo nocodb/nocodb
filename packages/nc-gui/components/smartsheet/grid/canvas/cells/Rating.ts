@@ -183,7 +183,7 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow }) {
+  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value }) {
     if (!row || !column) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -197,6 +197,13 @@ export const RatingCellRenderer: CellRenderer = {
       return mouseX >= iconX && mouseX <= iconX + iconSize && mouseY >= iconY && mouseY <= iconY + iconSize
     })
     if (iconIdx === -1) return false
+
+    if (iconIdx + 1 === value) {
+      row.row[column.title] = 0
+      await updateOrSaveRow?.(row, column.title)
+      return true
+    }
+
     row.row[column.title] = iconIdx + 1
     await updateOrSaveRow?.(row, column.title)
     return true

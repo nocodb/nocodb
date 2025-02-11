@@ -46,6 +46,7 @@ export function useCanvasRender({
   totalRows,
   t,
   readOnly,
+  isFillHanldeDisabled,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -83,6 +84,7 @@ export function useCanvasRender({
   totalRows: Ref<number>
   t: Composer['t']
   readOnly: Ref<boolean>
+  isFillHanldeDisabled: ComputedRef<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -490,7 +492,7 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
-    if (selection.value.isEmpty() || editEnabled.value) return true
+    if (selection.value.isEmpty() || editEnabled.value || isFillHanldeDisabled.value) return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true

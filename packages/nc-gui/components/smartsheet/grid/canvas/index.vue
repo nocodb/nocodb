@@ -1347,6 +1347,22 @@ const editEnabledCellPosition = computed(() => {
   }
 })
 
+onClickOutside(
+  wrapperRef,
+  () => {
+    openColumnDropdownField.value = null
+    openAggregationField.value = null
+  },
+  {
+    ignore: ['.nc-edit-or-add-provider-wrapper', '.canvas-aggregation', '.canvas-header-column-menu'],
+  },
+)
+
+onKeyStroke('Escape', () => {
+  openColumnDropdownField.value = null
+  openAggregationField.value = null
+})
+
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
 }
@@ -1476,11 +1492,12 @@ const increaseMinHeightBy: Record<string, number> = {
         >
           <div :style="overlayStyle" class="hide pointer-events-none"></div>
           <template #overlay>
-            <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" />
+            <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
             <SmartsheetHeaderColumnMenu
               v-else-if="openColumnDropdownField"
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
+              class="canvas-header-column-menu"
               @edit="handleEditColumn"
               @add-column="addEmptyColumn($event, true)"
             />

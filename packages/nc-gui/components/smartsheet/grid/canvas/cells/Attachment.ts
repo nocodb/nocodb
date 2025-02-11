@@ -67,7 +67,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     let attachments: Attachment[] = []
 
     const rowHeight = pxToRowHeight[height]
-    const verticalPadding = rowHeight === 1 ? 3 : 8
+    const verticalPadding = rowHeight === 1 ? 4 : 8
 
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
@@ -80,7 +80,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
 
     if (selected && attachments.length === 0) {
-      const buttonWidth = 84
+      const buttonWidth = 86
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
       const buttonY = y + verticalPadding
@@ -89,21 +89,22 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 8, {
         backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
-        borderColor: '#e7e7e9',
+        borderColor: '#E7E7E9',
+        borderWidth: 2,
       })
 
       spriteLoader.renderIcon(ctx, {
         icon: 'upload',
         x: buttonX + 8,
-        y: buttonY + (buttonHeight - 14) / 2,
-        size: 14,
+        y: buttonY + (buttonHeight - 16) / 2,
+        size: 16,
         color: '#6a7184',
       })
 
       ctx.fillStyle = '#374151'
       ctx.font = '10px Manrope'
       ctx.textBaseline = 'middle'
-      ctx.fillText('Add File(s)', buttonX + 28, buttonY + buttonHeight / 2)
+      ctx.fillText('Add File(s)', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
       return
     }
 
@@ -315,6 +316,14 @@ export const AttachmentCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
     tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
   },
+  async handleKeyDown({ row, column, key, makeCellEditable }) {
+    if (key === 'Enter') {
+      makeCellEditable(row.rowMeta.rowIndex!, column)
+      return true
+    }
+    return false
+  },
+
   async handleClick({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, makeCellEditable }) {
     const { hideTooltip } = useTooltipStore()
     hideTooltip()

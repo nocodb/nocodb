@@ -494,6 +494,8 @@ export function useCanvasTable({
     isAddingEmptyRowAllowed,
     readOnly,
     isFillHanldeDisabled,
+    isDataEditAllowed,
+    isFieldEditAllowed,
   })
 
   const { handleDragStart } = useRowReorder({

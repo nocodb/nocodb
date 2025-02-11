@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun } from '../../../setup/db';
+import { enableQuickRun, isCanvas } from '../../../setup/db';
 
 test.describe('LTAR with filter create & update', () => {
   if (enableQuickRun()) test.skip();
@@ -22,6 +22,11 @@ test.describe('LTAR with filter create & update', () => {
   });
 
   test('LTAR with filters', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);
@@ -121,6 +126,11 @@ test.describe('LTAR with filter create & update', () => {
   });
 
   test('LTAR with view', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);

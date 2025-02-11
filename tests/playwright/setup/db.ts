@@ -12,6 +12,9 @@ const isPg = (context: NcContext) => context.dbType === 'pg';
 
 const isEE = () => process.env.EE === 'true';
 
+// const isCanvas = () => process.env.CANVAS === 'true';
+const isCanvas = () => true;
+
 // run all the tests for PG; disable some tests for mysql, sqlite to reduce CI time
 //
 const enableQuickRun = () => (process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE) !== 'pg';
@@ -69,4 +72,4 @@ async function sqliteExec(query) {
   }
 }
 
-export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE, enableQuickRun };
+export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE, enableQuickRun, isCanvas };

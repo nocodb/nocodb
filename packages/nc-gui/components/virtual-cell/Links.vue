@@ -142,7 +142,7 @@ watch(
 )
 
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value && clientMousePosition) {
     forcedNextTick(() => {
       if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
         openListDlg()

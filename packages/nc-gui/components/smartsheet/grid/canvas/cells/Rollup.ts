@@ -1,5 +1,8 @@
 import { type ColumnType, type RollupType, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 
+import rfdc from 'rfdc'
+
+const clone = rfdc()
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, value, metas, renderCell } = props
@@ -17,7 +20,7 @@ export const RollupCellRenderer: CellRenderer = {
 
     const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
 
-    const childColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id)
+    const childColumn = clone((relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id))
 
     if (!childColumn) return
 
@@ -33,7 +36,10 @@ export const RollupCellRenderer: CellRenderer = {
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
       // Render as decimal cell
       renderProps.column.uidt = UITypes.Decimal
-      renderProps.column.meta = Object.assign(parseProp(childColumn?.meta), parseProp(column?.meta))
+      renderProps.column.meta = {
+        ...parseProp(childColumn?.meta),
+        ...parseProp(column?.meta),
+      }
     }
     renderCell(ctx, childColumn, renderProps)
   },

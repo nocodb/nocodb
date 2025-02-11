@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+### Things to do *right before* the machine gets rebooted or
+### powered off, at the very end of the shutdown sequence,
+### when all the filesystems are unmounted.
+
+### This is a last resort hook; normally nothing should be
+### done here (your rc.shutdown script should have taken care
+### of everything) and you should leave this script empty.
+
+### Some distributions, however, may need to perform some
+### actions after unmounting the filesystems: typically if
+### an additional teardown action is required on a filesystem
+### after unmounting it, or if the system needs to be
+### pivot_rooted before it can be shut down, etc.
+
+### Those are all exceptional cases. If you don't know for
+### certain that you need to do something here, you don't.

@@ -1,6 +1,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
+import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationItemType, IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
@@ -84,7 +85,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const { $api, $e } = useNuxtApp()
 
-  const { t } = useI18n()
+  const t = (msg: string) => getI18n().global.t(msg)
 
   const { aiIntegrations } = useNocoAi()
 

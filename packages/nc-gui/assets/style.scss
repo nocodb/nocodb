@@ -1231,23 +1231,34 @@ svg.nc-virtual-cell-icon {
 
   h1 {
     font-weight: 700;
-    font-size: 1.85rem;
-    margin-bottom: 0.1rem;
-    line-height: 36px;
   }
 
   h2 {
     font-weight: 600;
-    font-size: 1.55rem;
-    margin-bottom: 0.1em;
-    line-height: 30px;
   }
 
   h3 {
     font-weight: 600;
-    font-size: 1.15rem;
-    margin-bottom: 0.1em;
-    line-height: 24px;
+  }
+
+  &:not(.nc-rich-text-content-grid) {
+    h1 {
+      font-size: 1.85rem;
+      margin-bottom: 0.1rem;
+      line-height: 36px;
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      margin-bottom: 0.1em;
+      line-height: 30px;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.1em;
+      line-height: 24px;
+    }
   }
 
   blockquote {

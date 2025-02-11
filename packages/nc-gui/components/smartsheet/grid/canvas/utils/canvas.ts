@@ -2,6 +2,10 @@ import { LRUCache } from 'lru-cache'
 import type { ColumnType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
+import { NcMarkdownParser } from '~/helpers/tiptap'
+
+const MARKDOWN_HEADING_REGEX = /^(#{1,6})\s+/
+const MARKDOWN_BULLET_REGEX = /^([-*])\s+/
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
@@ -406,6 +410,154 @@ const renderLines = (
   })
 }
 
+const renderMarkdownLines = (
+  ctx: CanvasRenderingContext2D,
+  {
+    lines,
+    x,
+    y,
+    textAlign = 'left',
+    verticalAlign = 'alphabetic',
+    maxLines,
+    maxWidth,
+    lineHeight,
+    fillStyle,
+  }: {
+    lines: string[]
+    x: number
+    y: number
+    textAlign?: CanvasTextAlign
+    verticalAlign?: CanvasTextBaseline
+    maxLines?: number
+    maxWidth: number
+    lineHeight: number
+    fillStyle?: string
+  },
+) => {
+  const defaultFont = ctx.font
+  const fontSize = 13
+  const fontFamily = 'Manrope'
+  const boldFont = `bold ${fontSize}px ${fontFamily}`
+  const italicFont = `italic ${fontSize}px ${fontFamily}`
+
+  maxLines = maxLines ?? lines.length
+
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle
+  }
+
+  const parseMarkdownText = (text: string): { text: string; style: 'normal' | 'bold' | 'italic' }[] => {
+    const tokens: { text: string; style: 'normal' | 'bold' | 'italic' }[] = []
+    const regex = /(?:\*\*(.+?)\*\*|_([^_]+)_)/g
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    match = regex.exec(text)
+
+    while (match !== null) {
+      if (match.index > lastIndex) {
+        tokens.push({
+          text: text.substring(lastIndex, match.index),
+          style: 'normal',
+        })
+      }
+      if (match[1]) {
+        tokens.push({ text: match[1], style: 'bold' })
+      } else if (match[2]) {
+        tokens.push({ text: match[2], style: 'italic' })
+      }
+      lastIndex = regex.lastIndex
+
+      match = regex.exec(text)
+    }
+    if (lastIndex < text.length) {
+      tokens.push({
+        text: text.substring(lastIndex),
+        style: 'normal',
+      })
+    }
+    return tokens
+  }
+
+  let renderedLineCount = 0
+
+  for (const rawLine of lines) {
+    // Skip empty lines
+    if (!rawLine.trim()) continue
+
+    if (renderedLineCount >= maxLines) break
+
+    let line = rawLine
+    let isHeading = false
+    let isBullet = false
+    let isTruncated = false
+
+    const headingMatch = line.match(MARKDOWN_HEADING_REGEX)
+    if (headingMatch) {
+      isHeading = true
+      line = line.replace(MARKDOWN_HEADING_REGEX, '').trim()
+    } else {
+      const bulletMatch = line.match(MARKDOWN_BULLET_REGEX)
+      if (bulletMatch) {
+        isBullet = true
+        line = line.replace(MARKDOWN_BULLET_REGEX, '').trim()
+      }
+    }
+
+    // Truncate the last line if it exceeds the max width (adds ellipsis)
+    if (renderedLineCount === maxLines - 1 && lines.length > maxLines) {
+      line = truncateText(ctx, line, maxWidth, false)
+      isTruncated = true
+    }
+
+    const tokens = parseMarkdownText(line)
+
+    // Add bullet point if the line is a list item
+    if (isBullet) {
+      tokens.unshift({ text: '• ', style: 'normal' })
+    }
+
+    const cursorY = y + renderedLineCount * lineHeight
+    let cursorX = x
+    let isLineFull = false
+
+    // Render each token with corresponding style
+    for (const token of tokens) {
+      let fontToUse = defaultFont
+      if (isHeading && token.style === 'normal') {
+        fontToUse = boldFont
+      } else if (token.style === 'bold') {
+        fontToUse = boldFont
+      } else if (token.style === 'italic') {
+        fontToUse = italicFont
+      }
+      ctx.font = fontToUse
+
+      let tokenWidth = ctx.measureText(token.text).width
+
+      // Truncate the token if it exceeds the max width of the line
+      while (cursorX + tokenWidth > x + maxWidth) {
+        token.text = token.text.slice(0, -1)
+        tokenWidth = ctx.measureText(token.text).width
+        isLineFull = true
+      }
+
+      ctx.fillText(token.text, cursorX, cursorY)
+
+      cursorX += tokenWidth
+
+      if (isLineFull) break
+    }
+
+    renderedLineCount++
+    if (isTruncated) break
+  }
+
+  ctx.font = defaultFont
+}
+
 export const renderMultiLineText = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps,
@@ -481,6 +633,105 @@ export const renderMultiLineText = (
     }
     // Render the text lines
     renderLines(ctx, { lines, x, y: y + yOffset, textAlign, verticalAlign, lineHeight, fontSize, fillStyle, underline })
+  } else {
+    /**
+     * Set fontFamily is required for measureText to get currect matrics and
+     * it also imp to reset font style if we are not rendering text
+     */
+    ctx.font = originalFontFamily
+  }
+  const newY = y + yOffset + (lines.length - 1) * lineHeight
+  return { lines, width, x: x + width, y: newY, height: newY - y }
+}
+
+export const renderMarkdown = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  params: RenderMultiLineTextProps,
+): {
+  lines: string[]
+  width: number
+  x: number
+  y: number
+  height: number
+} => {
+  const {
+    x = 0,
+    y = 0,
+    text,
+    fillStyle,
+    height,
+    fontSize = 13, // In grid by default we have 13px font size
+    lineHeight = 16, // In grid by default we have 16px line height
+    fontFamily = '500 13px Manrope',
+    textAlign = 'left',
+    verticalAlign = 'middle',
+    render = true,
+    underline,
+    py = 10,
+  } = params
+  let { maxWidth = Infinity, maxLines } = params
+
+  if (maxWidth < 0) {
+    maxWidth = 0
+  }
+
+  if (ncIsUndefined(maxLines)) {
+    if (rowHeightInPx['1'] === height) {
+      maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
+    } else if (height) {
+      maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
+    } else {
+      maxLines = 1
+    }
+  }
+
+  const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
+
+  const lines = renderText.split('\n')
+
+  let width = 0
+  const originalFontFamily = ctx.font
+
+  if (fontFamily) {
+    ctx.font = fontFamily
+  }
+
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}`
+  const cachedText = multiLineTextCache.get(cacheKey)
+
+  if (cachedText) {
+    width = cachedText.width
+  } else {
+    width = maxWidth
+
+    multiLineTextCache.set(cacheKey, { lines, width })
+  }
+
+  const yOffset =
+    verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
+
+  if (render) {
+    ctx.textAlign = textAlign
+    ctx.textBaseline = verticalAlign
+
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle
+      ctx.strokeStyle = fillStyle
+    }
+    // Render the text lines
+    renderMarkdownLines(ctx, {
+      lines,
+      x,
+      y: y + yOffset,
+      textAlign,
+      verticalAlign,
+      lineHeight,
+      maxLines,
+      fontSize,
+      fillStyle,
+      underline,
+      maxWidth,
+    })
   } else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and

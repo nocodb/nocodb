@@ -5,7 +5,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../../../setup/xcdb-records';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import { enableQuickRun, isCanvas, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isSqlite } from '../../../setup/db';
 
 const validateResponse = false;
 
@@ -130,11 +130,6 @@ test.describe('Undo Redo', () => {
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // Row.Create

@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun, isCanvas } from '../../../setup/db';
+import { enableQuickRun } from '../../../setup/db';
 
 test.describe('LTAR create & update', () => {
   if (enableQuickRun()) test.skip();
@@ -22,11 +22,6 @@ test.describe('LTAR create & update', () => {
   });
 
   test('LTAR', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);

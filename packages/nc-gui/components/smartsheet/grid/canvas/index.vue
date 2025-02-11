@@ -10,6 +10,7 @@ import {
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
+import axios from 'axios'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
@@ -129,7 +130,7 @@ const isExpandTableModalOpen = ref(false)
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
-
+const isPublicView = inject(IsPublicInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 // Composables
@@ -137,7 +138,9 @@ const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const route = useRoute()
 const { $e } = useNuxtApp()
+const { t } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
 const tooltipRef = ref()
@@ -1367,14 +1370,27 @@ reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
 
-onMounted(async () => {
-  console.log('debug')
-  clearTextCache()
-  await syncCount()
-  calculateSlices()
-  triggerRefreshCanvas()
-  await loadViewAggregate()
-})
+watch(
+  view,
+  async (next, old) => {
+    try {
+      if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+        clearTextCache()
+        await syncCount()
+        calculateSlices()
+        await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
+      }
+    } catch (e) {
+      if (!axios.isCancel(e)) {
+        console.error(e)
+        message.error(t('msg.errorLoadingData'))
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onBeforeUnmount(() => {
   reloadViewDataHook.off(reloadViewDataHookHandler)

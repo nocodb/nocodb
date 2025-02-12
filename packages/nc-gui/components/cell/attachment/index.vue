@@ -70,7 +70,13 @@ if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
 
-const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
+const onDropAction = function (...args: any[]) {
+  const draggingBool = unref(dragging)
+  if (!draggingBool) {
+    onDrop.apply(this, args)
+  }
+}
+const { isOverDropZone } = useDropZone(currentCellRef as any, onDropAction)
 
 /** on new value, reparse our stored attachments */
 watch(

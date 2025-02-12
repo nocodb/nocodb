@@ -274,25 +274,6 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
-  const colMeta = computed(() => {
-    return columns.value.map((col) => {
-      return {
-        isVirtualCol: isVirtualCol(col.columnObj),
-        isReadonly: isReadonly(col.columnObj),
-      }
-    })
-  })
-
-  const selectedReadonly = computed(
-    () =>
-      // if all the selected columns are not readonly
-      (selection.value.isEmpty() && activeCell.value.column && colMeta.value[activeCell.value.column]?.isReadonly) ||
-      (!selection.value.isEmpty() &&
-        Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every((_, i) => {
-          return colMeta.value[selection.value.start.col + i]?.isReadonly
-        })),
-  )
-
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
@@ -413,7 +394,7 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (selection.value.isEmpty() || isFillHanldeDisabled.value || selectedReadonly.value) return null
+    if (selection.value.isEmpty() || isFillHanldeDisabled.value || isSelectionReadOnly.value) return null
 
     if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null

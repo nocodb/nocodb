@@ -841,8 +841,8 @@ importers:
         specifier: ^3.3.8
         version: 3.3.8
       nc-lib-gui:
-        specifier: 0.260.6
-        version: 0.260.6
+        specifier: 0.260.7
+        version: 0.260.7
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.4.15(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.15)(@nestjs/throttler@5.2.0(@nestjs/common@10.4.15(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.15)(reflect-metadata@0.2.2))(ioredis@5.4.2)(reflect-metadata@0.2.2)
@@ -1256,22 +1256,26 @@ packages:
 
   '@antfu/eslint-config-basic@0.26.3':
     resolution: {integrity: sha512-IgJPYGMmNb6/99Iqg8huiT8qs6lFLu794a97lzwQoHTtLoBYx6VFSfM6tXrsOCnRyrdX5DwfGPnOrxVelbcAFQ==}
+    deprecated: Deprecated, please migrate to @antfu/eslint-config with the flat config
     peerDependencies:
       eslint: '>=7.4.0'
 
   '@antfu/eslint-config-react@0.26.3':
     resolution: {integrity: sha512-S4wqID2RW4aiPam9bvtyJGHRo6G+lBBAL6HxLLNF6jC0HjN0ZpkJXHsruqroKm10YexBKnmr6W+iB1NSJROvwQ==}
+    deprecated: Deprecated, please migrate to @antfu/eslint-config with the flat config
     peerDependencies:
       eslint: '>=7.4.0'
 
   '@antfu/eslint-config-ts@0.26.3':
     resolution: {integrity: sha512-MpgdAbhgCQl5JpDjGLGLjI4npp2VpTvdpISdoFkCD03kTcbkvwD4oeoIYCQannFs/pY8xC/JDvehTPd5puhn7A==}
+    deprecated: Deprecated, please migrate to @antfu/eslint-config with the flat config
     peerDependencies:
       eslint: '>=7.4.0'
       typescript: ~5.4.5
 
   '@antfu/eslint-config-vue@0.26.3':
     resolution: {integrity: sha512-74lWt8SuOeNbjLE+0iw1JpEJ+SUjO3lt6Gj7MXB5L2foy9Oq/LJrkGi9gS3koC3n6150T3nXTVxURBLatbqLbg==}
+    deprecated: Deprecated, please migrate to @antfu/eslint-config with the flat config
     peerDependencies:
       eslint: '>=7.4.0'
 
@@ -3168,8 +3172,8 @@ packages:
     resolution: {integrity: sha512-8tR1xe7ZEbkabTuE/tNhzpolygUn9OaYp9yuYAF4MgDNZg06C3Qny80bes2/e9/Wm3aVkPUlCw6WgU7mQd0yEg==}
     engines: {node: '>= 16'}
 
-  '@intlify/shared@11.1.0':
-    resolution: {integrity: sha512-DvpNSxiMrFqYMaGSRDDnQgO/L0MqNH4KWw9CUx8LRHHIdWp08En9DpmSRNpauUOxKpHAhyJJxx92BHZk9J84EQ==}
+  '@intlify/shared@11.1.1':
+    resolution: {integrity: sha512-2kGiWoXaeV8HZlhU/Nml12oTbhv7j2ufsJ5vQaa0VTjzUmZVdd/nmKFRAOJ/FtjO90Qba5AnZDwsrY7ZND5udA==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@9.14.2':
@@ -11574,8 +11578,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.260.6:
-    resolution: {integrity: sha512-8qFB1pCPOY1er/kmRBvwFSleaWlL31SLu0nqZWLZNZOC/n5S7QlOQRLGbEuOZTKeGBlu06K1yDMCwY+HnDPIrg==}
+  nc-lib-gui@0.260.7:
+    resolution: {integrity: sha512-Ao1NVDdSeNaXrCmCwIgOXrKtCzggLW+84fVeekMCpMZjucnT/h8151IjK0xamgnq/vMsUC+jo/Yvnmgs7LtnhQ==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -18369,7 +18373,7 @@ snapshots:
 
   '@intlify/shared@11.0.0-rc.1': {}
 
-  '@intlify/shared@11.1.0': {}
+  '@intlify/shared@11.1.1': {}
 
   '@intlify/shared@9.14.2': {}
 
@@ -18377,8 +18381,8 @@ snapshots:
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.1)
       '@intlify/bundle-utils': 10.0.0(vue-i18n@9.14.2(vue@3.5.13(typescript@5.6.2)))
-      '@intlify/shared': 11.1.0
-      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.6.2)))(vue@3.5.13(typescript@5.6.2))
+      '@intlify/shared': 11.1.1
+      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.1.1)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.6.2)))(vue@3.5.13(typescript@5.6.2))
       '@rollup/pluginutils': 5.1.3(rollup@4.28.0)
       '@typescript-eslint/scope-manager': 8.23.0
       '@typescript-eslint/typescript-estree': 8.23.0(typescript@5.6.2)
@@ -18400,11 +18404,11 @@ snapshots:
       - supports-color
       - typescript
 
-  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.1.0)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.6.2)))(vue@3.5.13(typescript@5.6.2))':
+  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.1.1)(@vue/compiler-dom@3.5.13)(vue-i18n@9.14.2(vue@3.5.13(typescript@5.6.2)))(vue@3.5.13(typescript@5.6.2))':
     dependencies:
       '@babel/parser': 7.26.3
     optionalDependencies:
-      '@intlify/shared': 11.1.0
+      '@intlify/shared': 11.1.1
       '@vue/compiler-dom': 3.5.13
       vue: 3.5.13(typescript@5.6.2)
       vue-i18n: 9.14.2(vue@3.5.13(typescript@5.6.2))
@@ -29535,7 +29539,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.260.6:
+  nc-lib-gui@0.260.7:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:

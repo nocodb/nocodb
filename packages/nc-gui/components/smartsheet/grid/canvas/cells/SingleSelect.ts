@@ -72,29 +72,8 @@ export const SingleSelectCellRenderer: CellRenderer = {
       text,
     })
   },
-  async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
-    if (column.columnObj.readonly) return false
-
-    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
-
-    const padding = 10
-
-    const _x = x + padding
-    const _y = y
-
-    const _width = width - padding * 2
-
-    const isSelectedTags = isBoxHovered(
-      {
-        x: _x,
-        y: _y,
-        width: _width,
-        height: 20,
-      },
-      mousePosition,
-    )
-
-    if (!isSelectedTags) return false
+  async handleClick({ row, column, makeCellEditable }) {
+    if (column.columnObj?.readonly) return false
 
     makeCellEditable(row, column)
     return true

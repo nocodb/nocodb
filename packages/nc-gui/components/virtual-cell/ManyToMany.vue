@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { ref, type Ref } from 'vue';
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -147,7 +147,7 @@ onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
       openListDlg()

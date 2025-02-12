@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { type Ref, ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -20,7 +20,10 @@ const isForm = inject(IsFormInj, ref(false))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
@@ -88,7 +91,7 @@ watch(value, (next) => {
 })
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || isExpandedFormOpen.value || !clientMousePosition) return
   forcedNextTick(() => {
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)

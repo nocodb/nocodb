@@ -445,6 +445,7 @@ export const renderMarkdownBlocks = (
     maxWidth,
     lineHeight,
     fillStyle,
+    mousePosition = { x: 0, y: 0 },
   }: {
     blocks: Block[]
     x: number
@@ -455,12 +456,15 @@ export const renderMarkdownBlocks = (
     maxWidth: number
     lineHeight: number
     fillStyle?: string
+    mousePosition?: { x: number; y: number }
   },
 ) => {
   // Save the current font so we can restore it later
   const defaultFont = ctx.font
   const baseFontSize = 13
   const fontFamily = 'Manrope'
+
+  const links: { x: number; y: number; width: number; height: number; url: string }[] = []
 
   if (fillStyle) {
     ctx.fillStyle = fillStyle
@@ -500,9 +504,33 @@ export const renderMarkdownBlocks = (
         tokenWidth = ctx.measureText(tokenText).width
       }
 
+      if (token.styles.includes('link')) {
+        const linkBox = {
+          x: cursorX - 2,
+          y: cursorY - baseFontSize / 2 - 2,
+          width: tokenWidth + 4,
+          height: baseFontSize + 4,
+        }
+
+        ctx.fillStyle = '#4351e7'
+        ctx.strokeStyle = '#4351e7'
+
+        const isHovered = isBoxHovered(linkBox, mousePosition)
+
+        if (isHovered) {
+          ctx.fillStyle = '#000'
+          ctx.strokeStyle = '#000'
+        }
+
+        links.push({
+          ...linkBox,
+          url: token.url ?? '',
+        })
+      }
+
       ctx.fillText(tokenText, cursorX, cursorY)
 
-      if (token.styles.includes('underline')) {
+      if (token.styles.includes('underline') || token.styles.includes('link')) {
         drawUnderline(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
       }
 
@@ -519,6 +547,10 @@ export const renderMarkdownBlocks = (
 
   // Restore the original font
   ctx.font = defaultFont
+
+  return {
+    links,
+  }
 }
 
 export const renderMultiLineText = (
@@ -615,6 +647,7 @@ export const renderMarkdown = (
   x: number
   y: number
   height: number
+  links: { x: number; y: number; width: number; height: number; url: string }[]
 } => {
   const {
     x = 0,
@@ -630,6 +663,7 @@ export const renderMarkdown = (
     render = true,
     underline,
     py = 10,
+    mousePosition = { x: 0, y: 0 },
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -673,6 +707,10 @@ export const renderMarkdown = (
   const yOffset =
     verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
 
+  let renderRes: {
+    links: { x: number; y: number; width: number; height: number; url: string }[]
+  } = { links: [] }
+
   if (render) {
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
@@ -682,7 +720,7 @@ export const renderMarkdown = (
       ctx.strokeStyle = fillStyle
     }
     // Render the text lines
-    renderMarkdownBlocks(ctx, {
+    renderRes = renderMarkdownBlocks(ctx, {
       blocks,
       x,
       y: y + yOffset,
@@ -694,6 +732,7 @@ export const renderMarkdown = (
       fillStyle,
       underline,
       maxWidth,
+      mousePosition,
     })
   } else {
     /**
@@ -703,7 +742,7 @@ export const renderMarkdown = (
     ctx.font = originalFontFamily
   }
   const newY = y + yOffset + (blocks.length - 1) * lineHeight
-  return { width, x: x + width, y: newY, height: newY - y }
+  return { width, x: x + width, y: newY, height: newY - y, links: renderRes?.links }
 }
 
 export const renderTag = (

@@ -28,7 +28,11 @@ export const LongTextCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (isRichMode) {
-      const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
+      const {
+        x: xOffset,
+        y: yOffset,
+        links,
+      } = renderMarkdown(ctx, {
         x: x + padding,
         y,
         text,
@@ -36,6 +40,7 @@ export const LongTextCellRenderer: CellRenderer = {
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
+        mousePosition,
       })
 
       if (isHovered) {
@@ -58,6 +63,7 @@ export const LongTextCellRenderer: CellRenderer = {
       return {
         x: xOffset,
         y: yOffset,
+        links,
       }
     } else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
@@ -94,7 +100,20 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable } = props
+    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore } = props
+    const isRichMode = column.columnObj?.meta?.richMode
+
+    if (isRichMode) {
+      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore.links || []
+
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          window.open(link.url, '_blank')
+          return true
+        }
+      }
+    }
+
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleClick!(props)
     } else {

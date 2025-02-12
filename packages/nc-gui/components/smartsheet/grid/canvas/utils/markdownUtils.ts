@@ -1,14 +1,17 @@
-type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough'
+type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link'
 
 interface Token {
   styles: MarkdownStyle[]
   value: string
+  url?: string
 }
 
-interface Marker {
+export interface Marker {
   open: string
   close: string
-  style: MarkdownStyle
+  style?: MarkdownStyle
+  // Optional handler to process complex markers (like links)
+  handler?: (text: string, index: number, activeStyles: MarkdownStyle[]) => { tokens: Token[]; newIndex: number }
 }
 
 const markers: Marker[] = [
@@ -16,14 +19,48 @@ const markers: Marker[] = [
   { open: '_', close: '_', style: 'italic' },
   { open: '<u>', close: '</u>', style: 'underline' },
   { open: '<s>', close: '</s>', style: 'strikethrough' },
+  {
+    open: '[',
+    close: ']',
+    handler: (text: string, index: number, activeStyles: MarkdownStyle[]) => {
+      // Parse link text inside the square brackets
+      const innerResult = parseTokens(text, index, activeStyles, ']')
+      const linkTextTokens = innerResult.tokens
+      index = innerResult.newIndex
+      // Check for a URL immediately following, wrapped in parentheses
+      if (index < text.length && text[index] === '(') {
+        index++ // Skip '('
+        let url = ''
+        while (index < text.length && text[index] !== ')') {
+          url += text[index]
+          index++
+        }
+        if (index < text.length && text[index] === ')') {
+          index++ // Skip ')'
+        }
+
+        // Merge the tokens from the link text into one string
+        const mergedText = linkTextTokens.map((t) => t.value).join('')
+
+        activeStyles.push('link')
+
+        return { tokens: [{ styles: activeStyles, value: mergedText, url }], newIndex: index }
+      } else {
+        return {
+          tokens: [{ styles: activeStyles, value: `[${linkTextTokens.map((t) => t.value).join('')}]` }],
+          newIndex: index,
+        }
+      }
+    },
+  },
 ]
 
-const parseTokens = (
+function parseTokens(
   text: string,
   index: number = 0,
   activeStyles: MarkdownStyle[] = [],
   expectedClosing: string | null = null,
-): { tokens: Token[]; newIndex: number } => {
+): { tokens: Token[]; newIndex: number } {
   const tokens: Token[] = []
   let currentText = ''
 
@@ -52,9 +89,15 @@ const parseTokens = (
     if (foundMarker) {
       flushText()
       index += foundMarker.open.length
-      const innerResult = parseTokens(text, index, [...activeStyles, foundMarker.style], foundMarker.close)
-      tokens.push(...innerResult.tokens)
-      index = innerResult.newIndex
+      if (foundMarker.handler) {
+        const result = foundMarker.handler(text, index, activeStyles)
+        tokens.push(...result.tokens)
+        index = result.newIndex
+      } else {
+        const innerResult = parseTokens(text, index, [...activeStyles, foundMarker.style!], foundMarker.close)
+        tokens.push(...innerResult.tokens)
+        index = innerResult.newIndex
+      }
       continue
     }
 

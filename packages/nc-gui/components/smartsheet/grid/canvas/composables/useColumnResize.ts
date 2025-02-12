@@ -147,7 +147,7 @@ export function useColumnResize(
 // Column width constraints
 export const columnWidthLimit = {
   [UITypes.Attachment]: {
-    minWidth: 80,
+    minWidth: 100,
     maxWidth: Number.POSITIVE_INFINITY,
   },
   [UITypes.Button]: {
@@ -158,15 +158,13 @@ export const columnWidthLimit = {
 
 const getColumnWidthLimit = (uidt: keyof typeof columnWidthLimit) => {
   if (uidt in columnWidthLimit) return columnWidthLimit[uidt]
-  return { minWidth: 100, maxWidth: Number.POSITIVE_INFINITY }
+  return { minWidth: 80, maxWidth: Number.POSITIVE_INFINITY }
 }
 
-export const normalizeWidth = (col: ColumnType, width: number) => {
-  if (col.uidt! in columnWidthLimit) {
+export const normalizeWidth = (col: ColumnType, width: number): number => {
+  if (col.uidt) {
     const { minWidth, maxWidth } = getColumnWidthLimit(col.uidt as keyof typeof columnWidthLimit)
-    if (minWidth < width && width < maxWidth) return width
-    if (width < minWidth) return minWidth
-    if (width > maxWidth) return maxWidth
+    return Math.min(Math.max(width, minWidth), maxWidth)
   }
   return width
 }

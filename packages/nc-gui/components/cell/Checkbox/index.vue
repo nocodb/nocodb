@@ -99,7 +99,6 @@ const wrapperClassName = computed(() => {
     isForm?.value || isGallery.value || isExpandedFormOpen.value ? 'w-full flex-start pl-2' : 'w-full justify-center',
     {
       'nc-cell-hover-show': !vModel.value,
-      // 'pointer-events-none': readOnly?.value,
     },
   ]
 })

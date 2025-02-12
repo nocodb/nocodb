@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { renderTag } from '../utils/canvas'
+import { isBoxHovered, renderTag } from '../utils/canvas'
 
 function getIconsData({
   width,
@@ -69,7 +69,7 @@ const inactiveColor = '#d9d9d9'
 
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, readonly, tag = {} } = props
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, readonly, tag = {}, setCursor } = props
 
     const {
       renderAsTag,
@@ -143,6 +143,9 @@ export const RatingCellRenderer: CellRenderer = {
 
       if (isHovered) {
         iconColor = ratingMeta.color
+        if (!readonly) {
+          setCursor('pointer')
+        }
       } else {
         iconColor = inactiveColor
       }
@@ -221,5 +224,22 @@ export const RatingCellRenderer: CellRenderer = {
     }
 
     return false
+  },
+  async handleHover(ctx) {
+    const { row, column, mousePosition, getCellPosition, cellRenderStore, setCursor } = ctx
+    if (column.readonly) return
+
+    const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    // const checkboxBounds = {
+    //   x: bounds.x + bounds.width / 2 - 7,
+    //   y: bounds.y + bounds.height / 2 - 8,
+    //   width: 14,
+    //   height: 14,
+    // }
+
+    // if (isBoxHovered(checkboxBounds, mousePosition)) {
+    //   setCursor('pointer')
+    // }
   },
 }

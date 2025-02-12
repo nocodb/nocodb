@@ -49,6 +49,7 @@ export function useCanvasRender({
   isFillHanldeDisabled,
 
   isFieldEditAllowed,
+  setCursor,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -89,6 +90,7 @@ export function useCanvasRender({
   isFillHanldeDisabled: ComputedRef<boolean>
   isFieldEditAllowed: ComputedRef<boolean>
   isDataEditAllowed: ComputedRef<boolean>
+  setCursor: SetCursorType
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -563,6 +565,19 @@ export function useCanvasRender({
       )
       ctx.setLineDash([])
     }
+
+    // check if the fill handle is hovered
+    const isHovered =
+      mousePosition &&
+      mousePosition.x >= fillHandler.x - fillHandler.size / 2 &&
+      mousePosition.x <= fillHandler.x + fillHandler.size / 2 &&
+      mousePosition.y >= fillHandler.y - fillHandler.size / 2 &&
+      mousePosition.y <= fillHandler.y + fillHandler.size / 2
+
+    if (isHovered) {
+      setCursor('crosshair')
+    }
+
     return true
   }
 

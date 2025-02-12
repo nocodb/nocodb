@@ -999,7 +999,7 @@ const getHeaderTooltipRegions = (
   return regions
 }
 
-const activeCursor = ref<'auto' | 'pointer' | 'col-resize'>('auto')
+const activeCursor = ref<CursorType>('auto')
 
 watch(activeCursor, (newCursor) => {
   if (!canvasRef.value || newCursor) {
@@ -1007,7 +1007,7 @@ watch(activeCursor, (newCursor) => {
   }
 })
 
-function setCursor(cursor: 'auto' | 'pointer' | 'col-resize') {
+function setCursor(cursor: CursorType) {
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
   }

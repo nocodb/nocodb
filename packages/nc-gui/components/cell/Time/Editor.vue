@@ -381,7 +381,7 @@ onMounted(() => {
     </div>
 
     <template #overlay>
-      <div class="min-w-[72px]">
+      <div class="min-w-[120px]">
         <NcTimeSelector
           :selected-date="localState"
           :min-granularity="30"

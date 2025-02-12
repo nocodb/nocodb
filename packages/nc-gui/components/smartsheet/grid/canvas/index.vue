@@ -1696,6 +1696,10 @@ const increaseMinHeightBy: Record<string, number> = {
     :deep(.nc-cell-datetime) {
       @apply !py-0.75 !px-1.5;
     }
+
+    :deep(.nc-cell-geodata) {
+      @apply !pt-0.5;
+    }
   }
 
   :deep(.nc-cell-longtext) {
@@ -1730,6 +1734,10 @@ const increaseMinHeightBy: Record<string, number> = {
 
   :deep(.nc-single-select) {
     @apply !h-auto !px-2;
+  }
+
+  :deep(.nc-cell-geodata) {
+    @apply !pt-2 !h-auto;
   }
 
   :deep(.nc-cell-singlelinetext),

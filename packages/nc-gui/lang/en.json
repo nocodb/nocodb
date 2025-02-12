@@ -678,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -979,7 +981,7 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
-    "currentLocation": "Current Location",
+    "currentLocation": "Set to current location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregate function",
@@ -1380,6 +1382,8 @@
       "addOrEditStack": "Add / Edit Stack"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",

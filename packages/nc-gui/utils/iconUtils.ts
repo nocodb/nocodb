@@ -652,6 +652,8 @@ import NcLogoGitlabColored from '~icons/nc-icons-v2/gitlab-colored.svg'
 import NcLogoGmailColored from '~icons/nc-icons-v2/gmail-colored.svg'
 import NcLogoGmail from '~icons/nc-icons-v2/gmail.svg'
 import NcLogoGoogleDriveColored from '~icons/nc-icons-v2/google-drive-colored.svg'
+import NcLogoGoogleMapColored from '~icons/nc-icons-v2/google-map-colored.svg'
+import NcLogoOpenStreetMapColored from '~icons/nc-icons-v2/open-street-map.svg'
 import NcLogoGoogleDrive from '~icons/nc-icons-v2/google-drive.svg'
 import NcLogoGreenhouseColored from '~icons/nc-icons-v2/greenhouse-colored.svg'
 import NcLogoGreenhouse from '~icons/nc-icons-v2/greenhouse.svg'
@@ -1597,6 +1599,8 @@ export const iconMap = {
   'ncLogoGoogleDriveColored': h(NcLogoGoogleDriveColored, { stroke: 'transparent' }),
   'ncLogoGoogleDrive': h(NcLogoGoogleDrive, { stroke: 'transparent' }),
   'ncLogoGreenhouseColored': h(NcLogoGreenhouseColored, { stroke: 'transparent' }),
+  'ncLogoGoogleMapColored': h(NcLogoGoogleMapColored, { stroke: 'transparent' }),
+  'ncLogoOpenStreetMapColored': h(NcLogoOpenStreetMapColored, { stroke: 'transparent' }),
   'ncLogoGreenhouse': h(NcLogoGreenhouse, { stroke: 'transparent' }),
   'ncLogoGroqAiColored': h(NcLogoGroqAiColored, { stroke: 'transparent' }),
   'ncLogoGroqAi': h(NcLogoGroqAi, { stroke: 'transparent' }),

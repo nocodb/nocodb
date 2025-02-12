@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -15,7 +16,9 @@ export class MetaDiffsController {
     '/api/v1/db/meta/projects/:baseId/meta-diff',
     '/api/v2/meta/bases/:baseId/meta-diff',
   ])
-  @Acl('metaDiff')
+  @Acl('metaDiff', {
+    blockApiTokenAccess: true,
+  })
   async metaDiff(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -27,7 +30,9 @@ export class MetaDiffsController {
     '/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId',
     '/api/v2/meta/bases/:baseId/meta-diff/:sourceId',
   ])
-  @Acl('metaDiff')
+  @Acl('metaDiff', {
+    blockApiTokenAccess: true,
+  })
   async baseMetaDiff(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

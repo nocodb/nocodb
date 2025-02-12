@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import type CustomKnex from '~/db/CustomKnex';
+import type { MetaService } from '~/meta/meta.service';
 import { Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import SimpleLRUCache from '~/utils/cache';
-import Upgrader from '~/Upgrader';
 import { isEE } from '~/utils';
+import Noco from '~/Noco';
 
 const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 10;
 
@@ -59,7 +60,7 @@ export class RecoverDisconnectedTableNames {
     this.log(`${message} in ${elapsedSeconds}s`);
   }
 
-  getModelsToBeProcessedQueryBuilder(ncMeta: Upgrader) {
+  getModelsToBeProcessedQueryBuilder(ncMeta: MetaService) {
     return ncMeta
       .knexConnection(MetaTable.MODELS)
       .join(
@@ -82,11 +83,10 @@ export class RecoverDisconnectedTableNames {
   }
 
   async job() {
-    const ncMeta = new Upgrader();
+    const ncMeta = Noco.ncMeta;
 
     try {
       this.cache.clear();
-      ncMeta.enableUpgraderMode();
       const totalHrTime = process.hrtime();
 
       const numberOfModelsToBeProcessed = +(
@@ -139,8 +139,6 @@ export class RecoverDisconnectedTableNames {
 
       await queue.onIdle();
 
-      await ncMeta.disableUpgraderMode();
-
       this.log(
         `Migration completed. Processed ${this.processedModelsCount} models`,
       );
@@ -150,7 +148,6 @@ export class RecoverDisconnectedTableNames {
       return true;
     } catch (error) {
       this.log('Migration failed:');
-      await ncMeta.disableUpgraderMode();
       return false;
     }
   }
@@ -163,7 +160,7 @@ export class RecoverDisconnectedTableNames {
       base_id: string;
       fk_workspace_id?: string;
     },
-    ncMeta: Upgrader,
+    ncMeta: MetaService,
   ) {
     try {
       const context = {
@@ -173,6 +170,11 @@ export class RecoverDisconnectedTableNames {
       const source = await this.cache.get(modelData.source_id, async () =>
         Source.get(context, modelData.source_id),
       );
+      if (!(source as Source).isMeta()) {
+        this.log(`Model ${modelData.id}:`, 'is not meta, skipping');
+        return;
+      }
+
       const dbDriver: CustomKnex = await NcConnectionMgrv2.get(source);
       const model = await Model.get(context, modelData.id);
       const baseModel = await Model.getBaseModelSQL(context, {
@@ -215,7 +217,6 @@ export class RecoverDisconnectedTableNames {
         modelData.id,
       );
       this.processedModelsCount++;
-      await ncMeta.runUpgraderQueries();
     } catch (error) {
       this.log(`Error processing model ${modelData.id}:`, error.message);
       throw error;

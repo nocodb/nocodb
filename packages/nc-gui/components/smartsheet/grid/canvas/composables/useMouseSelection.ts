@@ -65,7 +65,6 @@ export function useMouseSelection({
     if (e.shiftKey) {
       if (cell.col !== -1) {
         isSelecting.value = true
-        scrollToCell(cell.row, cell.col)
         triggerReRender()
       }
       return
@@ -75,7 +74,6 @@ export function useMouseSelection({
       isSelecting.value = true
       selection.value.startRange(cell)
       activeCell.value = { row: cell.row, column: cell.col }
-      scrollToCell(cell.row, cell.col)
       triggerReRender()
     }
   }

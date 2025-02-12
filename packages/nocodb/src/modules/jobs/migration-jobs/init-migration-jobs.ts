@@ -1,6 +1,7 @@
 import debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { RecoverDisconnectedTableNames } from './nc_job_008_recover_disconnected_table_name';
 import type { Job } from 'bull';
 import { JobTypes, MigrationJobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -56,6 +57,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.RecoverOrderColumnMigration,
       service: isEE ? this.noOpMigration : this.recoverOrderColumnMigration,
     },
+    {
+      version: '8',
+      job: MigrationJobTypes.RecoverDisconnectedTableNames,
+      service: this.recoverDisconnectedTableNames,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -69,6 +75,7 @@ export class InitMigrationJobs {
     private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
     private readonly orderColumnMigration: OrderColumnMigration,
     private readonly recoverOrderColumnMigration: RecoverOrderColumnMigration,
+    private readonly recoverDisconnectedTableNames: RecoverDisconnectedTableNames,
     private readonly noOpMigration: NoOpMigration,
   ) {}
 

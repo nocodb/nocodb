@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { RecoverDisconnectedTableNames } from './migration-jobs/nc_job_008_recover_disconnected_table_name';
 import { NocoModule } from '~/modules/noco.module';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
@@ -116,6 +117,7 @@ export const JobsModuleMetadata = {
     OrderColumnMigration,
     NoOpMigration,
     RecoverOrderColumnMigration,
+    RecoverDisconnectedTableNames,
   ],
   exports: ['JobsService'],
 };

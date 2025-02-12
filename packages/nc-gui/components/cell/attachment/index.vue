@@ -228,7 +228,7 @@ defineExpose({
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
-    <div v-if="visibleItems.length > 0" class="flex flex-wrap items-stretch mb-2 gap-2">
+    <div v-if="visibleItems.length > 0" ref="sortableRef" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
         v-for="(item, i) in showAllAttachments ? visibleItems : visibleItems.slice(0, 3)"
         :key="`${item?.title}-${i}`"

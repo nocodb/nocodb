@@ -145,15 +145,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
     }
   }
 
-  // Make sure to release lock on page unload
-  onBeforeMount(() => {
-    window.addEventListener('beforeunload', releaseLock)
-  })
-
-  // Remove listener on component unmount to avoid leaks
-  onBeforeUnmount(() => {
-    window.removeEventListener('beforeunload', releaseLock)
-  })
+  useEventListener('beforeunload', releaseLock)
 
   return sharedExecutionFn
 }

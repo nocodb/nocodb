@@ -175,10 +175,7 @@ const getAst = async (
     }
   }
 
-  const columns =
-    getHiddenColumn === true
-      ? model.columns
-      : await stripMmColumns(context, model.columns);
+  const columns = model.columns;
 
   const ast: Ast = await columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
@@ -232,29 +229,16 @@ const getAst = async (
     }
     let isRequested;
 
+    const isForeignKey = col.uidt === UITypes.ForeignKey;
+    const isInFields = fields?.length && fields.includes(col.title);
+
     // exclude system column and foreign key from API response for v3
-    if (
-      (col.system || col.uidt === UITypes.ForeignKey) &&
-      apiVersion === NcApiVersion.V3
-    ) {
-      isRequested = false;
-    } else if (
-      col.uidt === UITypes.ForeignKey &&
-      !getHiddenColumn &&
-      !view?.show_system_fields
-    ) {
+    if ((col.system || isForeignKey) && apiVersion === NcApiVersion.V3) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
-    } else if (
-      getHiddenColumn &&
-      [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.ForeignKey].includes(
-        col.uidt,
-      )
-    ) {
-      isRequested = value;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
@@ -268,10 +252,10 @@ const getAst = async (
           view.show_system_fields ||
           (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
           col.pv) &&
-        (!fields?.length || fields.includes(col.title)) &&
+        (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = fields.includes(col.title) && value;
+      isRequested = isInFields && value;
     } else {
       isRequested = value;
     }
@@ -382,24 +366,6 @@ type RequestQuery = {
   nested?: {
     [field: string]: RequestQuery;
   };
-};
-
-const stripMmColumns = async (context: NcContext, columns: Column<any>[]) => {
-  const modelIdMap: { [key: string]: string } = {};
-  const exclude: { [key: string]: boolean } = {};
-  for (const linkColumn of columns.filter((k) =>
-    [UITypes.Links, UITypes.LinkToAnotherRecord].includes(k.uidt),
-  )) {
-    const colOptions = (await linkColumn.getColOptions(
-      context,
-    )) as LinkToAnotherRecordColumn;
-    if (colOptions.type === 'mm') {
-      exclude[colOptions.fk_mm_model_id] = true;
-    } else if (colOptions.type === 'hm') {
-      modelIdMap[linkColumn.id] = colOptions.fk_related_model_id;
-    }
-  }
-  return columns.filter((col) => !exclude[modelIdMap[col.id]]);
 };
 
 export interface DependantFields {

@@ -2488,17 +2488,28 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        while (updatePkValues.length) {
-          const updatedRecords = await this.list(
-            {
-              pks: updatePkValues.splice(0, readChunkSize).join(','),
-            },
-            {
-              limitOverride: readChunkSize,
-            },
-          );
+        const pks = updatePkValues.splice(0, readChunkSize);
 
-          newData.push(...updatedRecords);
+        const updatedRecords = await this.list(
+          {
+            pks: pks.join(','),
+          },
+          {
+            limitOverride: readChunkSize,
+          },
+        );
+
+        const pkMap = new Map(
+          updatedRecords.map((record) => [
+            getCompositePkValue(this.model.primaryKeys, record),
+            record,
+          ]),
+        );
+
+        for (const pk of pks) {
+          if (pkMap.has(pk)) {
+            newData.push(pkMap.get(pk));
+          }
         }
       }
 
@@ -3241,50 +3252,54 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req.ncParentAuditId = parentAuditId;
 
       await Audit.insert(
-        await Promise.all(
-          newData.map(async (d, i) => {
-            const formattedOldData = prevData?.[i]
-              ? formatDataForAudit(prevData?.[i], this.model.columns)
-              : {};
-            const formattedData = formatDataForAudit(d, this.model.columns);
+        (
+          await Promise.all(
+            newData.map(async (d, i) => {
+              const formattedOldData = prevData?.[i]
+                ? formatDataForAudit(prevData?.[i], this.model.columns)
+                : {};
+              const formattedData = formatDataForAudit(d, this.model.columns);
 
-            const updateDiff = populateUpdatePayloadDiff({
-              keepUnderModified: true,
-              prev: formattedOldData,
-              next: formattedData,
-              exclude: extractExcludedColumnNames(this.model.columns),
-              excludeNull: false,
-              excludeBlanks: false,
-              keepNested: true,
-            }) as UpdatePayload;
+              const updateDiff = populateUpdatePayloadDiff({
+                keepUnderModified: true,
+                prev: formattedOldData,
+                next: formattedData,
+                exclude: extractExcludedColumnNames(this.model.columns),
+                excludeNull: false,
+                excludeBlanks: false,
+                keepNested: true,
+              }) as UpdatePayload;
 
-            if (updateDiff) {
-              return await generateAuditV1Payload<DataUpdatePayload>(
-                AuditV1OperationTypes.DATA_UPDATE,
-                {
-                  context: {
-                    ...this.context,
-                    source_id: this.model.source_id,
-                    fk_model_id: this.model.id,
-                    row_id: this.extractPksValues(d, true),
-                  },
-                  details: {
-                    old_data: updateDiff.previous_state,
-                    data: updateDiff.modifications,
-                    column_meta: extractColsMetaForAudit(
-                      this.model.columns.filter(
-                        (c) => c.title in updateDiff.modifications,
+              if (updateDiff) {
+                return await generateAuditV1Payload<DataUpdatePayload>(
+                  AuditV1OperationTypes.DATA_UPDATE,
+                  {
+                    context: {
+                      ...this.context,
+                      source_id: this.model.source_id,
+                      fk_model_id: this.model.id,
+                      row_id: this.extractPksValues(d, true),
+                    },
+                    details: {
+                      old_data: updateDiff.previous_state,
+                      data: updateDiff.modifications,
+                      column_meta: extractColsMetaForAudit(
+                        this.model.columns.filter(
+                          (c) => c.title in updateDiff.modifications,
+                        ),
+                        d,
+                        prevData?.[i],
                       ),
-                      d,
-                      prevData?.[i],
-                    ),
+                    },
+                    req,
                   },
-                  req,
-                },
-              );
-            }
-          }),
-        ),
+                );
+              } else {
+                return [];
+              }
+            }),
+          )
+        ).flat(),
       );
     }
 

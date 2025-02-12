@@ -322,6 +322,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
       extractOnlyPrimaries,
       extractOrderColumn,
+      apiVersion,
     });
 
     await this.selectObject({
@@ -6441,17 +6442,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!raw) {
-        while (updatePkValues.length) {
-          const updatedRecords = await this.list(
-            {
-              pks: updatePkValues.splice(0, readChunkSize).join(','),
-            },
-            {
-              limitOverride: readChunkSize,
-            },
-          );
+        const pks = updatePkValues.splice(0, readChunkSize);
 
-          newData.push(...updatedRecords);
+        const updatedRecords = await this.list(
+          {
+            pks: pks.join(','),
+          },
+          {
+            limitOverride: readChunkSize,
+          },
+        );
+
+        const pkMap = new Map(
+          updatedRecords.map((record) => [
+            getCompositePkValue(this.model.primaryKeys, record),
+            record,
+          ]),
+        );
+
+        for (const pk of pks) {
+          if (pkMap.has(pk)) {
+            newData.push(pkMap.get(pk));
+          }
         }
       }
 
@@ -7360,67 +7372,71 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         req.ncParentAuditId = parentAuditId;
 
         await Audit.insert(
-          await Promise.all(
-            newData.map(async (d, i) => {
-              const formattedOldData = formatDataForAudit(
-                prevData?.[i]
-                  ? formatDataForAudit(
-                      removeBlankPropsAndMask(prevData?.[i], [
-                        'CreatedAt',
-                        'UpdatedAt',
-                      ]),
-                      this.model.columns,
-                    )
-                  : null,
-                this.model.columns,
-              );
-              const formattedData = formatDataForAudit(
-                d
-                  ? formatDataForAudit(
-                      removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
-                      this.model.columns,
-                    )
-                  : null,
-                this.model.columns,
-              );
-
-              const updateDiff = populateUpdatePayloadDiff({
-                keepUnderModified: true,
-                prev: formattedOldData,
-                next: formattedData,
-                exclude: extractExcludedColumnNames(this.model.columns),
-                excludeNull: false,
-                excludeBlanks: false,
-                keepNested: true,
-              }) as UpdatePayload;
-
-              if (updateDiff) {
-                return await generateAuditV1Payload<DataUpdatePayload>(
-                  AuditV1OperationTypes.DATA_UPDATE,
-                  {
-                    context: {
-                      ...this.context,
-                      source_id: this.model.source_id,
-                      fk_model_id: this.model.id,
-                      row_id: this.extractPksValues(d, true),
-                    },
-                    details: {
-                      old_data: updateDiff.previous_state,
-                      data: updateDiff.modifications,
-                      column_meta: extractColsMetaForAudit(
-                        this.model.columns.filter(
-                          (c) => c.title in updateDiff.modifications,
-                        ),
-                        d,
-                        prevData?.[i],
-                      ),
-                    },
-                    req,
-                  },
+          (
+            await Promise.all(
+              newData.map(async (d, i) => {
+                const formattedOldData = formatDataForAudit(
+                  prevData?.[i]
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(prevData?.[i], [
+                          'CreatedAt',
+                          'UpdatedAt',
+                        ]),
+                        this.model.columns,
+                      )
+                    : null,
+                  this.model.columns,
                 );
-              }
-            }),
-          ),
+                const formattedData = formatDataForAudit(
+                  d
+                    ? formatDataForAudit(
+                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                        this.model.columns,
+                      )
+                    : null,
+                  this.model.columns,
+                );
+
+                const updateDiff = populateUpdatePayloadDiff({
+                  keepUnderModified: true,
+                  prev: formattedOldData,
+                  next: formattedData,
+                  exclude: extractExcludedColumnNames(this.model.columns),
+                  excludeNull: false,
+                  excludeBlanks: false,
+                  keepNested: true,
+                }) as UpdatePayload;
+
+                if (updateDiff) {
+                  return await generateAuditV1Payload<DataUpdatePayload>(
+                    AuditV1OperationTypes.DATA_UPDATE,
+                    {
+                      context: {
+                        ...this.context,
+                        source_id: this.model.source_id,
+                        fk_model_id: this.model.id,
+                        row_id: this.extractPksValues(d, true),
+                      },
+                      details: {
+                        old_data: updateDiff.previous_state,
+                        data: updateDiff.modifications,
+                        column_meta: extractColsMetaForAudit(
+                          this.model.columns.filter(
+                            (c) => c.title in updateDiff.modifications,
+                          ),
+                          d,
+                          prevData?.[i],
+                        ),
+                      },
+                      req,
+                    },
+                  );
+                } else {
+                  return [];
+                }
+              }),
+            )
+          ).flat(),
         );
       }
     }

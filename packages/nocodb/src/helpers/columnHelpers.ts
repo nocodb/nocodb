@@ -6,10 +6,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import {
-  REGEXSTR_INTL_LETTER,
-  REGEXSTR_NUMERIC_ARABIC,
-} from 'nocodb-sdk';
+import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,

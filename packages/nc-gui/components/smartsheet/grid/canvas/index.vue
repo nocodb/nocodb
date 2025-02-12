@@ -1432,6 +1432,13 @@ onClickOutside(
   () => {
     openColumnDropdownField.value = null
     openAggregationField.value = null
+    if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
+      activeCell.value = { row: -1, column: -1 }
+      editEnabled.value = null
+      isFillHandlerActive.value = false
+      selection.value.clear()
+      triggerRefreshCanvas()
+    }
   },
   {
     ignore: ['.nc-edit-or-add-provider-wrapper', '.canvas-aggregation', '.canvas-header-column-menu'],

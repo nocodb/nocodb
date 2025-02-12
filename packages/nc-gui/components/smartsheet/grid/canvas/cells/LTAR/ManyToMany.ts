@@ -7,7 +7,20 @@ const ellipsisWidth = 15
 
 export const ManyToManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, readonly, spriteLoader, mousePosition, relatedTableMeta, padding, renderCell } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      readonly,
+      spriteLoader,
+      mousePosition,
+      relatedTableMeta,
+      padding,
+      renderCell,
+      setCursor,
+    } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -133,6 +146,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
             xOffset: 5,
             yOffset: 5,
           },
+          setCursor,
         })
       }
 
@@ -144,6 +158,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
         spriteLoader,
         mousePosition,
         icon: 'maximize',
+        setCursor,
       })
     }
   },

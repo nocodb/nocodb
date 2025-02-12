@@ -120,6 +120,14 @@ export class TablesService {
         'Leading or trailing whitespace not allowed in table names',
       );
     }
+    const specialCharRegex = /[./\\$?]/g;
+    if (specialCharRegex.test(param.table.table_name)) {
+      const match = param.table.table_name.match(specialCharRegex);
+      NcError.badRequest(
+        'Following characters are not allowed ' +
+          match.map((m) => JSON.stringify(m)).join(', '),
+      );
+    }
 
     if (
       !(await Model.checkTitleAvailable(context, {

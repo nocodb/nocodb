@@ -2,7 +2,7 @@ const INITIAL_LOAD_SIZE = 100
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
 const PREFETCH_THRESHOLD = 50
-const DEBOUNCE_API_DELAY = 50
+const API_THROTTLE = 500
 
 export function useDataFetch({
   chunkStates,
@@ -52,19 +52,23 @@ export function useDataFetch({
     }
   }
 
-  const debouncedFetchChunks = useDebounceFn(async (chunksToFetch: Set<number>, firstChunkId: number) => {
-    if (chunksToFetch.size > 0) {
-      const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
-      if (isInitialLoad) {
-        await fetchChunk(0, true)
-        chunksToFetch.delete(0)
-        chunksToFetch.delete(1)
+  const debouncedFetchChunks = useThrottleFn(
+    async (chunksToFetch: Set<number>, firstChunkId: number) => {
+      if (chunksToFetch.size > 0) {
+        const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
+        if (isInitialLoad) {
+          await fetchChunk(0, true)
+          chunksToFetch.delete(0)
+          chunksToFetch.delete(1)
+        }
+        await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
       }
-      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-    }
 
-    nextTick(triggerRefreshCanvas)
-  }, DEBOUNCE_API_DELAY)
+      nextTick(triggerRefreshCanvas)
+    },
+    API_THROTTLE,
+    true,
+  )
 
   const updateVisibleRows = () => {
     const { start, end } = rowSlice.value

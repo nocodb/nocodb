@@ -181,7 +181,7 @@ export function useCanvasRender({
 
       iconSpace += 16
 
-      if (column.isInvalidColumn?.isInvalid) {
+      if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
         iconSpace += 18
       }
 
@@ -219,7 +219,7 @@ export function useCanvasRender({
         })
       }
 
-      if (column.isInvalidColumn?.isInvalid) {
+      if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
         rightOffset -= 18
         spriteLoader.renderIcon(ctx, {
           icon: 'alertTriangle',
@@ -329,7 +329,7 @@ export function useCanvasRender({
 
         iconSpace += 16
 
-        if (column.isInvalidColumn?.isInvalid) {
+        if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
           iconSpace += 18
         }
 
@@ -400,7 +400,7 @@ export function useCanvasRender({
         }
 
         // Error icon if invalid
-        if (column.isInvalidColumn?.isInvalid) {
+        if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
           rightOffset -= 18
           spriteLoader.renderIcon(ctx, {
             icon: 'alertTriangle',

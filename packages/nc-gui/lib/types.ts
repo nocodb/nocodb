@@ -506,6 +506,7 @@ interface CanvasGridColumn {
   isInvalidColumn?: {
     isInvalid: boolean
     tooltip: string
+    ignoreTooltip?: boolean
   }
   abstractType: any
 }

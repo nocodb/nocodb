@@ -42,8 +42,10 @@ export function useSortable(
     sortable = new Sortable(el, {
       handle: '.nc-attachment',
       ghostClass: 'ghost',
+      animation: 70,
       onStart: onSortStart,
       onEnd: onSortEnd,
+      revertOnSpill: true,
     })
   }
 

@@ -74,7 +74,7 @@ export const validateColumnName = {
       // exclude . / \
       // rest all characters allowed
       // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
-      const m = value.match(/[./\\$\?]/g)
+      const m = value.match(/[./\\]/g)
       if (m) {
         // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
         return reject(

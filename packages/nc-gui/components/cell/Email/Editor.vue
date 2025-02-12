@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
   if (
     !isForm.value &&
     parseProp(column.value.meta)?.validate &&
-    !editEnabled.value &&
+    (!editEnabled.value || isCanvasInjected) &&
     localState.value &&
     !validateEmail(localState.value)
   ) {

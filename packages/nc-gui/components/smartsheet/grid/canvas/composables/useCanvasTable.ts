@@ -101,7 +101,7 @@ export function useCanvasTable({
   addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
   onActiveCellChanged: () => void
   addNewColumn: () => void
-  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
+  setCursor: SetCursorType
 }) {
   const { metas, getMeta } = useMetas()
 

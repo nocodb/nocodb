@@ -745,7 +745,7 @@ export function useCanvasTable({
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
     const rowIndex = row.rowMeta.rowIndex
 
-    if (!row || !column || !rowIndex) return null
+    if (!row || !column) return null
 
     if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemColumn(column)) {
       return null

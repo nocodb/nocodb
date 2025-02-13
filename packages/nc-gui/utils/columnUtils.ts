@@ -259,6 +259,7 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
     UITypes.JSON,
     UITypes.URL,
     UITypes.SpecificDBType,
+    UITypes.Geometry,
   ].includes(uidt)
 }
 

@@ -1179,6 +1179,14 @@ onBeforeUnmount(() => {
   :deep(.nc-cell-time) {
     @apply !h-auto !py-1;
   }
+
+  :deep(.nc-cell-geometry) {
+    @apply !h-auto;
+  }
+  :deep(.nc-cell-decimal) {
+    @apply !h-auto;
+  }
+
   :deep(.nc-cell-year) {
     @apply !h-auto !py-1;
   }

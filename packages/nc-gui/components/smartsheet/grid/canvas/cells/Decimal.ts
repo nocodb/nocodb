@@ -3,7 +3,7 @@ import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const DecimalCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, selected, value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
 
     let displayValue = null
     const meta = parseProp(column?.meta)
@@ -32,12 +32,13 @@ export const DecimalCellRenderer: CellRenderer = {
       return renderTagLabel(ctx, { ...props, text })
     } else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
-        x: x + padding,
+        x: x + width - padding,
         y,
         text,
+        textAlign: 'right',
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: selected || pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#4351e8' : textColor,
         height,
       })
 
@@ -46,5 +47,18 @@ export const DecimalCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const columnObj = column.columnObj
+
+    if (/^[0-9]$/.test(e.key) && isTypableInputColumn(columnObj) && columnObj.title) {
+      row.row[columnObj.title] = row.row[columnObj.title] ? +`${row.row[columnObj.title]}` + e.key : e.key
+      makeCellEditable(row, column)
+      updateOrSaveRow(row, columnObj.title)
+      return true
+    }
+
+    return false
   },
 }

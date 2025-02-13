@@ -45,8 +45,8 @@ export function useGridCellHandler(params: {
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
-  const actionManager = params?.actionManager
-  const makeCellEditable = params?.makeCellEditable
+  const actionManager = params.actionManager
+  const makeCellEditable = params.makeCellEditable
 
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -185,8 +185,6 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
       })
-    } else {
-      console.log('No handler found for cell type', ctx.column.uidt)
     }
   }
 

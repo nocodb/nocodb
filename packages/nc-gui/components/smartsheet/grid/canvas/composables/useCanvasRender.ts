@@ -569,7 +569,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-        ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+        ctx.fillRect(0, yOffset, width.value - 256, rowHeight.value)
         if (row) {
           const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
@@ -749,7 +749,7 @@ export function useCanvasRender({
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
-        ctx.lineTo(width.value, yOffset + rowHeight.value)
+        ctx.lineTo(width.value - 256, yOffset + rowHeight.value)
         ctx.stroke()
 
         if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {

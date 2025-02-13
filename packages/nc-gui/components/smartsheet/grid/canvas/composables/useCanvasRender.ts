@@ -95,6 +95,7 @@ export function useCanvasRender({
   totalColumnsWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
+  const isLocked = inject(IsLockedInj, ref(false))
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
 
@@ -708,7 +709,7 @@ export function useCanvasRender({
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(commentCount, x + bubbleWidth / 2, y + bubbleHeight / 2)
-    } else if (isHover) {
+    } else if (isHover && !isLocked.value) {
       const box = { x: currentX, y: yOffset + (rowHeight.value - 14) / 2, height: 14, width: 14 }
       if (!isBoxHovered(box, mousePosition)) {
         spriteLoader.renderIcon(ctx, {

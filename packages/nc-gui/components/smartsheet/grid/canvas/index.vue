@@ -648,6 +648,29 @@ const handleMouseUp = async (e: MouseEvent) => {
           }
           requestAnimationFrame(triggerRefreshCanvas)
           return
+        } else if (clickType === MouseClickType.SINGLE_CLICK) {
+          // Column Dropdown Menu
+          if (y <= 21 && y >= 9) {
+            const columnWidth = parseInt(clickedColumn.width, 10)
+            const iconOffsetX = xOffset + columnWidth - 24
+
+            // check if clicked on the menu icon
+            if (iconOffsetX > x || iconOffsetX + 14 < x) {
+              return
+            }
+
+            openColumnDropdownField.value = clickedColumn.columnObj
+            isDropdownVisible.value = true
+            overlayStyle.value = {
+              top: `${rect.top}px`,
+              left: `${rect.left + xOffset}px`,
+              width: `${clickedColumn.width}`,
+              height: `32px`,
+              position: 'fixed',
+            }
+            requestAnimationFrame(triggerRefreshCanvas)
+            return
+          }
         }
       }
       requestAnimationFrame(triggerRefreshCanvas)

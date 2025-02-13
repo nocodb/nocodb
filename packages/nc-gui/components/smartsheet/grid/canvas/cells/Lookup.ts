@@ -90,7 +90,17 @@ export const LookupCellRenderer: CellRenderer = {
           [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
         for (const v of arrValue) {
-          const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
+          const point = lookupRenderer({
+            ...renderProps,
+            value: v,
+            x,
+            y,
+            width,
+            tag: {
+              ...renderProps.tag,
+              renderAsTag: false,
+            },
+          })
 
           if (point?.x) {
             if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
@@ -135,7 +145,13 @@ export const LookupCellRenderer: CellRenderer = {
           })
         }
       } else {
-        lookupRenderer(renderProps)
+        lookupRenderer({
+          ...renderProps,
+          tag: {
+            ...renderProps.tag,
+            renderAsTag: false,
+          },
+        })
       }
     } else {
       if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {

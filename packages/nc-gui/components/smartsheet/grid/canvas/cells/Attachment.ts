@@ -61,13 +61,18 @@ function isImage(title?: string, mimetype?: string) {
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected }) => {
+  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly }) => {
     let attachments: Attachment[] = []
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
     } catch {
       attachments = []
     }
+
+    if (readonly && !attachments.length) {
+      return
+    }
+
     if (selected && attachments.length === 0) {
       const buttonWidth = 84
       const buttonHeight = 24
@@ -122,7 +127,6 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
       const rowStartX = x + horizontalPadding + (width - horizontalPadding * 2 - currentRowWidth) / 2
-
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
@@ -180,6 +184,8 @@ export const AttachmentCellRenderer: CellRenderer = {
         spriteLoader,
         icon: 'maximize',
       })
+
+      if (readonly) return
 
       renderIconButton(ctx, {
         buttonX: x + 14,

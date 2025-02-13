@@ -839,12 +839,24 @@ export function useCanvasTable({
     if (!row || !column) return null
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
+    const isReadonlyExpandableUITypes =
+      readOnly.value &&
+      [
+        UITypes.LongText,
+        UITypes.Attachment,
+        UITypes.JSON,
+        UITypes.Links,
+        UITypes.Lookup,
+        UITypes.Barcode,
+        UITypes.QrCode,
+        UITypes.LinkToAnotherRecord,
+      ].includes(column.uidt)
 
-    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+    if (!isReadonlyExpandableUITypes && (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol)) {
       return null
     }
 
-    if (!isPrimaryKeyAvailable.value && !row.rowMeta.new) {
+    if (!isReadonlyExpandableUITypes && !isPrimaryKeyAvailable.value && !row.rowMeta.new) {
       message.info(t('msg.info.updateNotAllowedWithoutPK'))
       return null
     }

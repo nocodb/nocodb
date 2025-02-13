@@ -1707,6 +1707,7 @@ const increaseMinHeightBy: Record<string, number> = {
                       v-model="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row="editEnabled.row"
+                      :read-only="readOnly"
                       active
                       @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
                       @navigate="onNavigate"
@@ -1716,6 +1717,7 @@ const increaseMinHeightBy: Record<string, number> = {
                       v-model="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row-index="editEnabled.rowIndex"
+                      :read-only="readOnly"
                       active
                       edit-enabled
                       @save="updateOrSaveRow?.(...$event)"

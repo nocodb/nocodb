@@ -1,5 +1,6 @@
+import { isBoxHovered } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
-  render: async (ctx, { value, x, y, width, readonly, column, spriteLoader }) => {
+  render: (ctx, { value, x, y, width, readonly, column, spriteLoader }) => {
     const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
 
     const columnMeta = {
@@ -17,5 +18,29 @@ export const CheckboxCellRenderer: CellRenderer = {
       y: y + 8,
       color: columnMeta.color,
     })
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, updateOrSaveRow } = ctx
+
+    if (e.key === 'Enter') {
+      row.row[column.title!] = !row.row[column.title!]
+      await updateOrSaveRow(row, column.title)
+      return true
+    }
+
+    return false
+  },
+  async handleClick(ctx) {
+    const { row, column, updateOrSaveRow, getCellPosition, mousePosition } = ctx
+
+    const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    if (isBoxHovered(bounds, mousePosition)) {
+      row.row[column.title!] = !row.row[column.title!]
+      await updateOrSaveRow(row, column.title)
+      return true
+    }
+
+    return false
   },
 }

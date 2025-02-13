@@ -225,6 +225,8 @@ const {
   // column resize related refs
   colResizeHoveredColIds,
   totalColumnsWidth,
+
+  isFieldEditAllowed,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -438,7 +440,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
-const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+function extractHoveraMetaColRegions(row: Row) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -489,6 +491,11 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
     width: row.rowMeta?.commentCount ? 24 : 14,
     action: 'comment',
   })
+  return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
+}
+
+const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+  const { isAtMaxSelection, isCheckboxDisabled, regions, currentX } = extractHoveraMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -521,57 +528,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 
 // check exact row meta region hovered and return the cursor type
 const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
-  const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-  const isHover = hoverRow.value === row.rowMeta.rowIndex
-  const regions = []
-  let currentX = 4
-  let isCheckboxRendered = false
-
-  if (isChecked || (selectedRows.value.length && isHover)) {
-    if (isChecked || isHover) {
-      regions.push({
-        x: currentX + 6,
-        width: 24,
-        action: isCheckboxDisabled ? 'none' : 'select',
-      })
-      isCheckboxRendered = true
-      currentX += 30
-    }
-  } else {
-    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
-      regions.push({
-        x: currentX,
-        width: 24,
-        action: 'reorder',
-      })
-      currentX += 24
-    } else if (!isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'none',
-      })
-      currentX += 24
-    }
-  }
-
-  if (isHover && !isCheckboxRendered && !isPublicView.value) {
-    regions.push({
-      x: currentX,
-      width: 24,
-      action: isCheckboxDisabled ? 'none' : 'select',
-    })
-    currentX += 24
-  }
-
-  // Comment/maximize icon region
-  regions.push({
-    x: currentX,
-    width: row.rowMeta?.commentCount ? 24 : 14,
-    action: 'comment',
-  })
+  const { regions } = extractHoveraMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -1054,7 +1011,7 @@ const getHeaderTooltipRegions = (
       })
     }
 
-    if (column.isInvalidColumn?.isInvalid) {
+    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
       totalIconWidth += 18
     }
 
@@ -1069,17 +1026,16 @@ const getHeaderTooltipRegions = (
 
     regions.push({
       x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
-      width: isTruncated ? availableTextWidth : measuredTextWidth,
+      // 16px is for checkbox and it's not renders on load
+      width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',
       text: column.title!,
       disableTooltip: !isTruncated,
     })
 
-    const isFieldEditAllowed = isUIAllowed('fieldEdit')
+    let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
 
-    let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed ? 16 : 0)
-
-    if (isFieldEditAllowed) {
+    if (isFieldEditAllowed.value) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
@@ -1152,7 +1108,7 @@ const handleMouseMove = (e: MouseEvent) => {
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
 
-    if (mousePosition.x >= plusColumnX && mousePosition.x <= plusColumnX + plusColumnWidth) {
+    if (mousePosition.x >= plusColumnX && mousePosition.x <= plusColumnX + plusColumnWidth && isFieldEditAllowed.value) {
       cursor = 'pointer'
     }
 
@@ -1162,7 +1118,7 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (['title', 'columnChevron'].includes(activeFixedRegion?.type)) {
+      if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'
       }
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
@@ -1189,7 +1145,7 @@ const handleMouseMove = (e: MouseEvent) => {
           (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
         )
 
-        if (['title', 'columnChevron'].includes(activeRegion?.type)) {
+        if (['title', 'columnChevron'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
           cursor = 'pointer'
         }
 

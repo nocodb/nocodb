@@ -49,13 +49,13 @@ export const CheckboxCellRenderer: CellRenderer = {
         y: y + tagHeight,
       }
     } else {
-      const isHover = isBoxHovered({ x: x + width / 2 - 7, y: y + 8, width: 14, height: 14 }, mousePosition)
+      const isHover = isBoxHovered({ x: x + width / 2 - 7, y: y + height / 2 - 7, width: 14, height: 14 }, mousePosition)
 
       spriteLoader.renderIcon(ctx, {
         icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
         size: 14,
         x: x + width / 2 - 7,
-        y: y + 8,
+        y: y + height / 2 - 7,
         color: columnMeta.color,
         alpha: checked ? 1 : isHover ? 0.7 : 0.3,
       })

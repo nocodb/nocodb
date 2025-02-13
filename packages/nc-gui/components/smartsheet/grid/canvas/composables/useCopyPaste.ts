@@ -697,6 +697,7 @@ export function useCopyPaste({
       isDataReadOnly.value ||
       !ctx ||
       !hasEditPermission.value ||
+      isSystemColumn(columnObj) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     )
       return

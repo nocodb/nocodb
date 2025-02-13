@@ -1,12 +1,4 @@
-import {
-  UITypes,
-  isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isOrderCol,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -17,6 +9,7 @@ import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/c
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
+import { isReadonly } from '../../../../../utils/virtualCell'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -235,12 +228,9 @@ export function useCanvasTable({
           uidt: f.uidt,
           width: gridViewCol.width,
           fixed: f.pv,
-          readonly:
-            isSystemColumn(f) ||
-            isCreatedOrLastModifiedByCol(f) ||
-            isCreatedOrLastModifiedTimeCol(f) ||
-            !isAddingEmptyRowAllowed.value ||
+          readonly: isReadonly(f) || !isAddingEmptyRowAllowed.value ||
             isDataReadOnly.value,
+          isCellEditable: !isReadonly(f),
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -318,7 +308,7 @@ export function useCanvasTable({
         (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
         (!selection.value.isEmpty() &&
           Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-            (_, i) => columns.value[selection.value.start.col + i]?.virtual,
+            (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
           ))
       )
     },

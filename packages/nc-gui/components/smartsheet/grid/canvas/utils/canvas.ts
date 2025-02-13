@@ -479,6 +479,54 @@ export const renderTag = (
   }
 }
 
+export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendererOptions & { text: string }) => {
+  const { x, y, width, padding, textColor = '#4a5268', text } = props
+  const {
+    tagPaddingX = 8,
+    tagHeight = 20,
+    tagRadius = 6,
+    tagBgColor = '#f4f4f0',
+    tagBorderColor,
+    tagBorderWidth,
+  } = props.tag || {}
+
+  const maxWidth = width - padding * 2 - tagPaddingX * 2
+
+  const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+    x: x + padding + tagPaddingX,
+    y: y + padding,
+    text,
+    maxWidth,
+    fontFamily: '500 13px Manrope',
+    render: false,
+  })
+
+  renderTag(ctx, {
+    x: x + padding,
+    y: y + padding - 4,
+    width: textWidth + tagPaddingX * 2,
+    height: tagHeight,
+    radius: tagRadius,
+    fillStyle: tagBgColor,
+    borderColor: tagBorderColor,
+    borderWidth: tagBorderWidth,
+  })
+
+  renderSingleLineText(ctx, {
+    x: x + padding + tagPaddingX,
+    y: y,
+    text: truncatedText,
+    maxWidth: maxWidth,
+    fontFamily: '500 13px Manrope',
+    fillStyle: textColor,
+  })
+
+  return {
+    x: x + padding + textWidth + tagPaddingX * 2,
+    y: y + padding - 4 + tagHeight,
+  }
+}
+
 export const renderSpinner = (
   ctx: CanvasRenderingContext2D,
   x: number,

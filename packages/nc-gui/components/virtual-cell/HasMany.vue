@@ -216,6 +216,7 @@ onUnmounted(() => {
         :column="hasManyColumn"
         :hide-back-btn="hideBackBtn"
         @attach-linked-record="onAttachLinkedRecord"
+        @escape="isOpen = false"
       />
 
       <LazyVirtualCellComponentsLinkedItems
@@ -224,6 +225,7 @@ onUnmounted(() => {
         :cell-value="localCellValue"
         :column="hasManyColumn"
         @attach-record="onAttachRecord"
+        @escape="isOpen = false"
       />
     </template>
   </LazyVirtualCellComponentsLinkRecordDropdown>

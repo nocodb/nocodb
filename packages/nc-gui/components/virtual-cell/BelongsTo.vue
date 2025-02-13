@@ -144,6 +144,7 @@ onMounted(() => {
           v-model="listItemsDlg"
           :column="belongsToColumn"
           hide-back-btn
+          @escape="isOpen = false"
         /> </template
     ></LazyVirtualCellComponentsLinkRecordDropdown>
   </div>

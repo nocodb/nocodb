@@ -19,6 +19,8 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const bulkUpdateDlg = ref(false)
@@ -321,7 +323,7 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"

@@ -96,6 +96,7 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
+  const { tryShowTooltip } = useTooltipStore()
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -1233,15 +1234,7 @@ export function useCanvasRender({
 
         ctx.fillStyle = '#6a7184'
         ctx.textBaseline = 'middle'
-        ctx.textAlign = 'left'
-        ctx.fillText(
-          `${Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows.value)} ${
-            totalRows.value !== 1 ? t('objects.records') : t('objects.record')
-          }`,
-          xOffset + 8,
-          height.value - AGGREGATION_HEIGHT / 2,
-          mergedWidth,
-        )
+        let availWidth = mergedWidth - 16
 
         if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
           ctx.save()
@@ -1258,11 +1251,16 @@ export function useCanvasRender({
             ctx.font = '400 12px Manrope'
             ctx.fillStyle = '#6a7184'
             ctx.fillText(firstFixedCol.agg_prefix, mergedWidth - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
+            const w = ctx.measureText(firstFixedCol.agg_prefix).width
+            availWidth -= w
           }
 
           ctx.font = '600 12px Manrope'
           ctx.fillStyle = '#4a5268'
           ctx.fillText(firstFixedCol.aggregation, mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
+
+          const w = ctx.measureText(firstFixedCol.aggregation).width
+          availWidth -= w
           ctx.restore()
         } else if (isHovered) {
           ctx.save()
@@ -1280,6 +1278,8 @@ export function useCanvasRender({
 
           const textLen = ctx.measureText('Summary').width
 
+          availWidth -= textLen
+
           spriteLoader.renderIcon(ctx, {
             icon: 'chevronDown',
             size: 14,
@@ -1287,7 +1287,40 @@ export function useCanvasRender({
             x: rightEdge - textLen - 18,
             y: textY - 7,
           })
+
+          availWidth -= 18
           ctx.restore()
+        }
+
+        renderSingleLineText(ctx, {
+          text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows.value)} ${
+            totalRows.value !== 1 ? t('objects.records') : t('objects.record')
+          }`,
+          x: xOffset + 8,
+          y: height.value - AGGREGATION_HEIGHT + 2,
+          fillStyle: '#6a7184',
+          textAlign: 'left',
+          fontSize: 12,
+          maxWidth: availWidth - 16,
+          fontFamily: '500 12px Manrope',
+        })
+
+        if (
+          isBoxHovered(
+            { x: xOffset, y: height.value - AGGREGATION_HEIGHT, width: availWidth - 16, height: AGGREGATION_HEIGHT },
+            mousePosition,
+          )
+        ) {
+          tryShowTooltip({
+            mousePosition,
+            text: `${totalRows.value} ${totalRows.value !== 1 ? t('objects.records') : t('objects.record')}`,
+            rect: {
+              x: xOffset,
+              y: height.value - AGGREGATION_HEIGHT,
+              width: availWidth - 16,
+              height: AGGREGATION_HEIGHT,
+            },
+          })
         }
 
         ctx.strokeStyle = '#e7e7e9'

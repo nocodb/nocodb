@@ -736,6 +736,14 @@ export class ColumnsService {
                 apiVersion: NcApiVersion.V3,
                 suppressFormulaError: false,
               }),
+            deleteNewColumnHandler: async (columnId: string) => {
+              await this.columnDelete(context, {
+                req: param.req,
+                columnId,
+                user: param.user,
+                forceDeleteSystem: false,
+              });
+            },
           },
         );
       } else {
@@ -767,6 +775,14 @@ export class ColumnsService {
               apiVersion: NcApiVersion.V3,
               suppressFormulaError: false,
             }),
+          deleteNewColumnHandler: async (columnId: string) => {
+            await this.columnDelete(context, {
+              req: param.req,
+              columnId,
+              user: param.user,
+              forceDeleteSystem: false,
+            });
+          },
         },
       );
     } else if (

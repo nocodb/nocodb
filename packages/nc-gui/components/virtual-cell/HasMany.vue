@@ -147,7 +147,7 @@ function onCellClick(e: Event) {
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()

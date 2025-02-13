@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { type Ref, ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -20,7 +20,10 @@ const isForm = inject(IsFormInj, ref(false))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
@@ -86,9 +89,11 @@ watch(
 )
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
   forcedNextTick(() => {
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
+    if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
+      unlinkRef(value.value)
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true
     } else {
       listItemsDlg.value = true

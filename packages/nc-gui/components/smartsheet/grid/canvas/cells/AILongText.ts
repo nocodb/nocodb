@@ -158,7 +158,7 @@ export const AILongTextCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         isLoading,
-        loadingStartTime: startTime,
+        loadingStartTime: startTime!,
       })
 
       return {
@@ -257,7 +257,7 @@ export const AILongTextCellRenderer: CellRenderer = {
   async handleHover({ row, column, mousePosition, getCellPosition }) {
     const { showTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.disabled?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }

@@ -1,4 +1,4 @@
-import { getRenderAsTextFunForUiType, UITypes, type ColumnType, type RollupType } from 'nocodb-sdk'
+import { type ColumnType, type RollupType, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {

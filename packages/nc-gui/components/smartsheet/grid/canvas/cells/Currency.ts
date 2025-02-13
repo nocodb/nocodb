@@ -58,8 +58,8 @@ export const CurrencyRenderer: CellRenderer = {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (/^[0-9]$/.test(e.key) && isTypableInputColumn(columnObj) && columnObj.title) {
-      row.row[columnObj.title] = row.row[columnObj.title] ? +`${row.row[columnObj.title]}` + e.key : e.key
+    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+      row.row[columnObj.title] = e.key
       makeCellEditable(row, column)
       updateOrSaveRow(row, columnObj.title)
       return true

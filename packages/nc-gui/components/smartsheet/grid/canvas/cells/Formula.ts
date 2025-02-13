@@ -59,13 +59,45 @@ export const FormulaCellRenderer: CellRenderer = {
       SingleLineTextCellRenderer.render(ctx, props)
     }
   },
-  handleClick: async () => {},
-  async handleHover({ mousePosition, getCellPosition, column, row }) {
-    const colMeta = parseProp(column.columnObj.meta)
-    const error = parseProp(column.columnObj.colOptions)?.error ?? ''
+  handleClick: async (props) => {
+    const { column } = props
+    const colObj = column.columnObj
+    const colMeta = parseProp(colObj.meta)
+    if (colMeta?.display_type) {
+      return getDisplayValueCellRenderer(colObj)?.handleClick?.({
+        ...props,
+        column: {
+          ...column,
+          columnObj: {
+            ...column.columnObj,
+            uidt: colMeta?.display_type,
+            ...colMeta.display_column_meta,
+          },
+        },
+      })
+    }
+    return false
+  },
+  async handleHover(props) {
+    const { mousePosition, getCellPosition, column, row } = props
+    const colObj = column.columnObj
+    const colMeta = parseProp(colObj.meta)
+    const error = parseProp(colObj.colOptions)?.error ?? ''
     const { showTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (colMeta?.display_type || !error) return
+    if (colMeta?.display_type || !error) {
+      return getDisplayValueCellRenderer(colObj)?.handleHover?.({
+        ...props,
+        column: {
+          ...column,
+          columnObj: {
+            ...colObj,
+            uidt: colMeta?.display_type,
+            ...colMeta.display_column_meta,
+          },
+        },
+      })
+    }
     const { x, y } = getCellPosition(column, row.rowMeta.rowIndex!)
     if (isBoxHovered({ x: x + 10, y, height: 25, width: 45 }, mousePosition)) {
       showTooltip({

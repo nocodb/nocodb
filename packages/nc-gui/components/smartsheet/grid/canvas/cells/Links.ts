@@ -44,7 +44,4 @@ export const LinksCellRenderer: CellRenderer = {
       }
     }
   },
-  handleClick({ event, mousePosition, value, column, row, getCellPosition, updateOrSaveRow }) {
-    console.log(mousePosition)
-  },
 }

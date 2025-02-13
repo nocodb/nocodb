@@ -97,7 +97,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     if (!isSelectedTags) return false
 
-    makeCellEditable(row.rowMeta?.rowIndex, column)
+    makeCellEditable(row, column)
     return true
   },
 }

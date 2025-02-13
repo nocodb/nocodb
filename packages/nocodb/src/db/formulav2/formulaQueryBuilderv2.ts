@@ -918,7 +918,13 @@ async function _formulaQueryBuilder(params: {
       }
       default:
         aliasToColumn[col.id] = () =>
-          Promise.resolve({ builder: col.column_name });
+          Promise.resolve({
+            builder: knex.raw(`??`, [
+              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
+                col.column_name
+              }`,
+            ]),
+          });
         break;
     }
   }

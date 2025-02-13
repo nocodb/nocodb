@@ -259,6 +259,7 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
     UITypes.JSON,
     UITypes.URL,
     UITypes.SpecificDBType,
+    UITypes.Geometry,
   ].includes(uidt)
 }
 
@@ -277,10 +278,11 @@ const isColumnInvalid = (
   col: ColumnType,
   aiIntegrations: Partial<IntegrationType>[] = [],
   isReadOnly = false,
-): { isInvalid: boolean; tooltip: string } => {
+): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
     tooltip: 'msg.invalidColumnConfiguration',
+    ignoreTooltip: false,
   }
 
   switch (col.uidt) {
@@ -289,11 +291,15 @@ const isColumnInvalid = (
       break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
-      if (colOptions.type === ButtonActionsType.Webhook) {
+
+      if (isAiButton(col) && isReadOnly) {
+        result.isInvalid = true
+        result.ignoreTooltip = true
+      } else if (colOptions.type === ButtonActionsType.Webhook) {
         result.isInvalid = !colOptions.fk_webhook_id
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
-      } else if (colOptions.type === ButtonActionsType.Ai) {
+      } else if (colOptions.type === ButtonActionsType.AI) {
         result.isInvalid =
           !colOptions.fk_integration_id ||
           (isReadOnly

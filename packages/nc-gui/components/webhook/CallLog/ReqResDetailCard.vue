@@ -39,7 +39,7 @@ const formattedPayload = computed(() => {
       <div v-if="headers" class="detail-headers">
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
         <div class="log-details">
-          <div v-for="(value, key) in headers" class="log-detail-item">
+          <div v-for="(value, key) in headers" :key="key" class="log-detail-item">
             <nc-tooltip class="text-small1 min-w-40">
               <template #title>{{ key }}</template>
               <span class="label"> {{ key }}</span>
@@ -54,7 +54,7 @@ const formattedPayload = computed(() => {
       <div v-if="params && Object.keys(params).length" class="detail-params">
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
         <div class="log-details">
-          <div v-for="(value, key) in params" class="log-detail-item">
+          <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <nc-tooltip class="text-small1 min-w-40">
               <template #title>{{ key }}</template>
               <span class="label"> {{ key }}</span>

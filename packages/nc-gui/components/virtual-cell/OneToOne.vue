@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { type Ref, ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
 
@@ -18,6 +19,12 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+const clientMousePosition = inject(ClientMousePositionInj)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
@@ -31,7 +38,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ? 'expand' : 'plus'))
+const addIcon = computed(() => (cellValue?.value ? 'maximize' : 'plus'))
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -80,12 +87,25 @@ watch(
   },
   { flush: 'post' },
 )
+
+onMounted(() => {
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  forcedNextTick(() => {
+    if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
+      unlinkRef(value.value)
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
+      listItemsDlg.value = true
+    } else {
+      listItemsDlg.value = true
+    }
+  })
+})
 </script>
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
     <div class="nc-cell-field flex w-full chips-wrapper items-center min-h-4" :class="{ active }">
-      <div class="chips flex items-center flex-1 max-w-[calc(100%_-_16px)]">
+      <div class="chips flex items-center flex-1 max-w-[calc(100%_-_16px)] min-h-[28px]">
         <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
           <VirtualCellComponentsItemChip
             :item="value"
@@ -109,11 +129,7 @@ watch(
       >
         <GeneralIcon
           :icon="addIcon"
-          class="select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
-          :class="{
-            '!text-[14px]': addIcon === 'expand',
-            '!text-md': addIcon !== 'expand',
-          }"
+          class="!text-md select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
           @click.stop="listItemsDlg = true"
         />
       </div>
@@ -124,6 +140,7 @@ watch(
         v-model="listItemsDlg"
         :column="belongsToColumn"
         hide-back-btn
+        @escape="isOpen = false"
       />
     </template>
   </LazyVirtualCellComponentsLinkRecordDropdown>

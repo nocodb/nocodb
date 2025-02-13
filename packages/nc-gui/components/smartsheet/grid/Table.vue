@@ -2,16 +2,7 @@
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import {
-  UITypes,
-  ViewTypes,
-  isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 import { type CellRange, type Group, NavigateDir } from '#imports'
 
@@ -444,19 +435,6 @@ const cellMeta = computed(() => {
     })
   })
 })
-
-const isReadonly = (col: ColumnType) => {
-  return (
-    isSystemColumn(col) ||
-    isLookup(col) ||
-    isRollup(col) ||
-    isFormula(col) ||
-    isButton(col) ||
-    isVirtualCol(col) ||
-    isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col)
-  )
-}
 
 const colMeta = computed(() => {
   return fields.value.map((col) => {

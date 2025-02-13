@@ -101,3 +101,9 @@ watch(rateDomRef, () => {
   @apply mr-[1.5px];
 }
 </style>
+
+<style>
+.nc-canvas-table-editable-cell-wrapper .nc-cell-rating {
+  @apply flex items-center;
+}
+</style>

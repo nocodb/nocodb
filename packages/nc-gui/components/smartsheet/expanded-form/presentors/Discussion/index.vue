@@ -9,8 +9,17 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const { saveComment, loadAudits, commentsDrawer, isNew, audits, comments, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } =
-  useExpandedFormStoreOrThrow()
+const {
+  saveComment,
+  loadAudits,
+  commentsDrawer,
+  isNew,
+  audits,
+  comments,
+  auditCommentGroups,
+  mightHaveMoreAudits,
+  loadMoreAudits,
+} = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -80,10 +89,7 @@ export default {
       }"
     >
       <div class="w-[680px] h-0 flex-grow ml-14 border-l-1 border-gray-300" />
-      <div
-        v-if="mightHaveMoreAudits"
-        class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-14 border-l-1 border-gray-300 relative"
-      >
+      <div v-if="mightHaveMoreAudits" class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-14 border-l-1 border-gray-300 relative">
         <NcButton
           size="small"
           type="secondary"
@@ -108,11 +114,11 @@ export default {
             ref="refRichComment"
             :key="auditCommentGroups.length"
             v-model:value="newCommentText"
-            @update:value="scrollToBottom()"
             :hide-options="false"
             placeholder="Comment..."
             class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"
             data-testid="expanded-form-comment-input"
+            @update:value="scrollToBottom()"
             @keydown.stop
             @save="handleCreatingNewComment"
             @keydown.enter.exact.prevent="handleCreatingNewComment"

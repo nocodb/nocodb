@@ -138,13 +138,14 @@ watch(active, (n, _o) => {
 useSelectedCellKeydownListener(
   activeCell,
   (e) => {
-    console.log('use slected cell')
     switch (e.key) {
       case 'Escape':
         isOpen.value = false
         break
       case 'Enter':
         if (editAllowed.value && active.value && !isOpen.value) {
+          e.stopPropagation()
+          toggleMenu()
           isOpen.value = true
         }
         break
@@ -204,7 +205,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const toggleMenu = () => {
+function toggleMenu() {
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
@@ -264,6 +265,16 @@ const onFocus = () => {
 
   isOpen.value = true
 }
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isGrid = inject(IsGridInj, ref(false))
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    isOpen.value = true
+  }
+})
 </script>
 
 <template>

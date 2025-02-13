@@ -8,18 +8,19 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
 const emit = defineEmits(['update:modelValue', 'save'])
 
 const column = inject(ColumnInj)!
-
 const editEnabled = inject(EditModeInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
+const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emit)
+const lastSaved = ref()
 
 const vModel = computed({
   get: () => _vModel.value,
@@ -32,8 +33,6 @@ const vModel = computed({
   },
 })
 
-const lastSaved = ref()
-
 const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
@@ -42,12 +41,12 @@ const currencyMeta = computed(() => {
   }
 })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
-
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
@@ -73,6 +72,10 @@ const onKeydownEnter = () => {
 
 onMounted(() => {
   lastSaved.value = vModel.value
+
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value?.focus()
+  }
 })
 </script>
 

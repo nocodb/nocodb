@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -13,7 +13,13 @@ const visible = useVModel(props, 'visible', emits)
 
 const { $api, $e } = useNuxtApp()
 
-const column = inject(ColumnInj)
+const menuColumn = inject(ColumnInj)
+
+const canvasColumn = inject(CanvasColumnInj)
+
+const column = computed<ColumnType>(() => {
+  return menuColumn?.value || canvasColumn?.value
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -53,21 +59,21 @@ const warningMsg = computed(() => {
 }) */
 
 const onDelete = async () => {
-  if (!column?.value) return
+  if (!column.value) return
 
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.delete(column?.value?.id as string)
+    await $api.dbTableColumn.delete(column.value.id as string)
 
     await getMeta(meta?.value?.id as string, true)
 
     /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
-    if (isLinksOrLTAR(column?.value) && column.value?.colOptions) {
-      await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+    if (isLinksOrLTAR(column.value) && column.value?.colOptions) {
+      await getMeta((column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
       // reload tables if deleted column is mm and include m2m is true
-      if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
+      if (includeM2M.value && (column.value.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
         loadTables()
       }
     }
@@ -76,7 +82,7 @@ const onDelete = async () => {
 
     viewsStore.updateViewCoverImageColumnId({
       metaId: meta.value?.id as string,
-      columnIds: new Set([column?.value?.id as string]),
+      columnIds: new Set([column.value.id as string]),
     })
 
     $e('a:column:delete')

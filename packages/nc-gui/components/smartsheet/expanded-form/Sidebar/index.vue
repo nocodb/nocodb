@@ -4,8 +4,6 @@ const props = defineProps<{
 }>()
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 const isAuditsEnabled = true
 
 const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')

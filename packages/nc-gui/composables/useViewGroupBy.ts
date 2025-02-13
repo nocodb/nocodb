@@ -29,7 +29,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData, fetchBulkListData, fetchBulkGroupData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -323,7 +323,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     async function loadGroups(
       params: any = {},
       group?: Group,
-      options?: {
+      _options?: {
         triggerChildOnly: boolean
       },
     ) {

@@ -2,9 +2,13 @@
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
 import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { IsCanvasInjectionInj } from '../../context'
 import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
 
 const { t } = useI18n()
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -77,6 +81,14 @@ const height = computed(() => {
   }
 
   return `${rowHeight.value === 1 ? rowHeightInPx['1']! - 4 : rowHeightInPx[`${rowHeight.value}`]! - 20}px`
+})
+
+onMounted(() => {
+  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value) {
+    if (showQrCode.value) {
+      modalVisible.value = true
+    }
+  }
 })
 </script>
 

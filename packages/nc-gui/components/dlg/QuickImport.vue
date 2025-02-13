@@ -64,8 +64,6 @@ const temporaryJson = ref({})
 
 const jsonErrorText = ref('')
 
-const fileEncodingMap = ref<{ [key: string]: string }>({})
-
 const useForm = Form.useForm
 
 const defaultImportState = {

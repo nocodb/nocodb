@@ -9,6 +9,7 @@ export const isBoolean = (column: ColumnType, abstractType?: any) =>
 export const isString = (column: ColumnType, abstractType: any) =>
   column.uidt === UITypes.SingleLineText || abstractType === 'string'
 export const isTextArea = (column: ColumnType) => column.uidt === UITypes.LongText
+export const isRichText = (column: ColumnType) => column.uidt === UITypes.LongText && !!parseProp(column?.meta).richMode
 export const isInt = (column: ColumnType, abstractType: any) => abstractType === 'integer'
 export const isFloat = (column: ColumnType, abstractType: any) => abstractType === 'float' || abstractType === UITypes.Number
 export const isDate = (column: ColumnType, abstractType: any) => abstractType === 'date' || column.uidt === UITypes.Date
@@ -110,13 +111,23 @@ export const rowHeightInPx: Record<string, number> = {
   6: 120,
 }
 
-export const rowHeightTruncateLines = (rowHeight?: number, isSelectOption = false) => {
-  switch (rowHeight) {
+export const pxToRowHeight: Record<number, number> = {
+  32: 1,
+  60: 2,
+  90: 4,
+  120: 6,
+}
+
+export const rowHeightTruncateLines = (rowHeightOrHeighInPx?: number, isSelectOption = false) => {
+  switch (rowHeightOrHeighInPx) {
     case 2:
+    case 60:
       return 2
     case 4:
+    case 90:
       return isSelectOption ? 3 : 4
     case 6:
+    case 120:
       return isSelectOption ? 4 : 6
     default:
       return 1

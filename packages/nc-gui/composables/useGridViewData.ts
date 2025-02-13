@@ -114,6 +114,7 @@ export function useGridViewData(
       const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
         pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
         getHiddenColumns: true,
+        limit: removedRowsData.length,
       })
 
       removedRowsData = removedRowsData.map((row) => {
@@ -650,6 +651,7 @@ export function useGridViewData(
     const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
       pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
       getHiddenColumns: 'true',
+      limit: rowsToDelete.length,
     })
 
     try {

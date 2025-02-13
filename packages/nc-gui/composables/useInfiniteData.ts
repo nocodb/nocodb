@@ -1300,11 +1300,12 @@ export function useInfiniteData(args: {
   }
   const removeRowIfNew = (row: Row): boolean => {
     const index = Array.from(cachedRows.value.entries()).find(([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex)?.[0]
-
     if (index !== undefined && row.rowMeta.new) {
       cachedRows.value.delete(index)
+      totalRows.value--
       return true
     }
+    callbacks?.syncVisibleData?.()
     return false
   }
 

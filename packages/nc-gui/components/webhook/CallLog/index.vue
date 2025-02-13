@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HookLogType, HookType, PaginatedType } from 'nocodb-sdk'
-import { timeAgo } from 'nocodb-sdk'
 
 interface Props {
   hook: HookType

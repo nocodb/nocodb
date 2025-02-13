@@ -12,7 +12,9 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 
@@ -48,7 +50,8 @@ const progressPercent = computed(() => {
     (isExpandedFormOpen.value ? !expandedEditEnabled.value : true) &&
     !!percentMeta.value.is_progress &&
     !ncIsNull(props.modelValue) &&
-    !ncIsUndefined(props.modelValue)
+    !ncIsUndefined(props.modelValue) &&
+    !isUnderLookup
   ) {
     return Number(parseFloat(props.modelValue!.toString()).toFixed(2))
   }

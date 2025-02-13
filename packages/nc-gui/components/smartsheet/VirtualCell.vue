@@ -76,7 +76,7 @@ const virtualCellClassName = computed(() => {
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <LazyVirtualCellLinks v-if="virtualCellType === 'link'" />
+    <VirtualCellLinks v-if="virtualCellType === 'link'" />
     <LazyVirtualCellHasMany v-else-if="virtualCellType === 'hm'" />
     <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm'" />
     <LazyVirtualCellBelongsTo v-else-if="virtualCellType === 'bt'" />

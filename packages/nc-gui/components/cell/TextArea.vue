@@ -34,6 +34,10 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const { showNull, user } = useGlobal()
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
@@ -57,6 +61,8 @@ const vModel = useVModel(props, 'modelValue', emits, {
 const isAiEdited = useVModel(props, 'isAiEdited', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const textAreaRef = ref<HTMLTextAreaElement>()
 
 const position = ref<
   | {
@@ -348,12 +354,24 @@ watch(
   },
 )
 
-const textAreaRef = ref<HTMLTextAreaElement>()
-
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     el.focus()
   }
+})
+
+onMounted(() => {
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
+  forcedNextTick(() => {
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
+      onExpand()
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
+      generate()
+    } else if (isRichMode.value || props.isAi) {
+      onExpand()
+    }
+  })
 })
 </script>
 
@@ -416,7 +434,7 @@ watch(textAreaRef, (el) => {
         @keydown.enter="onExpand"
       >
         <div
-          class="nc-cell-field nc-rich-text-content"
+          class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
           :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : 'py-2'"
           v-html="richTextContent"
         ></div>
@@ -563,7 +581,7 @@ watch(textAreaRef, (el) => {
           <NcButton
             type="secondary"
             size="xsmall"
-            class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+            class="!p-0 !w-5 !h-5 !min-w-[fit-content] nc-textarea-generate"
             :disabled="isAiGenerating"
             loader-size="small"
             icon-only
@@ -580,7 +598,12 @@ watch(textAreaRef, (el) => {
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
           <template #title>{{ $t('title.expand') }}</template>
-          <NcButton type="secondary" size="xsmall" class="!p-0 !w-5 !h-5 !min-w-[fit-content]" @click.stop="onExpand">
+          <NcButton
+            type="secondary"
+            size="xsmall"
+            class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
+            @click.stop="onExpand"
+          >
             <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
           </NcButton>
         </NcTooltip>

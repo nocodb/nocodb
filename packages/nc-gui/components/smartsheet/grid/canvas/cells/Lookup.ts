@@ -47,6 +47,7 @@ export const LookupCellRenderer: CellRenderer = {
       readonly: true,
       value: arrValue,
       height: isAttachment(lookupColumn) ? props.height : rowHeightInPx['1']!,
+      padding: 10,
       tag: {
         renderAsTag: true,
         tagBgColor: themeV3Colors.base.white,
@@ -63,11 +64,34 @@ export const LookupCellRenderer: CellRenderer = {
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
           [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
-        arrValue.forEach((v) => {
-          renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y })
-          x = _x
-          // y = y + 28
-        })
+        const maxLines = rowHeightTruncateLines(height, true)
+        let line = 1
+
+        for (const v of arrValue) {
+          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
+
+          if (point?.x) {
+            if (point?.x >= _x + _width - padding * 2 - 50) {
+              x = _x
+              width = _width
+              y = point?.y ? point?.y : y + 24
+              line += 1
+            } else {
+              width = x + width - (point?.x - 2 * 4) - padding * 2
+              x = point?.x
+            }
+          } else {
+            x = _x
+            y = y + 24
+
+            width = _width
+            line += 1
+          }
+
+          if (line > maxLines) {
+            break
+          }
+        }
       } else {
         renderCell(ctx, lookupColumn, renderProps)
       }
@@ -81,27 +105,27 @@ export const LookupCellRenderer: CellRenderer = {
         for (const v of arrValue) {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 
-          if (line >= maxLines) {
-            break
-          }
-
           if (point?.x) {
-            width = _width - width
-            if (point?.x >= _x + _width + padding * 2 || width < 10) {
+            if (point?.x >= _x + _width - padding * 2 - 50) {
               x = _x
               width = _width
               y = point?.y ? point?.y : y + 24
+              line += 1
             } else {
-              x = point?.x + 4
+              width = x + width - (point?.x - 2 * 4) - padding * 2
+              x = point?.x
             }
           } else {
             x = _x
             y = y + 24
 
             width = _width
+            line += 1
           }
 
-          line += 1
+          if (line > maxLines) {
+            break
+          }
         }
       }
     }

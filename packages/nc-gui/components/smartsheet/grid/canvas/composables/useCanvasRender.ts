@@ -1091,8 +1091,8 @@ export function useCanvasRender({
 
     ctx.clearRect(0, 0, width.value, canvas.height)
 
-    renderHeader(ctx)
     renderRows(ctx)
+    renderHeader(ctx)
     renderColumnDragIndicator(ctx)
     renderRowDragPreview(ctx)
     renderAggregations(ctx)

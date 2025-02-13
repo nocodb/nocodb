@@ -24,7 +24,7 @@ shift
 
 ### If your services are managed by s6-rc:
 ### (replace /run/service with your scandir)
-s6-rc-init -c /etc/s6-rc/compiled /run/service
+s6-rc-init -c /run/s6-service-compiled /run/service
 
 
 ### 2. Starting the wanted set of services
@@ -35,7 +35,7 @@ s6-rc-init -c /etc/s6-rc/compiled /run/service
 ### Numeric arguments from 1 to 5 on the kernel command line will
 ### override the default.
 
-exec /etc/s6-linux-init/current/scripts/runlevel "$rl"
+exec /run/s6-init/scripts/runlevel "$rl"
 
 
 ### If this script is run in a container, then 1. and 2. above do not

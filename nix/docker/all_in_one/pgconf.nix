@@ -1,5 +1,6 @@
 {
   lib,
+  writeTextDir,
   writeText,
 }:
 let
@@ -26,7 +27,7 @@ let
 
   empty_file = writeText "empty" "";
 in
-writeText "postgresql.conf" (
+writeTextDir "etc/postgresql/postgresql.conf" (
   lib.concatStringsSep "\n" (
     lib.mapAttrsToList (n: v: "${n} = ${toStr v}") (
       lib.filterAttrs (lib.const (x: x != null)) {

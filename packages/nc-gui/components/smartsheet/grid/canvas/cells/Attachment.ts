@@ -226,7 +226,6 @@ export const AttachmentCellRenderer: CellRenderer = {
       const buttonX = x + (width - buttonWidth) / 2
       const buttonY = y + 3
       const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
-      console.log(buttonBox)
       // TODO: Show the tooltip when drag and drop is supported
       // for now, the tooltip does not make sense
       return

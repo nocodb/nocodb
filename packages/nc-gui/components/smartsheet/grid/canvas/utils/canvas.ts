@@ -411,6 +411,7 @@ export const renderMultiLineText = (
   width: number
   x: number
   y: number
+  height: number
 } => {
   const {
     x = 0,
@@ -484,8 +485,8 @@ export const renderMultiLineText = (
      */
     ctx.font = originalFontFamily
   }
-
-  return { lines, width, x: x + width, y: y + yOffset + (lines.length - 1) * lineHeight }
+  const newY = y + yOffset + (lines.length - 1) * lineHeight
+  return { lines, width, x: x + width, y: newY, height: newY - y }
 }
 
 export const renderTag = (

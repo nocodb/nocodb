@@ -1330,7 +1330,7 @@ onBeforeUnmount(() => {
       <template v-if="overlayStyle">
         <NcDropdown
           :visible="isDropdownVisible"
-          overlay-class-name="!border-none !bg-transparent"
+          :overlay-class-name="`!bg-transparent ${isCreateOrEditColumnDropdownOpen ? '!border-none' : ''}`"
           @visible-change="onVisibilityChange"
         >
           <div :style="overlayStyle" class="hide pointer-events-none"></div>

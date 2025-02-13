@@ -1,5 +1,6 @@
 import {
   AllowedColumnTypesForQrAndBarcodes,
+  enumColors,
   isAIPromptCol,
   isLinksOrLTAR,
   LongTextAiMetaProp,
@@ -45,18 +46,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
-const selectColors = [
-  '#cfdffe',
-  '#d0f1fd',
-  '#c2f5e8',
-  '#ffdaf6',
-  '#ffdce5',
-  '#fee2d5',
-  '#ffeab6',
-  '#d1f7c4',
-  '#ede2fe',
-  '#eeeeee',
-];
+const selectColors = enumColors.light;
 
 const logger = new Logger('Column');
 

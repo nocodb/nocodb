@@ -13,6 +13,7 @@ import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
+import Tooltip from './Tooltip.vue'
 
 const props = defineProps<{
   totalRows: number
@@ -123,6 +124,13 @@ const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
+const tooltipStore = useTooltipStore()
+const { showTooltip, hideTooltip } = tooltipStore
+const { containerSize } = storeToRefs(tooltipStore)
+
+watch([height, width], () => {
+  containerSize.value = { height: height.value, width: width.value }
+})
 
 const {
   rowSlice,
@@ -596,10 +604,16 @@ const handleMouseUp = (e: MouseEvent) => {
 const handleMouseMove = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+
   clientMousePosition.clientX = e.clientX
   clientMousePosition.clientY = e.clientY
   mousePosition.x = e.clientX - rect.left
   mousePosition.y = e.clientY - rect.top
+
+  /* showTooltip({
+    position: mousePosition,
+    text: 'Tooltip',
+  }) */
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
@@ -810,6 +824,7 @@ const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.colum
           width: `${totalWidth}px`,
         }"
       >
+        <Tooltip />
         <NcDropdown
           v-model:visible="isContextMenuOpen"
           :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"

@@ -47,6 +47,8 @@ export function useCanvasRender({
   t,
   readOnly,
   isFillHanldeDisabled,
+
+  isFieldEditAllowed,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -85,10 +87,11 @@ export function useCanvasRender({
   t: Composer['t']
   readOnly: Ref<boolean>
   isFillHanldeDisabled: ComputedRef<boolean>
+  isFieldEditAllowed: ComputedRef<boolean>
+  isDataEditAllowed: ComputedRef<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
-  const { isUIAllowed } = useRoles()
 
   watch(
     () => !!colResizeHoveredColIds.value.size,
@@ -185,7 +188,7 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if (isUIAllowed('fieldEdit')) {
+      if (isFieldEditAllowed.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
@@ -360,7 +363,7 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt && isUIAllowed('fieldEdit')) {
+        if (column.uidt && isFieldEditAllowed.value) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
@@ -574,9 +577,9 @@ export function useCanvasRender({
           spriteLoader,
           isCheckboxHovered ? '#3366FF' : '#D9D9D9',
         )
+        currentX += 30
+        isCheckboxRendered = true
       }
-      isCheckboxRendered = true
-      currentX += 30
     } else {
       if (!readOnly.value && isHover && isRowDraggingEnabled.value) {
         spriteLoader.renderIcon(ctx, {
@@ -609,8 +612,8 @@ export function useCanvasRender({
           spriteLoader,
           isCheckboxHovered ? '#3366FF' : '#D9D9D9',
         )
+        currentX += 24
       }
-      currentX += 24
     }
 
     ctx.font = '500 12px Manrope'

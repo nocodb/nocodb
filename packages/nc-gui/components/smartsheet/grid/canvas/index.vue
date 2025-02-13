@@ -453,7 +453,9 @@ async function handleMouseDown(e: MouseEvent) {
         if (res) return
       }
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
-      if (columnUIType === UITypes.Rating) {
+      if (e.detail === 2 && columnUIType === UITypes.Lookup) {
+        makeCellEditable(rowIndex, clickedColumn)
+      } else if (columnUIType === UITypes.Rating) {
         // Rating is functional as is
       } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]

@@ -191,6 +191,10 @@ function handleMouseDown(e: MouseEvent) {
     return
   }
 
+  if (x < 80) {
+    return
+  }
+
   onMouseDownFillHandlerStart(e)
   if (isFillHandlerActive.value) return
 
@@ -216,11 +220,13 @@ function handleMouseDown(e: MouseEvent) {
     for (const column of fixedCols) {
       const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
       if (x >= xOffset && x < xOffset + width) {
-        if (!column.uidt) continue
+        if (!column.uidt) {
+          xOffset += width
+          continue
+        }
         clickedColumn = column
         break
       }
-      xOffset += width
     }
 
     if (!clickedColumn) {
@@ -240,7 +246,6 @@ function handleMouseDown(e: MouseEvent) {
         xOffset += width
       }
     }
-
     if (clickedColumn) {
       activeCell.value = {
         row: rowIndex,
@@ -270,7 +275,7 @@ function scrollToCell(row: number, column: number) {
   if (!containerRef.value) return
 
   const cellTop = row * rowHeight.value
-  const cellBottom = cellTop + rowHeight.value + 64
+  const cellBottom = cellTop + rowHeight.value + 96
   const scrollTop = containerRef.value.scrollTop
   const viewportHeight = containerRef.value.clientHeight
 

@@ -12,6 +12,7 @@ import {
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
+import { hasAncestorWithClass, isGeneralOverlayActive, isSelectActive } from '../../../../utils/browserUtils'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
@@ -1434,6 +1435,36 @@ const editEnabledCellPosition = computed(() => {
     left: `${left}px`,
   }
 })
+
+onClickOutside(
+  wrapperRef,
+  (e: MouseEvent) => {
+    const element = e.target as HTMLElement
+    if (
+      isDrawerOrModalExist() ||
+      isExpandedCellInputExist() ||
+      isLinkDropdownExist() ||
+      isGeneralOverlayActive() ||
+      (element && hasAncestorWithClass(element, 'ant-select-dropdown'))
+    ) {
+      return
+    }
+    if (isNcDropdownOpen()) return
+
+    openColumnDropdownField.value = null
+    openAggregationField.value = null
+    if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
+      activeCell.value = { row: -1, column: -1 }
+      editEnabled.value = null
+      isFillHandlerActive.value = false
+      selection.value.clear()
+      triggerRefreshCanvas()
+    }
+  },
+  {
+    ignore: ['.nc-edit-or-add-provider-wrapper', '.canvas-aggregation', '.canvas-header-column-menu'],
+  },
+)
 
 onKeyStroke('Escape', () => {
   openColumnDropdownField.value = null

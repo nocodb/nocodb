@@ -1,5 +1,5 @@
 import { isAIPromptCol } from 'nocodb-sdk'
-import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 import { getI18n } from '../../../../../plugins/a.i18n'
 import { AILongTextCellRenderer } from './AILongText'
 
@@ -9,6 +9,8 @@ export const LongTextCellRenderer: CellRenderer = {
       AILongTextCellRenderer.render(ctx, props)
       return
     }
+
+    const isRichMode = props.column?.meta?.richMode
 
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader } = props
 
@@ -25,6 +27,38 @@ export const LongTextCellRenderer: CellRenderer = {
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
+    } else if (isRichMode) {
+      const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: pv ? '#3366FF' : textColor,
+        height,
+      })
+
+      if (isHovered) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 28,
+          buttonY: y + 7,
+          buttonSize: 18,
+          borderRadius: 3,
+          iconData: {
+            size: 13,
+            xOffset: (18 - 13) / 2,
+            yOffset: (18 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+        })
+      }
+
+      return {
+        x: xOffset,
+        y: yOffset,
+      }
     } else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,

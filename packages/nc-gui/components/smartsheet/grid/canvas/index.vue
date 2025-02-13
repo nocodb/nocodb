@@ -1102,7 +1102,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
+  @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px] overflow-hidden;
 
   &.row-height-1 {
     :deep(.nc-multi-select) {

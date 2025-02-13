@@ -797,7 +797,7 @@ const currentColumnToEdit = ref('')
 
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'source_column'">
-                  <div class="flex items-center gap-3 w-70">
+                  <label class="flex items-center gap-3 w-70 h-full">
                     <a-checkbox v-model:checked="record.enabled" />
                     <div class="flex items-center flex-grow truncate">
                       <NcTooltip class="inline-block max-w-full truncate">
@@ -806,8 +806,8 @@ const currentColumnToEdit = ref('')
                       </NcTooltip>
                     </div>
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-1" />
-                  </div>
-                  <div class="absolute h-1 border-t top-0 left-3 right-3" />
+                  </label>
+                  <div class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
                 </template>
 
                 <template v-else-if="column.key === 'destination_column'">

@@ -1,4 +1,5 @@
-import { roundedRect, truncateText } from '../utils/canvas'
+import type { WritableComputedRef } from '@vue/reactivity'
+import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
@@ -25,6 +26,9 @@ export function useCanvasRender({
   spriteLoader,
   imageLoader,
   partialRowHeight,
+  vSelectedAllRecords,
+  isRowDraggingEnabled,
+  selectedRows,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -40,11 +44,14 @@ export function useCanvasRender({
   hoverRow: Ref<number>
   selection: Ref<CellRange>
   isAiFillMode: ComputedRef<boolean>
+  isRowDraggingEnabled: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
   partialRowHeight: Ref<number>
+  vSelectedAllRecords: WritableComputedRef<boolean>
+  selectedRows: ComputedRef<Row[]>
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -259,13 +266,91 @@ export function useCanvasRender({
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
-    if (!isHover) {
-      ctx.fillStyle = '#4a5268'
-      ctx.font = `500 13px Manrope`
-      ctx.textBaseline = 'middle'
-      ctx.fillText(`${row.rowMeta.rowIndex}`, xOffset + 10, yOffset + rowHeight.value / 2, width)
+    let currentX = xOffset + 4
+
+    const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+    const isDisabled = selectedRows.value.length >= 100 || vSelectedAllRecords.value
+
+    if (isChecked) {
+      renderCheckbox(ctx, currentX, yOffset + (rowHeight.value - 16) / 2, isChecked, isDisabled, spriteLoader)
+      currentX += 24
     } else {
-      spriteLoader.renderIcon(ctx, { icon: 'ncDrag', size: 14, x: xOffset + 10, y: yOffset + 10, color: '#4a5268' })
+      if (isHover && isRowDraggingEnabled.value) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncDrag',
+          size: 16,
+          x: currentX,
+          y: yOffset + (rowHeight.value - 16) / 2,
+          color: '#6B7280',
+        })
+      } else {
+        ctx.font = '500 12px Manrope'
+        ctx.fillStyle = '#6B7280'
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'center'
+        ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
+      }
+
+      currentX += 24
+    }
+
+    if (isHover && !isDisabled) {
+      renderCheckbox(ctx, currentX, yOffset + (rowHeight.value - 16) / 2, isChecked, isDisabled, spriteLoader)
+      currentX += 24
+    }
+
+    ctx.font = '500 12px Manrope'
+    ctx.fillStyle = '#6B7280'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'center'
+
+    if (row.rowMeta?.commentCount) {
+      const commentCount = row.rowMeta.commentCount.toString()
+
+      ctx.font = '600 12px Manrope'
+      const textMetrics = ctx.measureText(commentCount)
+      const bubbleHeight = 20
+      const bubbleWidth = textMetrics.width + 8
+
+      ctx.beginPath()
+      const x = currentX
+      const y = yOffset + (rowHeight.value - bubbleHeight) / 2
+      const radius = {
+        topLeft: 4,
+        topRight: 4,
+        bottomLeft: 0,
+        bottomRight: 4,
+      }
+
+      ctx.beginPath()
+      ctx.moveTo(x + radius.topLeft, y)
+      ctx.lineTo(x + bubbleWidth - radius.topRight, y)
+      ctx.arcTo(x + bubbleWidth, y, x + bubbleWidth, y + radius.topRight, radius.topRight)
+      ctx.lineTo(x + bubbleWidth, y + bubbleHeight - radius.bottomRight)
+      ctx.arcTo(x + bubbleWidth, y + bubbleHeight, x + bubbleWidth - radius.bottomRight, y + bubbleHeight, radius.bottomRight)
+      ctx.lineTo(x, y + bubbleHeight)
+      ctx.lineTo(x, y + radius.topLeft)
+      ctx.arcTo(x, y, x + radius.topLeft, y, radius.topLeft)
+      ctx.closePath()
+
+      ctx.fillStyle = '#EEF2FF'
+      ctx.fill()
+      ctx.strokeStyle = '#3366FF'
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      ctx.fillStyle = '#3366FF'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(commentCount, x + bubbleWidth / 2, y + bubbleHeight / 2)
+    } else if (isHover) {
+      spriteLoader.renderIcon(ctx, {
+        icon: 'maximize',
+        size: 14,
+        x: currentX,
+        y: yOffset + (rowHeight.value - 14) / 2,
+        color: '#6B7280',
+      })
     }
   }
 

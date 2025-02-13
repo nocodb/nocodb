@@ -4,7 +4,6 @@ import {
   type TableType,
   UITypes,
   type ViewType,
-  isLinksOrLTAR,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -1152,6 +1151,7 @@ onBeforeUnmount(() => {
             :style="{
               top: '32px',
               bottom: `36px`,
+              right: '0px',
               marginTop: `${
                 rowHeight *
                 (editEnabled.rowIndex < rowSlice.start
@@ -1167,7 +1167,7 @@ onBeforeUnmount(() => {
               borderRadius: '2px',
               willChange: 'top, bottom, left, width, height',
             }"
-            class="nc-canvas-table-editable-cell-wrapper"
+            class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
             :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
           >
             <LazySmartsheetRow :row="editEnabled.row">

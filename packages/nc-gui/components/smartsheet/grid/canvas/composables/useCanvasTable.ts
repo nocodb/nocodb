@@ -59,7 +59,7 @@ export function useCanvasTable({
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum}`] ?? 32))
 
-  const isAiFillMode = computed(() => (isMac() ? metaKey?.value : ctrlKey?.value))
+  const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value))
 
   const columns = computed(() => {
     const cols = fields.value
@@ -168,6 +168,7 @@ export function useCanvasTable({
     rowHeight,
     getFillHandlerPosition,
     triggerReRender: triggerRefreshCanvas,
+    rowSlice,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {

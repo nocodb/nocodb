@@ -7,6 +7,7 @@ export function useColumnReorder(
   dragOver: Ref<{ id: string; index: number } | null>,
   emit: (event: string, ...args: any[]) => void,
 ) {
+  const isLocked = inject(IsLockedInj, ref(false))
   const isDragging = ref(false)
   const dragStart = ref<{
     id: string
@@ -79,6 +80,7 @@ export function useColumnReorder(
   }
 
   const startDrag = (x: number) => {
+    if (isLocked.value) return
     const col = findColumnAtPosition(x)
     if (col) {
       isDragging.value = true

@@ -513,11 +513,13 @@ function extractHoverMetaColRegions(row: Row) {
   }
 
   // Comment/maximize icon region
-  regions.push({
-    x: currentX,
-    width: row.rowMeta?.commentCount ? 24 : 14,
-    action: 'comment',
-  })
+  if (!isLocked.value) {
+    regions.push({
+      x: currentX,
+      width: row.rowMeta?.commentCount ? 24 : 14,
+      action: 'comment',
+    })
+  }
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
@@ -826,9 +828,10 @@ const handleMouseUp = async (e: MouseEvent) => {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit')
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
-          if (!isUIAllowed('fieldEdit')) return
+          if (isFieldNotEditable) return
 
           // IF Right-click on a column, open the column dropdown menu
           openColumnDropdownField.value = clickedColumn.columnObj
@@ -848,7 +851,7 @@ const handleMouseUp = async (e: MouseEvent) => {
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
           if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
-            if (!isUIAllowed('fieldEdit')) return
+            if (isFieldNotEditable) return
 
             // if menu already in open state then close it on second click
             if (prevMenuState.isDropdownVisible && prevMenuState.openColumnDropdownField === clickedColumn.columnObj) {

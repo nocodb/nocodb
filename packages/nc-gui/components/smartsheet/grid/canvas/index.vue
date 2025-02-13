@@ -1196,6 +1196,17 @@ watch([height, width], () => {
   })
 })
 
+// Watch for Rowheight Changes
+watch(rowHeight, () => {
+  calculateSlices()
+  requestAnimationFrame(triggerRefreshCanvas)
+})
+
+// watch for any field changes like hide, re-order, etc..
+watch(columns, () => {
+  requestAnimationFrame(triggerRefreshCanvas)
+})
+
 reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)
 
@@ -1238,10 +1249,6 @@ const editEnabledCellPosition = computed(() => {
   }
 })
 
-// watch for any field changes like hide, re-order, etc..
-watch(columns, () => {
-  requestAnimationFrame(triggerRefreshCanvas)
-})
 </script>
 
 <template>

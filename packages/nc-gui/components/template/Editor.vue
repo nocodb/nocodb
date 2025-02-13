@@ -5,6 +5,7 @@ import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
+import { NcCheckbox } from '#components'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -82,7 +83,7 @@ const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
 
-const autoInsertOption = ref<{ [key: string]: boolean }>({})
+const autoInsertOption = ref<boolean>(false)
 
 const inputRefs = ref<HTMLInputElement[]>([])
 
@@ -452,7 +453,7 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const autoInsertOptionQuery = autoInsertOption.value[k] ? '&auto_insert_option=true' : ''
+              const autoInsertOptionQuery = autoInsertOption.value ? '&auto_insert_option=true' : ''
               const res = await $fetch.raw(
                 `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
                   operationId ? `&operation_id=${operationId}` : ''
@@ -472,7 +473,7 @@ async function importTemplate() {
               operationId = res.headers?.['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
-              if (autoInsertOption.value[k]) {
+              if (autoInsertOption.value) {
                 await getMeta(tableId, true)
               }
             }
@@ -727,15 +728,6 @@ function toggleTableSelecteds(table: any) {
   }
 }
 
-function toggleAutoInsertOption(tableName: string) {
-  console.log('tableName', tableName, autoInsertOption.value[tableName] === undefined, autoInsertOption.value[tableName])
-  autoInsertOption.value = {
-    ...autoInsertOption.value,
-    [tableName]: autoInsertOption.value[tableName] === undefined ? true : !autoInsertOption.value[tableName],
-  }
-  console.log('tableName', tableName, autoInsertOption.value, autoInsertOption.value[tableName])
-}
-
 const currentColumnToEdit = ref('')
 </script>
 
@@ -783,13 +775,6 @@ const currentColumnToEdit = ref('')
               {{ table.table_name }}
             </span>
           </template>
-
-          <div class="pt-1 pb-3 px-4 flex justify-end">
-            <label>
-              <span class="mr-2">Auto insert missing select options</span>
-              <NcSwitch v-model:checked="autoInsertOption[table.table_name]" />
-            </label>
-          </div>
           <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
             <NcTable
               class="template-form flex-1"
@@ -860,6 +845,13 @@ const currentColumnToEdit = ref('')
           </div>
         </a-collapse-panel>
       </a-collapse>
+
+      <div class="pt-4 pb-2 px-2">
+        <label class="flex">
+          <NcCheckbox v-model:checked="autoInsertOption" />
+          <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>
+        </label>
+      </div>
     </div>
 
     <a-card v-else class="!border-none !px-0 !mx-0" :body-style="{ padding: '0 !important' }">

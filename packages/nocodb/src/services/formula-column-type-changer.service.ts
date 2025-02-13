@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { type NcContext } from 'nocodb-sdk';
 import { type NcRequest } from 'nocodb-sdk';
 import type { ColumnReqType } from 'nocodb-sdk';
@@ -126,7 +126,9 @@ export class FormulaColumnTypeChanger {
     const dbDriver = this.dataMigrationDriver[qb.clientType()];
     if (!dbDriver) {
       // TODO: better error
-      throw new Error('migration is not supported for this driver yet');
+      throw new NotImplementedException(
+        `${qb.clientType()} database is not supported in this operation`,
+      );
     }
 
     await dbDriver.migrate({

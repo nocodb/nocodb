@@ -72,7 +72,7 @@ export function useCanvasTable({
 
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value))
 
-  const columns = computed(() => {
+  const columns = computed<CanvasGridColumn>(() => {
     const cols = fields.value
       .map((f) => {
         const gridViewCol = gridViewCols.value[f.id!]
@@ -114,7 +114,7 @@ export function useCanvasTable({
         uidt: UITypes.AutoNumber,
       },
     })
-    return cols
+    return cols as CanvasGridColumn
   })
 
   const totalWidth = computed(() => {

@@ -6,7 +6,6 @@ import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { ImportSource, ImportType } from '#imports'
 
 interface Props {
   modelValue: boolean

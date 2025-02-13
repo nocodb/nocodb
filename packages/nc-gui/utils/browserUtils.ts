@@ -11,6 +11,7 @@ export function hasAncestorWithClass(element: HTMLElement, className: string): b
   return !!element.closest(`.${className}`)
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
+export const isCmdJActive = () => document.querySelector('.DocSearch--active')
 export const isActiveInputElementExist = () => {
   return (
     document.activeElement?.tagName === 'INPUT' ||

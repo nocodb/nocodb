@@ -39,7 +39,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
           // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
             x: x + padding + tagSpacing, // Align `...` at the end
-            y: y + padding,
+            y: y,
             text: '...',
             maxWidth: ellipsisWidth,
             textAlign: 'right',
@@ -67,7 +67,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + tagPadding,
-        y: y + padding,
+        y: y,
         text: truncatedText,
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',

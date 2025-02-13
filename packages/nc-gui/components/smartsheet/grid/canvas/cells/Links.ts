@@ -18,7 +18,7 @@ export const LinksCellRenderer: CellRenderer = {
 
     renderSingleLineText(ctx, {
       x: x + padding,
-      y: y + padding,
+      y: y,
       text,
       maxWidth: width - padding * 2,
       fontFamily: '500 13px Manrope',

@@ -14,7 +14,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     const { text: truncatedText, width: optionWidth } = renderSingleLineText(ctx, {
       x: x + padding + tagPadding,
-      y: y + padding,
+      y: y,
       text,
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',
@@ -36,7 +36,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     renderSingleLineText(ctx, {
       x: x + padding + tagPadding,
-      y: y + padding,
+      y: y,
       text: truncatedText,
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',

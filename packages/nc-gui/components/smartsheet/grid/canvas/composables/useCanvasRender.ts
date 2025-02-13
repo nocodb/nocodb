@@ -433,33 +433,20 @@ export function useCanvasRender({
           // Reset for regular column separator
           ctx.strokeStyle = '#e7e7e9'
           ctx.lineWidth = 1
-        } else {
-          // Reset for regular column separator
-          ctx.strokeStyle = '#e7e7e9'
-          ctx.lineWidth = 1
-          colResizeHoveredColIds.value.delete(column.id)
-          ctx.beginPath()
-          ctx.moveTo(xOffset, 0)
-          ctx.lineTo(xOffset, 32)
-          ctx.stroke()
         }
       })
 
       if (scrollLeft.value) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-        ctx.shadowBlur = 2
-        ctx.shadowOffsetX = 1
-        ctx.shadowOffsetY = 0
-      }
-
-      if (!colResizeHoveredColIds.value.has(fixedCols[fixedCols.length - 1]?.id)) {
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = '#D5D5D9'
         ctx.beginPath()
         ctx.moveTo(xOffset, 0)
         ctx.lineTo(xOffset, 32)
         ctx.stroke()
-      }
 
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+        ctx.rect(xOffset, 0, 4, 32)
+        ctx.fill()
+      }
       ctx.shadowColor = 'transparent'
       ctx.shadowBlur = 0
       ctx.shadowOffsetX = 0
@@ -797,6 +784,7 @@ export function useCanvasRender({
 
             const value = row.row[column.title]
 
+            ctx.save()
             renderCell(ctx, column.columnObj, {
               value,
               x: xOffset - scrollLeft.value,
@@ -817,6 +805,7 @@ export function useCanvasRender({
               pk,
               skipRender: isCellEditEnabled,
             })
+            ctx.restore()
             xOffset += width
           })
 
@@ -852,7 +841,7 @@ export function useCanvasRender({
                     height: rowHeight.value,
                   }
                 }
-
+                ctx.save()
                 renderCell(ctx, column.columnObj, {
                   value,
                   x: xOffset,
@@ -872,6 +861,7 @@ export function useCanvasRender({
                   disabled: column?.isInvalidColumn,
                   pk,
                 })
+                ctx.restore()
               }
 
               ctx.strokeStyle = '#f4f4f5'
@@ -885,18 +875,26 @@ export function useCanvasRender({
             })
 
             if (scrollLeft.value) {
-              ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-              ctx.shadowBlur = 2
-              ctx.shadowOffsetX = 1
-              ctx.shadowOffsetY = 0
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+              ctx.rect(xOffset, yOffset, 4, 32)
+              ctx.fill()
+              ctx.strokeStyle = '#D5D5D9'
+              ctx.beginPath()
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
             }
 
-            ctx.strokeStyle = '#f4f4f5'
-            ctx.beginPath()
-            ctx.moveTo(xOffset, yOffset)
-            ctx.lineTo(xOffset, yOffset + rowHeight.value)
-            ctx.stroke()
+            if (!visibleCols.filter((f) => !f.fixed).length) {
+              ctx.strokeStyle = '#f4f4f5'
+              ctx.beginPath()
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
+            }
 
+            ctx.fillStyle = 'transparent'
+            ctx.strokeStyle = 'white'
             ctx.shadowColor = 'transparent'
             ctx.shadowBlur = 0
             ctx.shadowOffsetX = 0
@@ -967,8 +965,6 @@ export function useCanvasRender({
               if (column.id === 'row_number') {
                 renderRowMeta(ctx, row, { xOffset, yOffset, width })
               } else {
-                // const value = row.row[column.title]
-
                 const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
                 if (isActive) {
@@ -992,13 +988,6 @@ export function useCanvasRender({
 
               xOffset += width
             })
-
-            if (scrollLeft.value) {
-              ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-              ctx.shadowBlur = 2
-              ctx.shadowOffsetX = 1
-              ctx.shadowOffsetY = 0
-            }
 
             ctx.strokeStyle = '#f4f4f5'
             ctx.beginPath()
@@ -1382,13 +1371,6 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        if (scrollLeft.value) {
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-          ctx.shadowBlur = 2
-          ctx.shadowOffsetX = 1
-          ctx.shadowOffsetY = 0
-        }
-
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
         ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
@@ -1457,6 +1439,7 @@ export function useCanvasRender({
       columns.value.forEach((column) => {
         const width = parseInt(column.width, 10)
         if (xOffset - xPos < previewWidth) {
+          ctx.save()
           renderCell(ctx, column.columnObj, {
             value: row.row[column.title],
             x: xOffset,
@@ -1475,6 +1458,7 @@ export function useCanvasRender({
             mousePosition: { x: -1, y: -1 },
             pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
           })
+          ctx.restore()
         }
         xOffset += width
       })

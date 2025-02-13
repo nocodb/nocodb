@@ -1087,16 +1087,80 @@ export function useCanvasRender({
   const renderRowDragPreview = (ctx: CanvasRenderingContext2D) => {
     if (!isDragging.value || draggedRowIndex.value === null || targetRowIndex.value === null) return
 
-    const targetY = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + 32
-
+    const targetRowLine = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + 32
+    // First render the blue line indicator
     ctx.strokeStyle = '#3366ff'
     ctx.lineWidth = 2
-    ctx.setLineDash([4, 4])
     ctx.beginPath()
-    ctx.moveTo(0, targetY)
-    ctx.lineTo(ctx.canvas.width, targetY)
+    ctx.moveTo(0, targetRowLine)
+    ctx.lineTo(ctx.canvas.width, targetRowLine)
     ctx.stroke()
-    ctx.setLineDash([])
+
+    // Then render the preview row
+    ctx.save()
+
+    const targetY = mousePosition.y
+
+    const previewWidth = 500
+    const xPos = mousePosition.x
+
+    // Apply tilt transform
+    ctx.translate(xPos + previewWidth / 2, targetY)
+    ctx.rotate((0.5 * Math.PI) / 180)
+    ctx.translate(-(xPos + previewWidth / 2), -targetY)
+
+    ctx.beginPath()
+    ctx.roundRect(xPos, targetY - rowHeight.value / 2, previewWidth, rowHeight.value, 6)
+    ctx.clip()
+
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.10)'
+    ctx.shadowBlur = 16
+    ctx.shadowOffsetY = 12
+    ctx.shadowOffsetX = 0
+
+    ctx.save()
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)'
+    ctx.shadowBlur = 6
+    ctx.shadowOffsetY = 4
+
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+
+    ctx.restore()
+
+    ctx.strokeStyle = '#D5D5D9'
+    ctx.lineWidth = 1
+    ctx.stroke()
+
+    const row = cachedRows.value.get(draggedRowIndex.value)
+    if (row) {
+      let xOffset = xPos
+      columns.value.forEach((column) => {
+        const width = parseInt(column.width, 10)
+        if (xOffset - xPos < previewWidth) {
+          renderCell(ctx, column.columnObj, {
+            value: row.row[column.title],
+            x: xOffset,
+            y: targetY - rowHeight.value / 2,
+            width: Math.min(width, previewWidth - (xOffset - xPos)),
+            height: rowHeight.value,
+            row: row.row,
+            selected: false,
+            pv: column.pv,
+            spriteLoader,
+            imageLoader,
+            relatedColObj: column.relatedColObj,
+            relatedTableMeta: column.relatedTableMeta,
+            disabled: column?.isInvalidColumn,
+            mousePosition: { x: -1, y: -1 },
+            pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
+          })
+        }
+        xOffset += width
+      })
+    }
+
+    ctx.restore()
   }
 
   function renderCanvas() {

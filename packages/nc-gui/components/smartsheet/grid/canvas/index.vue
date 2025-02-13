@@ -497,6 +497,9 @@ async function handleMouseDown(e: MouseEvent) {
     activeCell.value.row = rowIndex
     activeCell.value.column = 1
     return
+  } else if (rowIndex > totalRows.value) {
+    selection.value.clear()
+    activeCell.value = { row: -1, column: -1 }
   }
 
   if (e.detail === 1 && x < 80) {
@@ -575,9 +578,16 @@ async function handleMouseDown(e: MouseEvent) {
             selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
             imageLoader,
           })
-          triggerRefreshCanvas()
+          activeCell.value.row = rowIndex
+          activeCell.value.column = colIndex
 
-          if (res) return
+          triggerRefreshCanvas()
+          if (res) {
+            selection.value.startRange({ row: rowIndex, col: colIndex })
+            selection.value.endRange({ row: rowIndex, col: colIndex })
+            triggerRefreshCanvas()
+            return
+          }
         }
       }
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
@@ -585,7 +595,7 @@ async function handleMouseDown(e: MouseEvent) {
         onMouseDownSelectionHandler(e)
       } else if (e.detail === 2 && columnUIType === UITypes.Lookup) {
         makeCellEditable(rowIndex, clickedColumn)
-      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
+      } else if (e.detail === 2) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
         if (!supportedVirtuals.includes(columnUIType) && clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
         makeCellEditable(rowIndex, clickedColumn)

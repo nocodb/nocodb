@@ -43,6 +43,7 @@ export function useCanvasRender({
   totalWidth,
   totalRows,
   t,
+                                  isAddingColumnAllowed
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -60,6 +61,7 @@ export function useCanvasRender({
   selection: Ref<CellRange>
   isAiFillMode: ComputedRef<boolean>
   isRowDraggingEnabled: ComputedRef<boolean>
+  isAddingColumnAllowed: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
@@ -80,6 +82,8 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
+  const { isUIAllowed } = useRoles()
+
 
   watch(
     () => !!colResizeHoveredColIds.value.size,
@@ -168,14 +172,16 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      rightOffset -= 16
-      spriteLoader.renderIcon(ctx, {
-        icon: 'chevronDown',
-        size: 14,
-        color: '#6a7184',
-        x: rightOffset - scrollLeft.value,
-        y: 9,
-      })
+      if(isUIAllowed('fieldEdit')) {
+        rightOffset -= 16
+        spriteLoader.renderIcon(ctx, {
+          icon: 'chevronDown',
+          size: 14,
+          color: '#6a7184',
+          x: rightOffset - scrollLeft.value,
+          y: 9,
+        })
+      }
 
       if (column.isInvalidColumn?.isInvalid) {
         rightOffset -= 18
@@ -228,19 +234,21 @@ export function useCanvasRender({
     const plusColumnWidth = 60
     ctx.fillStyle = '#f4f4f5'
     ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
-
-    spriteLoader.renderIcon(ctx, {
-      icon: 'ncPlus',
-      size: 16,
-      color: '#6a7184',
-      x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
-      y: 8,
-    })
+    if(isAddingColumnAllowed.value) {
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncPlus',
+        size: 16,
+        color: '#6a7184',
+        x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
+        y: 8,
+      })
 
     ctx.beginPath()
     ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
     ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
     ctx.stroke()
+
+    }
     const fillHandler = getFillHandlerPosition()
 
     // The issue is the border gets drawn over the active state border.
@@ -336,7 +344,7 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt) {
+        if (column.uidt && isUIAllowed('fieldEdit')) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {

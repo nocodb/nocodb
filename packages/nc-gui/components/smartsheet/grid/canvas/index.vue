@@ -651,7 +651,7 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   // If the user is trying to open the context menu
-  if (clickType === MouseClickType.RIGHT_CLICK) {
+  if (clickType === MouseClickType.RIGHT_CLICK && clickedColumn?.id) {
     // If the selection is not empty and user right clicks on a selection, do not update activeCell
     if (selection.value.isEmpty()) {
       activeCell.value.row = rowIndex

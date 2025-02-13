@@ -1,8 +1,8 @@
-import { _wherePk } from 'src/helpers/dbHelpers';
-import { ROOT_ALIAS } from 'src/utils';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column, FormulaColumn } from '~/models';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer/index';
+import { ROOT_ALIAS } from '~/utils';
+import { _wherePk } from '~/helpers/dbHelpers';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 
 /*
@@ -101,32 +101,26 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
         },
       );
 
-    try {
-      // knex qb is not yet suppport update select / update join
-      // so we need to compose them manually (sad)
-      const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
-        baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
-        knex.raw(knex.ref(destinationColumn.column_name)),
-        knex.raw(knex.ref(`formula_value_tbl.${formulaColumnAlias}`)),
-        knex.raw(formulaValueTable),
-        knex.raw('as formula_value_tbl'),
-        knex.raw(
-          baseModelSqlV2.model.primaryKeys
-            .map((col) => {
-              return (
-                knex.ref(`${ROOT_ALIAS}.${col.column_name}`).toQuery() +
-                '=' +
-                knex.ref(`formula_value_tbl.${col.column_name}`).toQuery()
-              );
-            })
-            .join(' and '),
-        ),
-      ]);
-      console.log(qb.toQuery());
-      await qb;
-    } catch (ex) {
-      console.log(ex);
-      throw ex;
-    }
+    // knex qb is not yet suppport update select / update join
+    // so we need to compose them manually (sad)
+    const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
+      baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
+      knex.raw(knex.ref(destinationColumn.column_name)),
+      knex.raw(knex.ref(`formula_value_tbl.${formulaColumnAlias}`)),
+      knex.raw(formulaValueTable),
+      knex.raw('as formula_value_tbl'),
+      knex.raw(
+        baseModelSqlV2.model.primaryKeys
+          .map((col) => {
+            return (
+              knex.ref(`${ROOT_ALIAS}.${col.column_name}`).toQuery() +
+              '=' +
+              knex.ref(`formula_value_tbl.${col.column_name}`).toQuery()
+            );
+          })
+          .join(' and '),
+      ),
+    ]);
+    await qb;
   }
 }

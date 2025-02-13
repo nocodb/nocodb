@@ -1,4 +1,4 @@
-import type { UITypes } from 'nocodb-sdk'
+import type { ColumnType, UITypes } from 'nocodb-sdk'
 import { roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -38,6 +38,7 @@ export function useCanvasRender({
         uidt: keyof typeof UITypes | null
         fixed: boolean
         pv: boolean
+        columnObj: ColumnType
       }[]
   >
   colSlice: Ref<{ start: number; end: number }>
@@ -94,7 +95,7 @@ export function useCanvasRender({
       const icon = renderIcon(column.columnObj, null)
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
-          icon,
+          icon: icon as any,
           size: 13,
           color: '#6a7184',
           x: xOffset + 8 - scrollLeft.value,
@@ -124,10 +125,10 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         ctx.fillStyle = '#6a7184'
-        const icon = renderIcon(column, null)
+        const icon = renderIcon(column.columnObj, null)
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
-            icon,
+            icon: icon as any,
             size: 13,
             color: '#6a7184',
             x: xOffset + 8,
@@ -269,7 +270,7 @@ export function useCanvasRender({
       ctx.fillStyle = '#4a5268'
       ctx.font = `500 13px Manrope`
       ctx.textBaseline = 'middle'
-      ctx.fillText(row.rowMeta.rowIndex, xOffset + 10, yOffset + rowHeight.value / 2)
+      ctx.fillText(`${row.rowMeta.rowIndex}`, xOffset + 10, yOffset + rowHeight.value / 2, width)
     } else {
       spriteLoader.renderIcon(ctx, { icon: 'ncDrag', size: 14, x: xOffset + 10, y: yOffset + 10, color: '#4a5268' })
     }
@@ -283,7 +284,7 @@ export function useCanvasRender({
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     let yOffset = -partialRowHeight.value + 33
 
-    let activeState = null
+    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {

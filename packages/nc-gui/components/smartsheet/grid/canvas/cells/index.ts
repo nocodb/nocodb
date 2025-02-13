@@ -21,7 +21,8 @@ import { DurationCellRenderer } from './Duration'
 import { JsonCellRenderer } from './Json'
 import { BarcodeCellRenderer } from './Barcode'
 import { QRCodeCellRenderer } from './QRCode'
-import { RatingCellRenderer } from './Rating';
+import { RatingCellRenderer } from './Rating'
+import { UserFieldCellRenderer } from './User'
 export function useCellRenderer() {
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -48,6 +49,9 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.Barcode, BarcodeCellRenderer)
   cellTypesRegistry.set(UITypes.QrCode, QRCodeCellRenderer)
   cellTypesRegistry.set(UITypes.Rating, RatingCellRenderer)
+  cellTypesRegistry.set(UITypes.User, UserFieldCellRenderer)
+  cellTypesRegistry.set(UITypes.CreatedBy, UserFieldCellRenderer)
+  cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

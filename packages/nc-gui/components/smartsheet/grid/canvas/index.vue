@@ -1521,7 +1521,8 @@ onClickOutside(
     ) {
       return
     }
-    if (isNcDropdownOpen()) return
+    const aggregationOrColumnMenuOpen = document.querySelector('.canvas-aggregation, .canvas-header-column-menu')
+    if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 
     openColumnDropdownField.value = null
     openAggregationField.value = null

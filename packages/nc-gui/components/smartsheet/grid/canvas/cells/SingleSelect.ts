@@ -20,7 +20,6 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-      height,
       render: false,
     })
 
@@ -44,7 +43,6 @@ export const SingleSelectCellRenderer: CellRenderer = {
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
       fillStyle: getSelectTypeOptionTextColor(opColor),
-      height,
     })
   },
 }

@@ -459,19 +459,22 @@ export const renderMarkdownBlocks = (
     mousePosition?: { x: number; y: number }
   },
 ) => {
-  // Save the current font so we can restore it later
-  const defaultFont = ctx.font
-  const baseFontSize = 13
-  const fontFamily = 'Manrope'
-
-  const links: { x: number; y: number; width: number; height: number; url: string }[] = []
-
   if (fillStyle) {
     ctx.fillStyle = fillStyle
     ctx.strokeStyle = fillStyle
   }
+
   ctx.textAlign = textAlign
   ctx.textBaseline = verticalAlign
+
+  // Save the current font so we can restore it later
+  const defaultFont = ctx.font
+  const baseFontSize = 13
+  const fontFamily = 'Manrope'
+  const defaultFillStyle = ctx.fillStyle
+  const defaultStrokeStyle = ctx.strokeStyle
+
+  const links: { x: number; y: number; width: number; height: number; url: string }[] = []
 
   maxLines = maxLines ?? blocks.length
 
@@ -492,11 +495,14 @@ export const renderMarkdownBlocks = (
 
     for (const token of tokens) {
       let tokenText = token.value
-      const tokenFont = getFontForToken(token, block.type, {
+
+      ctx.font = getFontForToken(token, block.type, {
         baseFontSize,
         fontFamily,
       })
-      ctx.font = tokenFont
+      ctx.fillStyle = defaultFillStyle
+      ctx.strokeStyle = defaultStrokeStyle
+
       let tokenWidth = ctx.measureText(tokenText).width
 
       // Truncate the token if it exceeds the max width of the line
@@ -566,6 +572,8 @@ export const renderMarkdownBlocks = (
 
   // Restore the original font
   ctx.font = defaultFont
+  ctx.fillStyle = defaultFillStyle
+  ctx.strokeStyle = defaultStrokeStyle
 
   return {
     links,

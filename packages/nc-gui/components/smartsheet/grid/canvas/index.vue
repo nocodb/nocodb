@@ -1486,7 +1486,10 @@ const onNavigate = (dir: NavigateDir) => {
 }
 
 watch([height, width, windowWidth, windowHeight], () => {
-  nextTick(() => requestAnimationFrame(triggerRefreshCanvas))
+  nextTick(() => {
+    calculateSlices()
+    requestAnimationFrame(triggerRefreshCanvas)
+  })
 })
 
 // Watch for Rowheight Changes
@@ -1501,7 +1504,10 @@ watch(
     return columns.value?.length
   },
   () => {
-    requestAnimationFrame(triggerRefreshCanvas)
+    nextTick(() => {
+      calculateSlices()
+      requestAnimationFrame(triggerRefreshCanvas)
+    })
   },
 )
 

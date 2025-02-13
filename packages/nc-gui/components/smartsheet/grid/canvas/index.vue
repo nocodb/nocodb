@@ -3,7 +3,7 @@ import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { normalizeWidth, useColumnResize } from './composables/useColumnResize'
 import { useCellRenderer } from './cells'
-import { roundedRect } from './utils/canvas'
+import { roundedRect, truncateText } from './utils/canvas'
 import type { Row } from '~/lib/types'
 
 const props = defineProps<{
@@ -320,7 +320,9 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
   let xOffset = initialOffset
   visibleCols.forEach((column) => {
     const width = parseInt(column.width, 10)
-    ctx.fillText(column.title, xOffset + 10 - scrollLeft.value, 16)
+    const truncatedText = truncateText(ctx, column.title!, width - 20)
+
+    ctx.fillText(truncatedText, xOffset + 10 - scrollLeft.value, 16)
 
     xOffset += width
 
@@ -344,7 +346,8 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
 
       // Draw title
       ctx.fillStyle = '#6a7184'
-      ctx.fillText(column.title!, xOffset + 10, 16)
+      const truncatedText = truncateText(ctx, column.title!, width - 20)
+      ctx.fillText(truncatedText, xOffset + 10, 16)
 
       xOffset += width
 
@@ -522,7 +525,11 @@ function handleMouseClick(e: MouseEvent) {
   const y = e.clientY - rect.top - 32
   const rowIndex = Math.floor((y + scrollTop.value) / 32)
 
-  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) return
+  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
+    activeCell.value = { row: -1, column: -1 }
+    requestAnimationFrame(drawCanvas)
+    return
+  }
 
   const x = e.clientX - rect.left
   let clickedColumn = null

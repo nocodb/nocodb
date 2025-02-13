@@ -7,7 +7,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { MAX_SELECTED_ROWS } from '../utils/constants'
+import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -114,10 +114,12 @@ export function useCanvasRender({
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
+    const plusColumnWidth = 60
+    const columnsWidth = columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0) + plusColumnWidth - scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
-    ctx.fillRect(0, 0, width.value, 32)
+    ctx.fillRect(0, 0, columnsWidth, 32)
 
     // Header borders
     ctx.strokeStyle = '#e7e7e9'
@@ -126,7 +128,7 @@ export function useCanvasRender({
     // Bottom border
     ctx.beginPath()
     ctx.moveTo(0, 32)
-    ctx.lineTo(width.value, 32)
+    ctx.lineTo(columnsWidth, 32)
     ctx.stroke()
 
     const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -247,7 +249,6 @@ export function useCanvasRender({
       }
     }
 
-    const plusColumnWidth = 60
     ctx.fillStyle = '#f4f4f5'
     ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
     if (isAddingColumnAllowed.value) {
@@ -892,18 +893,18 @@ export function useCanvasRender({
         {
           x: 0,
           y: yOffset,
-          height: rowHeight.value,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
           width: adjustedWidth,
         },
         mousePosition,
       )
-      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : 'transparent'
-      ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+      ctx.fillRect(0, yOffset, adjustedWidth, COLUMN_HEADER_HEIGHT_IN_PX)
       // Bottom border for new row
       ctx.strokeStyle = '#f4f4f5'
       ctx.beginPath()
-      ctx.moveTo(0, yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+      ctx.moveTo(0, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.lineTo(adjustedWidth, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
       ctx.stroke()
 
       spriteLoader.renderIcon(ctx, {

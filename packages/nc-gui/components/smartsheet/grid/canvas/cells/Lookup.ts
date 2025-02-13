@@ -1,14 +1,16 @@
 import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType } from 'nocodb-sdk'
 import { getSingleMultiselectColOptions } from '../utils/cell'
+import { renderSingleLineText } from '../utils/canvas'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode]
+const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10 } = props
     let x = _x
     let y = _y + (renderOnly1Row ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
-    let width = _width
+    let width = _width - ellipsisWidth
     // If it is empty text then no need to render
     if (!isValidValue(value) || !metas) return
 
@@ -75,33 +77,55 @@ export const LookupCellRenderer: CellRenderer = {
       ) {
         const maxLines = rowHeightTruncateLines(height, true)
         let line = 1
+        let flag = false
+        let count = 1
 
         for (const v of arrValue) {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 
           if (point?.x) {
-            if (point?.x >= _x + _width - padding * 2 - 70) {
+            if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
+              if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+                x = point?.x
+                flag = true
+                break
+              }
+
               x = _x
-              width = _width
+              width = _width - ellipsisWidth
               y = point?.y ? point?.y : y + 24
               line += 1
-              if (renderOnly1Row.includes(lookupColumn.uidt)) break
             } else {
               width = x + width - (point?.x - 2 * 4) - padding * 2
               x = point?.x
             }
           } else {
+            if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+              x = point?.x
+              flag = true
+              break
+            }
+
             x = _x
             y = y + 24
 
             width = _width
             line += 1
-            if (renderOnly1Row.includes(lookupColumn.uidt)) break
           }
-
-          if (line > maxLines) {
-            break
-          }
+          count += 1
+        }
+        if (flag && count < arrValue.length) {
+          renderSingleLineText(ctx, {
+            x: x + padding,
+            y,
+            text: '...',
+            maxWidth: ellipsisWidth,
+            textAlign: 'right',
+            verticalAlign: 'middle',
+            fontFamily: '500 13px Manrope',
+            fillStyle: '#666',
+            height,
+          })
         }
       } else {
         renderCell(ctx, lookupColumn, renderProps)

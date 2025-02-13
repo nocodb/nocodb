@@ -5,6 +5,7 @@ export function useRowReorder({
   canvasRef,
   rowHeight,
   cachedRows,
+  partialRowHeight,
   scrollTop,
   updateRecordOrder,
   triggerRefreshCanvas,
@@ -16,6 +17,7 @@ export function useRowReorder({
   targetRowIndex: Ref<number | null>
   canvasRef: Ref<HTMLCanvasElement>
   rowHeight: Ref<number>
+  partialRowHeight: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   scrollTop: Ref<number>
   totalRows: Ref<number>
@@ -27,7 +29,7 @@ export function useRowReorder({
   const currentDragY = ref(0)
 
   const findRowFromPosition = (y: number): number => {
-    const mouseTop = y + scrollTop.value - 32
+    const mouseTop = y + scrollTop.value - 32 + partialRowHeight.value
     return Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
   }
 
@@ -41,6 +43,7 @@ export function useRowReorder({
 
     isDragging.value = true
     draggedRowIndex.value = rowIndex
+    targetRowIndex.value = rowIndex + 1
     dragStartY.value = e.clientY
     currentDragY.value = e.clientY
 
@@ -66,7 +69,7 @@ export function useRowReorder({
     }
   }
   async function handleDragEnd() {
-    if (draggedRowIndex.value !== null) {
+    if (draggedRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
       await updateRecordOrder(draggedRowIndex.value, targetRowIndex.value === totalRows.value ? null : targetRowIndex.value)
     }
     cleanup()

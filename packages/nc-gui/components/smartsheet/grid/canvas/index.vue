@@ -131,6 +131,7 @@ const {
 
   // RowReorder
   onMouseDownRowReorderStart,
+  isRowReOrderEnabled,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -235,7 +236,7 @@ async function handleMouseDown(e: MouseEvent) {
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
-  if (y < 32 && e.button === 2) {
+  if (y < 32 && (e.button === 2 || e.detail === 2)) {
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
       openColumnDropdownField.value = clickedColumn.columnObj
@@ -266,8 +267,9 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   if (x < 80) {
-    onMouseDownRowReorderStart(e)
-    return
+    if (e.detail === 1 && isRowReOrderEnabled.value) {
+      onMouseDownRowReorderStart(e)
+    } else return
   }
 
   onMouseDownFillHandlerStart(e)
@@ -449,6 +451,7 @@ onMounted(async () => {
           class="sticky top-0 left-0"
           :height="`${height}px`"
           :width="`${width}px`"
+          oncontextmenu="return false;"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"

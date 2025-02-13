@@ -435,7 +435,7 @@ export function useCanvasRender({
     if (activeState.col.fixed || !isInFixedArea) {
       ctx.strokeStyle = '#3366ff'
       ctx.lineWidth = 2
-      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
+      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2)
       ctx.lineWidth = 1
       return
     }

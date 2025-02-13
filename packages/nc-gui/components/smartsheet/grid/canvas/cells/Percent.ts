@@ -14,7 +14,7 @@ export const PercentCellRenderer: CellRenderer = {
     if (meta.is_progress && value !== null && value !== undefined) {
       const percent = Math.min(100, Math.max(0, value))
       const barHeight = 4
-      const barY = y + 16
+      const barY = y + 14
       const barWidth = (width - padding * 2) * (percent / 100)
 
       roundedRect(ctx, x + padding, barY, width - padding * 2, barHeight, barHeight / 2, {

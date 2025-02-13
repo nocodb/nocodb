@@ -21,10 +21,11 @@ export const CheckboxCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow } = ctx
+    const columnObj = column.columnObj
 
     if (e.key === 'Enter') {
-      row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title)
+      row.row[columnObj.title!] = !row.row[columnObj.title!]
+      await updateOrSaveRow(row, columnObj.title)
       return true
     }
 

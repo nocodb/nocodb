@@ -438,7 +438,7 @@ interface CellRenderer {
   handleKeyDown?: (options: {
     e: KeyboardEvent
     row: Row
-    column: ColumnType
+    column: CanvasGridColumn
     value: any
     pk: any
     updateOrSaveRow: (

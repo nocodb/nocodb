@@ -109,6 +109,9 @@ const editColumn = ref<ColumnType | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
+
+const paddingLessUITypes = new Set([UITypes.LongText])
+
 provide(ClientMousePositionInj, clientMousePosition)
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
@@ -128,10 +131,6 @@ const { $e } = useNuxtApp()
 const tooltipStore = useTooltipStore()
 const { showTooltip, hideTooltip } = tooltipStore
 const { containerSize } = storeToRefs(tooltipStore)
-
-watch([height, width], () => {
-  containerSize.value = { height: height.value, width: width.value }
-})
 
 const {
   rowSlice,
@@ -225,6 +224,9 @@ const {
 })
 
 // Computed
+
+const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
+
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
@@ -816,14 +818,6 @@ const triggerReload = () => {
   updateVisibleRows()
 }
 
-reloadViewDataHook.on(reloadViewDataHookHandler)
-reloadVisibleDataHook?.on(triggerReload)
-
-onBeforeUnmount(() => {
-  reloadViewDataHook.off(reloadViewDataHookHandler)
-  reloadVisibleDataHook?.off(triggerReload)
-})
-
 async function expandRows({
   newRows,
   newColumns,
@@ -941,6 +935,16 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
   }
 }
 
+watch([height, width], () => {
+  containerSize.value = { height: height.value, width: width.value }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(triggerRefreshCanvas)
+  })
+})
+
+reloadViewDataHook.on(reloadViewDataHookHandler)
+reloadVisibleDataHook?.on(triggerReload)
+
 onMounted(async () => {
   clearTextCache()
   await syncCount()
@@ -949,9 +953,10 @@ onMounted(async () => {
   await loadViewAggregate()
 })
 
-const paddingLessUITypes = new Set([UITypes.LongText])
-
-const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
+onBeforeUnmount(() => {
+  reloadViewDataHook.off(reloadViewDataHookHandler)
+  reloadVisibleDataHook?.off(triggerReload)
+})
 </script>
 
 <template>

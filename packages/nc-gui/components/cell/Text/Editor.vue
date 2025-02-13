@@ -13,18 +13,34 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const inputRef = ref<HTMLInputElement | HTMLTextAreaElement>()
+
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
 
 const textareaValue = computed({
   get: () => vModel.value ?? '',
   set: (val) => (vModel.value = val),
+})
+
+onMounted(() => {
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    forcedNextTick(() => {
+      inputRef.value?.focus()
+    })
+  }
 })
 </script>
 

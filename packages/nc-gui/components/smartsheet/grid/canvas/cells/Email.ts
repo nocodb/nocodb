@@ -1,31 +1,64 @@
-import { truncateText } from '../utils/canvas'
+import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
 
 export const EmailCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv, padding }) => {
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'left'
+  render: (ctx, props) => {
+    const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268', tag = {} } = props
+    const { renderAsTag, tagPaddingX = 8, tagHeight = 20, tagRadius = 6, tagBgColor = '#f4f4f0' } = props.tag || {}
 
-    const emailText = value?.toString() ?? ''
-    const isValidEmail = emailText && validateEmail(emailText)
-    const maxWidth = width - padding * 2
-    const truncatedText = truncateText(ctx, emailText, maxWidth)
-    const textY = y + height / 2
+    const text = value?.toString() ?? ''
+    const isValidEmail = text && validateEmail(text)
 
-    // Draw the text
-    ctx.fillStyle = (isValidEmail && selected) || pv ? '#4351e8' : '#4a5268'
-    ctx.fillText(truncatedText, x + padding, textY)
+    if (renderAsTag) {
+      const maxWidth = width - padding * 2 - tagPaddingX * 2
 
-    // Draw underline for valid email
-    if (isValidEmail) {
-      const textMetrics = ctx.measureText(truncatedText)
+      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+        x: x + padding + tagPaddingX,
+        y: y + padding,
+        text,
+        maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        render: false,
+      })
 
-      ctx.beginPath()
-      ctx.moveTo(x + padding, textY + 6)
-      ctx.lineTo(x + padding + textMetrics.width, textY + 6)
-      ctx.strokeStyle = selected ? '#4351e8' : '#4a5268'
-      ctx.lineWidth = 1
-      ctx.stroke()
+      renderTag(ctx, {
+        x: x + padding,
+        y: y + padding - 4,
+        width: textWidth + tagPaddingX * 2,
+        height: tagHeight,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
+      })
+
+      renderSingleLineText(ctx, {
+        x: x + padding + tagPaddingX,
+        y: y + padding,
+        text: truncatedText,
+        maxWidth: maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: textColor,
+        underline: isValidEmail,
+      })
+
+      return {
+        x: x + padding + textWidth + tagPaddingX * 2,
+        y: y + padding - 4 + tagHeight,
+      }
+    } else {
+      const maxWidth = width - padding * 2
+      const { width: textWidth } = renderSingleLineText(ctx, {
+        x: x + padding,
+        y: y + padding,
+        text,
+        maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: (isValidEmail && selected) || pv ? '#4351e8' : textColor,
+        underline: isValidEmail,
+      })
+
+      return {
+        x: x + padding + textWidth,
+        y: y + padding + 13 / 2,
+      }
     }
   },
 }

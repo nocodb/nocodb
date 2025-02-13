@@ -19,7 +19,7 @@ import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
-import {ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS} from './utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -470,6 +470,80 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 
   triggerRefreshCanvas()
 }
+
+// check exact row meta region hovered and return the cursor type
+const getRowMetaCursor = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+  const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
+  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
+  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+  const isHover = hoverRow.value === row.rowMeta.rowIndex
+  const regions = []
+  let currentX = 4
+  let isCheckboxRendered = false
+
+  if (isChecked || (selectedRows.value.length && isHover)) {
+    if (isChecked || isHover) {
+      regions.push({
+        x: currentX + 6,
+        width: 24,
+        action: isCheckboxDisabled ? 'none' : 'select',
+      })
+      isCheckboxRendered = true
+      currentX += 30
+    }
+  } else {
+    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
+      regions.push({
+        x: currentX,
+        width: 24,
+        action: 'reorder',
+      })
+      currentX += 24
+    } else if (!isHover) {
+      regions.push({
+        x: currentX + 8,
+        width: 24,
+        action: 'none',
+      })
+      currentX += 24
+    }
+  }
+
+  if (isHover && !isCheckboxRendered) {
+    regions.push({
+      x: currentX,
+      width: 24,
+      action: isCheckboxDisabled ? 'none' : 'select',
+    })
+    currentX += 24
+  }
+
+  // Comment/maximize icon region
+  regions.push({
+    x: currentX,
+    width: row.rowMeta?.commentCount ? 24 : 14,
+    action: 'comment',
+  })
+
+  const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
+
+  if (!clickedRegion) return
+
+  if (onlyDrag && clickedRegion.action !== 'reorder') return
+
+  switch (clickedRegion.action) {
+    case 'select':
+      return 'pointer'
+    case 'reorder':
+      if (e.detail === 1 && isRowReOrderEnabled.value) {
+        return 'pointer'
+      }
+      break
+    case 'comment':
+      return 'pointer'
+  }
+}
+
 let prevActiveCell = null
 let prevMenuState: {
   isCreateOrEditColumnDropdownOpen?: boolean
@@ -1121,6 +1195,12 @@ const handleMouseMove = (e: MouseEvent) => {
       imageLoader,
     })
   }
+
+  // check if hovering row meta column and set cursor
+  if (mousePosition.x < 80) {
+    cursor = getRowMetaCursor({ e, row, x, onlyDrag: true }) || cursor
+  }
+
   if (cursor) setCursor(cursor)
 }
 

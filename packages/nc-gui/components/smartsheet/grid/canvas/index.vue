@@ -119,7 +119,7 @@ const {
   onMouseUpFillHandlerEnd,
   isFillHandlerActive,
 } = useCanvasTable({
-  rowHeightEnum: props.rowHeightEnum,
+  rowHeightEnum: computed(() => props.rowHeightEnum),
   cachedRows,
   clearCache,
   chunkStates,

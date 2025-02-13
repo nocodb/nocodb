@@ -228,7 +228,6 @@ const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
   if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
-
   datePickerRef.value?.blur?.()
   timePickerRef.value?.blur?.()
   open.value = false
@@ -289,10 +288,6 @@ const cellClickHandler = () => {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
-
-onMounted(() => {
-  cellClickHook?.on(cellClickHandler)
-})
 onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })
@@ -451,7 +446,12 @@ onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     isDatePicker.value = true
     open.value = true
+    forcedNextTick(() => {
+      isDatePicker.value = true
+      open.value = true
+    })
   }
+  cellClickHook?.on(cellClickHandler)
 })
 </script>
 

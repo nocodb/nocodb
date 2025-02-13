@@ -228,8 +228,7 @@ export function useCanvasTable({
           uidt: f.uidt,
           width: gridViewCol.width,
           fixed: f.pv,
-          readonly: isReadonly(f) || !isAddingEmptyRowAllowed.value ||
-            isDataReadOnly.value,
+          readonly: isReadonly(f) || !isAddingEmptyRowAllowed.value || isDataReadOnly.value,
           isCellEditable: !isReadonly(f),
           pv: !!f.pv,
           virtual: isVirtualCol(f),

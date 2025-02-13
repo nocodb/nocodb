@@ -331,6 +331,9 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     open.value = true
+    forcedNextTick(() => {
+      open.value = true
+    })
   }
 })
 </script>

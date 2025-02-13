@@ -6,6 +6,7 @@ import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
+import { ImportSource, ImportType } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -381,80 +382,35 @@ const beforeUpload = (file: UploadFile) => {
 // UploadFile[] for csv import (streaming)
 // ArrayBuffer for excel import
 function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
-  let payload: ImportWorkerPayload
+  let importType: ImportType
   if (isImportTypeCsv.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: {
-            ...importState.parserConfig,
-            importFromURL: false,
-          },
-          value,
-          importType: ImportType.CSV,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: {
-            ...importState.parserConfig,
-            importFromURL: true,
-          },
-          value,
-          importType: ImportType.CSV,
-          importSource: ImportSource.FILE,
-        }
-        break
-    }
+    importType = ImportType.CSV
   } else if (IsImportTypeExcel.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.EXCEL,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.EXCEL,
-          importSource: ImportSource.URL,
-        }
-        break
-    }
+    importType = ImportType.EXCEL
   } else if (isImportTypeJson.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.URL,
-        }
-        break
-      case 'jsonEditorTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.STRING,
-        }
-        break
-    }
+    importType = ImportType.JSON
   }
-  return payload
+  importType = importType! ?? ImportType.CSV
+
+  let importSource: ImportSource
+  if (isPreImportFileFilled.value) {
+    importSource = ImportSource.FILE
+  } else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
+    importSource = ImportSource.URL
+  } else if (importType === ImportType.JSON) {
+    importSource = ImportSource.STRING
+  }
+  importSource = importSource! ?? ImportSource.FILE
+
+  return {
+    config: {
+      ...toRaw(importState.parserConfig),
+      importFromURL: importSource === ImportSource.URL,
+    },
+    value,
+    importType,
+    importSource,
+  }
 }
 
 // string for json import

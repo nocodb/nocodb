@@ -506,6 +506,9 @@ async function handleMouseDown(e: MouseEvent) {
 
     const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
+      if (rowIndex !== activeCell.value?.row) {
+        onActiveCellChanged()
+      }
       activeCell.value.row = rowIndex
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {

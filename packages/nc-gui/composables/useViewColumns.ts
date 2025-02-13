@@ -308,8 +308,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
+        reloadData?.({ shouldShowLoading: false })
+
       }
-      reloadData?.({ shouldShowLoading: false })
     }
 
     const showSystemFields = computed({

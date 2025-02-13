@@ -1,6 +1,6 @@
 import { LRUCache } from 'lru-cache'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
-import type { RenderSingleLineTextProps } from './types'
+import type { RenderSingleLineTextProps, RenderTagProps } from './types'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
@@ -161,4 +161,11 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
   }
 
   return { text: truncatedText, width }
+}
+
+export const renderTag = (ctx: CanvasRenderingContext2D, { x, y, height, width, fillStyle, radius }: RenderTagProps) => {
+  ctx.fillStyle = fillStyle
+  ctx.beginPath()
+  ctx.roundRect(x, y, width, height, radius)
+  ctx.fill()
 }

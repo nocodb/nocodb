@@ -9,6 +9,7 @@ import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
+import { getSingleMultiselectColOptions } from '../utils/cell'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -97,10 +98,19 @@ export function useCanvasTable({
         if (!gridViewCol) return false
         let relatedColObj
 
+        /**
+         * Add any extra computed things inside extra and use it
+         */
+        f.extra = {}
+
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
+        }
+
+        if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {
+          f.extra = getSingleMultiselectColOptions(f)
         }
 
         return {

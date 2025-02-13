@@ -151,6 +151,7 @@ export function useCanvasTable({
       x: xPos,
       y: startY,
       size: 8,
+      fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
   const { canvasRef, triggerRefreshCanvas } = useCanvasRender({

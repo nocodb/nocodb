@@ -169,19 +169,27 @@ export function useCanvasRender({
 
   const renderActiveState = (
     ctx: CanvasRenderingContext2D,
-    activeState: {
-      x: number
-      y: number
-      width: number
-      height: number
-    } | null,
+    activeState: { x: number; y: number; width: number; height: number } | null,
+    renderOverFixed = false,
   ) => {
-    if (activeState) {
-      ctx.strokeStyle = '#3366ff'
-      ctx.lineWidth = 2
-      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
-      ctx.lineWidth = 1
+    if (!activeState) return
+    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+    const isInFixedArea = activeState.x <= fixedWidth
+
+    if (isInFixedArea && !renderOverFixed) {
+      if (activeState.x + activeState.width <= fixedWidth) return
+
+      activeState = {
+        ...activeState,
+        x: fixedWidth,
+        width: activeState.width - (fixedWidth - activeState.x),
+      }
     }
+
+    ctx.strokeStyle = '#3366ff'
+    ctx.lineWidth = 2
+    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
+    ctx.lineWidth = 1
   }
 
   const calculateXPosition = (colIndex: number) => {
@@ -200,11 +208,24 @@ export function useCanvasRender({
     return width
   }
 
-  const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
-    if (selection.value.isEmpty()) return
+  const renderFillHandle = (ctx: CanvasRenderingContext2D, renderOverFixed = false) => {
+    if (selection.value.isEmpty()) return true
 
     const fillHandler = getFillHandlerPosition()
-    if (!fillHandler) return
+    if (!fillHandler) return true
+
+    let fixedWidth = 0
+    for (const col of columns.value) {
+      if (!col.fixed) break
+      fixedWidth += parseInt(col.width, 10)
+    }
+
+    const isInFixedColumn = fillHandler.x <= fixedWidth
+    if (isInFixedColumn) {
+      if (!renderOverFixed && !fillHandler.fixedCol) {
+        return true
+      }
+    }
 
     ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
     ctx.beginPath()
@@ -224,6 +245,7 @@ export function useCanvasRender({
       )
       ctx.setLineDash([])
     }
+    return true
   }
   function renderRows(ctx: CanvasRenderingContext2D) {
     const { end: endRowIndex } = rowSlice.value
@@ -239,6 +261,7 @@ export function useCanvasRender({
     for (let i = 0; i < startColIndex; i++) {
       initialXOffset += parseInt(columns.value[i]!.width, 10)
     }
+    let fillHandlerRendered = false
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
@@ -246,7 +269,6 @@ export function useCanvasRender({
 
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, width.value, rowHeight.value)
-
         if (row) {
           let xOffset = initialXOffset
 
@@ -301,7 +323,7 @@ export function useCanvasRender({
 
           renderActiveState(ctx, activeState)
           activeState = null
-          renderFillHandle(ctx)
+          fillHandlerRendered = renderFillHandle(ctx)
 
           const fixedCols = columns.value.filter((col) => col.fixed)
           if (fixedCols.length) {
@@ -350,6 +372,8 @@ export function useCanvasRender({
               ctx.moveTo(xOffset, yOffset)
               ctx.lineTo(xOffset, yOffset + rowHeight.value)
               ctx.stroke()
+              renderActiveState(ctx, activeState, true)
+              activeState = null
 
               xOffset += width
             })
@@ -387,8 +411,9 @@ export function useCanvasRender({
         yOffset += rowHeight.value
       }
     }
-    renderActiveState(ctx, activeState)
-    renderFillHandle(ctx)
+    if (!fillHandlerRendered) {
+      renderFillHandle(ctx, true)
+    }
   }
 
   const renderDragIndicator = (ctx: CanvasRenderingContext2D) => {

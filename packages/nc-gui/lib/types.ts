@@ -429,6 +429,7 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
+    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
   }) => Promise<void>
   [key: string]: any
 }

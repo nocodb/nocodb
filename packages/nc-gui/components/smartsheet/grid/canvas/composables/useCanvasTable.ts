@@ -389,6 +389,24 @@ export function useCanvasTable({
     if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null
     }
+    // If selection is single cell and cell is virtual, hide fill handler
+    if (selection.value.isSingleCell()) {
+      const selectedColumn = columns.value[selection.value.end.col]
+      // If the cell is virtual, hide the fill handler
+      if (selectedColumn?.virtual) {
+        return null
+      }
+    } else {
+      // If selection is not single cell and atleast one column is not virtual, show handler
+      // Check if all selected columns are virtual
+      const selectedColumns = columns.value.slice(selection.value.start.col, selection.value.end.col + 1)
+      const allColumnsVirtual = selectedColumns.every((col) => col?.virtual)
+
+      if (allColumnsVirtual) {
+        return null
+      }
+    }
+
 
     let xPos = 0
     const fixedCols = columns.value.filter((col) => col.fixed)

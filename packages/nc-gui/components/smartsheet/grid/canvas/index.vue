@@ -417,7 +417,7 @@ async function handleMouseDown(e: MouseEvent) {
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
-  if (y < 32) {
+  if (y < 32 && x > 80) {
     const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
     const plusColumnX = totalColumnsWidth - scrollLeft.value
     const plusColumnWidth = 60
@@ -435,7 +435,7 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   // Column Dropdown Menu
-  if (y < 32 && (e.button === 2 || e.detail === 2)) {
+  if (y < 32 && (e.button === 2 || e.detail === 2) && x > 80) {
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
       if (e.button === 2) {
@@ -452,6 +452,8 @@ async function handleMouseDown(e: MouseEvent) {
       }
     }
     triggerRefreshCanvas()
+    return
+  } else if (y < 32 && x < 80) {
     return
   }
 
@@ -496,7 +498,7 @@ async function handleMouseDown(e: MouseEvent) {
     selection.value.clear()
   }
 
-  if (y <= 32) {
+  if (y <= 32 && x > 80) {
     // Column Resize
     startResize(e)
     await nextTick(() => {

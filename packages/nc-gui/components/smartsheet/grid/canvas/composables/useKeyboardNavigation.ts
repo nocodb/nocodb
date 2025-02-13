@@ -80,7 +80,7 @@ export function useKeyboardNavigation({
       }
     }
 
-    if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell()) {
+    if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell() && !cmdOrCtrl) {
       const column = columns.value[activeCell.value.column]
       const row = cachedRows.value.get(activeCell.value.row)
       if (row && column?.columnObj && !editEnabled.value) {

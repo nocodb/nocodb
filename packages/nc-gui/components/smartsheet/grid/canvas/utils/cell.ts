@@ -97,6 +97,10 @@ export const MouseClickType = {
 export function getMouseClickType(e: MouseEvent) {
   if (e.button === 2) return MouseClickType.RIGHT_CLICK
 
+  if (e.ctrlKey && e.button === 0 && e.detail === 1) {
+    return MouseClickType.RIGHT_CLICK
+  }
+
   if (e.button === 0) {
     return e.detail === 1 ? MouseClickType.SINGLE_CLICK : MouseClickType.DOUBLE_CLICK
   }

@@ -609,12 +609,23 @@ export function useCanvasRender({
       }
     } else {
       if (!readOnly.value && isHover && isRowDraggingEnabled.value) {
+        const isHovered = isBoxHovered(
+          { x: currentX, y: yOffset + (rowHeight.value - 16) / 2, width: 24, height: 16 },
+          mousePosition,
+        )
+
+        if (isHovered) {
+          roundedRect(ctx, currentX, yOffset + (rowHeight.value - 20) / 2, 20, 20, 4, {
+            backgroundColor: isHovered ? '#F4F4F5' : 'transparent',
+          })
+        }
+
         spriteLoader.renderIcon(ctx, {
           icon: 'ncDrag',
           size: 16,
-          x: currentX,
+          x: currentX + 2,
           y: yOffset + (rowHeight.value - 16) / 2,
-          color: '#6B7280',
+          color: isHovered ? '#3265FF' : '#6B7280',
         })
         currentX += 24
       } else if (!isHover || !readOnly.value) {

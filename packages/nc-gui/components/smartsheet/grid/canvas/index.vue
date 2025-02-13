@@ -346,19 +346,21 @@ const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number 
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-
+  const isHover = hoverRow.value === row.rowMeta.rowIndex
   const regions = []
   let currentX = 4
   let isCheckboxRendered = false
 
-  if (isChecked) {
-    regions.push({
-      x: currentX,
-      width: 24,
-      action: isCheckboxDisabled ? 'none' : 'select',
-    })
-    isCheckboxRendered = true
-    currentX += 24
+  if (isChecked || (selectedRows.value.length && isHover)) {
+    if (isChecked || isHover) {
+      regions.push({
+        x: currentX,
+        width: 24,
+        action: isCheckboxDisabled ? 'none' : 'select',
+      })
+      isCheckboxRendered = true
+      currentX += 24
+    }
   } else {
     regions.push({
       x: currentX,

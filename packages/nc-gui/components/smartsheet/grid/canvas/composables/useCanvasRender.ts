@@ -436,19 +436,21 @@ export function useCanvasRender({
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
     let isCheckboxRendered = false
-    if (isChecked) {
+    if (isChecked || (selectedRows.value.length && isHover)) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
-      renderCheckbox(
-        ctx,
-        currentX,
-        yOffset + (rowHeight.value - 16) / 2,
-        isChecked,
-        isDisabled,
-        spriteLoader,
-        isCheckboxHovered ? '#3366FF' : '#6B7280',
-      )
-      isCheckboxRendered = true
-      currentX += 24
+      if (isChecked || isHover) {
+        renderCheckbox(
+          ctx,
+          currentX,
+          yOffset + (rowHeight.value - 16) / 2,
+          isChecked,
+          isDisabled,
+          spriteLoader,
+          isCheckboxHovered ? '#3366FF' : '#6B7280',
+        )
+        isCheckboxRendered = true
+        currentX += 24
+      }
     } else {
       if (isHover && isRowDraggingEnabled.value) {
         spriteLoader.renderIcon(ctx, {

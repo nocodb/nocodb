@@ -107,7 +107,7 @@ export function useCanvasRender({
     width = Math.min(width, rowIdx % 2 === 0 ? 124 : 144) - 24
 
     ctx.beginPath()
-    ctx.roundRect(x + 12, y + 7, width, 18, 10)
+    ctx.roundRect(x + 12, y + 7.5, width, 16, 10)
     ctx.fillStyle = '#E7E7E9'
     ctx.fill()
 

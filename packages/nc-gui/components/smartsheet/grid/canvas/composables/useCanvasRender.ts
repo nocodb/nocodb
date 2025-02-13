@@ -97,7 +97,7 @@ export function useCanvasRender({
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-    let initialOffset = 0
+    let initialOffset = 1
     for (let i = 0; i < startColIndex; i++) {
       initialOffset += parseInt(columns.value[i]!.width, 10)
     }
@@ -108,10 +108,19 @@ export function useCanvasRender({
     ctx.textBaseline = 'middle'
     ctx.imageSmoothingEnabled = false
 
-    let xOffset = initialOffset + 1
+    let xOffset = initialOffset
 
-    visibleCols.forEach((column) => {
+    for (const column of visibleCols) {
       const width = parseInt(column.width, 10)
+
+      if (column.fixed) {
+        xOffset += width
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, 0)
+        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.stroke()
+        continue
+      }
       const rightPadding = 8
       let iconSpace = rightPadding
 
@@ -180,7 +189,7 @@ export function useCanvasRender({
       ctx.moveTo(xOffset - scrollLeft.value, 0)
       ctx.lineTo(xOffset - scrollLeft.value, 32)
       ctx.stroke()
-    })
+    }
 
     const plusColumnWidth = 60
     ctx.fillStyle = '#f4f4f5'
@@ -218,7 +227,7 @@ export function useCanvasRender({
       ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height + (fillHandler ? 4 : 0))
       ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
       ctx.stroke()
-    } else {
+    } else if (visibleCols.filter((f) => !f.fixed).length) {
       // Draw full line if not intersecting with active state
       ctx.strokeStyle = '#f4f4f5'
       ctx.beginPath()
@@ -361,27 +370,38 @@ export function useCanvasRender({
 
   const renderActiveState = (
     ctx: CanvasRenderingContext2D,
-    activeState: { x: number; y: number; width: number; height: number } | null,
-    renderOverFixed = false,
+    activeState: { x: number; y: number; width: number; height: number; col: CanvasGridColumn } | null,
   ) => {
     if (!activeState) return
+
     const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
-    if (isInFixedArea && !renderOverFixed) {
-      if (activeState.x + activeState.width <= fixedWidth) return
+    if (activeState.col.fixed || !isInFixedArea) {
+      ctx.strokeStyle = '#3366ff'
+      ctx.lineWidth = 2
+      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
+      ctx.lineWidth = 1
+      return
+    }
 
-      activeState = {
+    // For non-fixed columns in fixed area, render only the part that extends beyond fixed area
+    if (isInFixedArea) {
+      if (activeState.x + activeState.width <= fixedWidth) {
+        return
+      }
+
+      const adjustedState = {
         ...activeState,
         x: fixedWidth,
         width: activeState.width - (fixedWidth - activeState.x),
       }
-    }
 
-    ctx.strokeStyle = '#3366ff'
-    ctx.lineWidth = 2
-    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
-    ctx.lineWidth = 1
+      ctx.strokeStyle = '#3366ff'
+      ctx.lineWidth = 2
+      roundedRect(ctx, adjustedState.x, adjustedState.y, adjustedState.width, adjustedState.height - 2, 2)
+      ctx.lineWidth = 1
+    }
   }
 
   const calculateXPosition = (colIndex: number) => {
@@ -593,8 +613,6 @@ export function useCanvasRender({
     let yOffset = -partialRowHeight.value + 33
 
     let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
-    // We need this variable because the activeState will get rewritten on fixedCol rendering.
-    let returnActiveState = null
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {
@@ -651,7 +669,6 @@ export function useCanvasRender({
                 width,
                 height: rowHeight.value,
               }
-              returnActiveState = activeState
             }
 
             const value = row.row[column.title]
@@ -677,9 +694,6 @@ export function useCanvasRender({
             })
             xOffset += width
           })
-
-          renderActiveState(ctx, activeState)
-          activeState = null
 
           const fixedCols = columns.value.filter((col) => col.fixed)
           if (fixedCols.length) {
@@ -712,7 +726,6 @@ export function useCanvasRender({
                     width,
                     height: rowHeight.value,
                   }
-                  returnActiveState = activeState
                 }
 
                 renderCell(ctx, column.columnObj, {
@@ -742,10 +755,10 @@ export function useCanvasRender({
               ctx.moveTo(xOffset, yOffset)
               ctx.lineTo(xOffset, yOffset + rowHeight.value)
               ctx.stroke()
-              renderActiveState(ctx, activeState, true)
 
               xOffset += width
             })
+
             if (scrollLeft.value) {
               ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
               ctx.shadowBlur = 2
@@ -753,30 +766,11 @@ export function useCanvasRender({
               ctx.shadowOffsetY = 0
             }
 
-            // Draw border for fixed columns
-            // The issue is the border gets drawn over the active state border.
-            // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
-            if (activeState && xOffset >= activeState.x && xOffset <= activeState.x + activeState.width) {
-              // Draw border above active state
-              ctx.strokeStyle = '#f4f4f5'
-              ctx.beginPath()
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, activeState.y)
-              ctx.stroke()
-
-              const fillHandler = getFillHandlerPosition()
-              // Draw border below active state
-              ctx.beginPath()
-              ctx.moveTo(xOffset, activeState.y + activeState.height + (fillHandler ? 4 : 0))
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-            } else {
-              ctx.strokeStyle = '#f4f4f5'
-              ctx.beginPath()
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-            }
+            ctx.strokeStyle = '#f4f4f5'
+            ctx.beginPath()
+            ctx.moveTo(xOffset, yOffset)
+            ctx.lineTo(xOffset, yOffset + rowHeight.value)
+            ctx.stroke()
 
             ctx.shadowColor = 'transparent'
             ctx.shadowBlur = 0
@@ -856,9 +850,10 @@ export function useCanvasRender({
         fontFamily: '600 12px Manrope',
       })
     }
+    renderActiveState(ctx, activeState)
     renderFillHandle(ctx)
 
-    return returnActiveState
+    return activeState
   }
 
   const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
@@ -907,7 +902,7 @@ export function useCanvasRender({
     }
 
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
-    let xOffset = initialOffset + 1
+    let xOffset = initialOffset
 
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { type ColumnReqType, type NcContext, type UserType } from 'nocodb-sdk';
-import { NcApiVersion, type NcRequest } from 'nocodb-sdk';
+import { type NcContext } from 'nocodb-sdk';
+import { type NcRequest } from 'nocodb-sdk';
 import { PgDataMigration } from './formula-column-type-changer/pg-data-migration';
-import { ColumnsService } from './columns.service';
-import type { ReusableParams } from './columns.service';
 import type { FormulaDataMigrationDriver } from './formula-column-type-changer';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
@@ -14,7 +12,7 @@ export const DEFAULT_BATCH_LIMIT = 100000;
 
 @Injectable()
 export class FormulaColumnTypeChanger {
-  constructor(protected readonly columnsService: ColumnsService) {
+  constructor() {
     const pgDriver = new PgDataMigration();
     this.dataMigrationDriver[pgDriver.dbDriverName] = pgDriver;
   }
@@ -27,41 +25,35 @@ export class FormulaColumnTypeChanger {
     context: NcContext,
     params: {
       req: NcRequest;
-      columnId: string;
-      newColumnType: ColumnReqType;
-      user: UserType;
-      reuse?: ReusableParams;
+      formulaColumn: Column;
+      newColumn: Column;
     },
   ) {
-    const formulaColumn = await Column.get(context, { colId: params.columnId });
-    const newColumn = await this.columnsService.columnAdd<NcApiVersion.V3>(
-      context,
-      {
-        column: params.newColumnType,
-        req: params.req,
-        user: params.user,
-        reuse: params.reuse,
-        tableId: formulaColumn.fk_model_id,
-        apiVersion: NcApiVersion.V3,
-        suppressFormulaError: false,
-      },
-    );
-    await this.migrateDataFromId(context, {
-      formulaColumnId: formulaColumn.id,
-      destinationColumnId: newColumn.id,
+    try {
+      await this.startMigrateData(context, {
+        formulaColumn: params.formulaColumn,
+        destinationColumn: params.newColumn,
+      });
+    } catch (ex) {
+      await Column.delete(context, params.newColumn.id);
+      throw ex;
+    }
+    return await Column.updateFormulaColumnToNewType(context, {
+      formulaColumn: params.formulaColumn,
+      destinationColumn: params.newColumn,
     });
   }
+
   async startMigrateData(
     context: NcContext,
     {
-      formulaColumnId,
-      destinationColumnId,
+      formulaColumn,
+      destinationColumn,
     }: {
-      formulaColumnId: string;
-      destinationColumnId: string;
+      formulaColumn: Column;
+      destinationColumn: Column;
     },
   ) {
-    const formulaColumn = await Column.get(context, { colId: formulaColumnId });
     const model = await Model.getWithInfo(context, {
       id: formulaColumn.fk_model_id,
     });
@@ -70,44 +62,21 @@ export class FormulaColumnTypeChanger {
       modelId: model.id,
     });
     const rowCount = await baseModel.count();
-    
-  }
-
-  async migrateDataFromId(
-    context: NcContext,
-    {
-      formulaColumnId,
-      destinationColumnId,
-      offset = 0,
-      limit = DEFAULT_BATCH_LIMIT,
-    }: {
-      formulaColumnId: string;
-      destinationColumnId: string;
-      offset?: number;
-      limit?: number;
-    },
-  ) {
-    const formulaColumn = await Column.get(context, { colId: formulaColumnId });
-    const destinationColumn = await Column.get(context, {
-      colId: destinationColumnId,
-    });
-    const model = await Model.getWithInfo(context, {
-      id: formulaColumn.fk_model_id,
-    });
-    const baseModel = await getBaseModelSqlFromModelId({
-      context,
-      modelId: model.id,
-    });
+    if (rowCount === 0) {
+      return;
+    }
     const formulaColumnOption =
       await formulaColumn.getColOptions<FormulaColumn>(context);
-    return await this.migrateData({
-      baseModelSqlV2: baseModel,
-      formulaColumn,
-      formulaColumnOption,
-      destinationColumn,
-      offset,
-      limit,
-    });
+    for (let i = 0; i < rowCount; i += DEFAULT_BATCH_LIMIT) {
+      await this.migrateData({
+        baseModelSqlV2: baseModel,
+        destinationColumn,
+        formulaColumn,
+        formulaColumnOption,
+        offset: i,
+        limit: DEFAULT_BATCH_LIMIT,
+      });
+    }
   }
 
   async migrateData({

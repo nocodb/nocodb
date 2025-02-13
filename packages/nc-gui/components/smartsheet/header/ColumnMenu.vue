@@ -18,6 +18,7 @@ const virtual = toRef(props, 'virtual')
 const isOpen = useVModel(props, 'isOpen', emit)
 
 const column = toRef(props, 'column')
+provide(ColumnInj, column)
 
 const { eventBus, allFilters } = useSmartsheetStoreOrThrow()
 

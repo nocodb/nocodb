@@ -299,7 +299,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
-function handleMouseDown(e: MouseEvent) {
+async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
   openColumnDropdownField.value = null
@@ -387,10 +387,12 @@ function handleMouseDown(e: MouseEvent) {
   if (y <= 32) {
     // Column Resize
     startResize(e)
-    if (!resizeableColumn.value) {
-      startDrag(e.clientX - rect.left)
-      triggerRefreshCanvas()
-    }
+    await nextTick(() => {
+      if (!resizeableColumn.value) {
+        startDrag(e.clientX - rect.left)
+        triggerRefreshCanvas()
+      }
+    })
   } else {
     // Row Selection
     const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
@@ -493,7 +495,7 @@ const handleMouseMove = (e: MouseEvent) => {
     }
   } else {
     const y = e.clientY - rect.top
-    if (y <= 32) {
+    if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
     } else {
       hoverRow.value = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start

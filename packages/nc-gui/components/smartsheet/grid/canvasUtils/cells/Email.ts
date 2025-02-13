@@ -1,0 +1,36 @@
+import { truncateText } from '../canvasUtils';
+import type { CellEditor, CellRenderer } from '../useCellRenderer'
+
+export const EmailCellRenderer: CellRenderer = {
+  render: (ctx, { value, x, y, width, height, selected }) => {
+    const padding = 10
+    ctx.fillStyle = '#4a5268'
+    ctx.font = '400 12px Manrope'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+
+    const emailText = value?.toString() ?? ''
+    const isValidEmail = emailText && validateEmail(emailText)
+    const maxWidth = width - padding * 2
+    const truncatedText = truncateText(ctx, emailText, maxWidth)
+    const textY = y + height / 2
+
+    // Draw the text
+    ctx.fillStyle = isValidEmail && selected ? '#4351e8' : '#4a5268'
+    ctx.fillText(truncatedText, x + padding, textY)
+
+    // Draw underline for valid email
+    if (isValidEmail) {
+      const textMetrics = ctx.measureText(truncatedText)
+
+      ctx.beginPath()
+      ctx.moveTo(x + padding, textY + 6)
+      ctx.lineTo(x + padding + textMetrics.width, textY + 6)
+      ctx.strokeStyle = selected ? '#4351e8' : '#4a5268'
+      ctx.lineWidth = 1
+      ctx.stroke()
+    }
+  },
+}
+
+export const EmailCellEditor: CellEditor = {} as CellEditor

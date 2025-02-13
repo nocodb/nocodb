@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'ant-design-vue/lib/table'
 import { normalizeWidth, useColumnResize } from './canvasUtils/useColumnResize'
+import { useCellRenderer } from './canvasUtils/useCellRenderer'
+import { roundedRect } from './canvasUtils/canvasUtils'
 
 // Refs
 const canvasRef = ref()
@@ -8,6 +11,16 @@ const containerRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
 const rowSlice = ref({ start: 0, end: 0 })
+const activeCell = ref({ row: -1, column: -1 })
+const editEnabled = ref<{
+  rowIndex: number
+  column: ColumnType
+  row: Row
+  x: number
+  y: number
+  width: number
+  height: number
+} | null>(null)
 
 // Injections
 const meta = inject(MetaInj, ref())
@@ -27,6 +40,7 @@ const { totalRows, syncCount, cachedRows, chunkStates, loadData, clearCache } = 
 )
 const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
 const { height } = useElementSize(containerRef)
+const { renderCell } = useCellRenderer()
 
 // Computed
 const visibleColumns = computed(() => {
@@ -92,80 +106,6 @@ const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
     })
   },
 )
-
-function renderHeader(ctx: CanvasRenderingContext2D) {
-  // Header background
-  ctx.fillStyle = '#f4f4f5'
-  ctx.fillRect(0, 0, totalWidth.value, 32)
-
-  // Header borders
-  ctx.strokeStyle = '#e7e7e9'
-  ctx.lineWidth = 1
-
-  // Bottom border
-  ctx.beginPath()
-  ctx.moveTo(0, 32)
-  ctx.lineTo(totalWidth.value, 32)
-  ctx.stroke()
-
-  // Left border
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.lineTo(0, 32)
-  ctx.stroke()
-
-  // Right border
-  ctx.beginPath()
-  ctx.moveTo(totalWidth.value, 0)
-  ctx.lineTo(totalWidth.value, 32)
-  ctx.stroke()
-
-  // Regular columns
-  ctx.fillStyle = '#6a7184'
-  ctx.font = '550 12px Manrope'
-  ctx.textBaseline = 'middle'
-  ctx.imageSmoothingEnabled = false
-
-  let xOffset = 0
-  visibleColumns.value.forEach((column) => {
-    const width = parseInt(column.width, 10)
-    ctx.fillText(column.title, xOffset + 10, 16)
-
-    xOffset += width
-
-    ctx.beginPath()
-    ctx.moveTo(xOffset, 0)
-    ctx.lineTo(xOffset, 32)
-    ctx.stroke()
-  })
-
-  // Fixed columns
-  const fixedCols = visibleColumns.value.filter((col) => col.fixed)
-  if (fixedCols.length) {
-    xOffset = scrollLeft.value
-
-    fixedCols.forEach((column, index) => {
-      const width = parseInt(column.width, 10)
-
-      // Draw background
-      ctx.fillStyle = '#f4f4f5'
-      ctx.fillRect(xOffset, 0, width, 32)
-
-      // Draw title
-      ctx.fillStyle = '#6a7184'
-      ctx.fillText(column.title!, xOffset + 10, 16)
-
-      xOffset += width
-
-      // Draw vertical border
-      ctx.strokeStyle = index === fixedCols.length - 1 ? '#d1d1d1' : '#e7e7e9'
-      ctx.beginPath()
-      ctx.moveTo(xOffset, 0)
-      ctx.lineTo(xOffset, 32)
-      ctx.stroke()
-    })
-  }
-}
 
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
@@ -257,9 +197,84 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
+function renderHeader(ctx: CanvasRenderingContext2D) {
+  // Header background
+  ctx.fillStyle = '#f4f4f5'
+  ctx.fillRect(0, 0, totalWidth.value, 32)
+
+  // Header borders
+  ctx.strokeStyle = '#e7e7e9'
+  ctx.lineWidth = 1
+
+  // Bottom border
+  ctx.beginPath()
+  ctx.moveTo(0, 32)
+  ctx.lineTo(totalWidth.value, 32)
+  ctx.stroke()
+
+  // Left border
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(0, 32)
+  ctx.stroke()
+
+  // Right border
+  ctx.beginPath()
+  ctx.moveTo(totalWidth.value, 0)
+  ctx.lineTo(totalWidth.value, 32)
+  ctx.stroke()
+
+  // Regular columns
+  ctx.fillStyle = '#6a7184'
+  ctx.font = '550 12px Manrope'
+  ctx.textBaseline = 'middle'
+  ctx.imageSmoothingEnabled = false
+
+  let xOffset = 0
+  visibleColumns.value.forEach((column) => {
+    const width = parseInt(column.width, 10)
+    ctx.fillText(column.title, xOffset + 10, 16)
+
+    xOffset += width
+
+    ctx.beginPath()
+    ctx.moveTo(xOffset, 0)
+    ctx.lineTo(xOffset, 32)
+    ctx.stroke()
+  })
+
+  // Fixed columns
+  const fixedCols = visibleColumns.value.filter((col) => col.fixed)
+  if (fixedCols.length) {
+    xOffset = scrollLeft.value
+
+    fixedCols.forEach((column, index) => {
+      const width = parseInt(column.width, 10)
+
+      // Draw background
+      ctx.fillStyle = '#f4f4f5'
+      ctx.fillRect(xOffset, 0, width, 32)
+
+      // Draw title
+      ctx.fillStyle = '#6a7184'
+      ctx.fillText(column.title!, xOffset + 10, 16)
+
+      xOffset += width
+
+      // Draw vertical border
+      ctx.strokeStyle = index === fixedCols.length - 1 ? '#d1d1d1' : '#e7e7e9'
+      ctx.beginPath()
+      ctx.moveTo(xOffset, 0)
+      ctx.lineTo(xOffset, 32)
+      ctx.stroke()
+    })
+  }
+}
+
 function renderRows(ctx: CanvasRenderingContext2D) {
   const { start: startIndex, end: endIndex } = rowSlice.value
   let yOffset = 32
+  let activeState = null
 
   for (let rowIdx = startIndex; rowIdx < endIndex; rowIdx++) {
     const row = cachedRows.value.get(rowIdx)
@@ -270,9 +285,8 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
     if (row) {
       let xOffset = 0
-      visibleColumns.value.forEach((column) => {
+      visibleColumns.value.forEach((column, index) => {
         const width = parseInt(column.width, 10)
-        const value = row.row[column.title]
 
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
@@ -280,16 +294,33 @@ function renderRows(ctx: CanvasRenderingContext2D) {
         ctx.lineTo(xOffset, yOffset + 32)
         ctx.stroke()
 
-        // Cell content
-        ctx.fillStyle = '#000000'
-        ctx.font = '400 12px Manrope'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(
-          value?.toString() ?? '',
-          xOffset + 10,
-          yOffset + 16,
-        )
+        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === index
 
+        if (isActive) {
+          activeState = {
+            x: xOffset,
+            y: yOffset,
+            width,
+            height: 32,
+          }
+        }
+        const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
+
+        renderCell(
+          ctx,
+          metaColumnById.value[column.id] ?? {
+            uidt: UITypes.AutoNumber,
+          },
+          {
+            value,
+            x: xOffset,
+            y: yOffset,
+            width,
+            height: 32,
+            row: row.row,
+            selected: isActive,
+          },
+        )
         xOffset += width
       })
 
@@ -297,19 +328,42 @@ function renderRows(ctx: CanvasRenderingContext2D) {
       const fixedCols = visibleColumns.value.filter((col) => col.fixed)
       if (fixedCols.length) {
         xOffset = scrollLeft.value
+
         fixedCols.forEach((column, index) => {
           const width = parseInt(column.width, 10)
-          const value = row.row[column.title]
+          const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
+
+          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === index
+
+          if (isActive) {
+            activeState = {
+              x: xOffset,
+              y: yOffset,
+              width,
+              height: 32,
+            }
+          }
 
           ctx.fillStyle = '#ffffff'
           ctx.fillRect(xOffset, yOffset, width, 32)
 
-          // Cell content
-          ctx.fillStyle = '#000000'
-          ctx.fillText(value?.toString() ?? '', xOffset + 10, yOffset + 16)
+          renderCell(
+            ctx,
+            metaColumnById.value[column.id] ?? {
+              uidt: UITypes.AutoNumber,
+            },
+            {
+              value,
+              x: xOffset,
+              y: yOffset,
+              width,
+              height: 32,
+              row: row.row,
+              selected: isActive,
+            },
+          )
 
-          // Cell border
-          ctx.strokeStyle = index === fixedCols.length - 1 ? '#d1d1d1' : '#f4f4f5'
+          ctx.strokeStyle = index === fixedCols.length - 1 ? '#f4f4f5' : '#d1d1d1'
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + 32)
@@ -333,6 +387,11 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
     yOffset += 32
   }
+  if (activeState) {
+    ctx.strokeStyle = '#3366ff'
+    ctx.lineWidth = 2
+    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2)
+  }
 }
 function drawCanvas() {
   const canvas = canvasRef.value
@@ -351,6 +410,71 @@ function drawCanvas() {
 
   renderHeader(ctx)
   renderRows(ctx)
+}
+
+function handleMouseClick(e: MouseEvent) {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top - 32
+
+  const rowIndex = Math.floor((y + scrollTop.value) / 32)
+
+  let xOffset = 0
+  let clickedColumn = null
+
+  // Check fixed columns first
+  const fixedCols = visibleColumns.value.filter((col) => col.fixed)
+  if (fixedCols.length) {
+    xOffset = scrollLeft.value
+    for (const column of fixedCols) {
+      const width = parseInt(column.width, 10)
+      if (x >= xOffset && x < xOffset + width) {
+        clickedColumn = column
+        break
+      }
+      xOffset += width
+    }
+  }
+
+  // If not clicked on fixed column, check regular columns
+  if (!clickedColumn) {
+    xOffset = 0
+    for (const column of visibleColumns.value) {
+      const width = parseInt(column.width, 10)
+      if (x >= xOffset && x < xOffset + width) {
+        clickedColumn = column
+        break
+      }
+      xOffset += width
+    }
+  }
+
+  const colIndex = visibleColumns.value.findIndex((col) => col.id === clickedColumn?.id)
+
+  if (clickedColumn) {
+    // Update active cell
+    activeCell.value = { row: rowIndex, column: colIndex }
+
+    if (e.detail === 2) {
+      editEnabled.value = {
+        rowIndex,
+        x: xOffset,
+        y: (rowIndex + 1) * 32 - scrollTop.value,
+        column: metaColumnById.value[clickedColumn.id],
+        row: cachedRows.value.get(rowIndex),
+        height: 32,
+        width: parseInt(clickedColumn.width, 10),
+      }
+    }
+    // Redraw canvas
+    requestAnimationFrame(drawCanvas)
+  }
+}
+
+const updateOrSaveRow = (...args) => {
+  console.log(args)
 }
 
 let rafnId: number | null = null
@@ -378,6 +502,8 @@ onMounted(async () => {
   canvasRef.value?.addEventListener('mousedown', handleMouseDown)
 
   await syncCount()
+  calculateSlices()
+  await updateVisibleRows()
   requestAnimationFrame(drawCanvas)
 })
 onBeforeUnmount(() => {
@@ -402,8 +528,33 @@ onBeforeUnmount(() => {
           :height="`${height}px`"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
+          @click="handleMouseClick"
         >
         </canvas>
+        <div
+          v-if="editEnabled"
+          :style="{
+            top: `${editEnabled.y}px`,
+            left: `${editEnabled.x}px`,
+            width: `${editEnabled.width}px`,
+            height: `${editEnabled.height}`,
+            borderRadius: '2px',
+          }"
+          class="absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
+        >
+          <LazySmartsheetRow :row="editEnabled.row">
+            <template #default="{ state }">
+              <SmartsheetCell
+                v-model="editEnabled.row.row[editEnabled.column.title]"
+                :column="editEnabled.column"
+                :row-index="editEnabled.rowIndex"
+                active
+                edit-enabled
+                @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+              />
+            </template>
+          </LazySmartsheetRow>
+        </div>
       </div>
     </div>
   </div>

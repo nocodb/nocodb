@@ -31,7 +31,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     # patchShebangs skel
-    fakeroot s6-linux-init-maker -N -1 -f ${./skel} -c ${basedir} compiled
+    fakeroot s6-linux-init-maker -C -N -1 -f ${./skel} -c ${basedir} compiled
 
     cd compiled
     find . | cpio -Hnewc --create > $out

@@ -33,14 +33,23 @@ interface TruncateTextWithInfoType {
  * @param ctx - The canvas rendering context used to measure the text width.
  * @param text - The text string to be truncated.
  * @param maxWidth - The maximum allowed width for the text. The text will be truncated if it exceeds this width.
+ * @param withInfo - Whether to return the truncated text along with its width.
  * @returns A string containing the truncated text, with ellipsis ("...") if it doesn't fit within the maxWidth.
  */
-export const truncateText = (
+
+export function truncateText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  withInfo: true,
+): TruncateTextWithInfoType
+export function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, withInfo?: false): string
+export function truncateText(
   ctx: CanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   withInfo = false,
-): string | TruncateTextWithInfoType => {
+): string | TruncateTextWithInfoType {
   text = text?.toString() ?? ''
 
   let testWidth = ctx.measureText(text).width
@@ -121,6 +130,7 @@ export const renderCheckbox = (
   isChecked: boolean,
   isDisabled: boolean,
   spriteLoader: SpriteLoader,
+  strokeColor = '#E5E7EB',
 ) => {
   const size = 16
   const radius = 4
@@ -142,7 +152,7 @@ export const renderCheckbox = (
       })
     }
 
-    ctx.strokeStyle = '#E5E7EB'
+    ctx.strokeStyle = strokeColor ?? '#E5E7EB'
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
@@ -160,7 +170,7 @@ export const renderCheckbox = (
     ctx.fillStyle = '#FFFFFF'
     ctx.fill()
 
-    ctx.strokeStyle = '#D1D5DB'
+    ctx.strokeStyle = strokeColor ?? '#D1D5DB'
     ctx.lineWidth = 1
     ctx.stroke()
   }

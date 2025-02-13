@@ -1,23 +1,20 @@
 import { parse } from 'papaparse'
 import {
-  type AIRecordType,
   type AttachmentType,
   type ColumnType,
   type LinkToAnotherRecordType,
   type TableType,
   UITypes,
-  type UserFieldRecordType,
   type ViewType,
-  isDateMonthFormat,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   populateUniqueFileName,
 } from 'nocodb-sdk'
-import dayjs from 'dayjs'
 import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserHelpers'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
+import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
 
 const CHUNK_SIZE = 50
 
@@ -39,10 +36,10 @@ export function useCopyPaste({
   updateOrSaveRow,
 }: {
   totalRows: Ref<number>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: { row: number; column: number }
   columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: (row?: number, column?: number) => void
-  selection: Ref<CellRange>
+  selection: CellRange
   cachedRows: Ref<Map<number, Row>>
   editEnabled: Ref<{
     rowIndex: number
@@ -112,7 +109,7 @@ export function useCopyPaste({
       !isExpandedCellInputExist() &&
       !isLinkDropdownExist() &&
       !editEnabled.value &&
-      !(activeCell.value.row === -1 || activeCell.value.column === -1)
+      !(activeCell.row === -1 || activeCell.column === -1)
     )
   })
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -181,16 +178,16 @@ export function useCopyPaste({
 
         const clipboardMatrix = parsedClipboard.data as string[][]
 
-        const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
+        const selectionRowCount = Math.max(clipboardMatrix.length, selection.end.row - selection.start.row + 1)
 
         const pasteMatrixCols = clipboardMatrix[0]?.length || 0
-        const startColIndex = selection.value.start.col - 1
+        const startColIndex = selection.start.col - 1
         const existingFields = fields.value
         const existingColCount = existingFields.length - startColIndex
         const newColsNeeded = Math.max(0, pasteMatrixCols - existingColCount)
 
         const tempTotalRows = totalRows.value
-        const totalRowsBeforeActiveCell = selection.value.start.row
+        const totalRowsBeforeActiveCell = selection.start.row
         const availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
 
@@ -256,7 +253,7 @@ export function useCopyPaste({
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
-          colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
+          colsToPaste = fields.value.slice(selection.start.col, selection.start.col + pasteMatrixCols)
         }
 
         const dataRef = unref(cachedRows)
@@ -335,9 +332,9 @@ export function useCopyPaste({
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
       } else {
-        if (selection.value.isSingleCell()) {
-          const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.value.row)
-          const columnObj = unref(fields)[activeCell.value.column]
+        if (selection.isSingleCell()) {
+          const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
+          const columnObj = unref(fields)[activeCell.column]
 
           if (!rowObj || !columnObj) return
 
@@ -375,7 +372,7 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title })
+            return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
 
           // Handle many-to-many column paste
@@ -521,7 +518,7 @@ export function useCopyPaste({
               })
             }
 
-            return await syncCellData?.(activeCell.value)
+            return await syncCellData?.(activeCell)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -548,9 +545,9 @@ export function useCopyPaste({
             rowObj.row[columnObj.title!] = pasteValue
           }
 
-          await syncCellData?.(activeCell.value)
+          await syncCellData?.(activeCell)
         } else {
-          const { start, end } = selection.value
+          const { start, end } = selection
 
           const startRow = Math.min(start.row, end.row)
           const endRow = Math.max(start.row, end.row)
@@ -668,170 +665,12 @@ export function useCopyPaste({
     }
   }
 
-  const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
-
-    if (columnObj.uidt === UITypes.Checkbox) {
-      textToCopy = !!textToCopy
-    }
-
-    if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(columnObj.uidt as UITypes)) {
-      if (textToCopy) {
-        textToCopy = Array.isArray(textToCopy)
-          ? textToCopy
-          : [textToCopy]
-              .map((user: UserFieldRecordType) => {
-                return user.email
-              })
-              .join(', ')
-      }
-    }
-
-    if (isBt(columnObj) || isOo(columnObj)) {
-      // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
-      textToCopy = {
-        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
-        value: textToCopy || null,
-      }
-    }
-
-    if (isMm(columnObj)) {
-      textToCopy = {
-        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
-        columnId: columnObj.id,
-        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
-        value: !isNaN(+textToCopy) ? +textToCopy : 0,
-      }
-    }
-
-    if (typeof textToCopy === 'object') {
-      textToCopy = JSON.stringify(textToCopy)
-    } else {
-      textToCopy = textToCopy.toString()
-    }
-
-    if (columnObj.uidt === UITypes.Formula) {
-      textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
-        // TODO(timezone): retrieve the format from the corresponding column meta
-        // assume hh:mm at this moment
-        return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
-      })
-    }
-
-    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt as UITypes)) {
-      // remove `"`
-      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-      textToCopy = textToCopy.replace(/["']/g, '')
-
-      const isMySQL = isMysql(columnObj.source_id)
-
-      let d = dayjs(textToCopy)
-
-      if (!d.isValid()) {
-        // insert a datetime value, copy the value without refreshing
-        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
-        // feed custom parse format
-        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-      }
-
-      // users can change the datetime format in UI
-      // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-      // therefore, here we reformat to the correct datetime format based on the meta
-      textToCopy = d.format(constructDateTimeFormat(columnObj))
-
-      if (!d.isValid()) {
-        // return empty string for invalid datetime
-        return ''
-      }
-    }
-
-    if (columnObj.uidt === UITypes.Date) {
-      const dateFormat = parseProp(columnObj.meta)?.date_format
-
-      if (dateFormat && isDateMonthFormat(dateFormat)) {
-        // any date month format (e.g. YYYY-MM) couldn't be stored in database
-        // with date type since it is not a valid date
-        // therefore, we reformat the value here to display with the formatted one
-        // e.g. 2023-06-03 -> 2023-06
-        textToCopy = dayjs(textToCopy, dateFormat).format(dateFormat)
-      } else {
-        // e.g. 2023-06-03 (in DB) -> 03/06/2023 (in UI)
-        textToCopy = dayjs(textToCopy, 'YYYY-MM-DD').format(dateFormat)
-      }
-    }
-
-    if (columnObj.uidt === UITypes.Time) {
-      // remove `"`
-      // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-      textToCopy = textToCopy.replace(/["']/g, '')
-
-      const isMySQL = isMysql(columnObj.source_id)
-      const isPostgres = isPg(columnObj.source_id)
-
-      let d = dayjs(textToCopy)
-
-      if (!d.isValid()) {
-        // insert a datetime value, copy the value without refreshing
-        // e.g. textToCopy = 2023-05-12T03:49:25.000Z
-        // feed custom parse format
-        d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-      }
-
-      if (!d.isValid()) {
-        // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
-        d = isMySQL || isPostgres ? dayjs(textToCopy, 'HH:mm:ss') : dayjs(textToCopy)
-      }
-
-      if (!d.isValid()) {
-        // return empty string for invalid time
-        return ''
-      }
-
-      textToCopy = d.format(constructTimeFormat(columnObj))
-    }
-
-    if (columnObj.uidt === UITypes.LongText) {
-      if (parseProp(columnObj.meta)?.[LongTextAiMetaProp] === true) {
-        const aiCell: AIRecordType = (columnObj.title && rowObj.row[columnObj.title]) || null
-
-        if (aiCell) {
-          textToCopy = aiCell.value
-        }
-      } else {
-        textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
-      }
-    }
-
-    return textToCopy
-  }
-
-  const serializeRange = (rows: Row[], cols: ColumnType[]) => {
-    let html = '<table>'
-    let text = ''
-    const json: string[][] = []
-
-    rows.forEach((row, i) => {
-      let copyRow = '<tr>'
-      const jsonRow: string[] = []
-      cols.forEach((col, i) => {
-        const value = valueToCopy(row, col)
-        copyRow += `<td>${value}</td>`
-        text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(value)
-      })
-      html += `${copyRow}</tr>`
-      if (rows.length - 1 !== i) {
-        text = `${text}\n`
-      }
-      json.push(jsonRow)
-    })
-    html += '</table>'
-
-    return { html, text, json }
-  }
-
   const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols)
+    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols, {
+      meta: meta.value,
+      isPg,
+      isMysql,
+    })
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
@@ -899,8 +738,8 @@ export function useCopyPaste({
                 rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
               }
 
-              activeCell.value.column = ctx.col
-              activeCell.value.row = ctx.row
+              activeCell.column = ctx.col
+              activeCell.row = ctx.row
 
               scrollToCell?.()
             } else {
@@ -925,8 +764,8 @@ export function useCopyPaste({
               } else if (isMm(columnObj)) {
                 await cleaMMCell(rowObj, columnObj)
               }
-              activeCell.value.column = ctx.col
-              activeCell.value.row = ctx.row
+              activeCell.column = ctx.col
+              activeCell.row = ctx.row
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -964,10 +803,10 @@ export function useCopyPaste({
 
   async function copyValue(ctx?: Cell) {
     try {
-      if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        console.log(selection.value.start)
-        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
+      if (selection.start !== null && selection.end !== null && !selection.isSingleCell()) {
+        console.log(selection.start)
+        const startChunkId = Math.floor(selection.start.row / CHUNK_SIZE)
+        const endChunkId = Math.floor(selection.end.row / CHUNK_SIZE)
 
         const chunksToFetch = new Set<number>()
         for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
@@ -978,25 +817,29 @@ export function useCopyPaste({
         await Promise.all([...chunksToFetch].map(fetchChunk))
 
         const cprows = Array.from(unref(cachedRows).entries())
-          .filter(([index]) => index >= selection.value.start.row && index <= selection.value.end.row)
+          .filter(([index]) => index >= selection.start.row && index <= selection.end.row)
           .map(([, row]) => row)
 
-        const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
+        const cpcols = unref(fields).slice(selection.start.col, selection.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
         message.success(t('msg.info.copiedToClipboard'))
       } else {
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
-        const cpRow = ctx?.row ?? activeCell.value.row
-        const cpCol = ctx?.col ?? activeCell.value.column
+        const cpRow = ctx?.row ?? activeCell.row
+        const cpCol = ctx?.col ?? activeCell.column
 
         if (cpRow != null && cpCol != null) {
           const rowObj = unref(cachedRows).get(cpRow)
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
-          const textToCopy = valueToCopy(rowObj, columnObj)
+          const textToCopy = valueToCopy(rowObj, columnObj, {
+            meta: meta.value,
+            isPg,
+            isMysql,
+          })
 
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))

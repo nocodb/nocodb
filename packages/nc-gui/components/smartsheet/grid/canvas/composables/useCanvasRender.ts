@@ -33,6 +33,7 @@ export function useCanvasRender({
   isDragging,
   draggedRowIndex,
   targetRowIndex,
+  mousePosition,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -40,13 +41,13 @@ export function useCanvasRender({
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: { row: number; column: number }
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
-  selection: Ref<CellRange>
+  selection: CellRange
   isAiFillMode: ComputedRef<boolean>
   isRowDraggingEnabled: ComputedRef<boolean>
   isFillMode: Ref<boolean>
@@ -59,6 +60,7 @@ export function useCanvasRender({
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
+  mousePosition: { x: number; y: number }
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -232,15 +234,17 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        // Chevron down
-        rightOffset -= 16
-        spriteLoader.renderIcon(ctx, {
-          icon: 'chevronDown',
-          size: 14,
-          color: '#6a7184',
-          x: rightOffset,
-          y: 9,
-        })
+        if (column.uidt) {
+          // Chevron down
+          rightOffset -= 16
+          spriteLoader.renderIcon(ctx, {
+            icon: 'chevronDown',
+            size: 14,
+            color: '#6a7184',
+            x: rightOffset,
+            y: 9,
+          })
+        }
 
         // Error icon if invalid
         if (column.isInvalidColumn?.isInvalid) {
@@ -338,7 +342,7 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D, renderOverFixed = false) => {
-    if (selection.value.isEmpty()) return true
+    if (selection.isEmpty()) return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
@@ -362,15 +366,15 @@ export function useCanvasRender({
     ctx.fill()
 
     if (isFillMode.value) {
-      const startY = -partialRowHeight.value + 33 + (selection.value.start.row - rowSlice.value.start) * rowHeight.value
+      const startY = -partialRowHeight.value + 33 + (selection.start.row - rowSlice.value.start) * rowHeight.value
 
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
       ctx.strokeRect(
-        calculateXPosition(selection.value.start.col) - scrollLeft.value,
+        calculateXPosition(selection.start.col) - scrollLeft.value,
         startY,
-        calculateSelectionWidth(selection.value.start.col, selection.value.end.col),
-        (selection.value.end.row - selection.value.start.row + 1) * rowHeight.value,
+        calculateSelectionWidth(selection.start.col, selection.end.col),
+        (selection.end.row - selection.start.row + 1) * rowHeight.value,
       )
       ctx.setLineDash([])
     }
@@ -400,7 +404,16 @@ export function useCanvasRender({
     const isDisabled = selectedRows.length >= 100 || vSelectedAllRecords.value
 
     if (isChecked) {
-      renderCheckbox(ctx, currentX, yOffset + (rowHeight.value - 16) / 2, isChecked, isDisabled, spriteLoader)
+      const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
+      renderCheckbox(
+        ctx,
+        currentX,
+        yOffset + (rowHeight.value - 16) / 2,
+        isChecked,
+        isDisabled,
+        spriteLoader,
+        isCheckboxHovered ? '#3366FF' : '#6B7280',
+      )
       currentX += 24
     } else {
       if (isHover && isRowDraggingEnabled.value) {
@@ -423,7 +436,16 @@ export function useCanvasRender({
     }
 
     if (isHover && !isDisabled) {
-      renderCheckbox(ctx, currentX, yOffset + (rowHeight.value - 16) / 2, isChecked, isDisabled, spriteLoader)
+      const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
+      renderCheckbox(
+        ctx,
+        currentX,
+        yOffset + (rowHeight.value - 16) / 2,
+        isChecked,
+        isDisabled,
+        spriteLoader,
+        isCheckboxHovered ? '#3366FF' : '#6B7280',
+      )
       currentX += 24
     }
 
@@ -520,7 +542,7 @@ export function useCanvasRender({
               return
             }
 
-            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+            if (selection.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
               ctx.fillStyle = '#EBF0FF'
               ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
             }
@@ -531,7 +553,7 @@ export function useCanvasRender({
             ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
             ctx.stroke()
 
-            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+            const isActive = activeCell.row === rowIdx && activeCell.column === absoluteColIdx
 
             if (isActive) {
               activeState = {
@@ -575,7 +597,7 @@ export function useCanvasRender({
               const width = parseInt(column.width, 10)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
-              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+              if (selection.isCellInRange({ row: rowIdx, col: colIdx })) {
                 ctx.fillStyle = '#EBF0FF'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               } else {
@@ -588,7 +610,7 @@ export function useCanvasRender({
               } else {
                 const value = row.row[column.title]
 
-                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+                const isActive = activeCell.row === rowIdx && activeCell.column === colIdx
 
                 if (isActive) {
                   activeState = {

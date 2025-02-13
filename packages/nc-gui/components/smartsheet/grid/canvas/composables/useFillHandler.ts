@@ -1,3 +1,8 @@
+import type { ColumnType, TableType, UITypes, ViewType } from 'nocodb-sdk'
+import type { Row } from '../../../../../lib/types'
+import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
+import { serializeRange } from '../../../../../utils/pasteUtils'
+
 export function useFillHandler({
   isFillMode,
   selection,
@@ -6,15 +11,32 @@ export function useFillHandler({
   getFillHandlerPosition,
   triggerReRender,
   rowSlice,
+  cachedRows,
+  columns,
+  bulkUpdateRows,
+  meta,
+  fillRange,
 }: {
-  selection: Ref<CellRange>
+  selection: CellRange
+  fillRange: CellRange
   canvasRef: Ref<HTMLCanvasElement>
   rowHeight: Ref<number>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   triggerReRender: () => void
   rowSlice: Ref<{ start: number; end: number }>
+  columns: ComputedRef<CanvasGridColumn[]>
+  cachedRows: Ref<Map<number, Row>>
+  bulkUpdateRows: (
+    rows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>
+  meta: Ref<TableType>
 }) {
+  const { isMysql, isPg } = useBase()
+
   const fillStartCell = ref<{ row: number; col: number } | null>(null)
   const isFillEnded = ref(false)
 
@@ -39,8 +61,8 @@ export function useFillHandler({
     if (isOverFillHandler(x, y)) {
       isFillMode.value = true
       fillStartCell.value = {
-        row: selection.value.end.row,
-        col: selection.value.end.col,
+        row: selection.end.row,
+        col: selection.end.col,
       }
     }
     triggerReRender()
@@ -54,7 +76,7 @@ export function useFillHandler({
 
     const y = e.clientY - rect.top
     const row = Math.floor((y - 32) / rowHeight.value)
-    selection.value.endRange({
+    selection.endRange({
       row: row + rowSlice.value.start,
       col: fillStartCell.value.col,
     })

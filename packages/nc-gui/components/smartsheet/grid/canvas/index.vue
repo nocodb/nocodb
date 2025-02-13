@@ -442,14 +442,12 @@ async function handleMouseDown(e: MouseEvent) {
           mousePosition: { x, y },
         })
       }
-      if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
+      const columnUIType = clickedColumn.columnObj.uidt as UITypes
+      if (columnUIType === UITypes.Rating) {
+        // Rating is functional as is
+      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
-        if (
-          !supportedVirtuals.includes(clickedColumn.columnObj.uidt as UITypes) &&
-          clickedColumn?.virtual &&
-          !isLinksOrLTAR(clickedColumn.columnObj)
-        )
-          return
+        if (!supportedVirtuals.includes(columnUIType) && clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
         makeCellEditable(rowIndex, clickedColumn)
       } else {
         onMouseDownSelectionHandler(e)

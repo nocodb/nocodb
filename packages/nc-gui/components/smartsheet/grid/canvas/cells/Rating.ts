@@ -64,6 +64,8 @@ function getIconsData({
   }
 }
 
+const inactiveColor = '#d9d9d9'
+
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
     const { value, x, y, width, height, column, spriteLoader, padding, mousePosition } = props
@@ -110,11 +112,13 @@ export const RatingCellRenderer: CellRenderer = {
       const isHovered = hoveredIconIndex >= 0 && i <= hoveredIconIndex
 
       let iconColor
-      if (isHovered || isActive) {
+
+      if (isHovered) {
         iconColor = ratingMeta.color
       } else {
-        iconColor = '#d9d9d9'
+        iconColor = inactiveColor
       }
+      if (hoveredIconIndex === -1) iconColor = isActive ? ratingMeta.color : inactiveColor
 
       if (row < maxRows) {
         const x = startX + col * iconWidthWithSpacing

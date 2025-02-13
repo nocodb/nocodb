@@ -388,9 +388,9 @@ export const ButtonCellRenderer: CellRenderer = {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const isInvalid = column?.isInvalidColumn?.isInvalid
-    const tooltipText = column?.isInvalidColumn?.tooltip
+    const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
-    if (!isInvalid || !tooltipText) return
+    if (!isInvalid || ignoreTooltip) return
 
     const { aiIntegrations } = useNocoAi()
 

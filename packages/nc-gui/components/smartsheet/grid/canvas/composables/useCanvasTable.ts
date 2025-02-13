@@ -248,7 +248,7 @@ export function useCanvasTable({
           relatedTableMeta,
           isInvalidColumn: {
             ...isInvalid,
-            tooltip: isInvalid.tooltip && t(isInvalid.tooltip),
+            tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
           },
           abstractType: sqlUi?.getAbstractType(f),
         }

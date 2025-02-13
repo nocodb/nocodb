@@ -287,7 +287,7 @@ export default defineNuxtConfig({
         'youtube-vue3',
         'lru-cache',
         'qrcode',
-        '@floating-ui/vue'
+        '@floating-ui/vue',
       ],
       esbuildOptions: {
         define: {

@@ -57,7 +57,7 @@ export function useCanvasRender({
   spriteLoader: SpriteLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
-  selectedRows: Row[]
+  selectedRows: Ref<Row[]>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
@@ -402,8 +402,8 @@ export function useCanvasRender({
     let currentX = xOffset + 4
 
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-    const isDisabled = selectedRows.length >= 100 || vSelectedAllRecords.value
-
+    const isDisabled = vSelectedAllRecords.value
+    let isCheckboxRendered = false
     if (isChecked) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
       renderCheckbox(
@@ -415,6 +415,7 @@ export function useCanvasRender({
         spriteLoader,
         isCheckboxHovered ? '#3366FF' : '#6B7280',
       )
+      isCheckboxRendered = true
       currentX += 24
     } else {
       if (isHover && isRowDraggingEnabled.value) {
@@ -425,18 +426,18 @@ export function useCanvasRender({
           y: yOffset + (rowHeight.value - 16) / 2,
           color: '#6B7280',
         })
+        currentX += 24
       } else {
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'left'
         ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
+        currentX += 24
       }
-
-      currentX += 24
     }
 
-    if (isHover && !isDisabled) {
+    if (isHover && !isDisabled && !isCheckboxRendered && !(selectedRows.value.length >= 100)) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
       renderCheckbox(
         ctx,

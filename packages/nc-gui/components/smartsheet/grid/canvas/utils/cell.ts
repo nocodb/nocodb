@@ -57,3 +57,15 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
 }
 
 export const NO_EDITABLE_CELL = [UITypes.Rating, UITypes.Checkbox]
+
+export const renderAsCellLookupOrLtarValue = [
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.User,
+  UITypes.Checkbox,
+  UITypes.Attachment,
+  UITypes.Rating,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Lookup,
+]

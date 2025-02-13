@@ -227,11 +227,9 @@ async function handleMouseDown(e: MouseEvent) {
     if (clickedColumn) {
       clickedColumn.x = xOffset
       openAggregationField.value = clickedColumn
-
       return
     }
   }
-
   if (x < 80) {
     return
   }
@@ -480,14 +478,13 @@ onMounted(async () => {
 
       <template v-if="openAggregationField">
         <NcDropdown
-          :key="openAggregationField?.id"
-          :visible="true"
           :overlay-style="{
             top: `${height - 162}px`,
             minWidth: `${openAggregationField?.width}`,
             width: `${openAggregationField?.width}`,
             left: `calc(100svw - ${width}px + ${openAggregationField?.x}px)`,
           }"
+          :visible="true"
         >
           <div></div>
           <template #overlay>

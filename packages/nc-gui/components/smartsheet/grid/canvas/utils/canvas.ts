@@ -878,7 +878,7 @@ export const renderMarkdown = (
       ctx.strokeStyle = fillStyle
     }
     // Render the text lines
-    renderRes = renderBarcode(ctx, {
+    renderRes = renderMarkdownBlocks(ctx, {
       blocks,
       x,
       y: y + yOffset,

@@ -1456,7 +1456,7 @@ const increaseMinHeightBy: Record<string, number> = {
     }
 
     :deep(.nc-cell-datetime) {
-      @apply !py-0.75 !px-2;
+      @apply !py-0.75 !px-1.5;
     }
   }
 

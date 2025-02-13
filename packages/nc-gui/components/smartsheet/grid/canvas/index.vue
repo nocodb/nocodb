@@ -12,7 +12,7 @@ import type { CellRange } from '../../../../composables/useMultiSelect/cellRange
 import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import { clearTextCache } from './utils/canvas'
+import { clearTextCache, defaultOffscreen2DContext } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { NO_EDITABLE_CELL } from './utils/cell'
@@ -519,7 +519,7 @@ async function handleMouseDown(e: MouseEvent) {
         onActiveCellChanged()
       }
 
-      if(rowIndex > totalRows.value) return
+      if (rowIndex > totalRows.value) return
 
       activeCell.value.row = rowIndex
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -661,9 +661,7 @@ const getHeaderTooltipRegions = (
       })
     }
 
-    const canvas = new OffscreenCanvas(0, 0)
-
-    const ctx = canvas.getContext('2d')!
+    const ctx = defaultOffscreen2DContext
     const availableTextWidth = width - (26 + iconSpace)
     const isTruncated = ctx.measureText(column.title!).width > availableTextWidth
     if (isTruncated) {

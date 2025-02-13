@@ -1,8 +1,5 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { isBoxHovered, truncateText } from '../utils/canvas'
-
-const offscreenCanvas = new OffscreenCanvas(0, 0)
-const defaultContext = offscreenCanvas.getContext('2d')!
+import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -85,7 +82,7 @@ export const UrlCellRenderer: CellRenderer = {
     const isValid = urlText && isValidURL(urlText)
     if (!isValid) return false
     const pv = column.pv
-    const ctx = defaultContext
+    const ctx = defaultOffscreen2DContext
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'

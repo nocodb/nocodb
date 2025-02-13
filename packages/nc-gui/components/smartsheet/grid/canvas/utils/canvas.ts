@@ -276,7 +276,7 @@ export const renderSingleLineText = (
         ? height && (rowHeightInPx['1'] === height || isTagLabel)
           ? height / 2
           : fontSize / 2 + (py ?? 0)
-        : 0 + (py ?? 0)
+        : py ?? 0
 
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
@@ -352,11 +352,11 @@ const renderLines = (
     lines,
     x,
     y,
-    textAlign,
-    verticalAlign,
+    textAlign: _,
+    verticalAlign: _1,
     lineHeight,
     fontSize,
-    fillStyle,
+    fillStyle: _2,
     underline,
   }: {
     lines: string[]
@@ -637,3 +637,6 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
 
   return abstractType
 }
+
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+export const defaultOffscreen2DContext = offscreenCanvas.getContext('2d')!

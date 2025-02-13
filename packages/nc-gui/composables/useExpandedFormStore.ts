@@ -63,8 +63,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {

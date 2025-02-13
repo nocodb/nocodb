@@ -17,7 +17,6 @@ const route = useRoute()
 
 const meta = inject(MetaInj, ref())
 
-
 /* stores */
 
 const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
@@ -134,13 +133,14 @@ async function copyComment(comment: CommentType) {
     <div
       class="flex items-center gap-2 bg-gray-50 px-4 py-1.9 border-b border-gray-200 rounded-t-lg"
       :class="{
-        '!bg-[#F0F3FF]': isCreatedByYou
-      }">
+        '!bg-[#F0F3FF]': isCreatedByYou,
+      }"
+    >
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
           display_name: props.comment.displayName,
-          meta: props.comment.created_by_meta
+          meta: props.comment.created_by_meta,
         }"
         class="w-[24px] aspect-square"
       />
@@ -205,11 +205,7 @@ async function copyComment(comment: CommentType) {
           overlay-class-name="!min-w-[160px]"
           placement="bottomRight"
         >
-          <NcButton
-            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
-            size="xsmall"
-            type="text"
-          >
+          <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200" size="xsmall" type="text">
             <GeneralIcon class="text-md" icon="threeDotVertical" />
           </NcButton>
           <template #overlay>

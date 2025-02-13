@@ -1,5 +1,12 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { isBoxHovered, renderIconButton, renderMultiLineText, renderSpinner, truncateText } from '../utils/canvas'
+import {
+  defaultOffscreen2DContext,
+  isBoxHovered,
+  renderIconButton,
+  renderMultiLineText,
+  renderSpinner,
+  truncateText,
+} from '../utils/canvas'
 
 const getButtonDimensions = ({
   ctx,
@@ -13,8 +20,7 @@ const getButtonDimensions = ({
   hasIcon?: boolean
 }) => {
   if (!ctx) {
-    const canvas = new OffscreenCanvas(0, 0)
-    ctx = canvas.getContext('2d')!
+    ctx = defaultOffscreen2DContext
   }
 
   const horizontalPadding = 12

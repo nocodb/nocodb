@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const YearCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -53,7 +53,7 @@ export const YearCellRenderer: CellRenderer = {
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
 
-    const canvasContext = new OffscreenCanvas(0, 0).getContext('2d')!
+    const canvasContext = defaultOffscreen2DContext
 
     let textWidth = 0
     if (value) {

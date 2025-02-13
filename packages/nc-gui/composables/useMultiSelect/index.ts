@@ -12,15 +12,7 @@ import type {
   UserFieldRecordType,
   ViewType,
 } from 'nocodb-sdk'
-import {
-  UITypes,
-  dateFormats,
-  isDateMonthFormat,
-  isSystemColumn,
-  isVirtualCol,
-  populateUniqueFileName,
-  timeFormats,
-} from 'nocodb-sdk'
+import { UITypes, isDateMonthFormat, isSystemColumn, isVirtualCol, populateUniqueFileName } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Row } from '../../lib/types'
 import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
@@ -974,7 +966,7 @@ export function useMultiSelect(
             if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               if (columnObj.uidt === UITypes.LongText) {
                 if (rowObj.row[columnObj.title] === '<br />' || rowObj.row[columnObj.title] === '<br>') {
-                  rowObj.row[columnObj.title] = e.key 
+                  rowObj.row[columnObj.title] = e.key
                 } else if (parseProp(columnObj.meta).richMode) {
                   rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }

@@ -429,10 +429,15 @@ function shouldShowRaw(key: string) {
     text-decoration: line-through;
   }
 }
-.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell .nc-cell .nc-cell-field.nc-cell-field {
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell
+  .nc-cell
+  .nc-cell-field.nc-cell-field {
   font-size: 13px !important;
 }
-.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell .nc-cell :where(.nc-date-picker) span {
+.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell.nc-audit-mini-item-cell
+  .nc-cell
+  :where(.nc-date-picker)
+  span {
   font-size: 13px !important;
 }
 </style>

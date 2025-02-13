@@ -108,6 +108,9 @@ export function truncateText(
     }
   }
 
+  // Final measurement to ensure consistency
+  testWidth = ctx.measureText(truncated).width
+
   if (withInfo) {
     return {
       width: testWidth,

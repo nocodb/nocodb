@@ -12,10 +12,11 @@ import type { CellRange } from '../../../../composables/useMultiSelect/cellRange
 import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import { clearTextCache, defaultOffscreen2DContext } from './utils/canvas'
+import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { NO_EDITABLE_CELL } from './utils/cell'
+import { COLUMN_HEADER_HEIGHT_IN_PX } from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -416,6 +417,13 @@ async function handleMouseDown(e: MouseEvent) {
 
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
+
+  if (y <= COLUMN_HEADER_HEIGHT_IN_PX && x < parseInt(columns.value[0]?.width ?? '', 10)) {
+    if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      vSelectedAllRecords.value = !vSelectedAllRecords.value
+      return
+    }
+  }
 
   if (y < 32 && x > 80) {
     const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)

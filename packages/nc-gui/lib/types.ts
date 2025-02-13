@@ -1,17 +1,17 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
-import type {
-  BaseType,
-  ColumnType,
-  FilterType,
-  MetaType,
-  PaginatedType,
-  PublicAttachmentScope,
-  Roles,
-  RolesObj,
-  TableType,
-  UITypes,
-  ViewTypes,
+import {
+  type BaseType,
+  type ColumnType,
+  type FilterType,
+  type MetaType,
+  type PaginatedType,
+  type PublicAttachmentScope,
+  type Roles,
+  type RolesObj,
+  type TableType,
+  type UITypes,
+  type ViewTypes,
 } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'

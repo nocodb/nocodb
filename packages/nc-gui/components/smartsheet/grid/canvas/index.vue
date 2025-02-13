@@ -131,6 +131,9 @@ const {
   onMouseMoveFillHandlerMove,
   onMouseUpFillHandlerEnd,
   isFillHandlerActive,
+
+  // RowReorder
+  onMouseDownRowReorderStart,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -146,6 +149,7 @@ const {
   aggregations,
   vSelectedAllRecords,
   selectedRows,
+  updateRecordOrder,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()
@@ -243,6 +247,7 @@ async function handleMouseDown(e: MouseEvent) {
     }
   }
   if (x < 80) {
+    onMouseDownRowReorderStart(e)
     return
   }
 

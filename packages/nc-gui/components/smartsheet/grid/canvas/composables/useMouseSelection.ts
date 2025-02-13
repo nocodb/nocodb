@@ -31,9 +31,10 @@ export function useMouseSelection({
     let fixedWidth = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (let i = 0; i < fixedCols.length; i++) {
-      const width = parseInt(fixedCols[i].width, 10)
+      if (!fixedCols[i]?.width) continue
+      const width = parseInt(fixedCols[i]!.width, 10)
       if (x >= fixedWidth && x < fixedWidth + width) {
-        return { row, col: i === 0 ? -1 : columns.value.findIndex((c) => c.id === fixedCols[i].id) }
+        return { row, col: i === 0 ? -1 : columns.value.findIndex((c) => c.id === fixedCols[i]!.id) }
       }
       fixedWidth += width
     }
@@ -42,8 +43,8 @@ export function useMouseSelection({
 
     let accumulatedWidth = 0
     for (let i = fixedCols.length; i < columns.value.length; i++) {
-      if (columns.value[i].fixed) continue
-      const width = parseInt(columns.value[i].width, 10)
+      if (columns.value?.[i]?.fixed) continue
+      const width = parseInt(columns.value[i]!.width, 10)
       if (adjustedX >= accumulatedWidth && adjustedX < accumulatedWidth + width) {
         return { row, col: i }
       }

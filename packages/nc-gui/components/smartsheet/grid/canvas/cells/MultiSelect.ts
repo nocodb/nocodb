@@ -8,7 +8,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
-    const tagPadding = 8
+    const tagPadding = 9
     const tagSpacing = 4
     const tagHeight = 20
     const topPadding = 6
@@ -72,7 +72,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + tagPadding,
-        y,
+        y: y + 1,
         text: truncatedText,
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',

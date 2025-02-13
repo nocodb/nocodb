@@ -1,7 +1,7 @@
 import { isBoxHovered, renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 
-const tagPadding = 8
+const tagPadding = 9
 const tagHeight = 20
 const topPadding = 6
 
@@ -36,7 +36,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     renderSingleLineText(ctx, {
       x: x + padding + tagPadding,
-      y,
+      y: y + 1,
       text: truncatedText,
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',

@@ -114,7 +114,7 @@ const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
 
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect])
+const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
 
 provide(ClientMousePositionInj, clientMousePosition)
 
@@ -1484,6 +1484,9 @@ const increaseMinHeightBy: Record<string, number> = {
         @apply mt-[4px];
       }
     }
+  }
+  :deep(.nc-cell-multiselect) {
+    @apply !px-2;
   }
 
   :deep(.nc-single-select) {

@@ -1,4 +1,4 @@
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 
 const MAX_SELECTION_LIMIT = 100
@@ -164,6 +164,11 @@ export function useKeyboardNavigation({
             makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
           }
         } else {
+          const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment]
+          const column = columns.value[activeCell.value.column]
+          if (NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.columnObj.uidt)) {
+            return
+          }
           editEnabled.value = null
           activeCell.value.row++
         }

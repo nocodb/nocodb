@@ -120,7 +120,6 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
       knex.raw(formulaValueTable),
       knex.raw(idOffsetTable),
     ]);
-    console.log(qb.toQuery())
     await qb;
   }
 }

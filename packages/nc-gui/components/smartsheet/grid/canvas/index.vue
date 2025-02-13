@@ -518,6 +518,9 @@ async function handleMouseDown(e: MouseEvent) {
       if (rowIndex !== activeCell.value?.row) {
         onActiveCellChanged()
       }
+
+      if(rowIndex > totalRows.value) return
+
       activeCell.value.row = rowIndex
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {

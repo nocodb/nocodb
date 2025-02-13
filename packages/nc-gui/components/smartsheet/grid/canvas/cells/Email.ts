@@ -1,4 +1,4 @@
-import { renderSingleLineText, renderTag } from '../utils/canvas'
+import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -44,7 +44,7 @@ export const EmailCellRenderer: CellRenderer = {
         y: y + padding - 4 + tagHeight,
       }
     } else {
-      const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
+      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
         y: y,
         text,

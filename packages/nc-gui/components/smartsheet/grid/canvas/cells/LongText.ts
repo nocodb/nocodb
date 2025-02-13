@@ -146,7 +146,7 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition, cellRenderStore, setCursor } = props
+    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor } = props
 
     const isRichMode = column.columnObj?.meta?.richMode
 
@@ -173,7 +173,10 @@ export const LongTextCellRenderer: CellRenderer = {
     } else {
       const { tryShowTooltip, hideTooltip } = useTooltipStore()
       hideTooltip()
-      if (!row || !column?.id || !mousePosition) return
+
+      const text = value?.toString() ?? ''
+
+      if (!row || !column?.id || !mousePosition || !text) return
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }

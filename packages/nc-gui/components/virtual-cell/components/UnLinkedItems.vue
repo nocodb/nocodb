@@ -5,7 +5,7 @@ import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
 
-const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord'])
+const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -324,6 +324,7 @@ const isSearchInputFocused = ref(false)
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
+    if (!childrenExcludedListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
   } else if (e.key === 'Enter') {
     if (

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ref, type Ref } from 'vue';
+import { type Ref, ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
@@ -217,6 +217,7 @@ onUnmounted(() => {
         :cell-value="localCellValue"
         :column="m2mColumn"
         @attach-record="onAttachRecord"
+        @escape="isOpen = false"
       />
       <LazyVirtualCellComponentsUnLinkedItems
         v-if="listItemsDlg"
@@ -224,6 +225,7 @@ onUnmounted(() => {
         :column="m2mColumn"
         :hide-back-btn="hideBackBtn"
         @attach-linked-record="onAttachLinkedRecord"
+        @escape="isOpen = false"
       />
     </template>
   </LazyVirtualCellComponentsLinkRecordDropdown>

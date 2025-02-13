@@ -35,6 +35,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         maxWidth: maxWidth,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: textColor,
+        height,
       })
 
       return {
@@ -42,19 +43,19 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         y: y + padding - 4 + tagHeight,
       }
     } else {
-      const maxWidth = width - padding * 2
-      const { width: textWidth } = renderSingleLineText(ctx, {
+      const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y: y + padding,
         text,
-        maxWidth,
+        maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#4351e8' : textColor,
+        height,
       })
 
       return {
-        x: x + padding + textWidth,
-        y: y + padding + 13 / 2,
+        x: xOffset,
+        y: yOffset,
       }
     }
   },

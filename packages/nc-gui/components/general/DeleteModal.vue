@@ -6,9 +6,11 @@ const props = withDefaults(
     onDelete: () => Promise<void>
     deleteLabel?: string | undefined
     showDefaultDeleteMsg?: boolean
+    maskClosable?: boolean
   }>(),
   {
     showDefaultDeleteMsg: true,
+    maskClosable: true,
   },
 )
 
@@ -24,6 +26,7 @@ const { t } = useI18n()
 const deleteLabel = computed(() => props.deleteLabel ?? t('general.delete'))
 
 const onDelete = async () => {
+  if (isLoading.value) return
   isLoading.value = true
   try {
     await props.onDelete()
@@ -59,7 +62,7 @@ watch(visible, (value) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" size="small" centered>
+  <GeneralModal v-model:visible="visible" :mask-closable="maskClosable" size="small" centered>
     <div ref="modalRef" class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-gray-800">{{ deleteLabel }} {{ props.entityName }}</div>
 
@@ -80,7 +83,7 @@ watch(visible, (value) => {
         </a-alert>
       </template>
       <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <NcButton type="secondary" size="small" @click="visible = false">
+        <NcButton :disabled="isLoading" type="secondary" size="small" @click="visible = false">
           {{ $t('general.cancel') }}
         </NcButton>
 

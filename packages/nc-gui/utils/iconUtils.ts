@@ -295,6 +295,9 @@ import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
+import NcGoogleCloud from '~icons/nc-icons/google-cloud'
+import NcAzure from '~icons/nc-icons/azure'
+import NcAws from '~icons/nc-icons/aws'
 
 // Buttons Icons V2
 
@@ -1637,6 +1640,10 @@ export const iconMap = {
   ncLogoZoho: h(NcLogoZoho, { stroke: 'transparent' }),
   ncSendAlt: h(NcSendAlt, { stroke: 'transparent' }),
   ncAiPlay: AiPlayIcon,
+
+  ncGoogleCloud: h(NcGoogleCloud, { stroke: 'transparent' }),
+  ncAzure: h(NcAzure, { stroke: 'transparent' }),
+  ncAws: h(NcAws, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {

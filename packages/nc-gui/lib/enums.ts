@@ -113,6 +113,7 @@ export enum JobStatus {
   FAILED = 'failed',
   PAUSED = 'paused',
   REFRESH = 'refresh',
+  CLOSE = 'close',
 }
 
 export enum ImportWorkerOperations {

@@ -4,6 +4,7 @@ const props = withDefaults(
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
     visible?: boolean | undefined
     overlayClassName?: string | undefined
+    overlayStyle?: Record<string, any>
     disabled?: boolean
     placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter' | 'right'
     autoClose?: boolean
@@ -15,6 +16,7 @@ const props = withDefaults(
     disabled: false,
     overlayClassName: undefined,
     autoClose: true,
+    overlayStyle: {},
   },
 )
 
@@ -34,6 +36,9 @@ const overlayClassNameComputed = computed(() => {
     className += ` ${overlayClassName.value}`
   }
   return className
+})
+const overlayStyleComputed = computed(() => {
+  return props.overlayStyle
 })
 
 const visible = useVModel(props, 'visible', emits)
@@ -68,6 +73,7 @@ const onVisibleUpdate = (event: any) => {
     :placement="placement as any"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
+    :overlay-style="overlayStyleComputed"
     @update:visible="onVisibleUpdate"
   >
     <slot />

@@ -399,6 +399,7 @@ interface CanvasGridColumn {
   pv: boolean
   columnObj: ColumnType
   aggregation: string
+  agg_fn: string
   agg_prefix: string
   relatedColObj?: ColumnType
 }

@@ -2,6 +2,7 @@
 import { type ColumnType, type TableType, type ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
+import Aggregation from './context/Aggregation.vue'
 import type { Row } from '~/lib/types'
 
 const props = defineProps<{
@@ -83,6 +84,7 @@ const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
+const openAggregationField = ref<CanvasGridColumn | null>(null)
 
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -181,6 +183,7 @@ const calculateSlices = () => {
 
 function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
+  openAggregationField.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -188,7 +191,46 @@ function handleMouseDown(e: MouseEvent) {
   const x = e.clientX - rect.left
 
   if (y > height.value - 36) {
-    return
+    let clickedColumn
+    const fixedCols = columns.value.filter((col) => col.fixed)
+    let xOffset = 0
+
+    for (const column of fixedCols) {
+      const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
+      if (x >= xOffset && x < xOffset + width) {
+        if (!column.uidt) {
+          xOffset += width
+          continue
+        }
+        clickedColumn = column
+        break
+      }
+    }
+
+    if (!clickedColumn) {
+      const visibleStart = colSlice.value.start
+      const visibleEnd = colSlice.value.end
+
+      const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+      xOffset = startOffset - scrollLeft.value
+
+      for (let i = visibleStart; i < visibleEnd; i++) {
+        const width = columnWidths.value[i] ?? 10
+        if (x >= xOffset && x < xOffset + width) {
+          clickedColumn = columns.value[i]
+          break
+        }
+        xOffset += width
+      }
+    }
+    if (clickedColumn) {
+      clickedColumn.x = xOffset
+      openAggregationField.value = clickedColumn
+      console.log(clickedColumn)
+
+      return
+    }
   }
 
   if (x < 80) {
@@ -436,6 +478,24 @@ onMounted(async () => {
           </template>
         </LazySmartsheetRow>
       </div>
+
+      <template v-if="openAggregationField">
+        <NcDropdown
+          :key="openAggregationField?.id"
+          :visible="true"
+          :overlay-style="{
+            top: `${height - 162}px`,
+            minWidth: `${openAggregationField?.width}px`,
+            width: `${openAggregationField?.width}px`,
+            left: `calc(100svh-${width}px+${openAggregationField?.x}px)`,
+          }"
+        >
+          <div></div>
+          <template #overlay>
+            <Aggregation :column="openAggregationField" />
+          </template>
+        </NcDropdown>
+      </template>
     </div>
   </div>
 </template>

@@ -21,7 +21,7 @@ export class FormulaColumnTypeChanger {
     const sqliteDriver = new SqliteDataMigration();
     this.dataMigrationDriver['postgre'] = pgDriver;
     this.dataMigrationDriver[pgDriver.dbDriverName] = pgDriver;
-    this.dataMigrationDriver['maridb'] = mysqlDriver;
+    this.dataMigrationDriver['mariadb'] = mysqlDriver;
     this.dataMigrationDriver['mysql2'] = mysqlDriver;
     this.dataMigrationDriver[mysqlDriver.dbDriverName] = mysqlDriver;
     this.dataMigrationDriver[sqliteDriver.dbDriverName] = sqliteDriver;

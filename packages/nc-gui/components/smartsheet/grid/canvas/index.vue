@@ -548,9 +548,13 @@ async function handleMouseDown(e: MouseEvent) {
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
       if (e.detail === 2 && columnUIType === UITypes.Lookup) {
         makeCellEditable(rowIndex, clickedColumn)
-      } else if (NO_EDITABLE_CELL.includes(columnUIType)) {
-        // Rating is functional as is
-      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
+      } else if (
+        e.detail === 2 ||
+        (e.detail === 1 &&
+          clickedColumn?.virtual &&
+          !isButton({ uidt: columnUIType }) &&
+          !NO_EDITABLE_CELL.includes(columnUIType))
+      ) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
         if (!supportedVirtuals.includes(columnUIType) && clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
         makeCellEditable(rowIndex, clickedColumn)

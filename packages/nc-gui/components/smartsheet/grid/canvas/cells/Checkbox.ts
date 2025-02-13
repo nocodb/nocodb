@@ -35,7 +35,14 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
 
-    if (isBoxHovered(bounds, mousePosition)) {
+    const checkboxBounds = {
+      x: bounds.x + bounds.width / 2 - 7,
+      y: bounds.y + 8,
+      width: 14,
+      height: 14,
+    }
+
+    if (isBoxHovered(checkboxBounds, mousePosition)) {
       row.row[column.title!] = !row.row[column.title!]
       await updateOrSaveRow(row, column.title)
       return true

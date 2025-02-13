@@ -16,7 +16,7 @@ import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
-import { EDIT_CELL_REDUCTION, MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
+import { MouseClickType, getMouseClickType } from './utils/cell'
 import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
 
 const props = defineProps<{
@@ -239,6 +239,7 @@ const {
   addEmptyRow,
   onActiveCellChanged,
   addNewColumn: addEmptyColumn,
+  setCursor,
 })
 
 // Computed
@@ -896,14 +897,16 @@ const getHeaderTooltipRegions = (
 ): {
   x: number
   width: number
-  type: 'columnIcon' | 'title' | 'error' | 'info'
+  type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
   text: string
+  disableTooltip?: boolean
 }[] => {
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
     text: string
+    disableTooltip?: boolean
   }[] = []
   let xOffset = initialOffset + 1
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
@@ -933,18 +936,29 @@ const getHeaderTooltipRegions = (
 
     const ctx = defaultOffscreen2DContext
     const availableTextWidth = width - totalIconWidth
-    const isTruncated = ctx.measureText(column.title!).width > availableTextWidth
+    const measuredTextWidth = ctx.measureText(column.title!).width
+    const isTruncated = measuredTextWidth > availableTextWidth
 
-    if (isTruncated) {
+    regions.push({
+      x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
+      width: isTruncated ? availableTextWidth : measuredTextWidth,
+      type: 'title',
+      text: column.title!,
+      disableTooltip: !isTruncated,
+    })
+
+    const isFieldEditAllowed = isUIAllowed('fieldEdit')
+
+    let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed ? 16 : 0)
+
+    if (isFieldEditAllowed) {
       regions.push({
-        x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
-        width: availableTextWidth,
-        type: 'title',
-        text: column.title!,
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'columnChevron',
+        disableTooltip: true,
       })
     }
-
-    let rightOffset = xOffset + width - rightPadding - (isUIAllowed('fieldEdit') ? 16 : 0)
 
     // Error icon region
     if (column.isInvalidColumn?.isInvalid) {
@@ -979,6 +993,20 @@ const getHeaderTooltipRegions = (
   return regions
 }
 
+const activeCursor = ref<'auto' | 'pointer' | 'col-resize'>('auto')
+
+watch(activeCursor, (newCursor) => {
+  if (!canvasRef.value || newCursor) {
+    canvasRef.value.style.cursor = newCursor
+  }
+})
+
+function setCursor(cursor: 'auto' | 'pointer' | 'col-resize') {
+  if (activeCursor.value !== cursor) {
+    activeCursor.value = cursor
+  }
+}
+
 const handleMouseMove = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -988,6 +1016,7 @@ const handleMouseMove = (e: MouseEvent) => {
   mousePosition.x = e.clientX - rect.left
   mousePosition.y = e.clientY - rect.top
 
+  setCursor('auto')
   hideTooltip()
 
   if (mousePosition.y < 32) {
@@ -1000,7 +1029,10 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (activeFixedRegion) {
+      if (['title', 'columnChevron'].includes(activeFixedRegion?.type)) {
+        setCursor('pointer')
+      }
+      if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
         tryShowTooltip({
           rect: activeFixedRegion,
           text: activeFixedRegion.text,
@@ -1024,7 +1056,11 @@ const handleMouseMove = (e: MouseEvent) => {
           (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
         )
 
-        if (activeRegion) {
+        if (['title', 'columnChevron'].includes(activeRegion?.type)) {
+          setCursor('pointer')
+        }
+
+        if (activeRegion && !activeRegion.disableTooltip) {
           tryShowTooltip({
             rect: activeRegion,
             text: activeRegion.text,
@@ -1037,9 +1073,9 @@ const handleMouseMove = (e: MouseEvent) => {
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
-    if (e.clientX >= window.innerWidth - 200) {
+    if (mousePosition.x >= width.value - 200) {
       containerRef.value.scrollLeft += 10
-    } else if (e.clientX <= 200) {
+    } else if (mousePosition.x <= 200) {
       containerRef.value.scrollLeft -= 10
     }
   } else {

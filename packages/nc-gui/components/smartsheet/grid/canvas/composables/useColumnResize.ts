@@ -5,6 +5,7 @@ export function useColumnResize(
   columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
+  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void,
   onResize?: (columnId: string, width: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
@@ -17,10 +18,6 @@ export function useColumnResize(
   } | null>(null)
 
   const mousePosition = ref<{ x: number; y: number } | null>(null)
-
-  const setCursor = (type: 'default' | 'col-resize') => {
-    document.body.style.cursor = type
-  }
 
   const resizeableColumn = computed(() => {
     if (!mousePosition.value) {

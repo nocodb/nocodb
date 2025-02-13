@@ -5984,33 +5984,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      try {
-        await this.validateOptions(col, insertObj);
-      } catch (ex) {
-        if (
-          ex instanceof OptionsNotExistsError &&
-          params.autoCreateMissingOptions
-        ) {
-          await Column.update(this.context, col.id, {
-            ...col,
-            colOptions: {
-              options: [
-                ...col.colOptions.options,
-                ...ex.options.map((k, index) => ({
-                  fk_column_id: col.id,
-                  title: k,
-                  color: enumColors.get(
-                    'light',
-                    (col.colOptions.options ?? []).length + index,
-                  ),
-                })),
-              ],
-            },
-          });
-        } else {
-          throw ex;
-        }
-      }
+      await this.validateOptions(col, insertObj);
 
       // validate data
       if (col?.meta?.validate && col?.validate) {

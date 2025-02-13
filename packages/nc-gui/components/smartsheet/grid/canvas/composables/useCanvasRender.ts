@@ -497,13 +497,9 @@ export function useCanvasRender({
     renderDragIndicator(ctx)
   }
 
-  const triggerRefreshCanvas = () => {
-    renderCanvas()
-  }
-
   return {
     canvasRef,
     renderActiveState,
-    triggerRefreshCanvas,
+    renderCanvas,
   }
 }

@@ -1,56 +1,10 @@
-import type { ImageWindowLoader } from '../loaders/ImageLoader'
-import type { CellRenderer } from '~/lib/types'
-
-const tryLoadImage = async (urls: string[], imageLoader: ImageWindowLoader): Promise<HTMLImageElement | undefined> => {
-  for (const url of urls) {
-    const img = imageLoader.loadOrGetImage(url)
-    if (img) return img
-  }
-  return undefined
-}
-
-const drawPlaceholder = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, icon: string) => {
-  ctx.fillStyle = '#f3f4f6'
-  ctx.beginPath()
-  ctx.roundRect(x, y, size, size, 4)
-  ctx.fill()
-
-  ctx.fillStyle = '#6b7280'
-  ctx.font = '12px Material Icons'
-  ctx.textBaseline = 'middle'
-  ctx.textAlign = 'center'
-  ctx.fillText(icon, x + size / 2, y + size / 2)
-}
-
-const getFileIcon = (_mimetype?: string) => {
-  // TODO: Sprite Manager
-  return ''
-}
-
-const drawMoreCount = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  height: number,
-  padding: number,
-  itemSize: number,
-  itemPadding: number,
-  count: number,
-) => {
-  ctx.fillStyle = '#6b7280'
-  ctx.font = '12px Manrope'
-  ctx.textBaseline = 'middle'
-  ctx.textAlign = 'left'
-  ctx.fillText(`+${count}`, x + padding + (itemSize + itemPadding) * 3, y + height / 2)
-}
-
 interface Attachment {
   mimetype?: string
   title?: string
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
-  render: async (ctx, { value, x, y, width, height, imageLoader }) => {
+  render: (ctx, { value, x, y, width, height, imageLoader }) => {
     const { getPossibleAttachmentSrc } = useAttachment()
     const padding = 8
     const itemSize = height - padding * 2
@@ -63,44 +17,39 @@ export const AttachmentCellRenderer: CellRenderer = {
       attachments = []
     }
 
-    for (let i = 0; i < Math.min(3, attachments.length); i++) {
-      const item = attachments[i]
-
+    attachments.slice(0, 3).forEach((item, index) => {
       if (!item) return
 
-      const itemX = x + padding + (itemSize + itemPadding) * i
+      const itemX = x + padding + (itemSize + itemPadding) * index
       const itemY = y + padding
 
       const isImage = item.mimetype?.includes('image/') || item.title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
 
       if (isImage) {
-        const urls = getPossibleAttachmentSrc(item, 'tiny')
-        const img = await tryLoadImage(urls, imageLoader)
+        const url = getPossibleAttachmentSrc(item, 'tiny')?.[0]
+        if (!url) {
+          imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, 'broken_image')
+          return
+        }
 
+        const img = imageLoader.loadOrGetImage(url)
         if (img) {
-          ctx.save()
-          ctx.beginPath()
-          ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
-          ctx.clip()
-
-          const scale = Math.max(itemSize / img.width, itemSize / img.height)
-          const scaledWidth = img.width * scale
-          const scaledHeight = img.height * scale
-          const offsetX = (itemSize - scaledWidth) / 2
-          const offsetY = (itemSize - scaledHeight) / 2
-
-          ctx.drawImage(img, itemX + offsetX, itemY + offsetY, scaledWidth, scaledHeight)
-          ctx.restore()
+          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize)
         } else {
-          drawPlaceholder(ctx, itemX, itemY, itemSize, 'hourglass_empty')
+          // imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, 'hourglass_empty')
         }
       } else {
-        drawPlaceholder(ctx, itemX, itemY, itemSize, getFileIcon(item?.mimetype))
+        imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, '')
       }
-    }
+    })
 
     if (attachments.length > 3) {
-      drawMoreCount(ctx, x, y, height, padding, itemSize, itemPadding, attachments.length - 3)
+      const moreX = x + padding + (itemSize + itemPadding) * 3
+      ctx.fillStyle = '#6b7280'
+      ctx.font = '12px Manrope'
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'left'
+      ctx.fillText(`+${attachments.length - 3}`, moreX + padding, y + height / 2)
     }
   },
 }

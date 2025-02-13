@@ -50,8 +50,8 @@ export function useCanvasTable({
   } | null>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
-  const spriteLoader = new SpriteLoader()
-  const imageLoader = new ImageWindowLoader()
+  const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
+  const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
 
   const { isMobileMode } = useGlobal()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
@@ -154,7 +154,7 @@ export function useCanvasTable({
       fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
-  const { canvasRef, triggerRefreshCanvas } = useCanvasRender({
+  const { canvasRef, renderCanvas } = useCanvasRender({
     width,
     height,
     columns,
@@ -338,6 +338,10 @@ export function useCanvasTable({
     scrollToCell,
     partialRowHeight,
   })
+
+  function triggerRefreshCanvas() {
+    renderCanvas()
+  }
 
   return {
     rowSlice,

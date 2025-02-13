@@ -32,6 +32,8 @@ export function useCanvasRender({
   partialRowHeight,
   vSelectedAllRecords,
   isRowDraggingEnabled,
+  isAddingColumnAllowed,
+  isAddingEmptyRowAllowed,
   selectedRows,
   isDragging,
   draggedRowIndex,
@@ -43,7 +45,6 @@ export function useCanvasRender({
   totalWidth,
   totalRows,
   t,
-                                  isAddingColumnAllowed
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -62,6 +63,7 @@ export function useCanvasRender({
   isAiFillMode: ComputedRef<boolean>
   isRowDraggingEnabled: ComputedRef<boolean>
   isAddingColumnAllowed: ComputedRef<boolean>
+  isAddingEmptyRowAllowed: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
@@ -83,7 +85,6 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { isUIAllowed } = useRoles()
-
 
   watch(
     () => !!colResizeHoveredColIds.value.size,
@@ -172,7 +173,7 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if(isUIAllowed('fieldEdit')) {
+      if (isUIAllowed('fieldEdit')) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
@@ -234,7 +235,7 @@ export function useCanvasRender({
     const plusColumnWidth = 60
     ctx.fillStyle = '#f4f4f5'
     ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
-    if(isAddingColumnAllowed.value) {
+    if (isAddingColumnAllowed.value) {
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         size: 16,
@@ -243,11 +244,10 @@ export function useCanvasRender({
         y: 8,
       })
 
-    ctx.beginPath()
-    ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
-    ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
-    ctx.stroke()
-
+      ctx.beginPath()
+      ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
+      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
+      ctx.stroke()
     }
     const fillHandler = getFillHandlerPosition()
 
@@ -866,23 +866,33 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: adjustedWidth }, mousePosition)
-    ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : 'transparent'
-    ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
-    // Bottom border for new row
-    ctx.strokeStyle = '#f4f4f5'
-    ctx.beginPath()
-    ctx.moveTo(0, yOffset + rowHeight.value)
-    ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
-    ctx.stroke()
+    if (isAddingEmptyRowAllowed.value) {
+      const isNewRowHovered = isBoxHovered(
+        {
+          x: 0,
+          y: yOffset,
+          height: rowHeight.value,
+          width: adjustedWidth,
+        },
+        mousePosition,
+      )
+      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : 'transparent'
+      ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+      // Bottom border for new row
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(0, yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+      ctx.stroke()
 
-    spriteLoader.renderIcon(ctx, {
-      icon: 'ncPlus',
-      color: isNewRowHovered ? '#000000' : '#4a5268',
-      x: 16,
-      y: yOffset + 9,
-      size: 14,
-    })
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncPlus',
+        color: isNewRowHovered ? '#000000' : '#4a5268',
+        x: 16,
+        y: yOffset + 9,
+        size: 14,
+      })
+    }
 
     if (warningRow) {
       const orange = '#fcbe3a'

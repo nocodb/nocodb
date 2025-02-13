@@ -63,8 +63,8 @@ export const SingleSelectCellRenderer: CellRenderer = {
     if (isBoxHovered(box, mousePosition)) {
       showTooltip({
         position: {
-          x: mousePosition.x,
-          y: mousePosition.y,
+          x: box.x + box.width / 2,
+          y: box.y + 20,
         },
         text,
       })

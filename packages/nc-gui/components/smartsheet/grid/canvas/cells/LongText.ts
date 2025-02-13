@@ -41,6 +41,7 @@ export const LongTextCellRenderer: CellRenderer = {
         fillStyle: pv ? '#3366FF' : textColor,
         height,
         mousePosition,
+        spriteLoader,
       })
 
       if (!props.tag?.renderAsTag && isHovered) {

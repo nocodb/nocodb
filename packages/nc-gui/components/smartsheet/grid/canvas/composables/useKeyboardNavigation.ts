@@ -164,7 +164,7 @@ export function useKeyboardNavigation({
             makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
           }
         } else {
-          const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment]
+          const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment, UITypes.Barcode, UITypes.QrCode]
           const column = columns.value[activeCell.value.column]
           if (NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.columnObj.uidt)) {
             return

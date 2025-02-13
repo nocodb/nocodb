@@ -81,14 +81,19 @@ export const UrlCellRenderer: CellRenderer = {
       height,
       render: false,
     })
+    const validate = parseProp(column.columnObj.meta).validate
 
-    const box = { x: iconX, y: y + (yOffset - y) / 2, width: iconSize, height: iconSize }
+    if (validate) {
+      const box = { x: iconX, y: y + (yOffset - y) / 2, width: iconSize, height: iconSize }
 
-    tryShowTooltip({
-      rect: box,
-      text: getI18n().global.t('msg.error.invalidURL'),
-      mousePosition,
-    })
+      tryShowTooltip({
+        rect: box,
+        text: getI18n().global.t('msg.error.invalidURL'),
+        mousePosition,
+      })
+    }
+
+    return true
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

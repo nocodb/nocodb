@@ -85,7 +85,9 @@ const height = computed(() => {
 
 onMounted(() => {
   if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value) {
-    modalVisible.value = true
+    if (showQrCode.value) {
+      modalVisible.value = true
+    }
   }
 })
 </script>

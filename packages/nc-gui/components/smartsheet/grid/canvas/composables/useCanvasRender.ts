@@ -78,7 +78,17 @@ export function useCanvasRender({
   totalRows: Ref<number>
   t: Composer['t']
 }) {
-  const canvasRef = ref()
+  const canvasRef = ref<HTMLCanvasElement>()
+  const colResizeHoveredColIds = ref(new Set())
+
+  watch(
+    () => !!colResizeHoveredColIds.value.size,
+    (val) => {
+      if (!canvasRef.value) return
+      canvasRef.value.style.cursor = val ? 'col-resize' : 'auto'
+    },
+  )
+
   function renderHeader(ctx: CanvasRenderingContext2D, activeState?: { x: number; y: number; width: number; height: number }) {
     const canvasWidth = width.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
@@ -195,6 +205,7 @@ export function useCanvasRender({
         mousePosition && Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
 
       if (isNearEdge) {
+        colResizeHoveredColIds.value.add(column.id)
         ctx.strokeStyle = '#9CDAFA'
         ctx.lineWidth = 2
         ctx.beginPath()
@@ -206,6 +217,7 @@ export function useCanvasRender({
         ctx.strokeStyle = '#e7e7e9'
         ctx.lineWidth = 1
       } else {
+        colResizeHoveredColIds.value.delete(column.id)
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
         ctx.lineTo(xOffset - scrollLeft.value, 32)
@@ -359,15 +371,34 @@ export function useCanvasRender({
             y: 9,
           })
         }
+        xOffset += width
 
         // Border
-        ctx.strokeStyle = '#e7e7e9'
-        ctx.beginPath()
-        ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, 32)
-        ctx.stroke()
+        const resizeHandleWidth = 10
+        const isNearEdge =
+          column.id !== 'row_number' &&
+          mousePosition &&
+          Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth &&
+          mousePosition.y <= 32
+        if (isNearEdge) {
+          colResizeHoveredColIds.value.add(column.id)
+          ctx.strokeStyle = '#9CDAFA'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(xOffset, 0)
+          ctx.lineTo(xOffset, 32)
+          ctx.stroke()
 
-        xOffset += width
+          // Reset for regular column separator
+          ctx.strokeStyle = '#e7e7e9'
+          ctx.lineWidth = 1
+        } else {
+          colResizeHoveredColIds.value.delete(column.id)
+          ctx.beginPath()
+          ctx.moveTo(xOffset, 0)
+          ctx.lineTo(xOffset, 32)
+          ctx.stroke()
+        }
       })
 
       if (scrollLeft.value) {
@@ -377,11 +408,13 @@ export function useCanvasRender({
         ctx.shadowOffsetY = 0
       }
 
-      ctx.strokeStyle = '#f4f4f5'
-      ctx.beginPath()
-      ctx.moveTo(xOffset, 0)
-      ctx.lineTo(xOffset, 32)
-      ctx.stroke()
+      if (!colResizeHoveredColIds.value.has(fixedCols[fixedCols.length - 1]?.id)) {
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, 0)
+        ctx.lineTo(xOffset, 32)
+        ctx.stroke()
+      }
 
       ctx.shadowColor = 'transparent'
       ctx.shadowBlur = 0

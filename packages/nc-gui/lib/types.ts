@@ -525,6 +525,18 @@ interface ParsePlainCellValueProps {
   }
 }
 
+type CanvasEditEnabledType = {
+  rowIndex: number
+  column: ColumnType
+  row: Row
+  x: number
+  y: number
+  width: number
+  minHeight: number
+  height: number
+  fixed: boolean
+} | null
+
 export type {
   User,
   ProjectMetaInfo,
@@ -568,4 +580,5 @@ export type {
   CanvasGridColumn,
   FillHandlerPosition,
   ParsePlainCellValueProps,
+  CanvasEditEnabledType,
 }

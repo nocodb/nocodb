@@ -116,8 +116,6 @@ export function useCanvasTable({
          */
         f.extra = {}
 
-        console.log('reloading')
-
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,

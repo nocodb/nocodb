@@ -77,7 +77,7 @@ export function useCanvasTable({
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
-  const { metas } = useMetas()
+  const { metas, getMeta } = useMetas()
   const { allFilters, sorts, isPkAvail } = useSmartsheetStoreOrThrow()
   const { isMysql } = useBase()
 
@@ -100,6 +100,8 @@ export function useCanvasTable({
 
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value))
 
+  const fetchMetaIds = ref<string[]>([])
+
   const columns = computed<CanvasGridColumn[]>(() => {
     const cols = fields.value
       .map((f) => {
@@ -107,16 +109,27 @@ export function useCanvasTable({
 
         if (!gridViewCol) return false
         let relatedColObj
+        let relatedTableMeta
 
         /**
          * Add any extra computed things inside extra and use it
          */
         f.extra = {}
 
+        console.log('reloading')
+
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
+
+          if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
+            if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
+              fetchMetaIds.value.push(relatedColObj.colOptions.fk_related_model_id)
+            } else {
+              relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
+            }
+          }
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {
@@ -137,6 +150,7 @@ export function useCanvasTable({
           agg_fn: gridViewCol.aggregation,
           columnObj: f,
           relatedColObj,
+          relatedTableMeta,
           isMysql,
         }
       })
@@ -420,6 +434,17 @@ export function useCanvasTable({
   watch(rowHeight, () => {
     triggerRefreshCanvas()
   })
+
+  // load metas
+  watch(
+    () => fetchMetaIds.value.length,
+    async () => {
+      if (!fetchMetaIds.value.length) return
+
+      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id)))
+      fetchMetaIds.value = []
+    },
+  )
 
   return {
     rowSlice,

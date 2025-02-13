@@ -436,6 +436,8 @@ export function useCanvasRender({
               spriteLoader,
               imageLoader,
               isMysql: column.isMysql,
+              relatedColObj: column.relatedColObj,
+              relatedTableMeta: column.relatedTableMeta,
             })
             xOffset += width
           })
@@ -489,6 +491,8 @@ export function useCanvasRender({
                   spriteLoader,
                   imageLoader,
                   isMysql: column.isMysql,
+                  relatedColObj: column.relatedColObj,
+                  relatedTableMeta: column.relatedTableMeta,
                 })
               }
 

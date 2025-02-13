@@ -208,7 +208,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, setCursor }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition) return
@@ -294,7 +294,10 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
-    if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) return
+    if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) {
+      setCursor('pointer')
+      return
+    }
 
     if (!attachments.length) return
 
@@ -313,8 +316,12 @@ export const AttachmentCellRenderer: CellRenderer = {
       height: 18,
     }
 
-    tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
-    tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
+    if (
+      tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition }) ||
+      tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
+    ) {
+      setCursor('pointer')
+    }
   },
   async handleKeyDown({ row, column, key, makeCellEditable }) {
     if (key === 'Enter') {

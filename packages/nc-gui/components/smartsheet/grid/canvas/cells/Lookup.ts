@@ -102,7 +102,13 @@ export const LookupCellRenderer: CellRenderer = {
       }
     } else {
       if (isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object') {
-        renderCell(ctx, lookupColumn, renderProps)
+        renderCell(ctx, lookupColumn, {
+          ...renderProps,
+          tag: {
+            ...renderProps.tag,
+            renderAsTag: false,
+          },
+        })
       } else {
         const maxLines = rowHeightTruncateLines(height, true)
         let line = 1

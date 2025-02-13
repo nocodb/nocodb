@@ -125,7 +125,7 @@ export const UrlCellRenderer: CellRenderer = {
     })
 
     if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
-      window.open(`mailto:${text}`, '_blank')
+      window.open(/^https?:\/\//.test(text) ? text : `https://${text}`, '_blank')
       return true
     }
     return false

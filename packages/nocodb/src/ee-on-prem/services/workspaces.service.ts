@@ -58,7 +58,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
 
       if (workspacesCount >= this.licenseService.getMaxWorkspaces()) {
         NcError.notAllowed(
-          `Maximum workspace limit reached. Please upgrade to create more workspaces.`,
+          `Maximum workspace limit reached. Please upgrade license to create more workspaces.`,
         );
       }
     }
@@ -82,7 +82,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
       }
     }
 
-    if(this.licenseService.getMaxWorkspaces()) {
+    if (this.licenseService.getMaxWorkspaces()) {
       // get total non-deleted workspaces
       const workspacesCount = await Workspace.count({
         deleted: false,
@@ -90,7 +90,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
 
       if (workspacesCount >= this.licenseService.getMaxWorkspaces()) {
         NcError.notAllowed(
-          `Maximum workspace limit reached. Please upgrade to create more workspaces.`,
+          'The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.',
         );
       }
     }

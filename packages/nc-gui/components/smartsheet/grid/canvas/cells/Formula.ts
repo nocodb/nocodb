@@ -1,5 +1,5 @@
 import { type ColumnType } from 'nocodb-sdk'
-import { renderSingleLineText } from '../utils/canvas'
+import { isBoxHovered, renderSingleLineText } from '../utils/canvas'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
@@ -53,4 +53,17 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async () => {},
+  async handleHover({ mousePosition, getCellPosition, column, row }) {
+    const error = parseProp(column.columnObj.colOptions)?.error ?? ''
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    if (!error) return
+    const { x, y } = getCellPosition(column, row.rowMeta.rowIndex!)
+    if (isBoxHovered({ x: x + 10, y, height: 25, width: 45 }, mousePosition)) {
+      showTooltip({
+        position: { x: x + 20, y: y + 30 },
+        text: error,
+      })
+    }
+  },
 }

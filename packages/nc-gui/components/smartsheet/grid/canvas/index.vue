@@ -192,6 +192,10 @@ const {
 
   // Cell Click
   handleCellClick,
+
+  // Cell Hover
+  handleCellHover,
+
   actionManager,
 } = useCanvasTable({
   rowHeightEnum,
@@ -758,6 +762,21 @@ const handleMouseMove = (e: MouseEvent) => {
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
+  }
+  if (mousePosition.y > 32) {
+    const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+    const row = cachedRows.value.get(rowIndex)
+    const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+    if (!row || !column) return
+    const pk = extractPkFromRow(row?.row ?? {}, meta.value?.columns as ColumnType[])
+    handleCellHover({
+      event: e,
+      row: row!,
+      column,
+      value: row?.row[column.title],
+      mousePosition,
+      pk,
+    })
   }
 }
 

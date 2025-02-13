@@ -1,4 +1,4 @@
-import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
+import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -42,9 +42,9 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         y: y + padding - 4 + tagHeight,
       }
     } else {
-      const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
+      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
-        y: y,
+        y,
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,

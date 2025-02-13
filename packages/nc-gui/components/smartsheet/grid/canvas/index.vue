@@ -3,6 +3,7 @@ import { type ColumnType, type TableType, type ViewType, isLinksOrLTAR, isVirtua
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
+import { clearTextCache } from './utils/canvas'
 
 const props = defineProps<{
   totalRows: number
@@ -662,6 +663,7 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
 }
 
 onMounted(async () => {
+  clearTextCache()
   await syncCount()
   calculateSlices()
   triggerRefreshCanvas()

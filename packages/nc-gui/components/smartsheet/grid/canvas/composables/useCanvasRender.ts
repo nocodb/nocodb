@@ -101,6 +101,21 @@ export function useCanvasRender({
     },
   )
 
+  const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
+    ctx.save()
+
+    width = Math.min(width, rowIdx % 2 === 0 ? 124 : 144) - 24
+
+    ctx.beginPath()
+    ctx.roundRect(x + 12, y + 7, width, 18, 10)
+    ctx.fillStyle = '#E7E7E9'
+    ctx.fill()
+
+    ctx.clip()
+
+    ctx.restore()
+  }
+
   function renderHeader(
     ctx: CanvasRenderingContext2D,
     activeState?: {
@@ -719,7 +734,7 @@ export function useCanvasRender({
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
-        const row = cachedRows.value.get(rowIdx)
+        let row = cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 0.5
@@ -871,9 +886,114 @@ export function useCanvasRender({
             ctx.shadowOffsetY = 0
           }
         } else {
-          // Loading state
-          ctx.fillStyle = '#ffffff'
-          ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+          row = {
+            row: {},
+            rowMeta: {
+              rowIndex: rowIdx,
+              selected: false,
+              commentCount: 0,
+            },
+            oldRow: {},
+          }
+          let xOffset = initialXOffset
+
+          visibleCols.forEach((column, colIdx) => {
+            const width = parseInt(column.width, 10)
+            const absoluteColIdx = startColIndex + colIdx
+
+            if (column.fixed) {
+              xOffset += width
+              return
+            }
+
+            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+              ctx.fillStyle = '#F6F7FE'
+              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+            }
+
+            ctx.strokeStyle = '#f4f4f5'
+            ctx.beginPath()
+            ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+            ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
+            ctx.stroke()
+
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+            if (isActive) {
+              activeState = {
+                col: column,
+                x: xOffset - scrollLeft.value,
+                y: yOffset,
+                width,
+                height: rowHeight.value,
+              }
+            }
+            xOffset += width
+          })
+
+          const fixedCols = columns.value.filter((col) => col.fixed)
+          if (fixedCols.length) {
+            xOffset = 0
+
+            fixedCols.forEach((column) => {
+              const width = parseInt(column.width, 10)
+
+              const colIdx = columns.value.findIndex((col) => col.id === column.id)
+              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+                ctx.fillStyle = '#F6F7FE'
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+              } else {
+                ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+              }
+
+              if (column.id === 'row_number') {
+                renderRowMeta(ctx, row, { xOffset, yOffset, width })
+              } else {
+                // const value = row.row[column.title]
+
+                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
+                if (isActive) {
+                  activeState = {
+                    col: column,
+                    x: xOffset,
+                    y: yOffset,
+                    width,
+                    height: rowHeight.value,
+                  }
+                }
+                drawShimmerEffect(ctx, xOffset, yOffset, width, rowIdx)
+              }
+
+              ctx.strokeStyle = '#f4f4f5'
+              ctx.beginPath()
+
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
+
+              xOffset += width
+            })
+
+            if (scrollLeft.value) {
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+              ctx.shadowBlur = 2
+              ctx.shadowOffsetX = 1
+              ctx.shadowOffsetY = 0
+            }
+
+            ctx.strokeStyle = '#f4f4f5'
+            ctx.beginPath()
+            ctx.moveTo(xOffset, yOffset)
+            ctx.lineTo(xOffset, yOffset + rowHeight.value)
+            ctx.stroke()
+
+            ctx.shadowColor = 'transparent'
+            ctx.shadowBlur = 0
+            ctx.shadowOffsetX = 0
+            ctx.shadowOffsetY = 0
+          }
         }
 
         if (rowIdx === draggedRowIndex.value) {

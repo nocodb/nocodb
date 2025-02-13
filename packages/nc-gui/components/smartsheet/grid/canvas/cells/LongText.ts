@@ -82,4 +82,11 @@ export const LongTextCellRenderer: CellRenderer = {
       }
     }
   },
+  handleClick: async (props) => {
+    if (isAIPromptCol(props.column?.columnObj)) {
+      return AILongTextCellRenderer.handleClick(props)
+    } else {
+      return false
+    }
+  },
 }

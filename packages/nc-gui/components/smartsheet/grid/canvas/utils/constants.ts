@@ -5,3 +5,4 @@ export const CELL_BOTTOM_BORDER_IN_PX = 1
 export const MAX_SELECTED_ROWS = 100
 export const ADD_NEW_COLUMN_WIDTH = 60
 export const EDIT_FILL_ENABLED = [UITypes.SingleSelect, UITypes.MultiSelect]
+export const ROW_META_COLUMN_WIDTH = 80

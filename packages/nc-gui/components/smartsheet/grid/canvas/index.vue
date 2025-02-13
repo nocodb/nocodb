@@ -20,7 +20,7 @@ import Tooltip from './Tooltip.vue'
 import Scroller from './Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -778,7 +778,7 @@ const handleMouseUp = async (e: MouseEvent) => {
   if (editEnabled.value) return
 
   if (onMouseUpSelectionHandler(e)) {
-    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36) {
+    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= ROW_META_COLUMN_WIDTH) {
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
       return

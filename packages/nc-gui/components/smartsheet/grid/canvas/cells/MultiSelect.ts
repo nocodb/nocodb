@@ -1,18 +1,18 @@
 import { renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 
-const tagPadding = 8
-const tagSpacing = 4
-const tagHeight = 20
-const topPadding = 6
-const defaultColor = '#666'
-
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, width: _width, height, pv, padding } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
+    const tagPadding = 8
+    const tagSpacing = 4
+    const tagHeight = 20
+    const topPadding = 6
+    const defaultColor = '#666'
+    const ellipsisWidth = 15
 
     width = width - padding * 2
 
@@ -35,7 +35,6 @@ export const MultiSelectCellRenderer: CellRenderer = {
       // Check if the tag fits in the current row
       if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
-        const ellipsisWidth = ctx.measureText('...').width
 
         if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
@@ -46,7 +45,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
             maxWidth: ellipsisWidth,
             textAlign: 'right',
             verticalAlign: 'middle',
-            fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+            fontFamily: '500 13px Manrope',
             fillStyle: defaultColor,
             height,
           })

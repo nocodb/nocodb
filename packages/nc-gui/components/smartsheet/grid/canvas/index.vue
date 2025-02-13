@@ -12,7 +12,7 @@ import {
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
-import { hasAncestorWithClass, isGeneralOverlayActive, isSelectActive } from '../../../../utils/browserUtils'
+import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
@@ -54,7 +54,7 @@ const props = defineProps<{
     newColumns?: Partial<ColumnType>[],
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  removeRowIfNew?: (row: Row) => void
+  removeRowIfNew: (row: Row) => void
   rowSortRequiredRows: Row[]
   applySorting?: (newRows?: Row | Row[]) => void
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
@@ -84,6 +84,7 @@ const {
   updateRecordOrder,
   applySorting,
   bulkDeleteAll,
+  removeRowIfNew,
 } = props
 
 // VModels
@@ -139,6 +140,7 @@ const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const { eventBus } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -1490,29 +1492,14 @@ onBeforeUnmount(() => {
   openNewRecordFormHook?.off(openNewRecordHandler)
 })
 
-const editEnabledCellPosition = computed(() => {
-  if (!editEnabled.value) {
-    return {
-      top: 0,
-      left: 0,
-    }
-  }
-
-  const top = Math.max(
-    32,
-    Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
-  )
-
-  const left = editEnabled.value.fixed
-    ? editEnabled.value.x
-    : Math.max(
-        fixedLeftWidth.value,
-        Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
-      )
-
-  return {
-    top: `${top}px`,
-    left: `${left}px`,
+eventBus.on(async (event, payload) => {
+  console.log(event, payload)
+  if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
+    selection.value.clear()
+    activeCell.value.row = -1
+    activeCell.value.column = -1
+    removeRowIfNew(payload)
+    triggerRefreshCanvas()
   }
 })
 

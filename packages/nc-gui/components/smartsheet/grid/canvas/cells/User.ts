@@ -313,4 +313,14 @@ export const UserFieldCellRenderer: CellRenderer = {
     makeCellEditable(row.rowMeta?.rowIndex, column)
     return true
   },
+
+  async handleKeyDown({ e, row, column, makeCellEditable }) {
+    if (column.readonly) return false
+    if (e.key.length === 1) {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
 }

@@ -3,7 +3,17 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from
 
 export const TimeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, selected, value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { column, selected, value, x, y, width, height, pv, padding, textColor = '#4a5268', readonly } = props
+
+    const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
+
+    if (!value && selected && readonly) {
+      ctx.fillStyle = '#989FB1'
+      ctx.font = '400 13px Manrope'
+      const truncatedFormat = truncateText(ctx, timeFormat, width - padding * 2)
+      ctx.fillText(truncatedFormat, x + padding, y + 16)
+      return { x, y }
+    }
 
     if (!value) {
       return {
@@ -12,7 +22,6 @@ export const TimeCellRenderer: CellRenderer = {
       }
     }
 
-    const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
     let text = ''
 
     if (value) {
@@ -31,14 +40,6 @@ export const TimeCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else {
-      if (!value && selected) {
-        ctx.fillStyle = '#989FB1'
-        ctx.font = '400 13px Manrope'
-        const truncatedFormat = truncateText(ctx, timeFormat, width - padding * 2)
-        ctx.fillText(truncatedFormat, x + padding, y + 16)
-        return { x, y }
-      }
-
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y,

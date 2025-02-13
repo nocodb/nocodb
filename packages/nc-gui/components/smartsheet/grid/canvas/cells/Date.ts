@@ -3,12 +3,12 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from
 
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', selected } = props
+    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', selected, readonly } = props
 
     const dateFormat = parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'
     let formattedDate = ''
 
-    if (!value && selected) {
+    if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Manrope'
       const truncatedFormat = truncateText(ctx, dateFormat, width - padding * 2)

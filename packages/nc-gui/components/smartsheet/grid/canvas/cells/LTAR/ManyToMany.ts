@@ -30,9 +30,12 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
     // Todo: Handle non select type, attachment, checkbox, lookup cell render
     {
-      let currentX = x
-      let currentY = y
-      let currentWidth = width
+      const initialX = x + 4
+      const initialWidth = width - 8
+
+      let currentX = initialX
+      let currentY = y + 2
+      let currentWidth = initialWidth
 
       const renderProps: CellRendererOptions = {
         ...props,
@@ -64,9 +67,9 @@ export const ManyToManyCellRenderer: CellRenderer = {
         })
 
         if (point?.x) {
-          if (point?.x >= x + width - padding * 2 - 50) {
-            currentX = x
-            currentWidth = width
+          if (point?.x >= x + initialWidth - padding * 2 - 50) {
+            currentX = initialX
+            currentWidth = initialWidth
             currentY = point?.y ? point?.y : currentY + 28
             line += 1
           } else {
@@ -74,10 +77,10 @@ export const ManyToManyCellRenderer: CellRenderer = {
             currentX = point?.x
           }
         } else {
-          currentX = x
+          currentX = initialX
           currentY = currentY + 28
 
-          currentWidth = width
+          currentWidth = initialWidth
           line += 1
         }
 

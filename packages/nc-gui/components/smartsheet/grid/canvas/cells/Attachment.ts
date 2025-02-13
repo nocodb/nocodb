@@ -203,7 +203,7 @@ export const AttachmentCellRenderer: CellRenderer = {
         },
         mousePosition,
         spriteLoader,
-        icon: 'attachFile',
+        icon: 'ncPaperclip',
       })
     }
   },

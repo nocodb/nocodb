@@ -163,7 +163,7 @@ export function useCanvasTable({
 
   const isFillHanldeDisabled = computed(() => readOnly.value)
 
-  const isDataEditAllowed = computed(() => isDataEditAllowed.value)
+  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit'))
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 

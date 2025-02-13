@@ -2539,7 +2539,6 @@ const cellAlignClass = computed(() => {
                               <GeneralIcon class="text-nc-content-gray hover:text-nc-content-brand" icon="ncDrag" />
                             </NcButton>
                           </div>
-
                           <div
                             v-if="!readOnly"
                             :class="{

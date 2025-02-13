@@ -578,7 +578,7 @@ const handleMouseUp = async (e: MouseEvent) => {
   onMouseUpFillHandlerEnd()
   onMouseUpSelectionHandler(e)
 
-  if (isDragging.value || isRowReorderActive.value) return
+  if (isRowReorderActive.value) return
 
   editEnabled.value = null
   openAggregationField.value = null

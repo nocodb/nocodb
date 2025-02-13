@@ -1,5 +1,8 @@
-import { getI18n } from '../../../../../plugins/a.i18n';
-import { isBoxHovered, truncateText } from '../utils/canvas';
+import { getI18n } from '../../../../../plugins/a.i18n'
+import { isBoxHovered, truncateText } from '../utils/canvas'
+
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+const defaultContext = offscreenCanvas.getContext('2d')!
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -73,6 +76,33 @@ export const UrlCellRenderer: CellRenderer = {
       return true
     }
 
+    return false
+  },
+  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const padding = 10
+    const urlText = value?.toString().trim() ?? ''
+    const isValid = urlText && isValidURL(urlText)
+    if (!isValid) return false
+    const pv = column.pv
+    const ctx = defaultContext
+    ctx.font = `${pv ? 600 : 500} 13px Manrope`
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+    const maxWidth = width - padding * 2
+    const truncatedText = truncateText(ctx, urlText, maxWidth)
+    const textY = y + height / 2
+    const textMetrics = ctx.measureText(truncatedText)
+    const box = {
+      x: x + padding - 5,
+      y: textY - 5,
+      width: textMetrics.width + 5,
+      height: 18 + 5,
+    }
+    if (isBoxHovered(box, mousePosition)) {
+      window.open(/^https?:\/\//.test(urlText) ? urlText : `https://${urlText}`, '_blank')
+      return true
+    }
     return false
   },
 }

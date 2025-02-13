@@ -1237,6 +1237,7 @@ const editEnabledCellPosition = computed(() => {
   }
 })
 
+// watch for any field changes like hide, re-order, etc..
 watch(columns, () => {
   requestAnimationFrame(triggerRefreshCanvas)
 })
@@ -1357,6 +1358,7 @@ watch(columns, () => {
       </div>
       <template v-if="overlayStyle">
         <NcDropdown
+            :trigger="['click']"
           :visible="isDropdownVisible"
           :overlay-class-name="`!bg-transparent ${
             !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''

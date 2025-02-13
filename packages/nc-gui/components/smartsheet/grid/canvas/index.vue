@@ -1694,7 +1694,7 @@ const increaseMinHeightBy: Record<string, number> = {
                 :column-position="columnOrder"
                 :edit-description="isEditColumnDescription"
                 @submit="closeAddColumnDropdownMenu(!editColumn?.id)"
-                @cancel="closeAddColumnDropdownMenu(!editColumn?.id)"
+                @cancel="closeAddColumnDropdownMenu()"
                 @click.stop
                 @keydown.stop
               />

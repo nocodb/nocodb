@@ -293,6 +293,8 @@ export const UserFieldCellRenderer: CellRenderer = {
     })
   },
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
+    if (column.readonly) return false
+
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const padding = 10

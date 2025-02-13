@@ -104,7 +104,7 @@ const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
 
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime])
+const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect])
 
 provide(ClientMousePositionInj, clientMousePosition)
 
@@ -641,6 +641,8 @@ async function handleMouseDown(e: MouseEvent) {
   // NO_EDITABLE_CELL is the list of cell types which are not editable
   if (NO_EDITABLE_CELL.includes(columnUIType)) {
     onMouseDownSelectionHandler(e)
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
   }
 
   // If the cell is editable, make the cell editable
@@ -1279,13 +1281,18 @@ onBeforeUnmount(() => {
       }
     }
   }
+  :deep(.nc-single-select) {
+    @apply !h-auto !px-2;
+  }
+
+  :deep(.nc-cell-singlelinetext),
   :deep(.nc-cell-number),
+  :deep(.nc-cell-url),
   :deep(.nc-cell-user),
   :deep(.nc-cell-geometry),
   :deep(.nc-multi-select),
   :deep(.nc-cell-decimal),
-  :deep(.nc-cell-currency),
-  :deep(.nc-single-select) {
+  :deep(.nc-cell-currency) {
     @apply !h-auto;
   }
   :deep(.nc-cell-json) {

@@ -72,8 +72,14 @@ export const CheckboxCellRenderer: CellRenderer = {
     return false
   },
   async handleClick(ctx) {
-    const { row, column, updateOrSaveRow, getCellPosition, mousePosition } = ctx
+    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected } = ctx
     if (column.readonly) return false
+
+    if (selected) {
+      row.row[column.title!] = !row.row[column.title!]
+      await updateOrSaveRow(row, column.title)
+      return true
+    }
 
     const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
 

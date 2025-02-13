@@ -33,12 +33,12 @@ export const SingleLineTextCellRenderer: CellRenderer = {
     }
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return
     const columnObj = column.columnObj
 
     if (e.key.length === 1 && columnObj.title) {
-      row.row[columnObj.title] = e.key
+      row.row[columnObj.title] = ''
       makeCellEditable(row, column)
       return true
     }

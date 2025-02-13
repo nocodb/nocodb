@@ -38,9 +38,7 @@ const textareaValue = computed({
 
 onMounted(() => {
   if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    forcedNextTick(() => {
-      inputRef.value?.focus()
-    })
+    inputRef.value?.focus()
   }
 })
 </script>

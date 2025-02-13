@@ -35,14 +35,12 @@ export const DurationCellRenderer: CellRenderer = {
     }
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return
     const columnObj = column.columnObj
-
     if (/^[0-9]$/.test(e.key) && columnObj.title) {
-      row.row[columnObj.title] = e.key
+      row.row[columnObj.title] = ''
       makeCellEditable(row, column)
-      await updateOrSaveRow(row, columnObj.title)
       return true
     }
 

@@ -79,9 +79,7 @@ function onKeyDown(e: any) {
 
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    forcedNextTick(() => {
-      inputRef.value?.focus()
-    })
+    inputRef.value?.focus()
   }
 })
 </script>

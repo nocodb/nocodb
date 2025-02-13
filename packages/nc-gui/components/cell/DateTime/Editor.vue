@@ -448,12 +448,10 @@ const currentDate = ($event) => {
 }
 
 onMounted(() => {
-  forcedNextTick(() => {
-    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
-      isDatePicker.value = true
-      open.value = true
-    }
-  })
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    isDatePicker.value = true
+    open.value = true
+  }
 })
 </script>
 

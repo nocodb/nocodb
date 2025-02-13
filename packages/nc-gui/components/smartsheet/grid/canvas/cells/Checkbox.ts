@@ -1,4 +1,4 @@
-import type { CellRenderer } from '../useCellRenderer'
+import type { CellRenderer } from '~/lib/types'
 
 export const CheckboxCellRenderer: CellRenderer = {
   render: async (ctx, { value, x, y, width, height, readonly, column }) => {

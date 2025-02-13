@@ -1,7 +1,8 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { CellRenderer } from '../useCellRenderer'
-import { timeCellMaxWidthMap, timeFormatsObj, truncateText } from '../canvasUtils'
+import { truncateText } from '../utils/canvas'
+import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
+import type { CellRenderer } from '~/lib/types'
 
 dayjs.extend(utc)
 

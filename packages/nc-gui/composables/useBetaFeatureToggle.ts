@@ -15,6 +15,13 @@ const FEATURES = [
     enabled: false,
   },
   {
+    id: 'canvas_table',
+    title: 'Canvas Table',
+    description: 'More performant table with canvas rendering.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',

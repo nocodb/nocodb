@@ -1,9 +1,80 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { ColumnType } from 'ant-design-vue/lib/table'
-import { normalizeWidth, useColumnResize } from './canvasUtils/useColumnResize'
-import { useCellRenderer } from './canvasUtils/useCellRenderer'
-import { roundedRect } from './canvasUtils/canvasUtils'
+import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
+import { normalizeWidth, useColumnResize } from './composables/useColumnResize'
+import { useCellRenderer } from './cells'
+import { roundedRect } from './utils/canvas'
+import type { Row } from '~/lib/types'
+
+const props = defineProps<{
+  totalRows: number
+  data: Map<number, Row>
+  rowHeightEnum?: number
+  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
+  updateOrSaveRow?: (
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    beforeRow?: string,
+  ) => Promise<any>
+  deleteSelectedRows?: () => Promise<void>
+  clearInvalidRows?: () => void
+  deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
+  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  bulkUpdateRows?: (
+    rows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>
+  bulkDeleteAll?: () => Promise<void>
+  bulkUpsertRows?: (
+    insertRows: Row[],
+    updateRows: [],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    newColumns?: Partial<ColumnType>[],
+  ) => Promise<void>
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  removeRowIfNew?: (row: Row) => void
+  rowSortRequiredRows: Row[]
+  applySorting?: (newRows?: Row | Row[]) => void
+  clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
+  syncCount: () => Promise<void>
+  selectedRows: Array<Row>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
+  isBulkOperationInProgress: boolean
+  selectedAllRecords?: boolean
+}>()
+
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+
+const {
+  loadData,
+  callAddEmptyRow,
+  updateOrSaveRow,
+  deleteRow,
+  expandForm,
+  clearCache,
+  syncCount,
+  bulkUpdateRows,
+  bulkUpsertRows,
+  deleteRangeOfRows,
+  removeRowIfNew,
+  clearInvalidRows,
+  updateRecordOrder,
+  applySorting,
+  bulkDeleteAll,
+} = props
+
+// Props to Refs
+const totalRows = toRef(props, 'totalRows')
+const chunkStates = toRef(props, 'chunkStates')
+const cachedRows = toRef(props, 'data')
 
 // Refs
 const canvasRef = ref()
@@ -23,21 +94,12 @@ const editEnabled = ref<{
 } | null>(null)
 
 // Injections
-const meta = inject(MetaInj, ref())
 const fields = inject(FieldsInj, ref([]))
-const view = inject(ActiveViewInj, ref())
-const { xWhere } = useSmartsheetStoreOrThrow()
 const reloadVisibleDataHook = createEventHook()
 
 provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 // Composables
-const { totalRows, syncCount, cachedRows, chunkStates, loadData, clearCache, updateOrSaveRow } = useGridViewData(
-  meta,
-  view,
-  xWhere,
-  reloadVisibleDataHook,
-)
 const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
 const { height } = useElementSize(containerRef)
 const { renderCell } = useCellRenderer()

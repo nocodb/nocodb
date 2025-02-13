@@ -1,5 +1,5 @@
-import type { CellRenderer } from '../useCellRenderer'
-import { imageLoader } from '../ImageLoader'
+import { imageLoader } from '../loaders/ImageLoader'
+import type { CellRenderer } from '~/lib/types'
 
 const tryLoadImage = async (urls: string[]): Promise<HTMLImageElement | undefined> => {
   for (const url of urls) {
@@ -23,6 +23,7 @@ const drawPlaceholder = (ctx: CanvasRenderingContext2D, x: number, y: number, si
 }
 
 const getFileIcon = (_mimetype?: string) => {
+  // TODO: Sprite Manager
   return ''
 }
 

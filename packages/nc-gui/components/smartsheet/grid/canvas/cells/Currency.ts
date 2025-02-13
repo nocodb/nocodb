@@ -1,5 +1,5 @@
-import type { CellRenderer } from '../useCellRenderer'
-import { truncateText } from '../canvasUtils'
+import { truncateText } from '../utils/canvas'
+import type { CellRenderer } from '~/lib/types'
 
 export const CurrencyRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {

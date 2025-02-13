@@ -1503,6 +1503,22 @@ watch(
   },
 )
 
+watch(
+  activeCell,
+  (activeCell) => {
+    const row = activeCell.row !== null ? cachedRows.value.get(activeCell.row)?.row : undefined
+    const col = row && activeCell.column !== null ? columns.value[activeCell.column]?.columnObj : undefined
+    const val = row && col ? row[col.title as string] : undefined
+    const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
+    const viewId = view.value?.id
+
+    eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
+  },
+  {
+    deep: true,
+  },
+)
+
 reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)

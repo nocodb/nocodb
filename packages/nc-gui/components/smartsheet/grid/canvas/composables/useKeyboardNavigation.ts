@@ -65,7 +65,10 @@ export function useKeyboardNavigation({
     if (isExpandedCellInputExist()) return
     if (isNcDropdownOpen()) return
     if (isCmdJActive() || cmdKActive()) return
-    if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) return
+    if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) {
+      // If Extension Pane is Active, ignore
+      if (!isExtensionPaneActive()) return
+    }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
 

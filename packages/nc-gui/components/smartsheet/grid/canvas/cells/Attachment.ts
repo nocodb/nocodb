@@ -181,7 +181,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     if (isHovered && attachments.length > 0) {
-      const buttonY = y + 5
+      const buttonY = y + 8
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,

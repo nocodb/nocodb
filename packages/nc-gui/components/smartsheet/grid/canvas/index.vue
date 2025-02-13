@@ -197,6 +197,7 @@ const {
   handleCellHover,
 
   actionManager,
+  imageLoader,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -768,6 +769,7 @@ const handleMouseMove = (e: MouseEvent) => {
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) return
     const pk = extractPkFromRow(row?.row ?? {}, meta.value?.columns as ColumnType[])
+    const colIndex = columns.value.findIndex((col) => col.id === column.id)
     handleCellHover({
       event: e,
       row: row!,
@@ -775,6 +777,8 @@ const handleMouseMove = (e: MouseEvent) => {
       value: row?.row[column.title],
       mousePosition,
       pk,
+      selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
+      imageLoader,
     })
   }
 }

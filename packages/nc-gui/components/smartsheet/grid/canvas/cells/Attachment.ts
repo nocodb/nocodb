@@ -1,5 +1,7 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
+import type { RenderRectangleProps } from '../utils/types'
+import { getI18n } from '../../../../../plugins/a.i18n'
 
 interface Attachment {
   mimetype?: string
@@ -202,6 +204,138 @@ export const AttachmentCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         icon: 'attachFile',
+      })
+    }
+  },
+  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    if (!row || !column?.id || !mousePosition) return
+
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    let attachments: Attachment[] = []
+    try {
+      attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
+    } catch {
+      attachments = []
+    }
+    if (selected && attachments.length === 0) {
+      const buttonWidth = 84
+      const buttonHeight = 24
+      const buttonX = x + (width - buttonWidth) / 2
+      const buttonY = y + 8
+      const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
+      // Should we add a tooltip here?
+      return
+    }
+    const rowHeight = pxToRowHeight[height] ?? 1
+
+    const { getPossibleAttachmentSrc } = useAttachment()
+    const horizontalPadding = 10
+    const verticalPadding = rowHeight === 1 ? 4 : 8
+    const itemSize = rowHeight === 1 ? 24 : rowHeight === 2 ? 32 : 64
+    const gap = 8
+
+    const itemsPerRow = Math.floor((width - horizontalPadding * 2 + gap) / (itemSize + gap))
+    const totalItems = attachments.length
+    const itemsInLastRow = totalItems % itemsPerRow || itemsPerRow
+
+    const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
+    const maxVisibleItems = maxRows * itemsPerRow
+
+    const imageBoxes: (RenderRectangleProps & { title: string })[] = []
+
+    attachments.slice(0, maxVisibleItems).forEach((item, index) => {
+      if (!item) return
+
+      const row = Math.floor(index / itemsPerRow)
+      const col = index % itemsPerRow
+
+      const isLastRow = row === Math.floor((index + 1) / itemsPerRow)
+      const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
+
+      const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
+      const rowStartX = x + horizontalPadding + (width - horizontalPadding * 2 - currentRowWidth) / 2
+
+      const itemX = rowStartX + col * (itemSize + gap)
+      const itemY = y + verticalPadding + row * (itemSize + gap)
+
+      if (isImage(item.title, item.mimetype || item.type)) {
+        const size = getAttachmentSize(rowHeight)
+        const url = getPossibleAttachmentSrc(item, size)?.[0]
+
+        if (!url) {
+          // broken_image
+          return
+        }
+
+        const img = imageLoader.loadOrGetImage(url)
+        if (img) {
+          imageBoxes.push({
+            x: itemX,
+            y: itemY,
+            width: itemSize,
+            height: itemSize,
+            title: item.title ?? url,
+          })
+        }
+      } else if (item.title) {
+        imageBoxes.push({
+          x: itemX,
+          y: itemY,
+          width: itemSize,
+          height: itemSize,
+          title: item.title,
+        })
+      }
+    })
+
+    const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
+    if (hoveredPreview) {
+      showTooltip({
+        position: {
+          x: hoveredPreview.x + hoveredPreview.width / 2,
+          y: hoveredPreview.y + 20,
+        },
+        text: hoveredPreview.title,
+      })
+      return
+    }
+    if (!attachments.length) return
+
+    const buttonY = y + 8
+    const maximizeBox = {
+      x: x + width - 30,
+      y: buttonY,
+      width: 18,
+      height: 18,
+    }
+
+    const attachBox = {
+      x: x + 14,
+      y: buttonY,
+      width: 18,
+      height: 18,
+    }
+
+    if (isBoxHovered(maximizeBox, mousePosition)) {
+      showTooltip({
+        position: {
+          x: maximizeBox.x + maximizeBox.width / 2,
+          y: maximizeBox.y + 20,
+        },
+        text: getI18n().global.t('activity.viewAttachment'),
+      })
+      return
+    }
+    if (isBoxHovered(attachBox, mousePosition)) {
+      showTooltip({
+        position: {
+          x: attachBox.x + attachBox.width / 2,
+          y: attachBox.y + 20,
+        },
+        text: getI18n().global.t('activity.addFiles'),
       })
     }
   },

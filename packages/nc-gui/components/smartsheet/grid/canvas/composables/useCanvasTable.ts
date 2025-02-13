@@ -17,6 +17,7 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
+import { TableMetaLoader } from '../loaders/TableMetaLoader'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -99,6 +100,8 @@ export function useCanvasTable({
   onActiveCellChanged: () => void
   addNewColumn: () => void
 }) {
+  const { metas, getMeta } = useMetas()
+
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref({ row: -1, column: -1 })
@@ -119,6 +122,7 @@ export function useCanvasTable({
   const dragOver = ref<{ id: string; index: number } | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
+  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -142,7 +146,6 @@ export function useCanvasTable({
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
-  const { metas, getMeta } = useMetas()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
@@ -462,6 +465,7 @@ export function useCanvasTable({
     isFillMode,
     imageLoader,
     spriteLoader,
+    tableMetaLoader,
     partialRowHeight,
     vSelectedAllRecords,
     isRowDraggingEnabled,

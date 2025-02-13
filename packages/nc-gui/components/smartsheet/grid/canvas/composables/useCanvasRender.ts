@@ -5,6 +5,7 @@ import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
+import type { TableMetaLoader } from '../loaders/TableMetaLoader'
 
 export function useCanvasRender({
   width,
@@ -25,6 +26,7 @@ export function useCanvasRender({
   getFillHandlerPosition,
   spriteLoader,
   imageLoader,
+  tableMetaLoader,
   partialRowHeight,
   vSelectedAllRecords,
   isRowDraggingEnabled,
@@ -55,6 +57,7 @@ export function useCanvasRender({
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
+  tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>
@@ -590,6 +593,7 @@ export function useCanvasRender({
               pv: column.pv,
               spriteLoader,
               imageLoader,
+              tableMetaLoader,
               relatedColObj: column.relatedColObj,
               relatedTableMeta: column.relatedTableMeta,
               disabled: column?.isInvalidColumn,
@@ -647,6 +651,7 @@ export function useCanvasRender({
                   pv: column.pv,
                   spriteLoader,
                   imageLoader,
+                  tableMetaLoader,
                   relatedColObj: column.relatedColObj,
                   relatedTableMeta: column.relatedTableMeta,
                   mousePosition,

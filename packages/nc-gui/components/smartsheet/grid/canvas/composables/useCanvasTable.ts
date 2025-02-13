@@ -770,6 +770,28 @@ export function useCanvasTable({
     await bulkUpdateRows(rows, props)
   }
 
+  const cachedCurrentRow = ref<Row>()
+
+  watch(
+    () => cachedRows.value.get(editEnabled.value?.row.rowMeta.rowIndex ?? Infinity),
+    (row) => {
+      if (row == null) return
+      cachedCurrentRow.value = row
+    },
+    { deep: true },
+  )
+
+  watch(
+    cachedCurrentRow,
+    (cached) => {
+      if (editEnabled.value) {
+        editEnabled.value.row = cached
+        editEnabled.value.rowIndex = cached?.row.rowIndex
+      }
+    },
+    { deep: true },
+  )
+
   function generateRows(columnId: string, rowIds: string[]) {
     return _generateRows(meta.value?.id, columnId, rowIds)
   }

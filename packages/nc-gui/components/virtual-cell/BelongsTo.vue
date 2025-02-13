@@ -90,7 +90,9 @@ watch(value, (next) => {
 onMounted(() => {
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
   forcedNextTick(() => {
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
+    if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
+      unlinkRef(value.value)
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true
     } else {
       listItemsDlg.value = true

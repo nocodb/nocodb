@@ -98,7 +98,15 @@ export function useCanvasRender({
     },
   )
 
-  function renderHeader(ctx: CanvasRenderingContext2D, activeState?: { x: number; y: number; width: number; height: number }) {
+  function renderHeader(
+    ctx: CanvasRenderingContext2D,
+    activeState?: {
+      x: number
+      y: number
+      width: number
+      height: number
+    },
+  ) {
     const canvasWidth = width.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
@@ -570,7 +578,7 @@ export function useCanvasRender({
       isCheckboxRendered = true
       currentX += 30
     } else {
-      if (isHover && isRowDraggingEnabled.value) {
+      if (!readOnly.value && isHover && isRowDraggingEnabled.value) {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncDrag',
           size: 16,
@@ -579,7 +587,7 @@ export function useCanvasRender({
           color: '#6B7280',
         })
         currentX += 24
-      } else if (!isHover) {
+      } else if (!isHover || !readOnly.valu) {
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'

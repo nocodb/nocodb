@@ -831,6 +831,9 @@ export function useCanvasRender({
               const width = parseInt(column.width, 10)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
+
+              const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
               if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
                 ctx.fillStyle = '#F6F7FE'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -874,6 +877,7 @@ export function useCanvasRender({
                   mousePosition,
                   disabled: column?.isInvalidColumn,
                   pk,
+                  skipRender: isCellEditEnabled,
                 })
                 ctx.restore()
               }

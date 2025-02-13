@@ -18,6 +18,18 @@ export const LinksCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else {
+      const { y: textYOffset, width: textWidth } = renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: width - padding * 2 - 20,
+        fontFamily: '500 13px Manrope',
+        fillStyle: 'rgb(67, 81, 232)',
+        height,
+      })
+
+      const isHoverOverText = isBoxHovered({ x: x + padding, y, width: textWidth, height: textYOffset - y }, mousePosition)
+
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -26,6 +38,7 @@ export const LinksCellRenderer: CellRenderer = {
         fontFamily: '500 13px Manrope',
         fillStyle: 'rgb(67, 81, 232)',
         height,
+        underline: isHoverOverText,
       })
 
       if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
@@ -37,7 +50,7 @@ export const LinksCellRenderer: CellRenderer = {
           color: '#374151',
         })
 
-        if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
+        if (isHoverOverText || isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
           setCursor('pointer')
         }
       }

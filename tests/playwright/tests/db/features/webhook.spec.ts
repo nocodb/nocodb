@@ -5,7 +5,7 @@ import makeServer from '../../../setup/server';
 import { WebhookFormPage } from '../../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../../../tests/utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { enableQuickRun, isCanvas, isEE, isMysql, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isEE, isMysql, isSqlite } from '../../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -322,11 +322,6 @@ test.describe.serial('Webhook', () => {
   });
 
   test('Conditional webhooks', async ({ request }) => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     test.slow();
 
     await clearServerData({ request });

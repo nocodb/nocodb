@@ -4,7 +4,6 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { Api } from 'nocodb-sdk';
-import { isCanvas } from '../../../setup/db';
 let api: Api<any>;
 const addRecordUsingAPI = async (context: any, tableId: string, rowAttributes: any) => {
   try {
@@ -128,11 +127,6 @@ test.describe('Multi select', () => {
   });
 
   test('Remove a option, reorder option and delete the column', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await grid.cell.selectOption.select({
       index: 0,
       columnHeader: 'MultiSelect',
@@ -172,11 +166,6 @@ test.describe('Multi select', () => {
   });
 
   test('Add new option directly from cell', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await grid.cell.selectOption.addNewOption({
       index: 0,
       columnHeader: 'MultiSelect',

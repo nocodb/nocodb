@@ -79,6 +79,10 @@ const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
 
+// Injections
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
+
 // Composables
 const { height, width } = useElementSize(wrapperRef)
 
@@ -219,27 +223,6 @@ function handleMouseClick(e: MouseEvent) {
   }
 }
 
-let rafnId: number | null = null
-
-useScroll(containerRef, {
-  behavior: 'instant',
-  onScroll: (e) => {
-    if (rafnId) cancelAnimationFrame(rafnId)
-
-    rafnId = requestAnimationFrame(() => {
-      scrollTop.value = e.target.scrollTop
-      scrollLeft.value = e.target.scrollLeft
-      calculateSlices()
-      triggerRefreshCanvas()
-    })
-  },
-})
-onMounted(async () => {
-  await syncCount()
-  calculateSlices()
-  triggerRefreshCanvas()
-})
-
 const handleMouseDown = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -268,6 +251,56 @@ const handleMouseMove = (e: MouseEvent) => {
 
   resizeMouseMove(e)
 }
+
+const reloadViewDataHookHandler = async (param) => {
+  if (param?.fieldAdd) {
+    containerRef.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
+  await syncCount()
+
+  calculateSlices()
+
+  await Promise.all([updateVisibleRows()])
+
+  triggerRefreshCanvas()
+}
+
+let rafnId: number | null = null
+
+useScroll(containerRef, {
+  behavior: 'instant',
+  onScroll: (e) => {
+    if (rafnId) cancelAnimationFrame(rafnId)
+
+    rafnId = requestAnimationFrame(() => {
+      scrollTop.value = e.target.scrollTop
+      scrollLeft.value = e.target.scrollLeft
+      calculateSlices()
+      triggerRefreshCanvas()
+    })
+  },
+})
+
+const triggerReload = () => {
+  calculateSlices()
+  updateVisibleRows()
+}
+
+reloadViewDataHook.on(reloadViewDataHookHandler)
+reloadVisibleDataHook?.on(triggerReload)
+
+onBeforeUnmount(() => {
+  reloadViewDataHook.off(reloadViewDataHookHandler)
+  reloadVisibleDataHook?.off(triggerReload)
+})
+
+onMounted(async () => {
+  await syncCount()
+  calculateSlices()
+  triggerRefreshCanvas()
+})
 </script>
 
 <template>
@@ -292,7 +325,7 @@ const handleMouseMove = (e: MouseEvent) => {
         </canvas>
       </div>
       <div
-        v-if="editEnabled"
+        v-if="editEnabled?.row"
         :style="{
           top: `${rowHeight * editEnabled.rowIndex + 32}px`,
           left: `${editEnabled.x}px`,

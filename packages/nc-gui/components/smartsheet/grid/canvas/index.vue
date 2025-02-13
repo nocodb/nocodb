@@ -104,6 +104,7 @@ const {
   isDragging,
   startDrag,
   startResize,
+  hoverRow,
 } = useCanvasTable({
   rowHeightEnum: props.rowHeightEnum,
   cachedRows,
@@ -247,9 +248,17 @@ const handleMouseMove = (e: MouseEvent) => {
     } else if (e.clientX <= 200) {
       containerRef.value.scrollLeft -= 10
     }
+  } else {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+    const y = e.clientY - rect.top
+    if (y <= 32) {
+      resizeMouseMove(e)
+    } else {
+      hoverRow.value = Math.floor((y - 32) / rowHeight.value) + rowSlice.value.start
+    }
+    requestAnimationFrame(triggerRefreshCanvas)
   }
-
-  resizeMouseMove(e)
 }
 
 const reloadViewDataHookHandler = async (param) => {

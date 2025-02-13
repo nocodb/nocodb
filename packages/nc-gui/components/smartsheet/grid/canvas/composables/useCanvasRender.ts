@@ -13,6 +13,7 @@ export function useCanvasRender({
   cachedRows,
   activeCell,
   dragOver,
+  hoverRow,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -34,6 +35,7 @@ export function useCanvasRender({
   scrollLeft: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
+  hoverRow: Ref<number>
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -145,7 +147,7 @@ export function useCanvasRender({
       const row = cachedRows.value.get(rowIdx)
 
       // Row background
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
       ctx.fillRect(0, yOffset, width.value, rowHeight.value)
 
       if (row) {
@@ -223,7 +225,7 @@ export function useCanvasRender({
               }
             }
 
-            ctx.fillStyle = '#ffffff'
+            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
             renderCell(

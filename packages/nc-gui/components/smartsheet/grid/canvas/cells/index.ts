@@ -34,6 +34,8 @@ import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 
+const CLEANUP_INTERVAL = 1000
+
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
@@ -57,6 +59,9 @@ export function useGridCellHandler(params: {
 
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
+
+  const cellRenderStoreMap = new Map<string, CellRenderStore>()
+  const expirationTimes = new Map()
 
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -137,10 +142,12 @@ export function useGridCellHandler(params: {
       }
     }
 
+    let renderResult: any = null
+
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
     if (cellType) {
-      return cellType.render(ctx, {
+      renderResult = cellType.render(ctx, {
         value,
         row,
         column,
@@ -175,7 +182,7 @@ export function useGridCellHandler(params: {
         sqlUis: sqlUis.value,
       })
     } else {
-      return renderSingleLineText(ctx, {
+      renderResult = renderSingleLineText(ctx, {
         x: x + padding,
         y,
         text: value?.toString() ?? '',
@@ -185,6 +192,14 @@ export function useGridCellHandler(params: {
         py: padding,
       })
     }
+
+    if (renderResult) {
+      const key = `${column.id}-${pk}`
+      cellRenderStoreMap.set(key, renderResult)
+      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
+    }
+
+    return renderResult
   }
 
   const handleCellClick = async (ctx: {
@@ -201,9 +216,12 @@ export function useGridCellHandler(params: {
 
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
+    const cellRenderStore = cellRenderStoreMap.get(`${ctx.column.id}-${ctx.pk}`)
+
     if (cellHandler?.handleClick) {
       return await cellHandler.handleClick({
         ...ctx,
+        cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
         getCellPosition: params?.getCellPosition,
         updateOrSaveRow: params?.updateOrSaveRow,
@@ -245,9 +263,12 @@ export function useGridCellHandler(params: {
 
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
+    const cellRenderStore = cellRenderStoreMap.get(`${ctx.column.id}-${ctx.pk}`)
+
     if (cellHandler?.handleHover) {
       return await cellHandler.handleHover({
         ...ctx,
+        cellRenderStore,
         getCellPosition: params?.getCellPosition,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
@@ -255,6 +276,26 @@ export function useGridCellHandler(params: {
       })
     }
   }
+
+  let cleanUpInterval: ReturnType<typeof setInterval> | null = null
+
+  onMounted(() => {
+    cleanUpInterval = setInterval(() => {
+      const now = Date.now()
+      for (const [key, expiration] of expirationTimes.entries()) {
+        if (now >= expiration) {
+          cellRenderStoreMap.delete(key)
+          expirationTimes.delete(key)
+        }
+      }
+    }, CLEANUP_INTERVAL)
+  })
+
+  onUnmounted(() => {
+    if (cleanUpInterval) {
+      clearInterval(cleanUpInterval)
+    }
+  })
 
   return {
     cellTypesRegistry,

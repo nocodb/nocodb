@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -48,5 +48,15 @@ export const DateCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleClick(ctx) {
+    const { row, column, makeCellEditable, getCellPosition, mousePosition } = ctx
+    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+
+    if (isBoxHovered({ x: bound.x, y: bound.y, width: bound.width, height: 33 }, mousePosition)) {
+      makeCellEditable(row.rowMeta.rowIndex, column)
+      return true
+    }
+    return false
   },
 }

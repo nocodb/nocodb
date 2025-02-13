@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { truncateText } from '../utils/canvas'
+import { isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 
 dayjs.extend(utc)
@@ -50,5 +50,15 @@ export const DateTimeCellRenderer: CellRenderer = {
     const timeMaxWidth = timeCellMaxWidthMap[timeFormat]?.[is12hrFormat ? 12 : 24] ?? 80
     const truncatedTime = truncateText(ctx, timeStr, timeMaxWidth - padding * 2)
     ctx.fillText(truncatedTime, x + dateWidth + padding, textY)
+  },
+  async handleClick(ctx) {
+    const { row, column, makeCellEditable, getCellPosition, mousePosition } = ctx
+    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+
+    if (isBoxHovered({ x: bound.x, y: bound.y, width: bound.width, height: 33 }, mousePosition)) {
+      makeCellEditable(row.rowMeta.rowIndex, column)
+      return true
+    }
+    return false
   },
 }

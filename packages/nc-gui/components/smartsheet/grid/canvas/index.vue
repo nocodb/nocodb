@@ -268,20 +268,44 @@ const editEnabledCellPosition = computed(() => {
       left: 0,
     }
   }
+
   const top = Math.max(
     32,
     Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
   )
+
   const left = editEnabled.value.fixed
     ? editEnabled.value.x
     : Math.max(
         fixedLeftWidth.value,
-        Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
+        Math.min(containerRef.value?.clientWidth - editEnabled.value.width, editEnabled.value.x - scrollLeft.value),
       )
+
   return {
     top: `${top}px`,
     left: `${left}px`,
   }
+})
+
+const isClamped = computed(() => {
+  if (!editEnabled.value || !containerRef.value) return false
+
+  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value
+  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
+  const verticalStuck = clampedTop !== rawTop
+
+  let horizontalStuck = false
+
+  if (!editEnabled.value.fixed) {
+    const rawLeft = editEnabled.value.x - scrollLeft.value
+    const clampedLeft = Math.max(
+      fixedLeftWidth.value,
+      Math.min(containerRef.value.clientWidth - editEnabled.value.width, rawLeft),
+    )
+    horizontalStuck = clampedLeft !== rawLeft
+  }
+
+  return verticalStuck || horizontalStuck
 })
 
 const totalHeight = computed(() => {
@@ -1650,32 +1674,34 @@ const increaseMinHeightBy: Record<string, number> = {
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
+            :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
           >
-            <SmartsheetRow :row="editEnabled.row">
-              <template #default="{ state }">
-                <SmartsheetVirtualCell
-                  v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
-                  v-model="editEnabled.row.row[editEnabled.column.title]"
-                  :column="editEnabled.column"
-                  :row="editEnabled.row"
-                  active
-                  @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
-                  @navigate="onNavigate"
-                />
-                <SmartsheetCell
-                  v-else
-                  v-model="editEnabled.row.row[editEnabled.column.title]"
-                  :column="editEnabled.column"
-                  :row-index="editEnabled.rowIndex"
-                  active
-                  edit-enabled
-                  @save="updateOrSaveRow?.(...$event)"
-                  @save-with-state="updateOrSaveRow?.(...$event)"
-                  @navigate="onNavigate"
-                />
-              </template>
-            </SmartsheetRow>
+            <div class="px-[1px] pt-[2.5px]">
+              <SmartsheetRow :row="editEnabled.row">
+                <template #default="{ state }">
+                  <SmartsheetVirtualCell
+                    v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
+                    v-model="editEnabled.row.row[editEnabled.column.title]"
+                    :column="editEnabled.column"
+                    :row="editEnabled.row"
+                    active
+                    @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                    @navigate="onNavigate"
+                  />
+                  <SmartsheetCell
+                    v-else
+                    v-model="editEnabled.row.row[editEnabled.column.title]"
+                    :column="editEnabled.column"
+                    :row-index="editEnabled.rowIndex"
+                    active
+                    edit-enabled
+                    @save="updateOrSaveRow?.(...$event)"
+                    @save-with-state="updateOrSaveRow?.(...$event)"
+                    @navigate="onNavigate"
+                  />
+                </template>
+              </SmartsheetRow>
+            </div>
           </div>
         </div>
       </div>
@@ -1789,7 +1815,11 @@ const increaseMinHeightBy: Record<string, number> = {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply sticky bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px] overflow-hidden;
+  @apply sticky bg-transparent !text-small !leading-[18px] overflow-hidden;
+
+  &.on-stick {
+    @apply bg-white border-2 !rounded border-[#3366ff];
+  }
 
   &.row-height-1 {
     :deep(.nc-multi-select) {

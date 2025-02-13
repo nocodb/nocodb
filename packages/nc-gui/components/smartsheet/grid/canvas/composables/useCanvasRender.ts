@@ -7,7 +7,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED, MAX_SELECTED_ROWS } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -520,7 +520,14 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
-    if (selection.value.isEmpty() || editEnabled.value || isFillHanldeDisabled.value) return true
+    const activeColumn = columns.value[activeCell.value.column]
+
+    if (
+      selection.value.isEmpty() ||
+      (editEnabled.value && !EDIT_FILL_ENABLED.includes(activeColumn.uidt)) ||
+      isFillHanldeDisabled.value
+    )
+      return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
@@ -757,6 +764,9 @@ export function useCanvasRender({
             const width = parseInt(column.width, 10)
             const absoluteColIdx = startColIndex + colIdx
 
+            const isCellEditEnabled =
+              editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
             if (column.fixed) {
               xOffset += width
               return
@@ -805,6 +815,7 @@ export function useCanvasRender({
               disabled: column?.isInvalidColumn,
               mousePosition,
               pk,
+              skipRender: isCellEditEnabled,
             })
             xOffset += width
           })

@@ -12,6 +12,7 @@ import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
+import { showFieldEditWarning } from '../utils/cell'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
@@ -60,23 +61,20 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column } = props
-    const colObj = column.columnObj
-    const colMeta = parseProp(colObj.meta)
-    if (colMeta?.display_type) {
-      return getDisplayValueCellRenderer(colObj)?.handleClick?.({
-        ...props,
-        column: {
-          ...column,
-          columnObj: {
-            ...column.columnObj,
-            uidt: colMeta?.display_type,
-            ...colMeta.display_column_meta,
-          },
-        },
-      })
+    // Todo: show inline warning
+    if (props.event?.detail === 2) {
+      showFieldEditWarning()
+      return true
     }
+
     return false
+  },
+  handleKeyDown: async (props) => {
+    // Todo: show inline warning
+    if (props.e.key === 'Enter') {
+      showFieldEditWarning()
+      return true
+    }
   },
   async handleHover(props) {
     const { mousePosition, getCellPosition, column, row } = props

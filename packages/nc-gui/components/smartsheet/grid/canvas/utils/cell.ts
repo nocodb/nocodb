@@ -1,4 +1,5 @@
 import { type ColumnType, type SelectOptionType, type SelectOptionsType, UITypes, timeFormats } from 'nocodb-sdk'
+import { getI18n } from '../../../../../plugins/a.i18n'
 
 export const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
@@ -72,6 +73,7 @@ export const NO_EDITABLE_CELL = [
   UITypes.LastModifiedBy,
   UITypes.LastModifiedTime,
   UITypes.CreatedTime,
+  UITypes.Formula,
 ]
 
 export const renderAsCellLookupOrLtarValue = [
@@ -100,4 +102,9 @@ export function getMouseClickType(e: MouseEvent) {
   }
 
   return null
+}
+
+export const showFieldEditWarning = () => {
+  const { t } = getI18n().global
+  message.warn(t('msg.info.computedFieldEditWarning'))
 }

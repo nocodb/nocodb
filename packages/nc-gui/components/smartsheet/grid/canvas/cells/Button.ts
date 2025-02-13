@@ -159,6 +159,9 @@ const buttonColorMap = {
   },
 } as const
 
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+const defaultContext = offscreenCanvas.getContext('2d')!
+
 const getButtonColors = (
   theme: 'solid' | 'light' | 'text',
   color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
@@ -183,10 +186,6 @@ export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
     const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk } = props
 
-    const horizontalPadding = 12
-    const buttonHeight = 24
-    const buttonMinWidth = 32
-
     const colOptions = column.colOptions
     if (!colOptions) return
 
@@ -197,6 +196,10 @@ export const ButtonCellRenderer: CellRenderer = {
       color: colOptions.color || 'brand',
       type: colOptions.type,
     }
+
+    const horizontalPadding = 12
+    const buttonHeight = 24
+    const buttonMinWidth = 32
 
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
@@ -277,9 +280,63 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.fillText(truncatedLabel, contentX, startY + 13)
     }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition }) {
     if (!row || !column?.id || !mousePosition) return
 
-    await actionManager.executeButtonAction(pk, column, { row })
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    const buttonMeta = {
+      label: column.columnObj.colOptions?.label || '',
+      icon: column.columnObj.colOptions?.icon,
+      theme: column.columnObj.colOptions?.theme || 'solid',
+      color: column.columnObj.colOptions?.color || 'brand',
+      type: column.columnObj.colOptions?.type,
+    }
+
+    const horizontalPadding = 12
+    const buttonHeight = 24
+    const buttonMinWidth = 32
+
+    const hasIcon = !!buttonMeta.icon
+    const hasLabel = !!buttonMeta.label
+    const iconSize = 14
+    const iconSpacing = 6
+
+    const maxButtonWidth = width - 8
+
+    let contentWidth = 0
+    let labelWidth = 0
+
+    if (hasLabel) {
+      const ctx = defaultContext
+      ctx.font = '500 13px Manrope'
+
+      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+
+      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
+      labelWidth = truncatedInfo.width
+      contentWidth += labelWidth
+    }
+
+    if (hasIcon) {
+      contentWidth += iconSize
+      if (hasLabel) contentWidth += iconSpacing
+    }
+
+    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
+
+    const startX = x + (width - buttonWidth) / 2
+    const startY = y + 4
+
+    const isHovered =
+      mousePosition &&
+      mousePosition.x >= startX &&
+      mousePosition.x <= startX + buttonWidth &&
+      mousePosition.y >= startY &&
+      mousePosition.y <= startY + buttonHeight
+
+    if (!isHovered) return
+
+    await actionManager.executeButtonAction([pk], column, { row: [row] })
   },
 }

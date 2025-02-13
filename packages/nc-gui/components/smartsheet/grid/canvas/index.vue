@@ -13,7 +13,6 @@ import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
-import { useGridCellHandler } from './cells'
 
 const props = defineProps<{
   totalRows: number
@@ -182,6 +181,7 @@ const {
 
   // Cell Click
   handleCellClick,
+  actionManager,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -424,10 +424,14 @@ async function handleMouseDown(e: MouseEvent) {
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {
         const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
-        if (selection.value.isEmpty()) {
+        const isWithinSelection = selection.value.isCellInRange({ row: rowIndex, col: columnIndex })
+
+        if (!isWithinSelection) {
+          selection.value.clear()
           selection.value.startRange({ row: rowIndex, col: columnIndex })
           selection.value.endRange({ row: rowIndex, col: columnIndex })
         }
+
         contextMenuTarget.value = { row: rowIndex, col: columnIndex }
         nextTick(() => {
           isContextMenuOpen.value = true
@@ -449,7 +453,7 @@ async function handleMouseDown(e: MouseEvent) {
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
       if (columnUIType === UITypes.Rating) {
         // Rating is functional as is
-      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
+      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
         if (!supportedVirtuals.includes(columnUIType) && clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
         makeCellEditable(rowIndex, clickedColumn)
@@ -750,6 +754,7 @@ onMounted(async () => {
               :columns="columns"
               :cached-rows="cachedRows"
               :active-cell="activeCell"
+              :action-manager="actionManager"
               :clear-cell="clearCell"
               :is-primary-key-available="isPrimaryKeyAvailable"
               :is-selection-read-only="isSelectionReadOnly"

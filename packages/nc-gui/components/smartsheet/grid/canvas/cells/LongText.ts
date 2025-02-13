@@ -26,7 +26,7 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (props.tag?.renderAsTag) {
-      return renderTagLabel(ctx, { ...props, text })
+      return renderTagLabel(ctx, { ...props, text, renderAsMarkdown: isRichMode })
     } else if (isRichMode) {
       const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
         x: x + padding,

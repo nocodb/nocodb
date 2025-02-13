@@ -536,7 +536,7 @@ onMounted(() => {
 
       <template #overlay>
         <div
-          class="min-w-[72px]"
+          class="min-w-[120px]"
           :class="{
             'w-[256px]': isDatePicker,
           }"

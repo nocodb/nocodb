@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isCanvas, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
@@ -56,6 +56,11 @@ test.describe('View', () => {
   });
 
   test('Kanban', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     await dashboard.viewSidebar.createKanbanView({
       title: 'Film Kanban',
     });

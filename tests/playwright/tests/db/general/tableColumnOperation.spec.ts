@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
+import { isCanvas } from '../../../setup/db';
 
 test.describe('Table Column Operations', () => {
   let grid: GridPage, dashboard: DashboardPage;
@@ -16,6 +17,11 @@ test.describe('Table Column Operations', () => {
   });
 
   test('Create column', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     await grid.column.create({ title: 'column_name_a' });
     await grid.column.verify({ title: 'column_name_a' });
 

@@ -107,6 +107,8 @@ const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
+const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
+provide(ClientMousePositionInj, clientMousePosition)
 
 const isExpandTableModalOpen = ref(false)
 // Injections
@@ -512,6 +514,8 @@ const handleMouseUp = (e: MouseEvent) => {
 const handleMouseMove = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
   mousePosition.x = e.clientX - rect.left
   mousePosition.y = e.clientY - rect.top
   if (isFillHandlerActive.value) {

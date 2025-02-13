@@ -5,6 +5,7 @@ import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
 
 const value = inject(CellValueInj, ref(0))
 
@@ -138,18 +139,13 @@ watch(
 )
 
 onMounted(() => {
-  if (!isCanvasInjected) return
-
-  // if (false) {
-  //   setTimeout(() => {
-  //     openListDlg()
-  //     // if we open immediately, the background seems stuck and
-  //     // we cannot dismiss the modal
-  //   }, 100)
-  //   return
-  // }
+  if (!isCanvasInjected || !clientMousePosition) return
   setTimeout(() => {
-    openChildList()
+    if (getElementAtMouse(clientMousePosition, '.nc-canvas-links-icon-plus')) {
+      openListDlg()
+    } else if (getElementAtMouse(clientMousePosition, '.nc-canvas-links-text')) {
+      openChildList()
+    }
     // if we open immediately, the background seems stuck and
     // we cannot dismiss the modal
   }, 100)
@@ -165,7 +161,7 @@ onMounted(() => {
             :is="isUnderLookup ? 'span' : 'a'"
             v-e="['c:cell:links:modal:open']"
             :title="textVal"
-            class="text-center nc-datatype-link underline-transparent"
+            class="text-center nc-datatype-link underline-transparent nc-canvas-links-text"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
             @click.stop.prevent="openChildList"
@@ -177,9 +173,10 @@ onMounted(() => {
         <div class="flex-grow" />
 
         <div
+          v-if="!isUnderLookup"
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
-          class="!xs:hidden flex group justify-end group-hover:flex items-center"
+          class="!xs:hidden flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus

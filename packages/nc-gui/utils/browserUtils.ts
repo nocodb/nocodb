@@ -35,3 +35,7 @@ export const getScrollbarWidth = () => {
   outer?.parentNode?.removeChild(outer)
   return widthNoScroll - widthWithScroll
 }
+
+export function getElementAtMouse<T>({ clientX, clientY }: { clientX: number; clientY: number }, selector: string) {
+  return document.elementsFromPoint(clientX, clientY).find((el) => el.matches(selector)) as T | undefined
+}

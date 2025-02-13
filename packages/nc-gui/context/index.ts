@@ -1,5 +1,5 @@
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
-import type { ComputedRef, InjectionKey, Ref } from 'vue'
+import type { ComputedRef, InjectionKey, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
 
@@ -101,3 +101,6 @@ export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('too
 export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
   Symbol('field-name-alias')
 export const IsCanvasInjectionInj: InjectionKey<boolean> = Symbol('is-canvas-injection')
+export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; clientY: number }>> = Symbol(
+  'client-mouse-position-injection',
+)

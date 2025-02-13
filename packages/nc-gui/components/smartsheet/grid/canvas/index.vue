@@ -1300,9 +1300,9 @@ onBeforeUnmount(() => {
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
             :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
           >
-            <LazySmartsheetRow :row="editEnabled.row">
+            <SmartsheetRow :row="editEnabled.row">
               <template #default="{ state }">
-                <LazySmartsheetVirtualCell
+                <SmartsheetVirtualCell
                   v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
                   v-model="editEnabled.row.row[editEnabled.column.title]"
                   :column="editEnabled.column"
@@ -1323,29 +1323,29 @@ onBeforeUnmount(() => {
                   @navigate="onNavigate"
                 />
               </template>
-            </LazySmartsheetRow>
+            </SmartsheetRow>
           </div>
         </div>
       </div>
       <template v-if="overlayStyle">
         <NcDropdown
-            :visible="isDropdownVisible"
-            overlay-class-name="!border-none !bg-transparent"
-            @visible-change="onVisibilityChange"
+          :visible="isDropdownVisible"
+          overlay-class-name="!border-none !bg-transparent"
+          @visible-change="onVisibilityChange"
         >
           <div :style="overlayStyle" class="hide pointer-events-none"></div>
           <template #overlay>
             <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" />
             <SmartsheetHeaderColumnMenu
-                v-else-if="openColumnDropdownField"
+              v-else-if="openColumnDropdownField"
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
               @edit="handleEditColumn"
             />
             <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
               <LazySmartsheetColumnEditOrAddProvider
-                  :key="editColumn?.id || 'new'"
-                  ref="columnEditOrAddProviderRef"
+                :key="editColumn?.id || 'new'"
+                ref="columnEditOrAddProviderRef"
                 :column="editColumn"
                 :edit-description="isEditColumnDescription"
                 @submit="closeAddColumnDropdownMenu(true)"

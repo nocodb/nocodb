@@ -322,13 +322,13 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'yearPicker'">
-        <LazyCellYearReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
+        <CellYearReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'datePicker'">
-        <LazyCellDateReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDateEditor
+        <CellDateReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellDateEditor
           v-else
           v-model="vModel"
           :is-pk="isPrimaryKeyCol"

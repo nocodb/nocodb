@@ -1,5 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, type TableType } from 'nocodb-sdk'
+import type { Composer } from 'vue-i18n'
 import { isBoxHovered, renderCheckbox, renderIconButton, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
@@ -40,6 +41,8 @@ export function useCanvasRender({
   meta,
   editEnabled,
   totalWidth,
+  totalRows,
+  t,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -72,6 +75,8 @@ export function useCanvasRender({
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options) => void
   meta: ComputedRef<TableType>
   editEnabled: Ref<CanvasEditEnabledType>
+  totalRows: Ref<number>
+  t: Composer['t']
 }) {
   const canvasRef = ref()
   function renderHeader(ctx: CanvasRenderingContext2D, activeState?: { x: number; y: number; width: number; height: number }) {
@@ -183,12 +188,29 @@ export function useCanvasRender({
           y: 9,
         })
       }
-
       xOffset += width
-      ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, 0)
-      ctx.lineTo(xOffset - scrollLeft.value, 32)
-      ctx.stroke()
+
+      const resizeHandleWidth = 10
+      const isNearEdge =
+        mousePosition && Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
+
+      if (isNearEdge) {
+        ctx.strokeStyle = '#9CDAFA'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, 0)
+        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.stroke()
+
+        // Reset for regular column separator
+        ctx.strokeStyle = '#e7e7e9'
+        ctx.lineWidth = 1
+      } else {
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, 0)
+        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.stroke()
+      }
     }
 
     const plusColumnWidth = 60
@@ -1002,13 +1024,24 @@ export function useCanvasRender({
         ctx.fillStyle = '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
+        ctx.fillStyle = '#6a7184'
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'left'
+        ctx.fillText(
+          `${Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows.value)} ${
+            totalRows.value !== 1 ? t('objects.records') : t('objects.record')
+          }`,
+          xOffset + 8,
+          height.value - AGGREGATION_HEIGHT / 2,
+          mergedWidth,
+        )
+
         if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
           ctx.save()
           ctx.beginPath()
           ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
           ctx.clip()
 
-          ctx.textBaseline = 'middle'
           ctx.textAlign = 'right'
 
           ctx.font = '600 12px Manrope'
@@ -1023,7 +1056,6 @@ export function useCanvasRender({
           ctx.font = '600 12px Manrope'
           ctx.fillStyle = '#4a5268'
           ctx.fillText(firstFixedCol.aggregation, mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
-
           ctx.restore()
         } else if (isHovered) {
           ctx.save()
@@ -1032,9 +1064,7 @@ export function useCanvasRender({
           ctx.clip()
 
           ctx.font = '600 10px Manrope'
-          ctx.fillStyle = '#6a7184'
           ctx.textAlign = 'right'
-          ctx.textBaseline = 'middle'
 
           const rightEdge = xOffset + mergedWidth - 8
           const textY = height.value - AGGREGATION_HEIGHT / 2

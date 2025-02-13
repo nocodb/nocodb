@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  type ColumnType,
-  type TableType,
-  UITypes,
-  type ViewType,
-  isVirtualCol,
-  readonlyMetaAllowedTypes,
-} from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, type ViewType, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
@@ -14,7 +7,7 @@ import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
-import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
+import { EDIT_CELL_REDUCTION, MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
 import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
 
 const props = defineProps<{
@@ -1153,12 +1146,8 @@ onBeforeUnmount(() => {
               bottom: `36px`,
               right: '0px',
               marginTop: `${
-                rowHeight *
-                (editEnabled.rowIndex < rowSlice.start
-                  ? rowSlice.start
-                  : editEnabled.rowIndex > rowSlice.end
-                  ? rowSlice.end - 3
-                  : editEnabled.rowIndex + 1)
+                rowHeight * (editEnabled.rowIndex < rowSlice.start ? rowSlice.start : editEnabled.rowIndex + 1) -
+                EDIT_CELL_REDUCTION[rowHeightEnum ?? 1]
               }px`,
               left: `${editEnabled.fixed ? editEnabled.x : Math.max(fixedLeftWidth, editEnabled.x - scrollLeft)}px`,
               width: `${editEnabled.width}px`,

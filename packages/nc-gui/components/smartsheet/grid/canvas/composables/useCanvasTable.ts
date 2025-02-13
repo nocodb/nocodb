@@ -806,7 +806,6 @@ export function useCanvasTable({
     (cached) => {
       if (editEnabled.value) {
         editEnabled.value.row = cached
-        editEnabled.value.rowIndex = cached?.row.rowIndex
       }
     },
     { deep: true },

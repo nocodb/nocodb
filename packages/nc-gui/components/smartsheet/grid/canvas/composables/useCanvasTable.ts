@@ -1,4 +1,12 @@
-import { UITypes, isAIPromptCol, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  UITypes,
+  isAIPromptCol,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isOrderCol,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -8,6 +16,7 @@ import { clearTextCache } from '../utils/canvas'
 import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
+import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -17,7 +26,6 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
-import { TableMetaLoader } from '../loaders/TableMetaLoader'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -233,6 +241,7 @@ export function useCanvasTable({
           uidt: f.uidt,
           width: gridViewCol.width,
           fixed: f.pv,
+          readonly: isSystemColumn(f) || isCreatedOrLastModifiedByCol(f) || isCreatedOrLastModifiedTimeCol(f),
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -395,8 +404,8 @@ export function useCanvasTable({
     // If selection is single cell and cell is virtual, hide fill handler
     if (selection.value.isSingleCell()) {
       const selectedColumn = columns.value[selection.value.end.col]
-      // If the cell is virtual, hide the fill handler
-      if (selectedColumn?.virtual) {
+      // If the cell is virtual or system column, hide the fill handler
+      if (selectedColumn?.virtual || isSystemColumn(selectedColumn?.columnObj)) {
         return null
       }
     } else {

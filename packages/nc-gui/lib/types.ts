@@ -497,6 +497,7 @@ interface CanvasGridColumn {
   columnObj: ColumnType & {
     extra?: any | never
   }
+  readonly: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string

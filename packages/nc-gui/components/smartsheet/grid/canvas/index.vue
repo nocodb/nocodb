@@ -16,7 +16,7 @@ import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { NO_EDITABLE_CELL } from './utils/cell'
-import { COLUMN_HEADER_HEIGHT_IN_PX } from './utils/constants'
+import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -246,6 +246,12 @@ const isContextMenuOpen = computed({
   },
 })
 
+watch(vSelectedAllRecords, (val) => {
+  cachedRows.value.forEach((row) => {
+    row.rowMeta.selected = !!val
+  })
+})
+
 const COLUMN_BUFFER_SIZE = 5
 
 const calculateSlices = () => {
@@ -337,8 +343,8 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
 }
 
 const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number }) => {
-  const isAtMaxSelection = selectedRows.value.length >= 100
-  const isCheckboxDisabled = vSelectedAllRecords.value
+  const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
+  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
 
   const regions = []
@@ -362,7 +368,7 @@ const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number 
     currentX += 24
   }
 
-  if ((!isAtMaxSelection || row.rowMeta?.selected) && !isCheckboxDisabled && !isCheckboxRendered) {
+  if (!isCheckboxRendered) {
     regions.push({
       x: currentX,
       width: 24,

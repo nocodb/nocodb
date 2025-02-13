@@ -6,6 +6,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
+import { MAX_SELECTED_ROWS } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -427,12 +428,13 @@ export function useCanvasRender({
   ) => {
     const isHover = hoverRow.value === row.rowMeta.rowIndex
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
+    if (row.rowMeta.selected) ctx.fillStyle = '#EBF0FF'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
 
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-    const isDisabled = vSelectedAllRecords.value
+    const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
     let isCheckboxRendered = false
     if (isChecked) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
@@ -467,7 +469,7 @@ export function useCanvasRender({
       }
     }
 
-    if (isHover && !isDisabled && !isCheckboxRendered && !(selectedRows.value.length >= 100)) {
+    if (isHover && !isCheckboxRendered) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
       renderCheckbox(
         ctx,
@@ -578,7 +580,7 @@ export function useCanvasRender({
               return
             }
 
-            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+            if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
               ctx.fillStyle = '#EBF0FF'
               ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
             }
@@ -636,7 +638,7 @@ export function useCanvasRender({
               const width = parseInt(column.width, 10)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
-              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+              if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
                 ctx.fillStyle = '#EBF0FF'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               } else {

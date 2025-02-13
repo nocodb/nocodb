@@ -2550,7 +2550,7 @@ const cellAlignClass = computed(() => {
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length >= 100) || vSelectedAllRecords"
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />

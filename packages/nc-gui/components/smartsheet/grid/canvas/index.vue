@@ -122,6 +122,7 @@ const {
   hoverRow,
   selection,
   partialRowHeight,
+  makeCellEditable,
 
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -155,6 +156,7 @@ const {
   // Copy & Paste
   copyValue,
   clearCell,
+  clearSelectedRangeOfCells,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -173,11 +175,12 @@ const {
   updateRecordOrder,
   expandRows,
   updateOrSaveRow,
+  expandForm,
   bulkUpdateRows,
   bulkUpsertRows,
+  addEmptyRow,
+  onActiveCellChanged,
 })
-
-const { metaColumnById } = useViewColumnsOrThrow()
 
 // Computed
 const totalHeight = computed(() => {
@@ -223,6 +226,13 @@ const calculateSlices = () => {
   }
 
   updateVisibleRows()
+}
+
+function onActiveCellChanged() {
+  clearInvalidRows?.()
+  if (rowSortRequiredRows.value.length) {
+    applySorting?.(rowSortRequiredRows.value)
+  }
 }
 
 function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
@@ -361,16 +371,7 @@ function handleMouseDown(e: MouseEvent) {
       }
       if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
         if (clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
-
-        editEnabled.value = {
-          rowIndex,
-          x: xOffset + scrollLeft.value,
-          y: (rowIndex + 1) * rowHeight.value + 32,
-          column: metaColumnById.value[clickedColumn.id],
-          row: cachedRows.value.get(rowIndex),
-          height: rowHeight.value,
-          width: parseInt(clickedColumn.width, 10) + 2,
-        }
+        makeCellEditable(rowIndex, clickedColumn)
       } else {
         onMouseDownSelectionHandler(e)
       }
@@ -633,6 +634,7 @@ onMounted(async () => {
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"
               :selected-rows="selectedRows"
+              :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
             />
           </template>
@@ -642,7 +644,7 @@ onMounted(async () => {
         v-if="editEnabled?.row"
         :style="{
           top: `${rowHeight * editEnabled.rowIndex + 32}px`,
-          left: `${editEnabled.x}px`,
+          left: `${editEnabled.x + (editEnabled.fixed ? scrollLeft : 0)}px`,
           width: `${editEnabled.width}px`,
           height: `${editEnabled.height}px`,
           borderRadius: '2px',

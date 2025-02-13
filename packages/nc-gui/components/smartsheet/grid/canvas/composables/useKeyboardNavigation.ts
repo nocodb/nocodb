@@ -1,6 +1,7 @@
 import { type ColumnType } from 'nocodb-sdk'
 
 const MAX_SELECTION_LIMIT = 100
+const MIN_COLUMN_INDEX = 1
 export function useKeyboardNavigation({
   totalRows,
   activeCell,
@@ -8,6 +9,16 @@ export function useKeyboardNavigation({
   triggerReRender,
   scrollToCell,
   selection,
+  editEnabled,
+  copyValue,
+  clearCell,
+  clearSelectedRangeOfCells,
+  makeCellEditable,
+  expandForm,
+  cachedRows,
+  isAddingEmptyRowAllowed,
+  addEmptyRow,
+  onActiveCellChanged,
 }: {
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
@@ -24,71 +35,199 @@ export function useKeyboardNavigation({
     width: number
     height: number
   } | null>
+  copyValue: (target?: Cell) => void
+  clearCell: (ctx: { row: number; col: number } | null, skipUpdate?: boolean) => Promise<void>
+  clearSelectedRangeOfCells: () => Promise<void>
+  makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  cachedRows: Ref<Map<number, Row>>
+  isAddingEmptyRowAllowed: Ref<boolean>
+  addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
+  onActiveCellChanged: () => void
 }) {
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const { isDataReadOnly, isUIAllowed } = useRoles()
+  const { $e } = useNuxtApp()
+
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    const activeDropdownEl = document.querySelector(
+      '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
+    )
+    if (activeDropdownEl) {
+      e.preventDefault()
+      return true
+    }
+    if (isExpandedCellInputExist()) return
+
+    if (isDrawerOrModalExist() || isLinkDropdownExist()) return
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
+
+    if (e.key === ' ') {
+      const isRichModalOpen = isExpandedCellInputExist()
+
+      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {
+        e.preventDefault()
+        const row = cachedRows.value.get(activeCell.value.row)
+        expandForm?.(row)
+        return
+      }
+    }
+
     let moved = false
+
+    if (cmdOrCtrl && !editEnabled.value) {
+      switch (e.key.toLowerCase()) {
+        case 'c':
+          e.preventDefault()
+          copyValue()
+          return
+      }
+    }
 
     if (e.shiftKey && selection.value.isEmpty()) {
       selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
     }
 
-    const moveToExtreme = isMac() ? e.metaKey : e.ctrlKey
+    const moveToExtreme = cmdOrCtrl
+    const currentRow = activeCell.value.row
+    const currentCol = activeCell.value.column
+    const lastRow = totalRows.value - 1
+    const lastCol = columns.value.length - 1
+
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed.value) {
+            $e('c:shortcut', { key: 'ALT + R' })
+            addEmptyRow()
+            activeCell.value.row = totalRows.value
+            activeCell.value.col = 1
+            selection.value.clear()
+            scrollToCell(activeCell.value.row, 1)
+          }
+          return
+        }
+        case 67: {
+          // TODO: @DarkPhonix2704
+          /* // ALT + C
+          if (isAddingColumnAllowed.value) {
+            $e('c:shortcut', { key: 'ALT + C' })
+            scrollToAddNewColumnHeader('instant')
+
+            setTimeout(() => {
+              addColumnDropdown.value = true
+            }, 250)
+          } */
+          break
+        }
+      }
+    }
 
     switch (e.key) {
-      case 'ArrowUp':
-        if (activeCell.value.row > 0) {
+      case 'Delete':
+      case 'Backspace':
+        if (isDataReadOnly.value) return
+        if (!editEnabled.value) {
           e.preventDefault()
-          activeCell.value.row = moveToExtreme ? 0 : activeCell.value.row - 1
+          if (selection.value.isSingleCell()) {
+            await clearCell?.({
+              row: activeCell.value.row,
+              col: activeCell.value.column,
+            })
+          } else {
+            await clearSelectedRangeOfCells()
+            selection.value.clear()
+          }
+        }
+        return
+
+      case 'Enter':
+        selection.value.clear()
+        if (e.shiftKey) return
+        if (!editEnabled.value) {
+          e.preventDefault()
+          makeCellEditable(currentRow, columns.value[currentCol])
+        } else {
+          editEnabled.value = null
+          activeCell.value.row++
+        }
+        break
+
+      case 'Escape':
+        if (editEnabled.value) {
+          editEnabled.value = null
+        }
+        return
+
+      case 'ArrowUp':
+        if (!editEnabled.value && currentRow > 0) {
+          e.preventDefault()
+          activeCell.value.row = moveToExtreme ? 0 : currentRow - 1
+          onActiveCellChanged()
           moved = true
         }
         break
 
       case 'ArrowDown':
-        if (activeCell.value.row < totalRows.value - 1) {
+        if (!editEnabled.value && currentRow < lastRow) {
           e.preventDefault()
-          activeCell.value.row = moveToExtreme ? totalRows.value - 1 : activeCell.value.row + 1
+          activeCell.value.row = moveToExtreme ? lastRow : currentRow + 1
+          onActiveCellChanged()
           moved = true
         }
         break
 
       case 'ArrowLeft':
-        if (activeCell.value.column > 1) {
+        if (!editEnabled.value && currentCol > MIN_COLUMN_INDEX) {
           e.preventDefault()
-          activeCell.value.column = moveToExtreme ? 1 : activeCell.value.column - 1
+          activeCell.value.column = moveToExtreme ? MIN_COLUMN_INDEX : currentCol - 1
           moved = true
         }
         break
 
       case 'ArrowRight':
-        if (activeCell.value.column < columns.value.length - 1) {
+        if (!editEnabled.value && currentCol < lastCol) {
           e.preventDefault()
-          activeCell.value.column = moveToExtreme ? columns.value.length - 1 : activeCell.value.column + 1
+          activeCell.value.column = moveToExtreme ? lastCol : currentCol + 1
           moved = true
         }
         break
 
-      case 'Tab':
-        e.preventDefault()
-        if (e.shiftKey) {
-          // Move left
-          if (activeCell.value.column > 1) {
-            activeCell.value.column--
-          } else if (activeCell.value.row > 0) {
-            activeCell.value.row--
-            activeCell.value.column = columns.value.length - 1
+      case 'Tab': {
+        let isAdded = false
+        if (!editEnabled.value) {
+          e.preventDefault()
+          if (!e.shiftKey && currentRow === lastRow && currentCol === lastCol) {
+            if (isAddingEmptyRowAllowed.value) {
+              addEmptyRow()
+              isAdded = true
+            }
+          } else if (e.shiftKey && currentRow === 0 && currentCol === MIN_COLUMN_INDEX) {
+            return
           }
-        } else {
-          // Move right
-          if (activeCell.value.column < columns.value.length - 1) {
-            activeCell.value.column++
-          } else if (activeCell.value.row < totalRows.value - 1) {
-            activeCell.value.row++
-            activeCell.value.column = 1
+
+          if (e.shiftKey) {
+            if (currentCol > MIN_COLUMN_INDEX) {
+              activeCell.value.column--
+            } else if (currentRow > 0) {
+              activeCell.value.row--
+              activeCell.value.column = lastCol
+            }
+          } else {
+            if (currentCol < lastCol) {
+              activeCell.value.column++
+            } else if (currentRow < (isAdded ? lastRow + 1 : lastRow)) {
+              activeCell.value.row++
+              activeCell.value.column = MIN_COLUMN_INDEX
+            }
           }
+          moved = true
         }
-        moved = true
         break
+      }
     }
+
     if (moved) {
       if (e.shiftKey) {
         const newEnd = { row: activeCell.value.row, col: activeCell.value.column }
@@ -96,7 +235,6 @@ export function useKeyboardNavigation({
         const minRow = Math.min(selection.value._start?.row ?? 0, newEnd.row)
 
         if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
-          // Reset active cell position and selection end
           const direction = newEnd.row > (selection.value._start?.row ?? 0) ? 1 : -1
           const limitedRow = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
           activeCell.value.row = limitedRow
@@ -107,10 +245,12 @@ export function useKeyboardNavigation({
       } else {
         selection.value.clear()
         selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
+        selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
+
       scrollToCell(activeCell.value.row, activeCell.value.column)
-      triggerReRender()
     }
+    triggerReRender()
   }
 
   useEventListener('keydown', handleKeyDown)

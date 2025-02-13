@@ -101,6 +101,7 @@ const handleFileDeleteStart = () => {
         'cursor-pointer': !isDragging,
       }"
       class="nc-attachment h-full flex justify-center items-center overflow-hidden"
+      @click.stop="emits('clicked')"
     >
       <LazyCellAttachmentPreviewImage
         v-if="isImage(attachment.title, attachment.mimetype)"
@@ -108,19 +109,11 @@ const handleFileDeleteStart = () => {
         object-fit="cover"
         class="!w-full object-cover !m-0 rounded-t-[5px] justify-center"
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
-        @click.stop="emits('clicked')"
       />
 
-      <component
-        :is="FileIcon(attachment.icon)"
-        v-else-if="attachment.icon"
-        :height="45"
-        :width="45"
-        class="text-white"
-        @click.stop="emits('clicked')"
-      />
+      <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="45" :width="45" class="text-white" />
 
-      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" @click.stop="emits('clicked')" />
+      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" />
     </div>
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">

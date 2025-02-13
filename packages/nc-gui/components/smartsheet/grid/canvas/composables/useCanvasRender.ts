@@ -890,7 +890,7 @@ export function useCanvasRender({
 
             if (scrollLeft.value) {
               ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-              ctx.rect(xOffset, yOffset, 4, 32)
+              ctx.rect(xOffset, yOffset, 4, rowHeight.value)
               ctx.fill()
               ctx.strokeStyle = '#D5D5D9'
               ctx.beginPath()

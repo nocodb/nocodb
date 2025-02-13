@@ -18,6 +18,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       readonly,
       setCursor,
       selected,
+      cellRenderStore,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -67,6 +68,8 @@ export const BelongsToCellRenderer: CellRenderer = {
         x: x + 4,
         y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })
+
+      Object.assign(cellRenderStore, returnData)
 
       if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {

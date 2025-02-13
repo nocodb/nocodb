@@ -907,6 +907,7 @@ export function useCanvasTable({
     hoverRow,
     resizeableColumn,
     partialRowHeight,
+    readOnly,
     // Functions
     fetchChunk,
     updateVisibleRows,

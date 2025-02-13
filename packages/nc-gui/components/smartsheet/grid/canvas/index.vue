@@ -217,6 +217,7 @@ const {
 
   actionManager,
   imageLoader,
+  readOnly
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -385,7 +386,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
 
 const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value
+  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
   const isHover = hoverRow.value === row.rowMeta.rowIndex
   const regions = []
@@ -676,7 +677,7 @@ const handleMouseUp = async (e: MouseEvent) => {
     // If x less than 80px, use is hovering over the row meta column
     if (x < 80) {
       // If the click is not normal single click, return
-      if (clickType !== MouseClickType.SINGLE_CLICK) return
+      if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value) return
       if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
       }

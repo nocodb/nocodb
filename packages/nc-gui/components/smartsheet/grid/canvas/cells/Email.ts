@@ -1,4 +1,4 @@
-import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
+import { renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -46,12 +46,13 @@ export const EmailCellRenderer: CellRenderer = {
     } else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,
-        y: y + padding,
+        y: y,
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: (isValidEmail && selected) || pv ? '#4351e8' : textColor,
         underline: isValidEmail,
+        height,
       })
 
       return {

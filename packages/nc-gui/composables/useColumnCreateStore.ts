@@ -327,7 +327,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => Promise<void>, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
+    const addOrUpdate = async (
+      onSuccess: (col?: ColumnType) => Promise<void>,
+      columnPosition?: Pick<ColumnReqType, 'column_order'>,
+    ) => {
       try {
         if (!(await validate())) return
       } catch (e: any) {
@@ -346,6 +349,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           return
         }
       }
+
+      let savedColumn: ColumnType | undefined = undefined
 
       try {
         formState.value.table_name = meta.value?.table_name
@@ -411,7 +416,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             view_id: activeView.value!.id as string,
           })
 
-          const savedColumn = tableMeta.columns?.find(
+          savedColumn = tableMeta.columns?.find(
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
           )
 
@@ -431,7 +436,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           $e('a:column:add', { datatype: formState.value.uidt })
         }
-        await onSuccess?.()
+        await onSuccess?.(savedColumn)
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))

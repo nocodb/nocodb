@@ -50,7 +50,7 @@ defineExpose({
     :edit-description="editDescription"
     :from-table-explorer="props.fromTableExplorer || false"
     :disable-title-focus="disableTitleFocus"
-    @submit="emit('submit')"
+    @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
     @mounted="emit('mounted')"
   />

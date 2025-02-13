@@ -5,7 +5,21 @@ import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const OneToOneCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, row, column, relatedTableMeta, renderCell, readonly } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      spriteLoader,
+      mousePosition,
+      row,
+      column,
+      relatedTableMeta,
+      renderCell,
+      readonly,
+      setCursor,
+    } = props
 
     const hasValue = !!row[column.title!]
 
@@ -58,13 +72,23 @@ export const OneToOneCellRenderer: CellRenderer = {
     }
 
     if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
+      const btnSize = hasValue ? 16 : 14
       spriteLoader.renderIcon(ctx, {
         x: x + width - (hasValue ? 27 : 26),
         y: y + (hasValue ? 7 : 8),
         icon: hasValue ? 'maximize' : 'ncPlus',
-        size: hasValue ? 16 : 14,
+        size: btnSize,
         color: '#374151',
       })
+
+      if (
+        isBoxHovered(
+          { x: x + width - (hasValue ? 27 : 26), y: y + (hasValue ? 7 : 8), height: btnSize, width: btnSize },
+          mousePosition,
+        )
+      ) {
+        setCursor('pointer')
+      }
     }
   },
   async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {

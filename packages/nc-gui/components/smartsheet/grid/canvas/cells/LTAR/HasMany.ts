@@ -7,7 +7,20 @@ const ellipsisWidth = 15
 
 export const HasManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, padding, renderCell, readonly } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      spriteLoader,
+      mousePosition,
+      relatedTableMeta,
+      padding,
+      renderCell,
+      readonly,
+      setCursor,
+    } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -137,6 +150,7 @@ export const HasManyCellRenderer: CellRenderer = {
             xOffset: 5,
             yOffset: 5,
           },
+          setCursor,
         })
       }
 
@@ -148,6 +162,7 @@ export const HasManyCellRenderer: CellRenderer = {
         spriteLoader,
         mousePosition,
         icon: 'maximize',
+        setCursor,
       })
     }
   },

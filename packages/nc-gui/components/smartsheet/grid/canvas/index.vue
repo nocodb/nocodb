@@ -275,13 +275,14 @@ const editEnabledCellPosition = computed(() => {
   const left = editEnabled.value.fixed
     ? editEnabled.value.x
     : Math.max(
-      fixedLeftWidth.value,
-      Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
-    )
+        fixedLeftWidth.value,
+        Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
+      )
   return {
     top: `${top}px`,
     left: `${left}px`,
   }
+})
 
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value

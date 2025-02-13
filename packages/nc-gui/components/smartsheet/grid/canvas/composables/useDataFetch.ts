@@ -89,8 +89,21 @@ export function useDataFetch({
     await nextTick(triggerRefreshCanvas)
   }
 
+  const throttledUpdate = useThrottleFn(() => {
+    updateVisibleRows()
+  }, 200)
+
+  const debouncedUpdate = useDebounceFn(() => {
+    updateVisibleRows()
+  }, 250)
+
+  const throttledUpdateVisibleRows = () => {
+    throttledUpdate()
+    debouncedUpdate()
+  }
+
   return {
     fetchChunk,
-    updateVisibleRows,
+    updateVisibleRows: throttledUpdateVisibleRows,
   }
 }

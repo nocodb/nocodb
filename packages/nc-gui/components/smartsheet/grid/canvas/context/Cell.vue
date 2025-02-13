@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type TableType, type ViewType, isLinksOrLTAR } from 'nocodb-sdk'
+import { type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
@@ -166,6 +166,7 @@ const generateAIBulk = async () => {
     column,
     {
       row: pks.map((r) => r.row),
+      isAiPromptCol: isAIPromptCol(column?.columnObj),
     },
   )
 }

@@ -138,13 +138,14 @@ watch(active, (n, _o) => {
 useSelectedCellKeydownListener(
   activeCell,
   (e) => {
-    console.log('use slected cell')
     switch (e.key) {
       case 'Escape':
         isOpen.value = false
         break
       case 'Enter':
         if (editAllowed.value && active.value && !isOpen.value) {
+          e.stopPropagation()
+          toggleMenu()
           isOpen.value = true
         }
         break

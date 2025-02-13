@@ -1,6 +1,5 @@
 import dayjs from 'dayjs'
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
 
 export const TimeCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {
@@ -19,7 +18,7 @@ export const TimeCellRenderer: CellRenderer = {
         time = dayjs(`1999-01-01 ${value}`)
       }
       if (time.isValid()) {
-        timeStr = time.format(column?.meta?.is12hrFormat ? 'hh:mm A' : 'HH:mm')
+        timeStr = time.format(parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm')
       }
     }
 

@@ -1,6 +1,4 @@
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
-import { convertMS2Duration } from '~/utils/durationUtils'
 
 export const DurationCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {

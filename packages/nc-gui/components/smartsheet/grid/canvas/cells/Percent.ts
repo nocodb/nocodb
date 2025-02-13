@@ -1,5 +1,4 @@
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
 
 export const PercentCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {

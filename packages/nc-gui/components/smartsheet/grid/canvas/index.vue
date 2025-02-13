@@ -4,6 +4,7 @@ import type { CellRange } from '../../../../composables/useMultiSelect/cellRange
 import { normalizeWidth, useColumnResize } from './composables/useColumnResize'
 import { useCellRenderer } from './cells'
 import { roundedRect, truncateText } from './utils/canvas'
+import { useCanvasTable } from './composables/useCanvasTable'
 import type { Row } from '~/lib/types'
 
 const props = defineProps<{
@@ -81,69 +82,37 @@ const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
-const rowSlice = ref({ start: 0, end: 0 })
-const colSlice = ref({ start: 0, end: 0 })
-const activeCell = ref({ row: -1, column: -1 })
-const editEnabled = ref<{
-  rowIndex: number
-  column: ColumnType
-  row: Row
-  x: number
-  y: number
-  width: number
-  height: number
-} | null>(null)
-
-// Injections
-const fields = inject(FieldsInj, ref([]))
-const reloadVisibleDataHook = createEventHook()
-
-provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 // Composables
-const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
+const {
+  rowSlice,
+  colSlice,
+  editEnabled,
+  activeCell,
+  totalWidth,
+  columnWidths,
+  rowHeight,
+  updateVisibleRows,
+  columns,
+  findColumnIndex,
+} = useCanvasTable({
+  rowHeightEnum: props.rowHeightEnum,
+  cachedRows,
+  clearCache,
+  chunkStates,
+  totalRows,
+  loadData,
+})
+const { updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
 const { height, width } = useElementSize(wrapperRef)
 const { renderCell } = useCellRenderer()
-const { isMobileMode } = useGlobal()
 
 // Computed
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
-const columns = computed(() => {
-  const cols = fields.value.map((f) => {
-    const gridViewCol = gridViewCols.value[f.id]
-
-    return {
-      id: f.id,
-      grid_column_id: gridViewCol.id,
-      title: f.title,
-      uidt: f.uidt,
-      width: gridViewCol.width,
-      fixed: f.pv,
-      pv: !!f.pv,
-    }
-  })
-  cols.splice(0, 0, {
-    id: 'row_number',
-    grid_column_id: 'row_number',
-    title: '#',
-    uidt: UITypes.AutoNumber,
-    width: '64',
-    fixed: true,
-    pv: false,
-  })
-  return cols
-})
-
-const totalWidth = computed(() => {
-  return columns.value.reduce((acc, col) => acc + +col.width.split('px')[0], 0) + 256
-})
-
-const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width, 10)))
 
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
-  return rowsHeight + headerHeight
+  return rowsHeight + headerHeight + 256
 })
 
 const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
@@ -179,94 +148,9 @@ const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
 )
 
 const COLUMN_BUFFER_SIZE = 5
-const CHUNK_SIZE = 50
-const BUFFER_SIZE = 100
-const INITIAL_LOAD_SIZE = 100
-const PREFETCH_THRESHOLD = 40
-
-const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
-  if (chunkStates.value[chunkId]) return
-
-  const offset = chunkId * CHUNK_SIZE
-  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
-
-  if (offset >= totalRows.value) {
-    return
-  }
-
-  chunkStates.value[chunkId] = 'loading'
-  if (isInitialLoad) {
-    chunkStates.value[chunkId + 1] = 'loading'
-  }
-  try {
-    const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
-
-    chunkStates.value[chunkId] = 'loaded'
-    if (isInitialLoad) {
-      chunkStates.value[chunkId + 1] = 'loaded'
-    }
-  } catch (error) {
-    console.error(`Error fetching chunk ${chunkId}:`, error)
-    chunkStates.value[chunkId] = undefined
-    if (isInitialLoad) {
-      chunkStates.value[chunkId + 1] = undefined
-    }
-  }
-}
-
-const updateVisibleRows = async () => {
-  const { start, end } = rowSlice.value
-
-  const firstChunkId = Math.floor(start / CHUNK_SIZE)
-  const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
-
-  const chunksToFetch = new Set<number>()
-
-  for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
-    if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
-  }
-
-  const nextChunkId = lastChunkId + 1
-  if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
-    chunksToFetch.add(nextChunkId)
-  }
-
-  const prevChunkId = firstChunkId - 1
-  if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
-    chunksToFetch.add(prevChunkId)
-  }
-
-  if (chunksToFetch.size > 0) {
-    const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
-
-    if (isInitialLoad) {
-      await fetchChunk(0, true)
-      chunksToFetch.delete(0)
-      chunksToFetch.delete(1)
-    }
-
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-  }
-
-  clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
-}
-
-const findColumnIndex = (target: number, start = 0, end = columnWidths.value.length) => {
-  let accumulatedWidth = 0
-
-  for (let i = 0; i < end; i++) {
-    if (accumulatedWidth > target) {
-      return Math.max(0, i - 1)
-    }
-    accumulatedWidth += columnWidths.value[i]
-  }
-
-  return end - 1
-}
 
 const calculateSlices = () => {
-  if (containerRef.value?.clientWidth === 0) {
+  if (!containerRef.value?.clientWidth || !containerRef.value?.clientHeight) {
     setTimeout(calculateSlices, 50)
     return
   }
@@ -400,6 +284,11 @@ function renderRows(ctx: CanvasRenderingContext2D) {
         const width = parseInt(column.width, 10)
         const absoluteColIdx = startColIndex + colIdx
 
+        if (column.fixed) {
+          xOffset += width
+          return
+        }
+
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
@@ -410,6 +299,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
         if (isActive) {
           activeState = {
+            col: column,
             x: xOffset - scrollLeft.value,
             y: yOffset,
             width,
@@ -454,6 +344,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
           if (isActive) {
             activeState = {
+              col: column,
               x: xOffset,
               y: yOffset,
               width,
@@ -550,6 +441,7 @@ function handleMouseClick(e: MouseEvent) {
   for (const column of fixedCols) {
     const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
     if (x >= xOffset && x < xOffset + width) {
+      if (!column.uidt) continue
       clickedColumn = column
       break
     }
@@ -591,7 +483,6 @@ function handleMouseClick(e: MouseEvent) {
         width: parseInt(clickedColumn.width, 10),
       }
     }
-
     requestAnimationFrame(drawCanvas)
   }
 }

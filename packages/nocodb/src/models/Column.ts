@@ -1623,7 +1623,6 @@ export default class Column<T = any> implements ColumnType {
       MetaTable.COLUMNS,
       destinationColumn.id,
     );
-    return await Column.get(context, { colId: formulaColumn.id });
   }
 
   static async updateAlias(

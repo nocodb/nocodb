@@ -1,0 +1,285 @@
+import { renderSpinner, truncateText } from '../utils/canvas'
+
+const buttonColorMap = {
+  solid: {
+    brand: {
+      base: { background: '#3366FF', text: '#FFFFFF' },
+      hover: { background: '#2952CC', text: '#FFFFFF' },
+      loader: '#3366FF',
+    },
+    red: {
+      base: { background: '#FF4A3F', text: '#FFFFFF' },
+      hover: { background: '#CB3F36', text: '#FFFFFF' },
+      loader: '#FF4A3F',
+    },
+    green: {
+      base: { background: '#27D665', text: '#FFFFFF' },
+      hover: { background: '#1FAB51', text: '#FFFFFF' },
+      loader: '#27D665',
+    },
+    maroon: {
+      base: { background: '#B33771', text: '#FFFFFF' },
+      hover: { background: '#9D255D', text: '#FFFFFF' },
+      loader: '#B33771',
+    },
+    blue: {
+      base: { background: '#36BFFF', text: '#FFFFFF' },
+      hover: { background: '#2B99CC', text: '#FFFFFF' },
+      loader: '#36BFFF',
+    },
+    orange: {
+      base: { background: '#FA8231', text: '#FFFFFF' },
+      hover: { background: '#E1752C', text: '#FFFFFF' },
+      loader: '#FA8231',
+    },
+    pink: {
+      base: { background: '#FC3AC6', text: '#FFFFFF' },
+      hover: { background: '#CA2E9E', text: '#FFFFFF' },
+      loader: '#FC3AC6',
+    },
+    purple: {
+      base: { background: '#7D26CD', text: '#FFFFFF' },
+      hover: { background: '#641EA4', text: '#FFFFFF' },
+      loader: '#7D26CD',
+    },
+    yellow: {
+      base: { background: '#fcbe3a', text: '#FFFFFF' },
+      hover: { background: '#ca982e', text: '#FFFFFF' },
+      loader: '#fcbe3a',
+    },
+    gray: {
+      base: { background: '#6A7184', text: '#FFFFFF' },
+      hover: { background: '#4A5268', text: '#FFFFFF' },
+      loader: '#6A7184',
+    },
+  },
+  light: {
+    brand: {
+      base: { background: '#EBF0FF', text: '#3366FF' },
+      hover: { background: '#D6E0FF', text: '#3366FF' },
+      loader: '#3366FF',
+    },
+    red: {
+      base: { background: '#FFF2F1', text: '#FF4A3F' },
+      hover: { background: '#FFDBD9', text: '#FF4A3F' },
+      loader: '#FF4A3F',
+    },
+    green: {
+      base: { background: '#ECFFF2', text: '#27D665' },
+      hover: { background: '#D4F7E0', text: '#27D665' },
+      loader: '#27D665',
+    },
+    maroon: {
+      base: { background: '#FFF0F7', text: '#B33771' },
+      hover: { background: '#FFCFE6', text: '#B33771' },
+      loader: '#B33771',
+    },
+    blue: {
+      base: { background: '#EDF9FF', text: '#36BFFF' },
+      hover: { background: '#D7F2FF', text: '#36BFFF' },
+      loader: '#36BFFF',
+    },
+    orange: {
+      base: { background: '#FFF5EF', text: '#FA8231' },
+      hover: { background: '#FEE6D6', text: '#FA8231' },
+      loader: '#FA8231',
+    },
+    pink: {
+      base: { background: '#FFEEFB', text: '#FC3AC6' },
+      hover: { background: '#FED8F4', text: '#FC3AC6' },
+      loader: '#FC3AC6',
+    },
+    purple: {
+      base: { background: '#F3ECFA', text: '#7D26CD' },
+      hover: { background: '#E5D4F5', text: '#7D26CD' },
+      loader: '#7D26CD',
+    },
+    yellow: {
+      base: { background: '#fffbf2', text: '#fcbe3a' },
+      hover: { background: '#fff0d1', text: '#fcbe3a' },
+      loader: '#fcbe3a',
+    },
+    gray: {
+      base: { background: '#F9F9FA', text: '#6A7184' },
+      hover: { background: '#F4F4F5', text: '#6A7184' },
+      loader: '#6A7184',
+    },
+  },
+  text: {
+    brand: {
+      base: { background: 'transparent', text: '#3366FF' },
+      hover: { background: '#F4F4F5', text: '#3366FF' },
+      loader: '#3366FF',
+    },
+    red: {
+      base: { background: 'transparent', text: '#FF4A3F' },
+      hover: { background: '#F4F4F5', text: '#FF4A3F' },
+      loader: '#FF4A3F',
+    },
+    green: {
+      base: { background: 'transparent', text: '#27D665' },
+      hover: { background: '#F4F4F5', text: '#27D665' },
+      loader: '#27D665',
+    },
+    maroon: {
+      base: { background: 'transparent', text: '#B33771' },
+      hover: { background: '#F4F4F5', text: '#B33771' },
+      loader: '#B33771',
+    },
+    blue: {
+      base: { background: 'transparent', text: '#36BFFF' },
+      hover: { background: '#F4F4F5', text: '#36BFFF' },
+      loader: '#36BFFF',
+    },
+    orange: {
+      base: { background: 'transparent', text: '#FA8231' },
+      hover: { background: '#F4F4F5', text: '#FA8231' },
+      loader: '#FA8231',
+    },
+    pink: {
+      base: { background: 'transparent', text: '#FC3AC6' },
+      hover: { background: '#F4F4F5', text: '#FC3AC6' },
+      loader: '#FC3AC6',
+    },
+    purple: {
+      base: { background: 'transparent', text: '#7D26CD' },
+      hover: { background: '#F4F4F5', text: '#7D26CD' },
+      loader: '#7D26CD',
+    },
+    yellow: {
+      base: { background: 'transparent', text: '#fcbe3a' },
+      hover: { background: '#F4F4F5', text: '#fcbe3a' },
+      loader: '#fcbe3a',
+    },
+    gray: {
+      base: { background: 'transparent', text: '#6A7184' },
+      hover: { background: '#F4F4F5', text: '#6A7184' },
+      loader: '#6A7184',
+    },
+  },
+} as const
+
+const getButtonColors = (
+  theme: 'solid' | 'light' | 'text',
+  color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
+  isHovered: boolean,
+) => {
+  const themeColors = buttonColorMap[theme]?.[color]
+  if (!themeColors)
+    return isHovered
+      ? { background: '#2952CC', text: '#FFFFFF', loader: '#3366FF' }
+      : { background: '#3366FF', text: '#FFFFFF', loader: '#3366FF' }
+
+  const state = isHovered ? 'hover' : 'base'
+  const colors = themeColors[state]
+
+  return {
+    ...colors,
+    loader: themeColors.loader,
+  }
+}
+
+export const ButtonCellRenderer: CellRenderer = {
+  render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
+    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk } = props
+
+    const horizontalPadding = 12
+    const buttonHeight = 24
+    const buttonMinWidth = 32
+
+    const colOptions = column.colOptions
+    if (!colOptions) return
+
+    const buttonMeta = {
+      label: colOptions.label || '',
+      icon: colOptions.icon,
+      theme: colOptions.theme || 'solid',
+      color: colOptions.color || 'brand',
+      type: colOptions.type,
+    }
+
+    const hasIcon = !!buttonMeta.icon
+    const hasLabel = !!buttonMeta.label
+    const iconSize = 14
+    const iconSpacing = 6
+
+    const maxButtonWidth = width - 8
+
+    let contentWidth = 0
+    let labelWidth = 0
+    let truncatedLabel = buttonMeta.label
+
+    if (hasLabel) {
+      ctx.font = '500 13px Manrope'
+      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+
+      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
+      truncatedLabel = truncatedInfo.text
+      labelWidth = truncatedInfo.width
+      contentWidth += labelWidth
+    }
+
+    if (hasIcon) {
+      contentWidth += iconSize
+      if (hasLabel) contentWidth += iconSpacing
+    }
+
+    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
+
+    const startX = x + (width - buttonWidth) / 2
+    const startY = y + 4
+
+    const isHovered =
+      mousePosition &&
+      mousePosition.x >= startX &&
+      mousePosition.x <= startX + buttonWidth &&
+      mousePosition.y >= startY &&
+      mousePosition.y <= startY + buttonHeight
+
+    const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered)
+
+    ctx.beginPath()
+    ctx.roundRect(startX, startY, buttonWidth, buttonHeight, 6)
+    ctx.fillStyle = colors.background
+    ctx.fill()
+
+    if (buttonMeta.theme === 'light') {
+      ctx.strokeStyle = colors.text
+      ctx.lineWidth = 1
+      ctx.stroke()
+    }
+
+    let contentX = startX + (buttonWidth - contentWidth) / 2
+    const contentY = startY + (buttonHeight - iconSize) / 2
+
+    const isLoading = actionManager.isLoading(pk, column.id!)
+
+    if (isLoading) {
+      const loadingStartTime = actionManager.getLoadingStartTime(pk, column.id!)
+      if (loadingStartTime) {
+        renderSpinner(ctx, contentX, contentY, iconSize, colors.loader, loadingStartTime, 1.5)
+        contentX += iconSize + (hasLabel ? iconSpacing : 0)
+      }
+    } else if (hasIcon) {
+      spriteLoader.renderIcon(ctx, {
+        icon: buttonMeta.icon,
+        size: iconSize,
+        x: contentX,
+        y: contentY,
+        color: colors.text,
+      })
+      contentX += iconSize + (hasLabel ? iconSpacing : 0)
+    }
+
+    if (hasLabel) {
+      ctx.fillStyle = colors.text
+      ctx.textBaseline = 'middle'
+      ctx.fillText(truncatedLabel, contentX, startY + 13)
+    }
+  },
+  async handleClick({ mousePosition, column, row, pk, actionManager }) {
+    if (!row || !column?.id || !mousePosition) return
+
+    await actionManager.executeButtonAction(pk, column, { row })
+  },
+}

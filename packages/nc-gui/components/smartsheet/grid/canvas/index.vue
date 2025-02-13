@@ -168,7 +168,6 @@ const {
   meta,
   view,
   isAddingColumnAllowed,
-  getCellPosition,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -178,6 +177,9 @@ const {
   copyValue,
   clearCell,
   clearSelectedRangeOfCells,
+
+  // Cell Click
+  handleCellClick,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -204,8 +206,6 @@ const {
   onActiveCellChanged,
   addNewColumn: addEmptyColumn,
 })
-
-const { handleCellClick } = useGridCellHandler({ getCellPosition, updateOrSaveRow })
 
 // Computed
 const totalHeight = computed(() => {
@@ -434,12 +434,14 @@ async function handleMouseDown(e: MouseEvent) {
         return
       } else {
         const row = cachedRows.value.get(rowIndex)
+        const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
         await handleCellClick({
           event: e,
           row: row!,
           column: clickedColumn,
           value: row?.row[clickedColumn.title],
           mousePosition: { x, y },
+          pk,
         })
       }
       const columnUIType = clickedColumn.columnObj.uidt as UITypes

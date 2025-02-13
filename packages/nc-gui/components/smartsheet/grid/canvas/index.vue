@@ -261,6 +261,28 @@ const fixedLeftWidth = computed(() => {
   return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
 })
 
+const editEnabledCellPosition = computed(() => {
+  if (!editEnabled.value) {
+    return {
+      top: 0,
+      left: 0,
+    }
+  }
+  const top = Math.max(
+    32,
+    Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
+  )
+  const left = editEnabled.value.fixed
+    ? editEnabled.value.x
+    : Math.max(
+      fixedLeftWidth.value,
+      Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
+    )
+  return {
+    top: `${top}px`,
+    left: `${left}px`,
+  }
+
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32

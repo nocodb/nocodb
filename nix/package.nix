@@ -8,12 +8,16 @@
   rsync,
   makeWrapper,
   node-gyp,
+  coreutils,
+  nettools,
   vips,
+  version,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
+  inherit version;
+
   pname = "nocodb";
-  version = "0.260.2";
   src = ../.;
 
   buildPhase = ''
@@ -52,6 +56,7 @@ stdenv.mkDerivation (finalAttrs: {
 
     makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
       --set NODE_ENV production \
+      --set PATH ${lib.makeBinPath [ coreutils nettools ]} \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
 
@@ -72,6 +77,8 @@ stdenv.mkDerivation (finalAttrs: {
     nodePackages.nodejs
     sqlite
     vips
+    coreutils # head
+    nettools # hostname
   ];
 
   pnpmDeps = pnpm.fetchDeps {

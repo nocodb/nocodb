@@ -22,9 +22,17 @@
       packages = forAllSystems (
         { system, pkgs }:
         {
-          docker = pkgs.callPackage ./nix/docker.nix { };
-          nocodb = pkgs.callPackage ./nix/package.nix { };
+          docker_sa = pkgs.callPackage ./nix/docker/stand_alone {
+            nocodb = self.packages.${system}.nocodb;
+          };
+          docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
+            nocodb = self.packages.${system}.nocodb;
+          };
+
           bumper = pkgs.callPackage ./nix/bumper { };
+          nocodb = pkgs.callPackage ./nix/package.nix {
+            version = if self ? shortRev then self.shortRev else self.dirtyShortRev;
+          };
 
           pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;
           default = self.packages.${system}.nocodb;

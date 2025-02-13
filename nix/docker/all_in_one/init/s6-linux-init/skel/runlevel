@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+### This script is called once at boot time by rc.init, and is
+### also called by the runleveld service every time the user
+### requests a machine state change via telinit.
+### Ideally, it should just be a call to the service manager.
+
+# test "$#" -gt 0 || { echo 'runlevel: fatal: too few arguments' 1>&2 ; exit 100 ; }
+
+
+### If your services are managed by sysv-rc:
+# exec /etc/init.d/rc "$1"
+
+### If your services are managed by OpenRC:
+# exec /sbin/openrc "$1"
+
+### If your services are managed by s6-rc:
+# exec s6-rc -v2 -up change "$1"

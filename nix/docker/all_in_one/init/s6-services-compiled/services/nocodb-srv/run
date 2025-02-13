@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+envfile /etc/s6-confs/nocodb.conf
+
+foreground { mkdir -p /var/lib/nocodb }
+foreground { chown -R nocodb:nocodb /var/lib/nocodb }
+
+fdmove -c 2 1
+exec s6-setuidgid nocodb nocodb

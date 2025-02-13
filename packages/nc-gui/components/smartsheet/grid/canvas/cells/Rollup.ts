@@ -1,5 +1,4 @@
 import { getRenderAsTextFunForUiType, UITypes, type ColumnType, type RollupType } from 'nocodb-sdk'
-import { DecimalCellRenderer } from './Decimal'
 
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -25,9 +24,11 @@ export const RollupCellRenderer: CellRenderer = {
     }
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
-      DecimalCellRenderer.render(ctx, renderProps)
-    } else if (childColumn) {
-      renderCell(ctx, childColumn, renderProps)
+      // Render as decimal cell
+      renderProps.column.uidt = UITypes.Decimal
+      renderProps.column.meta = { ...parseProp(childColumn?.meta), ...parseProp(column?.meta) }
     }
+
+    renderCell(ctx, childColumn, renderProps)
   },
 }

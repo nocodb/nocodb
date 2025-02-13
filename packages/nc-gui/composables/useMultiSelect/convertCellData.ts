@@ -307,6 +307,14 @@ export default function convertCellData(
         throw new Error(`Unsupported conversion for ${to}`)
       }
     }
+    case UITypes.JSON: {
+      try {
+        JSON.parse(value)
+        return value
+      } catch (ex) {
+        throw new TypeError(`Invalid JSON value`)
+      }
+    }
     default:
       return value
   }

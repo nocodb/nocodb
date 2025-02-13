@@ -13,7 +13,7 @@ export const CheckboxCellRenderer: CellRenderer = {
     spriteLoader.renderIcon(ctx, {
       icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
       size: 14,
-      x: x + width / 2,
+      x: x + width / 2 - 7,
       y: y + 8,
       color: columnMeta.color,
     })

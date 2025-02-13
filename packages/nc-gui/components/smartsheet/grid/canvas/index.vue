@@ -365,6 +365,14 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
   }
 }
 
+const renderActiveState = (ctx: CanvasRenderingContext2D, activeState) => {
+  if (activeState) {
+    ctx.strokeStyle = '#3366ff'
+    ctx.lineWidth = 2
+    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
+  }
+}
+
 function renderRows(ctx: CanvasRenderingContext2D) {
   const { start: startRowIndex, end: endRowIndex } = rowSlice.value
   const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -430,6 +438,9 @@ function renderRows(ctx: CanvasRenderingContext2D) {
         xOffset += width
       })
 
+      renderActiveState(ctx, activeState)
+      activeState = null
+
       // Draw fixed columns if any (overlay on top)
       const fixedCols = columns.value.filter((col) => col.fixed)
       if (fixedCols.length) {
@@ -494,12 +505,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
     yOffset += rowHeight.value
   }
-
-  if (activeState) {
-    ctx.strokeStyle = '#3366ff'
-    ctx.lineWidth = 2
-    roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2)
-  }
+  renderActiveState(ctx, activeState)
 }
 
 function drawCanvas() {

@@ -1,5 +1,5 @@
 export const CheckboxCellRenderer: CellRenderer = {
-  render: async (ctx, { value, x, y, width, height, readonly, column }) => {
+  render: async (ctx, { value, x, y, width, readonly, column, spriteLoader }) => {
     const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
 
     const columnMeta = {
@@ -8,15 +8,14 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
-    if (readonly) {
-      if (!checked) {
-        return
-      }
-      ctx.globalAlpha = 0.5
+    if (readonly && !checked) return
 
-      // TODO:  Implement a Sprite Manager
-
-      ctx.globalAlpha = 1.0
-    }
+    spriteLoader.renderIcon(ctx, {
+      icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
+      size: 14,
+      x: x + width / 2,
+      y: y + 8,
+      color: columnMeta.color,
+    })
   },
 }

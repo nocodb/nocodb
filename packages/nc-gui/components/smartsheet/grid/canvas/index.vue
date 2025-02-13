@@ -741,6 +741,7 @@ onMounted(async () => {
           top: `${rowHeight * editEnabled.rowIndex + 32}px`,
           left: `${editEnabled.x + (editEnabled.fixed ? scrollLeft : 0)}px`,
           width: `${editEnabled.width}px`,
+          minHeight: `${editEnabled.minHeight}px`,
           height: `${editEnabled.height}px`,
           borderRadius: '2px',
         }"

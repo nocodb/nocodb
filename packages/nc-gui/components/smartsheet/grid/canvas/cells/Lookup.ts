@@ -66,7 +66,10 @@ export const LookupCellRenderer: CellRenderer = {
       },
     }
 
-    console.log('lookup x', x, _x)
+    const maxLines = rowHeightTruncateLines(height, true)
+    let line = 1
+    let flag = false
+    let count = 1
 
     // Todo: handle x and y value if we are rendering multiple chips also we have to wrap each cell in chip
     if (isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup) {
@@ -75,11 +78,6 @@ export const LookupCellRenderer: CellRenderer = {
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
           [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
-        const maxLines = rowHeightTruncateLines(height, true)
-        let line = 1
-        let flag = false
-        let count = 1
-
         for (const v of arrValue) {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 
@@ -101,8 +99,6 @@ export const LookupCellRenderer: CellRenderer = {
             }
           } else {
             if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
-              x = point?.x
-              flag = true
               break
             }
 
@@ -140,9 +136,6 @@ export const LookupCellRenderer: CellRenderer = {
           },
         })
       } else {
-        const maxLines = rowHeightTruncateLines(height, true)
-        let line = 1
-
         for (const v of arrValue) {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 

@@ -115,7 +115,10 @@ export function useCanvasRender({
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
     const plusColumnWidth = 60
-    const columnsWidth = columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0) + plusColumnWidth - scrollLeft.value
+    const columnsWidth =
+      columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0) +
+      (isAddingColumnAllowed.value ? plusColumnWidth : 0) -
+      scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -249,9 +252,9 @@ export function useCanvasRender({
       }
     }
 
-    ctx.fillStyle = '#f4f4f5'
-    ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
     if (isAddingColumnAllowed.value) {
+      ctx.fillStyle = '#F9F9FA'
+      ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         size: 16,
@@ -262,6 +265,11 @@ export function useCanvasRender({
 
       ctx.beginPath()
       ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
+      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
+      ctx.stroke()
+
+      ctx.beginPath()
+      ctx.moveTo(xOffset - scrollLeft.value, 32)
       ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
       ctx.stroke()
     }
@@ -591,7 +599,7 @@ export function useCanvasRender({
           color: '#6B7280',
         })
         currentX += 24
-      } else if (!isHover || !readOnly.valu) {
+      } else if (!isHover || !readOnly.value) {
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'

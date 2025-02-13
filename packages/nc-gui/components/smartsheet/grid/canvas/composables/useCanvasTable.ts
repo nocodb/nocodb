@@ -4,6 +4,7 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions } from '../utils/cell'
+import { clearTextCache } from '../utils/canvas'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -13,7 +14,6 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
-import { clearTextCache } from '../utils/canvas'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -98,9 +98,8 @@ export function useCanvasTable({
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
-  const activeCell = reactive({ row: -1, column: -1 })
-  const selection = reactive(new CellRange())
-  const fillRange = reactive(new CellRange())
+  const activeCell = ref({ row: -1, column: -1 })
+  const selection = ref(new CellRange())
   const hoverRow = ref(-1)
   const editEnabled = ref<{
     rowIndex: number
@@ -242,8 +241,8 @@ export function useCanvasTable({
 
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
-    if (selection.start.col === selection.end.col) {
-      const field = fields.value[selection.start.col]
+    if (selection.value.start.col === selection.value.end.col) {
+      const field = fields.value[selection.value.start.col]
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isAIPromptCol(field) || isAiButton(field),
@@ -259,8 +258,8 @@ export function useCanvasTable({
 
   const isSelectedOnlyScript = computed(() => {
     // selectedRange
-    if (selection.start.col === selection.end.col) {
-      const field = fields.value[selection.start.col]
+    if (selection.value.start.col === selection.value.end.col) {
+      const field = fields.value[selection.value.start.col]
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isScriptButton(field),
@@ -278,10 +277,10 @@ export function useCanvasTable({
     // if all the selected columns are not readonly
     {
       return (
-        (selection.isEmpty() && activeCell.column && columns.value[activeCell.column]?.virtual) ||
-        (!selection.isEmpty() &&
-          Array.from({ length: selection.end.col - selection.start.col + 1 }).every(
-            (_, i) => columns.value[selection.start.col + i]?.virtual,
+        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
+        (!selection.value.isEmpty() &&
+          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+            (_, i) => columns.value[selection.value.start.col + i]?.virtual,
           ))
       )
     },
@@ -307,36 +306,36 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (selection.isEmpty()) return null
+    if (selection.value.isEmpty()) return null
 
-    if (selection.end.row < rowSlice.value.start || selection.end.row >= rowSlice.value.end) {
+    if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null
     }
 
     let xPos = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
 
-    for (let i = 0; i <= Math.min(selection.end.col, fixedCols.length - 1); i++) {
+    for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
       if (columns.value[i]?.fixed) {
         xPos += parseInt(columns.value[i]?.width, 10)
       }
     }
 
-    for (let i = fixedCols.length; i <= selection.end.col; i++) {
+    for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
       xPos += parseInt(columns.value[i]?.width, 10)
     }
 
-    if (selection.end.col >= fixedCols.length) {
+    if (selection.value.end.col >= fixedCols.length) {
       xPos -= scrollLeft.value
     }
 
-    const startY = -partialRowHeight.value + 33 + (selection.end.row - rowSlice.value.start + 1) * rowHeight.value
+    const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
 
     return {
       x: xPos,
       y: startY,
       size: 8,
-      fixedCol: selection.end.col < fixedCols.length,
+      fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
   const { canvasRef, renderCanvas } = useCanvasRender({
@@ -393,19 +392,68 @@ export function useCanvasTable({
     triggerRefreshCanvas,
   })
 
+  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+    totalRows,
+    activeCell,
+    selection,
+    columns,
+    editEnabled,
+    cachedRows,
+    scrollToCell,
+    expandRows,
+    view: view!,
+    meta: meta as Ref<TableType>,
+    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
+      const rowObj = cachedRows.value.get(ctx.row)
+      const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+      if (!rowObj || !columnObj) {
+        return
+      }
+
+      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        return
+      }
+
+      // See DateTimePicker.vue for details
+      const row = cachedRows.value.get(ctx.row)
+      if (row) {
+        const updatedRow = {
+          ...row,
+          rowMeta: {
+            ...row.rowMeta,
+            isUpdatedFromCopyNPaste: {
+              ...(row.rowMeta.isUpdatedFromCopyNPaste || {}),
+              [(ctx.updatedColumnTitle || columnObj.title) as string]: true,
+            },
+          },
+        }
+        cachedRows.value.set(ctx.row, updatedRow)
+      }
+
+      // update/save cell value
+      await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+    },
+    bulkUpdateRows,
+    bulkUpsertRows,
+    fetchChunk,
+    updateOrSaveRow,
+  })
+
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
     isFillMode,
+    isAiFillMode,
     selection,
     canvasRef,
     rowHeight,
     getFillHandlerPosition,
     triggerReRender: triggerRefreshCanvas,
     rowSlice,
-    fillRange,
     meta: meta as Ref<TableType>,
     cachedRows,
     columns,
     bulkUpdateRows,
+    isPasteable,
+    activeCell,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
@@ -524,53 +572,6 @@ export function useCanvasTable({
     },
   )
 
-  const { clearCell, copyValue } = useCopyPaste({
-    totalRows,
-    activeCell,
-    selection,
-    columns,
-    editEnabled,
-    cachedRows,
-    scrollToCell,
-    expandRows,
-    view: view!,
-    meta: meta as Ref<TableType>,
-    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
-      const rowObj = cachedRows.value.get(ctx.row)
-      const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
-      if (!rowObj || !columnObj) {
-        return
-      }
-
-      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
-        return
-      }
-
-      // See DateTimePicker.vue for details
-      const row = cachedRows.value.get(ctx.row)
-      if (row) {
-        const updatedRow = {
-          ...row,
-          rowMeta: {
-            ...row.rowMeta,
-            isUpdatedFromCopyNPaste: {
-              ...(row.rowMeta.isUpdatedFromCopyNPaste || {}),
-              [(ctx.updatedColumnTitle || columnObj.title) as string]: true,
-            },
-          },
-        }
-        cachedRows.value.set(ctx.row, updatedRow)
-      }
-
-      // update/save cell value
-      await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
-    },
-    bulkUpdateRows,
-    bulkUpsertRows,
-    fetchChunk,
-    updateOrSaveRow,
-  })
-
   useKeyboardNavigation({
     activeCell,
     totalRows,
@@ -611,8 +612,8 @@ export function useCanvasTable({
   async function clearSelectedRangeOfCells() {
     if (!isUIAllowed('dataEdit') || isDataReadOnly.value) return
 
-    const start = selection.start
-    const end = selection.end
+    const start = selection.value.start
+    const end = selection.value.end
 
     const startCol = Math.min(start.col, end.col)
     const endCol = Math.max(start.col, end.col)

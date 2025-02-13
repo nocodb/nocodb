@@ -263,7 +263,7 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false) {
   }
 }
 
-function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn ; xOffset: number } {
+function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
   // First check fixed columns
   let xOffset = 0
   const fixedCols = columns.value.filter((col) => col.fixed)
@@ -381,7 +381,7 @@ function handleMouseDown(e: MouseEvent) {
 
   if (e.button !== 2) {
     // If not right click, clear the selection
-    selection.clear()
+    selection.value.clear()
   }
 
   if (y <= 32) {
@@ -395,20 +395,20 @@ function handleMouseDown(e: MouseEvent) {
     // Row Selection
     const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
-      activeCell.row = -1
-      activeCell.column = -1
+      activeCell.value.row = -1
+      activeCell.value.column = -1
       triggerRefreshCanvas()
     }
 
     const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
-      activeCell.row = rowIndex
-      activeCell.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
+      activeCell.value.row = rowIndex
+      activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {
         const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
-        if (selection.isEmpty()) {
-          selection.startRange({ row: rowIndex, col: columnIndex })
-          selection.endRange({ row: rowIndex, col: columnIndex })
+        if (selection.value.isEmpty()) {
+          selection.value.startRange({ row: rowIndex, col: columnIndex })
+          selection.value.endRange({ row: rowIndex, col: columnIndex })
         }
         contextMenuTarget.value = { row: rowIndex, col: columnIndex }
         nextTick(() => {
@@ -431,8 +431,8 @@ function handleMouseDown(e: MouseEvent) {
 function scrollToCell(row?: number, column?: number) {
   if (!containerRef.value) return
 
-  row = row ?? activeCell.row
-  column = column ?? activeCell.column
+  row = row ?? activeCell.value.row
+  column = column ?? activeCell.value.column
 
   if (!row || !column) return
 

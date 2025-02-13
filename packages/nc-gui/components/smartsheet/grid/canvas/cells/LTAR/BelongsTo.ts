@@ -1,10 +1,11 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
+import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const BelongsToCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta } = props
+    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -12,11 +13,11 @@ export const BelongsToCellRenderer: CellRenderer = {
     const relatedTableDisplayValuePropId =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
 
-    const ooColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
+    const btColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
       | undefined
 
-    if (!ooColumn) return
+    if (!btColumn) return
 
     if (isValidValue(value)) {
       const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 14 : 0)
@@ -26,16 +27,21 @@ export const BelongsToCellRenderer: CellRenderer = {
           ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
           : value
 
-      // Todo: Handle non select type, attachment, checkbox, lookup cell render
-      PlainCellRenderer.render(ctx, {
+      const cellRenderer = (options: CellRendererOptions) => {
+        return renderAsCellLookupOrLtarValue.includes(btColumn.uidt)
+          ? renderCell(ctx, btColumn, options)
+          : PlainCellRenderer.render(ctx, options)
+      }
+
+      cellRenderer({
         ...props,
         value: cellValue,
-        column: ooColumn,
+        column: btColumn,
         width: cellWidth,
         relatedColObj: undefined,
         relatedTableMeta: undefined,
         readonly: true,
-        height: isAttachment(ooColumn) ? props.height : rowHeightInPx['1']!,
+        height: rowHeightInPx['1']!,
         padding: 10,
         textColor: themeV3Colors.brand['500'],
         tag: {

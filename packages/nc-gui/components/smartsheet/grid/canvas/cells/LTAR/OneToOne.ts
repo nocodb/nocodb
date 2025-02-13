@@ -1,10 +1,11 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
+import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const OneToOneCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, row, column, relatedTableMeta } = props
+    const { value, x, y, width, height, spriteLoader, mousePosition, row, column, relatedTableMeta, renderCell } = props
 
     const hasValue = !!row[column.title!]
 
@@ -28,8 +29,13 @@ export const OneToOneCellRenderer: CellRenderer = {
           ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
           : value
 
-      // Todo: Handle non select type, attachment, checkbox, lookup cell render
-      PlainCellRenderer.render(ctx, {
+      const cellRenderer = (options: CellRendererOptions) => {
+        return renderAsCellLookupOrLtarValue.includes(ooColumn.uidt)
+          ? renderCell(ctx, ooColumn, options)
+          : PlainCellRenderer.render(ctx, options)
+      }
+
+      cellRenderer({
         ...props,
         value: cellValue,
         column: ooColumn,
@@ -37,7 +43,7 @@ export const OneToOneCellRenderer: CellRenderer = {
         relatedColObj: undefined,
         relatedTableMeta: undefined,
         readonly: true,
-        height: isAttachment(ooColumn) ? props.height : rowHeightInPx['1']!,
+        height: rowHeightInPx['1']!,
         padding: 10,
         textColor: themeV3Colors.brand['500'],
         tag: {

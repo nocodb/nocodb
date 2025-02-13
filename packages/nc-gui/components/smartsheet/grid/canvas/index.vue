@@ -218,6 +218,10 @@ const {
   actionManager,
   imageLoader,
   readOnly,
+
+  // column resize related refs
+  colResizeHoveredColIds,
+  totalColumnsWidth,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -685,9 +689,8 @@ const handleMouseUp = async (e: MouseEvent) => {
       return
     } else {
       // If x more than 80px, check if the user is trying to add a new column
-      const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-      const plusColumnX = totalColumnsWidth - scrollLeft.value
-      const plusColumnWidth = 60
+      const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+      const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
       // If the user is trying to add a new column
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
         if (!isAddingColumnAllowed.value) return
@@ -1001,15 +1004,12 @@ const getHeaderTooltipRegions = (
 
 const activeCursor = ref<CursorType>('auto')
 
-watch(activeCursor, (newCursor) => {
-  if (!canvasRef.value || newCursor) {
-    canvasRef.value.style.cursor = newCursor
-  }
-})
+function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
+  if (customCondition && !customCondition(activeCursor.value)) return
 
-function setCursor(cursor: CursorType) {
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
+    if (canvasRef.value && canvasRef.value !== cursor) canvasRef.value.style.cursor = cursor
   }
 }
 
@@ -1022,7 +1022,7 @@ const handleMouseMove = (e: MouseEvent) => {
   mousePosition.x = e.clientX - rect.left
   mousePosition.y = e.clientY - rect.top
 
-  setCursor('auto')
+  let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
 
   if (mousePosition.y < 32) {
@@ -1036,7 +1036,7 @@ const handleMouseMove = (e: MouseEvent) => {
       )
 
       if (['title', 'columnChevron'].includes(activeFixedRegion?.type)) {
-        setCursor('pointer')
+        cursor = 'pointer'
       }
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
         tryShowTooltip({
@@ -1063,7 +1063,7 @@ const handleMouseMove = (e: MouseEvent) => {
         )
 
         if (['title', 'columnChevron'].includes(activeRegion?.type)) {
-          setCursor('pointer')
+          cursor = 'pointer'
         }
 
         if (activeRegion && !activeRegion.disableTooltip) {
@@ -1112,6 +1112,7 @@ const handleMouseMove = (e: MouseEvent) => {
       imageLoader,
     })
   }
+  if (cursor) setCursor(cursor)
 }
 
 const handleScrollEnd = (_e: Event) => {
@@ -1222,10 +1223,9 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
     waitForScrollEnd(containerRef.value).then(() => {
       const rect = canvasRef.value?.getBoundingClientRect()
 
-      const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-      const plusColumnX = totalColumnsWidth - scrollLeft.value
+      const plusColumnX = totalColumnsWidth.value - scrollLeft.value
 
-      const plusColumnWidth = 60
+      const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
 
       overlayStyle.value = {
         top: `${rect.top}px`,
@@ -1423,7 +1423,7 @@ const editEnabledCellPosition = computed(() => {
 
   return {
     top: `${top}px`,
-    left: `${left - (editEnabled.value.column.pv ? 1 : 0)}px`,
+    left: `${left}px`,
   }
 })
 

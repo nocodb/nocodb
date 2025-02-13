@@ -8,6 +8,7 @@ import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
 const { t } = useI18n()
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -83,7 +84,8 @@ const height = computed(() => {
 })
 
 onMounted(() => {
-  if (!isCanvasInjected) return
+  if (!isCanvasInjected || !clientMousePosition) return
+  if (!getElementAtMouse('.nc-qrcode-container > img', clientMousePosition)) return
   modalVisible.value = true
 })
 </script>

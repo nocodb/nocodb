@@ -39,3 +39,12 @@ export const getScrollbarWidth = () => {
 export function getElementAtMouse<T>(cssSelector: string, { clientX, clientY }: { clientX: number; clientY: number }) {
   return document.elementsFromPoint(clientX, clientY).find((el) => el.matches(cssSelector)) as T | undefined
 }
+
+export function forcedNextTick(cb: () => void) {
+  // See https://github.com/vuejs/vue/issues/9200
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      cb()
+    })
+  })
+}

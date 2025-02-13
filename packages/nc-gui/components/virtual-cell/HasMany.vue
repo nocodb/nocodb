@@ -2,6 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
 
@@ -146,14 +147,14 @@ function onCellClick(e: Event) {
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
-  setTimeout(() => {
+  forcedNextTick(() => {
     if (!isCanvasInjected || !clientMousePosition) return
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
       openChildList()
     }
-  }, 100)
+  })
 })
 
 onUnmounted(() => {

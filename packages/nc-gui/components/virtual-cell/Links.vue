@@ -3,6 +3,7 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
@@ -140,15 +141,13 @@ watch(
 
 onMounted(() => {
   if (!isCanvasInjected || !clientMousePosition) return
-  setTimeout(() => {
+  forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
       openChildList()
     }
-    // if we open immediately, the background seems stuck and
-    // we cannot dismiss the modal
-  }, 100)
+  })
 })
 </script>
 

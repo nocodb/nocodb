@@ -44,6 +44,11 @@ export const SingleSelectCellRenderer: CellRenderer = {
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
       fillStyle: getSelectTypeOptionTextColor(opColor),
     })
+
+    return {
+      x: x + padding + optionWidth + tagPadding * 2,
+      y,
+    }
   },
   async handleHover({ getCellPosition, column, row, value, mousePosition }) {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)

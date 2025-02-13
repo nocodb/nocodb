@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const YearCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -12,6 +12,14 @@ export const YearCellRenderer: CellRenderer = {
       if (year.isValid()) {
         text = year.format('YYYY')
       }
+    }
+
+    if (!value && selected) {
+      ctx.fillStyle = '#989FB1'
+      ctx.font = '400 13px Manrope'
+      const truncatedFormat = truncateText(ctx, 'YYYY', width - padding * 2, true)
+      ctx.fillText(truncatedFormat.text, x + padding, y + 16)
+      return { x, y }
     }
 
     if (!text) {
@@ -39,5 +47,38 @@ export const YearCellRenderer: CellRenderer = {
         y: yOffset,
       }
     }
+  },
+  async handleClick(ctx) {
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+    const padding = 8
+
+    const canvasContext = new OffscreenCanvas(0, 0).getContext('2d')!
+
+    let textWidth = 0
+    if (value) {
+      const year = dayjs(value.toString(), 'YYYY')
+      if (year.isValid()) {
+        const text = year.format('YYYY')
+        canvasContext.font = '500 13px Manrope'
+        textWidth = canvasContext.measureText(text).width
+      }
+    } else {
+      canvasContext.font = '400 13px Manrope'
+      textWidth = canvasContext.measureText('YYYY').width
+    }
+
+    const clickableArea = {
+      x: bound.x + padding,
+      y: bound.y,
+      width: textWidth,
+      height: 33,
+    }
+
+    if (isBoxHovered(clickableArea, mousePosition)) {
+      makeCellEditable(row.rowMeta.rowIndex, column)
+      return true
+    }
+    return false
   },
 }

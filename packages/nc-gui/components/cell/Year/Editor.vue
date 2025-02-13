@@ -274,6 +274,16 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+onMounted(() => {
+  forcedNextTick(() => {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+      open.value = true
+      open.value = true
+    }
+  })
+})
 </script>
 
 <template>

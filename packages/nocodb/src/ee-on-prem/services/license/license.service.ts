@@ -32,6 +32,7 @@ export class LicenseService {
     exp: number;
     iat: number;
     oneWorkspace?: boolean;
+    maxWorkspaces?: number;
   };
 
   private _isExpired: boolean = false;
@@ -129,5 +130,12 @@ export class LicenseService {
 
   getOneWorkspace() {
     return this.getLicenseData().oneWorkspace || false;
+  }
+
+  getMaxWorkspaces() {
+    return (
+      +this.getLicenseData().maxWorkspaces ||
+      (this.getOneWorkspace() ? 1 : undefined)
+    );
   }
 }

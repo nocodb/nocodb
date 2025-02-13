@@ -1114,7 +1114,7 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 }
 
-const handleScrollEnd = (e: Event) => {
+const handleScrollEnd = (_e: Event) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)

@@ -290,11 +290,15 @@ const isColumnInvalid = (
       break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
-      if (colOptions.type === ButtonActionsType.Webhook) {
+
+      if (isAiButton(col) && isReadOnly) {
+        result.isInvalid = true
+        result.tooltip = null
+      } else if (colOptions.type === ButtonActionsType.Webhook) {
         result.isInvalid = !colOptions.fk_webhook_id
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
-      } else if (colOptions.type === ButtonActionsType.Ai) {
+      } else if (colOptions.type === ButtonActionsType.AI) {
         result.isInvalid =
           !colOptions.fk_integration_id ||
           (isReadOnly

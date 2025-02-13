@@ -1,5 +1,5 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { defaultOffscreen2DContext, isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../utils/canvas'
 
 const buttonColorMap = {
   solid: {
@@ -388,7 +388,9 @@ export const ButtonCellRenderer: CellRenderer = {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const isInvalid = column?.isInvalidColumn?.isInvalid
-    if (!isInvalid) return
+    const tooltipText = column?.isInvalidColumn?.tooltip
+
+    if (!isInvalid || !tooltipText) return
 
     const { aiIntegrations } = useNocoAi()
 

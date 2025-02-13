@@ -248,7 +248,7 @@ export function useCanvasTable({
           relatedTableMeta,
           isInvalidColumn: {
             ...isInvalid,
-            tooltip: t(isInvalid.tooltip),
+            tooltip: isInvalid.tooltip && t(isInvalid.tooltip),
           },
           abstractType: sqlUi?.getAbstractType(f),
         }
@@ -496,6 +496,7 @@ export function useCanvasTable({
     isFillHanldeDisabled,
     isDataEditAllowed,
     isFieldEditAllowed,
+    isPublicView,
   })
 
   const { handleDragStart } = useRowReorder({

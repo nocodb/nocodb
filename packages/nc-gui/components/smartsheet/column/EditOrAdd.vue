@@ -155,7 +155,6 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.LastModifiedTime,
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
-  UITypes.Formula,
   UITypes.QrCode,
   UITypes.Barcode,
   UITypes.Button,

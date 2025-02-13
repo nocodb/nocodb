@@ -19,6 +19,7 @@ const videoExt = [
   'webm',
   'mpg',
   'mp2',
+  'mp3',
   'mpeg',
   'ogg',
   'mp4',

@@ -4,6 +4,7 @@ import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
+import { useMouseSelection } from './useMouseSelection'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -248,6 +249,22 @@ export function useCanvasTable({
     selection,
   })
 
+  const {
+    handleMouseDown: onMouseDownSelectionHandler,
+    handleMouseMove: onMouseMoveSelectionHandler,
+    handleMouseUp: onMouseUpSelectionHandler,
+  } = useMouseSelection({
+    activeCell,
+    selection,
+    triggerReRender: triggerRefreshCanvas,
+    columns,
+    canvasRef,
+    rowSlice,
+    scrollLeft,
+    rowHeight,
+    scrollToCell,
+  })
+
   return {
     rowSlice,
     colSlice,
@@ -272,5 +289,9 @@ export function useCanvasTable({
     // Handler
     resizeMouseMove,
     startResize,
+
+    onMouseUpSelectionHandler,
+    onMouseMoveSelectionHandler,
+    onMouseDownSelectionHandler,
   }
 }

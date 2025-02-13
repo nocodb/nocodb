@@ -20,6 +20,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
@@ -54,8 +56,8 @@ const vModel = computed({
 
 const percentMeta = computed(() => {
   return {
-    is_progress: false,
     ...parseProp(column.value?.meta),
+    is_progress: isUnderLookup ? false : parseProp(column.value?.meta).is_progress ?? false,
   }
 })
 

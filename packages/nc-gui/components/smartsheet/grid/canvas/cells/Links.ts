@@ -1,7 +1,18 @@
-import { renderSingleLineText } from '../utils/canvas'
+import { renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const LinksCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, height, padding, t }) => {
+  render: (ctx, props) => {
+    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', t } = props
+    const {
+      renderAsTag,
+      tagPaddingX = 8,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagBorderColor,
+      tagBorderWidth,
+    } = props.tag || {}
+
     const parsedValue = +value || 0
 
     let text = ''
@@ -13,17 +24,57 @@ export const LinksCellRenderer: CellRenderer = {
       text = `${parsedValue} ${column?.meta?.plural || t('general.links')}`
     }
 
-    // If it is empty text then no need to render
-    if (!text) return
+    if (renderAsTag) {
+      const maxWidth = width - padding * 2 - tagPaddingX * 2
 
-    renderSingleLineText(ctx, {
-      x: x + padding,
-      y: y,
-      text,
-      maxWidth: width - padding * 2,
-      fontFamily: '500 13px Manrope',
-      fillStyle: '#4351e8',
-      height,
-    })
+      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+        x: x + padding + tagPaddingX,
+        y: y + padding,
+        text,
+        maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        render: false,
+      })
+
+      renderTag(ctx, {
+        x: x + padding,
+        y: y + padding - 4,
+        width: textWidth + tagPaddingX * 2,
+        height: tagHeight,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
+      })
+
+      renderSingleLineText(ctx, {
+        x: x + padding + tagPaddingX,
+        y: y,
+        text: truncatedText,
+        maxWidth: maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: textColor,
+      })
+
+      return {
+        x: x + padding + textWidth + tagPaddingX * 2,
+        y: y + padding - 4 + tagHeight,
+      }
+    } else {
+      const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: width - padding * 2,
+        fontFamily: '500 13px Manrope',
+        fillStyle: '#4351e8',
+        height,
+      })
+
+      return {
+        x: xOffset,
+        y: yOffset,
+      }
+    }
   },
 }

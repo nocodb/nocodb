@@ -1583,19 +1583,6 @@ const increaseMinHeightBy: Record<string, number> = {
       margin-top: -2px;
     }
 
-    :deep(.nc-cell-attachment) {
-      @apply !pt-0;
-
-      .nc-upload-btn {
-        @apply !pt-0.5;
-      }
-
-      .nc-attachment-wrapper {
-        height: 28px !important;
-        @apply !pt-0.5 !pb-0.5;
-      }
-    }
-
     :deep(.nc-cell-datetime) {
       @apply !py-0.75 !px-1.5;
     }
@@ -1613,13 +1600,14 @@ const increaseMinHeightBy: Record<string, number> = {
 
   :deep(.nc-cell-attachment) {
     [data-row-height='1'] {
-      @apply -mt-[2px];
+      @apply -mt-[0.5px];
       .empty-add-files {
         @apply mt-[3px];
       }
     }
 
     [data-row-height]:not([data-row-height='1']) {
+      @apply !pt-2;
       button.add-files,
       button.view-attachments {
         @apply mt-[4px];

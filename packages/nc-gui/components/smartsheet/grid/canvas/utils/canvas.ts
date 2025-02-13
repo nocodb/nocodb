@@ -110,7 +110,7 @@ export function roundedRect(
   width: number,
   height: number,
   radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
-  { backgroundColor, borderColor }: { backgroundColor?: string; borderColor?: string } = {},
+  { backgroundColor, borderColor, borderWidth }: { backgroundColor?: string; borderColor?: string; borderWidth?: number } = {},
 ): void {
   const {
     topLeft = 0,
@@ -120,6 +120,9 @@ export function roundedRect(
   } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
 
   ctx.beginPath()
+  if (borderWidth) {
+    ctx.lineWidth = borderWidth
+  }
   ctx.moveTo(x + topLeft, y)
 
   // Top right corner

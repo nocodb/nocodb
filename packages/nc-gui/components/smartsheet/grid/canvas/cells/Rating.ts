@@ -1,7 +1,7 @@
 export const RatingCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, spriteLoader } = props
-    const padding = 10
+    const { value, x, y, width, height, column, spriteLoader, padding } = props
+
     const ratingMeta = {
       color: '#fcb401',
       max: 5,
@@ -56,7 +56,7 @@ export const RatingCellRenderer: CellRenderer = {
       ctx.fillText(
         '...',
         startX + (lastColInRow + 1) * iconWidthWithSpacing,
-        startY + lastRow * (iconSize + rowSpacing) + iconSize / 2
+        startY + lastRow * (iconSize + rowSpacing) + iconSize / 2,
       )
     }
   },

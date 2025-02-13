@@ -2,7 +2,7 @@ import type { UserType } from 'nocodb-sdk'
 
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, spriteLoader } = props
+    const { value, x, y, width, height, column, spriteLoader, } = props
     const padding = 6
     const tagSpacing = 4
     const tagHeight = 20

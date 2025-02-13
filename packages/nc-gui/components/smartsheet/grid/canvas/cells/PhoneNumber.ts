@@ -1,10 +1,8 @@
 import isMobilePhone from 'validator/lib/isMobilePhone'
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
 
 export const PhoneNumberCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv }) => {
-    const padding = 10
+  render: (ctx, { value, x, y, width, height, selected, pv, padding }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'

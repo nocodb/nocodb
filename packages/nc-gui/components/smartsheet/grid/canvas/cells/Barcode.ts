@@ -3,8 +3,7 @@ import { truncateText } from '../utils/canvas'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column } = props
-    const padding = 10
+    const { value, x, y, width, height, column, padding } = props
 
     if (!value) return
 

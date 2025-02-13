@@ -5,9 +5,7 @@ const tagHeight = 20
 const topPadding = 6
 
 export const RollupCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, height, pv }) => {
-    const padding = 10
-
+  render: (ctx, { column, value, x, y, width, height, pv, padding }) => {
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render

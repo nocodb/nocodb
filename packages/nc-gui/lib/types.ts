@@ -13,7 +13,7 @@ import {
   type UITypes,
   type ViewTypes,
 } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
+import type { Composer, I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
@@ -375,6 +375,8 @@ interface CellRendererOptions {
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
   isMysql: CanvasGridColumn['isMysql']
+  t: Composer['t']
+  padding: number
 }
 
 interface CellRenderer {

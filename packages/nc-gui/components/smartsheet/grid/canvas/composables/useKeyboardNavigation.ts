@@ -95,6 +95,7 @@ export function useKeyboardNavigation({
     }
 
     let moved = false
+    let movedSelection = false
 
     if (cmdOrCtrl && !editEnabled.value) {
       switch (e.key.toLowerCase()) {
@@ -110,8 +111,6 @@ export function useKeyboardNavigation({
     }
 
     const moveToExtreme = cmdOrCtrl
-    const currentRow = activeCell.value.row
-    const currentCol = activeCell.value.column
     const lastRow = totalRows.value - 1
     const lastCol = columns.value.length - 1
 
@@ -156,13 +155,13 @@ export function useKeyboardNavigation({
         return
 
       case 'Enter':
-        selection.value.clear()
         if (e.shiftKey) return
         if (!editEnabled.value) {
           e.preventDefault()
           const column = columns.value[activeCell.value.column]
           if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt)) {
-            makeCellEditable(currentRow, columns.value[currentCol]!)
+            selection.value.clear()
+            makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
           }
         } else {
           editEnabled.value = null
@@ -180,95 +179,132 @@ export function useKeyboardNavigation({
         }
         return
 
-      case 'ArrowUp':
-        if (currentRow > 0) {
+      case 'ArrowUp': {
+        const currentEndRow = selection.value._end?.row ?? activeCell.value.row
+        if (currentEndRow > 0) {
           e.preventDefault()
-          activeCell.value.row = moveToExtreme ? 0 : currentRow - 1
-          onActiveCellChanged()
-          moved = true
+          const newRow = moveToExtreme ? 0 : currentEndRow - 1
+          if (e.shiftKey) {
+            const newEnd = {
+              row: Math.max((selection.value._start?.row ?? 0) - MAX_SELECTION_LIMIT - 1, newRow),
+              col: selection.value._end?.col ?? activeCell.value.column,
+            }
+            selection.value.endRange(newEnd)
+            scrollToCell(newEnd.row, newEnd.col)
+            movedSelection = true
+          } else {
+            activeCell.value.row = newRow
+            moved = true
+            onActiveCellChanged()
+          }
         }
         break
+      }
 
-      case 'ArrowDown':
-        if (currentRow < lastRow) {
+      case 'ArrowDown': {
+        const currentEndRow = selection.value._end?.row ?? activeCell.value.row
+        if (currentEndRow < lastRow) {
           e.preventDefault()
-          activeCell.value.row = moveToExtreme ? lastRow : currentRow + 1
-          onActiveCellChanged()
-          moved = true
+          const newRow = moveToExtreme ? lastRow : currentEndRow + 1
+          if (e.shiftKey) {
+            const newEnd = {
+              row: Math.min((selection.value._start?.row ?? 0) + MAX_SELECTION_LIMIT - 1, newRow),
+              col: selection.value._end?.col ?? activeCell.value.column,
+            }
+            selection.value.endRange(newEnd)
+            movedSelection = true
+          } else {
+            activeCell.value.row = newRow
+            moved = true
+            onActiveCellChanged()
+          }
         }
         break
+      }
 
-      case 'ArrowLeft':
-        if (currentCol > MIN_COLUMN_INDEX) {
+      case 'ArrowLeft': {
+        const currentEndCol = selection.value._end?.col ?? activeCell.value.column
+        if (currentEndCol > MIN_COLUMN_INDEX) {
           e.preventDefault()
-          activeCell.value.column = moveToExtreme ? MIN_COLUMN_INDEX : currentCol - 1
-          moved = true
+          const newCol = moveToExtreme ? MIN_COLUMN_INDEX : currentEndCol - 1
+          if (e.shiftKey) {
+            selection.value.endRange({
+              row: selection.value._end?.row ?? activeCell.value.row,
+              col: newCol,
+            })
+            movedSelection = true
+          } else {
+            activeCell.value.column = newCol
+            moved = true
+          }
         }
         break
+      }
 
-      case 'ArrowRight':
-        if (currentCol < lastCol) {
+      case 'ArrowRight': {
+        const currentEndCol = selection.value._end?.col ?? activeCell.value.column
+        if (currentEndCol < lastCol) {
           e.preventDefault()
-          activeCell.value.column = moveToExtreme ? lastCol : currentCol + 1
-          moved = true
+          const newCol = moveToExtreme ? lastCol : currentEndCol + 1
+          if (e.shiftKey) {
+            selection.value.endRange({
+              row: selection.value._end?.row ?? activeCell.value.row,
+              col: newCol,
+            })
+            movedSelection = true
+          } else {
+            activeCell.value.column = newCol
+            moved = true
+          }
         }
         break
+      }
 
       case 'Tab': {
         let isAdded = false
         e.preventDefault()
-        if (!e.shiftKey && currentRow === lastRow && currentCol === lastCol) {
+        if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
           if (isAddingEmptyRowAllowed.value) {
             addEmptyRow()
             isAdded = true
           }
-        } else if (e.shiftKey && currentRow === 0 && currentCol === MIN_COLUMN_INDEX) {
+        } else if (e.shiftKey && activeCell.value.row === 0 && activeCell.value.column === MIN_COLUMN_INDEX) {
           return
         }
 
         if (e.shiftKey) {
-          if (currentCol > MIN_COLUMN_INDEX) {
+          if (activeCell.value.column > MIN_COLUMN_INDEX) {
             activeCell.value.column--
-          } else if (currentRow > 0) {
+          } else if (activeCell.value.row > 0) {
             activeCell.value.row--
             activeCell.value.column = lastCol
           }
         } else {
-          if (currentCol < lastCol) {
+          if (activeCell.value.column < lastCol) {
             activeCell.value.column++
-          } else if (currentRow < (isAdded ? lastRow + 1 : lastRow)) {
+          } else if (activeCell.value.row < (isAdded ? lastRow + 1 : lastRow)) {
             activeCell.value.row++
             activeCell.value.column = MIN_COLUMN_INDEX
           }
         }
         moved = true
-
         break
       }
     }
 
-    if (moved) {
+    if (moved || movedSelection) {
       editEnabled.value = null
-      if (e.shiftKey && e.key !== 'Tab') {
-        const newEnd = { row: activeCell.value.row, col: activeCell.value.column }
-        const maxRow = Math.max(selection.value._start?.row ?? 0, newEnd.row)
-        const minRow = Math.min(selection.value._start?.row ?? 0, newEnd.row)
-
-        if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
-          const direction = newEnd.row > (selection.value._start?.row ?? 0) ? 1 : -1
-          const limitedRow = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
-          activeCell.value.row = limitedRow
-          newEnd.row = limitedRow
-        }
-
-        selection.value.endRange(newEnd)
-      } else {
+      if (!e.shiftKey || e.key === 'Tab') {
         selection.value.clear()
         selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
         selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
 
-      scrollToCell(activeCell.value.row, activeCell.value.column)
+      if (moved) {
+        scrollToCell(activeCell.value.row, activeCell.value.column)
+      } else if (movedSelection) {
+        scrollToCell(selection.value._end!.row, selection.value._end!.col)
+      }
     }
     triggerReRender()
   }

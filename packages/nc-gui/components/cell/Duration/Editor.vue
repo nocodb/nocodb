@@ -6,28 +6,22 @@ interface Props {
   showValidationError?: boolean
 }
 
-const { modelValue, showValidationError = true } = defineProps<Props>()
-
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
 const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const showWarningMessage = ref(false)
-
 const durationInMS = ref(0)
-
 const isEdited = ref(false)
+const inputRef = ref<HTMLInputElement>()
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
-
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
 const tempState = ref()
@@ -35,14 +29,12 @@ const tempState = ref()
 const localState = computed({
   get: () => {
     if (tempState.value === undefined) {
-      return convertMS2Duration(modelValue, durationType.value)
+      return convertMS2Duration(props.modelValue, durationType.value)
     }
-
     return tempState.value
   },
   set: (val) => {
     tempState.value = val
-
     isEdited.value = true
     const res = convertDurationToSeconds(val, durationType.value)
     if (res._isValid) {
@@ -62,7 +54,6 @@ const localState = computed({
 const checkDurationFormat = (evt: KeyboardEvent) => {
   evt = evt || window.event
   const charCode = evt.which ? evt.which : evt.keyCode
-  // ref: http://www.columbia.edu/kermit/ascii.html
   const PRINTABLE_CTL_RANGE = charCode > 31
   const NON_DIGIT = charCode < 48 || charCode > 57
   const NON_COLON = charCode !== 58
@@ -72,7 +63,6 @@ const checkDurationFormat = (evt: KeyboardEvent) => {
     evt.preventDefault()
   } else {
     showWarningMessage.value = false
-    // only allow digits, '.' and ':' (without quotes)
     return true
   }
 }
@@ -81,26 +71,28 @@ const submitDuration = () => {
   if (isEdited.value) {
     emit('update:modelValue', durationInMS.value)
   }
-
   isEdited.value = false
-
   tempState.value = undefined
 }
 
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    nextTick(() => {
-      ;(el as HTMLInputElement)?.focus()
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
+
+onMounted(() => {
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    forcedNextTick(() => {
+      inputRef.value?.focus()
     })
   }
-
-  return el
-}
+})
 </script>
 
 <template>
   <div class="duration-cell-wrapper">
-    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"
       v-model="localState"
@@ -120,7 +112,7 @@ const focus: VNodeRef = (el) => {
       @mousedown.stop
     />
 
-    <div v-if="showWarningMessage && showValidationError" class="nc-cell-field duration-warning">
+    <div v-if="showWarningMessage && props.showValidationError" class="nc-cell-field duration-warning">
       {{ $t('msg.plsEnterANumber') }}
     </div>
   </div>

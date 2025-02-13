@@ -115,6 +115,7 @@ const {
   scrollLeft,
   width,
   height,
+  scrollToCell,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()
@@ -238,6 +239,45 @@ const handleMouseDown = (e: MouseEvent) => {
     if (!resizeableColumn.value) {
       startDrag(e.clientX - rect.left)
     }
+  }
+}
+
+function scrollToCell(row: number, column: number) {
+  if (!containerRef.value) return
+
+  const cellTop = row * rowHeight.value
+  const cellBottom = cellTop + rowHeight.value + 64
+  const scrollTop = containerRef.value.scrollTop
+  const viewportHeight = containerRef.value.clientHeight
+
+  if (cellTop < scrollTop) {
+    containerRef.value.scrollTop = cellTop
+  } else if (cellBottom > scrollTop + viewportHeight) {
+    containerRef.value.scrollTop = cellBottom - viewportHeight
+  }
+
+  let cellLeft = 0
+  let cellRight = 0
+
+  const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+
+  for (let i = 0; i < column; i++) {
+    if (!columns.value[i].fixed) {
+      cellLeft += parseInt(columns.value[i].width, 10)
+    }
+  }
+  cellRight = cellLeft + parseInt(columns.value[column].width, 10)
+
+  cellLeft += fixedWidth
+  cellRight += fixedWidth
+
+  const scrollLeft = containerRef.value.scrollLeft
+  const viewportWidth = containerRef.value.clientWidth
+
+  if (cellLeft < scrollLeft + fixedWidth) {
+    containerRef.value.scrollLeft = cellLeft - fixedWidth
+  } else if (cellRight > scrollLeft + viewportWidth) {
+    containerRef.value.scrollLeft = cellRight - viewportWidth
   }
 }
 

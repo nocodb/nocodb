@@ -89,26 +89,27 @@ export const UrlCellRenderer: CellRenderer = {
   async handleClick({ value, row, column, getCellPosition, mousePosition }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
-    const urlText = value?.toString().trim() ?? ''
-    const isValid = urlText && isValidURL(urlText)
+    
+    const text = value?.toString().trim() ?? ''
+
+    const isValid = text && isValidURL(text)
     if (!isValid) return false
+
     const pv = column.pv
     const ctx = defaultOffscreen2DContext
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'left'
-    const maxWidth = width - padding * 2
-    const truncatedText = truncateText(ctx, urlText, maxWidth)
-    const textY = y + height / 2
-    const textMetrics = ctx.measureText(truncatedText)
-    const box = {
-      x: x + padding - 5,
-      y: textY - 5,
-      width: textMetrics.width + 5,
-      height: 18 + 5,
-    }
-    if (isBoxHovered(box, mousePosition)) {
-      window.open(/^https?:\/\//.test(urlText) ? urlText : `https://${urlText}`, '_blank')
+
+    const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+      x: x + padding,
+      y,
+      text,
+      maxWidth: width - padding * 2,
+      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      height,
+      render: false,
+    })
+
+    if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
+      window.open(`mailto:${text}`, '_blank')
       return true
     }
     return false

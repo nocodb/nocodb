@@ -14,15 +14,21 @@ export const YearCellRenderer: CellRenderer = {
       tagBorderWidth,
     } = props.tag || {}
 
-    const year = dayjs(value.toString(), 'YYYY')
-    if (!value || !year.isValid()) {
+    let text = ''
+
+    if (value) {
+      const year = dayjs(value.toString(), 'YYYY')
+      if (year.isValid()) {
+        text = year.format('YYYY')
+      }
+    }
+
+    if (!text) {
       return {
         x,
         y,
       }
     }
-
-    const text = year.format('YYYY')
 
     if (renderAsTag) {
       const maxWidth = width - padding * 2 - tagPaddingX * 2

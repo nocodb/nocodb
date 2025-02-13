@@ -27,8 +27,7 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
-import { renderSingleLineText } from '../utils/canvas'
-export function useCellRenderer() {
+export function useGridCellHandler() {
   const { t } = useI18n()
   const { metas } = useMetas()
 
@@ -124,7 +123,7 @@ export function useCellRenderer() {
     } else {
       return renderSingleLineText(ctx, {
         x: x + padding,
-        y: y,
+        y,
         text: value?.toString() ?? '',
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#4351e8' : textColor,
@@ -134,8 +133,29 @@ export function useCellRenderer() {
     }
   }
 
+  const handleCellClick = async (params: {
+    event: MouseEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    mousePosition: { x: number; y: number }
+  }) => {
+    console.log(params)
+    const cellHandler = cellTypesRegistry.get(params.column.columnObj.uidt)
+
+    if (cellHandler?.handleClick) {
+      await cellHandler.handleClick({
+        ...params,
+        isDoubleClick: params.event.detail === 2,
+      })
+    } else {
+      console.log('No handler found for cell type', params.column.uidt)
+    }
+  }
+
   return {
     cellTypesRegistry,
     renderCell,
+    handleCellClick,
   }
 }

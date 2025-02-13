@@ -1,7 +1,7 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations } from 'nocodb-sdk'
 import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
-import { useCellRenderer } from '../cells'
+import { useGridCellHandler } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -63,7 +63,7 @@ export function useCanvasRender({
   mousePosition: { x: number; y: number }
 }) {
   const canvasRef = ref()
-  const { renderCell } = useCellRenderer()
+  const { renderCell } = useGridCellHandler()
   function renderHeader(ctx: CanvasRenderingContext2D) {
     // Header background
     ctx.fillStyle = '#f4f4f5'

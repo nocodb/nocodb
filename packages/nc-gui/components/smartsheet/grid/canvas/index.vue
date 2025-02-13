@@ -84,8 +84,13 @@ const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
-const openAggregationField = ref<CanvasGridColumn | null>(null)
-
+const openAggregationField = ref<
+  | (CanvasGridColumn & {
+      style: Record<string, any>
+    })
+  | null
+>(null)
+const isAggregationDropdownVisible = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
@@ -225,8 +230,15 @@ async function handleMouseDown(e: MouseEvent) {
       }
     }
     if (clickedColumn) {
-      clickedColumn.x = xOffset
-      openAggregationField.value = clickedColumn
+      openAggregationField.value = {
+        ...clickedColumn,
+        style: {
+          top: `${height.value - 162}px`,
+          minWidth: `${clickedColumn.width}`,
+          width: `${clickedColumn.width}`,
+          left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+        },
+      }
       return
     }
   }
@@ -428,6 +440,19 @@ onMounted(async () => {
   triggerRefreshCanvas()
   await loadViewAggregate()
 })
+
+watch(
+  () => openAggregationField.value,
+  async (newVal) => {
+    if (newVal) {
+      await nextTick()
+      isAggregationDropdownVisible.value = true
+    } else {
+      isAggregationDropdownVisible.value = false
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -476,16 +501,8 @@ onMounted(async () => {
         </LazySmartsheetRow>
       </div>
 
-      <template v-if="openAggregationField">
-        <NcDropdown
-          :overlay-style="{
-            top: `${height - 162}px`,
-            minWidth: `${openAggregationField?.width}`,
-            width: `${openAggregationField?.width}`,
-            left: `calc(100svw - ${width}px + ${openAggregationField?.x}px)`,
-          }"
-          :visible="true"
-        >
+      <template v-if="isAggregationDropdownVisible && openAggregationField">
+        <NcDropdown :overlay-style="openAggregationField.style" :visible="isAggregationDropdownVisible">
           <div></div>
           <template #overlay>
             <Aggregation v-model:column="openAggregationField" />

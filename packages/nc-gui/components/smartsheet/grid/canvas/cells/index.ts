@@ -23,6 +23,7 @@ import { BarcodeCellRenderer } from './Barcode'
 import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
 import { UserFieldCellRenderer } from './User'
+import { SingleSelectCellRenderer } from './SingleSelect'
 export function useCellRenderer() {
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -52,6 +53,7 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.User, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.CreatedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)
+  cellTypesRegistry.set(UITypes.SingleSelect, SingleSelectCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

@@ -150,6 +150,7 @@ export function useCanvasTable({
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const isLocked = inject(IsLockedInj, ref(false))
+  const { sqlUis } = storeToRefs(useBase())
 
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
@@ -220,6 +221,8 @@ export function useCanvasTable({
 
         const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
 
+        const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
+
         return {
           id: f.id,
           grid_column_id: gridViewCol.id,
@@ -239,6 +242,7 @@ export function useCanvasTable({
             ...isInvalid,
             tooltip: t(isInvalid.tooltip),
           },
+          abstractType: sqlUi?.getAbstractType(f),
         }
       })
       .filter((c) => !!c)

@@ -113,7 +113,7 @@ export function useCanvasRender({
       }
 
       const iconConfig = (
-        column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, null)
+        column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
       ) as any
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
@@ -217,7 +217,9 @@ export function useCanvasRender({
 
         ctx.fillStyle = '#6a7184'
         const iconConfig = (
-          column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, null)
+          column?.virtual
+            ? renderVIcon(column.columnObj, column.relatedColObj)
+            : renderIcon(column.columnObj, column.abstractType)
         ) as any
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {

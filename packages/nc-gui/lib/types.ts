@@ -504,6 +504,7 @@ interface CanvasGridColumn {
     isInvalid: boolean
     tooltip: string
   }
+  abstractType: any
 }
 
 interface ParsePlainCellValueProps {

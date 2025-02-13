@@ -13,19 +13,16 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
-
 const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj)
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
 const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
+const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
@@ -45,8 +42,12 @@ const vModel = computed({
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
 
 function onKeyDown(e: any) {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -70,16 +71,22 @@ function onKeyDown(e: any) {
     e.target.type = 'number'
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
-
     e.target.type = 'text'
     e.target?.setSelectionRange(0, 0)
     e.target.type = 'number'
   }
 }
+
+onMounted(() => {
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    forcedNextTick(() => {
+      inputRef.value?.focus()
+    })
+  }
+})
 </script>
 
 <template>
-  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     :ref="focus"
     v-model="vModel"

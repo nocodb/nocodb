@@ -340,7 +340,7 @@ const handleDelete = () => {
 
 const onEditPress = (event?: MouseEvent, enableDescription = false) => {
   isOpen.value = false
-  emit('edit', event, enableDescription)
+  emit('edit', event, enableDescription, column.value)
 }
 
 const onInsertBefore = () => {

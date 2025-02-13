@@ -407,7 +407,6 @@ export function useCanvasTable({
       }
     }
 
-
     let xPos = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
 
@@ -708,6 +707,7 @@ export function useCanvasTable({
   } = useMouseSelection({
     activeCell,
     selection,
+    totalRows,
     triggerReRender: triggerRefreshCanvas,
     columns,
     canvasRef,

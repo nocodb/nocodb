@@ -204,6 +204,14 @@ export function useCanvasTable({
               relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
             }
           }
+        } else if (isLTAR(f.uidt, f.colOptions)) {
+          if (f.colOptions?.fk_related_model_id) {
+            if (!metas.value?.[f.colOptions.fk_related_model_id]) {
+              fetchMetaIdsLocal.push(f.colOptions.fk_related_model_id)
+            } else {
+              relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
+            }
+          }
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {

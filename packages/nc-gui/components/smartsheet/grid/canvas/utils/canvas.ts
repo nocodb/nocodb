@@ -896,6 +896,7 @@ export function renderIconButton(
     background = '#ffffff',
     hoveredBackground = '#f4f4f5',
     borderColor = '#e7e7e9',
+    setCursor,
   }: {
     buttonX: number
     buttonY: number
@@ -908,6 +909,7 @@ export function renderIconButton(
     background?: string
     hoveredBackground?: string
     borderColor?: string
+    setCursor?: SetCursorType
   },
 ) {
   const hovered = mousePosition && isBoxHovered({ x: buttonX, y: buttonY, height: buttonSize, width: buttonSize }, mousePosition)
@@ -925,6 +927,10 @@ export function renderIconButton(
     size: iconSize,
     color,
   })
+
+  if (hovered) {
+    setCursor?.('pointer')
+  }
 }
 
 export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>) => {

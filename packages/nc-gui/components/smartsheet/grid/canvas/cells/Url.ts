@@ -1,4 +1,5 @@
-import { truncateText } from '../utils/canvas'
+import { getI18n } from '../../../../../plugins/a.i18n'
+import { isBoxHovered, truncateText } from '../utils/canvas'
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -41,5 +42,22 @@ export const UrlCellRenderer: CellRenderer = {
       ctx.font = 'bold 12px sans-serif'
       ctx.fillText('i', iconX + 6, textY + 2)
     }
+  },
+  async handleHover({ column, row, getCellPosition, value, mousePosition }) {
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    const urlText = value?.toString().trim() ?? ''
+    const isValid = urlText && isValidURL(urlText)
+    if (isValid) return
+    const iconSize = 16
+    const padding = 10
+    const iconX = x + width - iconSize - padding
+    const textY = y + height / 2
+    if (isBoxHovered({ x: iconX, y: textY, width: iconSize, height: iconSize }, mousePosition))
+      showTooltip({
+        position: mousePosition,
+        text: getI18n().global.t('msg.error.invalidURL'),
+      })
   },
 }

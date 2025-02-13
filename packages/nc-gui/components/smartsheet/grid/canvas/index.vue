@@ -441,7 +441,7 @@ async function handleMouseDown(e: MouseEvent) {
       } else {
         const row = cachedRows.value.get(rowIndex)
         const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
-        await handleCellClick({
+        const res = await handleCellClick({
           event: e,
           row: row!,
           column: clickedColumn,
@@ -449,6 +449,8 @@ async function handleMouseDown(e: MouseEvent) {
           mousePosition: { x, y },
           pk,
         })
+
+        if (res) return
       }
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
       if (columnUIType === UITypes.Rating) {

@@ -65,25 +65,37 @@ export class ActionManager {
   private startAnimationLoop() {
     if (this.rafId === null && this.loadingColumns.size > 0) {
       let cooldownTimeout: number | null = null
+      let isCoolingDown = false
 
       const animate = () => {
+        if (this.loadingColumns.size > 0 && cooldownTimeout) {
+          clearTimeout(cooldownTimeout)
+          cooldownTimeout = null
+          isCoolingDown = false
+        }
+
         if (this.loadingColumns.size > 0) {
-          if (cooldownTimeout) {
-            clearTimeout(cooldownTimeout)
-            cooldownTimeout = null
-          }
           this.triggerRefreshCanvas()
           this.rafId = requestAnimationFrame(animate)
-        } else {
-          if (!cooldownTimeout) {
-            cooldownTimeout = window.setTimeout(() => {
+        } else if (!isCoolingDown) {
+          isCoolingDown = true
+          this.triggerRefreshCanvas()
+
+          cooldownTimeout = window.setTimeout(() => {
+            if (this.rafId) {
+              cancelAnimationFrame(this.rafId)
               this.rafId = null
-            }, 1000)
-          }
-          this.triggerRefreshCanvas()
-          this.rafId = requestAnimationFrame(animate)
+            }
+            cooldownTimeout = null
+            isCoolingDown = false
+          }, 1000)
+
+          this.rafId = requestAnimationFrame(() => {
+            this.triggerRefreshCanvas()
+          })
         }
       }
+
       this.rafId = requestAnimationFrame(animate)
     }
   }

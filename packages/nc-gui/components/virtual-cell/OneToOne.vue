@@ -18,6 +18,9 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+
 const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
@@ -80,6 +83,15 @@ watch(
   },
   { flush: 'post' },
 )
+
+onMounted(() => {
+  if (!isCanvasInjected || !clientMousePosition) return
+  setTimeout(() => {
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
+      listItemsDlg.value = true
+    }
+  }, 100)
+})
 </script>
 
 <template>

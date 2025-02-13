@@ -106,6 +106,17 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.ForeignKey, GenericReadOnlyRenderer)
   cellTypesRegistry.set(UITypes.ID, GenericReadOnlyRenderer)
 
+  const getCellRenderStore = (key: string) => {
+    if (!cellRenderStoreMap.has(key)) {
+      cellRenderStoreMap.set(key, {})
+      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
+    } else {
+      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
+    }
+
+    return cellRenderStoreMap.get(key)!
+  }
+
   const renderCell = (
     ctx: CanvasRenderingContext2D,
     column: ColumnType,
@@ -147,12 +158,12 @@ export function useGridCellHandler(params: {
       }
     }
 
-    let renderResult: any = null
+    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
     if (cellType) {
-      renderResult = cellType.render(ctx, {
+      return cellType.render(ctx, {
         value,
         row,
         column,
@@ -186,9 +197,10 @@ export function useGridCellHandler(params: {
         disabled,
         sqlUis: sqlUis.value,
         setCursor,
+        cellRenderStore,
       })
     } else {
-      renderResult = renderSingleLineText(ctx, {
+      return renderSingleLineText(ctx, {
         x: x + padding,
         y,
         text: value?.toString() ?? '',
@@ -196,16 +208,9 @@ export function useGridCellHandler(params: {
         fillStyle: pv ? '#3366FF' : textColor,
         height,
         py: padding,
+        cellRenderStore,
       })
     }
-
-    if (renderResult) {
-      const key = `${column.id}-${pk}`
-      cellRenderStoreMap.set(key, renderResult)
-      expirationTimes.set(key, Date.now() + CLEANUP_INTERVAL)
-    }
-
-    return renderResult
   }
 
   const handleCellClick = async (ctx: {
@@ -222,7 +227,7 @@ export function useGridCellHandler(params: {
 
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
-    const cellRenderStore = cellRenderStoreMap.get(`${ctx.column.id}-${ctx.pk}`)
+    const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
 
     if (cellHandler?.handleClick) {
       return await cellHandler.handleClick({
@@ -269,7 +274,7 @@ export function useGridCellHandler(params: {
 
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
-    const cellRenderStore = cellRenderStoreMap.get(`${ctx.column.id}-${ctx.pk}`)
+    const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
 
     if (cellHandler?.handleHover) {
       return await cellHandler.handleHover({

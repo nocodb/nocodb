@@ -416,12 +416,17 @@ interface CellRendererOptions {
   sqlUis?: Record<string, any>
   skipRender?: boolean
   setCursor: SetCursorType
+  cellRenderStore: CellRenderStore
 }
 
 interface CellRenderStore {
   x?: number
   y?: number
   links?: { x: number; y: number; width: number; height: number; url: string }[]
+  ratingChanged?: {
+    value: number
+    hoverValue: number
+  }
 }
 
 type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
@@ -450,7 +455,7 @@ interface CellRenderer {
     makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
-    cellRenderStore?: CellRenderStore
+    cellRenderStore: CellRenderStore
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -487,7 +492,7 @@ interface CellRenderer {
     makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
-    cellRenderStore?: CellRenderStore
+    cellRenderStore: CellRenderStore
     setCursor: SetCursorType
   }) => Promise<void>
   [key: string]: any

@@ -69,7 +69,21 @@ const inactiveColor = '#d9d9d9'
 
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, readonly, tag = {}, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      column,
+      spriteLoader,
+      padding,
+      mousePosition,
+      readonly,
+      tag = {},
+      setCursor,
+      cellRenderStore,
+    } = props
 
     const {
       renderAsTag,
@@ -137,7 +151,17 @@ export const RatingCellRenderer: CellRenderer = {
       const row = Math.floor(i / iconsPerRow)
       const col = i % iconsPerRow
       const isActive = i < rating
-      const isHovered = hoveredIconIndex >= 0 && i <= hoveredIconIndex
+      let isHovered = hoveredIconIndex >= 0 && i <= hoveredIconIndex
+
+      if (cellRenderStore && cellRenderStore.ratingChanged) {
+        const { value, hoverValue } = cellRenderStore.ratingChanged
+
+        if (hoveredIconIndex === hoverValue - 1) {
+          isHovered = i + 1 <= value
+        } else {
+          cellRenderStore.ratingChanged = undefined
+        }
+      }
 
       let iconColor
 
@@ -186,7 +210,7 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value }) {
+  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore }) {
     if (!row || !column) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -204,11 +228,23 @@ export const RatingCellRenderer: CellRenderer = {
     if (iconIdx + 1 === value) {
       row.row[column.title] = 0
       await updateOrSaveRow?.(row, column.title)
+
+      cellRenderStore.ratingChanged = {
+        value: 0,
+        hoverValue: iconIdx + 1,
+      }
+
       return true
     }
 
     row.row[column.title] = iconIdx + 1
     await updateOrSaveRow?.(row, column.title)
+
+    cellRenderStore.ratingChanged = {
+      value: iconIdx + 1,
+      hoverValue: iconIdx + 1,
+    }
+
     return true
   },
 

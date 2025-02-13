@@ -323,6 +323,9 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     isOpen.value = true
+    forcedNextTick(() => {
+      isOpen.value = true
+    })
   }
 })
 </script>

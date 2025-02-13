@@ -77,8 +77,12 @@ export const BelongsToCellRenderer: CellRenderer = {
           color: '#AFB3C2',
         })
 
-
-        if (isBoxHovered({ x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 }, mousePosition)) {
+        if (
+          isBoxHovered(
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 },
+            mousePosition,
+          )
+        ) {
           setCursor('pointer')
         }
       }

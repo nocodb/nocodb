@@ -3,7 +3,7 @@ import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } f
 
 export const JsonCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { selected, value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader } = props
+    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader } = props
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 

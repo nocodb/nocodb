@@ -218,7 +218,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, setCursor }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition) return

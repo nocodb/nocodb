@@ -1,5 +1,5 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, props) => {

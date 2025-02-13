@@ -5,7 +5,7 @@ import type { Ref } from 'vue'
 
 import CountIcon from '~icons/mdi/counter'
 
-const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
+export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
     case UITypes.Links:

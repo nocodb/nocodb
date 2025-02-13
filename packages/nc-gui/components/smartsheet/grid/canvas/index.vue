@@ -9,6 +9,7 @@ import {
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
+import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
@@ -59,6 +60,8 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+
+provide(IsCanvasInjectionInj, true)
 
 const {
   loadData,

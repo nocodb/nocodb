@@ -32,23 +32,4 @@ export const QRCodeCellRenderer: CellRenderer = {
       imageLoader.renderPlaceholder(ctx, x + padding, y + padding, size, 'qr_code')
     }
   },
-
-  async handleClick({ mousePosition, column, row, getCellPosition }) {
-    if (!row || !column) return
-    const position = getCellPosition(column, row?.rowMeta?.rowIndex)
-    if (!position) return
-
-    const padding = 10
-    const size = Math.min(position.width - padding * 2, position.height - padding)
-    const contentX = position.x + (position.width - size) / 2
-    const contentY = position.y + (position.height - size) / 2
-
-    const { x: mouseX, y: mouseY } = mousePosition
-
-    if (mouseX >= contentX && mouseX <= contentX + size && mouseY >= contentY && mouseY <= contentY + size) {
-      setTimeout(() => {
-        document.querySelector<HTMLElement>('.nc-canvas-table-editable-cell-wrapper .nc-qrcode-container > img')?.click()
-      }, 100)
-    }
-  },
 }

@@ -3,9 +3,10 @@ import { truncateText } from '../utils/canvas'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, padding } = props
+    const { value, x, y, width, height, column } = props
 
     if (!value) return
+    const padding = 4
 
     const meta = parseProp(column?.meta)
     const format = meta.barcodeFormat || 'CODE128'

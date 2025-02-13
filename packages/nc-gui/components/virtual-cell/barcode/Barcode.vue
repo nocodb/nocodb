@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
 import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { IsCanvasInjectionInj } from '../../../context'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 
@@ -58,6 +61,11 @@ const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
   })
+
+onMounted(() => {
+  if (!isCanvasInjected) return
+  modalVisible.value = true
+})
 </script>
 
 <template>

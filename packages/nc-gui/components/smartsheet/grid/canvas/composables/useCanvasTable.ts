@@ -305,6 +305,57 @@ export function useCanvasTable({
     return end - 1
   }
 
+  function getCellPosition(targetColumn: GridCanvasColumn, rowIndex: number) {
+    const yOffset = rowIndex * rowHeight.value - scrollTop.value
+
+    if (targetColumn.fixed) {
+      let xOffset = 0
+      for (let i = 0; i < columns.value.length; i++) {
+        const column = columns.value[i]
+        if (column.id === targetColumn.id) {
+          break
+        }
+        if (column.fixed) {
+          xOffset += parseInt(column.width, 10)
+        }
+      }
+
+      return {
+        x: xOffset,
+        y: yOffset,
+        width: parseInt(targetColumn.width, 10),
+        height: rowHeight.value,
+      }
+    }
+
+    let xOffset = 0
+
+    // Add width of all fixed columns first
+    columns.value.forEach((column) => {
+      if (column.fixed) {
+        xOffset += parseInt(column.width, 10)
+      }
+    })
+
+    const initialXOffset = xOffset
+
+    for (const column of columns.value) {
+      if (column.id === targetColumn.id) {
+        break
+      }
+      if (!column.fixed) {
+        xOffset += parseInt(column.width, 10)
+      }
+    }
+
+    return {
+      x: initialXOffset + (xOffset - initialXOffset) - scrollLeft.value,
+      y: yOffset,
+      width: parseInt(targetColumn.width, 10),
+      height: rowHeight.value,
+    }
+  }
+
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
     if (selection.value.isEmpty()) return null
 
@@ -789,6 +840,7 @@ export function useCanvasTable({
     view,
     isAddingEmptyRowAllowed,
     isAddingColumnAllowed,
+    getCellPosition,
 
     // Context Actions
     clearCell,

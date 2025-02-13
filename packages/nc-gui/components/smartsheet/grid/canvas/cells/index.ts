@@ -27,8 +27,9 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
-import { LtarCellRenderer } from './LTAR'
-export function useGridCellHandler() {
+export function useGridCellHandler(params?: {
+  getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+}) {
   const { t } = useI18n()
   const { metas } = useMetas()
 
@@ -135,23 +136,24 @@ export function useGridCellHandler() {
     }
   }
 
-  const handleCellClick = async (params: {
+  const handleCellClick = async (ctx: {
     event: MouseEvent
     row: Row
     column: CanvasGridColumn
     value: any
     mousePosition: { x: number; y: number }
   }) => {
-    console.log(params)
-    const cellHandler = cellTypesRegistry.get(params.column.columnObj.uidt)
+    if (!params?.getCellPosition) return
+    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     if (cellHandler?.handleClick) {
       await cellHandler.handleClick({
-        ...params,
-        isDoubleClick: params.event.detail === 2,
+        ...ctx,
+        isDoubleClick: ctx.event.detail === 2,
+        getCellPosition: params?.getCellPosition,
       })
     } else {
-      console.log('No handler found for cell type', params.column.uidt)
+      console.log('No handler found for cell type', ctx.column.uidt)
     }
   }
 

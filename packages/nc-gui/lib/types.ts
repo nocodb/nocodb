@@ -410,6 +410,7 @@ interface CellRenderer {
     value,
     column,
     row,
+    getCellPosition,
   }: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -417,6 +418,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     isDoubleClick: boolean
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number , x: number, y: number}
   }) => Promise<void>
   [key: string]: any
 }

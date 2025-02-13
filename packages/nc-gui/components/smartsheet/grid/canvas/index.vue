@@ -117,7 +117,6 @@ const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
-const { handleCellClick } = useGridCellHandler()
 
 const {
   rowSlice,
@@ -166,7 +165,7 @@ const {
   meta,
   view,
   isAddingColumnAllowed,
-
+  getCellPosition,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -202,6 +201,8 @@ const {
   onActiveCellChanged,
   addNewColumn: addEmptyColumn,
 })
+
+const { handleCellClick } = useGridCellHandler({ getCellPosition })
 
 // Computed
 const totalHeight = computed(() => {

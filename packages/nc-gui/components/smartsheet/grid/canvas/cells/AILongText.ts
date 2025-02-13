@@ -1,3 +1,4 @@
+import { getI18n } from '../../../../../plugins/a.i18n'
 import { isBoxHovered, renderIconButton, renderMultiLineText, renderSpinner, truncateText } from '../utils/canvas'
 
 const getButtonDimensions = ({
@@ -243,8 +244,24 @@ export const AILongTextCellRenderer: CellRenderer = {
         return false
       }
     }
-
-    // TODO: Check If the Click is one of the icons. If yes, then return true
     return false
+  },
+  async handleHover({ row, column, mousePosition, getCellPosition }) {
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    if (!row || !column?.id || !mousePosition || column?.disabled?.isInvalid) return
+
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+      showTooltip({
+        position: mousePosition,
+        text: getI18n().global.t('title.expand'),
+      })
+    } else if (isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+      showTooltip({
+        position: mousePosition,
+        text: 'Re-generate',
+      })
+    }
   },
 }

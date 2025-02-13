@@ -41,7 +41,14 @@ export const LongTextCellRenderer: CellRenderer = {
   },
   handleClick: async (props) => {
     if (isAIPromptCol(props.column?.columnObj)) {
-      return AILongTextCellRenderer.handleClick(props)
+      return AILongTextCellRenderer.handleClick?.(props)
+    } else {
+      return false
+    }
+  },
+  handleHover: async (props) => {
+    if (isAIPromptCol(props.column?.columnObj)) {
+      return AILongTextCellRenderer.handleHover?.(props)
     } else {
       return false
     }

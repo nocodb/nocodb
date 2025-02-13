@@ -67,6 +67,10 @@ export function useCanvasRender({
 }) {
   const canvasRef = ref()
   function renderHeader(ctx: CanvasRenderingContext2D) {
+    // ctx.textAlign is previously set during the previous render calls and that carries over here
+    // causing the misalignment. Resetting textAlign fixes it.
+    ctx.textAlign = 'left'
+
     // Header background
     ctx.fillStyle = '#f4f4f5'
     ctx.fillRect(0, 0, width.value, 32)

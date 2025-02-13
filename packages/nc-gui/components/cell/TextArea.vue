@@ -434,7 +434,7 @@ onMounted(() => {
         @keydown.enter="onExpand"
       >
         <div
-          class="nc-cell-field nc-rich-text-content"
+          class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
           :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : 'py-2'"
           v-html="richTextContent"
         ></div>

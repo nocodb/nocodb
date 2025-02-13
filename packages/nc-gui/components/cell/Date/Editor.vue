@@ -314,6 +314,16 @@ const currentDate = ($event) => {
   emit('currentDate', $event)
   open.value = false
 }
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+onMounted(() => {
+  forcedNextTick(() => {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+      open.value = true
+    }
+  })
+})
 </script>
 
 <template>

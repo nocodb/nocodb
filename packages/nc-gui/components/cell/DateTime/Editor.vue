@@ -26,6 +26,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -443,6 +445,15 @@ const currentDate = ($event) => {
   open.value = false
   emit('currentDate', $event)
 }
+
+onMounted(() => {
+  forcedNextTick(() => {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+      isDatePicker.value = true
+      open.value = true
+    }
+  })
+})
 </script>
 
 <template>

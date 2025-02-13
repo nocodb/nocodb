@@ -1157,6 +1157,9 @@ onBeforeUnmount(() => {
   :deep(.nc-cell-datetime) {
     @apply !py-1 !px-2;
   }
+  :deep(.nc-cell-date) {
+    @apply !h-auto !py-1;
+  }
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

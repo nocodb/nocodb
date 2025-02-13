@@ -414,6 +414,7 @@ interface CellRendererOptions {
     y: number
   }
   sqlUis?: Record<string, any>
+  setCursor: SetCursorType
 }
 
 interface CellRenderStore {
@@ -421,6 +422,8 @@ interface CellRenderStore {
   y?: number
   links?: { x: number; y: number; width: number; height: number; url: string }[]
 }
+
+type SetCursorType = (cursor: 'auto' | 'pointer' | 'col-resize') => void
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
@@ -482,7 +485,7 @@ interface CellRenderer {
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore?: CellRenderStore
-    setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
+    setCursor: SetCursorType
   }) => Promise<void>
   [key: string]: any
 }
@@ -592,4 +595,5 @@ export type {
   FillHandlerPosition,
   ParsePlainCellValueProps,
   CanvasEditEnabledType,
+  SetCursorType,
 }

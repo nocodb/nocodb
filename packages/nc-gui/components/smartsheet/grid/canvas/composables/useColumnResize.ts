@@ -5,7 +5,7 @@ export function useColumnResize(
   columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
-  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void,
+  setCursor: SetCursorType,
   onResize?: (columnId: string, width: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {

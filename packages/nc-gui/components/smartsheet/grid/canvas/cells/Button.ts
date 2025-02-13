@@ -289,6 +289,8 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered, !!disabledState)
 
+    if (isHovered) props.setCursor('pointer')
+
     ctx.beginPath()
     ctx.roundRect(startX, startY, buttonWidth, buttonHeight, 6)
     ctx.fillStyle = colors.background

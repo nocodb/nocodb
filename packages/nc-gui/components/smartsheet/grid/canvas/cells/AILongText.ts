@@ -68,6 +68,7 @@ const renderAIButton = (
     spriteLoader,
     loadingStartTime,
     isLoading,
+    setCursor,
   }: {
     x: number
     y: number
@@ -77,6 +78,7 @@ const renderAIButton = (
     mousePosition?: { x: number; y: number }
     spriteLoader?: any
     loadingStartTime?: number
+    setCursor: SetCursorType
   },
 ) => {
   const dims = getButtonDimensions({
@@ -96,6 +98,8 @@ const renderAIButton = (
     mousePosition.x <= startX + dims.buttonWidth &&
     mousePosition.y >= startY &&
     mousePosition.y <= startY + dims.buttonHeight
+
+  if (isHovered) setCursor('pointer')
 
   const colors = {
     background: disabled ? '#F4F4F5' : isHovered ? '#E5D4F5' : '#F3ECFA',
@@ -165,6 +169,7 @@ export const AILongTextCellRenderer: CellRenderer = {
         spriteLoader,
         isLoading,
         loadingStartTime: startTime!,
+        setCursor: props.setCursor,
       })
 
       return {

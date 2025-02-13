@@ -2,9 +2,10 @@ import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType,
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, value, renderCell, metas } = props
+    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10 } = props
     let x = _x
     let y = _y
+    let width = _width
     // If it is empty text then no need to render
     if (!isValidValue(value) || !metas) return
 
@@ -48,6 +49,8 @@ export const LookupCellRenderer: CellRenderer = {
       height: isAttachment(lookupColumn) ? props.height : rowHeightInPx['1']!,
       tag: {
         renderAsTag: true,
+        tagBgColor: themeV3Colors.base.white,
+        tagHeight: 20,
       },
     }
 
@@ -70,11 +73,34 @@ export const LookupCellRenderer: CellRenderer = {
       if (isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object') {
         renderCell(ctx, lookupColumn, renderProps)
       } else {
-        arrValue.forEach((v) => {
-          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y })
-          x = point?.x ? point?.x + 4 : _x
-          y = point?.y ? point?.y + 4 : _y + 24
-        })
+        const maxLines = rowHeightTruncateLines(height, true)
+        let line = 1
+
+        for (const v of arrValue) {
+          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
+
+          if (line >= maxLines) {
+            break
+          }
+
+          if (point?.x) {
+            width = _width - width
+            if (point?.x >= _x + _width + padding * 2 || width < 10) {
+              x = _x
+              width = _width
+              y = point?.y ? point?.y : y + 24
+            } else {
+              x = point?.x + 4
+            }
+          } else {
+            x = _x
+            y = y + 24
+
+            width = _width
+          }
+
+          line += 1
+        }
       }
     }
   },

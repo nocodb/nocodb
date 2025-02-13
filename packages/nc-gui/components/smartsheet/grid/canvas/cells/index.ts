@@ -95,7 +95,7 @@ export function useCellRenderer() {
     const cellType = cellTypesRegistry.get(column.uidt)
 
     if (cellType) {
-      cellType.render(ctx, {
+      return cellType.render(ctx, {
         value,
         row,
         column,
@@ -121,7 +121,7 @@ export function useCellRenderer() {
         textColor,
       })
     } else {
-      renderSingleLineText(ctx, {
+      return renderSingleLineText(ctx, {
         x: x + padding,
         y: y,
         text: value?.toString() ?? '',

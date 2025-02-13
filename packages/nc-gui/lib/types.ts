@@ -390,6 +390,8 @@ interface CellRendererOptions {
     tagRadius?: number
     tagBgColor?: string
     tagSpacing?: number
+    tagBorderColor?: string
+    tagBorderWidth?: number
   }
   fontSize?: number
   textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'

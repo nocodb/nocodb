@@ -96,6 +96,7 @@ export function useCanvasRender({
     ctx.imageSmoothingEnabled = false
 
     let xOffset = initialOffset + 1
+
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
       const rightPadding = 8
@@ -193,8 +194,6 @@ export function useCanvasRender({
     // Fixed columns
     const fixedCols = columns.value.filter((col) => col.fixed)
     if (fixedCols.length) {
-      xOffset = 0
-
       xOffset = 0
 
       fixedCols.forEach((column) => {

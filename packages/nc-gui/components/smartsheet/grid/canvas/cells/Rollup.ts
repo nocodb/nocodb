@@ -2,12 +2,20 @@ import { getRenderAsTextFunForUiType, UITypes, type ColumnType, type RollupType 
 
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, relatedTableMeta, renderCell } = props
+    const { column, value, metas, renderCell } = props
 
     // If it is empty text then no need to render
     if (!isValidValue(value)) return
 
     const colOptions = column.colOptions as RollupType
+
+    const relatedColObj = metas?.[column.fk_model_id!]?.columns?.find(
+      (c) => c.id === colOptions?.fk_relation_column_id,
+    ) as ColumnType
+
+    if (!relatedColObj) return
+
+    const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
 
     const childColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id)
 

@@ -43,7 +43,7 @@ export function useGridCellHandler(params: {
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
-  meta?: TableType
+  meta?: Ref<TableType>
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -117,8 +117,8 @@ export function useGridCellHandler(params: {
       disabled,
       mousePosition,
       pk,
-      meta = params.meta,
-    }: Omit<CellRendererOptions, 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
+      meta = params.meta?.value,
+    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && column.uidt !== UITypes.Button) {
@@ -153,7 +153,7 @@ export function useGridCellHandler(params: {
         relatedTableMeta,
         renderCell,
         meta,
-        metas,
+        metas: metas.value,
         tag,
         fontSize,
         textAlign,

@@ -1323,8 +1323,8 @@ const editEnabledCellPosition = computed(() => {
                 ref="columnEditOrAddProviderRef"
                 :column="editColumn"
                 :edit-description="isEditColumnDescription"
-                @submit="closeAddColumnDropdownMenu(true)"
-                @cancel="closeAddColumnDropdownMenu()"
+                @submit="closeAddColumnDropdownMenu(!editColumn?.id)"
+                @cancel="closeAddColumnDropdownMenu(!editColumn?.id)"
                 @click.stop
                 @keydown.stop
               />

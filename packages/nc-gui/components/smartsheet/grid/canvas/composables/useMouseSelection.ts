@@ -16,7 +16,7 @@ export function useMouseSelection({
   activeCell: Ref<{ row: number; column: number }>
   canvasRef: Ref<HTMLCanvasElement>
   scrollLeft: Ref<number>
-  columns: ComputedRef<any[]>
+  columns: ComputedRef<CanvasGridColumn[]>
   rowHeight: Ref<number>
   triggerReRender: () => void
   scrollToCell: (row: number, column: number) => void

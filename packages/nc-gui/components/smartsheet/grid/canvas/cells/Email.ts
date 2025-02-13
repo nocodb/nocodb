@@ -50,20 +50,29 @@ export const EmailCellRenderer: CellRenderer = {
   },
   async handleClick({ value, row, column, getCellPosition, mousePosition }) {
     if (!row || !column) return false
-    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
+
     const text = value?.toString() ?? ''
+
     const isValid = text && validateEmail(text)
     if (!isValid) return false
+
     const pv = column.pv
     const ctx = defaultOffscreen2DContext
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
 
-    const maxWidth = width - padding * 2
-    const truncatedText = truncateText(ctx, text, maxWidth)
-    const textMetrics = ctx.measureText(truncatedText)
+    const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+      x: x + padding,
+      y,
+      text,
+      maxWidth: width - padding * 2,
+      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      height,
+      render: false,
+    })
 
-    if (isBoxHovered({ x, y, width: textMetrics.width, height: 18 }, mousePosition)) {
+    if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
       window.open(`mailto:${text}`, '_blank')
       return true
     }

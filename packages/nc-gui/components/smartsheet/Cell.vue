@@ -15,7 +15,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf', 'saveWithState'])
 
 const column = toRef(props, 'column')
 
@@ -51,7 +51,7 @@ const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
-const { currentRow } = useSmartsheetRowStoreOrThrow()
+const { currentRow, state } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
@@ -83,6 +83,12 @@ const syncValue = useDebounceFn(
   500,
   { maxWait: 2000 },
 )
+
+onBeforeUnmount(() => {
+  if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
+  currentRow.value.rowMeta.changed = false
+  emit('saveWithState', [currentRow.value, column.value.title, state])
+})
 
 let saveTimer: number
 

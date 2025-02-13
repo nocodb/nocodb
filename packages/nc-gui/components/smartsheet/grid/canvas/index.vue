@@ -1319,6 +1319,7 @@ onBeforeUnmount(() => {
                   active
                   edit-enabled
                   @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                  @save-with-state="updateOrSaveRow?.(...$event)"
                   @navigate="onNavigate"
                 />
               </template>

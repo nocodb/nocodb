@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
   if (
     !isForm.value &&
     parseProp(column.value.meta)?.validate &&
-    !editEnabled.value &&
+    (!editEnabled.value || isCanvasInjected) &&
     localState.value &&
     !isValidURL(trim(localState.value))
   ) {

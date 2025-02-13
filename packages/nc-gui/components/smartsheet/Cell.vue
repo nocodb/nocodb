@@ -216,10 +216,6 @@ const showReadonlyField = computed(() => {
       return readOnly.value
     }
 
-    case 'geoData': {
-      return readOnly.value || !active.value
-    }
-
     case 'singleSelect':
     case 'multiSelect':
     case 'user': {
@@ -315,10 +311,7 @@ const cellClassName = computed(() => {
       <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
-      <template v-else-if="cellType === 'geoData'">
-        <LazyCellGeoDataReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
-        <LazyCellGeoDataEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
-      </template>
+      <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
 
       <template v-else-if="cellType === 'checkbox'">
         <LazyCellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />

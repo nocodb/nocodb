@@ -205,7 +205,7 @@ export const UserFieldCellRenderer: CellRenderer = {
   },
 
   async handleHover({ column, getCellPosition, row, mousePosition, value }) {
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
 
     const { x: _x, y: _y, width: _width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -284,13 +284,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
-    showTooltip({
-      position: {
-        x: hoveredBox.x + hoveredBox.width / 2,
-        y: hoveredBox.y + 20,
-      },
-      text: hoveredBox.text,
-    })
+    tryShowTooltip({ text: hoveredBox.text, rect: hoveredBox, mousePosition })
   },
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
     if (column.readonly) return false

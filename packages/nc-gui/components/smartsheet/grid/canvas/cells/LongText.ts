@@ -88,21 +88,13 @@ export const LongTextCellRenderer: CellRenderer = {
     if (isAIPromptCol(column?.columnObj)) {
       AILongTextCellRenderer.handleHover?.(props)
     } else {
-      const { showTooltip, hideTooltip } = useTooltipStore()
+      const { tryShowTooltip, hideTooltip } = useTooltipStore()
       hideTooltip()
       if (!row || !column?.id || !mousePosition) return
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-      if (isBoxHovered(box, mousePosition)) {
-        showTooltip({
-          position: {
-            x: box.x + 10,
-            y: box.y + 20,
-          },
-          text: getI18n().global.t('title.expand'),
-        })
-      }
+      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('title.expand') })
     }
   },
 }

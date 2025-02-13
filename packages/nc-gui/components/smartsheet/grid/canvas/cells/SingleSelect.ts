@@ -52,7 +52,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
   },
   async handleHover({ getCellPosition, column, row, value, mousePosition }) {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     const padding = 10
     const maxWidth = width - padding * 2 - tagPadding * 2
@@ -65,15 +65,12 @@ export const SingleSelectCellRenderer: CellRenderer = {
     const truncatedText = truncateText(ctx, text, maxWidth, true)
     if (text === truncatedText.text) return
     const box = { x: x + padding, y: y + topPadding, width: truncatedText.width + tagPadding * 2, height: tagHeight }
-    if (isBoxHovered(box, mousePosition)) {
-      showTooltip({
-        position: {
-          x: box.x + box.width / 2,
-          y: box.y + 20,
-        },
-        text,
-      })
-    }
+
+    tryShowTooltip({
+      rect: box,
+      mousePosition,
+      text,
+    })
   },
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)

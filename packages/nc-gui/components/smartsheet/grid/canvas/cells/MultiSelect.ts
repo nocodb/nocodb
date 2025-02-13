@@ -117,7 +117,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
   },
 
   async handleHover({ row, column, mousePosition, getCellPosition, value }) {
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition) return
 
@@ -182,11 +182,9 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
-    showTooltip({
-      position: {
-        x: hoveredBox.x + hoveredBox.width / 2,
-        y: hoveredBox.y + 20,
-      },
+    tryShowTooltip({
+      rect: hoveredBox,
+      mousePosition,
       text: hoveredBox.text,
     })
   },

@@ -20,7 +20,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     if (!btColumn) return
 
     if (isValidValue(value)) {
-      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 14 : 0)
+      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly ? 14 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'

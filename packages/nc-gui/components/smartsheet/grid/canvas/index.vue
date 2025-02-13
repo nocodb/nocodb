@@ -1137,6 +1137,7 @@ onBeforeUnmount(() => {
               :selected-rows="selectedRows"
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
+              @bulk-update-dlg="emits('bulkUpdateDlg')"
             />
           </template>
         </NcDropdown>

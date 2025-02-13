@@ -530,7 +530,7 @@ export function useCanvasRender({
   ) => {
     const isHover = hoverRow.value === row.rowMeta.rowIndex
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
-    if (row.rowMeta.selected) ctx.fillStyle = '#EBF0FF'
+    if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4

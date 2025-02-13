@@ -15,7 +15,7 @@ const { tooltipText } = storeToRefs(store)
 
 <style lang="scss">
 .tooltip {
-  @apply pointer-events-none px-2 py-1 max-w-[250px] rounded-lg text-xs whitespace-pre-line;
+  @apply pointer-events-none px-2 py-1 max-w-[250px] rounded-lg text-xs whitespace-pre-line break-words;
   z-index: 1000;
 }
 

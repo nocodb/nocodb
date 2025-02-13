@@ -42,9 +42,15 @@ export function useGridCellHandler(params: {
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
+  meta?: TableType
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
+
+  const baseStore = useBase()
+  const { isMssql, isMysql, isXcdbBase } = baseStore
+  const { sqlUis } = storeToRefs(baseStore)
+
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
 
@@ -100,7 +106,6 @@ export function useGridCellHandler(params: {
       readonly = false,
       spriteLoader,
       imageLoader,
-      isMysql,
       padding = 10,
       relatedColObj,
       relatedTableMeta,
@@ -111,7 +116,8 @@ export function useGridCellHandler(params: {
       disabled,
       mousePosition,
       pk,
-    }: CellRendererOptions,
+      meta = params.meta,
+    }: Omit<CellRendererOptions, 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && column.uidt !== UITypes.Button) {
@@ -137,12 +143,15 @@ export function useGridCellHandler(params: {
         spriteLoader,
         imageLoader,
         actionManager,
+        isMssql,
         isMysql,
+        isXcdbBase,
         t,
         padding,
         relatedColObj,
         relatedTableMeta,
         renderCell,
+        meta,
         metas,
         tag,
         fontSize,
@@ -151,6 +160,7 @@ export function useGridCellHandler(params: {
         textColor,
         pk,
         disabled,
+        sqlUis,
       })
     } else {
       return renderSingleLineText(ctx, {

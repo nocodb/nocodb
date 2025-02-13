@@ -1,6 +1,7 @@
 import { LRUCache } from 'lru-cache'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
+import type { ColumnType } from 'nocodb-sdk'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
@@ -10,12 +11,17 @@ const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> =
   max: 1000,
 })
 
+const abstractTypeCache: LRUCache<string, string> = new LRUCache({
+  max: 1000,
+})
+
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */
 export const clearTextCache = () => {
   singleLineTextCache.clear()
   multiLineTextCache.clear()
+  abstractTypeCache.clear()
 }
 
 interface TruncateTextWithInfoType {
@@ -605,4 +611,23 @@ export function renderIconButton(
     size: iconSize,
     color,
   })
+}
+
+export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>) => {
+  if (!column || !sqlUis) return
+
+  const cacheKey = `${column.source_id}-${column.dt}-${column.dtxp}`
+  const cachedValue = abstractTypeCache.get(cacheKey)
+
+  if (cachedValue) {
+    return cachedValue
+  }
+
+  const sqlUi = column.source_id && sqlUis[column.source_id] ? sqlUis[column.source_id] : Object.values(sqlUis)[0]
+
+  const abstractType = sqlUi.getAbstractType(column)
+
+  abstractTypeCache.set(cacheKey, abstractType)
+
+  return abstractType
 }

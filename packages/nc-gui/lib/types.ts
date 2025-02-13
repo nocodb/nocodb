@@ -387,6 +387,9 @@ interface CellRendererOptions {
     tagPaddingX?: number
     tagPaddingY?: number
     tagHeight?: number
+    tagRadius?: number
+    tagBgColor?: string
+    tagSpacing?: number
   }
   fontSize?: number
   textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
@@ -394,7 +397,7 @@ interface CellRendererOptions {
 }
 
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void
+  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x: number; y: number }
   [key: string]: any
 }
 

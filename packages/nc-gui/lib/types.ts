@@ -404,7 +404,6 @@ interface CellRendererOptions {
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
-  [key: string]: any
   handleClick: ({
     event,
     mousePosition,
@@ -419,6 +418,7 @@ interface CellRenderer {
     row: Row
     isDoubleClick: boolean
   }) => Promise<void>
+  [key: string]: any
 }
 
 interface FillHandlerPosition {

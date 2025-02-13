@@ -205,7 +205,7 @@ const {
   addNewColumn: addEmptyColumn,
 })
 
-const { handleCellClick } = useGridCellHandler({ getCellPosition })
+const { handleCellClick } = useGridCellHandler({ getCellPosition, updateOrSaveRow })
 
 // Computed
 const totalHeight = computed(() => {

@@ -5,6 +5,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
+import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -306,7 +307,7 @@ export function useCanvasTable({
   }
 
   function getCellPosition(targetColumn: GridCanvasColumn, rowIndex: number) {
-    const yOffset = rowIndex * rowHeight.value - scrollTop.value
+    const yOffset = rowIndex * rowHeight.value - scrollTop.value + COLUMN_HEADER_HEIGHT_IN_PX + CELL_BOTTOM_BORDER_IN_PX
 
     if (targetColumn.fixed) {
       let xOffset = 0
@@ -328,7 +329,7 @@ export function useCanvasTable({
       }
     }
 
-    let xOffset = 0
+    let xOffset = CELL_BOTTOM_BORDER_IN_PX
 
     // Add width of all fixed columns first
     columns.value.forEach((column) => {

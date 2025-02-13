@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import { renderSingleLineText } from '../utils/canvas'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
@@ -27,8 +27,16 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
+
 export function useGridCellHandler(params?: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  updateOrSaveRow?: (
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    beforeRow?: string,
+  ) => Promise<any>
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -151,6 +159,7 @@ export function useGridCellHandler(params?: {
         ...ctx,
         isDoubleClick: ctx.event.detail === 2,
         getCellPosition: params?.getCellPosition,
+        updateOrSaveRow: params?.updateOrSaveRow,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.uidt)

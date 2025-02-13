@@ -11,6 +11,7 @@ import {
   type RolesObj,
   type TableType,
   type UITypes,
+  type ViewType,
   type ViewTypes,
 } from 'nocodb-sdk'
 import type { Composer, I18n } from 'vue-i18n'
@@ -411,6 +412,7 @@ interface CellRenderer {
     column,
     row,
     getCellPosition,
+    updateOrSaveRow,
   }: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -418,7 +420,14 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     isDoubleClick: boolean
-    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number , x: number, y: number}
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow?: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
   }) => Promise<void>
   [key: string]: any
 }

@@ -1,61 +1,81 @@
-interface Position {
+import type { ColumnType } from 'nocodb-sdk'
+
+function getIconsData({
+  width,
+  height,
+  padding = 10,
+  x,
+  y,
+  column,
+}: {
+  width: number
+  height: number
+  padding?: number
   x: number
   y: number
-}
-
-interface RatingPayload {
-  iconSize: number
-  iconsData: Position[]
-}
-
-class RatingPayloadRegistry {
-  static #map = new Map<string, RatingPayload>()
-  static #getKey({ rowId, columnId }: { rowId: string; columnId: string }) {
-    return `${rowId}-${columnId}`
+  column?: ColumnType
+}) {
+  const ratingMeta = {
+    color: '#fcb401',
+    max: 5,
+    ...parseProp(column?.meta),
+    icon: extractRatingIcon(parseProp(column?.meta)),
   }
 
-  static set({ rowId, columnId }: { rowId: string; columnId: string }, payload: RatingPayload) {
-    const key = this.#getKey({ rowId, columnId })
-    this.#map.set(key, payload)
+  const iconSize = 14
+  const iconSpacing = 1.5
+  const rowSpacing = 2
+  const availableWidth = width - padding * 2
+
+  const startX = x + padding
+  const startY = y + padding
+
+  const iconWidthWithSpacing = iconSize + iconSpacing
+  const iconsPerRow = Math.floor(availableWidth / iconWidthWithSpacing)
+
+  if (iconsPerRow < 1) return
+
+  const maxRows = Math.floor((height - padding) / (iconSize + rowSpacing))
+  const totalPossibleIcons = iconsPerRow * maxRows
+
+  const iconsToShow = Math.min(totalPossibleIcons, ratingMeta.max)
+
+  const iconPositions: Array<{ iconX: number; iconY: number }> = []
+  for (let i = 0; i < iconsToShow; i++) {
+    const row = Math.floor(i / iconsPerRow)
+    const col = i % iconsPerRow
+
+    const iconX = startX + col * iconWidthWithSpacing
+    const iconY = startY + row * (iconSize + rowSpacing)
+    iconPositions.push({ iconX, iconY })
   }
 
-  static get({ rowId, columnId }: { rowId: string; columnId: string }) {
-    const key = this.#getKey({ rowId, columnId })
-    return this.#map.get(key)
+  return {
+    iconPositions,
+    iconSize,
+    ratingMeta,
+    startX,
+    startY,
+    rowSpacing,
+    iconWidthWithSpacing,
+    maxRows,
+    iconsPerRow,
+    iconsToShow,
   }
 }
 
 export const RatingCellRenderer: CellRenderer = {
-  render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, row } = props
+  render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition } = props
 
-    const ratingMeta = {
-      color: '#fcb401',
-      max: 5,
-      ...parseProp(column?.meta),
-      icon: extractRatingIcon(parseProp(column?.meta)),
-    }
+    const iconsData = getIconsData({ height, width, x, y, column, padding })!
+    if (!iconsData) return
+    const { ratingMeta, startX, startY, iconSize, rowSpacing, iconWidthWithSpacing, maxRows, iconsPerRow, iconsToShow } =
+      iconsData
 
     const rating = Math.min(Math.max(0, Number(value) || 0), ratingMeta.max)
 
-    const iconSize = 14
-    const iconSpacing = 1.5
-    const rowSpacing = 2
-    const availableWidth = width - padding * 2
-
-    const iconWidthWithSpacing = iconSize + iconSpacing
-    const iconsPerRow = Math.floor(availableWidth / iconWidthWithSpacing)
-
-    if (iconsPerRow < 1) return
-
-    const maxRows = Math.floor((height - padding) / (iconSize + rowSpacing))
-    const totalPossibleIcons = iconsPerRow * maxRows
-
-    const iconsToShow = Math.min(totalPossibleIcons, ratingMeta.max)
     const needsEllipsis = iconsToShow < ratingMeta.max
-
-    const startX = x + padding
-    const startY = y + padding
 
     let hoveredIconIndex = -1
     if (mousePosition) {
@@ -83,8 +103,6 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
 
-    const iconsData: Position[] = []
-
     for (let i = 0; i < iconsToShow; i++) {
       const row = Math.floor(i / iconsPerRow)
       const col = i % iconsPerRow
@@ -101,7 +119,6 @@ export const RatingCellRenderer: CellRenderer = {
       if (row < maxRows) {
         const x = startX + col * iconWidthWithSpacing
         const y = startY + row * (iconSize + rowSpacing)
-        iconsData.push({ x, y })
 
         spriteLoader.renderIcon(ctx, {
           icon: isActive || isHovered ? ratingMeta.icon.full : ratingMeta.icon.empty,
@@ -112,14 +129,6 @@ export const RatingCellRenderer: CellRenderer = {
         })
       }
     }
-
-    RatingPayloadRegistry.set(
-      { rowId: row.Id, columnId: column.id! },
-      {
-        iconsData,
-        iconSize,
-      },
-    )
 
     if (needsEllipsis && maxRows > 0) {
       const lastRow = Math.min(Math.floor((iconsToShow - 1) / iconsPerRow), maxRows - 1)
@@ -135,17 +144,21 @@ export const RatingCellRenderer: CellRenderer = {
       )
     }
   },
-  async handleClick({ mousePosition, column, row }) {
+  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow }) {
     if (!row || !column) return
-    const data = RatingPayloadRegistry.get({ rowId: row.row.Id, columnId: column.id! })
-    if (!data) return
-    const { iconSize, iconsData } = data
+
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })
+
+    if (!iconsData) return
+    const { iconSize, iconPositions } = iconsData
     const { x: mouseX, y: mouseY } = mousePosition
 
-    const iconIdx = iconsData.findIndex(({ x, y }) => {
-      return mouseX >= x && mouseX <= x + iconSize && mouseY >= y && mouseY <= y + iconSize
+    const iconIdx = iconPositions.findIndex(({ iconX, iconY }) => {
+      return mouseX >= iconX && mouseX <= iconX + iconSize && mouseY >= iconY && mouseY <= iconY + iconSize
     })
     if (iconIdx === -1) return
-    console.log(iconIdx + 1) // TODO: Save
+    row.row[column.title] = iconIdx + 1
+    updateOrSaveRow?.(row, column.title)
   },
 }

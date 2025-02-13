@@ -1248,7 +1248,6 @@ const editEnabledCellPosition = computed(() => {
     left: `${left}px`,
   }
 })
-
 </script>
 
 <template>
@@ -1414,6 +1413,10 @@ const editEnabledCellPosition = computed(() => {
 
     :deep(.nc-single-select) {
       height: 30px !important;
+    }
+
+    :deep(.nc-user-select) {
+      margin-top: -2px;
     }
 
     :deep(.nc-cell-attachment) {

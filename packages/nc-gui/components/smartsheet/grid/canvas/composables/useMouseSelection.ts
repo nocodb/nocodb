@@ -108,10 +108,9 @@ export function useMouseSelection({
     }
   }
   const handleMouseUp = () => {
-    if (isSelecting.value) {
-      isSelecting.value = false
-      return true
-    }
+    isSelecting.value = false
+
+    return !(selection.value.end?.row === selection.value.start?.row && selection.value.end?.col === selection.value.start?.col)
   }
 
   return {

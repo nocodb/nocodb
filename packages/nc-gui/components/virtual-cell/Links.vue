@@ -142,20 +142,23 @@ watch(
 )
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
-  forcedNextTick(() => {
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
-      openListDlg()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
-      openChildList()
-    }
-  })
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value) {
+    forcedNextTick(() => {
+      if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
+        openListDlg()
+      } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
+        openChildList()
+      } else {
+        openListDlg()
+      }
+    })
+  }
 })
 </script>
 
 <template>
   <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
-    <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+    <VirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
       <div class="flex w-full group items-center min-h-4">
         <div class="block flex-shrink truncate">
           <component
@@ -189,7 +192,7 @@ onMounted(() => {
       </div>
 
       <template #overlay>
-        <LazyVirtualCellComponentsLinkedItems
+        <VirtualCellComponentsLinkedItems
           v-if="childListDlg"
           v-model="childListDlg"
           :items="toatlRecordsLinked"
@@ -197,7 +200,7 @@ onMounted(() => {
           :cell-value="localCellValue"
           @attach-record="onAttachRecord"
         />
-        <LazyVirtualCellComponentsUnLinkedItems
+        <VirtualCellComponentsUnLinkedItems
           v-if="listItemsDlg"
           v-model="listItemsDlg"
           :column="relatedTableDisplayColumn"
@@ -205,6 +208,6 @@ onMounted(() => {
           @attach-linked-record="onAttachLinkedRecord"
         />
       </template>
-    </LazyVirtualCellComponentsLinkRecordDropdown>
+    </VirtualCellComponentsLinkRecordDropdown>
   </div>
 </template>

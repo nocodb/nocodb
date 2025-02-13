@@ -18,7 +18,7 @@ const FEATURES = [
     id: 'canvas_table',
     title: 'Canvas Table',
     description: 'More performant table with canvas rendering.',
-    enabled: false,
+    enabled: true,
     isEngineering: true,
   },
   {

@@ -11,7 +11,7 @@ export const BarcodeCellRenderer: CellRenderer = {
       width,
       height,
       column,
-      value: value.toString(),
+      value: (value ?? '').toString(),
       renderAsTag,
     })
   },

@@ -31,7 +31,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     const initialWidth = width - 8
 
     let currentX = initialX
-    let currentY = y + 2
+    let currentY = y + (rowHeightInPx['1'] === height ? 0 : 2)
     let currentWidth = initialWidth
 
     const renderProps: CellRendererOptions = {

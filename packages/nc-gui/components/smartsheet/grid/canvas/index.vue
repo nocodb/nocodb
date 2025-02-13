@@ -131,7 +131,6 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
   middleware: [offset(8), flip(), shift({ padding: 5 })],
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
-const { containerSize } = storeToRefs(tooltipStore)
 
 const {
   rowSlice,
@@ -1154,7 +1153,6 @@ const onNavigate = (dir: NavigateDir) => {
 }
 
 watch([height, width], () => {
-  containerSize.value = { height: height.value, width: width.value }
   requestAnimationFrame(() => {
     requestAnimationFrame(triggerRefreshCanvas)
   })

@@ -1,3 +1,4 @@
+import { getI18n } from '../../../../../plugins/a.i18n'
 import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const JsonCellRenderer: CellRenderer = {
@@ -89,5 +90,15 @@ export const JsonCellRenderer: CellRenderer = {
       return true
     }
     return false
+  },
+
+  async handleHover({ row, column, mousePosition, getCellPosition }) {
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
+
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
+    tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
   },
 }

@@ -1,4 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
+import { AllAggregations } from 'nocodb-sdk'
 import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -580,7 +581,7 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
-      if (column.aggregation) {
+      if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn)) {
         ctx.save()
         ctx.beginPath()
         ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
@@ -630,7 +631,7 @@ export function useCanvasRender({
         ctx.fillStyle = '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
-        if (firstFixedCol.aggregation) {
+        if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn)) {
           ctx.save()
           ctx.beginPath()
           ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)

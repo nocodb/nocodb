@@ -14,6 +14,7 @@ import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
+import { columnTypeName } from './utils/headerUtils'
 
 const props = defineProps<{
   totalRows: number
@@ -604,6 +605,85 @@ const handleMouseUp = (e: MouseEvent) => {
   onMouseUpSelectionHandler(e)
 }
 
+const getHeaderTooltipRegions = (
+  startColIndex: number,
+  endColIndex: number,
+  initialOffset: number,
+  scrollLeftValue: number,
+): {
+  x: number
+  width: number
+  type: 'columnIcon' | 'title' | 'error' | 'info'
+  text: string
+}[] => {
+  const regions: {
+    x: number
+    width: number
+    type: 'columnIcon' | 'title' | 'error' | 'info'
+    text: string
+  }[] = []
+  let xOffset = initialOffset + 1
+
+  columns.value.slice(startColIndex, endColIndex).forEach((column) => {
+    const width = parseInt(column.width, 10)
+    const rightPadding = 8
+    const iconSpace = rightPadding + 16
+
+    if (column.uidt) {
+      regions.push({
+        x: xOffset + 8 - scrollLeftValue,
+        width: 13,
+        type: 'columnIcon',
+        text: columnTypeName(column),
+      })
+    }
+
+    const canvas = new OffscreenCanvas(0, 0)
+
+    const ctx = canvas.getContext('2d')!
+    const availableTextWidth = width - (26 + iconSpace)
+    const isTruncated = ctx.measureText(column.title!).width > availableTextWidth
+    if (isTruncated) {
+      regions.push({
+        x: xOffset + 26 - scrollLeftValue,
+        width: availableTextWidth,
+        type: 'title',
+        text: column.title!,
+      })
+    }
+
+    let rightOffset = xOffset + width - rightPadding
+
+    rightOffset -= 16
+
+    // Error icon region
+    if (column.isInvalidColumn?.isInvalid) {
+      rightOffset -= 18
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'error',
+        text: column.isInvalidColumn.tooltip || 'Invalid Column',
+      })
+    }
+
+    // Info icon region
+    if (column?.columnObj?.description?.length) {
+      rightOffset -= 18
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'info',
+        text: column.columnObj.description,
+      })
+    }
+
+    xOffset += width
+  })
+
+  return regions
+}
+
 const handleMouseMove = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -612,6 +692,44 @@ const handleMouseMove = (e: MouseEvent) => {
   clientMousePosition.clientY = e.clientY
   mousePosition.x = e.clientX - rect.left
   mousePosition.y = e.clientY - rect.top
+
+  hideTooltip()
+
+  if (mousePosition.y < 32) {
+    let initialOffset = 0
+    for (let i = 0; i < colSlice.value.start; i++) {
+      initialOffset += parseInt(columns.value[i]!.width, 10)
+    }
+
+    const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)
+
+    const activeRegion = tooltipRegions.find(
+      (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
+    )
+
+    if (activeRegion) {
+      showTooltip({
+        position: { x: mousePosition.x, y: mousePosition.y },
+        text: activeRegion.text,
+      })
+    }
+
+    const fixedCols = columns.value.filter((col) => col.fixed)
+    if (fixedCols.length) {
+      const fixedRegions = getHeaderTooltipRegions(0, fixedCols.length, 0, 0)
+
+      const activeFixedRegion = fixedRegions.find(
+        (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
+      )
+
+      if (activeFixedRegion) {
+        showTooltip({
+          position: { x: mousePosition.x, y: mousePosition.y },
+          text: activeFixedRegion.text,
+        })
+      }
+    }
+  }
 
   /* showTooltip({
     position: mousePosition,

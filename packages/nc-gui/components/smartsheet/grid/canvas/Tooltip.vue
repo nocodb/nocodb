@@ -77,7 +77,7 @@ const tooltipClass = computed(() => {
 
 <style lang="scss">
 .tooltip {
-  @apply pointer-events-none px-2 py-1 rounded-lg text-sm whitespace-pre-line;
+  @apply pointer-events-none px-2 py-1 rounded-lg text-xs whitespace-pre-line;
   z-index: 1000;
 }
 

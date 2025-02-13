@@ -27,6 +27,7 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -446,7 +447,6 @@ const currentDate = ($event) => {
   emit('currentDate', $event)
 }
 
-const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 onMounted(() => {
   forcedNextTick(() => {
     if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {

@@ -86,7 +86,7 @@ watch(
 )
 
 onMounted(() => {
-  if (!isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true

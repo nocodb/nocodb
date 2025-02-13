@@ -147,7 +147,7 @@ onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
 
-  if (!isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
       openListDlg()

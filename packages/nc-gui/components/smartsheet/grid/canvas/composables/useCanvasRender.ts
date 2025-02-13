@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type TableType } from 'nocodb-sdk'
-import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
+import { isBoxHovered, renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -698,6 +698,27 @@ export function useCanvasRender({
         yOffset += rowHeight.value
       }
     }
+
+    // Add New Row
+
+    const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: width.value }, mousePosition)
+    ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+    ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+    // Bottom border for each row
+    ctx.strokeStyle = '#f4f4f5'
+    ctx.beginPath()
+    ctx.moveTo(0, yOffset + rowHeight.value)
+    ctx.lineTo(width.value, yOffset + rowHeight.value)
+    ctx.stroke()
+
+    spriteLoader.renderIcon(ctx, {
+      icon: 'ncPlus',
+      color: isNewRowHovered ? '#000000' : '#4a5268',
+      x: 16,
+      y: yOffset + 9,
+      size: 14,
+    })
+
     if (!fillHandlerRendered) {
       renderFillHandle(ctx, true)
     }

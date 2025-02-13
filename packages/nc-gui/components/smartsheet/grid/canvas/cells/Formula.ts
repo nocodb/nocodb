@@ -54,10 +54,11 @@ export const FormulaCellRenderer: CellRenderer = {
   },
   handleClick: async () => {},
   async handleHover({ mousePosition, getCellPosition, column, row }) {
+    const colMeta = parseProp(column.columnObj.meta)
     const error = parseProp(column.columnObj.colOptions)?.error ?? ''
     const { showTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!error) return
+    if (colMeta?.display_type || !error) return
     const { x, y } = getCellPosition(column, row.rowMeta.rowIndex!)
     if (isBoxHovered({ x: x + 10, y, height: 25, width: 45 }, mousePosition)) {
       showTooltip({

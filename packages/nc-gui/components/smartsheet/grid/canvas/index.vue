@@ -1231,7 +1231,10 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   }
 
   nextTick().then(() => {
-    scrollToCell(row ?? totalRows.value - 1, 0)
+    activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1 }
+    selection.value.startRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    selection.value.endRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    scrollToCell()
   })
 
   return rowObj

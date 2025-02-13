@@ -1,4 +1,4 @@
-import { renderSingleLineText, renderTag, roundedRect, truncateText } from '../utils/canvas'
+import { renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 
 const tagPadding = 8

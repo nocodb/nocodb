@@ -18,7 +18,7 @@ import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
-import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
+import {ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS} from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -1029,6 +1029,14 @@ const handleMouseMove = (e: MouseEvent) => {
     const fixedCols = columns.value.filter((col) => col.fixed)
     let isTooltipShown = false
 
+    // check if it's hovering add new column
+    const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+    const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
+
+    if (mousePosition.x >= plusColumnX && mousePosition.x <= plusColumnX + plusColumnWidth) {
+      cursor = 'pointer'
+    }
+
     if (fixedCols.length) {
       const fixedRegions = getHeaderTooltipRegions(0, fixedCols.length, 0, 0)
       const activeFixedRegion = fixedRegions.find(
@@ -1619,7 +1627,7 @@ const increaseMinHeightBy: Record<string, number> = {
               <template v-if="isAddNewRecordGridMode">
                 {{ $t('activity.newRecord') }}
               </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
             </div>
           </NcButton>
           <NcButton
@@ -1689,6 +1697,7 @@ const increaseMinHeightBy: Record<string, number> = {
     .nc-text-area-clamped-text {
       @apply !px-[7px] !pt-[5px];
     }
+
     .nc-readonly-rich-text-wrapper {
       @apply !pl-2 pt-0.5;
     }
@@ -1710,6 +1719,7 @@ const increaseMinHeightBy: Record<string, number> = {
       }
     }
   }
+
   :deep(.nc-cell-multiselect) {
     @apply !px-2;
   }

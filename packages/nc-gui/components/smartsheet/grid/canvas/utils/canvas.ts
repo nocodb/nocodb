@@ -473,11 +473,12 @@ export const renderMarkdownBlocks = (
   ctx.textAlign = textAlign
   ctx.textBaseline = verticalAlign
 
-  const totalBlocks = maxLines ?? blocks.length
+  maxLines = maxLines ?? blocks.length
+
   let renderedLineCount = 0
 
   for (const block of blocks) {
-    if (renderedLineCount >= totalBlocks) break
+    if (renderedLineCount >= maxLines) break
 
     let tokens = block.tokens
     if (block.type === 'list-item') {
@@ -528,6 +529,23 @@ export const renderMarkdownBlocks = (
         })
       }
 
+      let isTruncated = false
+
+      // Add ellipsis if there is more text to render but we are on the last line
+      if (renderedLineCount === maxLines - 1 && blocks.length > maxLines) {
+        const ellipsis = '...'
+        const ellipsisWidth = ctx.measureText(ellipsis).width
+
+        while (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
+          tokenText = tokenText.slice(0, -1)
+          tokenWidth = ctx.measureText(tokenText).width
+        }
+
+        tokenText += ellipsis
+        tokenWidth = ctx.measureText(tokenText).width
+        isTruncated = true
+      }
+
       ctx.fillText(tokenText, cursorX, cursorY)
 
       if (token.styles.includes('underline') || token.styles.includes('link')) {
@@ -540,6 +558,7 @@ export const renderMarkdownBlocks = (
 
       cursorX += tokenWidth
       if (cursorX >= x + maxWidth) break
+      if (isTruncated) break
     }
 
     renderedLineCount++

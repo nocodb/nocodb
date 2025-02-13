@@ -434,6 +434,8 @@ export function useCanvasRender({
           // Reset for regular column separator
           ctx.strokeStyle = '#e7e7e9'
           ctx.lineWidth = 1
+        } else {
+          colResizeHoveredColIds.value.delete(column.id)
         }
       })
 

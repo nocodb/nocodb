@@ -4,10 +4,9 @@ import { DecimalCellRenderer } from './Decimal'
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, value, relatedTableMeta, renderCell } = props
-    const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
-    if (!text) return
+    if (!isValidValue(value)) return
 
     const colOptions = column.colOptions as RollupType
 
@@ -22,6 +21,7 @@ export const RollupCellRenderer: CellRenderer = {
       column: childColumn,
       relatedColObj: undefined,
       relatedTableMeta: undefined,
+      readonly: true,
     }
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {

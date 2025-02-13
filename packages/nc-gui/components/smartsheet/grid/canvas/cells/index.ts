@@ -27,6 +27,7 @@ import { SingleSelectCellRenderer } from './SingleSelect'
 import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
+import { LookupCellRenderer } from './Lookup'
 export function useCellRenderer() {
   const { t } = useI18n()
 
@@ -62,6 +63,7 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.MultiSelect, MultiSelectCellRenderer)
   cellTypesRegistry.set(UITypes.Rollup, RollupCellRenderer)
   cellTypesRegistry.set(UITypes.Links, LinksCellRenderer)
+  cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,
@@ -121,7 +123,7 @@ export function useCellRenderer() {
         padding,
         relatedColObj,
         relatedTableMeta,
-        renderCell
+        renderCell,
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

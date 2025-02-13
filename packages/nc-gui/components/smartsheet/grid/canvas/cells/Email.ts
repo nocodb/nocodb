@@ -3,9 +3,25 @@ import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/c
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268', tag = {} } = props
-    const { renderAsTag, tagPaddingX = 8, tagHeight = 20, tagRadius = 6, tagBgColor = '#f4f4f0' } = props.tag || {}
+    const {
+      renderAsTag,
+      tagPaddingX = 8,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagBorderColor,
+      tagBorderWidth,
+    } = props.tag || {}
 
     const text = value?.toString() ?? ''
+
+    if (!text) {
+      return {
+        x,
+        y,
+      }
+    }
+
     const isValidEmail = text && validateEmail(text)
 
     if (renderAsTag) {
@@ -27,6 +43,8 @@ export const EmailCellRenderer: CellRenderer = {
         height: tagHeight,
         radius: tagRadius,
         fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
       })
 
       renderSingleLineText(ctx, {

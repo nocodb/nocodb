@@ -4,9 +4,24 @@ import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/c
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected } = props
-    const { renderAsTag, tagPaddingX = 8, tagHeight = 20, tagRadius = 6, tagBgColor = '#f4f4f0' } = props.tag || {}
+    const {
+      renderAsTag,
+      tagPaddingX = 8,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagBorderColor,
+      tagBorderWidth,
+    } = props.tag || {}
 
     const text = value?.toString() ?? ''
+
+    if (!text) {
+      return {
+        x,
+        y,
+      }
+    }
 
     const isValid = text && isMobilePhone(text)
 
@@ -29,8 +44,8 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         height: tagHeight,
         radius: tagRadius,
         fillStyle: tagBgColor,
-        borderColor: themeV3Colors.gray['200'],
-        borderWidth: 1,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
       })
 
       renderSingleLineText(ctx, {

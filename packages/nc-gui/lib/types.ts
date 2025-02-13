@@ -404,7 +404,7 @@ interface CellRendererOptions {
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
-  handleClick: ({
+  handleClick?: ({
     event,
     mousePosition,
     value,

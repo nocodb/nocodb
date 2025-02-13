@@ -90,6 +90,7 @@ onMounted(() => {
       {{ currencyMeta.currency_code }}
     </span>
   </div>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     :ref="focus"
     v-model="vModel"

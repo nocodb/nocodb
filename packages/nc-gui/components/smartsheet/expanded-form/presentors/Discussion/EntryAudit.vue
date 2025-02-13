@@ -40,17 +40,15 @@ const createdBy = computed(() => {
     return 'Shared source'
   }
 })
-
 </script>
 
 <template>
   <div class="py-4 ml-7 mr-6 border-l border-gray-300">
     <div class="flex items-center h-[32px] gap-2 mb-2">
-      <div class="w-[28px] h-[28px] bg-white flex items-center justify-center bg-white rounded-full border border-1 !border-gray-200 shadow-sm -ml-3.5">
-        <GeneralIcon
-          icon="ncPenLine"
-          class="w-[16px] h-[16px] text-gray-500"
-        />
+      <div
+        class="w-[28px] h-[28px] bg-white flex items-center justify-center bg-white rounded-full border border-1 !border-gray-200 shadow-sm -ml-3.5"
+      >
+        <GeneralIcon icon="ncPenLine" class="w-[16px] h-[16px] text-gray-500" />
       </div>
       <GeneralUserIcon
         :user="{
@@ -64,8 +62,12 @@ const createdBy = computed(() => {
         <span class="font-weight-700">
           {{ createdBy }}
         </span>
-        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-gray-600"> created a record. </span>
-        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-gray-600"> updated {{ fieldsChanged }} fields </span>
+        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-gray-600">
+          created a record.
+        </span>
+        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-gray-600">
+          updated {{ fieldsChanged }} fields
+        </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-gray-600">
           updated 1 field
         </span>
@@ -96,12 +98,8 @@ const createdBy = computed(() => {
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
-          <span class="text-[13px] text-gray-600 font-weight-500">
-            changed
-          </span>
-          <span
-            class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1"
-          >
+          <span class="text-[13px] text-gray-600 font-weight-500"> changed </span>
+          <span class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
             <SmartsheetHeaderVirtualCellIcon
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
               class="!w-[16px] !h-[16px] !m-0"
@@ -120,7 +118,8 @@ const createdBy = computed(() => {
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
                 :key="entry.refRowId"
-                class="text-brand-500 font-weight-500 line-through px-1 bg-[#F0F3FF] !rounded-md">
+                class="text-brand-500 font-weight-500 line-through px-1 bg-[#F0F3FF] !rounded-md"
+              >
                 {{ entry.value }}
               </span>
             </span>
@@ -135,7 +134,8 @@ const createdBy = computed(() => {
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
                 :key="entry.refRowId"
-                class="text-brand-500 font-weight-500 px-1 bg-[#F0F3FF] !rounded-md">
+                class="text-brand-500 font-weight-500 px-1 bg-[#F0F3FF] !rounded-md"
+              >
                 {{ entry.value }}
               </span>
             </span>

@@ -93,6 +93,7 @@ onMounted(() => {
 
 <template>
   <div class="duration-cell-wrapper">
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"
       v-model="localState"

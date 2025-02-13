@@ -1,5 +1,7 @@
-import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+const defaultContext = offscreenCanvas.getContext('2d')!
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268' } = props
@@ -20,7 +22,7 @@ export const EmailCellRenderer: CellRenderer = {
     } else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
-        y: y,
+        y,
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
@@ -46,6 +48,27 @@ export const EmailCellRenderer: CellRenderer = {
       return true
     }
 
+    return false
+  },
+  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
+    if (!row || !column) return false
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const padding = 10
+    const text = value?.toString() ?? ''
+    const isValid = text && validateEmail(text)
+    if (!isValid) return false
+    const pv = column.pv
+    const ctx = defaultContext
+    ctx.font = `${pv ? 600 : 500} 13px Manrope`
+
+    const maxWidth = width - padding * 2
+    const truncatedText = truncateText(ctx, text, maxWidth)
+    const textMetrics = ctx.measureText(truncatedText)
+
+    if (isBoxHovered({ x, y, width: textMetrics.width, height: 18 }, mousePosition)) {
+      window.open(`mailto:${text}`, '_blank')
+      return true
+    }
     return false
   },
 }

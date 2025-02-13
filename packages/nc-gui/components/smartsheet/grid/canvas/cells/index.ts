@@ -24,6 +24,7 @@ import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
 import { UserFieldCellRenderer } from './User'
 import { SingleSelectCellRenderer } from './SingleSelect'
+import { MultiSelectCellRenderer } from './MultiSelect'
 export function useCellRenderer() {
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -54,6 +55,7 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.CreatedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.SingleSelect, SingleSelectCellRenderer)
+  cellTypesRegistry.set(UITypes.MultiSelect, MultiSelectCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,
@@ -70,6 +72,7 @@ export function useCellRenderer() {
       readonly = false,
       spriteLoader,
       imageLoader,
+      isMysql,
     }: {
       value: any
       row: any
@@ -82,6 +85,7 @@ export function useCellRenderer() {
       readonly?: boolean
       spriteLoader: SpriteLoader
       imageLoader: ImageWindowLoader
+      isMysql: CanvasGridColumn['isMysql']
     },
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -100,6 +104,7 @@ export function useCellRenderer() {
         readonly,
         spriteLoader,
         imageLoader,
+        isMysql,
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

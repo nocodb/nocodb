@@ -112,7 +112,6 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     textAlign = 'left',
     verticalAlign = 'middle',
     maxWidth = Infinity,
-    height,
     render = true,
   } = params
 

@@ -70,6 +70,7 @@ export function useCanvasTable({
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { metas } = useMetas()
   const { allFilters, sorts, isPkAvail } = useSmartsheetStoreOrThrow()
+  const { isMysql } = useBase()
 
   const fields = inject(FieldsInj, ref([]))
   const isPublicView = inject(IsPublicInj, ref(false))
@@ -127,6 +128,7 @@ export function useCanvasTable({
           agg_fn: gridViewCol.aggregation,
           columnObj: f,
           relatedColObj,
+          isMysql,
         }
       })
       .filter((c) => !!c)

@@ -2,16 +2,18 @@ import { LRUCache } from 'lru-cache'
 import type { ColumnType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
+import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
 import { NcMarkdownParser } from '~/helpers/tiptap'
-
-const MARKDOWN_HEADING_REGEX = /^(#{1,6})\s+/
-const MARKDOWN_BULLET_REGEX = /^([-*])\s+/
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
 })
 
 const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> = new LRUCache({
+  max: 1000,
+})
+
+const markdownTextCache: LRUCache<string, { blocks: Block[]; width: number }> = new LRUCache({
   max: 1000,
 })
 
@@ -52,18 +54,21 @@ export function truncateText(
   text: string,
   maxWidth: number,
   withInfo: true,
+  addEllipsis?: boolean,
 ): TruncateTextWithInfoType
 export function truncateText(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   withInfo?: false,
+  addEllipsis?: boolean,
 ): string
 export function truncateText(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   withInfo = false,
+  addEllipsis = true,
 ): string | TruncateTextWithInfoType {
   text = text?.toString() ?? ''
 
@@ -80,13 +85,14 @@ export function truncateText(
     return text
   }
 
+  const ellipsis = addEllipsis ? '...' : ''
   let start = 0
   let end = text.length
   let truncated = ''
 
   while (start < end) {
     const mid = Math.floor((start + end) / 2)
-    const testText = ctx.direction === 'rtl' ? `...${text.slice(0, mid)}` : `${text.slice(0, mid)}...`
+    const testText = ctx.direction === 'rtl' ? `${ellipsis}${text.slice(0, mid)}` : `${text.slice(0, mid)}${ellipsis}`
     testWidth = ctx.measureText(testText).width
 
     if (testWidth <= maxWidth) {
@@ -222,6 +228,23 @@ const drawUnderline = (
 
   ctx.moveTo(x, y + fontSize / 2)
   ctx.lineTo(x + width, y + fontSize / 2)
+
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle
+  }
+
+  ctx.lineWidth = 1
+  ctx.stroke()
+}
+
+const drawStrikeThrough = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  { x, y, width, strokeStyle }: { x: number; y: number; width: number; fontSize?: number; strokeStyle?: string },
+) => {
+  ctx.beginPath()
+
+  ctx.moveTo(x, y)
+  ctx.lineTo(x + width, y)
 
   if (strokeStyle) {
     ctx.strokeStyle = strokeStyle
@@ -410,10 +433,10 @@ const renderLines = (
   })
 }
 
-const renderMarkdownLines = (
+export const renderMarkdownBlocks = (
   ctx: CanvasRenderingContext2D,
   {
-    lines,
+    blocks,
     x,
     y,
     textAlign = 'left',
@@ -423,7 +446,7 @@ const renderMarkdownLines = (
     lineHeight,
     fillStyle,
   }: {
-    lines: string[]
+    blocks: Block[]
     x: number
     y: number
     textAlign?: CanvasTextAlign
@@ -434,127 +457,67 @@ const renderMarkdownLines = (
     fillStyle?: string
   },
 ) => {
+  // Save the current font so we can restore it later
   const defaultFont = ctx.font
-  const fontSize = 13
+  const baseFontSize = 13
   const fontFamily = 'Manrope'
-  const boldFont = `bold ${fontSize}px ${fontFamily}`
-  const italicFont = `italic ${fontSize}px ${fontFamily}`
 
-  maxLines = maxLines ?? lines.length
-
-  ctx.textAlign = textAlign
-  ctx.textBaseline = verticalAlign
   if (fillStyle) {
     ctx.fillStyle = fillStyle
+    ctx.strokeStyle = fillStyle
   }
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
 
-  const parseMarkdownText = (text: string): { text: string; style: 'normal' | 'bold' | 'italic' }[] => {
-    const tokens: { text: string; style: 'normal' | 'bold' | 'italic' }[] = []
-    const regex = /(?:\*\*(.+?)\*\*|_([^_]+)_)/g
-    let lastIndex = 0
-    let match: RegExpExecArray | null
-
-    match = regex.exec(text)
-
-    while (match !== null) {
-      if (match.index > lastIndex) {
-        tokens.push({
-          text: text.substring(lastIndex, match.index),
-          style: 'normal',
-        })
-      }
-      if (match[1]) {
-        tokens.push({ text: match[1], style: 'bold' })
-      } else if (match[2]) {
-        tokens.push({ text: match[2], style: 'italic' })
-      }
-      lastIndex = regex.lastIndex
-
-      match = regex.exec(text)
-    }
-    if (lastIndex < text.length) {
-      tokens.push({
-        text: text.substring(lastIndex),
-        style: 'normal',
-      })
-    }
-    return tokens
-  }
-
+  const totalBlocks = maxLines ?? blocks.length
   let renderedLineCount = 0
 
-  for (const rawLine of lines) {
-    // Skip empty lines
-    if (!rawLine.trim()) continue
+  for (const block of blocks) {
+    if (renderedLineCount >= totalBlocks) break
 
-    if (renderedLineCount >= maxLines) break
-
-    let line = rawLine
-    let isHeading = false
-    let isBullet = false
-    let isTruncated = false
-
-    const headingMatch = line.match(MARKDOWN_HEADING_REGEX)
-    if (headingMatch) {
-      isHeading = true
-      line = line.replace(MARKDOWN_HEADING_REGEX, '').trim()
-    } else {
-      const bulletMatch = line.match(MARKDOWN_BULLET_REGEX)
-      if (bulletMatch) {
-        isBullet = true
-        line = line.replace(MARKDOWN_BULLET_REGEX, '').trim()
-      }
+    let tokens = block.tokens
+    if (block.type === 'list-item') {
+      tokens = [{ styles: [], value: '• ' }, ...tokens]
+    } else if (block.type === 'numbered-list-item') {
+      tokens = [{ styles: [], value: `${block.number}. ` }, ...tokens]
     }
 
-    // Truncate the last line if it exceeds the max width (adds ellipsis)
-    if (renderedLineCount === maxLines - 1 && lines.length > maxLines) {
-      line = truncateText(ctx, line, maxWidth, false)
-      isTruncated = true
-    }
-
-    const tokens = parseMarkdownText(line)
-
-    // Add bullet point if the line is a list item
-    if (isBullet) {
-      tokens.unshift({ text: '• ', style: 'normal' })
-    }
-
-    const cursorY = y + renderedLineCount * lineHeight
     let cursorX = x
-    let isLineFull = false
+    const cursorY = y + renderedLineCount * lineHeight
 
-    // Render each token with corresponding style
     for (const token of tokens) {
-      let fontToUse = defaultFont
-      if (isHeading && token.style === 'normal') {
-        fontToUse = boldFont
-      } else if (token.style === 'bold') {
-        fontToUse = boldFont
-      } else if (token.style === 'italic') {
-        fontToUse = italicFont
-      }
-      ctx.font = fontToUse
-
-      let tokenWidth = ctx.measureText(token.text).width
+      let tokenText = token.value
+      const tokenFont = getFontForToken(token, block.type, {
+        baseFontSize,
+        fontFamily,
+      })
+      ctx.font = tokenFont
+      let tokenWidth = ctx.measureText(tokenText).width
 
       // Truncate the token if it exceeds the max width of the line
-      while (cursorX + tokenWidth > x + maxWidth) {
-        token.text = token.text.slice(0, -1)
-        tokenWidth = ctx.measureText(token.text).width
-        isLineFull = true
+      while (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
+        tokenText = tokenText.slice(0, -1)
+        tokenWidth = ctx.measureText(tokenText).width
       }
 
-      ctx.fillText(token.text, cursorX, cursorY)
+      ctx.fillText(tokenText, cursorX, cursorY)
+
+      if (token.styles.includes('underline')) {
+        drawUnderline(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
+      }
+
+      if (token.styles.includes('strikethrough')) {
+        drawStrikeThrough(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
+      }
 
       cursorX += tokenWidth
-
-      if (isLineFull) break
+      if (cursorX >= x + maxWidth) break
     }
 
     renderedLineCount++
-    if (isTruncated) break
   }
 
+  // Restore the original font
   ctx.font = defaultFont
 }
 
@@ -648,7 +611,6 @@ export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps,
 ): {
-  lines: string[]
   width: number
   x: number
   y: number
@@ -687,8 +649,7 @@ export const renderMarkdown = (
 
   const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
 
-  const lines = renderText.split('\n')
-
+  let blocks
   let width = 0
   const originalFontFamily = ctx.font
 
@@ -697,14 +658,16 @@ export const renderMarkdown = (
   }
 
   const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}`
-  const cachedText = multiLineTextCache.get(cacheKey)
+  const cachedText = markdownTextCache.get(cacheKey)
 
   if (cachedText) {
     width = cachedText.width
+    blocks = cachedText.blocks
   } else {
     width = maxWidth
+    blocks = parseMarkdown(renderText)
 
-    multiLineTextCache.set(cacheKey, { lines, width })
+    markdownTextCache.set(cacheKey, { blocks, width })
   }
 
   const yOffset =
@@ -719,8 +682,8 @@ export const renderMarkdown = (
       ctx.strokeStyle = fillStyle
     }
     // Render the text lines
-    renderMarkdownLines(ctx, {
-      lines,
+    renderMarkdownBlocks(ctx, {
+      blocks,
       x,
       y: y + yOffset,
       textAlign,
@@ -739,8 +702,8 @@ export const renderMarkdown = (
      */
     ctx.font = originalFontFamily
   }
-  const newY = y + yOffset + (lines.length - 1) * lineHeight
-  return { lines, width, x: x + width, y: newY, height: newY - y }
+  const newY = y + yOffset + (blocks.length - 1) * lineHeight
+  return { width, x: x + width, y: newY, height: newY - y }
 }
 
 export const renderTag = (

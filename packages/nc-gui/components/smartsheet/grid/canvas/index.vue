@@ -530,10 +530,12 @@ async function handleMouseDown(e: MouseEvent) {
           selection.value.endRange({ row: rowIndex, col: columnIndex })
         }
 
-        contextMenuTarget.value = { row: rowIndex, col: columnIndex }
-        nextTick(() => {
-          isContextMenuOpen.value = true
-        })
+        if (rowIndex < totalRows.value) {
+          contextMenuTarget.value = { row: rowIndex, col: columnIndex }
+          nextTick(() => {
+            isContextMenuOpen.value = true
+          })
+        }
         triggerRefreshCanvas()
         return
       } else {

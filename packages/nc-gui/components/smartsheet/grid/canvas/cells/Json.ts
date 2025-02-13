@@ -80,4 +80,14 @@ export const JsonCellRenderer: CellRenderer = {
 
     return false
   },
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    const rowIndex = row?.rowMeta?.rowIndex
+    if (typeof rowIndex !== 'number') return false
+    const { x, y, width } = getCellPosition(column, rowIndex)
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, height: 18, width: 18 }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+    return false
+  },
 }

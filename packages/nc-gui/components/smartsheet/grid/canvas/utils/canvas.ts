@@ -6,16 +6,69 @@ const singleLineTextCache: LRUCache<string, { text: string; width: number }> = n
   max: 1000,
 })
 
-export const truncateText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
-  if (!text || ctx.measureText(text).width <= maxWidth) {
+interface TruncateTextWithInfoType {
+  text: string
+  width: number
+}
+
+/**
+ * Binary Search for Efficiency
+ * Truncates the given text to fit within a specified width on a canvas.
+ * This function uses binary search to efficiently find the optimal truncation point,
+ * avoiding the inefficiency of repeatedly slicing the text character by character.
+ * If the text exceeds the specified width, it will be truncated with an ellipsis ("...").
+ *
+ * @param ctx - The canvas rendering context used to measure the text width.
+ * @param text - The text string to be truncated.
+ * @param maxWidth - The maximum allowed width for the text. The text will be truncated if it exceeds this width.
+ * @returns A string containing the truncated text, with ellipsis ("...") if it doesn't fit within the maxWidth.
+ */
+export const truncateText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  withInfo = false,
+): string | TruncateTextWithInfoType => {
+  text = text?.toString() ?? ''
+
+  let testWidth = ctx.measureText(text).width
+
+  if (!text || testWidth <= maxWidth) {
+    if (withInfo) {
+      return {
+        width: testWidth,
+        text,
+      }
+    }
+
     return text
   }
 
-  let truncated = text
-  while (ctx.measureText(`${truncated}...`).width > maxWidth && truncated.length > 0) {
-    truncated = truncated.slice(0, -1)
+  let start = 0
+  let end = text.length
+  let truncated = ''
+
+  while (start < end) {
+    const mid = Math.floor((start + end) / 2)
+    const testText = ctx.direction === 'rtl' ? `...${text.slice(0, mid)}` : `${text.slice(0, mid)}...`
+    testWidth = ctx.measureText(testText).width
+
+    if (testWidth <= maxWidth) {
+      truncated = testText // Update the truncated text
+      start = mid + 1 // Try a longer text
+    } else {
+      end = mid // Try a shorter text
+    }
   }
-  return `${truncated}...`
+
+  if (withInfo) {
+    return {
+      width: testWidth,
+      text: truncated,
+    }
+  }
+
+  return truncated
 }
 
 export function roundedRect(
@@ -108,7 +161,7 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     text,
     fillStyle,
     fontSize = 13,
-    fontFamily,
+    fontFamily = '500 13px Manrope',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -122,41 +175,26 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
   let truncatedText = ''
   let width = 0
 
-  const cacheKey = `${text}-${fontSize}-${maxWidth}`
+  if (fontFamily) {
+    ctx.font = fontFamily
+  }
+
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}`
   const cachedText = singleLineTextCache.get(cacheKey)
 
   if (cachedText) {
     truncatedText = cachedText.text
     width = cachedText.width
-  } else if (maxWidth === Infinity || !text || ctx.measureText(text).width <= maxWidth) {
-    truncatedText = text
-    width = ctx.measureText(truncatedText).width
-
-    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   } else {
-    truncatedText = text
-    let showAsTruncated = false
-    while (ctx.measureText(`${truncatedText}...`).width > maxWidth && truncatedText.length > 0) {
-      truncatedText = truncatedText.slice(0, -1)
-      showAsTruncated = true
-    }
-
-    if (showAsTruncated) {
-      truncatedText = ctx.direction === 'rtl' ? `...${truncatedText}` : `${truncatedText}...`
-    }
-
-    // width = Math.min(ctx.measureText(truncatedText).width, maxWidth)
-    width = ctx.measureText(truncatedText).width
+    const res = truncateText(ctx, text, maxWidth, true) as TruncateTextWithInfoType
+    truncatedText = res.text
+    width = res.width
 
     singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   }
 
   if (render) {
     const yOffset = verticalAlign === 'middle' ? fontSize / 2 : 0
-
-    if (fontFamily) {
-      ctx.font = fontFamily
-    }
 
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign

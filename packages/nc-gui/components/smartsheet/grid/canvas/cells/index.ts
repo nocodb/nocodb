@@ -121,10 +121,13 @@ export function useCellRenderer() {
         textColor,
       })
     } else {
-      ctx.fillStyle = pv ? '#4351e8' : '#4a5268'
-      ctx.font = `${pv ? 600 : 500} 13px Manrope`
-      ctx.textBaseline = 'middle'
-      ctx.fillText(value?.toString() ?? '', x + 10, y + height / 2)
+      renderSingleLineText(ctx, {
+        x: x + padding,
+        y: y + padding,
+        text: value?.toString() ?? '',
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: pv ? '#4351e8' : textColor,
+      })
     }
   }
 

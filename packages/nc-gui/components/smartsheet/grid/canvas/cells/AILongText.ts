@@ -210,8 +210,8 @@ export const AILongTextCellRenderer: CellRenderer = {
       y,
     }
   },
-  async handleClick({ mousePosition, column, row, value, pk, actionManager, disabled, getCellPosition, makeCellEditable }) {
-    if (!row || !column?.id || !mousePosition || disabled?.isInvalid) return
+  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable }) {
+    if (!row || !column?.id || !mousePosition || column?.disabled?.isInvalid) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -237,14 +237,14 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(buttonBounds, mousePosition)) {
-        console.log('click button')
         await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true })
         return true
       } else {
-        console.log('click outside button')
         return false
       }
     }
+
+    // TODO: Check If the Click is one of the icons. If yes, then return true
     return false
   },
 }

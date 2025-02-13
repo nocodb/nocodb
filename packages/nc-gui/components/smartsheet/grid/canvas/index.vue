@@ -495,7 +495,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (e.button !== 2) {
     // If not right click, clear the selection
-    selection.value.clear()
+    // selection.value.clear()
   }
 
   if (y <= 32 && x > 80) {

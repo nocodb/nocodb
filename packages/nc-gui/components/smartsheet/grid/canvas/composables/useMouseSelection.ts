@@ -62,6 +62,15 @@ export function useMouseSelection({
 
     const cell = findCellFromPosition(e.clientX - rect.left, e.clientY - rect.top)
 
+    if (e.shiftKey) {
+      if (cell.col !== -1) {
+        isSelecting.value = true
+        scrollToCell(cell.row, cell.col)
+        triggerReRender()
+      }
+      return
+    }
+
     if (cell.col !== -1) {
       isSelecting.value = true
       selection.value.startRange(cell)

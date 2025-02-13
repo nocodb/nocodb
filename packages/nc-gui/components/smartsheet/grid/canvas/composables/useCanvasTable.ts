@@ -177,6 +177,8 @@ export function useCanvasTable({
   const fetchMetaIds = ref<string[]>([])
 
   const columns = computed<CanvasGridColumn[]>(() => {
+    const fetchMetaIdsLocal: string[] = []
+
     const cols = fields.value
       .map((f) => {
         const gridViewCol = gridViewCols.value[f.id!]
@@ -197,7 +199,7 @@ export function useCanvasTable({
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
             if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
-              fetchMetaIds.value.push(relatedColObj.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push(relatedColObj.colOptions.fk_related_model_id)
             } else {
               relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
             }
@@ -232,6 +234,9 @@ export function useCanvasTable({
         }
       })
       .filter((c) => !!c)
+
+    fetchMetaIds.value.push(...fetchMetaIdsLocal)
+
     cols.splice(0, 0, {
       id: 'row_number',
       grid_column_id: 'row_number',
@@ -798,7 +803,7 @@ export function useCanvasTable({
     triggerRefreshCanvas()
   })
 
-  // load metas
+  // load metas and refresh canvas
   watch(
     () => fetchMetaIds.value.length,
     async () => {
@@ -806,6 +811,7 @@ export function useCanvasTable({
 
       await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id)))
       fetchMetaIds.value = []
+      triggerRefreshCanvas()
     },
   )
 

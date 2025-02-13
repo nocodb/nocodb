@@ -94,6 +94,18 @@ export function useCanvasRender({
     let xOffset = initialOffset + 1
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
+      const rightPadding = 8
+      let iconSpace = rightPadding
+
+      iconSpace += 16
+
+      if (column.isInvalidColumn?.isInvalid) {
+        iconSpace += 18
+      }
+
+      if (column?.columnObj?.description?.length) {
+        iconSpace += 18
+      }
 
       const iconConfig = (
         column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, null)
@@ -108,8 +120,42 @@ export function useCanvasRender({
         })
       }
 
-      const truncatedText = truncateText(ctx, column.title!, width - 20)
+      const availableTextWidth = width - (26 + iconSpace)
+      const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
       ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, 16)
+
+      let rightOffset = xOffset + width - rightPadding
+
+      rightOffset -= 16
+      spriteLoader.renderIcon(ctx, {
+        icon: 'chevronDown',
+        size: 14,
+        color: '#6a7184',
+        x: rightOffset - scrollLeft.value,
+        y: 9,
+      })
+
+      if (column.isInvalidColumn?.isInvalid) {
+        rightOffset -= 18
+        spriteLoader.renderIcon(ctx, {
+          icon: 'alertTriangle',
+          size: 14,
+          color: '#FF928C',
+          x: rightOffset - scrollLeft.value,
+          y: 9,
+        })
+      }
+
+      if (column?.columnObj?.description?.length) {
+        rightOffset -= 18
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncInfo',
+          size: 14,
+          color: '#6B7280',
+          x: rightOffset - scrollLeft.value,
+          y: 9,
+        })
+      }
 
       xOffset += width
       ctx.beginPath()
@@ -145,9 +191,24 @@ export function useCanvasRender({
     if (fixedCols.length) {
       xOffset = 0
 
+      xOffset = 0
+
       fixedCols.forEach((column) => {
         const width = parseInt(column.width, 10)
+        const rightPadding = 8
+        let iconSpace = rightPadding
 
+        iconSpace += 16
+
+        if (column.isInvalidColumn?.isInvalid) {
+          iconSpace += 18
+        }
+
+        if (column?.columnObj?.description?.length) {
+          iconSpace += 18
+        }
+
+        // Background
         ctx.fillStyle = '#f4f4f5'
         ctx.fillRect(xOffset, 0, width, 32)
 
@@ -165,9 +226,47 @@ export function useCanvasRender({
           })
         }
 
-        const truncatedText = truncateText(ctx, column.title!, width - 20)
+        const availableTextWidth = width - (26 + iconSpace)
+        const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
         ctx.fillText(truncatedText, xOffset + (column.uidt ? 26 : 10), 16)
 
+        let rightOffset = xOffset + width - rightPadding
+
+        // Chevron down
+        rightOffset -= 16
+        spriteLoader.renderIcon(ctx, {
+          icon: 'chevronDown',
+          size: 14,
+          color: '#6a7184',
+          x: rightOffset,
+          y: 9,
+        })
+
+        // Error icon if invalid
+        if (column.isInvalidColumn?.isInvalid) {
+          rightOffset -= 18
+          spriteLoader.renderIcon(ctx, {
+            icon: 'alertTriangle',
+            size: 14,
+            color: '#FF928C',
+            x: rightOffset,
+            y: 9,
+          })
+        }
+
+        // Info icon if has description
+        if (column?.columnObj?.description?.length) {
+          rightOffset -= 18
+          spriteLoader.renderIcon(ctx, {
+            icon: 'ncInfo',
+            size: 14,
+            color: '#6B7280',
+            x: rightOffset,
+            y: 9,
+          })
+        }
+
+        // Border
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
         ctx.moveTo(xOffset, 0)

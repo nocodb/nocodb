@@ -1246,6 +1246,10 @@ const editEnabledCellPosition = computed(() => {
     left: `${left}px`,
   }
 })
+
+const increaseMinHeightBy: Record<string, number> = {
+  [UITypes.LongText]: 2,
+}
 </script>
 
 <template>
@@ -1326,7 +1330,7 @@ const editEnabledCellPosition = computed(() => {
               top: editEnabledCellPosition.top,
               left: editEnabledCellPosition.left,
               width: `${editEnabled.width}px`,
-              minHeight: `${editEnabled.minHeight}px`,
+              minHeight: `${editEnabled.minHeight + (increaseMinHeightBy[editEnabled.column.uidt as UITypes] ?? 0)}px`,
               height: `${editEnabled.height}px`,
               borderRadius: '2px',
               willChange: 'top, left, width, height',

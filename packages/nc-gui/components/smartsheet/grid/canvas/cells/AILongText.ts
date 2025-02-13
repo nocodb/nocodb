@@ -81,6 +81,8 @@ const renderAIButton = (
   const startX = x + (width - dims.buttonWidth) / 2
   const startY = y + 4
 
+  disabled = disabled || isLoading
+
   const isHovered =
     !disabled &&
     mousePosition &&
@@ -133,7 +135,7 @@ const renderAIButton = (
 
 export const AILongTextCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition } = props
+    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition, actionManager, pk, column } = props
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
@@ -144,6 +146,10 @@ export const AILongTextCellRenderer: CellRenderer = {
 
       const btnWidth = width - horizontalPadding * 2
 
+      const isLoading = actionManager.isLoading(pk, column.id!)
+
+      const startTime = actionManager.getLoadingStartTime(pk, column.id!)
+
       const { buttonBounds } = renderAIButton(ctx, {
         x: x + (width - btnWidth) / 2,
         y,
@@ -151,6 +157,8 @@ export const AILongTextCellRenderer: CellRenderer = {
         disabled: buttonDisabled,
         mousePosition,
         spriteLoader,
+        isLoading,
+        loadingStartTime: startTime,
       })
 
       return {
@@ -212,7 +220,7 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable }) {
-    if (!row || !column?.id || !mousePosition || column?.disabled?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 

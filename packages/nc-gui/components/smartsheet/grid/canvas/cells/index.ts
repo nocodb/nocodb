@@ -1,4 +1,4 @@
-import { type TableType, UITypes, type ViewType } from 'nocodb-sdk'
+import { type TableType, UITypes, type ViewType, isAIPromptCol } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import { EmailCellRenderer } from './Email'
@@ -121,7 +121,7 @@ export function useGridCellHandler(params: {
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
-    if (actionManager?.isLoading(pk, column.id) && column.uidt !== UITypes.Button) {
+    if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
       if (loadingStartTime) {
         renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)

@@ -1,5 +1,5 @@
 import { isAIPromptCol } from 'nocodb-sdk'
-import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 import { AILongTextCellRenderer } from './AILongText'
 
 export const LongTextCellRenderer: CellRenderer = {
@@ -9,9 +9,11 @@ export const LongTextCellRenderer: CellRenderer = {
       return
     }
 
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader } = props
 
     const text = value?.toString() ?? ''
+
+    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
     if (!text) {
       return {
@@ -33,6 +35,23 @@ export const LongTextCellRenderer: CellRenderer = {
         height,
       })
 
+      if (isHovered) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 28,
+          buttonY: y + 7,
+          buttonSize: 18,
+          borderRadius: 3,
+          iconData: {
+            size: 13,
+            xOffset: (18 - 13) / 2,
+            yOffset: (18 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+        })
+      }
+
       return {
         x: xOffset,
         y: yOffset,
@@ -40,11 +59,27 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    if (isAIPromptCol(props.column?.columnObj)) {
-      return AILongTextCellRenderer.handleClick?.(props)
+    const { column, getCellPosition, row, mousePosition, makeCellEditable } = props
+    if (isAIPromptCol(column?.columnObj)) {
+      return AILongTextCellRenderer.handleClick!(props)
     } else {
+      const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+      if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+        makeCellEditable(row.rowMeta.rowIndex!, column)
+        return true
+      }
       return false
     }
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+    if (/^[a-zA-Z0-9]$/.test(e.key)) {
+      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      return true
+    }
+
+    return false
   },
   handleHover: async (props) => {
     if (isAIPromptCol(props.column?.columnObj)) {

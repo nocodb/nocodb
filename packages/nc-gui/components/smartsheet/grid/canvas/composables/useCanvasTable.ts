@@ -840,7 +840,7 @@ export function useCanvasTable({
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
     const isReadonlyExpandableUITypes =
-      readOnly.value &&
+      !isDataEditAllowed.value &&
       [
         UITypes.LongText,
         UITypes.Attachment,

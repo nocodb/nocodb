@@ -229,6 +229,7 @@ const {
 
   isFieldEditAllowed,
   isContextMenuAllowed,
+  isDataEditAllowed,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -1680,6 +1681,7 @@ const increaseMinHeightBy: Record<string, number> = {
                 :bulk-delete-all="bulkDeleteAll"
                 :call-add-new-row="callAddNewRow"
                 :copy-value="copyValue"
+                :read-only="!hasEditPermission"
                 :bulk-update-rows="bulkUpdateRows"
                 :expand-form="expandForm"
                 :selected-rows="selectedRows"
@@ -1713,8 +1715,8 @@ const increaseMinHeightBy: Record<string, number> = {
                       v-model="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row="editEnabled.row"
-                      :read-only="readOnly"
                       active
+                      :read-only="!isDataEditAllowed"
                       @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
                       @navigate="onNavigate"
                     />
@@ -1723,9 +1725,9 @@ const increaseMinHeightBy: Record<string, number> = {
                       v-model="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row-index="editEnabled.rowIndex"
-                      :read-only="readOnly"
                       active
                       edit-enabled
+                      :read-only="!isDataEditAllowed"
                       @save="updateOrSaveRow?.(...$event)"
                       @save-with-state="updateOrSaveRow?.(...$event)"
                       @navigate="onNavigate"

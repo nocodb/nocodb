@@ -27,23 +27,23 @@ const getUserIcon = (userMeta?: any) => {
   }
 }
 
-const usernameInitials = (displayName: string, email: string) => {
-  const displayNameSplit = displayName?.split(' ').filter((name) => name) ?? []
+const usernameInitials = (username: string, email: string) => {
+  const displayNameSplit = username.split(' ').filter((name) => name) ?? []
 
   if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
       return (displayNameSplit[0]?.[0] ?? '') + (displayNameSplit[1]?.[0] ?? '')
     } else {
-      return displayName.slice(0, 2)
+      return username.slice(0, 2)
     }
   } else {
-    return email?.split('@')?.[0]?.slice(0, 2) ?? ''
+    return email.split('@')?.[0]?.slice(0, 2) ?? ''
   }
 }
 
-const backgroundColor = (displayName: string, email: string, userIcon: ReturnType<typeof getUserIcon>) => {
+const backgroundColor = (username: string, email: string, userIcon: ReturnType<typeof getUserIcon>) => {
   // in comments we need to generate user icon from email
-  const color = displayName ? stringToColor(displayName) : email ? stringToColor(email) : '#FFFFFF'
+  const color = username ? stringToColor(username) : email ? stringToColor(email) : '#FFFFFF'
   const bgColor = '#F4F4F5'
   if (userIcon.icon) {
     switch (userIcon.iconType) {
@@ -101,7 +101,9 @@ export const UserFieldCellRenderer: CellRenderer = {
     let count = 0
     let line = 1
     for (const user of users) {
-      const displayName = user.display_name?.trim() || user.email!
+      const userDisplayName = user.display_name?.trim() ?? ''
+      const userEmail = user.email ?? ''
+      const displayName = userDisplayName || userEmail
 
       const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
@@ -151,11 +153,11 @@ export const UserFieldCellRenderer: CellRenderer = {
       const userIcon = getUserIcon(user.meta)
 
       const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
-      const initials = usernameInitials(displayName, user.email ?? '')
+      const initials = usernameInitials(userDisplayName, userEmail)
       const circleSize = 19
       const circleRadius = circleSize / 2
       const enableBackground = !isImage
-      const bgColor = isImage ? 'transparent' : backgroundColor(displayName, user.email ?? '', userIcon)
+      const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon)
       const textColor = isColorDark(bgColor) ? 'white' : 'black'
 
       const url = isImage ? (userIcon.icon as string[])?.[0] ?? '' : ''

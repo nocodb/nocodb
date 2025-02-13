@@ -5,6 +5,7 @@ import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
+import { useFillHandler } from './useFillHandler'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -43,7 +44,7 @@ export function useCanvasTable({
     width: number
     height: number
   } | null>(null)
-
+  const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
 
   const { isMobileMode } = useGlobal()
@@ -52,10 +53,13 @@ export function useCanvasTable({
   const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
+  const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
 
   const fields = inject(FieldsInj, ref([]))
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum}`] ?? 32))
+
+  const isAiFillMode = computed(() => (isMac() ? metaKey?.value : ctrlKey?.value))
 
   const columns = computed(() => {
     const cols = fields.value
@@ -107,6 +111,37 @@ export function useCanvasTable({
     return end - 1
   }
 
+  const getFillHandlerPosition = (): FillHandlerPosition | null => {
+    if (selection.value.isEmpty()) return null
+
+    if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
+      return null
+    }
+
+    let xPos = 0
+    const fixedCols = columns.value.filter((col) => col.fixed)
+
+    for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
+      if (columns.value[i].fixed) {
+        xPos += parseInt(columns.value[i].width, 10)
+      }
+    }
+
+    for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
+      xPos += parseInt(columns.value[i].width, 10)
+    }
+
+    if (selection.value.end.col >= fixedCols.length) {
+      xPos -= scrollLeft.value
+    }
+
+    return {
+      x: xPos,
+      y: (selection.value.end.row - rowSlice.value.start + 2) * rowHeight.value - 2,
+      size: 8,
+    }
+  }
+
   const { canvasRef, triggerRefreshCanvas } = useCanvasRender({
     width,
     height,
@@ -121,6 +156,18 @@ export function useCanvasTable({
     dragOver,
     hoverRow,
     selection,
+    getFillHandlerPosition,
+    isAiFillMode,
+    isFillMode,
+  })
+
+  const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
+    isFillMode,
+    selection,
+    canvasRef,
+    rowHeight,
+    getFillHandlerPosition,
+    triggerReRender: triggerRefreshCanvas,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
@@ -290,8 +337,15 @@ export function useCanvasTable({
     resizeMouseMove,
     startResize,
 
+    // Mouse Selection
     onMouseUpSelectionHandler,
     onMouseMoveSelectionHandler,
     onMouseDownSelectionHandler,
+
+    // Fill Handler
+    onMouseDownFillHandlerStart: handleFillStart,
+    onMouseMoveFillHandlerMove: handleFillMove,
+    onMouseUpFillHandlerEnd: handleFillEnd,
+    isFillHandlerActive: isFillMode,
   }
 }

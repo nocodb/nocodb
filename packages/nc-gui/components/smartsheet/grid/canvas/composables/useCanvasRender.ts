@@ -15,6 +15,9 @@ export function useCanvasRender({
   dragOver,
   hoverRow,
   selection,
+  isAiFillMode,
+  isFillMode,
+  getFillHandlerPosition,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -38,6 +41,9 @@ export function useCanvasRender({
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
   selection: Ref<CellRange>
+  isAiFillMode: ComputedRef<boolean>
+  isFillMode: Ref<boolean>
+  getFillHandlerPosition: () => FillHandlerPosition | null
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -132,6 +138,46 @@ export function useCanvasRender({
     }
   }
 
+  const calculateXPosition = (colIndex: number) => {
+    let xPos = 0
+    for (let i = 0; i < colIndex; i++) {
+      xPos += parseInt(columns.value[i]!.width, 10)
+    }
+    return xPos
+  }
+
+  const calculateSelectionWidth = (startCol: number, endCol: number) => {
+    let width = 0
+    for (let i = startCol; i <= endCol; i++) {
+      width += parseInt(columns.value[i]!.width, 10)
+    }
+    return width
+  }
+
+  const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
+    if (selection.value.isEmpty()) return
+
+    const fillHandler = getFillHandlerPosition()
+    if (!fillHandler) return
+    ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
+    ctx.beginPath()
+    ctx.arc(fillHandler.x, fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
+    ctx.fill()
+
+    if (isFillMode.value) {
+      ctx.setLineDash([2, 2])
+      ctx.strokeStyle = '#3366ff'
+      ctx.strokeRect(
+        calculateXPosition(selection.value.start.col) - scrollLeft.value,
+        selection.value.start.row * rowHeight.value + 32,
+        calculateSelectionWidth(selection.value.start.col, selection.value.end.col),
+        (selection.value.end.row - selection.value.start.row + 1) * rowHeight.value,
+      )
+
+      ctx.setLineDash([])
+    }
+  }
+
   function renderRows(ctx: CanvasRenderingContext2D) {
     const { start: startRowIndex, end: endRowIndex } = rowSlice.value
     const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -210,6 +256,7 @@ export function useCanvasRender({
 
         renderActiveState(ctx, activeState)
         activeState = null
+        renderFillHandle(ctx)
 
         // Draw fixed columns if any (overlay on top)
         const fixedCols = columns.value.filter((col) => col.fixed)
@@ -221,7 +268,6 @@ export function useCanvasRender({
             const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
             const colIdx = columns.value.findIndex((col) => col.id === column.id)
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
 
             if (isActive) {
               activeState = {
@@ -283,6 +329,7 @@ export function useCanvasRender({
       yOffset += rowHeight.value
     }
     renderActiveState(ctx, activeState)
+    renderFillHandle(ctx)
   }
 
   const renderDragIndicator = (ctx: CanvasRenderingContext2D) => {

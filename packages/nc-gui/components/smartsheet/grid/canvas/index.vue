@@ -111,6 +111,12 @@ const {
   onMouseMoveSelectionHandler,
   onMouseDownSelectionHandler,
   onMouseUpSelectionHandler,
+
+  // FillHandleHandler
+  onMouseDownFillHandlerStart,
+  onMouseMoveFillHandlerMove,
+  onMouseUpFillHandlerEnd,
+  isFillHandlerActive,
 } = useCanvasTable({
   rowHeightEnum: props.rowHeightEnum,
   cachedRows,
@@ -166,6 +172,9 @@ function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+
+  onMouseDownFillHandlerStart(e)
+  if (isFillHandlerActive.value) return
 
   selection.value.clear()
   let y = e.clientY - rect.top
@@ -283,11 +292,14 @@ function scrollToCell(row: number, column: number) {
 
 const handleMouseUp = (e: MouseEvent) => {
   e.preventDefault()
+  onMouseUpFillHandlerEnd()
   onMouseUpSelectionHandler(e)
 }
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (isDragging.value || resizeableColumn.value) {
+  if (isFillHandlerActive.value) {
+    onMouseMoveFillHandlerMove(e)
+  } else if (isDragging.value || resizeableColumn.value) {
     if (e.clientX >= window.innerWidth - 200) {
       containerRef.value.scrollLeft += 10
     } else if (e.clientX <= 200) {

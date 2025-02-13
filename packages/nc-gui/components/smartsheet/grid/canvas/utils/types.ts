@@ -18,6 +18,7 @@ export interface RenderSingleLineTextProps {
    * Need to render or just return truncated text
    */
   render?: boolean
+  isTagLabel?: boolean
 }
 
 export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {

@@ -35,15 +35,13 @@ export const PlainCellRenderer: CellRenderer = {
       t,
     })
 
-    if (!text) {
+    if (props.tag?.renderAsTag) {
+      return renderTagLabel(ctx, { ...props, text })
+    } else if (!text) {
       return {
         x,
         y,
       }
-    }
-
-    if (props.tag?.renderAsTag) {
-      return renderTagLabel(ctx, { ...props, text })
     } else {
       const { x: xOffset, y: yOffset } = renderSingleLineText(ctx, {
         x: x + padding,

@@ -241,6 +241,7 @@ export const renderSingleLineText = (
     render = true,
     underline,
     py = 10,
+    isTagLabel = false,
   } = params
   let { maxWidth = Infinity } = params
 
@@ -272,7 +273,7 @@ export const renderSingleLineText = (
   if (render) {
     const yOffset =
       verticalAlign === 'middle'
-        ? height && rowHeightInPx['1'] === height
+        ? height && (rowHeightInPx['1'] === height || isTagLabel)
           ? height / 2
           : fontSize / 2 + (py ?? 0)
         : 0 + (py ?? 0)
@@ -486,7 +487,7 @@ export const renderTag = (
 }
 
 export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendererOptions & { text: string }) => {
-  const { x, y, width, padding, textColor = '#4a5268', text } = props
+  const { x, y, height, width, padding, textColor = '#4a5268', text } = props
   const {
     tagPaddingX = 8,
     tagHeight = 20,
@@ -498,9 +499,11 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   const maxWidth = width - padding * 2 - tagPaddingX * 2
 
+  const initialY = rowHeightInPx['1'] === height ? y + height / 2 - tagHeight / 2 : y + padding - 4
+
   const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
     x: x + padding + tagPaddingX,
-    y: y + padding,
+    y: y,
     text,
     maxWidth,
     fontFamily: '500 13px Manrope',
@@ -509,7 +512,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   renderTag(ctx, {
     x: x + padding,
-    y: y + padding - 4,
+    y: initialY,
     width: textWidth + tagPaddingX * 2,
     height: tagHeight,
     radius: tagRadius,
@@ -520,16 +523,18 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   renderSingleLineText(ctx, {
     x: x + padding + tagPaddingX,
-    y: y,
+    y: initialY,
     text: truncatedText,
     maxWidth: maxWidth,
+    height: tagHeight,
     fontFamily: '500 13px Manrope',
     fillStyle: textColor,
+    isTagLabel: true,
   })
 
   return {
     x: x + padding + textWidth + tagPaddingX * 2,
-    y: y + padding - 4 + tagHeight,
+    y: initialY + tagHeight,
   }
 }
 

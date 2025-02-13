@@ -15,28 +15,29 @@ export function useColumnReorder(
   } | null>(null)
 
   const findColumnAtPosition = (x: number) => {
-    let totalFixedWidth = 0
+    let currentX = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (const col of fixedCols) {
-      totalFixedWidth += parseInt(col.width, 10)
+      const width = parseInt(col.width, 10)
+      if (x >= currentX && x < currentX + width) return null
+      currentX += width
     }
 
-    // If click is in fixed area, return null
-    if (x < totalFixedWidth) return null
-
-    let accWidth = 0
+    let accWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
     for (let i = 0; i < colSlice.value.start; i++) {
       if (!columns.value[i].fixed) {
         accWidth += parseInt(columns.value[i].width, 10)
       }
     }
 
-    let currentX = accWidth - scrollLeft.value
+    currentX = accWidth - scrollLeft.value
     for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
       const column = columns.value[i]
-      const width = parseInt(column.width, 10)
-      if (x >= currentX && x < currentX + width) return column
-      currentX += width
+      if (!column.fixed) {
+        const width = parseInt(column.width, 10)
+        if (x >= currentX && x < currentX + width) return column
+        currentX += width
+      }
     }
     return null
   }

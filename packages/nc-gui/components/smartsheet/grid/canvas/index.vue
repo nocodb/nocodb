@@ -257,8 +257,15 @@ const handleMouseDown = (e: MouseEvent) => {
   }
 }
 
-// Handle both resize and drag move events
 const handleMouseMove = (e: MouseEvent) => {
+  if (isDragging.value || resizeableColumn.value) {
+    if (e.clientX >= window.innerWidth - 200) {
+      containerRef.value.scrollLeft += 10
+    } else if (e.clientX <= 200) {
+      containerRef.value.scrollLeft -= 10
+    }
+  }
+
   resizeMouseMove(e)
 }
 </script>

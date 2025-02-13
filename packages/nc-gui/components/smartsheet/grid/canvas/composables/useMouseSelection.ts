@@ -10,6 +10,7 @@ export function useMouseSelection({
   triggerReRender,
   scrollToCell,
   rowSlice,
+  partialRowHeight,
 }: {
   selection: Ref<CellRange>
   activeCell: Ref<{ row: number; column: number }>
@@ -20,11 +21,12 @@ export function useMouseSelection({
   triggerReRender: () => void
   scrollToCell: (row: number, column: number) => void
   rowSlice: Ref<{ start: number; end: number }>
+  partialRowHeight: Ref<number>
 }) {
   const isSelecting = ref(false)
 
   const findCellFromPosition = (x: number, y: number) => {
-    const row = Math.floor((y - 32) / rowHeight.value) + rowSlice.value.start
+    const row = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
     let fixedWidth = 0
     const fixedCols = columns.value.filter((col) => col.fixed)

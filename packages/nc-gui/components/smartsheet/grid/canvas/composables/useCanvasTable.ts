@@ -1,4 +1,4 @@
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDataFetch } from './useDataFetch'
@@ -17,6 +17,7 @@ export function useCanvasTable({
   totalRows,
   loadData,
   scrollLeft,
+  scrollTop,
   width,
   height,
   scrollToCell,
@@ -28,6 +29,7 @@ export function useCanvasTable({
   totalRows: Ref<number>
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   scrollLeft: Ref<number>
+  scrollTop: Ref<number>
   width: Ref<number>
   height: Ref<number>
   scrollToCell: (row: number, column: number) => void
@@ -62,6 +64,8 @@ export function useCanvasTable({
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum}`] ?? 32))
 
+  const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
+
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value))
 
   const columns = computed(() => {
@@ -79,6 +83,7 @@ export function useCanvasTable({
           width: gridViewCol.width,
           fixed: f.pv,
           pv: !!f.pv,
+          columnObj: f,
         }
       })
       .filter((c) => !!c)
@@ -90,6 +95,9 @@ export function useCanvasTable({
       width: '80',
       fixed: true,
       pv: false,
+      columnObj: {
+        uidt: UITypes.AutoNumber,
+      },
     })
     return cols
   })
@@ -137,19 +145,21 @@ export function useCanvasTable({
       xPos -= scrollLeft.value
     }
 
+    const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
+
     return {
       x: xPos,
-      y: (selection.value.end.row - rowSlice.value.start + 2) * rowHeight.value - 2,
+      y: startY,
       size: 8,
     }
   }
-
   const { canvasRef, triggerRefreshCanvas } = useCanvasRender({
     width,
     height,
     columns,
     colSlice,
     scrollLeft,
+    scrollTop,
     cachedRows,
     rowSlice,
     rowHeight,
@@ -162,6 +172,7 @@ export function useCanvasTable({
     isFillMode,
     imageLoader,
     spriteLoader,
+    partialRowHeight,
   })
 
   const { fetchChunk, updateVisibleRows } = useDataFetch({
@@ -324,6 +335,7 @@ export function useCanvasTable({
     scrollLeft,
     rowHeight,
     scrollToCell,
+    partialRowHeight,
   })
 
   return {

@@ -193,8 +193,15 @@ watch(inputWrapperRef, () => {
 })
 
 const el = useCurrentElement()
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 onMounted(() => {
+  if (isCanvasInjected && !isExpanded.value && !isEditColumn.value && !isForm.value) {
+    forcedNextTick(() => {
+      openJSONEditor()
+    })
+  }
+
   const gridCell = el.value?.closest('td')
   if (gridCell && !readOnly.value) {
     gridCell.addEventListener('dblclick', openJSONEditor)

@@ -118,6 +118,28 @@ export function useCanvasRender({
       ctx.stroke()
     })
 
+    const plusColumnWidth = 60
+    ctx.fillStyle = '#f4f4f5'
+    ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
+
+    spriteLoader.renderIcon(ctx, {
+      icon: 'ncPlus',
+      size: 16,
+      color: '#6a7184',
+      x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
+      y: 8,
+    })
+
+    ctx.beginPath()
+    ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
+    ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
+    ctx.stroke()
+    ctx.strokeStyle = '#f4f4f5'
+    ctx.beginPath()
+    ctx.moveTo(xOffset - scrollLeft.value, 32)
+    ctx.lineTo(xOffset - scrollLeft.value, height.value)
+    ctx.stroke()
+
     // Fixed columns
     const fixedCols = columns.value.filter((col) => col.fixed)
     if (fixedCols.length) {

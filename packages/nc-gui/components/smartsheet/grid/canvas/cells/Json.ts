@@ -41,7 +41,7 @@ export const JsonCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: selected || pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -81,6 +81,7 @@ export const JsonCellRenderer: CellRenderer = {
     return false
   },
   async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    if (column.readonly) return
     const rowIndex = row?.rowMeta?.rowIndex
     if (typeof rowIndex !== 'number') return false
     const { x, y, width } = getCellPosition(column, rowIndex)

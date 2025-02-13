@@ -43,7 +43,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const truncatedDate = truncateText(ctx, dateStr, dateWidth - padding * 2)
     const textY = y + 16
 
-    ctx.fillStyle = pv ? '#4351e8' : '#4a5268'
+    ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
     ctx.fillText(truncatedDate, x + padding, textY)
 
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
@@ -53,9 +53,10 @@ export const DateTimeCellRenderer: CellRenderer = {
   },
 
   async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
+    if (!selected) return false
 
     const canvasContext = defaultOffscreen2DContext
 
@@ -107,7 +108,6 @@ export const DateTimeCellRenderer: CellRenderer = {
         return true
       }
     }
-
     return false
   },
 }

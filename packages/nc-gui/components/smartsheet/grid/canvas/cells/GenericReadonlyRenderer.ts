@@ -22,7 +22,7 @@ export const GenericReadOnlyRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 

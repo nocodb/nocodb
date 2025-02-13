@@ -5,7 +5,7 @@ import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const BelongsToCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell } = props
+    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell, readonly } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -55,7 +55,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       })
     }
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
       spriteLoader.renderIcon(ctx, {
         x: x + width - 26,
         y: y + 8,

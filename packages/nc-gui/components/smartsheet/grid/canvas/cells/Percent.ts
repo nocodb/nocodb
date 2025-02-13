@@ -25,7 +25,7 @@ export const PercentCellRenderer: CellRenderer = {
       return
     }
 
-    ctx.fillStyle = selected || pv ? '#4351e8' : '#4a5268'
+    ctx.fillStyle = selected || pv ? '#3366FF' : '#4a5268'
 
     renderSingleLineText(ctx, {
       x: x + width - padding,
@@ -34,12 +34,13 @@ export const PercentCellRenderer: CellRenderer = {
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-      fillStyle: pv ? '#4351e8' : '#4a5268',
+      fillStyle: pv ? '#3366FF' : '#4a5268',
       height,
     })
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key) && columnObj.title) {

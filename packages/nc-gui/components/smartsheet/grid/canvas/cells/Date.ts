@@ -39,7 +39,7 @@ export const DateCellRenderer: CellRenderer = {
         text: formattedDate,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -51,7 +51,8 @@ export const DateCellRenderer: CellRenderer = {
   },
 
   async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
+    if (!selected) return false
     const bound = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 8
 

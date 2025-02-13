@@ -1,4 +1,4 @@
-import { type TableType, UITypes, type ViewType, isAIPromptCol, type ColumnType } from 'nocodb-sdk';
+import { type ColumnType, type TableType, UITypes, type ViewType, isAIPromptCol } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -46,6 +46,7 @@ export function useGridCellHandler(params: {
     beforeRow?: string,
   ) => Promise<any>
   meta?: Ref<TableType>
+  hasEditPermission: ComputedRef<boolean>
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -149,7 +150,7 @@ export function useGridCellHandler(params: {
         height,
         selected,
         pv,
-        readonly,
+        readonly: readonly || !params.hasEditPermission.value,
         spriteLoader,
         imageLoader,
         actionManager,
@@ -179,7 +180,7 @@ export function useGridCellHandler(params: {
         y,
         text: value?.toString() ?? '',
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
         py: padding,
       })

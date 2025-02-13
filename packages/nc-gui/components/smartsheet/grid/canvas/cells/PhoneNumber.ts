@@ -25,7 +25,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: (isValid && selected) || pv ? '#4351e8' : textColor,
+        fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
         height,
         underline: isValid,
       })
@@ -38,6 +38,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return
     const columnObj = column.columnObj
 
     if (e.key.length === 1 && columnObj.title) {

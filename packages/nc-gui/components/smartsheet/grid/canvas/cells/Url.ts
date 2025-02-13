@@ -15,14 +15,14 @@ export const UrlCellRenderer: CellRenderer = {
     const textY = y + height / 2
     const textMetrics = ctx.measureText(truncatedText)
 
-    ctx.fillStyle = (isValid && selected) || pv ? '#4351e8' : '#4a5268'
+    ctx.fillStyle = (isValid && selected) || pv ? '#3366FF' : '#4a5268'
     ctx.fillText(truncatedText, x + padding, textY)
 
     if (isValid) {
       ctx.beginPath()
       ctx.moveTo(x + padding, textY + 6)
       ctx.lineTo(x + padding + textMetrics.width, textY + 6)
-      ctx.strokeStyle = selected ? '#4351e8' : '#4a5268'
+      ctx.strokeStyle = selected ? '#3366FF' : '#4a5268'
       ctx.lineWidth = 1
       ctx.stroke()
     }
@@ -64,6 +64,7 @@ export const UrlCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return
     const columnObj = column.columnObj
 
     if (e.key.length === 1) {

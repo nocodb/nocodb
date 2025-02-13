@@ -542,9 +542,9 @@ async function handleMouseDown(e: MouseEvent) {
 
       if (rowIndex > totalRows.value) return
 
-      activeCell.value.row = rowIndex
-      activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {
+        activeCell.value.row = rowIndex
+        activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
         const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
         const isWithinSelection = selection.value.isCellInRange({ row: rowIndex, col: columnIndex })
 

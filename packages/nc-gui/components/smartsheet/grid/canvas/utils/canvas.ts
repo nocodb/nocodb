@@ -1,7 +1,7 @@
 import { LRUCache } from 'lru-cache'
+import type { ColumnType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
-import type { ColumnType } from 'nocodb-sdk'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
   max: 1000,
@@ -203,7 +203,7 @@ export const renderCheckbox = (
 }
 
 const drawUnderline = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   { x, y, width, fontSize = 13, strokeStyle }: { x: number; y: number; width: number; fontSize?: number; strokeStyle?: string },
 ) => {
   ctx.beginPath()
@@ -220,7 +220,7 @@ const drawUnderline = (
 }
 
 export const renderSingleLineText = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderSingleLineTextProps,
 ): {
   text: string
@@ -503,7 +503,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
     x: x + padding + tagPaddingX,
-    y: y,
+    y,
     text,
     maxWidth,
     fontFamily: '500 13px Manrope',
@@ -523,10 +523,9 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   renderSingleLineText(ctx, {
     x: x + padding + tagPaddingX,
-    y: initialY,
+    y,
     text: truncatedText,
-    maxWidth: maxWidth,
-    height: tagHeight,
+    maxWidth,
     fontFamily: '500 13px Manrope',
     fillStyle: textColor,
     isTagLabel: true,

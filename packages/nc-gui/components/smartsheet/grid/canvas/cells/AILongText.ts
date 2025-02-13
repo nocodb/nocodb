@@ -237,7 +237,10 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
-    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+    if (
+      isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
+      isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
+    ) {
       makeCellEditable(row.rowMeta.rowIndex!, column)
       return true
     }
@@ -274,5 +277,18 @@ export const AILongTextCellRenderer: CellRenderer = {
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
     tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
     tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable, value, pk, actionManager } = ctx
+    if (column.readonly) return false
+    if (!value?.value && e.key === 'Enter') {
+      actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true })
+      return true
+    }
+    if (/^[a-zA-Z0-9]$/.test(e.key)) {
+      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      return true
+    }
+    return false
   },
 }

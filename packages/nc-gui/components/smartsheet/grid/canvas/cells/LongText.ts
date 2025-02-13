@@ -75,6 +75,9 @@ export const LongTextCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
+    if (isAIPromptCol(column?.columnObj)) {
+      return AILongTextCellRenderer.handleKeyDown?.(ctx)
+    }
     if (column.readonly) return
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
       makeCellEditable(row.rowMeta!.rowIndex!, column)

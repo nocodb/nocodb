@@ -161,8 +161,6 @@ export function useCanvasTable({
 
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
-  const isFillHanldeDisabled = computed(() => readOnly.value)
-
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit'))
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
@@ -325,6 +323,22 @@ export function useCanvasTable({
     },
   )
 
+  const isFillHanldeDisabled = computed(
+    () =>
+      !(
+        !isDataReadOnly.value &&
+        !readOnly.value &&
+        !editEnabled.value &&
+        (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
+        !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
+          ?.new &&
+        activeCell.value.column !== null &&
+        fields.value[activeCell.value.column] &&
+        totalRows.value &&
+        !isSelectionReadOnly.value
+      ),
+  )
+
   const totalWidth = computed(() => {
     return columns.value.reduce((acc, col) => acc + +(col.width?.split('px')?.[0] ?? 50), 0) + 256
   })
@@ -394,7 +408,7 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (selection.value.isEmpty() || isFillHanldeDisabled.value || isSelectionReadOnly.value) return null
+    if (isFillHanldeDisabled.value) return null
 
     if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null

@@ -115,7 +115,7 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
     )
 
     await loadViewColumns()
-
+    reloadViewDataHook.trigger()
     $e('a:fields:reorder')
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))

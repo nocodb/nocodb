@@ -1,4 +1,4 @@
-import { type ColumnType, type SelectOptionType, type SelectOptionsType, timeFormats } from 'nocodb-sdk'
+import { type ColumnType, type SelectOptionType, type SelectOptionsType, UITypes, timeFormats } from 'nocodb-sdk'
 
 export const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
@@ -55,3 +55,5 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
 
   return colOptions
 }
+
+export const NO_EDITABLE_CELL = [UITypes.Rating, UITypes.Checkbox]

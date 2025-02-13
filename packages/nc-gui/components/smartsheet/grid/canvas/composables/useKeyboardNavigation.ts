@@ -1,4 +1,5 @@
 import { type ColumnType } from 'nocodb-sdk'
+import { NO_EDITABLE_CELL } from '../utils/cell'
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -159,7 +160,10 @@ export function useKeyboardNavigation({
         if (e.shiftKey) return
         if (!editEnabled.value) {
           e.preventDefault()
-          makeCellEditable(currentRow, columns.value[currentCol]!)
+          const column = columns.value[activeCell.value.column]
+          if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt)) {
+            makeCellEditable(currentRow, columns.value[currentCol]!)
+          }
         } else {
           editEnabled.value = null
           activeCell.value.row++

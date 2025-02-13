@@ -15,6 +15,7 @@ import Aggregation from './context/Aggregation.vue'
 import { clearTextCache } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
+import { NO_EDITABLE_CELL } from './utils/cell'
 
 const props = defineProps<{
   totalRows: number
@@ -551,17 +552,12 @@ async function handleMouseDown(e: MouseEvent) {
           if (res) return
         }
       }
-      const NO_EDITABLE_CELL = [UITypes.Rating, UITypes.Checkbox]
       const columnUIType = clickedColumn.columnObj.uidt as UITypes
-      if (e.detail === 2 && columnUIType === UITypes.Lookup) {
+      if (NO_EDITABLE_CELL.includes(columnUIType)) {
+        onMouseDownSelectionHandler(e)
+      } else if (e.detail === 2 && columnUIType === UITypes.Lookup) {
         makeCellEditable(rowIndex, clickedColumn)
-      } else if (
-        e.detail === 2 ||
-        (e.detail === 1 &&
-          clickedColumn?.virtual &&
-          !isButton({ uidt: columnUIType }) &&
-          !NO_EDITABLE_CELL.includes(columnUIType))
-      ) {
+      } else if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual && !isButton({ uidt: columnUIType }))) {
         const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
         if (!supportedVirtuals.includes(columnUIType) && clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
         makeCellEditable(rowIndex, clickedColumn)

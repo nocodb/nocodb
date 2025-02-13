@@ -4,6 +4,8 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const value = inject(CellValueInj, ref(0))
 
 const column = inject(ColumnInj)!
@@ -134,6 +136,24 @@ watch(
   },
   { flush: 'post' },
 )
+
+onMounted(() => {
+  if (!isCanvasInjected) return
+
+  // if (false) {
+  //   setTimeout(() => {
+  //     openListDlg()
+  //     // if we open immediately, the background seems stuck and
+  //     // we cannot dismiss the modal
+  //   }, 100)
+  //   return
+  // }
+  setTimeout(() => {
+    openChildList()
+    // if we open immediately, the background seems stuck and
+    // we cannot dismiss the modal
+  }, 100)
+})
 </script>
 
 <template>
@@ -157,7 +177,7 @@ watch(
         <div class="flex-grow" />
 
         <div
-          v-if="!isUnderLookup"
+          :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
           class="!xs:hidden flex group justify-end group-hover:flex items-center"
           @keydown.enter.stop="openListDlg"

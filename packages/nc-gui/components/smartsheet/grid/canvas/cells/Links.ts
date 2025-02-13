@@ -2,7 +2,7 @@ import { renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', t } = props
+    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', t, spriteLoader, mousePosition } = props
     const {
       renderAsTag,
       tagPaddingX = 8,
@@ -49,9 +49,9 @@ export const LinksCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + padding + tagPaddingX,
-        y: y,
+        y,
         text: truncatedText,
-        maxWidth: maxWidth,
+        maxWidth,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: textColor,
       })
@@ -71,10 +71,23 @@ export const LinksCellRenderer: CellRenderer = {
         height,
       })
 
+      if (mousePosition.x >= x && mousePosition.x <= x + width && mousePosition.y >= y && mousePosition.y <= y + height) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncPlus',
+          x: x + width - 16 - padding,
+          y: y + 7,
+          size: 16,
+          color: '#374151',
+        })
+      }
+
       return {
         x: xOffset,
         y: yOffset,
       }
     }
+  },
+  handleClick({ event, mousePosition, value, column, row, getCellPosition, updateOrSaveRow }) {
+    console.log(mousePosition)
   },
 }

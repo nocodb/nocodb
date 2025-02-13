@@ -103,27 +103,34 @@ export function roundedRect(
   y: number,
   width: number,
   height: number,
-  radius: number,
+  radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
   { backgroundColor, borderColor }: { backgroundColor?: string; borderColor?: string } = {},
 ): void {
+  const {
+    topLeft = 0,
+    topRight = 0,
+    bottomRight = 0,
+    bottomLeft = 0,
+  } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
+
   ctx.beginPath()
-  ctx.moveTo(x + radius, y)
+  ctx.moveTo(x + topLeft, y)
 
   // Top right corner
-  ctx.lineTo(x + width - radius, y)
-  ctx.arcTo(x + width, y, x + width, y + radius, radius)
+  ctx.lineTo(x + width - topRight, y)
+  ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
 
   // Bottom right corner
-  ctx.lineTo(x + width, y + height - radius)
-  ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius)
+  ctx.lineTo(x + width, y + height - bottomRight)
+  ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
 
   // Bottom left corner
-  ctx.lineTo(x + radius, y + height)
-  ctx.arcTo(x, y + height, x, y + height - radius, radius)
+  ctx.lineTo(x + bottomLeft, y + height)
+  ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
 
   // Top left corner
-  ctx.lineTo(x, y + radius)
-  ctx.arcTo(x, y, x + radius, y, radius)
+  ctx.lineTo(x, y + topLeft)
+  ctx.arcTo(x, y, x + topLeft, y, topLeft)
 
   ctx.closePath()
 

@@ -1,6 +1,8 @@
 import { isBoxHovered, renderTag } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor }) => {
+    height = rowHeightInPx[1]!
+
     const {
       renderAsTag,
       tagPaddingX = 6,

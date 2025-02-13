@@ -530,23 +530,25 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
   }
 }
 
-export const getTimeValue = (modelValue: string | null) => {
+export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
+  const timeFormat = parseProp(col?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
+
   if (!modelValue) {
     return ''
   }
-  let dateTime = dayjs(modelValue)
+  let time = dayjs(modelValue)
 
-  if (!dateTime.isValid()) {
-    dateTime = dayjs(modelValue, 'HH:mm:ss')
+  if (!time.isValid()) {
+    time = dayjs(modelValue, 'HH:mm:ss')
   }
-  if (!dateTime.isValid()) {
-    dateTime = dayjs(`1999-01-01 ${modelValue}`)
+  if (!time.isValid()) {
+    time = dayjs(`1999-01-01 ${modelValue}`)
   }
-  if (!dateTime.isValid()) {
+  if (!time.isValid()) {
     return ''
   }
 
-  return dateTime.format('HH:mm')
+  return time.format(timeFormat)
 }
 
 export const getDurationValue = (modelValue: string | null, col: ColumnType) => {
@@ -741,7 +743,7 @@ export const parsePlainCellValue = (
     return getDateTimeValue(value, params)
   }
   if (isTime(col, abstractType)) {
-    return getTimeValue(value)
+    return getTimeValue(value, col)
   }
   if (isDuration(col)) {
     return getDurationValue(value, col)

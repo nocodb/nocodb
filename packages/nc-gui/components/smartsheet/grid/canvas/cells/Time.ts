@@ -22,20 +22,7 @@ export const TimeCellRenderer: CellRenderer = {
       }
     }
 
-    let text = ''
-
-    if (value) {
-      let time = dayjs(value)
-      if (!time.isValid()) {
-        time = dayjs(value, 'HH:mm:ss')
-      }
-      if (!time.isValid()) {
-        time = dayjs(`1999-01-01 ${value}`)
-      }
-      if (time.isValid()) {
-        text = time.format(timeFormat)
-      }
-    }
+    let text = getTimeValue(value, column)
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })

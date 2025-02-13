@@ -38,7 +38,7 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 

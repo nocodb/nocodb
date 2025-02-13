@@ -214,12 +214,13 @@ export const MultiSelectCellRenderer: CellRenderer = {
     makeCellEditable(row.rowMeta?.rowIndex, column)
     return true
   },
-
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (e.key === 'Enter') {
-      makeCellEditable(row.rowMeta?.rowIndex, column)
+    if (column.readonly) return false
+    if (e.key.length === 1 || e.key === 'Enter') {
+      makeCellEditable(row, column)
       return true
     }
+
     return false
   },
 }

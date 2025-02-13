@@ -73,6 +73,8 @@ export const SingleSelectCellRenderer: CellRenderer = {
     })
   },
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
+    if (column.columnObj.readonly) return false
+
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const padding = 10
@@ -96,5 +98,14 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     makeCellEditable(row, column)
     return true
+  },
+  async handleKeyDown({ e, row, column, makeCellEditable }) {
+    if (column.readonly) return false
+    if (e.key.length === 1 || e.key === 'Enter') {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
   },
 }

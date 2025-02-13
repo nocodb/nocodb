@@ -265,10 +265,9 @@ const onFocus = () => {
 
   isOpen.value = true
 }
-
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isGrid = inject(IsGridInj, ref(false))
-const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {

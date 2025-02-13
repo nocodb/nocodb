@@ -173,6 +173,10 @@ export function useKeyboardNavigation({
       case 'Escape':
         if (editEnabled.value) {
           editEnabled.value = null
+          selection.value.clear()
+          selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
+          selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
+          requestAnimationFrame(triggerReRender)
         }
         return
 

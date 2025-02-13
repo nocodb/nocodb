@@ -37,6 +37,8 @@ const _isExpanded = inject(JsonExpandInj, ref(false))
 
 const isExpanded = ref(false)
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const formatValue = (val: ModelValueType) => {
@@ -197,7 +199,14 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpanded.value && !isEditColumn.value && !isForm.value) {
+  if (
+    !isUnderLookup.value &&
+    isCanvasInjected &&
+    !isExpanded.value &&
+    !isEditColumn.value &&
+    !isForm.value &&
+    !isExpandedFormOpen.value
+  ) {
     forcedNextTick(() => {
       openJSONEditor()
     })

@@ -132,6 +132,9 @@ export function useGridCellHandler(params: {
       }
     }
 
+    // TODO: Reset all the styles here
+    ctx.textAlign = 'left'
+
     if (cellType) {
       return cellType.render(ctx, {
         value,

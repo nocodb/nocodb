@@ -23,7 +23,7 @@ export function useRowReorder({
   totalRows: Ref<number>
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
   triggerRefreshCanvas: () => void
-  scrollToCell: (row: number, column: number) => void
+  scrollToCell: (row?: number, column?: number) => void
 }) {
   const dragStartY = ref(0)
   const currentDragY = ref(0)

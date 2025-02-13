@@ -1,5 +1,5 @@
-import { UITypes, isOrderCol, isVirtualCol } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isOrderCol, isVirtualCol } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -12,6 +12,7 @@ import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
+import { useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -29,6 +30,10 @@ export function useCanvasTable({
   vSelectedAllRecords,
   selectedRows,
   updateRecordOrder,
+  expandRows,
+  updateOrSaveRow,
+  bulkUpdateRows,
+  bulkUpsertRows,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -40,11 +45,45 @@ export function useCanvasTable({
   scrollTop: Ref<number>
   width: Ref<number>
   height: Ref<number>
-  scrollToCell: (row: number, column: number) => void
+  scrollToCell: (row?: number, column?: number) => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
-  selectedRows: ComputedRef<Row[]>
+  selectedRows: Row[]
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  expandRows: ({
+    newRows,
+    newColumns,
+    cellsOverwritten,
+    rowsUpdated,
+  }: {
+    newRows: number
+    newColumns: number
+    cellsOverwritten: number
+    rowsUpdated: number
+  }) => Promise<{
+    continue: boolean
+    expand: boolean
+  }>
+  updateOrSaveRow: (
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    beforeRow?: string,
+  ) => Promise<any>
+  bulkUpsertRows: (
+    insertRows: Row[],
+    updateRows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    newColumns?: Partial<ColumnType>[],
+  ) => Promise<void>
+  bulkUpdateRows: (
+    rows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -73,7 +112,7 @@ export function useCanvasTable({
   const { isMobileMode } = useGlobal()
   const { t } = useI18n()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
-  const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
+  const { eventBus, isDefaultView, meta, allFilters, sorts, isPkAvail: isPrimaryKeyAvailable, view } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
@@ -86,12 +125,12 @@ export function useCanvasTable({
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
-  const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
+  const isInsertBelowDisabled = computed(() => !!allFilters.value?.length || !!sorts.value?.length || isPublicView.value)
 
-  const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPkAvail.value)
+  const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
   const isRowDraggingEnabled = computed(
-    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
+    () => !selectedRows.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
@@ -167,6 +206,53 @@ export function useCanvasTable({
     })
     return cols as unknown as CanvasGridColumn[]
   })
+
+  const isSelectedOnlyAI = computed(() => {
+    // selectedRange
+    if (selection.value.start.col === selection.value.end.col) {
+      const field = fields.value[selection.value.start.col]
+      if (!field) return { enabled: false, disabled: false }
+      return {
+        enabled: isAIPromptCol(field) || isAiButton(field),
+        disabled: !(field?.colOptions as ButtonType)?.fk_integration_id,
+      }
+    }
+
+    return {
+      enabled: false,
+      disabled: false,
+    }
+  })
+
+  const isSelectedOnlyScript = computed(() => {
+    // selectedRange
+    if (selection.value.start.col === selection.value.end.col) {
+      const field = fields.value[selection.value.start.col]
+      if (!field) return { enabled: false, disabled: false }
+      return {
+        enabled: isScriptButton(field),
+        disabled: false,
+      }
+    }
+
+    return {
+      enabled: false,
+      disabled: false,
+    }
+  })
+
+  const isSelectionReadOnly = computed(() =>
+    // if all the selected columns are not readonly
+    {
+      return (
+        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
+        (!selection.value.isEmpty() &&
+          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+            (_, i) => columns.value[selection.value.start.col + i]?.virtual,
+          ))
+      )
+    },
+  )
 
   const totalWidth = computed(() => {
     return columns.value.reduce((acc, col) => acc + +(col.width?.split('px')?.[0] ?? 50), 0) + 256
@@ -406,6 +492,54 @@ export function useCanvasTable({
     columns,
     scrollToCell,
     selection,
+    editEnabled,
+  })
+
+  const { clearCell, copyValue } = useCopyPaste({
+    totalRows,
+    activeCell,
+    selection,
+    columns,
+    editEnabled,
+    cachedRows,
+    scrollToCell,
+    expandRows,
+    view: view!,
+    meta: meta as Ref<TableType>,
+    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
+      const rowObj = cachedRows.value.get(ctx.row)
+      const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+      if (!rowObj || !columnObj) {
+        return
+      }
+
+      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        return
+      }
+
+      // See DateTimePicker.vue for details
+      const row = cachedRows.value.get(ctx.row)
+      if (row) {
+        const updatedRow = {
+          ...row,
+          rowMeta: {
+            ...row.rowMeta,
+            isUpdatedFromCopyNPaste: {
+              ...(row.rowMeta.isUpdatedFromCopyNPaste || {}),
+              [(ctx.updatedColumnTitle || columnObj.title) as string]: true,
+            },
+          },
+        }
+        cachedRows.value.set(ctx.row, updatedRow)
+      }
+
+      // update/save cell value
+      await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+    },
+    bulkUpdateRows,
+    bulkUpsertRows,
+    fetchChunk,
+    updateOrSaveRow,
   })
 
   const {
@@ -485,5 +619,23 @@ export function useCanvasTable({
     isRowReOrderEnabled: isRowDraggingEnabled,
     onMouseDownRowReorderStart: handleDragStart,
     isRowReorderActive: isDragging,
+
+    // Selections
+    isSelectedOnlyScript,
+    isSelectedOnlyAI,
+    isSelectionReadOnly,
+
+    // Insert Anywhere
+    isInsertBelowDisabled,
+    isOrderColumnExists,
+
+    // Meta Info
+    isPrimaryKeyAvailable,
+    meta,
+    view,
+
+    // Context Actions
+    clearCell,
+    copyValue,
   }
 }

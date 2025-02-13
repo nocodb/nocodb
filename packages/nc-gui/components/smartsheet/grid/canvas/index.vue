@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { isLinksOrLTAR, isVirtualCol, type ColumnType, type TableType, type ViewType } from 'nocodb-sdk'
+import { type ColumnType, type TableType, type ViewType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import type { Row } from '~/lib/types'
 
 const props = defineProps<{
   totalRows: number
@@ -12,32 +11,32 @@ const props = defineProps<{
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
-  updateOrSaveRow?: (
+  updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
-  deleteSelectedRows?: () => Promise<void>
+  deleteSelectedRows: () => Promise<void>
   clearInvalidRows?: () => void
-  deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
+  deleteRangeOfRows: (cellRange: CellRange) => Promise<void>
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
-  bulkUpdateRows?: (
+  bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
-  bulkDeleteAll?: () => Promise<void>
-  bulkUpsertRows?: (
+  bulkDeleteAll: () => Promise<void>
+  bulkUpsertRows: (
     insertRows: Row[],
-    updateRows: [],
+    updateRows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
   ) => Promise<void>
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
   rowSortRequiredRows: Row[]
   applySorting?: (newRows?: Row | Row[]) => void
@@ -78,6 +77,7 @@ const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
 const rowHeightEnum = toRef(props, 'rowHeightEnum')
 const selectedRows = toRef(props, 'selectedRows')
+const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
 // Refs
 const containerRef = ref()
@@ -88,6 +88,10 @@ const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+const _isContextMenuOpen = ref(false)
+
+const isExpandTableModalOpen = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
@@ -95,6 +99,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 // Composables
 const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
+const { isDataReadOnly } = useRoles()
 
 const {
   rowSlice,
@@ -132,6 +137,24 @@ const {
   // RowReorder
   onMouseDownRowReorderStart,
   isRowReOrderEnabled,
+
+  // Order Column
+  isOrderColumnExists,
+  isInsertBelowDisabled,
+
+  // Meta Information
+  isPrimaryKeyAvailable,
+  meta,
+  view,
+
+  // Selections
+  isSelectedOnlyScript,
+  isSelectedOnlyAI,
+  isSelectionReadOnly,
+
+  // Copy & Paste
+  copyValue,
+  clearCell,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -148,6 +171,10 @@ const {
   vSelectedAllRecords,
   selectedRows,
   updateRecordOrder,
+  expandRows,
+  updateOrSaveRow,
+  bulkUpdateRows,
+  bulkUpsertRows,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()
@@ -157,6 +184,16 @@ const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
   return rowsHeight + headerHeight + 256
+})
+
+const isContextMenuOpen = computed({
+  get: () => {
+    if (selectedRows.value.length && isDataReadOnly.value) return false
+    return _isContextMenuOpen.value
+  },
+  set: (val) => {
+    _isContextMenuOpen.value = val
+  },
 })
 
 const COLUMN_BUFFER_SIZE = 5
@@ -224,11 +261,13 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
-async function handleMouseDown(e: MouseEvent) {
+function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
+  isContextMenuOpen.value = false
+  contextMenuTarget.value = null
 
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -236,6 +275,7 @@ async function handleMouseDown(e: MouseEvent) {
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
+  // Column Dropdown Menu
   if (y < 32 && (e.button === 2 || e.detail === 2)) {
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
@@ -248,9 +288,11 @@ async function handleMouseDown(e: MouseEvent) {
         left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
       }
     }
+    triggerRefreshCanvas()
     return
   }
 
+  // Aggregation Dropdown Menu
   if (y > height.value - 36) {
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
@@ -262,10 +304,13 @@ async function handleMouseDown(e: MouseEvent) {
         width: `${clickedColumn.width}`,
         left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
       }
+      triggerRefreshCanvas()
       return
     }
   }
 
+  // Row Meta ie, First Column
+  // TODO: @DarkPhoenix2704 -> Reorder, Selection, Expand Row
   if (x < 80) {
     if (e.detail === 1 && isRowReOrderEnabled.value) {
       onMouseDownRowReorderStart(e)
@@ -275,14 +320,20 @@ async function handleMouseDown(e: MouseEvent) {
   onMouseDownFillHandlerStart(e)
   if (isFillHandlerActive.value) return
 
-  selection.value.clear()
+  if (e.button !== 2) {
+    // If not right click, clear the selection
+    selection.value.clear()
+  }
 
   if (y <= 32) {
+    // Column Resize
     startResize(e)
     if (!resizeableColumn.value) {
       startDrag(e.clientX - rect.left)
+      triggerRefreshCanvas()
     }
   } else {
+    // Row Selection
     const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value = { row: -1, column: -1 }
@@ -295,7 +346,19 @@ async function handleMouseDown(e: MouseEvent) {
         row: rowIndex,
         column: columns.value.findIndex((col) => col.id === clickedColumn.id),
       }
-
+      if (e.button === 2) {
+        const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+        if (selection.value.isEmpty()) {
+          selection.value.startRange({ row: rowIndex, col: columnIndex })
+          selection.value.endRange({ row: rowIndex, col: columnIndex })
+        }
+        contextMenuTarget.value = { row: rowIndex, col: columnIndex }
+        nextTick(() => {
+          isContextMenuOpen.value = true
+        })
+        triggerRefreshCanvas()
+        return
+      }
       if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
         if (clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
 
@@ -316,8 +379,13 @@ async function handleMouseDown(e: MouseEvent) {
   }
 }
 
-function scrollToCell(row: number, column: number) {
+function scrollToCell(row?: number, column?: number) {
   if (!containerRef.value) return
+
+  row = row ?? activeCell.value.row
+  column = column ?? activeCell.value.column
+
+  if (!row || !column) return
 
   const cellTop = row * rowHeight.value
   const cellBottom = cellTop + rowHeight.value + 96
@@ -428,6 +496,78 @@ onBeforeUnmount(() => {
   reloadVisibleDataHook?.off(triggerReload)
 })
 
+async function expandRows({
+  newRows,
+  newColumns,
+  cellsOverwritten,
+  rowsUpdated,
+}: {
+  newRows: number
+  newColumns: number
+  cellsOverwritten: number
+  rowsUpdated: number
+}) {
+  isExpandTableModalOpen.value = true
+  const options = {
+    continue: false,
+    expand: true,
+  }
+  const { close } = useDialog(resolveComponent('DlgRecordUpsert'), {
+    'modelValue': isExpandTableModalOpen,
+    'newRows': newRows,
+    'newColumns': newColumns,
+    'cellsOverwritten': cellsOverwritten,
+    'rowsUpdated': rowsUpdated,
+    'onUpdate:expand': closeDialog,
+    'onUpdate:modelValue': closeDlg,
+  })
+  function closeDlg() {
+    isExpandTableModalOpen.value = false
+    close(1000)
+  }
+  async function closeDialog(expand: boolean) {
+    options.continue = true
+    options.expand = expand
+    close(1000)
+  }
+  await until(isExpandTableModalOpen).toBe(false)
+  return options
+}
+
+async function saveEmptyRow(rowObj: Row, before?: string) {
+  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
+}
+
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+  clearInvalidRows?.()
+  if (rowSortRequiredRows.value.length) {
+    applySorting?.(rowSortRequiredRows.value)
+  }
+
+  const rowObj = callAddEmptyRow?.(row)
+
+  if (!skipUpdate && rowObj) {
+    saveEmptyRow(rowObj, before)
+  }
+
+  nextTick().then(() => {
+    scrollToCell(row ?? totalRows.value - 1, 0)
+  })
+
+  return rowObj
+}
+
+const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
+  const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
+
+  if (row) {
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
+  } else {
+    addEmptyRow()
+  }
+}
+
 onMounted(async () => {
   await syncCount()
   calculateSlices()
@@ -438,6 +578,12 @@ onMounted(async () => {
 
 <template>
   <div ref="wrapperRef" class="w-full h-full">
+    <div
+      v-if="isBulkOperationInProgress"
+      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/30"
+    >
+      <GeneralLoader size="regular" />
+    </div>
     <div ref="containerRef" class="relative w-full h-full overflow-auto border border-gray-200">
       <div
         class="relative"
@@ -446,17 +592,51 @@ onMounted(async () => {
           width: `${totalWidth}px`,
         }"
       >
-        <canvas
-          ref="canvasRef"
-          class="sticky top-0 left-0"
-          :height="`${height}px`"
-          :width="`${width}px`"
-          oncontextmenu="return false;"
-          @mousedown="handleMouseDown"
-          @mousemove="handleMouseMove"
-          @mouseup="handleMouseUp"
+        <NcDropdown
+          v-model:visible="isContextMenuOpen"
+          :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
+          :trigger="['contextmenu']"
+          overlay-class-name="nc-dropdown-grid-context-menu"
         >
-        </canvas>
+          <canvas
+            ref="canvasRef"
+            class="sticky top-0 left-0"
+            :height="`${height}px`"
+            :width="`${width}px`"
+            @mousedown="handleMouseDown"
+            @mousemove="handleMouseMove"
+            @mouseup="handleMouseUp"
+          >
+          </canvas>
+          <template #overlay>
+            <SmartsheetGridCanvasContextCell
+              v-model:context-menu-target="contextMenuTarget"
+              v-model:selected-all-records="vSelectedAllRecords"
+              :total-rows="totalRows"
+              :selection="selection"
+              :columns="columns"
+              :cached-rows="cachedRows"
+              :active-cell="activeCell"
+              :clear-cell="clearCell"
+              :is-primary-key-available="isPrimaryKeyAvailable"
+              :is-selection-read-only="isSelectionReadOnly"
+              :is-selection-only-a-i="isSelectedOnlyAI"
+              :is-selection-only-script="isSelectedOnlyScript"
+              :is-insert-below-disabled="isInsertBelowDisabled"
+              :is-order-column-exists="isOrderColumnExists"
+              :delete-row="deleteRow"
+              :delete-range-of-rows="deleteRangeOfRows"
+              :delete-selected-rows="deleteSelectedRows"
+              :bulk-delete-all="bulkDeleteAll"
+              :call-add-new-row="callAddNewRow"
+              :copy-value="copyValue"
+              :bulk-update-rows="bulkUpdateRows"
+              :expand-form="expandForm"
+              :selected-rows="selectedRows"
+              @click="isContextMenuOpen = false"
+            />
+          </template>
+        </NcDropdown>
       </div>
       <div
         v-if="editEnabled?.row"

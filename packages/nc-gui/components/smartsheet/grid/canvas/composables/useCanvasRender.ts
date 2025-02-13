@@ -55,7 +55,7 @@ export function useCanvasRender({
   spriteLoader: SpriteLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
-  selectedRows: ComputedRef<Row[]>
+  selectedRows: Row[]
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
@@ -276,7 +276,7 @@ export function useCanvasRender({
     let currentX = xOffset + 4
 
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-    const isDisabled = selectedRows.value.length >= 100 || vSelectedAllRecords.value
+    const isDisabled = selectedRows.length >= 100 || vSelectedAllRecords.value
 
     if (isChecked) {
       renderCheckbox(ctx, currentX, yOffset + (rowHeight.value - 16) / 2, isChecked, isDisabled, spriteLoader)

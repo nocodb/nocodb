@@ -1,5 +1,6 @@
-const MAX_SELECTION_LIMIT = 100
+import { type ColumnType } from 'nocodb-sdk'
 
+const MAX_SELECTION_LIMIT = 100
 export function useKeyboardNavigation({
   totalRows,
   activeCell,
@@ -12,8 +13,17 @@ export function useKeyboardNavigation({
   activeCell: Ref<{ row: number; column: number }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row: number, column: number) => void
+  scrollToCell: (row?: number, column?: number) => void
   selection: Ref<CellRange>
+  editEnabled: Ref<{
+    rowIndex: number
+    column: ColumnType
+    row: Row
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null>
 }) {
   const handleKeyDown = (e: KeyboardEvent) => {
     let moved = false

@@ -404,7 +404,9 @@ interface CanvasGridColumn {
   fixed: boolean
   virtual?: boolean
   pv: boolean
-  columnObj: ColumnType
+  columnObj: ColumnType & {
+    extra?: any | never
+  }
   aggregation: string
   agg_fn: string
   agg_prefix: string

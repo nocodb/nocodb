@@ -1,4 +1,6 @@
+import JsBarcode from 'jsbarcode'
 import { type ColumnType, type SelectOptionType, type SelectOptionsType, UITypes, timeFormats } from 'nocodb-sdk'
+import { LRUCache } from 'lru-cache'
 import { getI18n } from '../../../../../plugins/a.i18n'
 
 export const timeFormatsObj = {
@@ -111,4 +113,42 @@ export function getMouseClickType(e: MouseEvent) {
 export const showFieldEditWarning = () => {
   const { t } = getI18n().global
   message.warn(t('msg.info.computedFieldEditWarning'))
+}
+
+const barcodeCache = new LRUCache({
+  max: 500,
+  ttl: 1000 * 60 * 60,
+})
+
+export const validateBarcode = (value: string, column: ColumnType): { isValid: boolean; format: string } => {
+  if (!value) return { isValid: false, format: '' }
+
+  const meta = parseProp(column?.meta)
+  const format = meta.barcodeFormat || 'CODE128'
+
+  const cacheKey = `${value}-${format}`
+
+  const cachedResult = barcodeCache.get(cacheKey)
+  if (cachedResult !== undefined) {
+    return cachedResult as { isValid: boolean; format: string }
+  }
+
+  try {
+    const tempCanvas = document.createElement('canvas')
+
+    JsBarcode(tempCanvas, value.toString(), {
+      format,
+      displayValue: false,
+      lineColor: '#000000',
+      margin: 0,
+    })
+
+    const result = { isValid: true, format }
+    barcodeCache.set(cacheKey, result)
+    return result
+  } catch (error) {
+    const result = { isValid: false, format }
+    barcodeCache.set(cacheKey, result)
+    return result
+  }
 }

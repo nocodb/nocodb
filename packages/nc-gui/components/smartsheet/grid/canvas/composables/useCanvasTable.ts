@@ -477,6 +477,7 @@ export function useCanvasTable({
     renderCell,
     meta,
     editEnabled,
+    totalWidth,
   })
 
   const { handleDragStart } = useRowReorder({

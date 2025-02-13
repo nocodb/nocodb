@@ -82,6 +82,8 @@ export const renderAsCellLookupOrLtarValue = [
   UITypes.SingleSelect,
   UITypes.MultiSelect,
   UITypes.User,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
   UITypes.Checkbox,
   UITypes.Attachment,
   UITypes.Rating,

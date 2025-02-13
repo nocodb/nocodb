@@ -20,6 +20,7 @@ export function useKeyboardNavigation({
   addEmptyRow,
   addNewColumn,
   onActiveCellChanged,
+  handleCellKeyDown,
 }: {
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
@@ -46,9 +47,11 @@ export function useKeyboardNavigation({
   addNewColumn: () => void
   addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
   onActiveCellChanged: () => void
+  handleCellKeyDown: (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => Promise<boolean>
 }) {
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { $e } = useNuxtApp()
+  const meta = inject(MetaInj, ref())
 
   const handleKeyDown = async (e: KeyboardEvent) => {
     const activeDropdownEl = document.querySelector(
@@ -63,6 +66,20 @@ export function useKeyboardNavigation({
     if (isDrawerOrModalExist() || isLinkDropdownExist()) return
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
+
+    if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell()) {
+      const column = columns.value[activeCell.value.column]
+      const row = cachedRows.value.get(activeCell.value.row)
+      if (row && column?.columnObj) {
+        const value = row[column.columnObj.title]
+        const pk = extractPkFromRow(row.row, meta.value?.columns)
+        const res = await handleCellKeyDown({ e, column, row, pk, value })
+
+        if (res) {
+          return
+        }
+      }
+    }
 
     if (e.key === ' ') {
       const isRichModalOpen = isExpandedCellInputExist()

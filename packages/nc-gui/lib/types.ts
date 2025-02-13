@@ -482,6 +482,7 @@ interface CellRenderer {
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore?: CellRenderStore
+    setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
   }) => Promise<void>
   [key: string]: any
 }

@@ -101,10 +101,11 @@ export const LongTextCellRenderer: CellRenderer = {
   },
   handleClick: async (props) => {
     const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore } = props
+
     const isRichMode = column.columnObj?.meta?.richMode
 
     if (isRichMode) {
-      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore.links || []
+      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
 
       for (const link of links) {
         if (isBoxHovered(link, mousePosition)) {
@@ -140,7 +141,28 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition } = props
+    const { row, column, mousePosition, getCellPosition, cellRenderStore, setCursor } = props
+
+    const isRichMode = column.columnObj?.meta?.richMode
+
+    if (isRichMode) {
+      const links: { x: number; y: number; width: number; height: number; url: string }[] = cellRenderStore?.links || []
+
+      let hoveringAnyLink = false
+
+      for (const link of links) {
+        if (isBoxHovered(link, mousePosition)) {
+          hoveringAnyLink = true
+          break
+        }
+      }
+
+      if (hoveringAnyLink) {
+        setCursor('pointer')
+        return
+      }
+    }
+
     if (isAIPromptCol(column?.columnObj)) {
       AILongTextCellRenderer.handleHover?.(props)
     } else {

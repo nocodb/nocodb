@@ -22,7 +22,7 @@ export const LinksCellRenderer: CellRenderer = {
         x: x + padding,
         y,
         text,
-        maxWidth: width - padding * 2,
+        maxWidth: width - padding * 2 - 20,
         fontFamily: '500 13px Manrope',
         fillStyle: 'rgb(67, 81, 232)',
         height,

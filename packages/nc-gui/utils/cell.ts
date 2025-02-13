@@ -9,6 +9,7 @@ export const isBoolean = (column: ColumnType, abstractType?: any) =>
 export const isString = (column: ColumnType, abstractType: any) =>
   column.uidt === UITypes.SingleLineText || abstractType === 'string'
 export const isTextArea = (column: ColumnType) => column.uidt === UITypes.LongText
+export const isRichText = (column: ColumnType) => column.uidt === UITypes.LongText && !!parseProp(column?.meta).richMode
 export const isInt = (column: ColumnType, abstractType: any) => abstractType === 'integer'
 export const isFloat = (column: ColumnType, abstractType: any) => abstractType === 'float' || abstractType === UITypes.Number
 export const isDate = (column: ColumnType, abstractType: any) => abstractType === 'date' || column.uidt === UITypes.Date

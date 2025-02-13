@@ -822,6 +822,7 @@ export const renderMarkdown = (
     mousePosition = { x: 0, y: 0 },
     spriteLoader,
     cellRenderStore,
+    isTagLabel = false,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -830,7 +831,7 @@ export const renderMarkdown = (
   }
 
   if (ncIsUndefined(maxLines)) {
-    if (rowHeightInPx['1'] === height) {
+    if (rowHeightInPx['1'] === height || isTagLabel) {
       maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
     } else if (height) {
       maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
@@ -863,7 +864,11 @@ export const renderMarkdown = (
   }
 
   const yOffset =
-    verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
+    verticalAlign === 'middle'
+      ? height && (rowHeightInPx['1'] === height || isTagLabel)
+        ? height / 2
+        : fontSize / 2 + (py ?? 0)
+      : py ?? 0
 
   if (render) {
     ctx.textAlign = textAlign
@@ -923,8 +928,11 @@ export const renderTag = (
   }
 }
 
-export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendererOptions & { text: string }) => {
-  const { x, y, height, width, padding, textColor = '#4a5268', text } = props
+export const renderTagLabel = (
+  ctx: CanvasRenderingContext2D,
+  props: CellRendererOptions & { text: string; renderAsMarkdown?: boolean },
+) => {
+  const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
   const {
     tagPaddingX = 8,
     tagHeight = 20,
@@ -939,40 +947,82 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
 
   const initialY = rowHeightInPx['1'] === height ? y + height / 2 - tagHeight / 2 : y + padding - 4
 
-  const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
-    x: x + tagSpacing + tagPaddingX,
-    y,
-    text,
-    maxWidth,
-    fontFamily: '500 13px Manrope',
-    render: false,
-  })
+  const _renderTag = (textWidth: number) => {
+    renderTag(ctx, {
+      x: x + tagSpacing,
+      y: initialY,
+      width: textWidth + tagPaddingX * 2,
+      height: tagHeight,
+      radius: tagRadius,
+      fillStyle: tagBgColor,
+      borderColor: tagBorderColor,
+      borderWidth: tagBorderWidth,
+    })
+  }
 
-  renderTag(ctx, {
-    x: x + tagSpacing,
-    y: initialY,
-    width: textWidth + tagPaddingX * 2,
-    height: tagHeight,
-    radius: tagRadius,
-    fillStyle: tagBgColor,
-    borderColor: tagBorderColor,
-    borderWidth: tagBorderWidth,
-  })
+  if (renderAsMarkdown) {
+    const { width: textWidth } = renderMarkdown(ctx, {
+      x: x + tagSpacing + tagPaddingX,
+      y: initialY,
+      text,
+      maxWidth,
+      height: tagHeight,
+      fontFamily: '500 13px Manrope',
+      fillStyle: textColor,
+      isTagLabel: true,
+      mousePosition,
+      spriteLoader,
+      cellRenderStore: props.cellRenderStore,
+      render: false,
+    })
 
-  renderSingleLineText(ctx, {
-    x: x + tagSpacing + tagPaddingX,
-    y: initialY,
-    text: truncatedText,
-    maxWidth,
-    height: tagHeight,
-    fontFamily: '500 13px Manrope',
-    fillStyle: textColor,
-    isTagLabel: true,
-  })
+    _renderTag(textWidth)
 
-  return {
-    x: x + tagSpacing + textWidth + tagPaddingX * 2,
-    y: initialY + tagHeight,
+    renderMarkdown(ctx, {
+      x: x + tagSpacing + tagPaddingX,
+      y: initialY,
+      text,
+      maxWidth,
+      height: tagHeight,
+      fontFamily: '500 13px Manrope',
+      fillStyle: textColor,
+      isTagLabel: true,
+      mousePosition,
+      spriteLoader,
+      cellRenderStore: props.cellRenderStore,
+    })
+
+    return {
+      x: x + tagSpacing + textWidth + tagPaddingX * 2,
+      y: initialY + tagHeight,
+    }
+  } else {
+    const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+      x: x + tagSpacing + tagPaddingX,
+      y,
+      text,
+      maxWidth,
+      fontFamily: '500 13px Manrope',
+      render: false,
+    })
+
+    _renderTag(textWidth)
+
+    renderSingleLineText(ctx, {
+      x: x + tagSpacing + tagPaddingX,
+      y: initialY,
+      text: truncatedText,
+      maxWidth,
+      height: tagHeight,
+      fontFamily: '500 13px Manrope',
+      fillStyle: textColor,
+      isTagLabel: true,
+    })
+
+    return {
+      x: x + tagSpacing + textWidth + tagPaddingX * 2,
+      y: initialY + tagHeight,
+    }
   }
 }
 

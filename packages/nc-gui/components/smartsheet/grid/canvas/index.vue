@@ -1253,6 +1253,10 @@ const handleMouseMove = (e: MouseEvent) => {
     }
   }
 
+  if (mousePosition.y > height.value - 36) {
+    cursor = 'pointer'
+  }
+
   if (cursor) setCursor(cursor)
 }
 

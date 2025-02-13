@@ -104,8 +104,10 @@ provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
 const { height, width } = useElementSize(wrapperRef)
 const { renderCell } = useCellRenderer()
+const { isMobileMode } = useGlobal()
 
 // Computed
+const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 const columns = computed(() => {
   const cols = fields.value.map((f) => {
     const gridViewCol = gridViewCols.value[f.id]
@@ -139,7 +141,7 @@ const totalWidth = computed(() => {
 const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width, 10)))
 
 const totalHeight = computed(() => {
-  const rowsHeight = totalRows.value * 32
+  const rowsHeight = totalRows.value * rowHeight.value
   const headerHeight = 32
   return rowsHeight + headerHeight
 })
@@ -268,8 +270,8 @@ const calculateSlices = () => {
     setTimeout(calculateSlices, 50)
     return
   }
-  const startRowIndex = Math.max(0, Math.floor(scrollTop.value / 32))
-  const visibleRowCount = Math.ceil(containerRef.value.clientHeight / 32)
+  const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+  const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
   const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
   const newEndRow = Math.min(totalRows.value, Math.max(endRowIndex, startRowIndex + 50))
 
@@ -381,7 +383,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
 
     // Row background
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, yOffset, width.value, 32)
+    ctx.fillRect(0, yOffset, width.value, rowHeight.value)
 
     if (row) {
       let xOffset = initialXOffset
@@ -393,7 +395,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-        ctx.lineTo(xOffset - scrollLeft.value, yOffset + 32)
+        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
         ctx.stroke()
 
         const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
@@ -403,7 +405,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
             x: xOffset - scrollLeft.value,
             y: yOffset,
             width,
-            height: 32,
+            height: rowHeight.value,
           }
         }
 
@@ -419,7 +421,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
             x: xOffset - scrollLeft.value,
             y: yOffset,
             width,
-            height: 32,
+            height: rowHeight.value,
             row: row.row,
             selected: isActive,
             pv: column.pv,
@@ -444,12 +446,12 @@ function renderRows(ctx: CanvasRenderingContext2D) {
               x: xOffset,
               y: yOffset,
               width,
-              height: 32,
+              height: rowHeight.value,
             }
           }
 
           ctx.fillStyle = '#ffffff'
-          ctx.fillRect(xOffset, yOffset, width, 32)
+          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
           renderCell(
             ctx,
@@ -461,7 +463,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
               x: xOffset,
               y: yOffset,
               width,
-              height: 32,
+              height: rowHeight.value,
               row: row.row,
               selected: isActive,
               pv: column.pv,
@@ -471,7 +473,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
           ctx.strokeStyle = index === fixedCols.length - 1 ? '#f4f4f5' : '#d1d1d1'
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
-          ctx.lineTo(xOffset, yOffset + 32)
+          ctx.lineTo(xOffset, yOffset + rowHeight.value)
           ctx.stroke()
 
           xOffset += width
@@ -480,17 +482,17 @@ function renderRows(ctx: CanvasRenderingContext2D) {
     } else {
       // Loading state
       ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, yOffset, totalWidth.value, 32)
+      ctx.fillRect(0, yOffset, totalWidth.value, rowHeight.value)
     }
 
     // Bottom border for each row
     ctx.strokeStyle = '#e7e7e9'
     ctx.beginPath()
-    ctx.moveTo(0, yOffset + 32)
-    ctx.lineTo(width.value, yOffset + 32)
+    ctx.moveTo(0, yOffset + rowHeight.value)
+    ctx.lineTo(width.value, yOffset + rowHeight.value)
     ctx.stroke()
 
-    yOffset += 32
+    yOffset += rowHeight.value
   }
 
   if (activeState) {
@@ -525,7 +527,7 @@ function handleMouseClick(e: MouseEvent) {
   if (!rect) return
 
   const y = e.clientY - rect.top - 32
-  const rowIndex = Math.floor((y + scrollTop.value) / 32)
+  const rowIndex = Math.floor((y + scrollTop.value) / rowHeight.value)
 
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
     activeCell.value = { row: -1, column: -1 }
@@ -576,10 +578,10 @@ function handleMouseClick(e: MouseEvent) {
       editEnabled.value = {
         rowIndex,
         x: xOffset + scrollLeft.value,
-        y: (rowIndex + 1) * 32 - scrollTop.value,
+        y: (rowIndex + 1) * rowHeight.value - scrollTop.value,
         column: metaColumnById.value[clickedColumn.id],
         row: cachedRows.value.get(rowIndex),
-        height: 32,
+        height: rowHeight.value,
         width: parseInt(clickedColumn.width, 10),
       }
     }
@@ -647,7 +649,7 @@ onBeforeUnmount(() => {
       <div
         v-if="editEnabled"
         :style="{
-          top: `${32 * (editEnabled.rowIndex + 1)}px`,
+          top: `${rowHeight * (editEnabled.rowIndex + 1)}px`,
           left: `${editEnabled.x}px`,
           width: `${editEnabled.width}px`,
           height: `${editEnabled.height}`,

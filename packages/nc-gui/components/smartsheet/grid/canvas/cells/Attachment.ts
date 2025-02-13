@@ -63,6 +63,10 @@ function isImage(title?: string, mimetype?: string) {
 export const AttachmentCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly }) => {
     let attachments: Attachment[] = []
+
+    const rowHeight = pxToRowHeight[height]
+    const verticalPadding = rowHeight === 1 ? 3 : 8
+
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
     } catch {
@@ -77,7 +81,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
-      const buttonY = y + 8
+      const buttonY = y + verticalPadding
 
       const isButtonHovered = isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)
 
@@ -100,11 +104,9 @@ export const AttachmentCellRenderer: CellRenderer = {
       ctx.fillText('Add File(s)', buttonX + 28, buttonY + buttonHeight / 2)
       return
     }
-    const rowHeight = pxToRowHeight[height]
 
     const { getPossibleAttachmentSrc } = useAttachment()
     const horizontalPadding = 10
-    const verticalPadding = rowHeight === 1 ? 4 : 8
     const itemSize = rowHeight === 1 ? 24 : rowHeight === 2 ? 32 : 64
     const gap = 8
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
@@ -143,7 +145,7 @@ export const AttachmentCellRenderer: CellRenderer = {
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
-          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize, 8, {
+          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize, 4, {
             border: true,
             borderColor: '#D5D5D9',
             borderWidth: 1,
@@ -152,7 +154,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       } else {
         const icon = getAttachmentIcon(item.title, item.mimetype || item.type)
         ctx.beginPath()
-        ctx.roundRect(itemX, itemY, itemSize, itemSize, 8)
+        ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
         ctx.strokeStyle = '#D5D5D9'
         ctx.lineWidth = 1
         ctx.stroke()

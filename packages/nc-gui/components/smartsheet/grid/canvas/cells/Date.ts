@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
+import { renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -7,6 +7,14 @@ export const DateCellRenderer: CellRenderer = {
 
     const dateFormat = parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'
     let formattedDate = ''
+
+    if (!value && selected) {
+      ctx.fillStyle = '#989FB1'
+      ctx.font = '400 13px Manrope'
+      const truncatedFormat = truncateText(ctx, dateFormat, width - padding * 2)
+      ctx.fillText(truncatedFormat, x + padding, y + 16)
+      return { x, y }
+    }
 
     if (value) {
       const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
@@ -31,7 +39,7 @@ export const DateCellRenderer: CellRenderer = {
         text: formattedDate,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: selected || pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#4351e8' : textColor,
         height,
       })
 

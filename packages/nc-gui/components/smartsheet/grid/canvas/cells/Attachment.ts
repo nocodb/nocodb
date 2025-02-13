@@ -1,7 +1,7 @@
-import { imageLoader } from '../loaders/ImageLoader'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { CellRenderer } from '~/lib/types'
 
-const tryLoadImage = async (urls: string[]): Promise<HTMLImageElement | undefined> => {
+const tryLoadImage = async (urls: string[], imageLoader: ImageWindowLoader): Promise<HTMLImageElement | undefined> => {
   for (const url of urls) {
     const img = imageLoader.loadOrGetImage(url)
     if (img) return img
@@ -50,7 +50,7 @@ interface Attachment {
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
-  render: async (ctx, { value, x, y, width, height }) => {
+  render: async (ctx, { value, x, y, width, height, imageLoader }) => {
     const { getPossibleAttachmentSrc } = useAttachment()
     const padding = 8
     const itemSize = height - padding * 2
@@ -75,7 +75,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       if (isImage) {
         const urls = getPossibleAttachmentSrc(item, 'tiny')
-        const img = await tryLoadImage(urls)
+        const img = await tryLoadImage(urls, imageLoader)
 
         if (img) {
           ctx.save()

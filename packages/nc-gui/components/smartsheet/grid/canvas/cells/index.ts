@@ -1,4 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -54,6 +56,8 @@ export function useCellRenderer() {
       selected = false,
       pv = false,
       readonly = false,
+      spriteLoader,
+      imageLoader,
     }: {
       value: any
       row: any
@@ -64,6 +68,8 @@ export function useCellRenderer() {
       selected?: boolean
       pv?: boolean
       readonly?: boolean
+      spriteLoader: SpriteLoader
+      imageLoader: ImageWindowLoader
     },
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -80,6 +86,8 @@ export function useCellRenderer() {
         selected,
         pv,
         readonly,
+        spriteLoader,
+        imageLoader,
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

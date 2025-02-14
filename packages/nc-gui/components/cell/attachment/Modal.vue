@@ -24,8 +24,14 @@ const dropZoneRef = ref<HTMLDivElement>()
 const sortableRef = ref<HTMLDivElement>()
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
+const onDropAction = function (...args: any[]) {
+  const draggingBool = unref(dragging)
+  if (!draggingBool) {
+    onDrop.apply(this, args)
+  }
+}
 
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const { isOverDropZone } = useDropZone(dropZoneRef, onDropAction)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
@@ -112,7 +118,6 @@ const isNewAttachmentModalOpen = ref(false)
 
       <div
         ref="sortableRef"
-        :class="{ dragging }"
         class="grid max-h-140 overflow-auto nc-scrollbar-md md:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4 relative"
       >
         <CellAttachmentCard

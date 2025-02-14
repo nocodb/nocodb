@@ -312,10 +312,6 @@ export function useKeyboardNavigation({
 
       if (moved) {
         scrollToCell(activeCell.value.row, activeCell.value.column)
-        const column = columns.value[activeCell.value.column]
-        if (column && [UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)) {
-          makeCellEditable(activeCell.value.row, column)
-        }
       } else if (movedSelection) {
         scrollToCell(selection.value._end!.row, selection.value._end!.col)
       }

@@ -1,11 +1,22 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
+import { TypeConversionError } from '~/error/type-conversion.error'
+import { SelectTypeConversionError } from '~/error/select-type-conversion.error'
+import { ComputedTypePasteError } from '~/error/computed-type-paste.error'
 import type { AppInfo } from '~/composables/useGlobal/types'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
+  args: {
+    to: UITypes
+    value: string
+    column: ColumnType
+    appInfo: AppInfo
+    files?: FileList | File[]
+    oldValue?: unknown
+    meta?: any
+  },
   isMysql = false,
   isMultiple = false,
 ) {
@@ -31,7 +42,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeError(`Cannot convert '${value}' to number`)
+          throw new TypeConversionError(`Cannot convert '${value}' to number`)
         }
       }
       return parsedNumber
@@ -41,7 +52,7 @@ export default function convertCellData(
     case UITypes.Decimal: {
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {
-        throw new TypeError(`Invalid value`)
+        throw new TypeConversionError(`Invalid value`)
       }
       return value
     }
@@ -51,7 +62,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeError(`Cannot convert '${value}' to rating`)
+          throw new TypeConversionError(`Cannot convert '${value}' to rating`)
         }
       }
       return parsedNumber
@@ -76,12 +87,20 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error(`Not a valid '${to}' value`)
+          throw new TypeConversionError(`Not a valid '${to}' value`)
         }
       }
       return to === UITypes.Date
         ? parsedDateOrDateTime.format('YYYY-MM-DD')
         : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+    }
+    case UITypes.Duration: {
+      const conversionResult = convertDurationToSeconds(value, args.meta?.duration ?? 0)
+      if (conversionResult._isValid) {
+        return conversionResult._sec
+      } else {
+        throw new TypeConversionError('Invalid value')
+      }
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)
@@ -96,7 +115,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Not a valid time value')
+          throw new TypeConversionError('Not a valid time value')
         }
       }
       return parsedTime.format(dateFormat)
@@ -140,7 +159,7 @@ export default function convertCellData(
           if (isMultiple) {
             return null
           } else {
-            throw new Error('Invalid attachment data')
+            throw new TypeConversionError('Invalid attachment data')
           }
         }
 
@@ -230,7 +249,9 @@ export default function convertCellData(
       const validVals = vals.filter((v) => availableOptions.includes(v))
 
       // return null if no valid values
-      if (validVals.length === 0) return null
+      if (validVals.length === 0) {
+        throw new SelectTypeConversionError('No valid values found')
+      }
 
       return validVals.join(',')
     }
@@ -248,7 +269,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Invalid user data')
+          throw new TypeConversionError('Invalid user data')
         }
       }
 
@@ -266,12 +287,12 @@ export default function convertCellData(
           !(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal)) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
         ) {
-          throw new Error(`Unsupported conversion for ${to}`)
+          throw new TypeConversionError(`Unsupported conversion for ${to}`)
         }
 
         return parsedVal
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new TypeConversionError(`Unsupported conversion for ${to}`)
       }
     }
     case UITypes.Links: {
@@ -292,12 +313,12 @@ export default function convertCellData(
           ) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
         ) {
-          throw new Error(`Unsupported conversion for ${to}`)
+          throw new TypeConversionError(`Unsupported conversion for ${to}`)
         }
 
         return parsedVal
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new TypeConversionError(`Unsupported conversion for ${to}`)
       }
     }
     case UITypes.Email: {
@@ -313,7 +334,7 @@ export default function convertCellData(
       if (isMultiple) {
         return undefined
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new ComputedTypePasteError(to)
       }
     }
     case UITypes.JSON: {
@@ -321,7 +342,7 @@ export default function convertCellData(
         JSON.parse(value)
         return value
       } catch (ex) {
-        throw new TypeError(`Invalid JSON value`)
+        throw new TypeConversionError(`Invalid JSON value`)
       }
     }
     default:

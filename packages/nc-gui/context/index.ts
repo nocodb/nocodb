@@ -113,3 +113,6 @@ export const CanvasCellEventDataInj: InjectionKey<
     keyboardKey?: string
   }>
 > = Symbol('canvas-cell-event-data-injection')
+
+// triggering this hook from within an editable cell will turn it into "selection state"
+export const CanvasSelectCellInj: InjectionKey<EventHook> = Symbol('canvas-select-cell-inj')

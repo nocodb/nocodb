@@ -538,18 +538,25 @@ export function useCanvasRender({
 
   const calculateXPosition = (colIndex: number) => {
     let xPos = 0
+    const includeNonFixed = false
     for (let i = 0; i < colIndex; i++) {
       xPos += parseInt(columns.value[i]!.width, 10)
     }
-    return xPos
+    // add additional 1 px if the column is non-fixed since there is a border between fixed and non-fixed columns
+    return xPos + (columns.value[colIndex].fixed ? 0 : 1)
   }
 
   const calculateSelectionWidth = (startCol: number, endCol: number) => {
     let width = 0
+    let includeNonFixed = false
+    let isIncludeFixed = false
     for (let i = startCol; i <= endCol; i++) {
       width += parseInt(columns.value[i]!.width, 10)
+      includeNonFixed = includeNonFixed || !columns.value[i]!.fixed
+      isIncludeFixed = isIncludeFixed || columns.value[i]!.fixed
     }
-    return width
+    // add additional 1 px if the columns include both fixed and non-fixed columns
+    return width + (includeNonFixed && isIncludeFixed ? 1 : 0)
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D) => {

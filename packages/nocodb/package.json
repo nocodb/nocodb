@@ -236,7 +236,7 @@
     "nodemon": "^3.1.9",
     "pino-pretty": "^10.3.1",
     "prettier": "^2.8.8",
-    "run-script-webpack-plugin": "^0.2.1",
+    "run-script-webpack-plugin": "0.2.0",
     "supertest": "^6.3.4",
     "ts-checker-rspack-plugin": "^1.1.1",
     "ts-jest": "29.1.2",

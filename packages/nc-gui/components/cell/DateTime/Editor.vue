@@ -28,6 +28,7 @@ const editable = inject(EditModeInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -329,6 +330,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false

@@ -200,6 +200,11 @@ watch(cowriterFormView, async () => {
         draggable=".item"
         group="form-inputs"
         class="h-full"
+        :filter="
+          (event) => {
+            return !isMousePointerType(event)
+          }
+        "
         @change="onMove($event)"
         @start="drag = true"
         @end="drag = false"

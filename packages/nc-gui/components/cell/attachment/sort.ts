@@ -46,6 +46,9 @@ export function useSortable(
       onStart: onSortStart,
       onEnd: onSortEnd,
       revertOnSpill: true,
+      filter(event) {
+        return !isMousePointerType(event)
+      },
     })
   }
 

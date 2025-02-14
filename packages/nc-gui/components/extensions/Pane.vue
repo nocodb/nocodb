@@ -244,6 +244,11 @@ onMounted(() => {
             :class="{
               'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
             }"
+            :filter="
+              (event) => {
+                return !isMousePointerType(event)
+              }
+            "
             @start="(e) => e.target.classList.add('grabbing')"
             @end="(e) => e.target.classList.remove('grabbing')"
             @change="onMove($event)"

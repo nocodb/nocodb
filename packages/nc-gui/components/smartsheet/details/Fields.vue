@@ -1742,6 +1742,11 @@ const rightPanelWidth = computed(() => {
                 :disabled="isLocked"
                 item-key="id"
                 data-testid="nc-field-list-wrapper"
+                :filter="
+                  (event) => {
+                    return !isMousePointerType(event)
+                  }
+                "
                 @change="onMove($event)"
               >
                 <template #item="{ element: field }">

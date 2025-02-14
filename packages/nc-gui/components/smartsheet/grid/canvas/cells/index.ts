@@ -237,7 +237,7 @@ export function useGridCellHandler(params: {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
-
+    canvasCellEvents.keyboardKey = ''
     if (cellHandler?.handleClick) {
       return await cellHandler.handleClick({
         ...ctx,
@@ -287,7 +287,7 @@ export function useGridCellHandler(params: {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
-
+    canvasCellEvents.keyboardKey = ''
     if (cellHandler?.handleHover) {
       return await cellHandler.handleHover({
         ...ctx,

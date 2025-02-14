@@ -195,7 +195,7 @@
     "mocha": "^10.8.2",
     "node-loader": "^2.1.0",
     "prettier": "^2.8.8",
-    "run-script-webpack-plugin": "^0.2.1",
+    "run-script-webpack-plugin": "0.2.0",
     "supertest": "^6.3.4",
     "ts-checker-rspack-plugin": "^1.1.1",
     "ts-jest": "29.2.5",

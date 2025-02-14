@@ -95,7 +95,9 @@ export const DateCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return false
-    if (e.key.length === 1) {
+    const title = column.columnObj.title
+    if (e.key.length === 1 && title) {
+      row.row[title] = ''
       makeCellEditable(row, column)
       return true
     }

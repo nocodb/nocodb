@@ -53,6 +53,8 @@ export function useGridCellHandler(params: {
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
+  const canvasCellEvents = reactive<ExtractInjectedReactive<typeof CanvasCellEventDataInj>>({})
+  provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()
   const { isMssql, isMysql, isXcdbBase } = baseStore
@@ -254,7 +256,7 @@ export function useGridCellHandler(params: {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
-
+    canvasCellEvents.keyboardKey = ctx.e.key
     if (cellHandler?.handleKeyDown) {
       return await cellHandler.handleKeyDown({
         ...ctx,

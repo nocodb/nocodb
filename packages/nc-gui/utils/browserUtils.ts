@@ -58,3 +58,8 @@ export function forcedNextTick(cb: () => void) {
     })
   })
 }
+
+export function isSinglePrintableKey(key: string) {
+  // handles other languages as well which key.length === 1 might not
+  return [...key].length === 1
+}

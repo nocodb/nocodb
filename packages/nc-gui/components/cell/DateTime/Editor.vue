@@ -32,6 +32,7 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
@@ -447,6 +448,10 @@ onMounted(() => {
     isDatePicker.value = true
     open.value = true
     forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
       isDatePicker.value = true
       open.value = true
     })

@@ -17,9 +17,10 @@ export const YearCellRenderer: CellRenderer = {
     if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Manrope'
+      const placeholderY = Math.max(y, 36)
       const truncatedFormat = truncateText(ctx, 'YYYY', width - padding * 2, true)
-      ctx.fillText(truncatedFormat.text, x + padding, y + 16)
-      return { x, y }
+      ctx.fillText(truncatedFormat.text, x + padding, placeholderY + 16)
+      return { x, y: placeholderY }
     }
 
     if (!text) {

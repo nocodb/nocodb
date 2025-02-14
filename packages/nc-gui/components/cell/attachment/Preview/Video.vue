@@ -54,9 +54,23 @@ const handleError = async () => {
     :class="{
       [props.class]: props.class,
     }"
-    class="videoplayer !min-w-128 !min-h-72 w-full"
+    class="videoplayer !min-w-128 !min-h-72 w-full h-auto"
     @error="handleError"
   >
     <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
   </video>
 </template>
+
+<style lang="scss">
+.plyr.plyr--video {
+  max-height: 100%;
+  height: auto;
+}
+.plyr > .plyr__video-wrapper {
+  display: flex;
+}
+
+.plyr video.h-auto {
+  height: auto;
+}
+</style>

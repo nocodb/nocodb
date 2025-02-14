@@ -308,7 +308,7 @@
     "you": "Você",
     "read": "Lida",
     "unread": "Não lida",
-    "shared": "Shared",
+    "shared": "Compartilhado",
     "organization": "Organization"
   },
   "objects": {
@@ -676,7 +676,7 @@
     "customUrl": "URL Personalizada"
   },
   "labels": {
-    "failed": "Failed",
+    "failed": "Falhou",
     "succeeded": "Succeeded",
     "noImage": "Sem Imagem",
     "quickNavigation": "Navegação Rápida",

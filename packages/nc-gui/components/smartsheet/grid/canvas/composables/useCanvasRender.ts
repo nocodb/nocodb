@@ -308,7 +308,10 @@ export function useCanvasRender({
       ctx.strokeStyle = '#f4f4f5'
       ctx.beginPath()
       ctx.moveTo(xOffset - scrollLeft.value, 32)
-      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value)
+      ctx.lineTo(
+        xOffset - scrollLeft.value,
+        (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
+      )
       ctx.stroke()
     }
 
@@ -537,11 +540,6 @@ export function useCanvasRender({
       return false
     }
 
-    ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
-    ctx.beginPath()
-    ctx.arc(fillHandler.x + (fillHandler.fixedCol ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
-    ctx.fill()
-
     if (isFillMode.value) {
       const startY = -partialRowHeight.value + 33 + (selection.value.start.row - rowSlice.value.start) * rowHeight.value
 
@@ -555,6 +553,11 @@ export function useCanvasRender({
       )
       ctx.setLineDash([])
     }
+
+    ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
+    ctx.beginPath()
+    ctx.arc(fillHandler.x + (fillHandler.fixedCol ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
+    ctx.fill()
 
     // check if the fill handle is hovered
     const isHovered =

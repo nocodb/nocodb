@@ -188,7 +188,7 @@ const handleTouchEnd = () => {
   lastTouchX.value = 0
 }
 
-const scrollTo = (left, top) => {
+const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
   if (left !== undefined) {
     const maxScrollLeft = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
     scrollLeft.value = Math.max(0, Math.min(left, maxScrollLeft))
@@ -222,6 +222,7 @@ defineExpose({
     left: scrollLeft.value,
     top: scrollTop.value,
   }),
+  wrapperRef,
 })
 </script>
 

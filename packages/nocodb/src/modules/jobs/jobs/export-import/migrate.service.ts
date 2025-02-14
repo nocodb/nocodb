@@ -42,6 +42,10 @@ export class MigrateService {
       throw new Error(`Export failed for source '${source.id}'`);
     }
 
+    const exportedUsers = await this.exportService.serializeUsers(context, {
+      baseId: base.id,
+    });
+
     const stream = new Readable({
       read() {},
     });
@@ -73,6 +77,11 @@ export class MigrateService {
         title: base.title,
         meta: base.meta,
       },
+    });
+
+    pushStream({
+      type: 'users',
+      data: exportedUsers,
     });
 
     pushStream({

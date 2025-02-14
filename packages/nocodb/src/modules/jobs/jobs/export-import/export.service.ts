@@ -14,7 +14,16 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { Base, Comment, Filter, Hook, Model, Source, View } from '~/models';
+import {
+  Base,
+  BaseUser,
+  Comment,
+  Filter,
+  Hook,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   getViewAndModelByAliasOrId,
@@ -517,6 +526,25 @@ export class ExportService {
     return serializedModels;
   }
 
+  async serializeUsers(context: NcContext, param: { baseId: string }) {
+    const { baseId } = param;
+
+    const base = await Base.get(context, baseId);
+
+    if (!base) return NcError.baseNotFound(baseId);
+
+    const users = await BaseUser.getUsersList(context, { base_id: base.id });
+
+    const serializedUsers = users.map((user) => ({
+      email: user.email,
+      display_name: user.display_name,
+      base_role: user.roles,
+      workspace_role: (user as any).workspace_roles,
+    }));
+
+    return serializedUsers;
+  }
+
   async streamModelDataAsCsv(
     context: NcContext,
     param: {
@@ -644,12 +672,12 @@ export class ExportService {
               case UITypes.CreatedBy:
               case UITypes.LastModifiedBy:
                 if (v) {
-                  const userIds = [];
+                  const userEmails = [];
                   const userRecord = Array.isArray(v) ? v : [v];
                   for (const user of userRecord) {
-                    userIds.push(user.id);
+                    userEmails.push(user.email);
                   }
-                  row[colId] = userIds.join(',');
+                  row[colId] = userEmails.join(',');
                 } else {
                   row[colId] = v;
                 }

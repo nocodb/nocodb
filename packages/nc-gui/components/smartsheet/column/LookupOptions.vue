@@ -54,13 +54,17 @@ const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
 
+// Todo: Add backend api level validation for unsupported fields
+const unsupportedUITypes = [UITypes.Button, UITypes.Links]
+
 const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
   return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
-      vModel.value.fk_lookup_column_id === c.id || (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
+      vModel.value.fk_lookup_column_id === c.id ||
+      (!isSystemColumn(c) && c.id !== vModel.value.id && !unsupportedUITypes.includes(c.uidt)),
   )
 })
 

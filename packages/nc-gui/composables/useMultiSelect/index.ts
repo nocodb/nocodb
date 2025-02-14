@@ -988,7 +988,7 @@ export function useMultiSelect(
             if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               if (columnObj.uidt === UITypes.LongText) {
                 if (rowObj.row[columnObj.title] === '<br />' || rowObj.row[columnObj.title] === '<br>') {
-                  rowObj.row[columnObj.title] = e.key 
+                  rowObj.row[columnObj.title] = e.key
                 } else if (parseProp(columnObj.meta).richMode) {
                   rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }
@@ -1203,6 +1203,7 @@ export function useMultiSelect(
                 isMysql(meta.value?.source_id),
                 true,
               )
+              validateColumnValue(column, pasteValue)
 
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
@@ -1557,6 +1558,7 @@ export function useMultiSelect(
             },
             isMysql(meta.value?.source_id),
           )
+          validateColumnValue(columnObj, pasteValue)
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
             const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
@@ -1643,6 +1645,7 @@ export function useMultiSelect(
                   isMysql(meta.value?.source_id),
                   true,
                 )
+                validateColumnValue(col, pasteValue)
               }
 
               props.push(col.title)

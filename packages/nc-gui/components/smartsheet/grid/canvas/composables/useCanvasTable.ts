@@ -1,11 +1,11 @@
 import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
-import { getSingleMultiselectColOptions } from '../utils/cell'
+import { getSingleMultiselectColOptions, getUserColOptions } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED } from '../utils/constants';
+import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -145,6 +145,13 @@ export function useCanvasTable({
   const automationStore = useAutomationStore()
   const fields = inject(FieldsInj, ref([]))
   const { sqlUis } = storeToRefs(useBase())
+
+  const { basesUser } = storeToRefs(useBases())
+
+  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
+    meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
+  )
+
   const tooltipStore = useTooltipStore()
   const { hideTooltip } = tooltipStore
 
@@ -221,6 +228,8 @@ export function useCanvasTable({
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {
           f.extra = getSingleMultiselectColOptions(f)
+        } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(f.uidt)) {
+          f.extra = getUserColOptions(f, baseUsers.value)
         }
 
         const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)

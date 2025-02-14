@@ -34,6 +34,7 @@ const active = computed(() => activeCell.value || isEditable.value || isForm.val
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -108,6 +109,10 @@ useSelectedCellKeydownListener(
   (e) => {
     switch (e.key) {
       case 'Escape':
+        if (canvasSelectCell) {
+          canvasSelectCell.trigger()
+          return
+        }
         isOpen.value = false
         break
       case 'Enter':
@@ -281,6 +286,8 @@ onMounted(() => {
       if (key && isSinglePrintableKey(key)) {
         onFocus()
         searchVal.value = key
+      } else if (key === 'Enter') {
+        onFocus()
       }
     })
   }

@@ -37,6 +37,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const { showNull, user } = useGlobal()
 
@@ -119,12 +120,13 @@ const isAiGenerating = computed(() => {
   )
 })
 
-watch(isVisible, () => {
+watch(isVisible, (newVal, oldVal) => {
   if (isVisible.value) {
     setTimeout(() => {
       inputRef.value?.focus()
     }, 100)
   }
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 onClickOutside(inputWrapperRef, (e) => {

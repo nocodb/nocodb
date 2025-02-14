@@ -352,11 +352,7 @@ watch(
           item-key="id"
           handle=".base-title-node"
           ghost-class="ghost"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
           @change="onMove($event)"
         >
           <template #item="{ element: baseItem }">

@@ -171,11 +171,7 @@ onMounted(async () => {
           v-model="filteredColumns"
           item-key="id"
           ghost-class="nc-lookup-menu-items-ghost"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
         >
           <template #item="{ element: field }">
             <div

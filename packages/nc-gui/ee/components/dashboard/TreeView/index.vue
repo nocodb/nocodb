@@ -372,11 +372,7 @@ const onMove = async (
             item-key="starred-project"
             handle=".base-title-node"
             ghost-class="ghost"
-            :filter="
-              (event) => {
-                return !isMousePointerType(event)
-              }
-            "
+            :filter="isTouchEvent"
             @change="onMove($event, starredProjectList)"
           >
             <template #item="{ element: baseItem }">
@@ -399,11 +395,7 @@ const onMove = async (
           item-key="non-starred-project"
           handle=".base-title-node"
           ghost-class="ghost"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
           @change="onMove($event, nonStarredProjectList)"
         >
           <template #item="{ element: baseItem }">

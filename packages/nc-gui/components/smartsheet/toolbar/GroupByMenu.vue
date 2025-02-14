@@ -245,11 +245,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
               item-key="fk_column_id"
               ghost-class="bg-gray-50"
               :disabled="isLocked"
-              :filter="
-                (event) => {
-                  return !isMousePointerType(event)
-                }
-              "
+              :filter="isTouchEvent"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">

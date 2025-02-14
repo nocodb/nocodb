@@ -223,11 +223,7 @@ onMounted(() => {
           draggable=".item"
           group="form-inputs"
           class="h-full"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
           @change="onMove($event)"
           @start="drag = true"
           @end="drag = false"
@@ -356,11 +352,7 @@ onMounted(() => {
           draggable=".item"
           group="form-inputs"
           class="flex flex-col gap-2 flex-1"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
           @start="drag = true"
           @end="drag = false"
         >

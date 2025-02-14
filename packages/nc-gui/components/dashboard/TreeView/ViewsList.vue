@@ -197,9 +197,7 @@ const initSortable = (el: HTMLElement) => {
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,
-    filter(event) {
-      return !isMousePointerType(event)
-    },
+    filter: isTouchEvent,
   })
 }
 

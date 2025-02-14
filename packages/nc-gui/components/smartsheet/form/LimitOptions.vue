@@ -213,11 +213,7 @@ const showOrHideAll = (showAll: boolean) => {
       handle=".nc-child-draggable-icon"
       ghost-class="nc-form-field-limit-option-ghost"
       class="rounded-b-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
-      :filter="
-        (event) => {
-          return !isMousePointerType(event)
-        }
-      "
+      :filter="isTouchEvent"
       @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"

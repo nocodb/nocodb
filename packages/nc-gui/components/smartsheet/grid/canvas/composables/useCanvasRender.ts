@@ -46,7 +46,7 @@ export function useCanvasRender({
   totalRows,
   t,
   readOnly,
-  isFillHanldeDisabled,
+  isFillHandleDisabled,
 
   isFieldEditAllowed,
   setCursor,
@@ -88,7 +88,7 @@ export function useCanvasRender({
   totalRows: Ref<number>
   t: Composer['t']
   readOnly: Ref<boolean>
-  isFillHanldeDisabled: ComputedRef<boolean>
+  isFillHandleDisabled: ComputedRef<boolean>
   isFieldEditAllowed: ComputedRef<boolean>
   isDataEditAllowed: ComputedRef<boolean>
   setCursor: SetCursorType
@@ -521,15 +521,6 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
-    const activeColumn = columns.value[activeCell.value.column]
-
-    if (
-      selection.value.isEmpty() ||
-      (editEnabled.value && !EDIT_FILL_ENABLED.includes(activeColumn.uidt)) ||
-      isFillHanldeDisabled.value
-    )
-      return true
-
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
 

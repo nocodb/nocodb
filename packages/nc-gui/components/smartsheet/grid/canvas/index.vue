@@ -1740,9 +1740,16 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
               class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-              :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
+              :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
             >
-              <div class="px-[1px] pt-[2.5px]">
+              <div
+                class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+                :class="{
+                  'px-[0.550rem]': !noPadding && !editEnabled.fixed,
+                  'px-[0.49rem]': editEnabled.fixed,
+                  'top-[0.5px] left-[-1px]': isClamped,
+                }"
+              >
                 <SmartsheetRow :row="editEnabled.row">
                   <template #default="{ state }">
                     <SmartsheetVirtualCell
@@ -1887,7 +1894,7 @@ defineExpose({
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply sticky bg-transparent !text-small !leading-[18px] overflow-hidden;
+  @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
     @apply bg-white border-2 !rounded border-[#3366ff];

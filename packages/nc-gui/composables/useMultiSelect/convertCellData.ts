@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
-import { TypeConversionError } from '~/error/type-conversion.error'
+import { SilentTypeConversionError } from '~/error/silent-type-conversion.error'
 import { SelectTypeConversionError } from '~/error/select-type-conversion.error'
 import { ComputedTypePasteError } from '~/error/computed-type-paste.error'
 import type { AppInfo } from '~/composables/useGlobal/types'
@@ -42,7 +42,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeConversionError(`Cannot convert '${value}' to number`)
+          throw new SilentTypeConversionError()
         }
       }
       return parsedNumber
@@ -52,7 +52,7 @@ export default function convertCellData(
     case UITypes.Decimal: {
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {
-        throw new TypeConversionError(`Invalid value`)
+        throw new SilentTypeConversionError()
       }
       return value
     }
@@ -62,7 +62,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeConversionError(`Cannot convert '${value}' to rating`)
+          throw new SilentTypeConversionError()
         }
       }
       return parsedNumber
@@ -87,7 +87,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeConversionError(`Not a valid '${to}' value`)
+          throw new SilentTypeConversionError()
         }
       }
       return to === UITypes.Date
@@ -99,7 +99,7 @@ export default function convertCellData(
       if (conversionResult._isValid) {
         return conversionResult._sec
       } else {
-        throw new TypeConversionError('Invalid value')
+        throw new SilentTypeConversionError()
       }
     }
     case UITypes.Time: {
@@ -115,7 +115,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeConversionError('Not a valid time value')
+          throw new SilentTypeConversionError()
         }
       }
       return parsedTime.format(dateFormat)
@@ -159,7 +159,7 @@ export default function convertCellData(
           if (isMultiple) {
             return null
           } else {
-            throw new TypeConversionError('Invalid attachment data')
+            throw new SilentTypeConversionError()
           }
         }
 
@@ -250,7 +250,7 @@ export default function convertCellData(
 
       // return null if no valid values
       if (validVals.length === 0) {
-        throw new SelectTypeConversionError('No valid values found')
+        throw new SelectTypeConversionError()
       }
 
       return validVals.join(',')
@@ -269,7 +269,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeConversionError('Invalid user data')
+          throw new SilentTypeConversionError()
         }
       }
 
@@ -287,12 +287,12 @@ export default function convertCellData(
           !(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal)) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
         ) {
-          throw new TypeConversionError(`Unsupported conversion for ${to}`)
+          throw new SilentTypeConversionError()
         }
 
         return parsedVal
       } else {
-        throw new TypeConversionError(`Unsupported conversion for ${to}`)
+        throw new SilentTypeConversionError()
       }
     }
     case UITypes.Links: {
@@ -313,12 +313,12 @@ export default function convertCellData(
           ) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
         ) {
-          throw new TypeConversionError(`Unsupported conversion for ${to}`)
+          throw new SilentTypeConversionError()
         }
 
         return parsedVal
       } else {
-        throw new TypeConversionError(`Unsupported conversion for ${to}`)
+        throw new SilentTypeConversionError()
       }
     }
     case UITypes.Email: {
@@ -334,7 +334,7 @@ export default function convertCellData(
       if (isMultiple) {
         return undefined
       } else {
-        throw new ComputedTypePasteError(to)
+        throw new ComputedTypePasteError()
       }
     }
     case UITypes.JSON: {
@@ -342,7 +342,7 @@ export default function convertCellData(
         JSON.parse(value)
         return value
       } catch (ex) {
-        throw new TypeConversionError(`Invalid JSON value`)
+        throw new SilentTypeConversionError()
       }
     }
     default:

@@ -1289,8 +1289,8 @@ const handleScroll = (e: { left: number; top: number }) => {
   if (scrollTimeout) clearTimeout(scrollTimeout)
 
   rafId = requestAnimationFrame(() => {
-    scrollTop.value = e.top
-    scrollLeft.value = e.left
+    scrollTop.value = Math.max(0, e.top)
+    scrollLeft.value = Math.max(0, e.left)
     calculateSlices()
     triggerRefreshCanvas()
   })

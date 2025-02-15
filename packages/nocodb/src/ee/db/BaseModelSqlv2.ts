@@ -1537,7 +1537,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
-      autoCreateMissingOptions = false,
+      typecast = false,
       allowSystemColumn = false,
       undo = false,
     }: {
@@ -1548,7 +1548,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw?: boolean;
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
-      autoCreateMissingOptions?: boolean;
+      typecast?: boolean;
       allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
       undo?: boolean;
@@ -1712,10 +1712,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             try {
               await this.validateOptions(col, insertObj);
             } catch (ex) {
-              if (
-                ex instanceof OptionsNotExistsError &&
-                autoCreateMissingOptions
-              ) {
+              if (ex instanceof OptionsNotExistsError && typecast) {
                 await Column.update(this.context, col.id, {
                   ...col,
                   colOptions: {

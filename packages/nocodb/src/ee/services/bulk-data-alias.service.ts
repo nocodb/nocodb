@@ -31,8 +31,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
           skip_hooks: param.skip_hooks,
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
-          autoCreateMissingOptions:
-            (param.cookie?.query?.auto_insert_option ?? '') === 'true',
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
           undo: param.undo,
         },
       ],

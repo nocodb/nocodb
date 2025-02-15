@@ -102,7 +102,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
         await $api.dbDataTableRow.create(
           tableId,
           chunk,
-          params.autoInsertOption ? ({ auto_insert_option: 'true' } as any) : undefined,
+          params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
         )
       }
 
@@ -201,7 +201,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           await $api.dbDataTableRow.create(
             tableId,
             insert.splice(0, chunkSize),
-            params.autoInsertOption ? ({ auto_insert_option: 'true' } as any) : undefined,
+            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }
@@ -212,7 +212,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           await $api.dbDataTableRow.update(
             tableId,
             update.splice(0, chunkSize),
-            params.autoInsertOption ? ({ auto_insert_option: 'true' } as any) : undefined,
+            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }

@@ -13,7 +13,6 @@ const FEATURES = [
     title: 'Improved Grid View',
     description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
     enabled: false,
-    isEngineering: false,
   },
   {
     id: 'link_to_another_record',
@@ -32,7 +31,7 @@ const FEATURES = [
   {
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts (Beta)',
-    description: 'Enable NocoDB Scripts to automate repetetive workflow',
+    description: 'Enable NocoDB Scripts to automate repetitive workflow',
     enabled: false,
     isEngineering: true,
     isEE: true,
@@ -200,8 +199,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   onUnmounted(() => {
     window.removeEventListener('storage', handleStorageEvent)
   })
-
-  onMounted(initializeFeatures)
 
   return {
     features,

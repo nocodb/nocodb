@@ -10,7 +10,11 @@ function useSelectedCellKeydownListener(
     /**
      * Add check for input/textarea elements
      */
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      (e.target instanceof HTMLElement && e.target.isContentEditable)
+    ) {
       return;
     }
 

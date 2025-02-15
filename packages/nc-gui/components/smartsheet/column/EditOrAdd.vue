@@ -472,7 +472,7 @@ onMounted(() => {
         antInput.value?.focus()
         antInput.value?.select()
       }, 100)
-    } else if (enableDescription.value) {
+    } else if (props.editDescription) {
       setTimeout(() => {
         descInputEl.value?.focus()
       }, 100)

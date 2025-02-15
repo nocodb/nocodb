@@ -1046,6 +1046,7 @@ export function useMultiSelect(
 
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
+        // #region handle tabbed newline data
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
         const parsedClipboard = parse(clipboardData, { delimiter: '\t', escapeChar: '\\' })
 
@@ -1097,8 +1098,10 @@ export function useMultiSelect(
 
         let colsToPaste
         const bulkOpsCols = []
-
         if (options.expand) {
+          // #region handle expanded tab / newline paste
+          // when expand option is chosen,
+          // separate the paste column across several cells
           colsToPaste = existingFields.slice(startColIndex, startColIndex + pasteMatrixCols)
 
           if (newColsNeeded > 0) {
@@ -1140,6 +1143,7 @@ export function useMultiSelect(
 
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
+          // #endregion handle expanded newline paste
         } else {
           colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         }
@@ -1232,8 +1236,10 @@ export function useMultiSelect(
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
+        // #endregion handle tabbed newline data
       } else {
         if (selectedRange.isSingleCell()) {
+          // #region handle single cell paste
           const rowObj = isArrayStructure
             ? (unref(data) as Row[])[activeCell.row]
             : (unref(data) as Map<number, Row>).get(activeCell.row)
@@ -1577,7 +1583,9 @@ export function useMultiSelect(
           }
 
           await syncCellData?.(activeCell)
+          // #endregion handle single cell paste
         } else {
+          // #region handle multi cell paste
           const start = selectedRange.start
           const end = selectedRange.end
 
@@ -1668,24 +1676,25 @@ export function useMultiSelect(
 
           if (!props.length) return
           await bulkUpdateRows?.(rows, props)
+          // #endregion handle multi cell paste
         }
       }
     } catch (error: any) {
       if (error instanceof TypeConversionError) {
-        // for now, set field as empty when single cell and not computer or select
-        if (
-          error instanceof SelectTypeConversionError !== true &&
-          error instanceof ComputedTypePasteError !== true &&
-          selectedRange.isSingleCell()
-        ) {
-          const rowObj = isArrayStructure
-            ? (unref(data) as Row[])[activeCell.row]
-            : (unref(data) as Map<number, Row>).get(activeCell.row)
-          if (!rowObj) return
-          const columnObj = unref(fields)[activeCell.col]
-          rowObj.row[columnObj!.title!] = undefined
-          // TODO: handle undo
-          await syncCellData?.(activeCell)
+        // for now, set field as empty when single cell and not computed or select
+        if (error instanceof SelectTypeConversionError !== true && error instanceof ComputedTypePasteError !== true) {
+          if (selectedRange.isSingleCell()) {
+            const rowObj = isArrayStructure
+              ? (unref(data) as Row[])[activeCell.row]
+              : (unref(data) as Map<number, Row>).get(activeCell.row)
+            if (!rowObj) return
+            const columnObj = unref(fields)[activeCell.col]
+            rowObj.row[columnObj!.title!] = undefined
+            // TODO: handle undo for linked table
+            await syncCellData?.(activeCell)
+          } else {
+            await bulkUpdateRows?.(rows, props)
+          }
         }
         if (!(error as SuppressedError).isErrorSuppressed) {
           message.error(await extractSdkResponseErrorMsg(error as any))

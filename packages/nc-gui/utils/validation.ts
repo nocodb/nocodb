@@ -278,6 +278,7 @@ export const urlValidator = {
 }
 
 export const validateColumnValue = (column: ColumnType, value: any) => {
+  if (value === undefined || value === null || value === '') return
   const metaValidate = (column.meta as any)?.validate
   const validate = (column as any).validate
   if (validate && metaValidate) {

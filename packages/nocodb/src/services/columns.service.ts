@@ -3979,10 +3979,6 @@ export class ColumnsService {
       NcError.tableNotFound(tableId);
     }
 
-    const hash = await table.getColumnsHash(context);
-
-    const columnHash = await this.columnsHash(context, tableId);
-
     if (table.columnsHash !== params.hash) {
       NcError.badRequest(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',

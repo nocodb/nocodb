@@ -784,6 +784,11 @@ export function useCanvasRender({
       initialXOffset += parseInt(columns.value[i]!.width, 10)
     }
 
+    const renderRedBorders: {
+      rowIndex: number
+      column: CanvasGridColumn
+    }[] = []
+
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
@@ -846,6 +851,10 @@ export function useCanvasRender({
             }
 
             const value = row.row[column.title]
+
+            if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+              renderRedBorders.push({ rowIndex: rowIdx, column })
+            }
 
             ctx.save()
             renderCell(ctx, column.columnObj, {
@@ -914,6 +923,9 @@ export function useCanvasRender({
                   }
                 }
                 ctx.save()
+                if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+                  renderRedBorders.push({ rowIndex: rowIdx, column })
+                }
                 renderCell(ctx, column.columnObj, {
                   value,
                   x: xOffset,
@@ -1153,6 +1165,34 @@ export function useCanvasRender({
       })
     }
     renderActiveState(ctx, activeState)
+
+    for (const { rowIndex, column } of renderRedBorders) {
+      if (editEnabled.value?.column?.id === column.id && editEnabled.value?.rowIndex === rowIndex) continue
+      const yOffset = -partialRowHeight.value + 33 + (rowIndex - rowSlice.value.start) * rowHeight.value
+      const xOffset = calculateXPosition(columns.value.findIndex((c) => c.id === column.id))
+      const width = parseInt(column.width, 10)
+
+      const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 1)
+
+      const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
+
+      ctx.strokeStyle = '#ff4a3f'
+      ctx.lineWidth = 2
+      if (column.fixed || !isInFixedArea) {
+        roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2)
+      } else if (isInFixedArea) {
+        if (xOffset + width <= fixedWidth) {
+          continue
+        }
+
+        const adjustedX = fixedWidth
+        const adjustedWidth = xOffset + width - fixedWidth - scrollLeft.value
+
+        roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2)
+      }
+
+      ctx.lineWidth = 1
+    }
     renderFillHandle(ctx)
 
     return activeState

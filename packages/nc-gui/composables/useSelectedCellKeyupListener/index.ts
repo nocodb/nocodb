@@ -7,6 +7,13 @@ function useSelectedCellKeydownListener(
   { immediate = false, isGridCell = true }: { immediate?: boolean; isGridCell?: boolean } = {},
 ) {
   const finalHandler = (e: KeyboardEvent) => {
+    /**
+     * Add check for input/textarea elements
+     */
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
     if (cmdKActive()) return
 
     /**

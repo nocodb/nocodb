@@ -268,13 +268,13 @@ export const AttachmentCellRenderer: CellRenderer = {
       attachments = []
     }
     if (selected && attachments.length === 0) {
-      const buttonWidth = 84
+      /* const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
       const buttonY = y + 3
       const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
-      // TODO: Show the tooltip when drag and drop is supported
-      // for now, the tooltip does not make sense
+      TODO: Show the tooltip when drag and drop is supported
+      for now, the tooltip does not make sense */
       return
     }
     const rowHeight = pxToRowHeight[height] ?? 1

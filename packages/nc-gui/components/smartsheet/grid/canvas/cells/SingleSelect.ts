@@ -1,4 +1,4 @@
-import { isBoxHovered, renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
+import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 
 const tagPadding = 9
@@ -73,7 +73,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
     })
   },
   async handleClick({ row, column, makeCellEditable }) {
-    if (column.columnObj?.readonly) return false
+    if (column.readonly) return false
 
     makeCellEditable(row, column)
     return true

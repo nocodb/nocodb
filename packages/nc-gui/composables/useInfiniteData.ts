@@ -370,7 +370,7 @@ export function useInfiniteData(args: {
     if (!undo) {
       addUndo({
         undo: {
-          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
             await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
               before: beforePk,
             })
@@ -384,7 +384,7 @@ export function useInfiniteData(args: {
           args: [beforeDraggedPk, recordPk, targetChunkIndex, sourceChunkIndex],
         },
         redo: {
-          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
             await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
               before: beforePk,
             })

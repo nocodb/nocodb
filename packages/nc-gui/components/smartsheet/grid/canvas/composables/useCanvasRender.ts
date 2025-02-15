@@ -7,7 +7,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED, MAX_SELECTED_ROWS } from '../utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -46,7 +46,6 @@ export function useCanvasRender({
   totalRows,
   t,
   readOnly,
-  isFillHandleDisabled,
 
   isFieldEditAllowed,
   setCursor,
@@ -95,7 +94,6 @@ export function useCanvasRender({
   totalColumnsWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
-  const isLocked = inject(IsLockedInj, ref(false))
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
 
@@ -539,7 +537,6 @@ export function useCanvasRender({
 
   const calculateXPosition = (colIndex: number) => {
     let xPos = 0
-    const includeNonFixed = false
     for (let i = 0; i < colIndex; i++) {
       xPos += parseInt(columns.value[i]!.width, 10)
     }

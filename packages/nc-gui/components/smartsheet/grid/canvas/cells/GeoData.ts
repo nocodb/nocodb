@@ -2,7 +2,7 @@ import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 
 export const GeoDataCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected }) => {
+  render: (ctx, { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected, setCursor }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -21,6 +21,10 @@ export const GeoDataCellRenderer: CellRenderer = {
       const buttonY = y + verticalPadding
 
       const isButtonHovered = isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)
+
+      if (isButtonHovered) {
+        setCursor('pointer')
+      }
 
       roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 6, {
         backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
@@ -53,5 +57,27 @@ export const GeoDataCellRenderer: CellRenderer = {
         fillStyle: pv ? '#3366FF' : '#4a5268',
       })
     }
+  },
+  async handleClick({ row, column, mousePosition, getCellPosition, value, selected, makeCellEditable }) {
+    const { hideTooltip } = useTooltipStore()
+    hideTooltip()
+    const enableEdit = () => makeCellEditable(row.rowMeta.rowIndex!, column)
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    const [latitude, longitude] = (value || '').split(';')
+    const isLocationSet = !!(latitude && longitude)
+
+    if (selected && !isLocationSet) {
+      const buttonWidth = 84
+      const buttonHeight = 24
+      const buttonX = x + (width - buttonWidth) / 2
+      const buttonY = y + 3
+      const buttonBox = { x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }
+      if (isBoxHovered(buttonBox, mousePosition)) {
+        enableEdit()
+        return true
+      }
+    }
+    return false
   },
 }

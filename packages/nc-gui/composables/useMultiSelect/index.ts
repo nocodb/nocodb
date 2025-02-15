@@ -1,7 +1,5 @@
-import type { Ref } from 'vue'
-import { computed } from 'vue'
-import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
+import dayjs from 'dayjs'
 import type {
   AIRecordType,
   AttachmentType,
@@ -22,12 +20,14 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import { parse } from 'papaparse'
-import type { Row } from '../../lib/types'
-import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
-import { TypeConversionError } from '../../error/type-conversion.error'
-import type { SuppressedError } from '../../error/suppressed.error'
+import type { Ref } from 'vue'
+import { computed } from 'vue'
 import { ComputedTypePasteError } from '../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../error/select-type-conversion.error'
+import type { SuppressedError } from '../../error/suppressed.error'
+import { TypeConversionError } from '../../error/type-conversion.error'
+import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
+import type { Row } from '../../lib/types'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
@@ -1200,19 +1200,34 @@ export function useMultiSelect(
             if (!column) continue
             if (column && isPasteable(targetRow, column)) {
               propsToPaste.push(column.title!)
-              const pasteValue = convertCellData(
-                {
-                  value: clipboardMatrix[clipboardRowIndex][j],
-                  to: column.uidt as UITypes,
-                  column,
-                  appInfo: unref(appInfo),
-                  oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
-                  meta: (column as any).meta,
-                },
-                isMysql(meta.value?.source_id),
-                true,
-              )
-              validateColumnValue(column, pasteValue)
+              let pasteValue: any
+              try {
+                pasteValue = convertCellData(
+                  {
+                    value: clipboardMatrix[clipboardRowIndex][j],
+                    to: column.uidt as UITypes,
+                    column,
+                    appInfo: unref(appInfo),
+                    oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                  },
+                  isMysql(meta.value?.source_id),
+                  true,
+                )
+                validateColumnValue(column, pasteValue)
+              } catch (ex) {
+                if (ex instanceof ComputedTypePasteError) {
+                  throw ex
+                } else if (ex instanceof SelectTypeConversionError) {
+                  await appendSelectOptions({
+                    api: $api,
+                    col: column!,
+                    addOptions: ex.missingOptions,
+                  })
+                  pasteValue = ex.value.join(',')
+                } else if (ex instanceof TypeConversionError) {
+                  pasteValue = null
+                } else throw ex
+              }
 
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
@@ -1254,7 +1269,6 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                meta: (columnObj as any).meta,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1291,7 +1305,6 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                meta: (columnObj as any).meta,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1560,20 +1573,35 @@ export function useMultiSelect(
             return
           }
 
-          const pasteValue = convertCellData(
-            {
-              value: clipboardData,
-              to: columnObj.uidt as UITypes,
-              column: columnObj,
-              appInfo: unref(appInfo),
-              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
-              oldValue: rowObj.row[columnObj.title!],
-              meta: (columnObj as any).meta,
-            },
-            isMysql(meta.value?.source_id),
-          )
-          validateColumnValue(columnObj, pasteValue)
-
+          let pasteValue: any
+          try {
+            pasteValue = convertCellData(
+              {
+                value: clipboardData,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+                files:
+                  columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+                oldValue: rowObj.row[columnObj.title!],
+              },
+              isMysql(meta.value?.source_id),
+            )
+            validateColumnValue(columnObj, pasteValue)
+          } catch (ex) {
+            if (ex instanceof ComputedTypePasteError) {
+              throw ex
+            } else if (ex instanceof SelectTypeConversionError) {
+              await appendSelectOptions({
+                api: $api,
+                col: columnObj!,
+                addOptions: ex.missingOptions,
+              })
+              pasteValue = ex.value.join(',')
+            } else if (ex instanceof TypeConversionError) {
+              pasteValue = null
+            } else throw ex
+          }
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
             const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
 
@@ -1638,7 +1666,6 @@ export function useMultiSelect(
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
-                      meta: (col as any).meta,
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1651,19 +1678,33 @@ export function useMultiSelect(
                   }
                 }
               } else {
-                pasteValue = convertCellData(
-                  {
-                    value: clipboardData,
-                    to: col.uidt as UITypes,
-                    column: col,
-                    appInfo: unref(appInfo),
-                    oldValue: row.row[col.title],
-                    meta: (col as any).meta,
-                  },
-                  isMysql(meta.value?.source_id),
-                  true,
-                )
-                validateColumnValue(col, pasteValue)
+                try {
+                  pasteValue = convertCellData(
+                    {
+                      value: clipboardData,
+                      to: col.uidt as UITypes,
+                      column: col,
+                      appInfo: unref(appInfo),
+                      oldValue: row.row[col.title],
+                    },
+                    isMysql(meta.value?.source_id),
+                    true,
+                  )
+                  validateColumnValue(col, pasteValue)
+                } catch (ex) {
+                  if (ex instanceof ComputedTypePasteError) {
+                    throw ex
+                  } else if (ex instanceof SelectTypeConversionError) {
+                    await appendSelectOptions({
+                      api: $api,
+                      col,
+                      addOptions: ex.missingOptions,
+                    })
+                    pasteValue = ex.value.join(',')
+                  } else if (ex instanceof TypeConversionError) {
+                    pasteValue = null
+                  } else throw ex
+                }
               }
 
               props.push(col.title)
@@ -1680,26 +1721,7 @@ export function useMultiSelect(
         }
       }
     } catch (error: any) {
-      if (error instanceof TypeConversionError) {
-        // for now, set field as empty when single cell and not computed or select
-        if (error instanceof SelectTypeConversionError !== true && error instanceof ComputedTypePasteError !== true) {
-          if (selectedRange.isSingleCell()) {
-            const rowObj = isArrayStructure
-              ? (unref(data) as Row[])[activeCell.row]
-              : (unref(data) as Map<number, Row>).get(activeCell.row)
-            if (!rowObj) return
-            const columnObj = unref(fields)[activeCell.col]
-            rowObj.row[columnObj!.title!] = undefined
-            // TODO: handle undo for linked table
-            await syncCellData?.(activeCell)
-          } else {
-            await bulkUpdateRows?.(rows, props)
-          }
-        }
-        if (!(error as SuppressedError).isErrorSuppressed) {
-          message.error(await extractSdkResponseErrorMsg(error as any))
-        }
-      } else {
+      if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
       }

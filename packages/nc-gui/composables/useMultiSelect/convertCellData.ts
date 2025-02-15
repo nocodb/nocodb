@@ -15,7 +15,6 @@ export default function convertCellData(
     appInfo: AppInfo
     files?: FileList | File[]
     oldValue?: unknown
-    meta?: any
   },
   isMysql = false,
   isMultiple = false,
@@ -95,7 +94,7 @@ export default function convertCellData(
         : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Duration: {
-      const conversionResult = convertDurationToSeconds(value, args.meta?.duration ?? 0)
+      const conversionResult = convertDurationToSeconds(value, (column.meta as any)?.duration ?? 0)
       if (conversionResult._isValid) {
         return conversionResult._sec
       } else {
@@ -245,15 +244,16 @@ export default function convertCellData(
       if (value === '') return null
 
       const availableOptions = ((column.colOptions as SelectOptionsType)?.options || []).map((o) => o.title)
+      const optionsSet = new Set(availableOptions)
       const vals = value.split(',')
-      const validVals = vals.filter((v) => availableOptions.includes(v))
+      const invalidVals = vals.filter((v) => !optionsSet.has(v))
 
       // return null if no valid values
-      if (validVals.length === 0) {
-        throw new SelectTypeConversionError()
+      if (invalidVals.length > 0) {
+        throw new SelectTypeConversionError(vals, invalidVals)
       }
 
-      return validVals.join(',')
+      return vals.join(',')
     }
     case UITypes.User:
     case UITypes.CreatedBy:

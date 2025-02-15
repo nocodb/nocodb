@@ -3,7 +3,7 @@ import { getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOr
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
-const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode]
+const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment]
 
 const ellipsisWidth = 15
 

@@ -95,7 +95,10 @@ function renderFallback(
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly, setCursor }) => {
+  render: (
+    ctx,
+    { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly, setCursor, isUnderLookup },
+  ) => {
     let attachments: Attachment[] = []
 
     const rowHeight = pxToRowHeight[height]
@@ -156,6 +159,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
     const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
     const maxVisibleItems = maxRows * itemsPerRow
+    let lastX = x
 
     attachments.slice(0, maxVisibleItems).forEach((item, index) => {
       if (!item) return
@@ -167,7 +171,9 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
-      const rowStartX = x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
+      const rowStartX = isUnderLookup
+        ? x + horizontalPadding
+        : x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
@@ -196,12 +202,21 @@ export const AttachmentCellRenderer: CellRenderer = {
         renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
       }
 
+      lastX = itemX + itemSize
+
       if (isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
         setCursor('pointer')
       }
     })
 
-    if (isHovered && attachments.length > 0) {
+    if (isUnderLookup) {
+      return {
+        x: lastX,
+        y: y + itemSize,
+      }
+    }
+
+    if (!isUnderLookup && isHovered && attachments.length > 0) {
       const buttonY = y + 8
 
       renderIconButton(ctx, {

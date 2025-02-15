@@ -1,0 +1,10 @@
+#!/bin/execlineb -P
+
+envfile /etc/s6-confs/minio.conf
+importas -Sui IMPORTAS_MINIO_LISTEN_ADDRESS
+
+foreground { mkdir -p /var/lib/minio/data }
+foreground { chown -R minio:minio /var/lib/minio }
+
+fdmove -c 2 1
+exec s6-setuidgid minio minio server --json $IMPORTAS_MINIO_LISTEN_ADDRESS

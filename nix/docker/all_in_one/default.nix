@@ -2,6 +2,7 @@
   lib,
   dockerTools,
   nocodb,
+  postgresql,
   htop,
   s6,
   execline,
@@ -10,6 +11,8 @@
   s6-rc,
   s6-linux-init,
   util-linux,
+  gnugrep,
+  vim,
 }:
 let
   port = 80;
@@ -24,11 +27,14 @@ dockerTools.buildLayeredImage {
   contents = [
     dockerTools.binSh
     nocodb
+    postgresql
     execline.bin
     coreutils
     util-linux
 
     htop
+    gnugrep
+    vim
 
     pgconf
     s6-services-compiled

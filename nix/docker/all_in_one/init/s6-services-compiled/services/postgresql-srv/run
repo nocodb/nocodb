@@ -3,7 +3,7 @@ envfile /etc/s6-confs/postgresql.conf
 importas -uD "/var/lib/postgres" PGROOT PGROOT
 importas -uD "/var/lib/postgres/data" PGDATA PGDATA
 importas -uD "/var/log/postgres.log" PGLOG PGLOG
-importas -sCuD "-A peer --auth-host=md5 --auth-local=peer --locale en_US.UTF-8" INITOPTS INITOPTS
+importas -sCuD "-A peer --auth-host=md5 --auth-local=peer" INITOPTS INITOPTS
 importas -sCuD "" PGOPTS PGOPTS
 
 foreground { mkdir -p /run/postgresql }
@@ -23,7 +23,8 @@ foreground {
     foreground { chown -R postgres:postgres $PGDATA }
     foreground { chmod 0700 $PGDATA }
     foreground { redirfd -w 1 /dev/null s6-setuidgid postgres initdb $INITOPTS -D $PGDATA }
-    foreground { if { test -f /etc/postgresql/postgresql.conf } ln -sf /etc/postgresql/postgresql.conf $PGDATA/postgresql.conf }
+    # TODO: for some reason PGDATA is not being expanded here, look into it 
+    foreground { ln -sf /etc/postgresql/postgresql.conf /var/lib/postgres/data/postgresql.conf }
 }
 
 fdmove -c 2 1

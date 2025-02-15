@@ -453,7 +453,7 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const autoInsertOptionQuery = autoInsertOption.value ? '&auto_insert_option=true' : ''
+              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&auto_insert_option=true' : ''
               const res = await $fetch.raw(
                 `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
                   operationId ? `&operation_id=${operationId}` : ''
@@ -846,7 +846,7 @@ const currentColumnToEdit = ref('')
         </a-collapse-panel>
       </a-collapse>
 
-      <div class="pt-4 pb-2 px-2">
+      <div v-if="isEeUI" class="pt-4 pb-2 px-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>

@@ -314,6 +314,7 @@
   "objects": {
     "script": "Script",
     "scripts": "Scripts",
+    "url": "Url",
     "files": "files",
     "owner": "Owner",
     "member": "Member",
@@ -376,6 +377,11 @@
       "medium": "Medium",
       "tall": "Tall",
       "extra": "Extra"
+    },
+    "providers": {
+      "aws": "Amazon Web Services",
+      "azure": "Microsoft Azure",
+      "google": "Google Cloud"
     },
     "externalDb": "External Database",
     "syncData": {
@@ -512,6 +518,7 @@
   },
   "title": {
     "creatingScript": "Creating Script",
+    "deployNocoDBOnPremise": "Deploy NocoDB On-Premise",
     "searchWebhook": "Search webhook",
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
@@ -676,8 +683,28 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "confirmUpdate": "Confirm update",
+    "youCantDeleteInstallationWhileOperationIsInProgress": "You can't delete the installation while an operation is in progress",
+    "youAreAlreadyOnTheLatestVersion": "You are already on the latest version",
+    "updateAvailable": "Update available",
     "failed": "Failed",
     "succeeded": "Succeeded",
+    "goToInstallation": "Go to Installation",
+    "secretKey": "Secret Key",
+    "region": "Region",
+    "awsAccessKey": "AWS Access Key",
+    "awsSecretAccessKey": "AWS Secret key",
+    "enterTwelveDigitCode": "Enter your access key",
+    "nameYourInstallation": "Name your installation",
+    "startDeployment": "Start Deployment",
+    "newAWSInstallation": "New AWS Installation",
+    "newAWSSubText": "Deploy NocoDB on your AWS servers. ",
+    "emptyInstallations": "No Installations",
+    "addNewInstallation": "New Installation",
+    "onPremSubTitle": "Deploy NocoDB on your infrastructure for enhanced data security, compliance, and performance. Gain complete control over your setup while ensuring seamless access and scalability for your organization.",
+    "installation": "Installation",
+    "installationName": "Installation Name",
+    "onPremise": "On Premise",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -835,6 +862,7 @@
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
     "tableIdColon": "TABLE ID: {tableId}",
+    "installationIdColon": "ID: {installationId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "viewIdColon": "VIEW ID: {viewId}",
     "toAddress": "To Address",
@@ -876,6 +904,7 @@
     "forRole": "for role",
     "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Click to copy Table ID",
+    "clickToCopyInstallationID": "Click to copy Installation ID",
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
@@ -1121,6 +1150,7 @@
     "showJsonPayload": "Show JSON payload"
   },
   "activity": {
+    "installations": "Installations",
     "clickToResolve": "Click to resolve",
     "resolvedBy": "Resolved by",
     "leaveWorkspace": "Leave workspace",
@@ -1854,6 +1884,13 @@
       "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
+      "installationNameRequired": "Installation name required",
+      "minThreeChars": "Minimum 3 characters",
+      "awsAccountRequired": "AWS Access Key ID is required",
+      "secretKeyRequired": "Secret key is required",
+      "regionRequired": "AWS Region is required",
+      "invalidRegion": "Invalid region",
+      "invalidSecretKey": "Invalid secret key",
       "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",

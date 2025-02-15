@@ -1,5 +1,7 @@
 import type {
   AttachmentResType,
+  DeploymentType,
+  InstallationType,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -39,6 +41,10 @@ export enum JobTypes {
   UseWorker = 'use-worker',
   CreateSnapshot = 'create-snapshot',
   RestoreSnapshot = 'restore-snapshot',
+
+  // EE Cloud
+  ImageDeployment = 'image-deployment',
+  InstallationCleanup = 'cleanup-installation',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -196,4 +202,11 @@ export interface RestoreSnapshotJobData extends JobData {
   };
   snapshot: SnapshotType;
   req: NcRequest;
+}
+
+export interface ImageDeploymentJobData extends JobData {
+  req: NcContext;
+  deployment: DeploymentType;
+  initialDeployment?: boolean;
+  installation: InstallationType;
 }

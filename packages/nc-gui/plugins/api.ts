@@ -1,3 +1,5 @@
+import type { createApiInstance } from '~/composables/useApi'
+
 const apiPlugin = (nuxtApp) => {
   const { api } = useApi()
 

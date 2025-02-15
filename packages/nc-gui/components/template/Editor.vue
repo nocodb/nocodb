@@ -238,10 +238,6 @@ function isSelect(col: ColumnType) {
   return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
 }
 
-function deleteTable(tableIdx: number) {
-  data.tables.splice(tableIdx, 1)
-}
-
 function setEditableTn(tableIdx: number, val: boolean) {
   editableTn.value[tableIdx] = val
 }

@@ -18,7 +18,30 @@ export const LongTextCellRenderer: CellRenderer = {
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
+    const renderExpandIcon = () => {
+      renderIconButton(ctx, {
+        buttonX: x + width - 28,
+        buttonY: y + 7,
+        buttonSize: 20,
+        borderRadius: 6,
+        iconData: {
+          size: 13,
+          xOffset: (20 - 13) / 2,
+          yOffset: (20 - 13) / 2,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+        background: 'white',
+        setCursor,
+      })
+    }
+
     if (!text) {
+      if (!props.tag?.renderAsTag && isHovered) {
+        renderExpandIcon()
+      }
+
       return {
         x,
         y,
@@ -42,22 +65,7 @@ export const LongTextCellRenderer: CellRenderer = {
       })
 
       if (!props.tag?.renderAsTag && isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 20,
-          borderRadius: 6,
-          iconData: {
-            size: 13,
-            xOffset: (20 - 13) / 2,
-            yOffset: (20 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-          background: 'white',
-          setCursor,
-        })
+        renderExpandIcon()
       }
 
       return {
@@ -77,22 +85,7 @@ export const LongTextCellRenderer: CellRenderer = {
       })
 
       if (!props.tag?.renderAsTag && isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 20,
-          borderRadius: 6,
-          iconData: {
-            size: 13,
-            xOffset: (20 - 13) / 2,
-            yOffset: (20 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-          background: 'white',
-          setCursor,
-        })
+        renderExpandIcon()
       }
 
       return {

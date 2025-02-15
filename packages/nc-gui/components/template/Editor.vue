@@ -453,7 +453,7 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&auto_insert_option=true' : ''
+              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&typecast=true' : ''
               const res = await $fetch.raw(
                 `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
                   operationId ? `&operation_id=${operationId}` : ''

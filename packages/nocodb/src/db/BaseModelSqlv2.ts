@@ -5900,11 +5900,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     params: {
       allowSystemColumn: boolean;
       undo: boolean;
-      autoCreateMissingOptions: boolean;
+      typecast: boolean;
     } = {
       allowSystemColumn: false,
       undo: false,
-      autoCreateMissingOptions: false,
+      typecast: false,
     },
   ) {
     const { allowSystemColumn } = params;
@@ -6081,7 +6081,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
-      autoCreateMissingOptions = false,
+      typecast = false,
       allowSystemColumn = false,
       undo = false,
     }: {
@@ -6093,7 +6093,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
-      autoCreateMissingOptions?: boolean;
+      typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
@@ -6115,7 +6115,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const insertObj = await this.handleValidateBulkInsert(d, columns, {
             allowSystemColumn,
             undo,
-            autoCreateMissingOptions,
+            typecast,
           });
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
@@ -7565,8 +7565,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async validate(
     data: Record<string, any>,
     columns?: Column[],
-    { autoCreateMissingOptions }: { autoCreateMissingOptions?: boolean } = {
-      autoCreateMissingOptions: false,
+    { typecast }: { typecast?: boolean } = {
+      typecast: false,
     },
   ): Promise<boolean> {
     const cols = columns || (await this.model.getColumns(this.context));
@@ -7596,7 +7596,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       try {
         await this.validateOptions(column, data);
       } catch (ex) {
-        if (ex instanceof OptionsNotExistsError && autoCreateMissingOptions) {
+        if (ex instanceof OptionsNotExistsError && typecast) {
           await Column.update(this.context, column.id, {
             ...column,
             colOptions: {

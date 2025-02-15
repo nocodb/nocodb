@@ -12,8 +12,8 @@ const showSystemFields = ref(false)
 const filterQuery = ref('')
 
 const fieldsToIgnore = new Set([
-  UITypes.LinkToAnotherRecord,
-  // UITypes.Links,
+  // UITypes.LinkToAnotherRecord,
+  UITypes.Links,
   UITypes.Button,
   UITypes.GeoData,
   UITypes.Geometry,

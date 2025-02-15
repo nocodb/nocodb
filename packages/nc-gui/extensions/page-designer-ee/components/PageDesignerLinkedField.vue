@@ -2,13 +2,12 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { UITypes } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import {
-  type PageDesignerFieldWidget,
+  LinkedFieldDisplayAs,
+  type PageDesignerLinkedFieldWidget,
   type PageDesignerWidgetComponentProps,
   horizontalAlignTotextAlignMap,
-  plainCellFields,
 } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { Removable } from '../lib/removable'
@@ -17,12 +16,12 @@ const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
 const payload = inject(PageDesignerPayloadInj)!
-const widget = ref() as Ref<PageDesignerFieldWidget>
-const row = inject(PageDesignerRowInj)!
+const widget = ref() as Ref<PageDesignerLinkedFieldWidget>
+const row = inject(PageDesignerRowInj)! as Ref<Row>
 watch(
   () => props.id,
   (id) => {
-    widget.value = payload?.value?.widgets[id] as PageDesignerFieldWidget
+    widget.value = payload?.value?.widgets[id] as PageDesignerLinkedFieldWidget
   },
   { immediate: true },
 )
@@ -68,15 +67,23 @@ const onRenderEnd = () => {
 
 const container = useParentElement()
 
-const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt as UITypes))
-
-const isAttachmentField = computed(() => isAttachment(widget.value.field))
-
-const { getPossibleAttachmentSrc } = useAttachment()
-
-const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ?? {})[widget.value.field.title ?? '']?.[0])?.[0])
-
 const fieldTitle = computed(() => widget.value.field.title ?? '')
+
+const column = computed(() => widget.value!.field as Required<ColumnType>)
+
+const isNew = ref(false)
+
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(column, row, isNew)
+
+const inlineValue = computed(() => {
+  if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
+  return (
+    row.value.row[widget.value.field.title ?? '']
+      ?.map((relatedRow: Record<string, any>) => relatedRow[relatedTableDisplayValueProp.value] ?? '')
+      .filter(Boolean)
+      .join(', ') ?? ''
+  )
+})
 </script>
 
 <template>
@@ -103,43 +110,17 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           overflow: 'hidden',
         }"
-        :class="{ 'px-2 py-1': !isAttachmentField }"
+        class="px-2 py-1"
       >
         <template v-if="row">
-          <img
-            v-if="isAttachmentField"
-            :src="attachmentUrl"
-            class="w-full h-full"
-            :style="{
-              objectFit: widget.objectFit || 'fill',
-            }"
-          />
-          <SmartsheetRow v-else :row="row">
-            <SmartsheetPlainCell
-              v-if="isPlainCell"
-              :column="widget.field"
-              :model-value="row.row?.[fieldTitle]"
-              read-only
-              :edit-enabled="false"
-              class="pointer-events-none overflow-hidden"
-            ></SmartsheetPlainCell>
-            <SmartsheetVirtualCell
-              v-else-if="isVirtualCol(widget.field)"
-              :column="widget.field"
-              :model-value="row.row?.[fieldTitle]"
-              read-only
-              :edit-enabled="false"
-              class="pointer-events-none overflow-hidden"
-            />
-            <SmartsheetCell
-              v-else
-              :column="widget.field"
-              :model-value="row.row?.[fieldTitle]"
-              read-only
-              :edit-enabled="false"
-              class="pointer-events-none overflow-hidden"
-            />
-          </SmartsheetRow>
+          <ul v-if="widget.displayAs === LinkedFieldDisplayAs.LIST" class="list-disc list-inside">
+            <li v-for="value in row.row[widget.field.title ?? '']">
+              {{ value[relatedTableDisplayValueProp] }}
+            </li>
+          </ul>
+          <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE">
+            {{ inlineValue }}
+          </span>
         </template>
         <span v-else class="text-nc-content-gray-muted print-hide">{{ fieldTitle }}</span>
       </div>

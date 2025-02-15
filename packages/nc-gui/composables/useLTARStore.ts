@@ -16,7 +16,7 @@ interface DataApiResponse {
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
   (
-    column: Ref<Required<ColumnType>>,
+    column: Ref<Required<ColumnType>> | ComputedRef<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
     _reloadData = (_params: { shouldShowLoading?: boolean }) => {},

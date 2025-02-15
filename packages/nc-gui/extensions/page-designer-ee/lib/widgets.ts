@@ -79,9 +79,15 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
 }
 
+export enum LinkedFieldDisplayAs {
+  LIST = 'List',
+  INLINE = 'Inline',
+  TABLE = 'Table',
+}
 export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.LINKED_FIELD
   field: ColumnType
+  displayAs: LinkedFieldDisplayAs
   borderLeft: string
   borderRight: string
   borderTop: string
@@ -202,6 +208,7 @@ export class PageDesignerWidgetFactory {
     return {
       id: 0,
       field,
+      displayAs: LinkedFieldDisplayAs.LIST,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',

@@ -5,6 +5,7 @@ import { PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerTextProperties from './PageDesignerTextProperties.vue'
 import PageDesignerImageProperties from './PageDesignerImageProperties.vue'
 import PageDesignerFieldProperties from './PageDesignerFieldProperties.vue'
+import PageDesignerLinkedFieldProperties from './PageDesignerLinkedFieldProperties.vue'
 import PageDesignerDividerProperties from './PageDesignerDividerProperties.vue'
 import PageDesignerProperties from './PageDesignerProperties.vue'
 
@@ -19,6 +20,7 @@ const widgetTypeToPropertiesComponent: Record<PageDesignerWidgetType, Component>
   [PageDesignerWidgetType.IMAGE]: PageDesignerImageProperties,
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDividerProperties,
   [PageDesignerWidgetType.FIELD]: PageDesignerFieldProperties,
+  [PageDesignerWidgetType.LINKED_FIELD]: PageDesignerLinkedFieldProperties,
 }
 
 const propertiesComponent = computed(() => {

@@ -8,6 +8,7 @@ import PageDesignerImage from './PageDesignerImage.vue'
 import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 import PageDesignerField from './PageDesignerField.vue'
+import PageDesignerLinkedField from './PageDesignerLinkedField.vue'
 
 const props = defineProps<{
   miniPreview?: boolean
@@ -42,6 +43,7 @@ const widgetTypeToComponent = {
   [PageDesignerWidgetType.IMAGE]: PageDesignerImage,
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDivider,
   [PageDesignerWidgetType.FIELD]: PageDesignerField,
+  [PageDesignerWidgetType.LINKED_FIELD]: PageDesignerLinkedField,
 }
 
 const widgetFactoryByType: Record<string, Function> = {

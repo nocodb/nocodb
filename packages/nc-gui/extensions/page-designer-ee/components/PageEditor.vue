@@ -2,6 +2,7 @@
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
 import { type PageDesignerWidget, PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
+import { isLinkedField } from '../lib/utils'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PageDesignerDivider from './PageDesignerDivider.vue'
@@ -67,7 +68,9 @@ function onDropped(e: DragEvent) {
     if (!factory) return
     widget = factory(position)
   } else {
-    widget = PageDesignerWidgetFactory.createEmptyFieldWidget(field, position)
+    widget = isLinkedField(field)
+      ? PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field, position)
+      : PageDesignerWidgetFactory.createEmptyFieldWidget(field, position)
   }
   if (!widget) return
   PageDesignerWidgetFactory.create(payload, widget)

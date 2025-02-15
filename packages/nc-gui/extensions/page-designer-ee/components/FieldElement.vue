@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { type ColumnType } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerWidgetFactory } from '../lib/widgets'
+import { isLinkedField } from '../lib/utils'
 
 const props = defineProps<{
-  field: Field
+  field: ColumnType
   icon: Component
 }>()
 
@@ -20,6 +22,10 @@ function onDragStart(e: DragEvent) {
 }
 
 function onFieldClick() {
+  if (isLinkedField(props.field)) {
+    PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(props.field))
+    return
+  }
   PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyFieldWidget(props.field))
 }
 </script>

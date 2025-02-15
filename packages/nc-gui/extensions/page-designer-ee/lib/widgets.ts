@@ -10,6 +10,7 @@ export enum PageDesignerWidgetType {
   IMAGE,
   DIVIDER,
   FIELD,
+  LINKED_FIELD,
 }
 
 export interface PageDesignerWidget {
@@ -60,6 +61,26 @@ export interface PageDesignerDividerWidget extends PageDesignerWidget {
 
 export interface PageDesignerFieldWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.FIELD
+  field: ColumnType
+  borderLeft: string
+  borderRight: string
+  borderTop: string
+  borderBottom: string
+  borderRadius: string
+  borderColor: string
+  backgroundColor: string
+  fontSize: string
+  fontWeight: string
+  fontFamily: string
+  textColor: string
+  lineHeight: string
+  objectFit: 'fill' | 'contain' | 'cover'
+  horizontalAlign: 'flex-start' | 'center' | 'flex-end'
+  verticalAlign: 'flex-start' | 'center' | 'flex-end'
+}
+
+export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
+  type: PageDesignerWidgetType.LINKED_FIELD
   field: ColumnType
   borderLeft: string
   borderRight: string
@@ -170,6 +191,33 @@ export class PageDesignerWidgetFactory {
       verticalAlign: 'flex-start',
       objectFit: 'contain',
       type: PageDesignerWidgetType.FIELD,
+      zIndex: 0,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
+    }
+  }
+
+  static createEmptyLinkedFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerLinkedFieldWidget {
+    const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.LINKED_FIELD, field)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
+    return {
+      id: 0,
+      field,
+      borderTop: '0',
+      borderRight: '0',
+      borderBottom: '0',
+      borderLeft: '0',
+      borderRadius: '0',
+      borderColor: BLACK,
+      backgroundColor: WHITE,
+      textColor: BLACK,
+      fontFamily: 'Manrope',
+      fontSize: '16',
+      fontWeight: '400',
+      lineHeight: '1.4',
+      horizontalAlign: 'flex-start',
+      verticalAlign: 'flex-start',
+      objectFit: 'contain',
+      type: PageDesignerWidgetType.LINKED_FIELD,
       zIndex: 0,
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }

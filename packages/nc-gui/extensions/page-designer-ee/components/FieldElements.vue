@@ -13,7 +13,7 @@ const filterQuery = ref('')
 
 const fieldsToIgnore = new Set([
   UITypes.LinkToAnotherRecord,
-  UITypes.Links,
+  // UITypes.Links,
   UITypes.Button,
   UITypes.GeoData,
   UITypes.Geometry,

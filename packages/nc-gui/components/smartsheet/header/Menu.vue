@@ -9,7 +9,7 @@ const isOpen = useVModel(props, 'isOpen', emit)
 
 const column = inject(ColumnInj)
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(null))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -31,7 +31,7 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
 })
 
 const openDropdown = () => {
-  if (isLocked) return
+  if (isLocked.value) return
   isOpen.value = !isOpen.value
 }
 
@@ -42,16 +42,23 @@ const emitAddColumn = (...args: any[]) => {
 const emitEdit = (...args: any[]) => {
   emit('edit', ...args)
 }
+
+const dropdownRef = ref()
+
+onClickOutside(dropdownRef, () => {
+  isOpen.value = false
+})
 </script>
 
 <template>
   <a-dropdown
+    ref="dropdownRef"
     v-model:visible="isOpen"
     :disabled="isLocked"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     :overlay-class-name="`nc-dropdown-column-operations ${isOpen ? 'active' : ''} !border-1 rounded-lg !shadow-xl`"
-    @click.stop="openDropdown"
+    @click="openDropdown"
   >
     <div class="flex gap-1 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>

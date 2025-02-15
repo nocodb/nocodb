@@ -38,7 +38,8 @@ const modelValue = defineModel<string>()
       <NcTooltip
         v-for="item of props.items.filter((it) => !it.hidden)"
         :key="item.value"
-        :disabled="!item.tooltip || props.disabled">
+        :disabled="!item.tooltip || props.disabled"
+      >
         <template #title>{{ item.tooltip }}</template>
         <div
           v-e="[`c:project:mode:${item.value}`]"

@@ -249,8 +249,8 @@ export const RatingCellRenderer: CellRenderer = {
   },
 
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow } = ctx
-    if (column.readonly) return
+    const { e, row, column, updateOrSaveRow, readonly } = ctx
+    if (column.readonly || readonly) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key)) {

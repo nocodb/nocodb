@@ -20,6 +20,22 @@ const props = defineProps({
 
 const emit = defineEmits(['scroll'])
 
+interface ScrollState {
+  startTime: number
+  startPosition: { x: number; y: number }
+  currentPosition: { x: number; y: number }
+  velocity: { x: number; y: number }
+  touchHistory: Array<{ time: number; position: { x: number; y: number } }>
+  animation: number | null
+}
+
+const FRAME_RATE = 1000 / 60
+const TRACKING_TIME = 100
+const SPRING_TENSION = 180
+const SPRING_FRICTION = 12
+const DECAY_FACTOR = 0.98
+const MIN_VELOCITY = 0.01
+
 const scrollWidth = toRef(props, 'scrollWidth')
 
 const scrollHeight = toRef(props, 'scrollHeight')
@@ -39,9 +55,14 @@ const isDragging = ref(false)
 const dragStartPosition = ref(0)
 const dragStartScroll = ref(0)
 const currentDragAxis = ref<'vertical' | 'horizontal' | null>(null)
-const lastTouchY = ref(0)
-const lastTouchX = ref(0)
-
+const scrollState = ref<ScrollState>({
+  startTime: 0,
+  startPosition: { x: 0, y: 0 },
+  currentPosition: { x: 0, y: 0 },
+  velocity: { x: 0, y: 0 },
+  touchHistory: [],
+  animation: null,
+})
 const isScrollbarVisible = ref(true)
 const scrollbarTimer = ref(null)
 
@@ -87,25 +108,45 @@ const horizontalThumbPosition = computed(() => {
   return scrollRatio * availableSpace
 })
 
+const getBoundedValue = (value: number, min: number, max: number) => {
+  if (value < min) {
+    // Apply spring physics when out of bounds
+    const delta = value - min
+    return min + delta * Math.exp(-SPRING_FRICTION)
+  }
+  if (value > max) {
+    const delta = value - max
+    return max + delta * Math.exp(-SPRING_FRICTION)
+  }
+  return value
+}
+
 const updateScroll = (vertical?: number, horizontal?: number) => {
   if (!contentWrapper.value) return
 
+  let newTop = scrollTop.value
+  let newLeft = scrollLeft.value
+
   if (vertical !== undefined) {
     const maxScroll = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
-    scrollTop.value = Math.max(0, Math.min(vertical, maxScroll))
+    newTop = getBoundedValue(vertical, 0, maxScroll)
   }
 
   if (horizontal !== undefined) {
     const maxScroll = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
-    scrollLeft.value = Math.max(0, Math.min(horizontal, maxScroll))
+    newLeft = getBoundedValue(horizontal, 0, maxScroll)
   }
 
-  showScrollbars()
+  if (newTop !== scrollTop.value || newLeft !== scrollLeft.value) {
+    scrollTop.value = newTop
+    scrollLeft.value = newLeft
+    showScrollbars()
 
-  emit('scroll', {
-    left: scrollLeft.value,
-    top: scrollTop.value,
-  })
+    emit('scroll', {
+      left: scrollLeft.value,
+      top: scrollTop.value,
+    })
+  }
 }
 
 const handleWheel = (e: WheelEvent) => {
@@ -176,24 +217,138 @@ const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
   }
 }
 
-const handleTouchStart = (event) => {
-  lastTouchY.value = event.touches[0].clientY
-  lastTouchX.value = event.touches[0].clientX
+const calculateVelocity = () => {
+  const now = Date.now()
+  const history = scrollState.value.touchHistory
+  const recentTouches = history.filter((touch) => now - touch.time <= TRACKING_TIME)
+
+  if (recentTouches.length < 2) return { x: 0, y: 0 }
+
+  const oldest = recentTouches[0]
+  const newest = recentTouches[recentTouches.length - 1]
+  const timeDelta = newest.time - oldest.time
+
+  if (timeDelta === 0) return { x: 0, y: 0 }
+
+  return {
+    x: ((oldest.position.x - newest.position.x) / timeDelta) * 1000,
+    y: ((oldest.position.y - newest.position.y) / timeDelta) * 1000,
+  }
 }
 
-const handleTouchMove = (event) => {
-  const deltaY = lastTouchY.value - event.touches[0].clientY
-  const deltaX = lastTouchX.value - event.touches[0].clientX
+const handleTouchStart = (event: TouchEvent) => {
+  if (scrollState.value.animation) {
+    cancelAnimationFrame(scrollState.value.animation)
+    scrollState.value.animation = null
+  }
 
-  lastTouchY.value = event.touches[0].clientY
-  lastTouchX.value = event.touches[0].clientX
+  const touch = event.touches[0]
+  const time = Date.now()
+
+  scrollState.value = {
+    startTime: time,
+    startPosition: { x: touch.clientX, y: touch.clientY },
+    currentPosition: { x: touch.clientX, y: touch.clientY },
+    velocity: { x: 0, y: 0 },
+    touchHistory: [
+      {
+        time,
+        position: { x: touch.clientX, y: touch.clientY },
+      },
+    ],
+    animation: null,
+  }
+}
+
+const handleTouchMove = (event: TouchEvent) => {
+  const touch = event.touches[0]
+  const time = Date.now()
+
+  scrollState.value.touchHistory.push({
+    time,
+    position: { x: touch.clientX, y: touch.clientY },
+  })
+
+  while (scrollState.value.touchHistory.length > 0 && time - scrollState.value.touchHistory[0].time > TRACKING_TIME) {
+    scrollState.value.touchHistory.shift()
+  }
+
+  const deltaX = scrollState.value.currentPosition.x - touch.clientX
+  const deltaY = scrollState.value.currentPosition.y - touch.clientY
+
+  scrollState.value.currentPosition = { x: touch.clientX, y: touch.clientY }
 
   updateScroll(scrollTop.value + deltaY, scrollLeft.value + deltaX)
 }
+const springAnimation = (currentValue: number, targetValue: number, velocity: number): { position: number; velocity: number } => {
+  const delta = targetValue - currentValue
+  const spring = SPRING_TENSION * delta
+  const damping = SPRING_FRICTION * velocity
+  const acceleration = spring - damping
+
+  const newVelocity = velocity + acceleration * (FRAME_RATE / 1000)
+  const newPosition = currentValue + newVelocity * (FRAME_RATE / 1000)
+
+  return { position: newPosition, velocity: newVelocity }
+}
+
+const decayAnimation = (value: number, velocity: number): number => {
+  return value + velocity * (FRAME_RATE / 1000)
+}
+
+const animateScroll = () => {
+  const state = scrollState.value
+  if (!state.animation) return
+
+  const maxScrollY = contentWrapper.value!.scrollHeight - wrapperRef.value.clientHeight
+  const maxScrollX = contentWrapper.value!.scrollWidth - wrapperRef.value.clientWidth
+
+  let newX = scrollLeft.value
+  let newY = scrollTop.value
+  let velocityX = state.velocity.x
+  let velocityY = state.velocity.y
+
+  if (newX < 0 || newX > maxScrollX) {
+    const target = newX < 0 ? 0 : maxScrollX
+    const spring = springAnimation(newX, target, velocityX)
+    newX = spring.position
+    velocityX = spring.velocity
+  } else {
+    newX = decayAnimation(newX, velocityX)
+    velocityX *= DECAY_FACTOR
+  }
+
+  if (newY < 0 || newY > maxScrollY) {
+    const target = newY < 0 ? 0 : maxScrollY
+    const spring = springAnimation(newY, target, velocityY)
+    newY = spring.position
+    velocityY = spring.velocity
+  } else {
+    newY = decayAnimation(newY, velocityY)
+    velocityY *= DECAY_FACTOR
+  }
+
+  updateScroll(newY, newX)
+
+  state.velocity = { x: velocityX, y: velocityY }
+
+  if (
+    Math.abs(velocityX) > MIN_VELOCITY ||
+    Math.abs(velocityY) > MIN_VELOCITY ||
+    newX < 0 ||
+    newX > maxScrollX ||
+    newY < 0 ||
+    newY > maxScrollY
+  ) {
+    state.animation = requestAnimationFrame(animateScroll)
+  } else {
+    state.animation = null
+  }
+}
 
 const handleTouchEnd = () => {
-  lastTouchY.value = 0
-  lastTouchX.value = 0
+  scrollState.value.velocity = calculateVelocity()
+  scrollState.value.animation = requestAnimationFrame(animateScroll)
 }
 
 const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
@@ -219,6 +374,11 @@ onMounted(() => {
   showScrollbars()
 })
 
+onUnmounted(() => {
+  if (scrollState.value.animation) {
+    cancelAnimationFrame(scrollState.value.animation)
+  }
+})
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', handleDrag)
   document.removeEventListener('mouseup', stopDragging)

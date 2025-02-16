@@ -39,13 +39,19 @@ const goBack = ref(false)
 
 const listeningForUpdates = ref(false)
 
-const secretPlaceholder = 'Please start listening to get the token'
+const advancedOptionsCounter = ref(0)
+
+const advancedOptionsEnabled = computed(() => advancedOptionsCounter.value >= 2)
 
 const syncOptions = ref({
   baseId,
   workspaceMode: false,
   newBase: false,
-  secretToken: secretPlaceholder,
+  secretToken: null,
+})
+
+const migrationUrl = computed(() => {
+  return syncOptions.value.secretToken ? `${baseURL}/?secret=${syncOptions.value.secretToken}` : ''
 })
 
 const onLog = (data: { message: string }) => {
@@ -166,7 +172,7 @@ async function abortListening() {
 async function retryImport() {
   step.value = 1
   lastProgress.value = null
-  syncOptions.value.secretToken = secretPlaceholder
+  syncOptions.value.secretToken = null
   listeningImport.value = false
 }
 
@@ -193,7 +199,7 @@ const collapseKey = ref('')
     @keydown.esc="dialogShow = false"
   >
     <div class="text-base font-weight-bold flex items-center gap-4 mb-6">
-      <GeneralIcon icon="nocodb" class="w-6 h-6" />
+      <GeneralIcon icon="nocodb" class="w-6 h-6" @dblclick="advancedOptionsCounter++" />
 
       <span v-if="step === 1">
         {{ $t('title.quickImportNocoDB') }}
@@ -217,25 +223,18 @@ const collapseKey = ref('')
     </div>
 
     <div v-if="step === 1">
-      <a-form ref="form" :model="syncOptions" name="quick-import-nocodb-form" layout="horizontal" class="m-0">
-        <a-form-item class="!mt-4 !mb-4">
-          <label> Instance URL </label>
-          <LazyGeneralCopyInput :model-value="baseURL || ''" class="!rounded-lg !mt-2 nc-input-shared-base" />
+      <a-form ref="form" :model="syncOptions" name="quick-import-nocodb-form" layout="horizontal" class="m-0 w-full">
+        <a-form-item v-if="listeningImport" class="!mt-4 !mb-4">
+          <label> Migration URL </label>
+          <LazyGeneralCopyInput :model-value="migrationUrl" class="!rounded-lg !mt-2 nc-input-shared-base" />
         </a-form-item>
-
-        <a-form-item>
-          <div class="flex items-end">
-            <label> Secret Import Token </label>
-          </div>
-          <LazyGeneralCopyInput
-            :model-value="syncOptions.secretToken"
-            class="!rounded-lg mt-2 nc-input-api-key"
-            :disable-copy="syncOptions.secretToken === secretPlaceholder"
-          />
-        </a-form-item>
+        <div v-else class="flex w-full items-center justify-center mt-4 mb-2">
+          <NcButton type="primary" class="nc-btn-nocodb-import !px-8" @click="startListening"> Get Migration URL </NcButton>
+        </div>
 
         <nc-button
-          v-if="!listeningImport"
+          v-if="advancedOptionsEnabled && !listeningImport"
+          class="!mt-2"
           type="text"
           size="small"
           @click="collapseKey = !collapseKey ? 'advanced-settings' : ''"
@@ -254,7 +253,7 @@ const collapseKey = ref('')
               <a-checkbox v-model:checked="syncOptions.newBase"> New Base </a-checkbox>
             </div>
 
-            <div class="my-2">
+            <div class="mt-2">
               <a-checkbox v-model:checked="syncOptions.workspaceMode" disabled> Workspace Mode </a-checkbox>
             </div>
 
@@ -330,15 +329,15 @@ const collapseKey = ref('')
         </nc-button>
 
         <nc-button
+          v-if="listeningImport"
           key="submit"
-          type="primary"
+          type="ghost"
           class="nc-btn-nocodb-import"
           size="small"
           :loading="listeningImport"
           @click="startListening"
         >
-          <template v-if="listeningImport"> Listening </template>
-          <template v-else> Listen For Import </template>
+          Listening
         </nc-button>
       </div>
     </template>

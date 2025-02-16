@@ -55,6 +55,11 @@ export class QueueService {
     this.emitter.emit(JobStatus.ACTIVE, { job });
 
     try {
+      if (!this.jobsMap.jobs[job.name]) {
+        // job not found - skip
+        return;
+      }
+
       const { this: processor, fn = 'job' } = this.jobsMap.jobs[job.name];
       const result = await processor[fn](job);
       this.emitter.emit(JobStatus.COMPLETED, { job, result });
@@ -95,16 +100,37 @@ export class QueueService {
       }
       job = existingJob;
     } else {
-      job = { id: `${id}`, name, status: JobStatus.WAITING, data };
+      job = {
+        id: `${id}`,
+        name,
+        status: JobStatus.WAITING,
+        data,
+        getState: () => Promise.resolve(job.status),
+        moveToCompleted: (returnValue?: string) => {
+          this.emitter.emit(JobStatus.COMPLETED, { job, result: returnValue });
+        },
+        moveToFailed: (error?: Error) => {
+          this.emitter.emit(JobStatus.FAILED, { job, error });
+        },
+      };
     }
 
     if (opts?.delay) {
-      setTimeout(() => {
-        if (!existingJob) {
-          this.queueMemory.push(job);
-        }
+      if (!existingJob) {
+        this.queueMemory.push(job);
+      }
+      const jobTimeout = setTimeout(() => {
         this.queue.add(() => this.jobWrapper(job));
       }, opts.delay);
+
+      job.moveToCompleted = (returnValue?: string) => {
+        clearTimeout(jobTimeout);
+        this.emitter.emit(JobStatus.COMPLETED, { job, result: returnValue });
+      };
+      job.moveToFailed = (error?: Error) => {
+        clearTimeout(jobTimeout);
+        this.emitter.emit(JobStatus.FAILED, { job, error });
+      };
     } else {
       if (!existingJob) {
         this.queueMemory.push(job);
@@ -112,7 +138,7 @@ export class QueueService {
       this.queue.add(() => this.jobWrapper(job));
     }
 
-    return { id, name };
+    return job;
   }
 
   getJobs(types: string[] | string) {

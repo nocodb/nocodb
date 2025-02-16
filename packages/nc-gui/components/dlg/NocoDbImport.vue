@@ -68,7 +68,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
       await basesStore.loadProjects()
     } else {
-      await baseStore.loadTables()
+      await baseStore.loadProject()
     }
 
     progressRef.value?.pushProgress('Done!', status)
@@ -78,7 +78,7 @@ const onStatus = async (status: JobStatus, data?: any) => {
     if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
       await basesStore.loadProjects()
     } else {
-      await baseStore.loadTables()
+      await baseStore.loadProject()
     }
     goBack.value = true
     progressRef.value?.pushProgress(data?.error?.message, status)

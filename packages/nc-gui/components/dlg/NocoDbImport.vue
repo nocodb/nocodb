@@ -17,7 +17,9 @@ const { copy } = useCopy()
 
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const baseURL = $api.instance.defaults.baseURL
+const { appInfo } = useGlobal()
+
+const { ncSiteUrl } = appInfo.value
 
 const { $poller } = useNuxtApp()
 
@@ -55,7 +57,7 @@ const syncOptions = ref({
 })
 
 const migrationUrl = computed(() => {
-  return syncOptions.value.secretToken ? `${baseURL}/?secret=${syncOptions.value.secretToken}` : ''
+  return syncOptions.value.secretToken ? `${ncSiteUrl}/?secret=${syncOptions.value.secretToken}` : ''
 })
 
 const onLog = (data: { message: string }) => {

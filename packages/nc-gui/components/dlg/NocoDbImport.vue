@@ -11,6 +11,10 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
+const { copy } = useCopy()
+
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const baseURL = $api.instance.defaults.baseURL
@@ -137,6 +141,9 @@ async function startListening() {
         }
       },
     )
+
+    await copy(migrationUrl.value)
+    message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
     console.error(e)
     message.error('Failed to start listening')
@@ -163,6 +170,10 @@ async function abortListening() {
     )
   }
 
+  if (listeningJobId.value) {
+    $poller.unsubscribe({ id: listeningJobId.value })
+  }
+
   listeningImport.value = false
   listeningForUpdates.value = false
   dialogShow.value = false
@@ -182,6 +193,12 @@ const isInProgress = computed(() => {
 
 const detailsIsShown = ref(false)
 const collapseKey = ref('')
+
+onUnmounted(() => {
+  if (listeningJobId.value) {
+    $poller.unsubscribe({ id: listeningJobId.value })
+  }
+})
 </script>
 
 <template>
@@ -216,23 +233,29 @@ const collapseKey = ref('')
       >
         Docs
       </a>
-      <nc-button v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
+      <NcButton v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
         <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
-      </nc-button>
+      </NcButton>
     </div>
 
     <div v-if="step === 1">
-      <a-form ref="form" :model="syncOptions" name="quick-import-nocodb-form" layout="horizontal" class="m-0 w-full">
-        <a-form-item v-if="listeningImport" class="!mt-4 !mb-4">
-          <label> Migration URL </label>
+      <div class="text-gray-600 text-sm px-2">
+        <p class="mb-2">Easily migrate your base with the following steps:</p>
+        <ol class="list-decimal list-inside mt-2 pl-1">
+          <li>Open <strong>settings</strong> in your NocoDB base</li>
+          <li>Navigate to <strong>Migrate</strong> tab</li>
+          <li>Paste the <strong>URL</strong></li>
+          <li>Click <strong>Migrate</strong></li>
+        </ol>
+      </div>
+
+      <a-form ref="form" :model="syncOptions" name="quick-import-nocodb-form" layout="horizontal" class="!m-0 w-full">
+        <a-form-item v-if="listeningImport" class="!mt-0 !pb-2 !mb-0">
           <LazyGeneralCopyInput :model-value="migrationUrl" class="!rounded-lg !mt-2 nc-input-shared-base" />
         </a-form-item>
-        <div v-else class="flex w-full items-center justify-center mt-4 mb-2">
-          <NcButton type="primary" class="nc-btn-nocodb-import !px-8" @click="startListening"> Get Migration URL </NcButton>
-        </div>
 
-        <nc-button
+        <NcButton
           v-if="advancedOptionsEnabled && !listeningImport"
           class="!mt-2"
           type="text"
@@ -245,7 +268,7 @@ const collapseKey = ref('')
             class="ml-2 !transition-all !transform"
             :class="{ '!rotate-180': collapseKey === 'advanced-settings' }"
           />
-        </nc-button>
+        </NcButton>
 
         <a-collapse v-if="!listeningImport" v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
@@ -301,16 +324,16 @@ const collapseKey = ref('')
       </div>
 
       <div v-if="!isInProgress" class="text-right mt-4">
-        <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </nc-button>
-        <nc-button v-else size="small" @click="dialogShow = false">
+        <NcButton v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="retryImport"> Retry import </NcButton>
+        <NcButton v-else size="small" @click="dialogShow = false">
           {{ syncOptions.workspaceMode || syncOptions.newBase ? 'Go To Dashboard' : 'Go To Base' }}
-        </nc-button>
+        </NcButton>
       </div>
     </div>
 
     <template #footer>
       <div v-if="step === 1" class="flex justify-between mt-2">
-        <nc-button
+        <NcButton
           v-if="!listeningImport"
           key="back"
           type="text"
@@ -323,14 +346,13 @@ const collapseKey = ref('')
           "
         >
           {{ $t('general.back') }}
-        </nc-button>
-        <nc-button v-else key="abort" type="danger" size="small" @click="abortListening">
+        </NcButton>
+        <NcButton v-else key="abort" type="danger" size="small" @click="abortListening">
           {{ $t('general.abort') }}
-        </nc-button>
+        </NcButton>
 
-        <nc-button
+        <NcButton
           v-if="listeningImport"
-          key="submit"
           type="ghost"
           class="nc-btn-nocodb-import"
           size="small"
@@ -338,7 +360,10 @@ const collapseKey = ref('')
           @click="startListening"
         >
           Listening
-        </nc-button>
+        </NcButton>
+        <NcButton v-else type="primary" class="nc-btn-nocodb-import" size="small" @click="startListening">
+          Generate & Copy URL
+        </NcButton>
       </div>
     </template>
   </a-modal>

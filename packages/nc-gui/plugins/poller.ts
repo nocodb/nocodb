@@ -6,6 +6,8 @@ const pollPlugin = async (nuxtApp) => {
   // unsubscribe all if signed out
   let unsub = false
 
+  const unsubMap: Map<string, () => void> = new Map()
+
   const subscribe = async (
     topic: { id: string } | any,
     cb: (data: {
@@ -22,6 +24,11 @@ const pollPlugin = async (nuxtApp) => {
     _mid = 0,
   ) => {
     if (unsub) return
+
+    if (unsubMap.has(topic.id)) {
+      unsubMap.get(topic.id)!()
+      return
+    }
 
     try {
       const response:
@@ -68,6 +75,12 @@ const pollPlugin = async (nuxtApp) => {
     }
   }
 
+  const unsubscribe = (topic: { id: string }) => {
+    return new Promise<void>((resolve) => {
+      unsubMap.set(topic.id, resolve)
+    })
+  }
+
   const init = () => {
     unsub = false
   }
@@ -85,6 +98,7 @@ const pollPlugin = async (nuxtApp) => {
 
   const poller = {
     subscribe,
+    unsubscribe,
   }
 
   nuxtApp.provide('poller', poller)

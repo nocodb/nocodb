@@ -16,6 +16,8 @@ const transitionName = ref<string | undefined>(undefined)
 
 const { $e } = useNuxtApp()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
@@ -141,7 +143,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
           <span class="ml-1 text-[13px] font-weight-700"> Excel </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
-        <NcMenuItem @click="onClick('nocodb')">
+        <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB)" @click="onClick('nocodb')">
           <GeneralIcon icon="nocodb" class="w-5 h-5" />
           <span class="ml-1 text-[13px] font-weight-700"> NocoDB </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />

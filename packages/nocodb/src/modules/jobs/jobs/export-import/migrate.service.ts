@@ -36,6 +36,7 @@ export class MigrateService {
 
     const exportedModels = await this.exportService.serializeModels(context, {
       modelIds: models.map((m) => m.id),
+      compatibilityMode: source.type !== 'pg',
     });
 
     if (!exportedModels) {

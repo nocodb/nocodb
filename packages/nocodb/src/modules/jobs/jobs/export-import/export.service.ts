@@ -53,6 +53,7 @@ export class ExportService {
       excludeHooks?: boolean;
       excludeData?: boolean;
       excludeComments?: boolean;
+      compatibilityMode?: boolean;
     },
   ) {
     const { modelIds } = param;
@@ -62,6 +63,8 @@ export class ExportService {
     const excludeHooks = param?.excludeHooks || false;
     const excludeComments =
       param?.excludeComments || param?.excludeData || false;
+
+    const compatibilityMode = param?.compatibilityMode || false;
 
     const serializedModels = [];
 
@@ -467,11 +470,6 @@ export class ExportService {
             id: idMap.get(column.id),
             ai: column.ai,
             column_name: column.column_name,
-            cc: column.cc,
-            cdf: column.cdf,
-            dt: column.dt,
-            dtxp: column.dtxp,
-            dtxs: column.dtxs,
             meta: column.meta,
             pk: column.pk,
             pv: column.pv,
@@ -483,6 +481,13 @@ export class ExportService {
             un: column.un,
             unique: column.unique,
             colOptions: column.colOptions,
+            ...(!compatibilityMode && {
+              cc: column.cc,
+              dt: column.dt,
+              dtxp: column.dtxp,
+              dtxs: column.dtxs,
+              cdf: column.cdf,
+            }),
           })),
         },
         views: model.views.map((view) => ({

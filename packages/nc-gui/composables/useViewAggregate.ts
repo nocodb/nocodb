@@ -9,12 +9,14 @@ import {
   ViewTypes,
   getAvailableAggregations,
 } from 'nocodb-sdk'
+import type { EventHook } from '@vueuse/core'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     where?: ComputedRef<string | undefined>,
+    reloadVisibleDataHook?: EventHook<void>,
   ) => {
     const { $api: api } = useNuxtApp()
 
@@ -105,6 +107,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
                 })
 
             Object.assign(aggregations.value, data)
+            reloadVisibleDataHook?.trigger()
           } catch (error) {
             console.log(error)
             message.error(await extractSdkResponseErrorMsgv2(error as any))
@@ -122,6 +125,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         ],
       })
       await updateGridViewColumn(fieldId, { aggregation: agg })
+      reloadVisibleDataHook?.trigger()
     }
 
     const aggregateFormulaFields = computed(() => {

@@ -71,6 +71,7 @@ const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
 const { isMobileMode } = useGlobal()
 const { paste } = usePaste()
+const { meta } = useSmartsheetStoreOrThrow()
 
 // Computed States
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -146,8 +147,6 @@ const generateAIBulk = async () => {
 
   const field = column?.columnObj
 
-  const cols = columns.value.map((v) => v.columnObj).filter(Boolean)
-
   if (!field || !field.id) return
 
   const rows = Array.from(cachedRows.value.values()).slice(selection.value.start.row, selection.value.end.row + 1)
@@ -156,7 +155,7 @@ const generateAIBulk = async () => {
 
   const pks = rows
     .map((row) => ({
-      pk: extractPkFromRow(row.row, cols!),
+      pk: extractPkFromRow(row.row, meta.value?.columns),
       row,
     }))
     .filter((row) => row.pk !== null)

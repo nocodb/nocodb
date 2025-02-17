@@ -402,7 +402,7 @@ onMounted(async () => {
           height: `${editEnabled.height}`,
           borderRadius: '2px',
         }"
-        class="absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
+        class="nc-canvas-table-editable-cell-wrapper absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
       >
         <LazySmartsheetRow :row="editEnabled.row">
           <template #default="{ state }">
@@ -421,4 +421,8 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.nc-canvas-table-editable-cell-wrapper {
+  @apply px-2;
+}
+</style>

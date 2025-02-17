@@ -34,5 +34,7 @@ export interface RenderRectangleProps {
 
 export interface RenderTagProps extends RenderRectangleProps {
   radius: number | DOMPointInit | Iterable<number | DOMPointInit>
-  fillStyle: string | CanvasGradient | CanvasPattern
+  fillStyle?: string | CanvasGradient | CanvasPattern
+  borderColor?: string
+  borderWidth?: number
 }

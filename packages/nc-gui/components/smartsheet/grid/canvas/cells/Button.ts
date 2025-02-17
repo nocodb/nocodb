@@ -237,6 +237,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     const disabledState = isLoading || disabled?.isInvalid
+    ctx.textAlign = 'left'
 
     const colOptions = column.colOptions
     if (!colOptions) return

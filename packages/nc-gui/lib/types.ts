@@ -426,6 +426,10 @@ interface CanvasGridColumn {
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
   isMysql: (sourceId?: string) => boolean
+  isInvalidColumn?: {
+    isInvalid: boolean
+    tooltip: string
+  }
 }
 
 export type {

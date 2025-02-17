@@ -1,4 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
+import { renderTag } from '../utils/canvas'
 
 function getIconsData({
   width,
@@ -68,7 +69,18 @@ const inactiveColor = '#d9d9d9'
 
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition } = props
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, tag = {} } = props
+
+    const {
+      renderAsTag,
+      tagPaddingX = 6,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagSpacing = 4,
+      tagBorderColor,
+      tagBorderWidth,
+    } = tag
 
     const iconsData = getIconsData({ height, width, x, y, column, padding })!
     if (!iconsData) return
@@ -103,6 +115,22 @@ export const RatingCellRenderer: CellRenderer = {
           hoveredIconIndex = -1
         }
       }
+    }
+
+    const tagWidth = iconWidthWithSpacing * iconsToShow + tagPaddingX * 2 + (needsEllipsis ? 15 : 0)
+    if (renderAsTag) {
+      const initialY = y + height / 2 - tagHeight / 2
+
+      renderTag(ctx, {
+        x: x + tagSpacing,
+        y: initialY,
+        width: tagWidth,
+        height: tagHeight,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
+      })
     }
 
     for (let i = 0; i < iconsToShow; i++) {
@@ -146,6 +174,13 @@ export const RatingCellRenderer: CellRenderer = {
         startX + (lastColInRow + 1) * iconWidthWithSpacing,
         startY + lastRow * (iconSize + rowSpacing) + iconSize / 2,
       )
+    }
+
+    if (renderAsTag) {
+      return {
+        x: x + tagWidth + tagSpacing,
+        y: y + tagHeight + tagSpacing,
+      }
     }
   },
   async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow }) {

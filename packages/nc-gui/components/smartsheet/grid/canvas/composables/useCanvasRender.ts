@@ -815,7 +815,7 @@ export function useCanvasRender({
             ctx.stroke()
 
             // add white background color for active cell
-            if (startColIndex + colIdx === activeCell.value.column && startRowIndex + rowIdx === activeCell.value.row) {
+            if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
               ctx.fillStyle = '#FFFFFF'
               ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
             }
@@ -879,7 +879,7 @@ export function useCanvasRender({
               }
 
               // add white background color for active cell
-              if (startColIndex + colIdx === activeCell.value.column && startRowIndex + rowIdx === activeCell.value.row) {
+              if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
                 ctx.fillStyle = '#FFFFFF'
                 ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
               }

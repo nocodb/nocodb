@@ -698,7 +698,12 @@ a {
 
 .ant-select-item-option-selected {
   @apply !bg-white;
+
+  &.ant-select-item-option-active {
+    @apply !bg-gray-100;
+  }
 }
+
 /* Hide the element with id nc-selected-item-icon */
 .ant-select-selection-item #nc-selected-item-icon {
   @apply hidden;

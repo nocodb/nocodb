@@ -30,7 +30,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + padding + tagPaddingX,
-        y: y + padding,
+        y: y,
         text: truncatedText,
         maxWidth: maxWidth,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,

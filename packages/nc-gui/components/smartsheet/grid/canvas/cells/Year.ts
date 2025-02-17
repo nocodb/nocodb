@@ -82,4 +82,12 @@ export const YearCellRenderer: CellRenderer = {
     }
     return false
   },
+  async handleKeyDown(ctx) {
+    const { row, column, makeCellEditable } = ctx
+    if (column.readonly) return
+
+    makeCellEditable(row, column)
+
+    return true
+  },
 }

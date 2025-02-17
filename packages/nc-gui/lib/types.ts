@@ -20,9 +20,9 @@ import type { UploadFile } from 'ant-design-vue'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
+import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
-import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 
 interface User {
   id: string

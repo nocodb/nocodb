@@ -28,7 +28,7 @@ export const PercentCellRenderer: CellRenderer = {
       return
     }
 
-    ctx.fillStyle = selected || pv ? '#3366FF' : '#4a5268'
+    ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
 
     renderSingleLineText(ctx, {
       x: x + width - padding,

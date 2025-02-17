@@ -22,7 +22,7 @@ export const TimeCellRenderer: CellRenderer = {
       }
     }
 
-    let text = getTimeValue(value, column)
+    const text = getTimeValue(value, column)
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })

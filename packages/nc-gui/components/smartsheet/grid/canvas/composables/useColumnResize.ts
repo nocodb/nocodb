@@ -121,7 +121,7 @@ export function useColumnResize(
   function handleMouseUp() {
     const shouldTriggerResize = isResizing.value && activeColumn.value && mousePosition.value
 
-    if (shouldTriggerResize) {
+    if (shouldTriggerResize && activeColumn.value && mousePosition.value) {
       const delta = mousePosition.value.x - activeColumn.value.startX
       const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
       onResizeEnd?.(activeColumn.value.id, newWidth)

@@ -74,6 +74,8 @@ export const OneToOneCellRenderer: CellRenderer = {
 
       Object.assign(cellRenderStore, returnData)
 
+      if (!returnData?.x) return
+
       if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
           x: returnData.x + 2,
@@ -128,7 +130,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       return true
     }
 
-    if (!cellRenderStore || !selected) return false
+    if (!cellRenderStore?.x || !selected) return false
     if (isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true

@@ -44,10 +44,7 @@ export const BarcodeCellRenderer: CellRenderer = {
         text: getI18n().global.t('msg.warning.barcode.renderError'),
         mousePosition,
       })
-      return true
     }
-
-    return true
   },
   async handleClick(ctx) {
     const { event, row, column, makeCellEditable, value } = ctx
@@ -59,5 +56,6 @@ export const BarcodeCellRenderer: CellRenderer = {
       makeCellEditable(row, column)
       return true
     }
+    return false
   },
 }

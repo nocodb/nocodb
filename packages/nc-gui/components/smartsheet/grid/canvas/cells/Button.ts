@@ -192,9 +192,6 @@ const buttonColorMap = {
   },
 } as const
 
-const offscreenCanvas = new OffscreenCanvas(0, 0)
-const defaultContext = offscreenCanvas.getContext('2d')!
-
 const getButtonColors = (
   theme: 'solid' | 'light' | 'text',
   color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
@@ -237,7 +234,6 @@ const iconSpacing = 6
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
     const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled } = props
-
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     const disabledState = isLoading || disabled?.isInvalid

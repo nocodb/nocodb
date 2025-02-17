@@ -1,5 +1,5 @@
 import type { UserType } from 'nocodb-sdk'
-import { isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 
 const tagPadding = 8
@@ -7,9 +7,6 @@ const tagSpacing = 4
 const tagHeight = 20
 const iconSize = 14
 const ellipsisWidth = 15
-
-const offscreenCanvas = new OffscreenCanvas(0, 0)
-const defaultContext = offscreenCanvas.getContext('2d')!
 
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -158,7 +155,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!users.length) return
     const boxes: (RenderRectangleProps & { text: string })[] = []
-    const ctx = defaultContext
+    const ctx = defaultOffscreen2DContext
 
     let line = 1
     for (const user of users) {

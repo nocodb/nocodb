@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const TimeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -62,7 +62,7 @@ export const TimeCellRenderer: CellRenderer = {
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
 
-    const canvasContext = new OffscreenCanvas(0, 0).getContext('2d')!
+    const canvasContext = defaultOffscreen2DContext
 
     const timeFormat = parseProp(column?.columnObj?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
     let text = ''

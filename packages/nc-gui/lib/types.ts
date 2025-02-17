@@ -358,6 +358,24 @@ interface ViewActionState {
   >
 }
 
+export interface CellRenderer {
+  render: (
+    ctx: CanvasRenderingContext2D,
+    options: {
+      value: any
+      row: any
+      column: ColumnType
+      x: number
+      y: number
+      width: number
+      height: number
+      selected: boolean
+      pv?: boolean
+      readonly?: boolean
+    },
+  ) => void
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -396,4 +414,5 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderer,
 }

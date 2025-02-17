@@ -3,7 +3,7 @@ import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
-import CanvasTable from './CanvasTable.vue'
+import CanvasTable from './canvas/index.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -214,6 +214,8 @@ const baseColor = computed(() => {
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
+const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_TABLE))
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -297,7 +299,101 @@ const pGoToPreviousRow = () => {
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
-    <CanvasTable />
+    <Table
+      v-if="!isGroupBy && !isInfiniteScrollingEnabled"
+      ref="tableRef"
+      v-model:selected-all-records="pSelectedAllRecords"
+      :data="pData"
+      :pagination-data="pPaginationData"
+      :load-data="pLoadData"
+      :change-page="pChangePage"
+      :call-add-empty-row="pAddEmptyRow"
+      :delete-row="pDeleteRow"
+      :update-or-save-row="pUpdateOrSaveRow"
+      :delete-selected-rows="pDeleteSelectedRows"
+      :delete-range-of-rows="pDeleteRangeOfRows"
+      :bulk-update-rows="pBulkUpdateRows"
+      :expand-form="expandForm"
+      :remove-row-if-new="pRemoveRowIfNew"
+      :row-height-enum="rowHeight"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <CanvasTable
+      v-model:selected-all-records="selectedAllRecords"
+      :load-data="loadData"
+      :call-add-empty-row="_addEmptyRow"
+      :delete-row="deleteRow"
+      :update-or-save-row="updateOrSaveRow"
+      :delete-selected-rows="deleteSelectedRows"
+      :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
+      :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :update-record-order="updateRecordOrder"
+      :bulk-delete-all="bulkDeleteAll"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      :chunk-states="chunkStates"
+      :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <InfiniteTable
+      v-else-if="!isGroupBy"
+      ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
+      :load-data="loadData"
+      :call-add-empty-row="_addEmptyRow"
+      :delete-row="deleteRow"
+      :update-or-save-row="updateOrSaveRow"
+      :delete-selected-rows="deleteSelectedRows"
+      :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
+      :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :update-record-order="updateRecordOrder"
+      :bulk-delete-all="bulkDeleteAll"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
+      :chunk-states="chunkStates"
+      :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <GroupBy
+      v-else
+      :group="rootGroup"
+      :load-groups="loadGroups"
+      :load-group-data="loadGroupData"
+      :load-group-page="loadGroupPage"
+      :group-wrapper-change-page="groupWrapperChangePage"
+      :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
+      :max-depth="groupBy.length"
+      :redistribute-rows="redistributeRows"
+      :view-width="viewWidth"
+    />
     <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"

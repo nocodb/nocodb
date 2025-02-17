@@ -48,8 +48,6 @@ const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
-const { gridViewPageSize } = useGlobal()
-
 const scrollLeft = toRef(props, 'scrollLeft')
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
@@ -147,7 +145,7 @@ const findAndLoadSubGroup = async (key: any) => {
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
-          if (!grp.children[0].children?.length) {
+          if (!grp.children?.[0]?.children?.length) {
             props.loadGroups({}, grp, {
               triggerChildOnly: true,
             })
@@ -192,12 +190,7 @@ watch([() => vGroup.value.key], async (n, o) => {
 
 onMounted(async () => {
   if (vGroup.value.root === true && !vGroup.value?.children?.length) {
-    await props.loadGroups(
-      {
-        limit: gridViewPageSize.value,
-      },
-      vGroup.value,
-    )
+    await props.loadGroups({}, vGroup.value)
   }
 })
 
@@ -542,6 +535,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="maximize" />
                             Expand group
                           </NcMenuItem>
+                          <!--
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />
                             Expand all
@@ -550,6 +544,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="minimizeAll" />
                             Collapse all
                           </NcMenuItem>
+                          -->
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -605,7 +600,7 @@ const bgColor = computed(() => {
   <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
-    :show-size-changer="true"
+    :show-size-changer="false"
     :scroll-left="_scrollLeft"
     custom-label="groups"
     :depth="maxDepth"

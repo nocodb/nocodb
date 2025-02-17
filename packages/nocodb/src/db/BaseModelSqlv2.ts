@@ -8717,6 +8717,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       );
                     }
                   } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment?.url.startsWith('data:')) {
+                      continue;
+                    }
+
                     promises.push(
                       PresignedUrl.signAttachment({
                         attachment: lookedUpAttachment,
@@ -8794,6 +8798,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     );
                   }
                 } else if (attachment?.url) {
+                  if (attachment?.url.startsWith('data:')) {
+                    continue;
+                  }
+
                   promises.push(
                     PresignedUrl.signAttachment({
                       attachment,

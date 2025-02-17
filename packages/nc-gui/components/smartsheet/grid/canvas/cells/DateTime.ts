@@ -51,14 +51,63 @@ export const DateTimeCellRenderer: CellRenderer = {
     const truncatedTime = truncateText(ctx, timeStr, timeMaxWidth - padding * 2)
     ctx.fillText(truncatedTime, x + dateWidth + padding, textY)
   },
-  async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition } = ctx
-    const bound = getCellPosition(column, row.rowMeta.rowIndex)
 
-    if (isBoxHovered({ x: bound.x, y: bound.y, width: bound.width, height: 33 }, mousePosition)) {
-      makeCellEditable(row.rowMeta.rowIndex, column)
-      return true
+  async handleClick(ctx) {
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+    const padding = 8
+
+    const canvasContext = new OffscreenCanvas(0, 0).getContext('2d')!
+
+    canvasContext.font = '500 13px Manrope'
+
+    const columnMeta = parseProp(column?.columnObj?.meta)
+    const dateFormat = columnMeta?.date_format ?? 'YYYY-MM-DD'
+    const timeFormat = columnMeta?.time_format ?? 'HH:mm'
+    const is12hrFormat = columnMeta?.is12hrFormat
+
+    const dateWidth = Math.min(bound.width * 0.6, 110)
+    const timeMaxWidth = timeCellMaxWidthMap[timeFormat]?.[is12hrFormat ? 12 : 24] ?? 80
+
+    let dateText, timeText
+    if (value && dayjs(value).isValid()) {
+      const dateTimeValue = dayjs(value).utc().local()
+      dateText = dateTimeValue.format(dateFormat)
+      timeText = dateTimeValue.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat)
+    } else {
+      dateText = dateFormat
+      timeText = timeFormat
+      canvasContext.font = '400 13px Manrope'
     }
+
+    if (dateText) {
+      const dateArea = {
+        x: bound.x + padding,
+        y: bound.y,
+        width: Math.min(canvasContext.measureText(dateText).width, dateWidth - padding * 2),
+        height: 33,
+      }
+
+      if (isBoxHovered(dateArea, mousePosition)) {
+        makeCellEditable(row.rowMeta.rowIndex, column)
+        return true
+      }
+    }
+
+    if (timeText) {
+      const timeArea = {
+        x: bound.x + dateWidth + padding,
+        y: bound.y,
+        width: Math.min(canvasContext.measureText(timeText).width, timeMaxWidth - padding * 2),
+        height: 33,
+      }
+
+      if (isBoxHovered(timeArea, mousePosition)) {
+        makeCellEditable(row.rowMeta.rowIndex, column)
+        return true
+      }
+    }
+
     return false
   },
 }

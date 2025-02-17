@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { EmailCellEditor, EmailCellRenderer } from './cells/Email'
+import { EmailCellRenderer } from './cells/Email'
 
 export interface CellRenderer {
   render: (
@@ -18,39 +18,11 @@ export interface CellRenderer {
   ) => void
 }
 
-export interface CellEditor {
-  mount: (
-    container: HTMLElement,
-    options: {
-      value: any
-      row: any
-      column: ColumnType
-      x: number
-      y: number
-      width: number
-      height: number
-      onSave: (value: any) => void
-      onCancel: () => void
-    },
-  ) => void
-  destroy: () => void
-}
-
-export interface CellType {
-  type: string
-  renderer: CellRenderer
-  editor?: CellEditor
-}
-
 export function useCellRenderer() {
-  const cellTypesRegistry = new Map<string, CellType>()
+  const cellTypesRegistry = new Map<string, CellRenderer>()
 
-  const registerCellType = (type: string, renderer: CellRenderer, editor?: CellEditor) => {
-    cellTypesRegistry.set(type, { type, renderer, editor })
-  }
-
-  const getCellEditor = (columnType: string) => {
-    return cellTypesRegistry.get(columnType)?.editor
+  const registerCellType = (type: string, renderer: CellRenderer) => {
+    cellTypesRegistry.set(type, renderer)
   }
 
   const renderCell = (
@@ -77,7 +49,7 @@ export function useCellRenderer() {
     const cellType = cellTypesRegistry.get(column.uidt)
 
     if (cellType) {
-      cellType.renderer.render(ctx, {
+      cellType.render(ctx, {
         value,
         row,
         column,
@@ -96,13 +68,12 @@ export function useCellRenderer() {
   }
 
   onMounted(() => {
-    registerCellType(UITypes.Email, EmailCellRenderer, EmailCellEditor)
+    registerCellType(UITypes.Email, EmailCellRenderer)
   })
 
   return {
     cellTypesRegistry,
     registerCellType,
     renderCell,
-    getCellEditor,
   }
 }

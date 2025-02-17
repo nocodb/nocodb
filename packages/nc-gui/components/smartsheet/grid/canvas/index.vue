@@ -1583,6 +1583,7 @@ onClickOutside(
     ) {
       return
     }
+    onActiveCellChanged()
     const aggregationOrColumnMenuOpen = document.querySelector('.canvas-aggregation, .canvas-header-column-menu')
     if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 

@@ -1,5 +1,5 @@
 import { type ColumnType, type LookupType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { getSingleMultiselectColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
+import { getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
@@ -43,6 +43,8 @@ export const LookupCellRenderer: CellRenderer = {
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
+    } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(lookupColumn.uidt)) {
+      lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
     }
 
     let arrValue = []

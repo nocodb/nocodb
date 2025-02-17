@@ -1,4 +1,4 @@
-import { type ColumnType, type TableType, UITypes, type ViewType, isAIPromptCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -57,6 +57,12 @@ export function useGridCellHandler(params: {
   const baseStore = useBase()
   const { isMssql, isMysql, isXcdbBase } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
+
+  const { basesUser } = storeToRefs(useBases())
+
+  const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
+    params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
+  )
 
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
@@ -145,7 +151,7 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
-    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
+    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers'>,
   ) => {
     if (skipRender) return
 
@@ -198,6 +204,7 @@ export function useGridCellHandler(params: {
         sqlUis: sqlUis.value,
         setCursor,
         cellRenderStore,
+        baseUsers: baseUsers.value,
       })
     } else {
       return renderSingleLineText(ctx, {

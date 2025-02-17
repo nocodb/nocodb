@@ -393,7 +393,11 @@ export function useCanvasTable({
     if (selection.value.isSingleCell()) {
       const selectedColumn = columns.value[selection.value.end.col]
       // If the cell is virtual or system column, hide the fill handler
-      if (selectedColumn?.virtual || isSystemColumn(selectedColumn?.columnObj)) {
+      if (
+        selectedColumn?.virtual ||
+        isSystemColumn(selectedColumn?.columnObj) ||
+        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj))
+      ) {
         return null
       }
     } else {

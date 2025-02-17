@@ -28,6 +28,8 @@ const overlayClassName = toRef(props, 'overlayClassName')
 
 const placement = toRef(props, 'placement')
 
+const overlayStyle = toRef(props, 'overlayStyle')
+
 const autoClose = computed(() => props.autoClose)
 
 const overlayClassNameComputed = computed(() => {
@@ -36,9 +38,6 @@ const overlayClassNameComputed = computed(() => {
     className += ` ${overlayClassName.value}`
   }
   return className
-})
-const overlayStyleComputed = computed(() => {
-  return props.overlayStyle
 })
 
 const visible = useVModel(props, 'visible', emits)
@@ -73,7 +72,7 @@ const onVisibleUpdate = (event: any) => {
     :placement="placement as any"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
-    :overlay-style="overlayStyleComputed"
+    :overlay-style="overlayStyle"
     @update:visible="onVisibleUpdate"
   >
     <slot />

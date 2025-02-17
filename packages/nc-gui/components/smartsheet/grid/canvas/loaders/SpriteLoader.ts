@@ -34,11 +34,15 @@ export class SpriteLoader {
     const blob = new Blob([svg], { type: 'image/svg+xml' })
     img.src = URL.createObjectURL(blob)
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>((resolve, reject) => {
       img.onload = () => {
         ctx.drawImage(img, 0, 0, size, size)
         URL.revokeObjectURL(img.src)
         resolve()
+      }
+      img.onerror = (err) => {
+        URL.revokeObjectURL(img.src)
+        reject(err)
       }
     })
 
@@ -69,6 +73,6 @@ export class SpriteLoader {
       if (!sprite) return
       this.spriteCache.set(cacheKey, sprite)
     }
-    ctx.drawImage(sprite, x, y)
+    ctx.drawImage(sprite, x, y, size, size)
   }
 }

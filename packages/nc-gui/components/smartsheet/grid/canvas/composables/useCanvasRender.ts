@@ -94,7 +94,7 @@ export function useCanvasRender({
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
           icon,
-          size: 7,
+          size: 13,
           color: '#6a7184',
           x: xOffset + 8 - scrollLeft.value,
           y: 8,
@@ -133,7 +133,7 @@ export function useCanvasRender({
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
             icon,
-            size: 7,
+            size: 13,
             color: '#6a7184',
             x: xOffset + 8,
             y: 8,

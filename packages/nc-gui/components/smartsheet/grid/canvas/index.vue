@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, type ViewType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, type ViewType, isLinksOrLTAR, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
@@ -90,18 +90,22 @@ const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const _isContextMenuOpen = ref(false)
-const isCreateNewColumnDropdownOpen = ref(false)
+const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
+const editColumn = ref<ColumnType | null>(null)
+const isEditColumnDescription = ref(false)
 
 const isExpandTableModalOpen = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
+const isLocked = inject(IsLockedInj, ref(false))
 
 // Composables
 const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
-const { isDataReadOnly } = useRoles()
+const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
+const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
 
 const {
@@ -241,14 +245,14 @@ function onActiveCellChanged() {
 }
 
 const onVisibilityChange = () => {
-  if (isCreateNewColumnDropdownOpen.value) {
+  if (isCreateOrEditColumnDropdownOpen.value) {
     isDropdownVisible.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
-    isCreateNewColumnDropdownOpen.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    isCreateOrEditColumnDropdownOpen.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
   }
 }
 
 function closeAddColumnDropdownMenu(scrollToLastCol = false) {
-  isCreateNewColumnDropdownOpen.value = false
+  isCreateOrEditColumnDropdownOpen.value = false
   isDropdownVisible.value = false
   if (scrollToLastCol) {
     setTimeout(() => {
@@ -313,7 +317,7 @@ function handleMouseDown(e: MouseEvent) {
     const plusColumnWidth = 60
 
     if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
-      isCreateNewColumnDropdownOpen.value = true
+      isCreateOrEditColumnDropdownOpen.value = true
       overlayStyle.value = {
         top: `calc(100svh - ${height.value}px + 32px)`,
         left: `calc(100svw - ${width.value}px + ${plusColumnX - 200}px)`,
@@ -328,13 +332,17 @@ function handleMouseDown(e: MouseEvent) {
   if (y < 32 && (e.button === 2 || e.detail === 2)) {
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
-      openColumnDropdownField.value = clickedColumn.columnObj
-      isDropdownVisible.value = true
-      overlayStyle.value = {
-        top: `calc(100svh - ${height.value}px + ${32}px)`,
-        minWidth: `${clickedColumn.width}`,
-        width: `${clickedColumn.width}`,
-        left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+      if (e.button === 2) {
+        openColumnDropdownField.value = clickedColumn.columnObj
+        isDropdownVisible.value = true
+        overlayStyle.value = {
+          top: `calc(100svh - ${height.value}px + ${32}px)`,
+          minWidth: `${clickedColumn.width}`,
+          width: `${clickedColumn.width}`,
+          left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+        }
+      } else if (e.detail === 2) {
+        handleEditColumn(e, false, clickedColumn.columnObj)
       }
     }
     triggerRefreshCanvas()
@@ -583,7 +591,7 @@ function addEmptyColumn() {
   $e('c:shortcut', { key: 'ALT + C' })
   containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
 
-  isCreateNewColumnDropdownOpen.value = true
+  isCreateOrEditColumnDropdownOpen.value = true
 
   const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
   const plusColumnX = totalColumnsWidth - scrollLeft.value
@@ -594,6 +602,33 @@ function addEmptyColumn() {
   }
   isDropdownVisible.value = true
   triggerRefreshCanvas()
+}
+
+function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
+  if (isLocked.value) return
+  if (
+    isUIAllowed('fieldEdit') &&
+    !isMobileMode.value &&
+    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
+  ) {
+    if (isDescription) {
+      isEditColumnDescription.value = true
+    }
+
+    const colIndex = columns.value.findIndex((col) => col.id === column.id)
+    let xOffset = 0
+    for (let i = colSlice.value.start; i < colIndex; i++) {
+      xOffset += parseInt(columns.value[i]!.width, 10)
+    }
+    overlayStyle.value = {
+      top: `calc(100svh - ${height.value}px + ${32}px)`,
+      left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+    }
+
+    editColumn.value = column
+    isDropdownVisible.value = true
+    isCreateOrEditColumnDropdownOpen.value = true
+  }
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
@@ -741,10 +776,13 @@ onMounted(async () => {
               v-if="openColumnDropdownField"
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
+              @edit="handleEditColumn"
             />
-            <div v-if="isCreateNewColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
+            <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
               <LazySmartsheetColumnEditOrAddProvider
                 ref="columnEditOrAddProviderRef"
+                :column="editColumn"
+                :edit-description="isEditColumnDescription"
                 @submit="closeAddColumnDropdownMenu(true)"
                 @cancel="closeAddColumnDropdownMenu()"
                 @click.stop

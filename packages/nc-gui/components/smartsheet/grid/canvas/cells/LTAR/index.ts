@@ -15,7 +15,7 @@ export const LtarCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const cellRenderer = getLtarCellRenderer(props.column)
     if (cellRenderer) {
-      cellRenderer.render(ctx, props)
+      return cellRenderer.render(ctx, props)
     }
   },
   handleClick: async (props) => {

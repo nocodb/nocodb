@@ -5,7 +5,20 @@ import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const BelongsToCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell, readonly, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      spriteLoader,
+      mousePosition,
+      relatedTableMeta,
+      renderCell,
+      readonly,
+      setCursor,
+      selected,
+    } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -18,6 +31,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       | undefined
 
     if (!btColumn) return
+    let returnData
 
     if (isValidValue(value)) {
       const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 26 : 0)
@@ -33,7 +47,7 @@ export const BelongsToCellRenderer: CellRenderer = {
           : PlainCellRenderer.render(ctx, options)
       }
 
-      cellRenderer({
+      returnData = cellRenderer({
         ...props,
         value: cellValue,
         column: btColumn,
@@ -53,6 +67,21 @@ export const BelongsToCellRenderer: CellRenderer = {
         x: x + 4,
         y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })
+
+      if (selected && !readonly) {
+        spriteLoader.renderIcon(ctx, {
+          x: returnData.x + 2,
+          y: y + (rowHeightInPx['1'] === height ? 8 : 2),
+          icon: 'ncXCircle',
+          size: 14,
+          color: '#AFB3C2',
+        })
+
+
+        if (isBoxHovered({ x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 }, mousePosition)) {
+          setCursor('pointer')
+        }
+      }
     }
 
     if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
@@ -68,12 +97,21 @@ export const BelongsToCellRenderer: CellRenderer = {
         setCursor('pointer')
       }
     }
+
+    return returnData
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width } = getCellPosition(column, rowIndex)
     const size = 14
     if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+
+    if (!cellRenderStore || !selected) return false
+
+    if (isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true
     }

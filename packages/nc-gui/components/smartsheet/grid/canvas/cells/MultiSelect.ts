@@ -1,5 +1,9 @@
-import { renderSingleLineText, renderTag } from '../utils/canvas'
+import { isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
+import type { RenderRectangleProps } from '../utils/types'
+
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+const defaultContext = offscreenCanvas.getContext('2d')!
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -40,7 +44,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
           // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
             x: x + padding + tagSpacing, // Align `...` at the end
-            y: y,
+            y,
             text: '...',
             maxWidth: ellipsisWidth,
             textAlign: 'right',
@@ -69,7 +73,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + tagPadding,
-        y: y,
+        y,
         text: truncatedText,
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',
@@ -106,5 +110,77 @@ export const MultiSelectCellRenderer: CellRenderer = {
     } else {
       return value.toString().split(',')
     }
+  },
+
+  async handleHover({ row, column, mousePosition, getCellPosition, value }) {
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+    if (!row || !column?.id || !mousePosition) return
+
+    const { x: _x, y: _y, width: _width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const padding = 10
+
+    let x = _x + padding
+    let y = _y
+    let width = _width - padding * 2
+    const tagPadding = 8
+    const tagSpacing = 4
+    const tagHeight = 20
+    const topPadding = 6
+
+    width = width - padding * 2
+
+    const selectedOptions = MultiSelectCellRenderer.getSelectedOptions({ column: column.columnObj, value })
+
+    if (!selectedOptions.length) return
+    const boxes: (RenderRectangleProps & { text: string })[] = []
+    let count = 0
+    let line = 1
+    const ctx = defaultContext
+    for (const option of selectedOptions) {
+      const text = option?.trim() ?? ''
+
+      const { text: truncatedText, width: optionWidth } = renderSingleLineText(ctx, {
+        text,
+        maxWidth: width - tagPadding * 2,
+        render: false,
+      })
+
+      // Check if the tag fits in the current row
+      if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
+        // Check if there is space for `...` on the same line
+
+        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
+          // Not enough space for `...` on the current line, so stop rendering
+          break
+        }
+
+        // Wrap to the next line
+        x = _x + padding // Reset x to start of the row
+        y += tagHeight + tagSpacing // Move to the next line
+        line += 1
+      }
+      if (text !== truncatedText) {
+        boxes.push({
+          x,
+          y: y + topPadding,
+          width: optionWidth + tagPadding * 2,
+          height: tagHeight,
+          text,
+        })
+      }
+
+      x = x + optionWidth + tagPadding * 2 + tagSpacing
+      count++
+    }
+
+    if (!boxes.length) return
+
+    const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+    if (!hoveredBox) return
+    showTooltip({
+      position: mousePosition,
+      text: hoveredBox.text,
+    })
   },
 }

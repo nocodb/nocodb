@@ -37,9 +37,16 @@ export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x, y, padding } = props
     const colMeta = parseProp(column.meta)
-
     if (colMeta?.display_type) {
-      getDisplayValueCellRenderer(column).render(ctx, props)
+      getDisplayValueCellRenderer(column).render(ctx, {
+        ...props,
+        column: {
+          ...column,
+          uidt: colMeta?.display_type,
+          ...colMeta.display_column_meta,
+        },
+        readonly: true,
+      })
     } else {
       if (parseProp(column.colOptions)?.error) {
         renderSingleLineText(ctx, {

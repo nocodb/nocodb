@@ -459,7 +459,7 @@ export const renderMultiLineText = (
     width = cachedText.width
   } else {
     lines = wrapTextToLines(ctx, { text, maxWidth, maxLines })
-    width = Math.min(...lines.map((line) => ctx.measureText(line).width), maxWidth)
+    width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
 
     multiLineTextCache.set(cacheKey, { lines, width })
   }

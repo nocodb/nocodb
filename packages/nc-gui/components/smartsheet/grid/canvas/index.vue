@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, type ViewType } from 'nocodb-sdk'
+import { isLinksOrLTAR, isVirtualCol, type ColumnType, type TableType, type ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
@@ -294,8 +294,9 @@ async function handleMouseDown(e: MouseEvent) {
         column: columns.value.findIndex((col) => col.id === clickedColumn.id),
       }
 
-      if (e.detail === 2) {
-        if (clickedColumn?.virtual) return
+      if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
+        if (clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
+
         editEnabled.value = {
           rowIndex,
           x: xOffset + scrollLeft.value,
@@ -467,7 +468,16 @@ onMounted(async () => {
       >
         <LazySmartsheetRow :row="editEnabled.row">
           <template #default="{ state }">
+            <LazySmartsheetVirtualCell
+              v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
+              v-model="editEnabled.row.row[editEnabled.column.title]"
+              :column="editEnabled.column"
+              :row="editEnabled.row"
+              active
+              @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+            />
             <SmartsheetCell
+              v-else
               v-model="editEnabled.row.row[editEnabled.column.title]"
               :column="editEnabled.column"
               :row-index="editEnabled.rowIndex"
@@ -498,6 +508,22 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply px-2 absolute bg-white border-2 !rounded border-[#3366ff];
+  @apply px-2 absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
+
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply !text-small !leading-[18px];
+
+    :deep(.nc-cell-field),
+    :deep(input),
+    :deep(textarea),
+    :deep(.nc-cell-field-link) {
+      @apply !text-small leading-[18px];
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-small leading-[18px];
+      }
+    }
+  }
 }
 </style>

@@ -715,7 +715,7 @@ export const parsePlainCellValue = (
   value: ParsePlainCellValueProps['value'],
   params: ParsePlainCellValueProps['params'],
 ): string => {
-  const { col, abstractType } = params
+  const { col, abstractType, isUnderLookup } = params
 
   if (!col) {
     return ''
@@ -765,7 +765,11 @@ export const parsePlainCellValue = (
   }
   if (isJSON(col)) {
     try {
-      return JSON.stringify(JSON.parse(value), null, 2)
+      if (isUnderLookup) {
+        return typeof value === 'string' ? value : JSON.stringify(value)
+      } else {
+        return JSON.stringify(JSON.parse(value), null, 2)
+      }
     } catch {
       return value
     }

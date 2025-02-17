@@ -543,6 +543,7 @@ interface ParsePlainCellValueProps {
     isMssql: (sourceId?: string) => boolean
     isXcdbBase: (sourceId?: string) => boolean
     t: Composer['t']
+    isUnderLookup?: boolean
   }
 }
 

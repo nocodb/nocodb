@@ -18,6 +18,7 @@ export const PlainCellRenderer: CellRenderer = {
       isMysql,
       isXcdbBase,
       t,
+      isUnderLookup,
     } = props
 
     if (!meta || !metas) return
@@ -33,6 +34,7 @@ export const PlainCellRenderer: CellRenderer = {
       isMssql,
       isXcdbBase,
       t,
+      isUnderLookup,
     })
 
     if (props.tag?.renderAsTag) {

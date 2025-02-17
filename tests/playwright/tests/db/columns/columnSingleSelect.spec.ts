@@ -4,7 +4,6 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { Api } from 'nocodb-sdk';
-import { isCanvas } from '../../../setup/db';
 
 test.describe('Single select', () => {
   let dashboard: DashboardPage, grid: GridPage;
@@ -70,11 +69,6 @@ test.describe('Single select', () => {
   });
 
   test('Remove a option, reorder option and delete the column', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await grid.cell.selectOption.select({ index: 0, columnHeader: 'SingleSelect', option: 'Option 1' });
     await grid.column.selectOption.addOption({ index: 2, option: 'Option 3', columnTitle: 'SingleSelect' });
 
@@ -106,11 +100,6 @@ test.describe('Single select', () => {
   });
 
   test('Add new option directly from cell', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await grid.cell.selectOption.addNewOption({
       index: 0,
       columnHeader: 'SingleSelect',

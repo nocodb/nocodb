@@ -7,7 +7,7 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
 import { Api } from 'nocodb-sdk';
-import { isEE, isCanvas } from '../../../setup/db';
+import { isEE } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
 
 const users: string[] = isEE()
@@ -123,11 +123,6 @@ test.describe('User single select', () => {
   });
 
   test('Rename column title and delete the column', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     // Rename column title, reload page and verify
     await grid.column.openEdit({ title: 'User' });
     await grid.column.fillTitle({ title: 'UserField' });
@@ -146,11 +141,6 @@ test.describe('User single select', () => {
   });
 
   test('Field operations - duplicate column, convert to SingleLineText', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
       { Id: 2, Title: `Row 1` },
       { Id: 3, Title: `Row 2` },
@@ -512,11 +502,6 @@ test.describe('User multiple select', () => {
   });
 
   test('Field operations - duplicate column, convert to SingleLineText', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
       { Id: 1, Title: `Row 0` },
       { Id: 2, Title: `Row 1` },

@@ -58,7 +58,7 @@ onClickOutside(dropdownRef, () => {
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     :overlay-class-name="`nc-dropdown-column-operations ${isOpen ? 'active' : ''} !border-1 rounded-lg !shadow-xl`"
-    @click="openDropdown"
+    @click.stop="openDropdown"
   >
     <div class="flex gap-1 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>

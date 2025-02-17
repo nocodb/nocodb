@@ -461,11 +461,38 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
   triggerRefreshCanvas()
 }
 let prevActiveCell = null
+let prevMenuState: {
+  isCreateOrEditColumnDropdownOpen?: boolean
+  openColumnDropdownField?: unknown
+  editEnabled?: boolean | null
+  openAggregationFieldId?: string
+  isDropdownVisible?: boolean
+  editColumn?: unknown
+  columnOrder?: unknown
+} = {}
+
 async function handleMouseDown(e: MouseEvent) {
+  // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
+  prevMenuState = {
+    isCreateOrEditColumnDropdownOpen: isCreateOrEditColumnDropdownOpen.value,
+    openColumnDropdownField: openColumnDropdownField.value,
+    editEnabled: editEnabled.value,
+    // storing id since the value get alteredand it's reactive
+    openAggregationFieldId: openAggregationField.value?.id,
+    isDropdownVisible: isDropdownVisible.value,
+    editColumn: editColumn.value,
+    columnOrder: columnOrder.value,
+  }
+
   editEnabled.value = null
   openAggregationField.value = null
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
+  editColumn.value = null
+  columnOrder.value = null
+  isCreateOrEditColumnDropdownOpen.value = false
+  overlayStyle.value = null
+
   isContextMenuOpen.value = false
   contextMenuTarget.value = null
   prevActiveCell = null
@@ -626,12 +653,6 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   if (isRowReorderActive.value) return
 
-  editEnabled.value = null
-  openAggregationField.value = null
-  openColumnDropdownField.value = null
-  isDropdownVisible.value = false
-  editColumn.value = null
-  columnOrder.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -661,6 +682,11 @@ const handleMouseUp = async (e: MouseEvent) => {
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
         // If the click is not normal single click, return
         if (clickType !== MouseClickType.SINGLE_CLICK) return
+
+        // if menu already in open state then close it on second click
+        if (prevMenuState.isCreateOrEditColumnDropdownOpen && !prevMenuState.editColumn) {
+          return
+        }
         isCreateOrEditColumnDropdownOpen.value = true
         overlayStyle.value = {
           top: `${rect.top}px`,
@@ -677,12 +703,7 @@ const handleMouseUp = async (e: MouseEvent) => {
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       if (clickedColumn) {
-        // If the user clicked on a column, check if the user is trying to edit the column
-        // On Double-click, should open the column edit dialog
-        if (clickType === MouseClickType.DOUBLE_CLICK) {
-          handleEditColumn(e, false, clickedColumn.columnObj)
-          return
-        } else if (clickType === MouseClickType.RIGHT_CLICK) {
+        if (clickType === MouseClickType.RIGHT_CLICK) {
           // IF Right-click on a column, open the column dropdown menu
           openColumnDropdownField.value = clickedColumn.columnObj
           lastOpenColumnDropdownField.value = clickedColumn.columnObj
@@ -696,20 +717,16 @@ const handleMouseUp = async (e: MouseEvent) => {
           }
           requestAnimationFrame(triggerRefreshCanvas)
           return
-        } else if (clickType === MouseClickType.SINGLE_CLICK) {
-          // Column Dropdown Menu
-          if (y <= 21 && y >= 9) {
-            const columnWidth = parseInt(clickedColumn.width, 10)
-            const iconOffsetX = xOffset + columnWidth - 24
-
-            // check if clicked on the menu icon
-            if (iconOffsetX > x || iconOffsetX + 14 < x) {
+        } else {
+          const columnWidth = parseInt(clickedColumn.width, 10)
+          const iconOffsetX = xOffset + columnWidth - 24
+          // check if clicked on the column menu icon
+          if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+            // if menu already in open state then close it on second click
+            if (prevMenuState.isDropdownVisible && prevMenuState.openColumnDropdownField === clickedColumn.columnObj) {
               return
             }
 
-            openColumnDropdownField.value = clickedColumn.columnObj
-            lastOpenColumnDropdownField.value = clickedColumn.columnObj
-            isDropdownVisible.value = true
             overlayStyle.value = {
               top: `${rect.top}px`,
               left: `${rect.left + xOffset}px`,
@@ -717,6 +734,17 @@ const handleMouseUp = async (e: MouseEvent) => {
               height: `32px`,
               position: 'fixed',
             }
+            openColumnDropdownField.value = clickedColumn.columnObj
+            lastOpenColumnDropdownField.value = clickedColumn.columnObj
+            isDropdownVisible.value = true
+            requestAnimationFrame(triggerRefreshCanvas)
+            return
+          }
+          // If the user clicked on a column, check if the user is trying to edit the column
+          // On Double-click, should open the column edit dialog
+          // kept under else to avoid opening the column edit dialog on doubleclicking the column menu icon
+          else if (clickType === MouseClickType.DOUBLE_CLICK) {
+            handleEditColumn(e, false, clickedColumn.columnObj)
             requestAnimationFrame(triggerRefreshCanvas)
             return
           }
@@ -731,9 +759,18 @@ const handleMouseUp = async (e: MouseEvent) => {
   // If the user is clicking on the Aggregation in bottom
   if (y > height.value - 36) {
     // If the click is not normal single click, return
-    if (clickType !== MouseClickType.SINGLE_CLICK) return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+
     if (clickedColumn) {
+      // if clicked on same aggregation field, close the dropdown
+      if (
+        prevMenuState.isDropdownVisible &&
+        prevMenuState.openAggregationFieldId &&
+        prevMenuState.openAggregationFieldId === clickedColumn.id
+      ) {
+        return
+      }
+
       openAggregationField.value = clickedColumn
       isDropdownVisible.value = true
       overlayStyle.value = {

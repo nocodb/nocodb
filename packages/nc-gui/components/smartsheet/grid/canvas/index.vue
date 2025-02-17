@@ -110,7 +110,7 @@ const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
 
-const paddingLessUITypes = new Set([UITypes.LongText])
+const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime])
 
 provide(ClientMousePositionInj, clientMousePosition)
 
@@ -1037,7 +1037,7 @@ onBeforeUnmount(() => {
           borderRadius: '2px',
         }"
         class="nc-canvas-table-editable-cell-wrapper"
-        :class="{ 'px-2.5': !noPadding }"
+        :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"
       >
         <LazySmartsheetRow :row="editEnabled.row">
           <template #default="{ state }">
@@ -1095,6 +1095,43 @@ onBeforeUnmount(() => {
 .nc-canvas-table-editable-cell-wrapper {
   @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
 
+  &.row-height-1 {
+    :deep(.nc-multi-select) {
+      height: 28px !important;
+    }
+
+    :deep(.nc-single-select) {
+      height: 30px !important;
+    }
+
+    :deep(.nc-cell-attachment) {
+      @apply !pt-0;
+
+      .nc-upload-btn {
+        @apply !pt-0.5;
+      }
+
+      .nc-attachment-wrapper {
+        height: 28px !important;
+        @apply !pt-0.5 !pb-0.5;
+      }
+    }
+
+    :deep(.nc-cell-longtext) {
+      .nc-readonly-rich-text-wrapper {
+        @apply !pl-2 pt-0.5;
+      }
+
+      .nc-text-area-expand-btn {
+        @apply !pr-1 !pt-1;
+      }
+    }
+
+    :deep(.nc-cell-datetime) {
+      @apply !py-0.75 !px-2;
+    }
+  }
+
   :deep(.nc-cell-longtext) {
     .nc-readonly-rich-text-wrapper {
       @apply !pl-2 pt-0.5;
@@ -1117,6 +1154,9 @@ onBeforeUnmount(() => {
     @apply !h-auto;
   }
 
+  :deep(.nc-cell-datetime) {
+    @apply !py-1 !px-2;
+  }
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

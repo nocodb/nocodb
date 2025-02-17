@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type TableType } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, type TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderCheckbox, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
@@ -66,7 +66,7 @@ export function useCanvasRender({
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
-  renderCell: (ctx: CanvasRenderingContext2D, column: CanvasGridColumn, options) => void
+  renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options) => void
   meta: ComputedRef<TableType>
 }) {
   const canvasRef = ref()
@@ -617,6 +617,7 @@ export function useCanvasRender({
               selected: isActive,
               pv: column.pv,
               spriteLoader,
+              readonly: column.readonly,
               imageLoader,
               tableMetaLoader,
               relatedColObj: column.relatedColObj,
@@ -674,6 +675,7 @@ export function useCanvasRender({
                   row: row.row,
                   selected: isActive,
                   pv: column.pv,
+                  readonly: column.readonly,
                   spriteLoader,
                   imageLoader,
                   tableMetaLoader,
@@ -1171,6 +1173,7 @@ export function useCanvasRender({
             height: rowHeight.value,
             row: row.row,
             selected: false,
+            readonly: true,
             pv: column.pv,
             spriteLoader,
             imageLoader,

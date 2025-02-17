@@ -1,4 +1,4 @@
-import { type TableType, UITypes, type ViewType, isAIPromptCol } from 'nocodb-sdk'
+import { type TableType, UITypes, type ViewType, isAIPromptCol, type ColumnType } from 'nocodb-sdk';
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -32,6 +32,7 @@ import { LookupCellRenderer } from './Lookup'
 import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
+import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
@@ -94,10 +95,12 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
   cellTypesRegistry.set(UITypes.SpecificDBType, SingleLineTextCellRenderer)
+  cellTypesRegistry.set(UITypes.ForeignKey, GenericReadOnlyRenderer)
+  cellTypesRegistry.set(UITypes.ID, GenericReadOnlyRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,
-    column: any,
+    column: ColumnType,
     {
       value,
       row,
@@ -135,7 +138,6 @@ export function useGridCellHandler(params: {
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
-
     if (cellType) {
       return cellType.render(ctx, {
         value,

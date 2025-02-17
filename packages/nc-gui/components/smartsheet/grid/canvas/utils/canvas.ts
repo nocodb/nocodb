@@ -1007,6 +1007,7 @@ export function renderIconButton(
     hoveredBackground = '#f4f4f5',
     borderColor = '#e7e7e9',
     setCursor,
+    shadow = false,
   }: {
     buttonX: number
     buttonY: number
@@ -1020,9 +1021,28 @@ export function renderIconButton(
     hoveredBackground?: string
     borderColor?: string
     setCursor?: SetCursorType
+    shadow?: boolean
   },
 ) {
   const hovered = mousePosition && isBoxHovered({ x: buttonX, y: buttonY, height: buttonSize, width: buttonSize }, mousePosition)
+
+  if (shadow) {
+    ctx.save()
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)'
+    ctx.shadowOffsetY = 2
+    ctx.shadowBlur = 1
+
+    roundedRect(ctx, buttonX, buttonY, buttonSize, buttonSize, borderRadius, {
+      backgroundColor: hovered ? hoveredBackground : background,
+      borderColor,
+    })
+
+    // Reset shadow for second layer
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.02)'
+    ctx.shadowOffsetY = 5
+    ctx.shadowBlur = 3
+  }
+
   roundedRect(ctx, buttonX, buttonY, buttonSize, buttonSize, borderRadius, {
     backgroundColor: hovered ? hoveredBackground : background,
     borderColor,

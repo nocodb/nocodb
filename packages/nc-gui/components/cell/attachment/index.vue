@@ -34,6 +34,10 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+
 const { isMobileMode } = useGlobal()
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -229,6 +233,17 @@ defineExpose({
   removeAttachment: onRemoveFileClick,
   updateAttachmentTitle,
 })
+
+onMounted(() => {
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  forcedNextTick(() => {
+    const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
+      .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
+      .join(', ')
+    const clickable = getElementAtMouse<HTMLElement>(clickableSelectors, clientMousePosition)
+    if (clickable) clickable.click()
+  })
+})
 </script>
 
 <template>
@@ -295,7 +310,7 @@ defineExpose({
       </template>
     </LazyGeneralDeleteModal>
   </div>
-  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
+  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition" :data-row-height="rowHeight">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <template v-if="!isReadonly && !dragging && !!currentCellRef">
@@ -330,7 +345,7 @@ defineExpose({
           type="secondary"
           size="xs"
           data-testid="attachment-cell-file-picker-button"
-          class="!px-2 !h-6 !min-w-[fit-content]"
+          class="!px-2 !h-6 !min-w-[fit-content] empty-add-files"
           @click.stop="openAttachmentModal"
         >
           <div class="flex items-center gap-1 justify-center">
@@ -398,7 +413,7 @@ defineExpose({
           type="secondary"
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
-          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content] view-attachments"
           @click.stop="onExpand"
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -422,7 +437,7 @@ defineExpose({
           type="secondary"
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
-          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
           <MaterialSymbolsAttachFile class="text-gray-500 text-tiny group-hover:(!text-grey-800) text-gray-700" />

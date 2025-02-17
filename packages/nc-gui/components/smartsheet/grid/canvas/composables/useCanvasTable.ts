@@ -62,6 +62,7 @@ export function useCanvasTable({
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
+  const { metas } = useMetas()
 
   const fields = inject(FieldsInj, ref([]))
 
@@ -77,6 +78,13 @@ export function useCanvasTable({
         const gridViewCol = gridViewCols.value[f.id!]
 
         if (!gridViewCol) return false
+        let relatedColObj
+
+        if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
+          relatedColObj = metas.value?.[f.fk_model_id]?.columns?.find(
+            (c) => c.id === f?.colOptions?.fk_relation_column_id,
+          ) as ColumnType
+        }
 
         return {
           id: f.id,
@@ -90,6 +98,7 @@ export function useCanvasTable({
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
           agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
           columnObj: f,
+          relatedColObj,
         }
       })
       .filter((c) => !!c)

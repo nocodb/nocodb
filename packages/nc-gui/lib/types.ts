@@ -10,6 +10,7 @@ import type {
   Roles,
   RolesObj,
   TableType,
+  UITypes,
   ViewTypes,
 } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
@@ -387,6 +388,21 @@ interface FillHandlerPosition {
   fixedCol: boolean
 }
 
+interface CanvasGridColumn {
+  id: string
+  grid_column_id: string
+  title: string
+  width: string
+  uidt: keyof typeof UITypes | null
+  fixed: boolean
+  virtual?: boolean
+  pv: boolean
+  columnObj: ColumnType
+  aggregation: string
+  agg_prefix: string
+  relatedColObj?: ColumnType
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -426,5 +442,6 @@ export type {
   NestedArray,
   ViewActionState,
   CellRenderer,
+  CanvasGridColumn,
   FillHandlerPosition,
 }

@@ -1,14 +1,8 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 
-interface Column {
-  id: string
-  width: string
-  [key: string]: any
-}
-
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
-  columns: ComputedRef<Column[]>,
+  columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
   onResize?: (columnId: string, width: number) => void,

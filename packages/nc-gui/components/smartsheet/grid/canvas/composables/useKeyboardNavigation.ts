@@ -1,5 +1,3 @@
-import type { UITypes } from 'nocodb-sdk'
-
 const MAX_SELECTION_LIMIT = 100
 
 export function useKeyboardNavigation({
@@ -13,17 +11,7 @@ export function useKeyboardNavigation({
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
   triggerReRender: () => void
-  columns: ComputedRef<
-    | {
-        id: string
-        grid_column_id: string
-        title: string
-        width: string
-        uidt: keyof typeof UITypes | null
-        fixed: boolean
-        pv: boolean
-      }[]
-  >
+  columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: (row: number, column: number) => void
   selection: Ref<CellRange>
 }) {

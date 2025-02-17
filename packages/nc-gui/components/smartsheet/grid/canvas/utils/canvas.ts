@@ -158,13 +158,14 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
       ctx.font = fontFamily
     }
 
+    ctx.textAlign = textAlign
+    ctx.textBaseline = verticalAlign
+
     if (fillStyle) {
       ctx.fillStyle = fillStyle
       ctx.strokeStyle = fillStyle
     }
 
-    ctx.textAlign = textAlign
-    ctx.textBaseline = verticalAlign
     ctx.fillText(truncatedText, x, y + yOffset)
   }
 

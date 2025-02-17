@@ -365,6 +365,8 @@ interface CellRendererOptions {
   value: any
   row: any
   column: ColumnType
+  relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
   x: number
   y: number
   width: number
@@ -377,6 +379,7 @@ interface CellRendererOptions {
   isMysql: CanvasGridColumn['isMysql']
   t: Composer['t']
   padding: number
+  renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
 }
 
 interface CellRenderer {
@@ -405,6 +408,7 @@ interface CanvasGridColumn {
   agg_fn: string
   agg_prefix: string
   relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
   isMysql: (sourceId?: string) => boolean
 }
 

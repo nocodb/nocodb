@@ -111,9 +111,13 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     fontFamily,
     textAlign = 'left',
     verticalAlign = 'middle',
-    maxWidth = Infinity,
     render = true,
   } = params
+  let { maxWidth = Infinity } = params
+
+  if (maxWidth < 0) {
+    maxWidth = 0
+  }
 
   let truncatedText = ''
   let width = 0
@@ -133,11 +137,12 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     truncatedText = text
     while (ctx.measureText(`${truncatedText}...`).width > maxWidth && truncatedText.length > 0) {
       truncatedText = truncatedText.slice(0, -1)
-      width = ctx.measureText(`${truncatedText}...`).width
     }
 
     truncatedText = ctx.direction === 'rtl' ? `...${truncatedText}` : `${truncatedText}...`
-    width = Math.min(width, maxWidth)
+
+    // width = Math.min(ctx.measureText(truncatedText).width, maxWidth)
+    width = ctx.measureText(truncatedText).width
 
     singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   }
@@ -163,6 +168,9 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
 }
 
 export const renderTag = (ctx: CanvasRenderingContext2D, { x, y, height, width, fillStyle, radius }: RenderTagProps) => {
+  if (width < 0) {
+    width = 0
+  }
   ctx.fillStyle = fillStyle
   ctx.beginPath()
   ctx.roundRect(x, y, width, height, radius)

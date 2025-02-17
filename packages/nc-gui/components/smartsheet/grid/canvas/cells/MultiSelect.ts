@@ -11,7 +11,7 @@ const padding = 10
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, width: _width, height, pv } = props
-    let x = _x
+    let x = _x + padding
     let y = _y
     let width = _width - padding * 2
 
@@ -22,7 +22,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     if (!selectedOptions.length) return
 
     const optionsMap = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap
-
+    let count = 0
     for (const option of selectedOptions) {
       const text = option?.trim() ?? ''
 
@@ -32,13 +32,33 @@ export const MultiSelectCellRenderer: CellRenderer = {
         render: false,
       })
 
-      // Todo wrap options below if rowHeight is more than 1
-      if (x + optionWidth + tagPadding * 2 > _x + _width) {
-        break
+      // Check if the tag fits in the current row
+      if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
+        // Check if there is space for `...` on the same line
+        const ellipsisWidth = ctx.measureText('...').width
+        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0) {
+          // Not enough space for `...` on the current line, so stop rendering
+          renderSingleLineText(ctx, {
+            x: x + padding + tagSpacing, // Align `...` at the end
+            y: y + padding,
+            text: '...',
+            maxWidth: ellipsisWidth,
+            textAlign: 'right',
+            verticalAlign: 'middle',
+            fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+            fillStyle: defaultColor,
+            height,
+          })
+          break
+        }
+
+        // Wrap to the next line
+        x = _x + padding // Reset x to start of the row
+        y += tagHeight + tagSpacing // Move to the next line
       }
 
       renderTag(ctx, {
-        x: x + padding,
+        x,
         y: y + topPadding,
         width: optionWidth + tagPadding * 2,
         height: tagHeight,
@@ -47,10 +67,10 @@ export const MultiSelectCellRenderer: CellRenderer = {
       })
 
       renderSingleLineText(ctx, {
-        x: x + padding + tagPadding,
+        x: x + tagPadding,
         y: y + padding,
         text: truncatedText,
-        maxWidth: optionWidth,
+        maxWidth: width - tagPadding * 2,
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
@@ -59,6 +79,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
       })
 
       x = x + optionWidth + tagPadding * 2 + tagSpacing
+      count++
     }
   },
   getSelectedOptions: (props: Partial<CellRendererOptions>): string[] => {

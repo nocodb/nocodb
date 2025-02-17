@@ -1,4 +1,4 @@
-import { IconType, type UserType } from 'nocodb-sdk'
+import { IconType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 import { getSelectedUsers } from '../../../../cell/User/utils'
@@ -44,24 +44,18 @@ const usernameInitials = (username: string, email: string) => {
 }
 
 const backgroundColor = (username: string, email: string, userIcon: ReturnType<typeof getUserIcon>) => {
-  // in comments we need to generate user icon from email
   const color = username ? stringToColor(username) : email ? stringToColor(email) : '#FFFFFF'
   const bgColor = '#F4F4F5'
+
   if (userIcon.icon) {
     switch (userIcon.iconType) {
-      case IconType.IMAGE: {
+      case IconType.IMAGE:
         return ''
-      }
-      case IconType.EMOJI: {
+      case IconType.EMOJI:
+      case IconType.ICON:
         return bgColor
-      }
-      case IconType.ICON: {
-        return bgColor
-      }
-
-      default: {
+      default:
         return color || '#FFFFFF'
-      }
     }
   }
 
@@ -79,8 +73,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     const meta = parseProp(column?.meta)
     const isMultiple = meta?.is_multi ?? false
-
-    let users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
+    const users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
 
     if (!users.length) return
 
@@ -98,14 +91,10 @@ export const UserFieldCellRenderer: CellRenderer = {
       })
       const minTagWidth = iconSize + 8 + textWidth + tagPadding * 2
 
-      // Check if the tag fits in the current row
       if (x + minTagWidth > _x + _width - padding * 2) {
-        // Check if there is space for `...` on the same line
-
         if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= rowHeightTruncateLines(height, true)) {
-          // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
-            x: x + padding + tagSpacingX, // Align `...` at the end
+            x: x + padding + tagSpacingX,
             y,
             text: '...',
             maxWidth: ellipsisWidth,
@@ -135,9 +124,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         fillStyle: '#e7e7e9',
       })
 
-      // #region  icon/image/emoji rendering
       const userIcon = getUserIcon(user.meta)
-
       const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
       const initials = usernameInitials(userDisplayName, userEmail)
       const circleSize = 19
@@ -148,11 +135,13 @@ export const UserFieldCellRenderer: CellRenderer = {
 
       const url = isImage ? (userIcon.icon as string[])?.[0] ?? '' : ''
       const icon = userIcon.icon as string
+
       if (enableBackground) {
         roundedRect(ctx, x, y + 6.5, circleSize, circleSize, circleRadius, {
           backgroundColor: bgColor,
         })
       }
+
       let needsPlaceholder = true
       if (isImage) {
         const img = imageLoader.loadOrGetImage(url)
@@ -162,21 +151,13 @@ export const UserFieldCellRenderer: CellRenderer = {
         }
       } else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
         if (isUnicodeEmoji(icon)) {
-          // render emoji
           renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon })
           needsPlaceholder = false
         } else {
-          // TODO: render non unicode icon
-          // spriteLoader.renderIcon(ctx, {
-          //   color: 'black',
-          //   icon: icon as IconMapKey,
-          //   size: 12,
-          //   x: x + 3,
-          //   y: y + 1,
-          // })
+          // TODO:
+          needsPlaceholder = true
         }
       } else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
-        // render icon
         spriteLoader.renderIcon(ctx, {
           color: 'black',
           icon: icon as IconMapKey,
@@ -187,10 +168,12 @@ export const UserFieldCellRenderer: CellRenderer = {
         needsPlaceholder = false
       } else if (initials) {
         renderSingleLineText(ctx, {
-          x: initials.length === 1 ? x + 6 : x + 3.5,
+          x: x + circleRadius,
           y,
           text: initials.toLocaleUpperCase(),
           fontFamily: '600 10px Manrope',
+          textAlign: 'center',
+          verticalAlign: 'middle',
           fillStyle: textColor,
         })
         needsPlaceholder = false
@@ -205,7 +188,6 @@ export const UserFieldCellRenderer: CellRenderer = {
           color: textColor,
         })
       }
-      // #endregion
 
       renderSingleLineText(ctx, {
         x: x + tagPadding + iconSize + 4,
@@ -244,7 +226,6 @@ export const UserFieldCellRenderer: CellRenderer = {
     width = width - padding * 2
     const meta = parseProp(column?.columnObj.meta)
     const isMultiple = meta?.is_multi ?? false
-
     const users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
 
     if (!users.length) return
@@ -263,20 +244,16 @@ export const UserFieldCellRenderer: CellRenderer = {
       })
       const minTagWidth = iconSize + 8 + textWidth + tagPadding * 2
 
-      // Check if the tag fits in the current row
       if (x + minTagWidth > _x + _width - padding * 2) {
-        // Check if there is space for `...` on the same line
-
         if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= rowHeightTruncateLines(height, true)) {
-          // Not enough space for `...` on the current line, so stop rendering
           break
         }
 
-        // Wrap to the next line
-        x = _x + padding // Reset x to start of the row
-        y += tagHeight + tagSpacingY // Move to the next line
+        x = _x + padding
+        y += tagHeight + tagSpacingY
         line += 1
       }
+
       if (displayName !== truncatedText) {
         boxes.push({
           x,
@@ -298,16 +275,14 @@ export const UserFieldCellRenderer: CellRenderer = {
     if (!hoveredBox) return
     tryShowTooltip({ text: hoveredBox.text, rect: hoveredBox, mousePosition })
   },
+
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
     if (column.readonly || !column.isCellEditable) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
-
     const padding = 10
-
     const _x = x + padding
     const _y = y
-
     const _width = width - padding * 2
 
     const isSelectedTags = isBoxHovered(
@@ -332,7 +307,6 @@ export const UserFieldCellRenderer: CellRenderer = {
       makeCellEditable(row, column)
       return true
     }
-
     return false
   },
 }

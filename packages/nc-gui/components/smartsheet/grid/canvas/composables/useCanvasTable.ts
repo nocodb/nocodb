@@ -5,7 +5,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX } from '../utils/constants'
+import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED } from '../utils/constants';
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -325,12 +325,12 @@ export function useCanvasTable({
     },
   )
 
-  const isFillHanldeDisabled = computed(
+  const isFillHandleDisabled = computed(
     () =>
       !(
         !isDataReadOnly.value &&
         !readOnly.value &&
-        !editEnabled.value &&
+        (!editEnabled.value || EDIT_FILL_ENABLED.includes(editEnabled.value.column.uidt)) &&
         (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
         !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
           ?.new &&
@@ -410,7 +410,7 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (isFillHanldeDisabled.value) return null
+    if (isFillHandleDisabled.value) return null
 
     if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null
@@ -512,7 +512,7 @@ export function useCanvasTable({
     isAddingColumnAllowed,
     isAddingEmptyRowAllowed,
     readOnly,
-    isFillHanldeDisabled,
+    isFillHandleDisabled,
     isDataEditAllowed,
     isFieldEditAllowed,
     isPublicView,
@@ -978,7 +978,7 @@ export function useCanvasTable({
     onMouseMoveFillHandlerMove: handleFillMove,
     onMouseUpFillHandlerEnd: handleFillEnd,
     isFillHandlerActive: isFillMode,
-    isFillHanldeDisabled,
+    isFillHandleDisabled,
 
     // Row Reorder
     isRowReOrderEnabled: isRowDraggingEnabled,

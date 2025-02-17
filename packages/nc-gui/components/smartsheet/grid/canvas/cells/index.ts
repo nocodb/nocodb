@@ -246,9 +246,12 @@ export function useGridCellHandler(params: {
   const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
+    const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
+
     if (cellHandler?.handleKeyDown) {
       return await cellHandler.handleKeyDown({
         ...ctx,
+        cellRenderStore,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

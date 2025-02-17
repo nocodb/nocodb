@@ -23,6 +23,7 @@ export interface RenderSingleLineTextProps {
   isTagLabel?: boolean
 
   spriteLoader?: SpriteLoader
+  cellRenderStore?: CellRenderStore
 }
 
 export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {

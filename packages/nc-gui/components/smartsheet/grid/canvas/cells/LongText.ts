@@ -28,11 +28,7 @@ export const LongTextCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (isRichMode) {
-      const {
-        x: xOffset,
-        y: yOffset,
-        links,
-      } = renderMarkdown(ctx, {
+      const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
         x: x + padding,
         y,
         text,
@@ -42,6 +38,7 @@ export const LongTextCellRenderer: CellRenderer = {
         height,
         mousePosition,
         spriteLoader,
+        cellRenderStore: props.cellRenderStore,
       })
 
       if (!props.tag?.renderAsTag && isHovered) {
@@ -66,7 +63,6 @@ export const LongTextCellRenderer: CellRenderer = {
       return {
         x: xOffset,
         y: yOffset,
-        links,
       }
     } else {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
@@ -77,6 +73,7 @@ export const LongTextCellRenderer: CellRenderer = {
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
+        cellRenderStore: props.cellRenderStore,
       })
 
       if (!props.tag?.renderAsTag && isHovered) {

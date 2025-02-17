@@ -33,6 +33,11 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const dateFormat = isMysql(column.value.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
@@ -247,6 +252,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
 
@@ -323,6 +332,19 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 }
 
 const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    open.value = true
+    forcedNextTick(() => {
+      open.value = true
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
+    })
+  }
+})
 </script>
 
 <template>
@@ -368,7 +390,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
     </div>
 
     <template #overlay>
-      <div class="min-w-[72px]">
+      <div class="min-w-[120px]">
         <NcTimeSelector
           :selected-date="localState"
           :min-granularity="30"

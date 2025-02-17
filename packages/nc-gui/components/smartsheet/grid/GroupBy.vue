@@ -294,11 +294,11 @@ const collapseGroup = (key: string) => {
   }
 }
 
-const collapseAllGroup = () => {
+const _collapseAllGroup = () => {
   _activeGroupKeys.value = []
 }
 
-const expandAllGroup = async () => {
+const _expandAllGroup = async () => {
   _activeGroupKeys.value = vGroup.value.children?.map((g) => `group-panel-${g.key}`) ?? []
 
   if (vGroup.value.children) {

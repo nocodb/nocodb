@@ -158,7 +158,7 @@ watch(
           v-model:value="search.query"
           name="globalSearchQuery"
           size="small"
-          class="text-xs w-40 h-full"
+          class="text-xs w-40 h-full nc-view-search-data"
           :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
           :bordered="false"
           data-testid="search-data-input"

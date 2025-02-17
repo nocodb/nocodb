@@ -10,15 +10,7 @@ import type {
   UserFieldRecordType,
   ViewType,
 } from 'nocodb-sdk'
-import {
-  UITypes,
-  dateFormats,
-  isDateMonthFormat,
-  isSystemColumn,
-  isVirtualCol,
-  populateUniqueFileName,
-  timeFormats,
-} from 'nocodb-sdk'
+import { UITypes, isDateMonthFormat, isSystemColumn, isVirtualCol, populateUniqueFileName } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Ref } from 'vue'
 import { computed } from 'vue'
@@ -162,20 +154,6 @@ export function useMultiSelect(
 
     activeCell.row = row
     activeCell.col = col
-  }
-
-  function constructDateTimeFormat(column: ColumnType) {
-    const dateFormat = constructDateFormat(column)
-    const timeFormat = constructTimeFormat(column)
-    return `${dateFormat} ${timeFormat}`
-  }
-
-  function constructDateFormat(column: ColumnType) {
-    return parseProp(column?.meta)?.date_format ?? dateFormats[0]
-  }
-
-  function constructTimeFormat(column: ColumnType) {
-    return parseProp(column?.meta)?.time_format ?? timeFormats[0]
   }
 
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
@@ -442,41 +420,6 @@ export function useMultiSelect(
     return map
   })
 
-  const isPasteable = (row?: Row, col?: ColumnType, showInfo = false) => {
-    if (!row || !col) {
-      if (showInfo) {
-        message.info('Please select a cell to paste')
-      }
-      return false
-    }
-
-    // skip pasting virtual columns (including LTAR columns for now) and system columns
-    if (isVirtualCol(col) || isSystemColumn(col)) {
-      if (showInfo) {
-        throw new ComputedTypePasteError(col.uidt! as UITypes)
-      }
-      return false
-    }
-
-    // skip pasting auto increment columns
-    if (col.ai) {
-      if (showInfo) {
-        message.info(t('msg.info.autoIncFieldNotEditable'))
-      }
-      return false
-    }
-
-    // skip pasting primary key columns
-    if (col.pk && !row.rowMeta.new) {
-      if (showInfo) {
-        message.info(t('msg.info.editingPKnotSupported'))
-      }
-      return false
-    }
-
-    return true
-  }
-
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
     if (isFillMode.value) {
       const rw = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
@@ -557,6 +500,41 @@ export function useMultiSelect(
     }
 
     scrollToCell?.(row, col)
+  }
+
+  function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
+    if (!row || !col) {
+      if (showInfo) {
+        message.info('Please select a cell to paste')
+      }
+      return false
+    }
+
+    // skip pasting virtual columns (including LTAR columns for now) and system columns
+    if (isVirtualCol(col) || isSystemColumn(col)) {
+      if (showInfo) {
+        message.info(t('msg.info.pasteNotSupported'))
+      }
+      return false
+    }
+
+    // skip pasting auto increment columns
+    if (col.ai) {
+      if (showInfo) {
+        message.info(t('msg.info.autoIncFieldNotEditable'))
+      }
+      return false
+    }
+
+    // skip pasting primary key columns
+    if (col.pk && !row.rowMeta.new) {
+      if (showInfo) {
+        message.info(t('msg.info.editingPKnotSupported'))
+      }
+      return false
+    }
+
+    return true
   }
 
   const handleMouseUp = (_event: MouseEvent) => {

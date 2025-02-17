@@ -20,6 +20,7 @@ const { showNull } = useGlobal()
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -36,6 +37,8 @@ const error = ref<string | undefined>()
 const _isExpanded = inject(JsonExpandInj, ref(false))
 
 const isExpanded = ref(false)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -167,8 +170,10 @@ onClickOutside(inputWrapperRef, (e) => {
   editEnabled.value = false
 })
 
-watch(isExpanded, () => {
+watch(isExpanded, (newVal, oldVal) => {
   _isExpanded.value = isExpanded.value
+
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 const stopPropagation = (event: MouseEvent) => {
@@ -193,8 +198,23 @@ watch(inputWrapperRef, () => {
 })
 
 const el = useCurrentElement()
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
+  if (
+    !isUnderLookup.value &&
+    isCanvasInjected &&
+    !isExpanded.value &&
+    !isEditColumn.value &&
+    !isForm.value &&
+    !isExpandedFormOpen.value
+  ) {
+    forcedNextTick(() => {
+      openJSONEditor()
+    })
+  }
+
   const gridCell = el.value?.closest('td')
   if (gridCell && !readOnly.value) {
     gridCell.addEventListener('dblclick', openJSONEditor)
@@ -205,12 +225,12 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  const gridCell = el.value?.closest('td')
+  const gridCell = el.value?.closest?.('td')
   if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)
     return
   }
-  const container = el.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
+  const container = el.value?.closest?.('.nc-data-cell, .nc-default-value-wrapper')
   if (container) container.removeEventListener('click', openJSONEditor)
 })
 </script>

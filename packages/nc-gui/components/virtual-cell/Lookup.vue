@@ -22,6 +22,10 @@ const cellClickHook = inject(CellClickHookInj, null)
 
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
 const providedHeightRef = ref(1) as any
@@ -154,6 +158,9 @@ onMounted(() => {
   })
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
+
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedForm.value || !isGrid.value) return
+  dropdownVisible.value = true
 })
 
 onUnmounted(() => {
@@ -201,6 +208,12 @@ const cellHeight = computed(() =>
     ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
     : `2.85rem`,
 )
+
+const handleCloseDropdown = (e: MouseEvent) => {
+  if (e.target.closest('.nc-attachment-item')) {
+    dropdownVisible.value = false
+  }
+}
 </script>
 
 <template>
@@ -225,6 +238,7 @@ const cellHeight = computed(() =>
         :class="{
           '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
         }"
+        @click="handleCloseDropdown"
       >
         <template v-if="lookupColumn">
           <!-- Render virtual cell -->
@@ -272,12 +286,13 @@ const cellHeight = computed(() =>
                 }"
               >
                 <div
-                  class="flex gap-1.5 w-full h-full py-[3px]"
+                  class="flex gap-1.5 w-full h-full"
                   :class="{
                     'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                     '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
                     'items-center': rowHeight === 1,
                     'items-start': rowHeight !== 1,
+                    'py-[3px]': !isAttachment(lookupColumn),
                   }"
                 >
                   <div
@@ -390,6 +405,7 @@ const cellHeight = computed(() =>
                 ].includes(lookupColumn.uidt),
                 'min-h-0 min-w-0': isAttachment(lookupColumn),
               }"
+              @click="handleCloseDropdown"
             >
               <LazySmartsheetVirtualCell
                 v-if="lookupColumn.uidt === UITypes.Rollup"

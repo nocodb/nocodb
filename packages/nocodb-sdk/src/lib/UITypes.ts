@@ -432,7 +432,6 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
   }
 };
 
-
 export const checkboxIconList = [
   {
     checked: 'mdi-check-bold',
@@ -530,4 +529,4 @@ export const durationOptions = [
     example: '(e.g. 3.45.678, 1:23:40.000)',
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
   },
-]
+];

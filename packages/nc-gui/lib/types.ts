@@ -1,20 +1,27 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
-import type {
-  BaseType,
-  ColumnType,
-  FilterType,
-  MetaType,
-  PaginatedType,
-  PublicAttachmentScope,
-  Roles,
-  RolesObj,
-  TableType,
-  ViewTypes,
+import {
+  type BaseType,
+  type ColumnType,
+  type FilterType,
+  type MetaType,
+  type PaginatedType,
+  type PublicAttachmentScope,
+  type Roles,
+  type RolesObj,
+  type TableType,
+  type UITypes,
+  type UserType,
+  type ViewType,
+  type ViewTypes,
 } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
+import type { Composer, I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
+import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
+import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
+import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
+import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
@@ -358,6 +365,206 @@ interface ViewActionState {
   >
 }
 
+interface CellRendererOptions {
+  value: any
+  row: any
+  pk: any
+  column: ColumnType
+  relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
+  meta?: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
+  x: number
+  y: number
+  width: number
+  height: number
+  selected: boolean
+  pv?: boolean
+  readonly?: boolean
+  imageLoader: ImageWindowLoader
+  spriteLoader: SpriteLoader
+  actionManager: ActionManager
+  tableMetaLoader: TableMetaLoader
+  isMysql: (sourceId?: string) => boolean
+  isMssql: (sourceId?: string) => boolean
+  isXcdbBase: (sourceId?: string) => boolean
+  t: Composer['t']
+  padding: number
+  renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
+  isUnderLookup?: boolean
+  tag?: {
+    renderAsTag?: boolean
+    tagPaddingX?: number
+    tagPaddingY?: number
+    tagHeight?: number
+    tagRadius?: number
+    tagBgColor?: string
+    tagSpacing?: number
+    tagBorderColor?: string
+    tagBorderWidth?: number
+  }
+  disabled?: {
+    isInvalid: boolean
+    tooltip?: string
+  }
+  fontSize?: number
+  textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
+  textColor?: string
+  mousePosition: {
+    x: number
+    y: number
+  }
+  sqlUis?: Record<string, any>
+  skipRender?: boolean
+  setCursor: SetCursorType
+  cellRenderStore: CellRenderStore
+  baseUsers?: (Partial<UserType> | Partial<User>)[]
+}
+
+interface CellRenderStore {
+  x?: number
+  y?: number
+  links?: { x: number; y: number; width: number; height: number; url: string }[]
+  ratingChanged?: {
+    value: number
+    hoverValue: number
+  }
+}
+
+type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
+
+type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
+
+interface CellRenderer {
+  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  handleClick?: (options: {
+    event: MouseEvent
+    mousePosition: { x: number; y: number }
+    value: any
+    column: CanvasGridColumn
+    row: Row
+    pk: any
+    readonly: boolean
+    isDoubleClick: boolean
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    selected: boolean
+    imageLoader: ImageWindowLoader
+    cellRenderStore: CellRenderStore
+  }) => Promise<boolean>
+  handleKeyDown?: (options: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    readonly: boolean
+    updateOrSaveRow: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    cellRenderStore: CellRenderStore
+  }) => Promise<boolean | void>
+  handleHover?: (options: {
+    event: MouseEvent
+    mousePosition: { x: number; y: number }
+    value: any
+    column: CanvasGridColumn
+    row: Row
+    pk: any
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow?: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    selected: boolean
+    imageLoader: ImageWindowLoader
+    cellRenderStore: CellRenderStore
+    setCursor: SetCursorType
+  }) => Promise<void>
+  [key: string]: any
+}
+
+interface FillHandlerPosition {
+  x: number
+  y: number
+  size: number
+  fixedCol: boolean
+}
+
+interface CanvasGridColumn {
+  id: string
+  grid_column_id: string
+  title: string
+  width: string
+  uidt: keyof typeof UITypes | null
+  fixed: boolean
+  virtual?: boolean
+  pv: boolean
+  columnObj: ColumnType & {
+    extra?: any | never
+  }
+  readonly: boolean
+  isCellEditable?: boolean
+  aggregation: string
+  agg_fn: string
+  agg_prefix: string
+  relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
+  isInvalidColumn?: {
+    isInvalid: boolean
+    tooltip: string
+    ignoreTooltip?: boolean
+  }
+  abstractType: any
+}
+
+interface ParsePlainCellValueProps {
+  value: any
+  params: {
+    col: ColumnType
+    abstractType: unknown
+    meta: TableType
+    metas: { [idOrTitle: string]: TableType | any }
+    baseUsers?: Map<string, User[]>
+    isMysql: (sourceId?: string) => boolean
+    isMssql: (sourceId?: string) => boolean
+    isXcdbBase: (sourceId?: string) => boolean
+    t: Composer['t']
+    isUnderLookup?: boolean
+  }
+}
+
+type CanvasEditEnabledType = {
+  rowIndex: number
+  column: ColumnType
+  row: Row
+  x: number
+  y: number
+  width: number
+  minHeight: number
+  height: number
+  fixed: boolean
+} | null
+
 export type {
   User,
   ProjectMetaInfo,
@@ -396,4 +603,13 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderer,
+  CellRendererOptions,
+  CellRenderStore,
+  CanvasGridColumn,
+  FillHandlerPosition,
+  ParsePlainCellValueProps,
+  CanvasEditEnabledType,
+  SetCursorType,
+  CursorType,
 }

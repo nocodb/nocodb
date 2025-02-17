@@ -229,7 +229,7 @@ export function useKeyboardNavigation({
     }
 
     if (moved) {
-      if (e.shiftKey) {
+      if (e.shiftKey && e.key !== 'Tab') {
         const newEnd = { row: activeCell.value.row, col: activeCell.value.column }
         const maxRow = Math.max(selection.value._start?.row ?? 0, newEnd.row)
         const minRow = Math.min(selection.value._start?.row ?? 0, newEnd.row)

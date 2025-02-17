@@ -1243,7 +1243,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
   // check if hovering row meta column and set cursor
   if (mousePosition.x < 80 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
-    // skip if hovering on the aggregation dropdown
+    // handle hovering on the aggregation dropdown
     if (mousePosition.y > height.value - 36) {
       cursor = 'pointer'
     } else {

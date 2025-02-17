@@ -114,6 +114,7 @@ export function useCanvasTable({
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
           agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
+          agg_fn: gridViewCol.aggregation,
           columnObj: f,
           relatedColObj,
         }

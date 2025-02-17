@@ -247,6 +247,34 @@ export function useCanvasRender({
     }
     return true
   }
+
+  const renderRowMeta = (
+    ctx: CanvasRenderingContext2D,
+    row: Row,
+    {
+      xOffset,
+      yOffset,
+      width,
+    }: {
+      xOffset: number
+      yOffset: number
+      width: number
+    },
+  ) => {
+    const isHover = hoverRow.value === row.rowMeta.rowIndex
+    ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
+    ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+
+    if (!isHover) {
+      ctx.fillStyle = '#4a5268'
+      ctx.font = `500 13px Manrope`
+      ctx.textBaseline = 'middle'
+      ctx.fillText(row.rowMeta.rowIndex, xOffset + 10, yOffset + rowHeight.value / 2)
+    } else {
+      spriteLoader.renderIcon(ctx, { icon: 'ncDrag', size: 14, x: xOffset + 10, y: yOffset + 10, color: '#4a5268' })
+    }
+  }
+
   function renderRows(ctx: CanvasRenderingContext2D) {
     const { end: endRowIndex } = rowSlice.value
     const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -304,7 +332,7 @@ export function useCanvasRender({
               }
             }
 
-            const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
+            const value = row.row[column.title]
 
             renderCell(ctx, column.columnObj, {
               value,
@@ -331,20 +359,8 @@ export function useCanvasRender({
 
             fixedCols.forEach((column) => {
               const width = parseInt(column.width, 10)
-              const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
+
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
-              const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
-              if (isActive) {
-                activeState = {
-                  col: column,
-                  x: xOffset,
-                  y: yOffset,
-                  width,
-                  height: rowHeight.value,
-                }
-              }
-
               if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
                 ctx.fillStyle = '#EBF0FF'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -353,18 +369,36 @@ export function useCanvasRender({
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               }
 
-              renderCell(ctx, column.columnObj, {
-                value,
-                x: xOffset,
-                y: yOffset,
-                width,
-                height: rowHeight.value,
-                row: row.row,
-                selected: isActive,
-                pv: column.pv,
-                spriteLoader,
-                imageLoader,
-              })
+              if (column.id === 'row_number') {
+                renderRowMeta(ctx, row, { xOffset, yOffset, width })
+              } else {
+                const value = row.row[column.title]
+
+                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
+                if (isActive) {
+                  activeState = {
+                    col: column,
+                    x: xOffset,
+                    y: yOffset,
+                    width,
+                    height: rowHeight.value,
+                  }
+                }
+
+                renderCell(ctx, column.columnObj, {
+                  value,
+                  x: xOffset,
+                  y: yOffset,
+                  width,
+                  height: rowHeight.value,
+                  row: row.row,
+                  selected: isActive,
+                  pv: column.pv,
+                  spriteLoader,
+                  imageLoader,
+                })
+              }
 
               ctx.strokeStyle = '#f4f4f5'
               ctx.beginPath()

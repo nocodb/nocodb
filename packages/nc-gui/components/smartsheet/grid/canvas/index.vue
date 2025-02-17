@@ -238,7 +238,7 @@ const totalHeight = computed(() => {
 
 const isContextMenuOpen = computed({
   get: () => {
-    if (selectedRows.value.length && isDataReadOnly.value) return false
+    if ((selectedRows.value.length && isDataReadOnly.value) || isDropdownVisible.value) return false
     return _isContextMenuOpen.value
   },
   set: (val) => {
@@ -524,6 +524,7 @@ async function handleMouseDown(e: MouseEvent) {
       }
     })
   } else if (y > 32 && y < height.value - 36) {
+    console.log('right click', y, height.value)
     // Row Selection
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value.row = -1

@@ -1974,6 +1974,10 @@ defineExpose({
     @apply !pt-2 !h-auto;
   }
 
+  :deep(.nc-cell-user) {
+    @apply !h-auto !mt-0.5;
+  }
+
   :deep(.nc-cell-singlelinetext),
   :deep(.nc-cell-number),
   :deep(.nc-cell-url),

@@ -208,6 +208,12 @@ const cellHeight = computed(() =>
     ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
     : `2.85rem`,
 )
+
+const handleCloseDropdown = (e: MouseEvent) => {
+  if (e.target.closest('.nc-attachment-item')) {
+    dropdownVisible.value = false
+  }
+}
 </script>
 
 <template>
@@ -232,6 +238,7 @@ const cellHeight = computed(() =>
         :class="{
           '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
         }"
+        @click="handleCloseDropdown"
       >
         <template v-if="lookupColumn">
           <!-- Render virtual cell -->
@@ -398,6 +405,7 @@ const cellHeight = computed(() =>
                 ].includes(lookupColumn.uidt),
                 'min-h-0 min-w-0': isAttachment(lookupColumn),
               }"
+              @click="handleCloseDropdown"
             >
               <LazySmartsheetVirtualCell
                 v-if="lookupColumn.uidt === UITypes.Rollup"

@@ -128,6 +128,7 @@ const {
   width,
   height,
   scrollToCell,
+  scrollTop,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()

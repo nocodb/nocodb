@@ -32,7 +32,7 @@ export const LongTextCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -75,6 +75,7 @@ export const LongTextCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
+    if (column.readonly) return
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
       makeCellEditable(row.rowMeta!.rowIndex!, column)
       return true

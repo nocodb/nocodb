@@ -7,7 +7,7 @@ const ellipsisWidth = 15
 
 export const ManyToManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, padding, renderCell } = props
+    const { value, x, y, width, height, readonly, spriteLoader, mousePosition, relatedTableMeta, padding, renderCell } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -119,20 +119,22 @@ export const ManyToManyCellRenderer: CellRenderer = {
       const buttonSize = 24
       const borderRadius = 6
 
-      renderIconButton(ctx, {
-        buttonX: x + width - 57,
-        buttonY: y + 4,
-        borderRadius,
-        buttonSize,
-        spriteLoader,
-        mousePosition,
-        icon: 'ncPlus',
-        iconData: {
-          size: 14,
-          xOffset: 5,
-          yOffset: 5,
-        },
-      })
+      if (!readonly) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 57,
+          buttonY: y + 4,
+          borderRadius,
+          buttonSize,
+          spriteLoader,
+          mousePosition,
+          icon: 'ncPlus',
+          iconData: {
+            size: 14,
+            xOffset: 5,
+            yOffset: 5,
+          },
+        })
+      }
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,

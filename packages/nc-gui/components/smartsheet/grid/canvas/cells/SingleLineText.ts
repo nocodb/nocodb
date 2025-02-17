@@ -40,7 +40,6 @@ export const SingleLineTextCellRenderer: CellRenderer = {
     if (e.key.length === 1 && columnObj.title) {
       row.row[columnObj.title] = e.key
       makeCellEditable(row, column)
-      updateOrSaveRow(row, columnObj.title)
       return true
     }
 

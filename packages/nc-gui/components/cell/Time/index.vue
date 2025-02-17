@@ -54,13 +54,20 @@ const localState = computed({
     if (!modelValue || isClearedInputMode.value) {
       return undefined
     }
-    let dateTime = dayjs(modelValue)
+    let convertingValue = modelValue
+    const valueNumber: number = Number(modelValue)
+    if (!isNaN(valueNumber)) {
+      // FIXME: currently returned value is in minutes
+      // so need to * 60 and need to be removed if changed to seconds
+      convertingValue = convertMS2Duration(valueNumber * 60, 1)
+    }
+    let dateTime = dayjs(convertingValue)
 
     if (!dateTime.isValid()) {
-      dateTime = dayjs(modelValue, 'HH:mm:ss')
+      dateTime = dayjs(convertingValue, 'HH:mm:ss')
     }
     if (!dateTime.isValid()) {
-      dateTime = dayjs(`1999-01-01 ${modelValue}`)
+      dateTime = dayjs(`1999-01-01 ${convertingValue}`)
     }
     if (!dateTime.isValid()) {
       isTimeInvalid.value = true

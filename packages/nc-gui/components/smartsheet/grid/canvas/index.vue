@@ -844,6 +844,13 @@ const handleMouseUp = async (e: MouseEvent) => {
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
+  if (clickType === MouseClickType.RIGHT_CLICK) {
+    activeCell.value.row = rowIndex
+    activeCell.value.column = colIndex
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
   // handle the cellClick to corresponding cell.
   // If it performed an action, will return true
   const res = await handleCellClick({

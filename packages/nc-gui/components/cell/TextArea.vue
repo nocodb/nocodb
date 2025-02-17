@@ -61,6 +61,8 @@ const isAiEdited = useVModel(props, 'isAiEdited', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
+const textAreaRef = ref<HTMLTextAreaElement>()
+
 const position = ref<
   | {
       top: number
@@ -350,8 +352,6 @@ watch(
     immediate: true,
   },
 )
-
-const textAreaRef = ref<HTMLTextAreaElement>()
 
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {

@@ -71,7 +71,7 @@ export const LookupCellRenderer: CellRenderer = {
           const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
 
           if (point?.x) {
-            if (point?.x >= _x + _width - padding * 2 - 50) {
+            if (point?.x >= _x + _width - padding * 2 - 70) {
               x = _x
               width = _width
               y = point?.y ? point?.y : y + 24

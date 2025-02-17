@@ -143,7 +143,6 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { metas, getMeta } = useMetas()
-  const { isMysql } = useBase()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
@@ -226,7 +225,6 @@ export function useCanvasTable({
           columnObj: f,
           relatedColObj,
           relatedTableMeta,
-          isMysql,
           isInvalidColumn: {
             ...isInvalid,
             tooltip: t(isInvalid.tooltip),
@@ -407,6 +405,7 @@ export function useCanvasTable({
     actionManager,
     updateOrSaveRow,
     makeCellEditable,
+    meta: meta.value,
   })
 
   const { canvasRef, renderCanvas } = useCanvasRender({

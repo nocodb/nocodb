@@ -218,10 +218,33 @@ export function useGridCellHandler(params: {
     return false
   }
 
+  const handleCellHover = async (ctx: {
+    event: MouseEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    mousePosition: { x: number; y: number }
+    pk: any
+  }) => {
+    if (!params?.getCellPosition) return
+    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
+
+    if (cellHandler?.handleHover) {
+      return await cellHandler.handleHover({
+        ...ctx,
+        getCellPosition: params?.getCellPosition,
+        updateOrSaveRow: params?.updateOrSaveRow,
+        actionManager,
+        makeCellEditable,
+      })
+    }
+  }
+
   return {
     cellTypesRegistry,
     renderCell,
     handleCellClick,
     handleCellKeyDown,
+    handleCellHover,
   }
 }

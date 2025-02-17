@@ -531,7 +531,8 @@ export function useCanvasRender({
 
       ctx.strokeStyle = '#3366ff'
       ctx.lineWidth = 2
-      roundedRect(ctx, adjustedState.x, adjustedState.y, adjustedState.width, adjustedState.height, 2)
+      // add extra 1px offset to x, since there is an additional border separating fixed and non-fixed columns
+      roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2)
       ctx.lineWidth = 1
     }
   }

@@ -49,14 +49,45 @@ export const DateCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition } = ctx
-    const bound = getCellPosition(column, row.rowMeta.rowIndex)
 
-    if (isBoxHovered({ x: bound.x, y: bound.y, width: bound.width, height: 33 }, mousePosition)) {
-      makeCellEditable(row.rowMeta.rowIndex, column)
-      return true
+  async handleClick(ctx) {
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const bound = getCellPosition(column, row.rowMeta.rowIndex)
+    const padding = 8
+
+    const offscreenCanvas = new OffscreenCanvas(0, 0)
+    const canvasContext = offscreenCanvas.getContext('2d')!
+
+    const dateFormat = parseProp(column?.columnObj?.meta)?.date_format ?? 'YYYY-MM-DD'
+    let text = ''
+
+    if (value) {
+      const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
+      if (date.isValid()) {
+        text = date.format(dateFormat)
+      }
+    } else {
+      text = dateFormat
+      canvasContext.font = '400 13px Manrope'
     }
+
+    if (text) {
+      canvasContext.font = value ? '500 13px Manrope' : '400 13px Manrope'
+      const textWidth = canvasContext.measureText(text).width
+
+      const clickableArea = {
+        x: bound.x + padding,
+        y: bound.y,
+        width: Math.min(textWidth, bound.width - padding * 2),
+        height: 33,
+      }
+
+      if (isBoxHovered(clickableArea, mousePosition)) {
+        makeCellEditable(row.rowMeta.rowIndex, column)
+        return true
+      }
+    }
+
     return false
   },
 }

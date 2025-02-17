@@ -169,10 +169,11 @@ export const RatingCellRenderer: CellRenderer = {
 
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow } = ctx
+    const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key)) {
-      row.row[column.title!] = Number(e.key)
-      await updateOrSaveRow(row, column.title)
+      row.row[columnObj.title!] = Number(e.key)
+      await updateOrSaveRow(row, columnObj.title)
       return true
     }
 

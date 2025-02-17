@@ -9,6 +9,7 @@ const { t } = useI18n()
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -84,7 +85,7 @@ const height = computed(() => {
 })
 
 onMounted(() => {
-  if (!isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
   if (!getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-qrcode-container > img', clientMousePosition)) return
   modalVisible.value = true
 })

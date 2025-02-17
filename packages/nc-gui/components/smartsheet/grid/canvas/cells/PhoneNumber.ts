@@ -1,6 +1,8 @@
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import { isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
+import { isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
+const offscreenCanvas = new OffscreenCanvas(0, 0)
+const defaultContext = offscreenCanvas.getContext('2d')!
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected } = props
@@ -50,13 +52,21 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     return false
   },
   async handleClick({ value, row, column, getCellPosition, mousePosition }) {
-    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    if (!row || !column) return false
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
     const text = value?.toString() ?? ''
     const isValid = text && isMobilePhone(text)
     if (!isValid) return false
+    const pv = column.pv
+    const ctx = defaultContext
+    ctx.font = `${pv ? 600 : 500} 13px Manrope`
 
-    if (isBoxHovered({ x, y, width: width - padding * 2, height }, mousePosition)) {
+    const maxWidth = width - padding * 2
+    const truncatedText = truncateText(ctx, text, maxWidth)
+    const textMetrics = ctx.measureText(truncatedText)
+
+    if (isBoxHovered({ x, y, width: textMetrics.width, height: 18 }, mousePosition)) {
       window.open(`tel:${text}`, '_blank')
       return true
     }

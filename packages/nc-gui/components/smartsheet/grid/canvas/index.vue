@@ -774,7 +774,6 @@ const handleMouseUp = async (e: MouseEvent) => {
   onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
-
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
@@ -1413,6 +1412,34 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
   }
 }
 
+function openColumnCreate(data: any) {
+  // TODO: @pranavxc - This is not working as expected
+  scroller.value?.scrollTo(totalWidth.value, 0)
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  setTimeout(() => {
+    // if menu already in open state then close it on second click
+    if (prevMenuState.isCreateOrEditColumnDropdownOpen && !prevMenuState.editColumn) {
+      return
+    }
+
+    const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+    overlayStyle.value = {
+      top: `${rect.top}px`,
+      left: `${plusColumnX + rect.left}px`,
+      width: `${ADD_NEW_COLUMN_WIDTH}px`,
+      height: '32px',
+      position: 'fixed',
+    }
+
+    openColumnDropdownField.value = false
+    editColumn.value = data
+    isDropdownVisible.value = true
+    isCreateOrEditColumnDropdownOpen.value = true
+    requestAnimationFrame(triggerRefreshCanvas)
+  }, 500)
+}
+
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
@@ -1609,6 +1636,11 @@ onKeyStroke('Escape', () => {
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
 }
+
+defineExpose({
+  scrollToRow: scrollToCell,
+  openColumnCreate,
+})
 </script>
 
 <template>

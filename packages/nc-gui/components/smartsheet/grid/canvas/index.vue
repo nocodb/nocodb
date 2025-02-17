@@ -1200,10 +1200,15 @@ watch(rowHeight, () => {
   requestAnimationFrame(triggerRefreshCanvas)
 })
 
-// watch for any field changes like hide, re-order, etc..
-watch(columns, () => {
-  requestAnimationFrame(triggerRefreshCanvas)
-})
+// watch for column hide and re-render canvas
+watch(
+  () => {
+    return columns.value?.length
+  },
+  () => {
+    requestAnimationFrame(triggerRefreshCanvas)
+  },
+)
 
 reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)

@@ -639,13 +639,16 @@ export function useCanvasRender({
           color: isHovered ? '#3265FF' : '#6B7280',
         })
         currentX += 24
-      } else if (!isHover || !readOnly.value) {
+      } else if (!isHover) {
         ctx.font = '500 12px Manrope'
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'left'
         ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
         currentX += 24
+      } else {
+        // add 6px padding to the left of the row meta column if the row number is not rendered
+        currentX += 6
       }
     }
 

@@ -15,6 +15,10 @@ import { generateUniqueColumnName } from '../../../../../helpers/parsers/parserH
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
 import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
+import { ComputedTypePasteError } from '../../../../../error/computed-type-paste.error'
+import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
+import { TypeConversionError } from '../../../../../error/type-conversion.error'
+import type { SuppressedError } from '../../../../../error/suppressed.error'
 
 const CHUNK_SIZE = 50
 
@@ -295,17 +299,34 @@ export function useCopyPaste({
 
             if (isPasteable(targetRow, column)) {
               propsToPaste.push(column.title!)
-              const pasteValue = convertCellData(
-                {
-                  value: clipboardMatrix[clipboardRowIndex][j]!,
-                  to: column.uidt as UITypes,
-                  column,
-                  appInfo: unref(appInfo),
-                  oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
-                },
-                isMysql(meta.value?.source_id),
-                true,
-              )
+              let pasteValue: any
+              try {
+                pasteValue = convertCellData(
+                  {
+                    value: clipboardMatrix[clipboardRowIndex][j],
+                    to: column.uidt as UITypes,
+                    column,
+                    appInfo: unref(appInfo),
+                    oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                  },
+                  isMysql(meta.value?.source_id),
+                  true,
+                )
+                validateColumnValue(column, pasteValue)
+              } catch (ex) {
+                if (ex instanceof ComputedTypePasteError) {
+                  throw ex
+                } else if (ex instanceof SelectTypeConversionError) {
+                  await appendSelectOptions({
+                    api: $api,
+                    col: column!,
+                    addOptions: ex.missingOptions,
+                  })
+                  pasteValue = ex.value.join(',')
+                } else if (ex instanceof TypeConversionError) {
+                  pasteValue = null
+                } else throw ex
+              }
 
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
@@ -523,17 +544,36 @@ export function useCopyPaste({
             return
           }
 
-          const pasteValue = convertCellData(
-            {
-              value: clipboardData,
-              to: columnObj.uidt as UITypes,
-              column: columnObj,
-              appInfo: unref(appInfo),
-              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
-              oldValue: rowObj.row[columnObj.title!],
-            },
-            isMysql(meta.value?.source_id),
-          )
+          let pasteValue: any
+
+          try {
+            pasteValue = convertCellData(
+              {
+                value: clipboardData,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+                files:
+                  columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+                oldValue: rowObj.row[columnObj.title!],
+              },
+              isMysql(meta.value?.source_id),
+            )
+            validateColumnValue(columnObj, pasteValue)
+          } catch (ex) {
+            if (ex instanceof ComputedTypePasteError) {
+              throw ex
+            } else if (ex instanceof SelectTypeConversionError) {
+              await appendSelectOptions({
+                api: $api,
+                col: columnObj!,
+                addOptions: ex.missingOptions,
+              })
+              pasteValue = ex.value.join(',')
+            } else if (ex instanceof TypeConversionError) {
+              pasteValue = null
+            } else throw ex
+          }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
             const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
@@ -603,17 +643,33 @@ export function useCopyPaste({
                   }
                 }
               } else {
-                pasteValue = convertCellData(
-                  {
-                    value: clipboardData,
-                    to: col.uidt as UITypes,
-                    column: col,
-                    appInfo: unref(appInfo),
-                    oldValue: row.row[col.title],
-                  },
-                  isMysql(meta.value?.source_id),
-                  true,
-                )
+                try {
+                  pasteValue = convertCellData(
+                    {
+                      value: clipboardData,
+                      to: col.uidt as UITypes,
+                      column: col,
+                      appInfo: unref(appInfo),
+                      oldValue: row.row[col.title],
+                    },
+                    isMysql(meta.value?.source_id),
+                    true,
+                  )
+                  validateColumnValue(col, pasteValue)
+                } catch (ex) {
+                  if (ex instanceof ComputedTypePasteError) {
+                    throw ex
+                  } else if (ex instanceof SelectTypeConversionError) {
+                    await appendSelectOptions({
+                      api: $api,
+                      col,
+                      addOptions: ex.missingOptions,
+                    })
+                    pasteValue = ex.value.join(',')
+                  } else if (ex instanceof TypeConversionError) {
+                    pasteValue = null
+                  } else throw ex
+                }
               }
 
               props.push(col.title)
@@ -629,8 +685,10 @@ export function useCopyPaste({
         }
       }
     } catch (error: any) {
-      console.error(error)
-      message.error(await extractSdkResponseErrorMsg(error))
+      if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
+        console.error(error, (error as SuppressedError).isErrorSuppressed)
+        message.error(await extractSdkResponseErrorMsg(error))
+      }
     }
   }
 

@@ -54,9 +54,13 @@ export const UrlCellRenderer: CellRenderer = {
     const padding = 10
     const iconX = x + width - iconSize - padding
     const textY = y + height / 2
-    if (isBoxHovered({ x: iconX, y: textY, width: iconSize, height: iconSize }, mousePosition))
+    const box = { x: iconX, y: textY, width: iconSize, height: iconSize }
+    if (isBoxHovered(box, mousePosition))
       showTooltip({
-        position: mousePosition,
+        position: {
+          x: box.x + box.width / 2,
+          y: box.y + 10,
+        },
         text: getI18n().global.t('msg.error.invalidURL'),
       })
   },

@@ -397,11 +397,32 @@ const onVisibilityChange = (value) => {
   }
 }
 
-function closeAddColumnDropdownMenu(scrollToLastCol = false) {
+function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: ColumnType) {
   isCreateOrEditColumnDropdownOpen.value = false
   isDropdownVisible.value = false
   editColumn.value = null
-  if (scrollToLastCol) {
+
+  if (savedColumn?.id) {
+    setTimeout(() => {
+      let width = 0
+      let isColPresent = false
+
+      for (const col of columns.value) {
+        if (col.id === savedColumn?.id) {
+          isColPresent = true
+          break
+        }
+
+        if (!col?.fixed) {
+          width += parseInt(col.width, 10)
+        }
+      }
+
+      if (!isColPresent) return
+
+      containerRef.value?.scrollTo({ left: width, behavior: 'smooth' })
+    }, 200)
+  } else if (scrollToLastCol) {
     setTimeout(() => {
       containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
     }, 200)
@@ -1498,7 +1519,6 @@ onBeforeUnmount(() => {
 })
 
 eventBus.on(async (event, payload) => {
-  console.log(event, payload)
   if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
     selection.value.clear()
     activeCell.value.row = -1
@@ -1693,7 +1713,7 @@ const increaseMinHeightBy: Record<string, number> = {
                 :column="columnOrder ? null : editColumn"
                 :column-position="columnOrder"
                 :edit-description="isEditColumnDescription"
-                @submit="closeAddColumnDropdownMenu(!editColumn?.id)"
+                @submit="closeAddColumnDropdownMenu(!editColumn?.id, $event)"
                 @cancel="closeAddColumnDropdownMenu()"
                 @click.stop
                 @keydown.stop

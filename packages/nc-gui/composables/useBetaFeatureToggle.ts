@@ -46,6 +46,14 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'import_from_nocodb',
+    title: 'Import from NocoDB',
+    description: 'Enable import from NocoDB.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',

@@ -31,6 +31,7 @@ declare module '#app' {
         }) => void,
         _mid = 0,
       ): Promise<void>
+      unsubscribe(topic: { id: string }): Promise<void>
     }
   }
 }

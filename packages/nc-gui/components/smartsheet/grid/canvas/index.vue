@@ -569,8 +569,11 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the user is trying to open the context menu
   if (clickType === MouseClickType.RIGHT_CLICK) {
-    activeCell.value.row = rowIndex
-    activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
+    // If the selection is not empty and user right clicks on a selection, do not update activeCell
+    if (selection.value.isEmpty()) {
+      activeCell.value.row = rowIndex
+      activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
+    }
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
     const isWithinSelection = selection.value.isCellInRange({ row: rowIndex, col: columnIndex })
     // If right-clicked cell is not within the selection, clear the selection and set the new cell as the selection
@@ -643,21 +646,23 @@ function scrollToCell(row?: number, column?: number) {
 const handleMouseUp = async (e: MouseEvent) => {
   e.preventDefault()
   onMouseUpFillHandlerEnd()
-
-  if (editEnabled.value) return
-
-  if (onMouseUpSelectionHandler(e)) {
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  }
-
-  if (isRowReorderActive.value) return
-
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
+
+  if (editEnabled.value) return
+
+  if (onMouseUpSelectionHandler(e)) {
+    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36) {
+    } else {
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
+    }
+  }
+
+  if (isRowReorderActive.value) return
 
   const clickType = getMouseClickType(e)
   if (!clickType) return

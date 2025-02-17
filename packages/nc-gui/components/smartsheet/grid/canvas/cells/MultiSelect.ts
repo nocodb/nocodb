@@ -6,11 +6,10 @@ const tagSpacing = 4
 const tagHeight = 20
 const topPadding = 6
 const defaultColor = '#666'
-const padding = 10
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, width: _width, height, pv } = props
+    const { column, x: _x, y: _y, width: _width, height, pv, padding } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2

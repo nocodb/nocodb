@@ -32,4 +32,16 @@ export const SingleLineTextCellRenderer: CellRenderer = {
       }
     }
   },
+
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+    const columnObj = column.columnObj
+
+    if (/^[a-zA-Z0-9]$/.test(e.key)) {
+      makeCellEditable(row.rowMeta?.rowIndex, columnObj)
+      return true
+    }
+
+    return false
+  },
 }

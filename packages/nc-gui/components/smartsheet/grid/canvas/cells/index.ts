@@ -206,7 +206,6 @@ export function useGridCellHandler(params: {
     if (cellHandler?.handleKeyDown) {
       return await cellHandler.handleKeyDown({
         ...ctx,
-        column: ctx.column.columnObj!,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

@@ -497,6 +497,12 @@ function extractHoverMetaColRegions(row: Row) {
         action: 'reorder',
       })
       currentX += 24
+    } else if (isHover) {
+      regions.push({
+        x: currentX + 8,
+        width: 24,
+        action: 'comment',
+      })
     } else if (!isHover) {
       regions.push({
         x: currentX + 8,
@@ -520,11 +526,15 @@ function extractHoverMetaColRegions(row: Row) {
   }
 
   // Comment/maximize icon region
-  regions.push({
-    x: currentX,
-    width: row.rowMeta?.commentCount ? 24 : 14,
-    action: 'comment',
-  })
+
+  if (!regions.find((region) => region.action === 'comment')) {
+    regions.push({
+      x: currentX,
+      width: 24,
+      action: 'comment',
+    })
+  }
+  console.log(regions)
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 

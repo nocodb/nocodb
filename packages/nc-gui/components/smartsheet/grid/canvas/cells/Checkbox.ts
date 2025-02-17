@@ -37,7 +37,7 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     const checkboxBounds = {
       x: bounds.x + bounds.width / 2 - 7,
-      y: bounds.y + 8,
+      y: bounds.y + bounds.height / 2 - 8,
       width: 14,
       height: 14,
     }

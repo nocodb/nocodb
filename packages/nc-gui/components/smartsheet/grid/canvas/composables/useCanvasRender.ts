@@ -288,9 +288,10 @@ export function useCanvasRender({
     // The issue is the border gets drawn over the active state border.
     // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
     if (
-      activeState &&
-      xOffset - scrollLeft.value >= activeState.x &&
-      xOffset - scrollLeft.value <= activeState.x + activeState.width
+      (activeState &&
+        xOffset - scrollLeft.value >= activeState.x &&
+        xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
+      (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
     ) {
       // Draw line above active state
       ctx.strokeStyle = '#f4f4f5'
@@ -298,11 +299,32 @@ export function useCanvasRender({
       ctx.moveTo(xOffset - scrollLeft.value, 32)
       ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
       ctx.stroke()
-      // Draw line below active state
-      ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height + (fillHandler ? 4 : 0))
-      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
-      ctx.stroke()
+
+      if (fillHandler) {
+        // // draw line between active state and fill handler
+        if (!isFillMode.value && !selection.value.isSingleCell()) {
+          ctx.beginPath()
+
+          if (selection.value.start.col !== selection.value.end.col) {
+            ctx.moveTo(xOffset - scrollLeft.value, activeState.y)
+          } else {
+            ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
+          }
+          ctx.lineTo(xOffset - scrollLeft.value, fillHandler.y - fillHandler.size / 2)
+          ctx.stroke()
+        }
+        // Draw line below the fill handler
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
+        ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+        ctx.stroke()
+      } else {
+        // Draw line below active state
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
+        ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+        ctx.stroke()
+      }
     } else if (visibleCols.filter((f) => !f.fixed).length) {
       // Draw full line if not intersecting with active state
       ctx.strokeStyle = '#f4f4f5'

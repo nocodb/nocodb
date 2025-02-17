@@ -1,6 +1,4 @@
 import { truncateText } from '../utils/canvas'
-import type { CellRenderer } from '~/lib/types'
-import { isValidURL } from '~/utils/urlUtils'
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column }) => {

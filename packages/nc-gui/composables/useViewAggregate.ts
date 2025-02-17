@@ -183,6 +183,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     return {
       loadViewAggregate,
       isPublic,
+      aggregations,
       updateAggregate,
       getAggregations,
       displayFieldComputed,

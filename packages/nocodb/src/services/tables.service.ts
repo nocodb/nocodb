@@ -680,7 +680,7 @@ export class TablesService {
 
     const replaceCharRegex = /[$?]/g;
     if (replaceCharRegex.test(param.table.table_name)) {
-      param.table.table_name = param.table.table_name.replace(
+      tableCreatePayLoad.table_name = param.table.table_name.replace(
         replaceCharRegex,
         '_',
       );

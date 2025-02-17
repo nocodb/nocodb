@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import PQueue from 'p-queue';
+import type { BaseModelSqlv2 } from 'src/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type { MetaService } from '~/meta/meta.service';
 import { Model, Source } from '~/models';
@@ -31,8 +31,16 @@ const replaceQuestionMarkWithPlaceholderPg = (tableName: string) => {
   }, '');
 };
 
-const checkIfTableNameExists = (tableName: string, knex: CustomKnex) => {
-  return knex.schema.hasTable(tableName);
+const checkIfTableNameExists = (
+  basemodel: BaseModelSqlv2,
+  tableName: string,
+  knex: CustomKnex,
+) => {
+  let knexSchema: any = knex.schema;
+  if (basemodel.schema) {
+    knexSchema = knexSchema.withSchema(basemodel.schema);
+  }
+  return knexSchema.withSchema(basemodel.schema).hasTable(tableName);
 };
 
 @Injectable()
@@ -79,7 +87,8 @@ export class RecoverDisconnectedTableNames {
           .where(`${MetaTable.MODELS}.deleted`, false)
           .orWhereNull(`${MetaTable.MODELS}.deleted`);
       })
-      .where(`${MetaTable.MODELS}.table_name`, 'like', '%?%');
+      .where(`${MetaTable.MODELS}.table_name`, 'like', '%?%')
+      .orWhere(`${MetaTable.MODELS}.table_name`, 'like', '%$%');
   }
 
   async job() {
@@ -97,15 +106,8 @@ export class RecoverDisconnectedTableNames {
 
       this.log(`Total models to be processed: ${numberOfModelsToBeProcessed}`);
 
-      const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
-
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (queue.pending > PARALLEL_LIMIT * 2) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
-        }
-
         const modelToProcessQb = this.getModelsToBeProcessedQueryBuilder(ncMeta)
           .select([
             `${MetaTable.MODELS}.id`,
@@ -127,17 +129,14 @@ export class RecoverDisconnectedTableNames {
             fk_model_id: model.id,
             processing: true,
           });
-
-          queue
-            .add(() => this.processModel(model, ncMeta))
-            .catch((e) => {
-              this.log(`Error processing model ${model.id}:`, e.message);
-            });
+          try {
+            await this.processModel(model, ncMeta);
+          } catch (ex) {
+            this.log(`Error processing model ${model.id}:`, ex.message);
+          }
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-
-      await queue.onIdle();
 
       this.log(
         `Migration completed. Processed ${this.processedModelsCount} models`,
@@ -198,8 +197,29 @@ export class RecoverDisconnectedTableNames {
         }
       }
       replacingTableName = replacingTableName.replace(/[?$]/g, '_');
-      while (await checkIfTableNameExists(replacingTableName, dbDriver)) {
-        replacingTableName += '_';
+      while (
+        await checkIfTableNameExists(baseModel, replacingTableName, dbDriver)
+      ) {
+        const oldReplacingTableName = replacingTableName;
+        const replacingTableIndexIdentifier = /_\d+$/;
+        if (replacingTableIndexIdentifier.test(replacingTableName)) {
+          const existingIndex = replacingTableName
+            .match(replacingTableIndexIdentifier)[0]
+            .replace('_', '');
+          const newIndex = parseInt(existingIndex) + 1;
+          replacingTableName = replacingTableName.replace(
+            replacingTableIndexIdentifier,
+            '_' + newIndex.toString(),
+          );
+        } else {
+          replacingTableName += '_1';
+        }
+        this.log(
+          'Table ' +
+            oldReplacingTableName +
+            ' exists, replacing with ' +
+            replacingTableName,
+        );
       }
       this.log('Renaming table ' + tableName + ' to ' + replacingTableName);
       await dbDriver.raw(renameTableSql[source.type], [

@@ -597,6 +597,7 @@ import NcFileTypeWord from '~icons/nc-icons-v2/file-type-word'
 import NcFileTypePresentation from '~icons/nc-icons-v2/file-type-presentation'
 import NcFileTypeVideo from '~icons/nc-icons-v2/file-type-video'
 import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
+import NcFileTypeImage from '~icons/nc-icons-v2/file-type-image'
 import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 import NcFileSearch from '~icons/nc-icons-v2/file-search'
@@ -1550,6 +1551,7 @@ export const iconMap = {
   'ncFileTypePresentation': h(NcFileTypePresentation, { stroke: 'transparent' }),
   'ncFileTypeVideo': h(NcFileTypeVideo, { stroke: 'transparent' }),
   'ncFileTypeAudio': h(NcFileTypeAudio, { stroke: 'transparent' }),
+  'ncFileTypeImage': h(NcFileTypeImage, { stroke: 'transparent' }),
   'ncFileTypeZip': h(NcFileTypeZip, { stroke: 'transparent' }),
   'ncFileTypeUnknown': h(NcFileTypeUnknown, { stroke: 'transparent' }),
   'ncFileSearch': h(NcFileSearch, { stroke: 'transparent' }),

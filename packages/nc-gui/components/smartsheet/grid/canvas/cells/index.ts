@@ -153,6 +153,7 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
+      isUnderLookup = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers'>,
   ) => {
     if (skipRender) return
@@ -207,6 +208,7 @@ export function useGridCellHandler(params: {
         setCursor,
         cellRenderStore,
         baseUsers: baseUsers.value,
+        isUnderLookup,
       })
     } else {
       return renderSingleLineText(ctx, {

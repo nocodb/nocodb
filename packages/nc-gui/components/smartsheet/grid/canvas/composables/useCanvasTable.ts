@@ -840,46 +840,10 @@ export function useCanvasTable({
     return _generateRows(meta.value?.id, columnId, rowIds)
   }
 
-  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
+  function makeEditable(row: Row, clickedColumn: CanvasGridColumn) {
     const column = metaColumnById.value[clickedColumn.id]
-    row = typeof row === 'number' ? cachedRows.value.get(row)! : row
-    const rowIndex = row.rowMeta.rowIndex
 
-    if (!row || !column) return null
-
-    const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
-    const isReadonlyExpandableUITypes =
-      !isDataEditAllowed.value &&
-      [
-        UITypes.LongText,
-        UITypes.Attachment,
-        UITypes.JSON,
-        UITypes.Links,
-        UITypes.Lookup,
-        UITypes.Barcode,
-        UITypes.QrCode,
-        UITypes.LinkToAnotherRecord,
-      ].includes(column.uidt)
-
-    if (!isReadonlyExpandableUITypes && (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol)) {
-      return null
-    }
-
-    if (!isReadonlyExpandableUITypes && !isPrimaryKeyAvailable.value && !row.rowMeta.new) {
-      message.info(t('msg.info.updateNotAllowedWithoutPK'))
-      return null
-    }
-
-    if (column.ai) {
-      message.info(t('msg.info.autoIncFieldNotEditable'))
-      return null
-    }
-
-    if (column.pk && !row.rowMeta.new) {
-      message.info(t('msg.info.editingPKnotSupported'))
-      return null
-    }
-
+    const rowIndex = row.rowMeta.rowIndex!
     let xOffset = 0
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
@@ -917,6 +881,54 @@ export function useCanvasTable({
     }
     hideTooltip()
     return true
+  }
+
+  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
+    const column = metaColumnById.value[clickedColumn.id]
+    row = typeof row === 'number' ? cachedRows.value.get(row)! : row
+
+    if (!row || !column) return null
+
+    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value) {
+      if (
+        [
+          UITypes.LongText,
+          UITypes.Attachment,
+          UITypes.JSON,
+          UITypes.Links,
+          UITypes.Lookup,
+          UITypes.Barcode,
+          UITypes.QrCode,
+          UITypes.LinkToAnotherRecord,
+        ].includes(column.uidt)
+      ) {
+        makeEditable(row, clickedColumn)
+        return
+      }
+    }
+
+    const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
+
+    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+      return null
+    }
+
+    if (!isPrimaryKeyAvailable.value && !row.rowMeta.new) {
+      message.info(t('msg.info.updateNotAllowedWithoutPK'))
+      return null
+    }
+
+    if (column.ai) {
+      message.info(t('msg.info.autoIncFieldNotEditable'))
+      return null
+    }
+
+    if (column.pk && !row.rowMeta.new) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      return null
+    }
+
+    makeEditable(row, clickedColumn)
   }
 
   function triggerRefreshCanvas() {

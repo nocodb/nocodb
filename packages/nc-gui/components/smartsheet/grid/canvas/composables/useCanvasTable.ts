@@ -13,6 +13,7 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
+import { clearTextCache } from '../utils/canvas'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -703,6 +704,7 @@ export function useCanvasTable({
   }
 
   watch(rowHeight, () => {
+    clearTextCache()
     triggerRefreshCanvas()
   })
 

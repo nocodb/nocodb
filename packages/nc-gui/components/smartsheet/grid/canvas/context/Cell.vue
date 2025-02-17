@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type TableType, type ViewType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { type TableType, type ViewType, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 
 const props = defineProps<{
@@ -67,7 +67,6 @@ const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
 const { isMobileMode } = useGlobal()
 const { paste } = usePaste()
-const { t } = useI18n()
 
 // Computed States
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -126,6 +125,7 @@ const commentRow = (rowId: number) => {
     isExpandedFormCommentMode.value = true
 
     const row = cachedRows.value.get(rowId)
+    if (!row) return
     expandForm(row)
 
     activeCell.value.row = -1
@@ -280,7 +280,7 @@ const commentRow = (rowId: number) => {
         contextMenuTarget &&
         hasEditPermission &&
         selection.isSingleCell() &&
-        (isLinksOrLTAR(columns[contextMenuTarget.col]?.columnObj) || !columns[contextMenuTarget.col].virtual) &&
+        (isLinksOrLTAR(columns[contextMenuTarget.col]?.columnObj!) || !columns[contextMenuTarget.col]!.virtual) &&
         !isDataReadOnly
       "
       key="cell-clear"

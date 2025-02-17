@@ -62,7 +62,6 @@ const {
   bulkUpdateRows,
   bulkUpsertRows,
   deleteRangeOfRows,
-  removeRowIfNew,
   clearInvalidRows,
   updateRecordOrder,
   applySorting,
@@ -95,6 +94,7 @@ const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
 const isEditColumnDescription = ref(false)
+const mousePosition = reactive({ x: 0, y: 0 })
 
 const isExpandTableModalOpen = ref(false)
 // Injections
@@ -169,6 +169,7 @@ const {
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
+  mousePosition,
   clearCache,
   chunkStates,
   totalRows,
@@ -262,7 +263,7 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false) {
   }
 }
 
-function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
+function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn ; xOffset: number } {
   // First check fixed columns
   let xOffset = 0
   const fixedCols = columns.value.filter((col) => col.fixed)
@@ -380,7 +381,7 @@ function handleMouseDown(e: MouseEvent) {
 
   if (e.button !== 2) {
     // If not right click, clear the selection
-    selection.value.clear()
+    selection.clear()
   }
 
   if (y <= 32) {
@@ -394,21 +395,20 @@ function handleMouseDown(e: MouseEvent) {
     // Row Selection
     const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
-      activeCell.value = { row: -1, column: -1 }
+      activeCell.row = -1
+      activeCell.column = -1
       triggerRefreshCanvas()
     }
 
-    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+    const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
-      activeCell.value = {
-        row: rowIndex,
-        column: columns.value.findIndex((col) => col.id === clickedColumn.id),
-      }
+      activeCell.row = rowIndex
+      activeCell.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
       if (e.button === 2) {
         const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
-        if (selection.value.isEmpty()) {
-          selection.value.startRange({ row: rowIndex, col: columnIndex })
-          selection.value.endRange({ row: rowIndex, col: columnIndex })
+        if (selection.isEmpty()) {
+          selection.startRange({ row: rowIndex, col: columnIndex })
+          selection.endRange({ row: rowIndex, col: columnIndex })
         }
         contextMenuTarget.value = { row: rowIndex, col: columnIndex }
         nextTick(() => {
@@ -431,8 +431,8 @@ function handleMouseDown(e: MouseEvent) {
 function scrollToCell(row?: number, column?: number) {
   if (!containerRef.value) return
 
-  row = row ?? activeCell.value.row
-  column = column ?? activeCell.value.column
+  row = row ?? activeCell.row
+  column = column ?? activeCell.column
 
   if (!row || !column) return
 
@@ -479,6 +479,10 @@ const handleMouseUp = (e: MouseEvent) => {
 }
 
 const handleMouseMove = (e: MouseEvent) => {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
@@ -488,8 +492,6 @@ const handleMouseMove = (e: MouseEvent) => {
       containerRef.value.scrollLeft -= 10
     }
   } else {
-    const rect = canvasRef.value?.getBoundingClientRect()
-    if (!rect) return
     const y = e.clientY - rect.top
     if (y <= 32) {
       resizeMouseMove(e)

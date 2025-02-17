@@ -416,6 +416,12 @@ interface CellRendererOptions {
   sqlUis?: Record<string, any>
 }
 
+interface CellRenderStore {
+  x?: number
+  y?: number
+  links?: { x: number; y: number; width: number; height: number; url: string }[]
+}
+
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
   handleClick?: (options: {
@@ -438,6 +444,7 @@ interface CellRenderer {
     makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
+    cellRenderStore?: CellRenderStore
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -474,6 +481,7 @@ interface CellRenderer {
     makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
+    cellRenderStore?: CellRenderStore
   }) => Promise<void>
   [key: string]: any
 }
@@ -578,6 +586,7 @@ export type {
   ViewActionState,
   CellRenderer,
   CellRendererOptions,
+  CellRenderStore,
   CanvasGridColumn,
   FillHandlerPosition,
   ParsePlainCellValueProps,

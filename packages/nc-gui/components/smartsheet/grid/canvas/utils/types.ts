@@ -24,6 +24,7 @@ export interface RenderSingleLineTextProps {
 export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
   maxLines?: number
   lineHeight?: number
+  mousePosition?: { x: number; y: number }
 }
 
 export interface RenderRectangleProps {

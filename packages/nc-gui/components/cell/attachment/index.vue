@@ -142,7 +142,17 @@ const openAttachmentModal = (e: Event) => {
   isNewAttachmentModalOpen.value = true
 }
 
-useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
+onKeyDown('Enter', () => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    if (attachments.value.length) {
+      modalRendered.value = true
+      modalVisible.value = true
+    } else if (isEditAllowed.value) {
+      isNewAttachmentModalOpen.value = true
+    }
+  }
+})
+useSelectedCellKeydownListener(ref(true), (e) => {
   if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return

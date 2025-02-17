@@ -1024,6 +1024,7 @@ onBeforeUnmount(() => {
       </div>
       <div
         v-if="editEnabled?.row"
+        :key="editEnabled?.rowIndex"
         :style="{
           top: `${rowHeight * editEnabled.rowIndex + 32}px`,
           left: `${editEnabled.x + (editEnabled.fixed ? scrollLeft : 0)}px`,
@@ -1154,6 +1155,10 @@ onBeforeUnmount(() => {
     @apply !py-1 !px-2;
   }
   :deep(.nc-cell-date) {
+    @apply !h-auto !py-1;
+  }
+
+  :deep(.nc-cell-time) {
     @apply !h-auto !py-1;
   }
   .nc-cell,

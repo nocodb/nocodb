@@ -4,6 +4,7 @@ import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
+import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 
 export function useCanvasRender({
   width,
@@ -94,7 +95,7 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
-      const icon = renderIcon(column.columnObj, null)
+      const icon = column?.virtual ? renderVIcon(column.columnObj)?.icon : renderIcon(column.columnObj, null)
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
           icon: icon as any,
@@ -127,7 +128,7 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         ctx.fillStyle = '#6a7184'
-        const icon = renderIcon(column.columnObj, null)
+        const icon = column?.virtual ? renderVIcon(column.columnObj)?.icon : renderIcon(column.columnObj, null)
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
             icon: icon as any,

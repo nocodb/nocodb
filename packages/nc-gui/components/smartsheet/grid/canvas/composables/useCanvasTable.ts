@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDataFetch } from './useDataFetch'
@@ -86,6 +86,7 @@ export function useCanvasTable({
           width: gridViewCol.width,
           fixed: f.pv,
           pv: !!f.pv,
+          virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
           agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
           columnObj: f,

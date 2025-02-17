@@ -327,12 +327,16 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 }
 
 const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
-
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     open.value = true
     forcedNextTick(() => {
       open.value = true
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
     })
   }
 })

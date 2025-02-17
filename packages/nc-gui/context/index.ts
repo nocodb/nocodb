@@ -1,7 +1,10 @@
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
-import type { ComputedRef, InjectionKey, Reactive, Ref } from 'vue'
+import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
+
+export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
+export type ExtractInjectedReactive<T> = T extends InjectionKey<Reactive<infer U>> ? U : never
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -105,3 +108,8 @@ export const IsCanvasInjectionInj: InjectionKey<boolean> = Symbol('is-canvas-inj
 export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; clientY: number }>> = Symbol(
   'client-mouse-position-injection',
 )
+export const CanvasCellEventDataInj: InjectionKey<
+  Reactive<{
+    keyboardKey?: string
+  }>
+> = Symbol('canvas-cell-event-data-injection')

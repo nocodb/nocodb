@@ -45,6 +45,7 @@ export function useCanvasRender({
   totalWidth,
   totalRows,
   t,
+  readOnly,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -81,6 +82,7 @@ export function useCanvasRender({
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
   t: Composer['t']
+  readOnly: Ref<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -322,8 +324,12 @@ export function useCanvasRender({
         const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
         const x = xOffset + (column.uidt ? 26 : 10)
         const y = 16
+
         if (column.id === 'row_number') {
-          if (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) {
+          if (
+            !readOnly.value &&
+            (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition))
+          ) {
             const checkSize = 16
             const isCheckboxHovered = isBoxHovered({ x, y: y - 8, width: checkSize, height: checkSize }, mousePosition)
             renderCheckbox(
@@ -548,7 +554,7 @@ export function useCanvasRender({
     let isCheckboxRendered = false
     if (isChecked || (selectedRows.value.length && isHover)) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
-      if (isChecked || isHover) {
+      if (!readOnly.value && (isChecked || isHover)) {
         renderCheckbox(
           ctx,
           currentX + 6,
@@ -558,9 +564,9 @@ export function useCanvasRender({
           spriteLoader,
           isCheckboxHovered ? '#3366FF' : '#D9D9D9',
         )
-        isCheckboxRendered = true
-        currentX += 30
       }
+      isCheckboxRendered = true
+      currentX += 30
     } else {
       if (isHover && isRowDraggingEnabled.value) {
         spriteLoader.renderIcon(ctx, {
@@ -582,16 +588,18 @@ export function useCanvasRender({
     }
 
     if (isHover && !isCheckboxRendered) {
-      const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
-      renderCheckbox(
-        ctx,
-        currentX,
-        yOffset + (rowHeight.value - 16) / 2,
-        isChecked,
-        isDisabled,
-        spriteLoader,
-        isCheckboxHovered ? '#3366FF' : '#D9D9D9',
-      )
+      if (!readOnly.value) {
+        const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
+        renderCheckbox(
+          ctx,
+          currentX,
+          yOffset + (rowHeight.value - 16) / 2,
+          isChecked,
+          isDisabled,
+          spriteLoader,
+          isCheckboxHovered ? '#3366FF' : '#D9D9D9',
+        )
+      }
       currentX += 24
     }
 

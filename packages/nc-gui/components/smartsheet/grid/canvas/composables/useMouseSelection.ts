@@ -63,8 +63,10 @@ export function useMouseSelection({
     const cell = findCellFromPosition(e.clientX - rect.left, e.clientY - rect.top)
 
     if (e.shiftKey) {
+      // If Shift key is pressed, we should set the end range as the current cell
       if (cell.col !== -1) {
         isSelecting.value = true
+        selection.value.endRange(cell)
         triggerReRender()
       }
       return

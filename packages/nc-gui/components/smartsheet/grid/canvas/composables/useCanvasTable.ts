@@ -115,17 +115,7 @@ export function useCanvasTable({
   const activeCell = ref({ row: -1, column: -1 })
   const selection = ref(new CellRange())
   const hoverRow = ref(-1)
-  const editEnabled = ref<{
-    rowIndex: number
-    column: ColumnType
-    row: Row
-    x: number
-    y: number
-    width: number
-    minHeight: number
-    height: number
-    fixed: boolean
-  } | null>(null)
+  const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
@@ -485,6 +475,7 @@ export function useCanvasTable({
     actionManager,
     renderCell,
     meta,
+    editEnabled,
   })
 
   const { handleDragStart } = useRowReorder({

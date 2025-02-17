@@ -1,4 +1,5 @@
-import { renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
+import { renderSingleLineText, renderTag, roundedRect, truncateText } from '../utils/canvas'
+import type { getSingleMultiselectColOptions } from '../utils/cell'
 
 const tagPadding = 8
 const tagHeight = 20
@@ -21,15 +22,20 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-      fillStyle: pv ? '#4351e8' : '#4a5268',
       height,
       render: false,
     })
 
-    ctx.fillStyle = '#e7e7e9'
-    ctx.beginPath()
-    ctx.roundRect(x + padding, y + topPadding, optionWidth + tagPadding * 2, tagHeight, 12)
-    ctx.fill()
+    const opColor = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap?.[text]?.color ?? '#e7e7e9'
+
+    renderTag(ctx, {
+      x: x + padding,
+      y: y + topPadding,
+      width: optionWidth + tagPadding * 2,
+      height: tagHeight,
+      radius: 12,
+      fillStyle: opColor,
+    })
 
     renderSingleLineText(ctx, {
       x: x + padding + tagPadding,
@@ -39,7 +45,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-      fillStyle: pv ? '#4351e8' : '#4a5268',
+      fillStyle: getSelectTypeOptionTextColor(opColor),
       height,
     })
   },

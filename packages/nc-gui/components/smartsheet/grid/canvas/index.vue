@@ -109,6 +109,8 @@ const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
 provide(ClientMousePositionInj, clientMousePosition)
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 const isExpandTableModalOpen = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -315,6 +317,74 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
+const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number }) => {
+  const isAtMaxSelection = selectedRows.value.length >= 100
+  const isCheckboxDisabled = vSelectedAllRecords.value
+  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
+  const regions = []
+  let currentX = 4
+  let isCheckboxRendered = false
+
+  if (isChecked) {
+    regions.push({
+      x: currentX,
+      width: 24,
+      action: isCheckboxDisabled ? 'none' : 'select',
+    })
+    isCheckboxRendered = true
+    currentX += 24
+  } else {
+    regions.push({
+      x: currentX,
+      width: 24,
+      action: isRowReOrderEnabled.value ? 'reorder' : 'none',
+    })
+    currentX += 24
+  }
+
+  if ((!isAtMaxSelection || row.rowMeta?.selected) && !isCheckboxDisabled && !isCheckboxRendered) {
+    regions.push({
+      x: currentX,
+      width: 24,
+      action: 'select',
+    })
+    currentX += 24
+  }
+
+  regions.push({
+    x: currentX,
+    width: 24,
+    action: 'comment',
+  })
+
+  const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
+
+  if (!clickedRegion) return
+
+  switch (clickedRegion.action) {
+    case 'select':
+      if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+        row.rowMeta.selected = !row.rowMeta?.selected
+        cachedRows.value.set(row.rowMeta.rowIndex!, row)
+      }
+      break
+
+    case 'reorder':
+      if (e.detail === 1 && isRowReOrderEnabled.value) {
+        onMouseDownRowReorderStart(e)
+      }
+      break
+
+    case 'comment':
+      isExpandedFormCommentMode.value = !!row.rowMeta?.commentCount
+      expandForm(row)
+      break
+  }
+
+  triggerRefreshCanvas()
+}
+
 async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
@@ -384,12 +454,13 @@ async function handleMouseDown(e: MouseEvent) {
     }
   }
 
-  // Row Meta ie, First Column
-  // TODO: @DarkPhoenix2704 -> Reorder, Selection, Expand Row
-  if (x < 80) {
-    if (e.detail === 1 && isRowReOrderEnabled.value) {
-      onMouseDownRowReorderStart(e)
-    } else return
+  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+
+  if (e.detail === 1 && x < 80) {
+    const row = cachedRows.value.get(rowIndex)
+    if (!row) return
+    handleRowMetaClick({ e, row, x })
+    return
   }
 
   onMouseDownFillHandlerStart(e)
@@ -411,7 +482,6 @@ async function handleMouseDown(e: MouseEvent) {
     })
   } else {
     // Row Selection
-    const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value.row = -1
       activeCell.value.column = -1

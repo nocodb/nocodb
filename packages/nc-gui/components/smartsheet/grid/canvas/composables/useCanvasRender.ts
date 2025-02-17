@@ -7,7 +7,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -726,6 +726,13 @@ export function useCanvasRender({
 
       ctx.font = '600 12px Manrope'
       const textMetrics = ctx.measureText(commentCount)
+
+      const maxX = ROW_META_COLUMN_WIDTH
+
+      if (maxX - currentX < textMetrics.width + 8) {
+        currentX = maxX - textMetrics.width - 8
+      }
+
       const bubbleHeight = 20
       const bubbleWidth = textMetrics.width + 8
 

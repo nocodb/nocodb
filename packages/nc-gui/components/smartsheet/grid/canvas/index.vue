@@ -72,6 +72,7 @@ const {
 const totalRows = toRef(props, 'totalRows')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
+const rowHeightEnum = toRef(props, 'rowHeightEnum')
 
 // Refs
 const containerRef = ref()
@@ -119,7 +120,7 @@ const {
   onMouseUpFillHandlerEnd,
   isFillHandlerActive,
 } = useCanvasTable({
-  rowHeightEnum: computed(() => props.rowHeightEnum),
+  rowHeightEnum,
   cachedRows,
   clearCache,
   chunkStates,
@@ -179,7 +180,7 @@ function handleMouseDown(e: MouseEvent) {
   if (isFillHandlerActive.value) return
 
   selection.value.clear()
-  let y = e.clientY - rect.top
+  const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
   // Header interactions
@@ -189,9 +190,7 @@ function handleMouseDown(e: MouseEvent) {
       startDrag(e.clientX - rect.left)
     }
   } else {
-    // Body interactions
-    y -= 32
-    const rowIndex = Math.floor(y / rowHeight.value) + rowSlice.value.start
+    const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value = { row: -1, column: -1 }
       triggerRefreshCanvas()

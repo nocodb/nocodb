@@ -50,6 +50,8 @@ const open = ref<boolean>(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
 
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+
 const localState = computed({
   get() {
     if (!modelValue || isClearedInputMode.value) {
@@ -321,6 +323,10 @@ onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     open.value = true
     forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
       open.value = true
     })
   }

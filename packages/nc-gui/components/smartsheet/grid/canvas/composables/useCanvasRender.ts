@@ -159,6 +159,7 @@ export function useCanvasRender({
     let xOffset = initialOffset
 
     for (const column of visibleCols) {
+      const colObj = column.columnObj
       const width = parseInt(column.width, 10)
 
       if (column.fixed) {
@@ -195,9 +196,17 @@ export function useCanvasRender({
         })
       }
 
-      const availableTextWidth = width - (26 + iconSpace)
+      const isRequired = colObj.rqd && !colObj.cdf
+
+      const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
       ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, 16)
+      if (isRequired) {
+        ctx.save()
+        ctx.fillStyle = '#EF4444'
+        ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, 16)
+        ctx.restore()
+      }
 
       let rightOffset = xOffset + width - rightPadding
 
@@ -351,7 +360,7 @@ export function useCanvasRender({
         const width = parseInt(column.width, 10)
         const rightPadding = 8
         let iconSpace = rightPadding
-
+        const colObj = column.columnObj
         iconSpace += 16
 
         if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
@@ -382,7 +391,10 @@ export function useCanvasRender({
           })
         }
 
-        const availableTextWidth = width - (26 + iconSpace)
+        const isRequired = colObj?.rqd && !colObj?.cdf
+
+        const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
+
         const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
         const x = xOffset + (column.uidt ? 26 : 10)
         const y = 16
@@ -408,6 +420,13 @@ export function useCanvasRender({
           }
         } else {
           ctx.fillText(truncatedText, x, y)
+
+          if (isRequired) {
+            ctx.save()
+            ctx.fillStyle = '#EF4444'
+            ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, 16)
+            ctx.restore()
+          }
         }
 
         let rightOffset = xOffset + width - rightPadding

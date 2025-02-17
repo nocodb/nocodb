@@ -1,7 +1,14 @@
+import { isAIPromptCol } from 'nocodb-sdk'
 import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/canvas'
+import { AILongTextCellRenderer } from './AILongText'
 
 export const LongTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
+    if (isAIPromptCol(props.column)) {
+      AILongTextCellRenderer.render(ctx, props)
+      return
+    }
+
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
     const {
       renderAsTag,
@@ -47,9 +54,9 @@ export const LongTextCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + padding + tagPaddingX,
-        y: y,
+        y,
         text: truncatedText,
-        maxWidth: maxWidth,
+        maxWidth,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: textColor,
       })

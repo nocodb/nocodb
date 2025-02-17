@@ -44,6 +44,7 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isFocusing = ref(false)
 
@@ -137,6 +138,10 @@ useSelectedCellKeydownListener(
   (e) => {
     switch (e.key) {
       case 'Escape':
+        if (canvasSelectCell) {
+          canvasSelectCell.trigger()
+          return
+        }
         isOpen.value = false
         break
       case 'Enter':
@@ -328,6 +333,8 @@ onMounted(() => {
       if (key && isSinglePrintableKey(key)) {
         onFocus()
         searchVal.value = key
+      } else if (key === 'Enter') {
+        onFocus()
       }
     })
   }

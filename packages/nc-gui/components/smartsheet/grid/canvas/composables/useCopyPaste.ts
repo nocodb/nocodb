@@ -36,10 +36,10 @@ export function useCopyPaste({
   updateOrSaveRow,
 }: {
   totalRows: Ref<number>
-  activeCell: { row: number; column: number }
+  activeCell: Ref<{ row: number; column: number }>
   columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: (row?: number, column?: number) => void
-  selection: CellRange
+  selection: Ref<CellRange>
   cachedRows: Ref<Map<number, Row>>
   editEnabled: Ref<{
     rowIndex: number
@@ -109,7 +109,7 @@ export function useCopyPaste({
       !isExpandedCellInputExist() &&
       !isLinkDropdownExist() &&
       !editEnabled.value &&
-      !(activeCell.row === -1 || activeCell.column === -1)
+      !(activeCell.value.row === -1 || activeCell.value.column === -1)
     )
   })
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -178,16 +178,16 @@ export function useCopyPaste({
 
         const clipboardMatrix = parsedClipboard.data as string[][]
 
-        const selectionRowCount = Math.max(clipboardMatrix.length, selection.end.row - selection.start.row + 1)
+        const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
         const pasteMatrixCols = clipboardMatrix[0]?.length || 0
-        const startColIndex = selection.start.col - 1
+        const startColIndex = selection.value.start.col - 1
         const existingFields = fields.value
         const existingColCount = existingFields.length - startColIndex
         const newColsNeeded = Math.max(0, pasteMatrixCols - existingColCount)
 
         const tempTotalRows = totalRows.value
-        const totalRowsBeforeActiveCell = selection.start.row
+        const totalRowsBeforeActiveCell = selection.value.start.row
         const availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
 
@@ -253,7 +253,7 @@ export function useCopyPaste({
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
-          colsToPaste = fields.value.slice(selection.start.col, selection.start.col + pasteMatrixCols)
+          colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
         const dataRef = unref(cachedRows)
@@ -332,9 +332,9 @@ export function useCopyPaste({
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
       } else {
-        if (selection.isSingleCell()) {
-          const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
-          const columnObj = unref(fields)[activeCell.column]
+        if (selection.value.isSingleCell()) {
+          const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.value.row)
+          const columnObj = unref(fields)[activeCell.value.column]
 
           if (!rowObj || !columnObj) return
 
@@ -372,7 +372,7 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title })
           }
 
           // Handle many-to-many column paste
@@ -518,7 +518,7 @@ export function useCopyPaste({
               })
             }
 
-            return await syncCellData?.(activeCell)
+            return await syncCellData?.(activeCell.value)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -545,9 +545,9 @@ export function useCopyPaste({
             rowObj.row[columnObj.title!] = pasteValue
           }
 
-          await syncCellData?.(activeCell)
+          await syncCellData?.(activeCell.value)
         } else {
-          const { start, end } = selection
+          const { start, end } = selection.value
 
           const startRow = Math.min(start.row, end.row)
           const endRow = Math.max(start.row, end.row)
@@ -738,8 +738,8 @@ export function useCopyPaste({
                 rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
               }
 
-              activeCell.column = ctx.col
-              activeCell.row = ctx.row
+              activeCell.value.column = ctx.col
+              activeCell.value.row = ctx.row
 
               scrollToCell?.()
             } else {
@@ -764,8 +764,8 @@ export function useCopyPaste({
               } else if (isMm(columnObj)) {
                 await cleaMMCell(rowObj, columnObj)
               }
-              activeCell.column = ctx.col
-              activeCell.row = ctx.row
+              activeCell.value.column = ctx.col
+              activeCell.value.row = ctx.row
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -803,10 +803,10 @@ export function useCopyPaste({
 
   async function copyValue(ctx?: Cell) {
     try {
-      if (selection.start !== null && selection.end !== null && !selection.isSingleCell()) {
-        console.log(selection.start)
-        const startChunkId = Math.floor(selection.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.end.row / CHUNK_SIZE)
+      if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
+        console.log(selection.value.start)
+        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
+        const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
 
         const chunksToFetch = new Set<number>()
         for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
@@ -817,18 +817,18 @@ export function useCopyPaste({
         await Promise.all([...chunksToFetch].map(fetchChunk))
 
         const cprows = Array.from(unref(cachedRows).entries())
-          .filter(([index]) => index >= selection.start.row && index <= selection.end.row)
+          .filter(([index]) => index >= selection.value.start.row && index <= selection.value.end.row)
           .map(([, row]) => row)
 
-        const cpcols = unref(fields).slice(selection.start.col, selection.end.col + 1) // slice the selected cols for copy
+        const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
         message.success(t('msg.info.copiedToClipboard'))
       } else {
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
-        const cpRow = ctx?.row ?? activeCell.row
-        const cpCol = ctx?.col ?? activeCell.column
+        const cpRow = ctx?.row ?? activeCell.value.row
+        const cpCol = ctx?.col ?? activeCell.value.column
 
         if (cpRow != null && cpCol != null) {
           const rowObj = unref(cachedRows).get(cpRow)
@@ -860,5 +860,5 @@ export function useCopyPaste({
     }
   }
   useEventListener(document, 'paste', handlePaste)
-  return { copyValue, clearCell }
+  return { copyValue, clearCell, isPasteable }
 }

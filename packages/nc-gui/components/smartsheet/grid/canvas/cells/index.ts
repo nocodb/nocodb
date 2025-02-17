@@ -1,6 +1,5 @@
-import { UITypes, type ColumnType, type TableType } from 'nocodb-sdk'
-import type { SpriteLoader } from '../loaders/SpriteLoader'
-import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import { UITypes } from 'nocodb-sdk'
+import { renderSingleLineText } from '../utils/canvas'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'

@@ -210,8 +210,8 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore }) {
-    if (!row || !column) return false
+  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore, readonly }) {
+    if (!row || !column || readonly) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })

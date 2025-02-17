@@ -3,6 +3,7 @@ import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
 import { normalizeWidth, useColumnResize } from './useColumnResize'
+import { useKeyboardNavigation } from './useKeyboardNavigation'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -14,6 +15,7 @@ export function useCanvasTable({
   scrollLeft,
   width,
   height,
+  scrollToCell,
 }: {
   rowHeightEnum?: number
   cachedRows: Ref<Map<number, Row>>
@@ -24,6 +26,7 @@ export function useCanvasTable({
   scrollLeft: Ref<number>
   width: Ref<number>
   height: Ref<number>
+  scrollToCell: (row: number, column: number) => void
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -233,6 +236,14 @@ export function useCanvasTable({
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     },
   )
+
+  useKeyboardNavigation({
+    activeCell,
+    totalRows,
+    triggerReRender: triggerRefreshCanvas,
+    columns,
+    scrollToCell,
+  })
 
   return {
     rowSlice,

@@ -7,7 +7,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
+import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from '../utils/constants'
 
 export function useCanvasRender({
   width,
@@ -50,6 +50,7 @@ export function useCanvasRender({
 
   isFieldEditAllowed,
   setCursor,
+  totalColumnsWidth,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -91,17 +92,10 @@ export function useCanvasRender({
   isFieldEditAllowed: ComputedRef<boolean>
   isDataEditAllowed: ComputedRef<boolean>
   setCursor: SetCursorType
+  totalColumnsWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
-
-  watch(
-    () => !!colResizeHoveredColIds.value.size,
-    (val) => {
-      if (!canvasRef.value) return
-      canvasRef.value.style.cursor = val ? 'col-resize' : 'auto'
-    },
-  )
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -131,11 +125,8 @@ export function useCanvasRender({
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
-    const plusColumnWidth = 60
-    const columnsWidth =
-      columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0) +
-      (isAddingColumnAllowed.value ? plusColumnWidth : 0) -
-      scrollLeft.value
+    const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
+    const columnsWidth = totalColumnsWidth.value + (isAddingColumnAllowed.value ? plusColumnWidth : 0) - scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -1509,5 +1500,6 @@ export function useCanvasRender({
     canvasRef,
     renderActiveState,
     renderCanvas,
+    colResizeHoveredColIds,
   }
 }

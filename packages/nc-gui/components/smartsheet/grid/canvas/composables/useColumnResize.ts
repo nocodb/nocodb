@@ -1,4 +1,5 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
+import type { SetCursorType } from '../../../../../lib/types'
 
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -57,9 +58,6 @@ export function useColumnResize(
       currentX = nextX
     }
 
-    if (!isResizing.value) {
-      setCursor('default')
-    }
     return null
   })
 
@@ -89,7 +87,6 @@ export function useColumnResize(
     isResizing.value = false
     activeColumn.value = null
     mousePosition.value = null
-    setCursor('default')
 
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
@@ -116,8 +113,6 @@ export function useColumnResize(
       initialWidth: column.width,
       startX: mousePosition.value?.x || 0,
     }
-
-    setCursor('col-resize')
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)

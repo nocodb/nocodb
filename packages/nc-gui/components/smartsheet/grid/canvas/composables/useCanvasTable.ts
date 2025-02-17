@@ -171,6 +171,8 @@ export function useCanvasTable({
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
+  const totalColumnsWidth = computed(() => columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0))
+
   const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value)
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isFieldEditAllowed.value && !isSqlView.value)
@@ -456,7 +458,7 @@ export function useCanvasTable({
     setCursor,
   })
 
-  const { canvasRef, renderCanvas } = useCanvasRender({
+  const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
     mousePosition,
     height,
@@ -499,6 +501,7 @@ export function useCanvasTable({
     isFieldEditAllowed,
     isPublicView,
     setCursor,
+    totalColumnsWidth,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -621,6 +624,7 @@ export function useCanvasTable({
     handleMouseMove: resizeMouseMove,
     handleMouseDown: startResize,
     resizeableColumn,
+    isResizing,
   } = useColumnResize(
     canvasRef,
     columns,
@@ -920,6 +924,11 @@ export function useCanvasTable({
     resizeableColumn,
     partialRowHeight,
     readOnly,
+
+    // columnresize related refs
+    colResizeHoveredColIds,
+    isResizing,
+
     // Functions
     fetchChunk,
     updateVisibleRows,
@@ -977,5 +986,7 @@ export function useCanvasTable({
     handleCellClick,
     handleCellHover,
     renderCell,
+
+    totalColumnsWidth,
   }
 }

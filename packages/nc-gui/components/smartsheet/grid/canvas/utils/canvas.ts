@@ -299,7 +299,7 @@ export const renderSingleLineText = (
 }
 
 export const wrapTextToLines = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   { text, maxWidth, maxLines }: { text: string; maxWidth: number; maxLines: number },
 ): string[] => {
   const lines: string[] = []
@@ -381,7 +381,7 @@ const renderLines = (
 }
 
 export const renderMultiLineText = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps,
 ): {
   lines: string[]
@@ -526,7 +526,7 @@ export const renderTagLabel = (ctx: CanvasRenderingContext2D, props: CellRendere
     x: x + tagSpacing + tagPaddingX,
     y: initialY,
     text: truncatedText,
-    maxWidth: maxWidth,
+    maxWidth,
     height: tagHeight,
     fontFamily: '500 13px Manrope',
     fillStyle: textColor,

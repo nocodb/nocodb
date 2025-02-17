@@ -103,6 +103,7 @@ export function useGridCellHandler(params: {
       fontSize = 13,
       textAlign = 'center',
       textColor,
+      disabled,
       mousePosition,
       pk,
     }: CellRendererOptions,
@@ -144,6 +145,7 @@ export function useGridCellHandler(params: {
         mousePosition,
         textColor,
         pk,
+        disabled,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -170,7 +172,7 @@ export function useGridCellHandler(params: {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     if (cellHandler?.handleClick) {
-      await cellHandler.handleClick({
+      return await cellHandler.handleClick({
         ...ctx,
         isDoubleClick: ctx.event.detail === 2,
         getCellPosition: params?.getCellPosition,

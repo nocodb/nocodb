@@ -667,7 +667,6 @@ export function useCanvasRender({
               ctx.lineTo(xOffset, yOffset + rowHeight.value)
               ctx.stroke()
               renderActiveState(ctx, activeState, true)
-              activeState = null
 
               xOffset += width
             })
@@ -678,11 +677,29 @@ export function useCanvasRender({
               ctx.shadowOffsetY = 0
             }
 
-            ctx.strokeStyle = '#f4f4f5'
-            ctx.beginPath()
-            ctx.moveTo(xOffset, yOffset)
-            ctx.lineTo(xOffset, yOffset + rowHeight.value)
-            ctx.stroke()
+            // Draw border for fixed columns
+            // The issue is the border gets drawn over the active state border.
+            // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
+            if (activeState && xOffset >= activeState.x && xOffset <= activeState.x + activeState.width) {
+              // Draw border above active state
+              ctx.strokeStyle = '#f4f4f5'
+              ctx.beginPath()
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, activeState.y)
+              ctx.stroke()
+
+              // Draw border below active state
+              ctx.beginPath()
+              ctx.moveTo(xOffset, activeState.y + activeState.height)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
+            } else {
+              ctx.strokeStyle = '#f4f4f5'
+              ctx.beginPath()
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
+            }
 
             ctx.shadowColor = 'transparent'
             ctx.shadowBlur = 0
@@ -715,7 +732,6 @@ export function useCanvasRender({
     }
 
     // Add New Row
-
     const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: width.value }, mousePosition)
     ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
     ctx.fillRect(0, yOffset, width.value, rowHeight.value)

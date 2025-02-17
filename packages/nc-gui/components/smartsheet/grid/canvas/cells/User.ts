@@ -201,7 +201,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         needsPlaceholder = false
       } else if (initials) {
         renderSingleLineText(ctx, {
-          x: x + 2,
+          x: initials.length === 1 ? x + 6 : x + 3.5,
           y,
           text: initials.toLocaleUpperCase(),
           fontFamily: '600 10px Manrope',
@@ -328,7 +328,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     tryShowTooltip({ text: hoveredBox.text, rect: hoveredBox, mousePosition })
   },
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
-    if (column.readonly) return false
+    if (column.readonly || !column.isCellEditable) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 

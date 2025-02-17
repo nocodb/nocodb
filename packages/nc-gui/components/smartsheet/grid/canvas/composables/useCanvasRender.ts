@@ -1343,13 +1343,8 @@ export function useCanvasRender({
           maxWidth: availWidth - 16,
           fontFamily: '500 12px Manrope',
         })
-
-        if (
-          isBoxHovered(
-            { x: xOffset, y: height.value - AGGREGATION_HEIGHT, width: availWidth - 16, height: AGGREGATION_HEIGHT },
-            mousePosition,
-          )
-        ) {
+        //  Not exactly sure, but height.value becomes zero, randomly when scroll
+        if (height.value) {
           tryShowTooltip({
             mousePosition,
             text: `${totalRows.value} ${totalRows.value !== 1 ? t('objects.records') : t('objects.record')}`,

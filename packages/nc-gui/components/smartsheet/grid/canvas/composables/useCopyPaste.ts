@@ -211,8 +211,7 @@ export function useCopyPaste({
         const bulkOpsCols = []
 
         if (options.expand) {
-          colsToPaste = existingFields.slice(startColIndex, startColIndex + pasteMatrixCols)
-
+          colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
           if (newColsNeeded > 0) {
             const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
             const columnsLength = meta.value?.columns?.length || 0

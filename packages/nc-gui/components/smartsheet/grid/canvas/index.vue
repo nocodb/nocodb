@@ -1163,6 +1163,7 @@ onBeforeUnmount(() => {
     }
   }
   :deep(.nc-cell-number),
+  :deep(.nc-cell-user),
   :deep(.nc-cell-geometry),
   :deep(.nc-multi-select),
   :deep(.nc-cell-decimal),

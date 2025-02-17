@@ -9,7 +9,7 @@ const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10 } = props
+    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10, tableMetaLoader } = props
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
@@ -25,6 +25,15 @@ export const LookupCellRenderer: CellRenderer = {
     if (!relatedColObj) return
 
     const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
+
+    // Load related table meta if not present
+    if (!relatedTableMeta) {
+      if (tableMetaLoader.isLoading(relatedColObj.colOptions?.fk_related_model_id)) return
+
+      tableMetaLoader.getTableMeta(relatedColObj.colOptions?.fk_related_model_id)
+
+      return
+    }
 
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 

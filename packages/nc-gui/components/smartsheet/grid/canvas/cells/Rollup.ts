@@ -22,7 +22,6 @@ export const RollupCellRenderer: CellRenderer = {
     if (!childColumn) return
 
     const renderAsTextFun = getRenderAsTextFunForUiType((childColumn?.uidt as UITypes) || UITypes.SingleLineText)
-
     const renderProps: CellRendererOptions = {
       ...props,
       column: childColumn,
@@ -34,9 +33,8 @@ export const RollupCellRenderer: CellRenderer = {
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
       // Render as decimal cell
       renderProps.column.uidt = UITypes.Decimal
-      renderProps.column.meta = { ...parseProp(childColumn?.meta), ...parseProp(column?.meta) }
+      renderProps.column.meta = Object.assign(parseProp(childColumn?.meta), parseProp(column?.meta))
     }
-
     renderCell(ctx, childColumn, renderProps)
   },
 }

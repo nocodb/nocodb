@@ -87,8 +87,11 @@ export class RecoverDisconnectedTableNames {
           .where(`${MetaTable.MODELS}.deleted`, false)
           .orWhereNull(`${MetaTable.MODELS}.deleted`);
       })
-      .where(`${MetaTable.MODELS}.table_name`, 'like', '%?%')
-      .orWhere(`${MetaTable.MODELS}.table_name`, 'like', '%$%');
+      .where((builder) => {
+        builder
+          .where(`${MetaTable.MODELS}.table_name`, 'like', '%?%')
+          .orWhere(`${MetaTable.MODELS}.table_name`, 'like', '%$%');
+      });
   }
 
   async job() {

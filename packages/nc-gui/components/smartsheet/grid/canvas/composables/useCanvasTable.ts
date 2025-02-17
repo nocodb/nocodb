@@ -106,6 +106,7 @@ export function useCanvasTable({
     x: number
     y: number
     width: number
+    minHeight: number
     height: number
     fixed: boolean
   } | null>(null)
@@ -693,7 +694,8 @@ export function useCanvasTable({
       y: (rowIndex + 1) * rowHeight.value + 32,
       column,
       row,
-      height: rowHeight.value,
+      minHeight: rowHeight.value,
+      height: column.uidt === UITypes.LongText ? 'auto' : rowHeight.value,
       width: parseInt(clickedColumn.width, 10) + 2,
       fixed: clickedColumn.fixed,
     }

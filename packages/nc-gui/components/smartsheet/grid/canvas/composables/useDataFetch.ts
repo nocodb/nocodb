@@ -1,7 +1,8 @@
 const INITIAL_LOAD_SIZE = 100
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
-const PREFETCH_THRESHOLD = 40
+const PREFETCH_THRESHOLD = 50
+const DEBOUNCE_API_DELAY = 50
 
 export function useDataFetch({
   chunkStates,
@@ -51,7 +52,21 @@ export function useDataFetch({
     }
   }
 
-  const updateVisibleRows = async () => {
+  const debouncedFetchChunks = useDebounceFn(async (chunksToFetch: Set<number>, firstChunkId: number) => {
+    if (chunksToFetch.size > 0) {
+      const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
+      if (isInitialLoad) {
+        await fetchChunk(0, true)
+        chunksToFetch.delete(0)
+        chunksToFetch.delete(1)
+      }
+      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+    }
+
+    nextTick(triggerRefreshCanvas)
+  }, DEBOUNCE_API_DELAY)
+
+  const updateVisibleRows = () => {
     const { start, end } = rowSlice.value
 
     const firstChunkId = Math.floor(start / CHUNK_SIZE)
@@ -73,37 +88,26 @@ export function useDataFetch({
       chunksToFetch.add(prevChunkId)
     }
 
-    if (chunksToFetch.size > 0) {
-      const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
-
-      if (isInitialLoad) {
-        await fetchChunk(0, true)
-        chunksToFetch.delete(0)
-        chunksToFetch.delete(1)
-      }
-
-      await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-    }
+    nextTick(triggerRefreshCanvas)
 
     clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
-    await nextTick(triggerRefreshCanvas)
+
+    debouncedFetchChunks(chunksToFetch, firstChunkId)
   }
 
-  const throttledUpdate = useThrottleFn(() => {
-    updateVisibleRows()
-  }, 200)
-
-  const debouncedUpdate = useDebounceFn(() => {
-    updateVisibleRows()
-  }, 250)
-
-  const throttledUpdateVisibleRows = () => {
-    throttledUpdate()
-    debouncedUpdate()
+  const rafId = ref<number | null>(null)
+  const rafUpdateVisibleRows = () => {
+    if (rafId.value) {
+      cancelAnimationFrame(rafId.value)
+    }
+    rafId.value = requestAnimationFrame(() => {
+      updateVisibleRows()
+      rafId.value = null
+    })
   }
 
   return {
     fetchChunk,
-    updateVisibleRows: throttledUpdateVisibleRows,
+    updateVisibleRows: rafUpdateVisibleRows,
   }
 }

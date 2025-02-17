@@ -262,7 +262,6 @@ const {
 })
 
 // Computed
-
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
 const containerRef = computed(() => scroller.value?.wrapperRef)

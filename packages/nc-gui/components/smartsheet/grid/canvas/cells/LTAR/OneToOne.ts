@@ -19,6 +19,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       renderCell,
       readonly,
       setCursor,
+      selected,
     } = props
 
     const hasValue = !!row[column.title!]
@@ -34,7 +35,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       | undefined
 
     if (!ooColumn) return
-
+    let returnData
     if (isValidValue(value)) {
       const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? (hasValue ? 16 : 14) : 0)
 
@@ -49,7 +50,7 @@ export const OneToOneCellRenderer: CellRenderer = {
           : PlainCellRenderer.render(ctx, options)
       }
 
-      cellRenderer({
+      returnData = cellRenderer({
         ...props,
         value: cellValue,
         column: ooColumn,
@@ -69,6 +70,25 @@ export const OneToOneCellRenderer: CellRenderer = {
         x: x + 4,
         y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })
+
+      if (selected && !readonly) {
+        spriteLoader.renderIcon(ctx, {
+          x: returnData.x + 2,
+          y: y + (rowHeightInPx['1'] === height ? 8 : 2),
+          icon: 'ncXCircle',
+          size: 14,
+          color: '#AFB3C2',
+        })
+
+        if (
+          isBoxHovered(
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 },
+            mousePosition,
+          )
+        ) {
+          setCursor('pointer')
+        }
+      }
     }
 
     if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
@@ -90,8 +110,10 @@ export const OneToOneCellRenderer: CellRenderer = {
         setCursor('pointer')
       }
     }
+
+    return returnData
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width } = getCellPosition(column, rowIndex)
     const hasValue = !!row.row[column.title!]
@@ -102,6 +124,13 @@ export const OneToOneCellRenderer: CellRenderer = {
       makeCellEditable(rowIndex, column)
       return true
     }
+
+    if (!cellRenderStore || !selected) return false
+    if (isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+
     return false
   },
 }

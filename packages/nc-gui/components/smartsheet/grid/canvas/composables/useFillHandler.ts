@@ -91,6 +91,7 @@ export function useFillHandler({
 
     return dx * dx + dy * dy <= radius * radius
   }
+
   const handleFillStart = (e: MouseEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return

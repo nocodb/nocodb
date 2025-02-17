@@ -1,4 +1,4 @@
-import { UITypes, isAIPromptCol, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -775,7 +775,9 @@ export function useCanvasTable({
 
     if (!row || !column) return null
 
-    if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemColumn(column)) {
+    const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
+
+    if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemCol) {
       return null
     }
 

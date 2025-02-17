@@ -1236,6 +1236,10 @@ const editEnabledCellPosition = computed(() => {
     left: `${left}px`,
   }
 })
+
+watch(columns, () => {
+  requestAnimationFrame(triggerRefreshCanvas)
+})
 </script>
 
 <template>

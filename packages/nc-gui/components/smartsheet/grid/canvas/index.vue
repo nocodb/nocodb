@@ -680,13 +680,13 @@ const handleMouseUp = async (e: MouseEvent) => {
       const plusColumnWidth = 60
       // If the user is trying to add a new column
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
-        // If the click is not normal single click, return
-        if (clickType !== MouseClickType.SINGLE_CLICK) return
+        if(!isAddingColumnAllowed.value) return
 
         // if menu already in open state then close it on second click
         if (prevMenuState.isCreateOrEditColumnDropdownOpen && !prevMenuState.editColumn) {
           return
         }
+
         isCreateOrEditColumnDropdownOpen.value = true
         overlayStyle.value = {
           top: `${rect.top}px`,
@@ -704,6 +704,8 @@ const handleMouseUp = async (e: MouseEvent) => {
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
+          if(!isUIAllowed('fieldEdit')) return
+
           // IF Right-click on a column, open the column dropdown menu
           openColumnDropdownField.value = clickedColumn.columnObj
           lastOpenColumnDropdownField.value = clickedColumn.columnObj
@@ -722,6 +724,9 @@ const handleMouseUp = async (e: MouseEvent) => {
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
           if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+
+            if(!isUIAllowed('fieldEdit')) return
+
             // if menu already in open state then close it on second click
             if (prevMenuState.isDropdownVisible && prevMenuState.openColumnDropdownField === clickedColumn.columnObj) {
               return

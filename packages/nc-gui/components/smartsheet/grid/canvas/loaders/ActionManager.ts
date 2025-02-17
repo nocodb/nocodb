@@ -31,21 +31,33 @@ export class ActionManager {
     return `${rowId}-${columnId}`
   }
 
-  private async executeAction(rowId: string, columnId: string, affectedColumnIds: string[] = [], action: () => Promise<any>) {
+  private async executeAction(
+    rowId: string | string[],
+    columnId: string,
+    affectedColumnIds: string[] = [],
+    action: () => Promise<any>,
+  ) {
     const startTime = Date.now()
 
-    this.loadingColumns.set(this.getKey(rowId, columnId), startTime)
+    const rowIds = Array.isArray(rowId) ? rowId : [rowId]
 
-    affectedColumnIds.forEach((colId) => {
-      this.loadingColumns.set(this.getKey(rowId, colId), startTime)
+    rowIds.forEach((id) => {
+      this.loadingColumns.set(this.getKey(id, columnId), startTime)
+      affectedColumnIds.forEach((colId) => {
+        this.loadingColumns.set(this.getKey(id, colId), startTime)
+      })
     })
+
     this.startAnimationLoop()
+
     try {
       return await action()
     } finally {
-      this.loadingColumns.delete(this.getKey(rowId, columnId))
-      affectedColumnIds.forEach((colId) => {
-        this.loadingColumns.delete(this.getKey(rowId, colId))
+      rowIds.forEach((id) => {
+        this.loadingColumns.delete(this.getKey(id, columnId))
+        affectedColumnIds.forEach((colId) => {
+          this.loadingColumns.delete(this.getKey(id, colId))
+        })
       })
     }
   }
@@ -91,10 +103,10 @@ export class ActionManager {
   }
 
   async executeButtonAction(
-    rowId: string,
+    rowIds: string[],
     column: CanvasGridColumn,
     extra: {
-      row?: Row
+      row?: Row[]
     },
   ) {
     const colOptions = column?.columnObj.colOptions
@@ -105,7 +117,7 @@ export class ActionManager {
     try {
       switch (colOptions.type) {
         case 'url': {
-          const value = extra?.row?.row?.[column.columnObj.title]
+          const value = extra?.row[0]?.row?.[column.columnObj.title]
           this.handleUrl(colOptions, value?.url)
           break
         }
@@ -113,34 +125,43 @@ export class ActionManager {
           const webhookId = colOptions.fk_webhook_id
           if (!webhookId) throw new Error('No webhook configured')
 
-          await this.executeAction(rowId, column.id, [], async () => {
-            await this.api.dbTableWebhook.trigger(webhookId, rowId)
-          })
+          for (const rowId of rowIds) {
+            await this.executeAction(rowId, column.id, [], async () => {
+              await this.api.dbTableWebhook.trigger(webhookId, rowId)
+            })
+          }
           break
         }
         case 'script': {
           const script = await this.loadAutomation(colOptions.fk_script_id)
-          await runScript(script, extra?.row, {
-            pk: rowId,
-            fieldId: column.columnObj.id!,
-          })
+          for (let i = 0; i < rowIds.length; i++) {
+            await this.executeAction(rowIds[i]!, column.id, [], async () => {
+              await runScript(script, extra?.row?.[i], {
+                pk: rowIds[i]!,
+                fieldId: column.columnObj.id!,
+              })
+            })
+          }
           break
         }
         case 'ai': {
           const outputColumnIds = colOptions.output_column_ids?.split(',').filter(Boolean) || []
           const outputColumns = outputColumnIds.map((id) => this.meta.value?.columnsById[id])
 
-          await this.executeAction(rowId, column.id, outputColumnIds, async () => {
-            const res = await this.generateRows(column.id, [rowId])
-            const row = this.cachedRows.value.get(extra?.row?.rowMeta?.rowIndex)
+          await this.executeAction(rowIds, column.id, outputColumnIds, async () => {
+            const res = await this.generateRows(column.id, rowIds)
 
             if (res?.length) {
-              const data = res[0]
-              for (const col of outputColumns) {
-                row.row[col.title] = data[col.title]
+              for (let i = 0; i < res.length; i++) {
+                const row = this.cachedRows.value.get(extra?.row?.[i]?.rowMeta?.rowIndex)
+                if (row) {
+                  const data = res[i]
+                  for (const col of outputColumns) {
+                    row.row[col.title] = data[col.title]
+                  }
+                  this.cachedRows.value.set(extra?.row?.[i]?.rowMeta?.rowIndex, row)
+                }
               }
-
-              this.cachedRows.value.set(extra?.row?.rowMeta?.rowIndex, row)
             }
           })
           break

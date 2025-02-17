@@ -249,7 +249,8 @@ export function useCanvasTable({
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
-      const field = fields.value[selection.value.start.col]
+      const column = columns.value[selection.value.start.col]
+      const field = column?.columnObj
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isAIPromptCol(field) || isAiButton(field),
@@ -266,7 +267,8 @@ export function useCanvasTable({
   const isSelectedOnlyScript = computed(() => {
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
-      const field = fields.value[selection.value.start.col]
+      const column = columns.value[selection.value.start.col]
+      const field = column?.columnObj
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isScriptButton(field),

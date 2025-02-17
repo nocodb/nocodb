@@ -38,14 +38,19 @@ interface TruncateTextWithInfoType {
  */
 
 export function truncateText(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   withInfo: true,
 ): TruncateTextWithInfoType
-export function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, withInfo?: false): string
 export function truncateText(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  withInfo?: false,
+): string
+export function truncateText(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   withInfo = false,

@@ -681,8 +681,6 @@ export const renderMarkdown = (
     }
   }
 
-  const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
-
   let blocks
   let width = 0
   const originalFontFamily = ctx.font
@@ -698,6 +696,8 @@ export const renderMarkdown = (
     width = cachedText.width
     blocks = cachedText.blocks
   } else {
+    const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
+
     width = maxWidth
     blocks = parseMarkdown(renderText)
 

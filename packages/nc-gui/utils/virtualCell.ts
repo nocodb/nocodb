@@ -1,4 +1,4 @@
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isVirtualCol } from 'nocodb-sdk'
 import {
   RelationTypes,
   UITypes,
@@ -41,6 +41,19 @@ export function isReadOnlyVirtualCell(col: ColumnType) {
     isLookup(col) ||
     isQrCode(col) ||
     isSystemColumn(col) ||
+    isCreatedOrLastModifiedTimeCol(col) ||
+    isCreatedOrLastModifiedByCol(col)
+  )
+}
+
+export const isReadonly = (col: ColumnType) => {
+  return (
+    isSystemColumn(col) ||
+    isLookup(col) ||
+    isRollup(col) ||
+    isFormula(col) ||
+    isButton(col) ||
+    isVirtualCol(col) ||
     isCreatedOrLastModifiedTimeCol(col) ||
     isCreatedOrLastModifiedByCol(col)
   )

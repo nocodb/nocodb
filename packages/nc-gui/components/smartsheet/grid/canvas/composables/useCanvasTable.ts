@@ -1,4 +1,4 @@
-import { UITypes, isAIPromptCol, isOrderCol, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -34,6 +34,9 @@ export function useCanvasTable({
   updateOrSaveRow,
   bulkUpdateRows,
   bulkUpsertRows,
+  expandForm,
+  addEmptyRow,
+  onActiveCellChanged,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -49,6 +52,7 @@ export function useCanvasTable({
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Row[]
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
   expandRows: ({
     newRows,
@@ -84,6 +88,8 @@ export function useCanvasTable({
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
+  addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
+  onActiveCellChanged: () => void
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -98,6 +104,7 @@ export function useCanvasTable({
     y: number
     width: number
     height: number
+    fixed: boolean
   } | null>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
@@ -112,15 +119,26 @@ export function useCanvasTable({
   const { isMobileMode } = useGlobal()
   const { t } = useI18n()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
-  const { eventBus, isDefaultView, meta, allFilters, sorts, isPkAvail: isPrimaryKeyAvailable, view } = useSmartsheetStoreOrThrow()
+  const {
+    eventBus,
+    isDefaultView,
+    meta,
+    allFilters,
+    sorts,
+    isPkAvail: isPrimaryKeyAvailable,
+    view,
+    isSqlView,
+  } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { metas, getMeta } = useMetas()
   const { isMysql } = useBase()
+  const { isDataReadOnly, isUIAllowed } = useRoles()
 
   const fields = inject(FieldsInj, ref([]))
   const isPublicView = inject(IsPublicInj, ref(false))
+  const readOnly = inject(ReadonlyInj, ref(false))
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -131,6 +149,8 @@ export function useCanvasTable({
   const isRowDraggingEnabled = computed(
     () => !selectedRows.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
+
+  const isAddingEmptyRowAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
@@ -484,16 +504,6 @@ export function useCanvasTable({
     },
   )
 
-  useKeyboardNavigation({
-    activeCell,
-    totalRows,
-    triggerReRender: triggerRefreshCanvas,
-    columns,
-    scrollToCell,
-    selection,
-    editEnabled,
-  })
-
   const { clearCell, copyValue } = useCopyPaste({
     totalRows,
     activeCell,
@@ -541,6 +551,25 @@ export function useCanvasTable({
     updateOrSaveRow,
   })
 
+  useKeyboardNavigation({
+    activeCell,
+    totalRows,
+    triggerReRender: triggerRefreshCanvas,
+    columns,
+    scrollToCell,
+    selection,
+    editEnabled,
+    copyValue,
+    clearCell,
+    clearSelectedRangeOfCells,
+    makeCellEditable,
+    cachedRows,
+    expandForm,
+    isAddingEmptyRowAllowed,
+    addEmptyRow,
+    onActiveCellChanged,
+  })
+
   const {
     handleMouseDown: onMouseDownSelectionHandler,
     handleMouseMove: onMouseMoveSelectionHandler,
@@ -557,6 +586,107 @@ export function useCanvasTable({
     scrollToCell,
     partialRowHeight,
   })
+
+  async function clearSelectedRangeOfCells() {
+    if (!isUIAllowed('dataEdit') || isDataReadOnly.value) return
+
+    const start = selection.value.start
+    const end = selection.value.end
+
+    const startCol = Math.min(start.col, end.col)
+    const endCol = Math.max(start.col, end.col)
+
+    const cols = columns.value.slice(startCol, endCol + 1)
+    // Get rows in the selected range
+    const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
+
+    const props = []
+    let isInfoShown = false
+
+    for (const row of rows) {
+      for (const col of cols) {
+        const colObj = col.columnObj
+        if (!row || !colObj || !colObj.title) continue
+
+        if (isVirtualCol(colObj)) {
+          if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
+            message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
+            isInfoShown = true
+          }
+          continue
+        }
+
+        // skip readonly columns
+        if (isReadonly(colObj)) continue
+
+        row.row[colObj.title] = null
+        props.push(colObj.title)
+      }
+    }
+
+    await bulkUpdateRows(rows, props)
+  }
+
+  function makeCellEditable(rowIndex: number, clickedColumn: CanvasGridColumn) {
+    const column = metaColumnById.value[clickedColumn.id]
+    const row = cachedRows.value.get(rowIndex)
+
+    if (!row || !column) return null
+
+    if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemColumn(column)) {
+      return null
+    }
+
+    if (!isPrimaryKeyAvailable.value && !row.rowMeta.new) {
+      message.info(t('msg.info.updateNotAllowedWithoutPK'))
+      return null
+    }
+
+    if (column.ai) {
+      message.info(t('msg.info.autoIncFieldNotEditable'))
+      return null
+    }
+
+    if (column.pk && !row.rowMeta.new) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      return null
+    }
+
+    let xOffset = 0
+    const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+
+    if (clickedColumn.fixed) {
+      const fixedCols = columns.value.filter((col) => col.fixed)
+      for (const col of fixedCols) {
+        const width = columnWidths.value[columns.value.indexOf(col)] ?? 10
+        if (col.id === clickedColumn.id) {
+          break
+        }
+        xOffset += width
+      }
+    } else {
+      const visibleStart = colSlice.value.start
+      const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+      xOffset += startOffset
+
+      // Add widths until our target column
+      for (let i = visibleStart; i < columnIndex; i++) {
+        xOffset += columnWidths.value[i] ?? 10
+      }
+    }
+
+    editEnabled.value = {
+      rowIndex,
+      x: xOffset,
+      y: (rowIndex + 1) * rowHeight.value + 32,
+      column,
+      row,
+      height: rowHeight.value,
+      width: parseInt(clickedColumn.width, 10) + 2,
+      fixed: clickedColumn.fixed,
+    }
+  }
 
   function triggerRefreshCanvas() {
     renderCanvas()
@@ -599,6 +729,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     startDrag,
 
+    makeCellEditable,
     // Handler
     resizeMouseMove,
     startResize,
@@ -632,9 +763,11 @@ export function useCanvasTable({
     isPrimaryKeyAvailable,
     meta,
     view,
+    isAddingEmptyRowAllowed,
 
     // Context Actions
     clearCell,
     copyValue,
+    clearSelectedRangeOfCells,
   }
 }

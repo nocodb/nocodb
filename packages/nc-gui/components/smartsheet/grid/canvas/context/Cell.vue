@@ -37,12 +37,14 @@ const props = defineProps<{
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   clearCell: (ctx: { row: number; col: number } | null, skipUpdate?: boolean) => Promise<void>
+  clearSelectedRangeOfCells: () => Promise<void>
 }>()
 
 // Emits
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
 
-const { bulkDeleteAll, deleteRow, deleteSelectedRows, deleteRangeOfRows, bulkUpdateRows, expandForm, clearCell } = props
+const { bulkDeleteAll, deleteRow, deleteSelectedRows, deleteRangeOfRows, expandForm, clearCell, clearSelectedRangeOfCells } =
+  props
 
 const contextMenuTarget = useVModel(props, 'contextMenuTarget', emits)
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
@@ -116,46 +118,6 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.value.row = -1
     activeCell.value.column = -1
   })
-}
-
-async function clearSelectedRangeOfCells() {
-  if (!hasEditPermission.value || isDataReadOnly.value) return
-
-  const start = selection.value.start
-  const end = selection.value.end
-
-  const startCol = Math.min(start.col, end.col)
-  const endCol = Math.max(start.col, end.col)
-
-  const cols = columns.value.slice(startCol, endCol + 1)
-  // Get rows in the selected range
-  const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
-
-  const props = []
-  let isInfoShown = false
-
-  for (const row of rows) {
-    for (const col of cols) {
-      const colObj = col.columnObj
-      if (!row || !colObj || !colObj.title) continue
-
-      if (isVirtualCol(colObj)) {
-        if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
-          message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
-          isInfoShown = true
-        }
-        continue
-      }
-
-      // skip readonly columns
-      if (isReadonly(colObj)) continue
-
-      row.row[colObj.title] = null
-      props.push(colObj.title)
-    }
-  }
-
-  await bulkUpdateRows(rows, props)
 }
 
 const commentRow = (rowId: number) => {

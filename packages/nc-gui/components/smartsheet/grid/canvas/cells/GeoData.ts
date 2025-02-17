@@ -1,8 +1,7 @@
 import { truncateText } from '../utils/canvas'
 
 export const GeoDataCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv, readonly }) => {
-    const padding = 10
+  render: (ctx, { value, x, y, width, height, selected, pv, readonly, padding }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'

@@ -25,7 +25,11 @@ import { RatingCellRenderer } from './Rating'
 import { UserFieldCellRenderer } from './User'
 import { SingleSelectCellRenderer } from './SingleSelect'
 import { MultiSelectCellRenderer } from './MultiSelect'
+import { RollupCellRenderer } from './Rollup'
+import { LinksCellRenderer } from './Links'
 export function useCellRenderer() {
+  const { t } = useI18n()
+
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
   cellTypesRegistry.set(UITypes.Email, EmailCellRenderer)
@@ -56,6 +60,8 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.SingleSelect, SingleSelectCellRenderer)
   cellTypesRegistry.set(UITypes.MultiSelect, MultiSelectCellRenderer)
+  cellTypesRegistry.set(UITypes.Rollup, RollupCellRenderer)
+  cellTypesRegistry.set(UITypes.Links, LinksCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,
@@ -73,6 +79,7 @@ export function useCellRenderer() {
       spriteLoader,
       imageLoader,
       isMysql,
+      padding = 10,
     }: {
       value: any
       row: any
@@ -86,6 +93,7 @@ export function useCellRenderer() {
       spriteLoader: SpriteLoader
       imageLoader: ImageWindowLoader
       isMysql: CanvasGridColumn['isMysql']
+      padding?: number
     },
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -105,6 +113,8 @@ export function useCellRenderer() {
         spriteLoader,
         imageLoader,
         isMysql,
+        t,
+        padding,
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

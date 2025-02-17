@@ -1987,6 +1987,11 @@ defineExpose({
     @apply !h-auto !py-1;
   }
 
+  :deep(.nc-virtual-cell-qrcode),
+  :deep(.nc-virtual-cell-barcode) {
+    @apply !h-full;
+  }
+
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

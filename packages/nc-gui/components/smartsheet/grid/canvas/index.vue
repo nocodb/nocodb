@@ -1423,7 +1423,7 @@ const editEnabledCellPosition = computed(() => {
 
   return {
     top: `${top}px`,
-    left: `${left}px`,
+    left: `${left - (editEnabled.value.column.pv ? 1 : 0)}px`,
   }
 })
 

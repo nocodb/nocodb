@@ -38,6 +38,7 @@ export function useCanvasRender({
   mousePosition,
   renderCell,
   meta,
+  editEnabled,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -68,6 +69,7 @@ export function useCanvasRender({
   mousePosition: { x: number; y: number }
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options) => void
   meta: ComputedRef<TableType>
+  editEnabled: Ref<CanvasEditEnabledType>
 }) {
   const canvasRef = ref()
   function renderHeader(ctx: CanvasRenderingContext2D) {
@@ -374,7 +376,7 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D, renderOverFixed = false) => {
-    if (selection.value.isEmpty()) return true
+    if (selection.value.isEmpty() || editEnabled.value) return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true

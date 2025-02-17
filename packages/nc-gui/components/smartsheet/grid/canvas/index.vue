@@ -106,6 +106,7 @@ const {
   startResize,
   hoverRow,
   selection,
+  partialRowHeight,
 
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -313,7 +314,7 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= 32) {
       resizeMouseMove(e)
     } else {
-      hoverRow.value = Math.floor((y - 32) / rowHeight.value) + rowSlice.value.start
+      hoverRow.value = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)

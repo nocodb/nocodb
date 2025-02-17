@@ -967,7 +967,7 @@ const getHeaderTooltipRegions = (
     }
 
     // Error icon region
-    if (column.isInvalidColumn?.isInvalid) {
+    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) {
       rightOffset -= 18
       regions.push({
         x: rightOffset - scrollLeftValue,

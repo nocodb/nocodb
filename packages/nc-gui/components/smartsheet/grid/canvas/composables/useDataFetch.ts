@@ -10,6 +10,7 @@ export function useDataFetch({
   loadData,
   rowSlice,
   totalRows,
+  triggerRefreshCanvas,
 }: {
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
@@ -17,6 +18,7 @@ export function useDataFetch({
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   rowSlice: Ref<{ start: number; end: number }>
   totalRows: Ref<number>
+  triggerRefreshCanvas: () => void
 }) {
   const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
     if (chunkStates.value[chunkId]) return
@@ -84,6 +86,7 @@ export function useDataFetch({
     }
 
     clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
+    await nextTick(triggerRefreshCanvas)
   }
 
   return {

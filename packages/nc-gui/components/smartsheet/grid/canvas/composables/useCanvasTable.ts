@@ -53,7 +53,6 @@ export function useCanvasTable({
 
   const { isMobileMode } = useGlobal()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
-  const { fetchChunk, updateVisibleRows } = useDataFetch({ cachedRows, chunkStates, clearCache, totalRows, loadData, rowSlice })
   const { eventBus, isDefaultView, meta } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
@@ -163,6 +162,16 @@ export function useCanvasTable({
     isFillMode,
     imageLoader,
     spriteLoader,
+  })
+
+  const { fetchChunk, updateVisibleRows } = useDataFetch({
+    cachedRows,
+    chunkStates,
+    clearCache,
+    totalRows,
+    loadData,
+    rowSlice,
+    triggerRefreshCanvas,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({

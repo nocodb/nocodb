@@ -32,7 +32,7 @@ const reloadVisibleDataHook = createEventHook()
 provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 // Composables
-const { totalRows, syncCount, cachedRows, chunkStates, loadData, clearCache } = useGridViewData(
+const { totalRows, syncCount, cachedRows, chunkStates, loadData, clearCache, updateOrSaveRow } = useGridViewData(
   meta,
   view,
   xWhere,
@@ -54,6 +54,7 @@ const visibleColumns = computed(() => {
       uidt: f.uidt,
       width: gridViewCol.width,
       fixed: f.pv,
+      pv: !!f.pv,
     }
   })
   cols.splice(0, 0, {
@@ -63,6 +64,7 @@ const visibleColumns = computed(() => {
     uidt: UITypes.AutoNumber,
     width: '64',
     fixed: true,
+    pv: false,
   })
   return cols
 })
@@ -319,6 +321,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
             height: 32,
             row: row.row,
             selected: isActive,
+            pv: column.pv,
           },
         )
         xOffset += width
@@ -360,6 +363,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
               height: 32,
               row: row.row,
               selected: isActive,
+              pv: column.pv,
             },
           )
 
@@ -413,6 +417,7 @@ function drawCanvas() {
 }
 
 function handleMouseClick(e: MouseEvent) {
+  editEnabled.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -473,10 +478,6 @@ function handleMouseClick(e: MouseEvent) {
   }
 }
 
-const updateOrSaveRow = (...args) => {
-  console.log(args)
-}
-
 let rafnId: number | null = null
 
 useScroll(containerRef, {
@@ -534,7 +535,7 @@ onBeforeUnmount(() => {
         <div
           v-if="editEnabled"
           :style="{
-            top: `${editEnabled.y}px`,
+            top: `${32 * (editEnabled.rowIndex + 1)}px`,
             left: `${editEnabled.x}px`,
             width: `${editEnabled.width}px`,
             height: `${editEnabled.height}`,

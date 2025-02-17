@@ -279,12 +279,13 @@ const cellHeight = computed(() =>
                 }"
               >
                 <div
-                  class="flex gap-1.5 w-full h-full py-[3px]"
+                  class="flex gap-1.5 w-full h-full"
                   :class="{
                     'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                     '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
                     'items-center': rowHeight === 1,
                     'items-start': rowHeight !== 1,
+                    'py-[3px]': !isAttachment(lookupColumn),
                   }"
                 >
                   <div

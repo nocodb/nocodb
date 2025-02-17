@@ -8,6 +8,7 @@ export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: Ref<Column[]>,
   onResize?: (columnId: string, width: number) => void,
+  onResizeEnd?: (columnId: string, width: number) => void,
 ) {
   const RESIZE_HANDLE_WIDTH = 8
   const isResizing = ref(false)
@@ -80,6 +81,11 @@ export function useColumnResize(
   }
 
   function handleMouseUp() {
+    if (!activeColumn.value || !mousePosition.value) return
+    const delta = mousePosition.value.x - activeColumn.value.startX
+    const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
+    onResizeEnd?.(activeColumn.value?.id, newWidth)
+
     isResizing.value = false
     activeColumn.value = null
     document.body.style.cursor = 'default'

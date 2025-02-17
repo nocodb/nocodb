@@ -23,7 +23,7 @@ const { totalRows, syncCount, cachedRows } = useGridViewData(meta, view, xWhere,
 
 const fields = inject(FieldsInj, ref([]))
 
-const { gridViewCols, resizingColOldWith, metaColumnById } = useViewColumnsOrThrow()
+const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
 
 const visibleColumns = computed(() => {
   const cols = fields.value.map((f) => {
@@ -50,7 +50,7 @@ const visibleColumns = computed(() => {
 })
 
 const totalWidth = computed(() => {
-  return visibleColumns.value.reduce((acc, col) => acc + +col.width.split('px')[0], 0)
+  return visibleColumns.value.reduce((acc, col) => acc + +col.width.split('px')[0], 0) + 256
 })
 
 const totalHeight = computed(() => {
@@ -91,11 +91,16 @@ const { drawResizeHandle, handleMouseMove, handleMouseDown } = useColumnResize(
       requestAnimationFrame(drawCanvas)
     }
   },
+  (columnId, newWidth) => {
+    const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
+    updateGridViewColumn(columnId, { width: `${normalizedWidth}px` })
+    requestAnimationFrame(drawCanvas)
+  },
 )
 
 const isRendering = ref(false)
 
-const drawCanvas = () => {
+function drawCanvas() {
   const canvas = canvasRef.value
   if (!canvas) return
 

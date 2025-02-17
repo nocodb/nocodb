@@ -450,7 +450,25 @@ interface CellRenderer {
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
-  }) => Promise<boolean>
+  }) => Promise<void>
+  handleHover?: (options: {
+    event: MouseEvent
+    mousePosition: { x: number; y: number }
+    value: any
+    column: CanvasGridColumn
+    row: Row
+    pk: any
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow?: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+  }) => Promise<void>
   [key: string]: any
 }
 

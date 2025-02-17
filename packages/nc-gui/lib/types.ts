@@ -414,6 +414,7 @@ interface CellRendererOptions {
     y: number
   }
   sqlUis?: Record<string, any>
+  skipRender?: boolean
   setCursor: SetCursorType
 }
 

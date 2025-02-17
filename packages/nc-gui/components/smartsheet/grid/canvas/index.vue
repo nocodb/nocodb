@@ -507,7 +507,7 @@ async function handleMouseDown(e: MouseEvent) {
         triggerRefreshCanvas()
       }
     })
-  } else {
+  } else if (y > 32 && y < height.value - 36) {
     // Row Selection
     if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
       activeCell.value.row = -1

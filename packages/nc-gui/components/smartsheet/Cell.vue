@@ -76,7 +76,7 @@ const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const emitSave = () => {
-  emit('save', [currentRow.value, column.value.title, state])
+  emit('save', [currentRow.value, column.value.title, state.value])
 }
 
 const syncValue = useDebounceFn(

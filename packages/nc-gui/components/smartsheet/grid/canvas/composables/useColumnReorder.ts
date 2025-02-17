@@ -1,6 +1,6 @@
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
-  columns: ComputedRef<any[]>,
+  columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
   drawCanvas: () => void,

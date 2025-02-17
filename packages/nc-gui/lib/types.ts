@@ -423,7 +423,9 @@ interface CellRenderStore {
   links?: { x: number; y: number; width: number; height: number; url: string }[]
 }
 
-type SetCursorType = (cursor: 'auto' | 'pointer' | 'col-resize') => void
+type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
+
+type SetCursorType = (cursor: CursorType) => void
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
@@ -596,4 +598,5 @@ export type {
   ParsePlainCellValueProps,
   CanvasEditEnabledType,
   SetCursorType,
+  CursorType,
 }

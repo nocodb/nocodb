@@ -20,6 +20,7 @@ const { showNull } = useGlobal()
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -169,8 +170,10 @@ onClickOutside(inputWrapperRef, (e) => {
   editEnabled.value = false
 })
 
-watch(isExpanded, () => {
+watch(isExpanded, (newVal, oldVal) => {
   _isExpanded.value = isExpanded.value
+
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 const stopPropagation = (event: MouseEvent) => {
@@ -222,12 +225,12 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  const gridCell = el.value?.closest('td')
+  const gridCell = el.value?.closest?.('td')
   if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)
     return
   }
-  const container = el.value?.closest('.nc-data-cell, .nc-default-value-wrapper')
+  const container = el.value?.closest?.('.nc-data-cell, .nc-default-value-wrapper')
   if (container) container.removeEventListener('click', openJSONEditor)
 })
 </script>

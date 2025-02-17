@@ -931,7 +931,7 @@ const getHeaderTooltipRegions = (
       })
     }
 
-    let rightOffset = xOffset + width - rightPadding - 16
+    let rightOffset = xOffset + width - rightPadding - (isUIAllowed('fieldEdit') ? 16 : 0)
 
     // Error icon region
     if (column.isInvalidColumn?.isInvalid) {

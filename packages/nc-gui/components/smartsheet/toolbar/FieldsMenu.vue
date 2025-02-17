@@ -15,9 +15,13 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -46,7 +50,9 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView } = useSmartsheetStoreOrThrow()
+
+const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -457,8 +463,19 @@ function scrollToLatestField() {
   }, 500)
 }
 
+const showAddLookupDropdown = (field: Field) => {
+  if (!field.fk_column_id) return false
+
+  return !!(
+    isAddingColumnAllowed.value &&
+    !isLocked.value &&
+    !isLocalMode.value &&
+    isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id])
+  )
+}
+
 function conditionalToggleFieldVisibility(field: Field) {
-  if (isLocked.value || (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value)) {
+  if (showAddLookupDropdown(field)) {
     return
   }
 
@@ -728,7 +745,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     v-if="metas"
                     :key="lookupDropdownsTickle"
                     :column="meta?.columnsById?.[field.fk_column_id!]!"
-                    :disabled="!!(isLocked || isLocalMode || !(isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]) && !isLocalMode.value))"
+                    :disabled="!showAddLookupDropdown(field)"
                     @created="lookupDropdownsTickle++"
                     @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
                   >
@@ -749,7 +766,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                       <NcTooltip
                         class="pl-1 truncate"
                         :class="{
-                          'mr-3 flex-1': !(!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt))
+                          'mr-3 flex-1': !showAddLookupDropdown(field),
                         }"
                         show-on-truncate-only
                         :disabled="isDragging"
@@ -761,10 +778,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                           {{ field.title }}
                         </template>
                       </NcTooltip>
-                      <div
-                        v-if="!isLocked && !isLocalMode && isLinksOrLTAR(meta?.columnsById?.[field.fk_column_id!]?.uidt)"
-                        class="flex-1 flex mr-3"
-                      >
+                      <div v-if="showAddLookupDropdown(field)" class="flex-1 flex mr-3">
                         <GeneralIcon icon="chevronRight" class="flex-none" />
                       </div>
 
@@ -856,6 +870,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
+            v-if="isAddingColumnAllowed"
             v-model:visible="addColumnDropdown"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"

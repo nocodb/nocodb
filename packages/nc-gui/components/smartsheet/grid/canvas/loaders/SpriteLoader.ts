@@ -10,7 +10,8 @@ export class SpriteLoader {
   }
 
   private async loadSvg(icon: IconMapKey | VNode) {
-    const app = createSSRApp(icon)
+    const vNode = typeof icon === 'string' ? iconMap[icon] : icon
+    const app = createSSRApp(vNode)
     return await renderToString(app)
   }
 

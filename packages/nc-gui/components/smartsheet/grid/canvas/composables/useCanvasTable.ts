@@ -39,6 +39,7 @@ export function useCanvasTable({
   addEmptyRow,
   onActiveCellChanged,
   addNewColumn,
+  mousePosition,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -54,6 +55,7 @@ export function useCanvasTable({
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Row[]
+  mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
   expandRows: ({
@@ -96,8 +98,9 @@ export function useCanvasTable({
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
-  const activeCell = ref({ row: -1, column: -1 })
-  const selection = ref(new CellRange())
+  const activeCell = reactive({ row: -1, column: -1 })
+  const selection = reactive(new CellRange())
+  const fillRange = reactive(new CellRange())
   const hoverRow = ref(-1)
   const editEnabled = ref<{
     rowIndex: number
@@ -239,8 +242,8 @@ export function useCanvasTable({
 
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
-    if (selection.value.start.col === selection.value.end.col) {
-      const field = fields.value[selection.value.start.col]
+    if (selection.start.col === selection.end.col) {
+      const field = fields.value[selection.start.col]
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isAIPromptCol(field) || isAiButton(field),
@@ -256,8 +259,8 @@ export function useCanvasTable({
 
   const isSelectedOnlyScript = computed(() => {
     // selectedRange
-    if (selection.value.start.col === selection.value.end.col) {
-      const field = fields.value[selection.value.start.col]
+    if (selection.start.col === selection.end.col) {
+      const field = fields.value[selection.start.col]
       if (!field) return { enabled: false, disabled: false }
       return {
         enabled: isScriptButton(field),
@@ -275,10 +278,10 @@ export function useCanvasTable({
     // if all the selected columns are not readonly
     {
       return (
-        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
-        (!selection.value.isEmpty() &&
-          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-            (_, i) => columns.value[selection.value.start.col + i]?.virtual,
+        (selection.isEmpty() && activeCell.column && columns.value[activeCell.column]?.virtual) ||
+        (!selection.isEmpty() &&
+          Array.from({ length: selection.end.col - selection.start.col + 1 }).every(
+            (_, i) => columns.value[selection.start.col + i]?.virtual,
           ))
       )
     },
@@ -304,40 +307,41 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (selection.value.isEmpty()) return null
+    if (selection.isEmpty()) return null
 
-    if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
+    if (selection.end.row < rowSlice.value.start || selection.end.row >= rowSlice.value.end) {
       return null
     }
 
     let xPos = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
 
-    for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
+    for (let i = 0; i <= Math.min(selection.end.col, fixedCols.length - 1); i++) {
       if (columns.value[i]?.fixed) {
         xPos += parseInt(columns.value[i]?.width, 10)
       }
     }
 
-    for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
+    for (let i = fixedCols.length; i <= selection.end.col; i++) {
       xPos += parseInt(columns.value[i]?.width, 10)
     }
 
-    if (selection.value.end.col >= fixedCols.length) {
+    if (selection.end.col >= fixedCols.length) {
       xPos -= scrollLeft.value
     }
 
-    const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
+    const startY = -partialRowHeight.value + 33 + (selection.end.row - rowSlice.value.start + 1) * rowHeight.value
 
     return {
       x: xPos,
       y: startY,
       size: 8,
-      fixedCol: selection.value.end.col < fixedCols.length,
+      fixedCol: selection.end.col < fixedCols.length,
     }
   }
   const { canvasRef, renderCanvas } = useCanvasRender({
     width,
+    mousePosition,
     height,
     columns,
     colSlice,
@@ -397,6 +401,11 @@ export function useCanvasTable({
     getFillHandlerPosition,
     triggerReRender: triggerRefreshCanvas,
     rowSlice,
+    fillRange,
+    meta: meta as Ref<TableType>,
+    cachedRows,
+    columns,
+    bulkUpdateRows,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {
@@ -602,8 +611,8 @@ export function useCanvasTable({
   async function clearSelectedRangeOfCells() {
     if (!isUIAllowed('dataEdit') || isDataReadOnly.value) return
 
-    const start = selection.value.start
-    const end = selection.value.end
+    const start = selection.start
+    const end = selection.end
 
     const startCol = Math.min(start.col, end.col)
     const endCol = Math.max(start.col, end.col)

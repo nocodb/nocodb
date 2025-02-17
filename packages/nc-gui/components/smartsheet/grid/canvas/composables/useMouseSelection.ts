@@ -12,8 +12,8 @@ export function useMouseSelection({
   rowSlice,
   partialRowHeight,
 }: {
-  selection: Ref<CellRange>
-  activeCell: Ref<{ row: number; column: number }>
+  selection: CellRange
+  activeCell: { row: number; column: number }
   canvasRef: Ref<HTMLCanvasElement>
   scrollLeft: Ref<number>
   columns: ComputedRef<CanvasGridColumn[]>
@@ -62,8 +62,8 @@ export function useMouseSelection({
 
     if (cell.col !== -1) {
       isSelecting.value = true
-      selection.value.startRange(cell)
-      activeCell.value = { row: cell.row, column: cell.col }
+      selection.startRange(cell)
+      activeCell = { row: cell.row, column: cell.col }
       scrollToCell(cell.row, cell.col)
       triggerReRender()
     }
@@ -78,16 +78,16 @@ export function useMouseSelection({
     const cell = findCellFromPosition(e.clientX - rect.left, e.clientY - rect.top)
 
     if (cell.col !== -1) {
-      const maxRow = Math.max(selection.value._start?.row ?? 0, cell.row)
-      const minRow = Math.min(selection.value._start?.row ?? 0, cell.row)
+      const maxRow = Math.max(selection._start?.row ?? 0, cell.row)
+      const minRow = Math.min(selection._start?.row ?? 0, cell.row)
 
       if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
-        const direction = cell.row > (selection.value._start?.row ?? 0) ? 1 : -1
-        cell.row = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
+        const direction = cell.row > (selection._start?.row ?? 0) ? 1 : -1
+        cell.row = (selection._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
       }
 
-      selection.value.endRange(cell)
-      activeCell.value = { row: cell.row, column: cell.col }
+      selection.endRange(cell)
+      activeCell = { row: cell.row, column: cell.col }
       scrollToCell(cell.row, cell.col)
       triggerReRender()
     }

@@ -1,11 +1,13 @@
-import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType, type RollupType } from 'nocodb-sdk'
+import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType } from 'nocodb-sdk'
 import { getSingleMultiselectColOptions } from '../utils/cell'
+
+const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode]
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10 } = props
     let x = _x
-    let y = _y
+    let y = _y + (renderOnly1Row ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
     let width = _width
     // If it is empty text then no need to render
     if (!isValidValue(value) || !metas) return
@@ -62,6 +64,8 @@ export const LookupCellRenderer: CellRenderer = {
       },
     }
 
+    console.log('lookup x', x, _x)
+
     // Todo: handle x and y value if we are rendering multiple chips also we have to wrap each cell in chip
     if (isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup) {
       if (
@@ -81,6 +85,7 @@ export const LookupCellRenderer: CellRenderer = {
               width = _width
               y = point?.y ? point?.y : y + 24
               line += 1
+              if (renderOnly1Row.includes(lookupColumn.uidt)) break
             } else {
               width = x + width - (point?.x - 2 * 4) - padding * 2
               x = point?.x
@@ -91,6 +96,7 @@ export const LookupCellRenderer: CellRenderer = {
 
             width = _width
             line += 1
+            if (renderOnly1Row.includes(lookupColumn.uidt)) break
           }
 
           if (line > maxLines) {
@@ -122,6 +128,7 @@ export const LookupCellRenderer: CellRenderer = {
               width = _width
               y = point?.y ? point?.y : y + 24
               line += 1
+              if (renderOnly1Row.includes(lookupColumn.uidt)) break
             } else {
               width = x + width - (point?.x - 2 * 4) - padding * 2
               x = point?.x
@@ -132,6 +139,7 @@ export const LookupCellRenderer: CellRenderer = {
 
             width = _width
             line += 1
+            if (renderOnly1Row.includes(lookupColumn.uidt)) break
           }
 
           if (line > maxLines) {

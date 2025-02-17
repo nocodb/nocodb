@@ -760,8 +760,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
-                                    'not-draggable': isLocked || !hasEditPermission || isPublic,
-                                    '!cursor-default': isLocked || !hasEditPermission || isPublic,
+                                    'not-draggable': !hasEditPermission || isPublic,
+                                    '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"

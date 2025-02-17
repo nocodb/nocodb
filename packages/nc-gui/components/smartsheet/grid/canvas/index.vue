@@ -1572,9 +1572,10 @@ const increaseMinHeightBy: Record<string, number> = {
         <NcDropdown
           :trigger="['click']"
           :visible="isDropdownVisible"
-          :overlay-class-name="`!bg-transparent ${
+          :overlay-class-name="`!bg-transparent !min-w-[220px] ${
             !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''
           }`"
+          placement="bottomRight"
           @visible-change="onVisibilityChange"
         >
           <div :style="overlayStyle" class="hide pointer-events-none"></div>

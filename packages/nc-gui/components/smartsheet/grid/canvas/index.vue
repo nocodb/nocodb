@@ -1655,6 +1655,14 @@ const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
 }
 
+function updateValue(val: any) {
+  const title = editEnabled.value?.column?.title ?? ''
+  if (!title) return
+  if (editEnabled.value?.row?.row) {
+    editEnabled.value.row.row[title] = val
+  }
+}
+
 defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
@@ -1779,12 +1787,13 @@ defineExpose({
                   />
                   <SmartsheetCell
                     v-else
-                    v-model="editEnabled.row.row[editEnabled.column.title]"
+                    :model-value="editEnabled.row.row[editEnabled.column.title]"
                     :column="editEnabled.column"
                     :row-index="editEnabled.rowIndex"
                     active
                     edit-enabled
                     :read-only="!isDataEditAllowed"
+                    @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
                     @save-with-state="updateOrSaveRow?.(...$event)"
                     @navigate="onNavigate"

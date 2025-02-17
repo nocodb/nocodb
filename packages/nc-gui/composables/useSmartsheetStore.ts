@@ -14,6 +14,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
+    const router = useRouter()
+    const route = router.currentRoute
+
     const { user } = useGlobal()
 
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
@@ -46,17 +49,26 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isDefaultView = computed(() => view.value?.is_default)
     const xWhere = computed(() => {
       let where
+
+      // if where is already present in the query, use that
+      if (route.value?.query?.where) {
+        where = route.value?.query?.where
+      }
+
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-      if (!col) return
+      if (!col) return where
 
-      if (!search.value.query.trim()) return
+      if (!search.value.query.trim()) return where
+
+      // concat the where clause if query is present
       if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `(${col.title},like,%${search.value.query.trim()}%)`
+        where = `${where ? `${where}~and` : ''}(${col.title},like,%${search.value.query.trim()}%)`
       } else {
-        where = `(${col.title},eq,${search.value.query.trim()})`
+        where = `${where ? `${where}~and` : ''}(${col.title},eq,${search.value.query.trim()})`
       }
+
       return where
     })
 

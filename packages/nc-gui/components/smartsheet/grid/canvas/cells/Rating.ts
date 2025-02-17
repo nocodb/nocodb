@@ -1,6 +1,33 @@
+interface Position {
+  x: number
+  y: number
+}
+
+interface RatingPayload {
+  iconSize: number
+  iconsData: Position[]
+}
+
+class RatingPayloadRegistry {
+  static #map = new Map<string, RatingPayload>()
+  static #getKey({ rowId, columnId }: { rowId: string; columnId: string }) {
+    return `${rowId}-${columnId}`
+  }
+
+  static set({ rowId, columnId }: { rowId: string; columnId: string }, payload: RatingPayload) {
+    const key = this.#getKey({ rowId, columnId })
+    this.#map.set(key, payload)
+  }
+
+  static get({ rowId, columnId }: { rowId: string; columnId: string }) {
+    const key = this.#getKey({ rowId, columnId })
+    return this.#map.get(key)
+  }
+}
+
 export const RatingCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition } = props
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition, row } = props
 
     const ratingMeta = {
       color: '#fcb401',
@@ -56,6 +83,8 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
 
+    const iconsData: Position[] = []
+
     for (let i = 0; i < iconsToShow; i++) {
       const row = Math.floor(i / iconsPerRow)
       const col = i % iconsPerRow
@@ -70,15 +99,27 @@ export const RatingCellRenderer: CellRenderer = {
       }
 
       if (row < maxRows) {
+        const x = startX + col * iconWidthWithSpacing
+        const y = startY + row * (iconSize + rowSpacing)
+        iconsData.push({ x, y })
+
         spriteLoader.renderIcon(ctx, {
           icon: isActive || isHovered ? ratingMeta.icon.full : ratingMeta.icon.empty,
           size: iconSize,
-          x: startX + col * iconWidthWithSpacing,
-          y: startY + row * (iconSize + rowSpacing),
+          x,
+          y,
           color: iconColor,
         })
       }
     }
+
+    RatingPayloadRegistry.set(
+      { rowId: row.Id, columnId: column.id! },
+      {
+        iconsData,
+        iconSize,
+      },
+    )
 
     if (needsEllipsis && maxRows > 0) {
       const lastRow = Math.min(Math.floor((iconsToShow - 1) / iconsPerRow), maxRows - 1)
@@ -93,5 +134,18 @@ export const RatingCellRenderer: CellRenderer = {
         startY + lastRow * (iconSize + rowSpacing) + iconSize / 2,
       )
     }
+  },
+  async handleClick({ mousePosition, column, row }) {
+    if (!row || !column) return
+    const data = RatingPayloadRegistry.get({ rowId: row.row.Id, columnId: column.id! })
+    if (!data) return
+    const { iconSize, iconsData } = data
+    const { x: mouseX, y: mouseY } = mousePosition
+
+    const iconIdx = iconsData.findIndex(({ x, y }) => {
+      return mouseX >= x && mouseX <= x + iconSize && mouseY >= y && mouseY <= y + iconSize
+    })
+    if (iconIdx === -1) return
+    console.log(iconIdx + 1) // TODO: Save
   },
 }

@@ -81,7 +81,7 @@ export function useCanvasRender({
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
-  renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options) => void
+  renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options: any) => void
   meta: ComputedRef<TableType>
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
@@ -119,7 +119,7 @@ export function useCanvasRender({
       y: number
       width: number
       height: number
-    },
+    } | null,
   ) {
     const canvasWidth = width.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
@@ -302,7 +302,7 @@ export function useCanvasRender({
     ) {
       // Draw line above active state
       ctx.strokeStyle = '#f4f4f5'
-      if (fillHandler) {
+      if (fillHandler && activeState?.y) {
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 32)
         ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
@@ -332,7 +332,7 @@ export function useCanvasRender({
         ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
         ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
         ctx.stroke()
-      } else {
+      } else if (activeState?.y && activeState?.height) {
         // Draw line below active state
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
@@ -560,7 +560,7 @@ export function useCanvasRender({
       xPos += parseInt(columns.value[i]!.width, 10)
     }
     // add additional 1 px if the column is non-fixed since there is a border between fixed and non-fixed columns
-    return xPos + (columns.value[colIndex].fixed ? 0 : 1)
+    return xPos + (columns.value[colIndex]?.fixed ? 0 : 1)
   }
 
   const calculateSelectionWidth = (startCol: number, endCol: number) => {
@@ -1074,7 +1074,7 @@ export function useCanvasRender({
               }
 
               if (column.id === 'row_number') {
-                renderRowMeta(ctx, row, { xOffset, yOffset, width })
+                renderRowMeta(ctx, row!, { xOffset, yOffset, width })
               } else {
                 const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 

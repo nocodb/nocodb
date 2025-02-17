@@ -26,16 +26,16 @@ export function useColumnReorder(
 
     let accWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
     for (let i = 0; i < colSlice.value.start; i++) {
-      if (!columns.value[i].fixed) {
-        accWidth += parseInt(columns.value[i].width, 10)
+      if (!columns.value[i]?.fixed) {
+        accWidth += parseInt(columns.value[i]?.width, 10)
       }
     }
 
     currentX = accWidth - scrollLeft.value
     for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
       const column = columns.value[i]
-      if (!column.fixed) {
-        const width = parseInt(column.width, 10)
+      if (!column?.fixed) {
+        const width = parseInt(column?.width ?? '', 10)
         if (x >= currentX && x < currentX + width) return column
         currentX += width
       }

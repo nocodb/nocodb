@@ -46,7 +46,7 @@ export const TimeCellRenderer: CellRenderer = {
 
   async handleClick(ctx) {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
-    if (!selected) return false
+    if (!selected || !row?.rowMeta?.rowIndex) return false
 
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
@@ -83,7 +83,7 @@ export const TimeCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(clickableArea, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex, column)
+        makeCellEditable(row, column)
         return true
       }
     }

@@ -1,4 +1,5 @@
 import QRCode from 'qrcode'
+import { renderMultiLineText } from '../utils/canvas'
 
 export class ImageWindowLoader {
   private cache = new Map<string, HTMLImageElement>()
@@ -224,5 +225,27 @@ export class ImageWindowLoader {
 
   get isLoading(): boolean {
     return this.pendingSprites > 0
+  }
+
+  renderError(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    padding = 10,
+  ): void {
+    ctx.font = '500 13px Manrope'
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#e65100'
+    renderMultiLineText(ctx, {
+      text,
+      x: x + padding,
+      y: y + height / 2,
+      maxWidth: width - padding * 2,
+      lineHeight: 16,
+    })
   }
 }

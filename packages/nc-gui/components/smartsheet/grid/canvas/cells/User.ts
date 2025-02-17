@@ -277,7 +277,7 @@ export const UserFieldCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
-    if (column.readonly || !column.isCellEditable) return false
+    if (column.readonly || !column?.isCellEditable) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
@@ -297,12 +297,12 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!isSelectedTags) return false
 
-    makeCellEditable(row.rowMeta?.rowIndex, column)
+    makeCellEditable(row, column)
     return true
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly || !column.isCellEditable) return false
+    if (column.readonly || !column?.isCellEditable) return false
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

@@ -10,6 +10,7 @@ import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import { isReadonly } from '../../../../../utils/virtualCell'
+import type { CanvasGridColumn } from '../../../../../lib/types'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -342,7 +343,7 @@ export function useCanvasTable({
       !(
         !isDataReadOnly.value &&
         !readOnly.value &&
-        (!editEnabled.value || EDIT_FILL_ENABLED.includes(editEnabled.value.column.uidt)) &&
+        (!editEnabled.value || EDIT_FILL_ENABLED.includes(editEnabled.value?.column?.uidt)) &&
         (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
         !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
           ?.new &&
@@ -370,7 +371,7 @@ export function useCanvasTable({
     return end - 1
   }
 
-  function getCellPosition(targetColumn: GridCanvasColumn, rowIndex: number) {
+  function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number) {
     const yOffset = rowIndex * rowHeight.value - scrollTop.value + COLUMN_HEADER_HEIGHT_IN_PX + CELL_BOTTOM_BORDER_IN_PX
 
     if (targetColumn.fixed) {
@@ -454,12 +455,12 @@ export function useCanvasTable({
 
     for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
       if (columns.value[i]?.fixed) {
-        xPos += parseInt(columns.value[i]?.width, 10)
+        xPos += parseInt(columns.value[i]?.width ?? '', 10)
       }
     }
 
     for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
-      xPos += parseInt(columns.value[i]?.width, 10)
+      xPos += parseInt(columns.value[i]?.width ?? '', 10)
     }
 
     if (selection.value.end.col >= fixedCols.length) {
@@ -674,7 +675,7 @@ export function useCanvasTable({
     (event, fromIndex, toIndex) => {
       const toBeReorderedCol = columns.value[fromIndex]
       const toCol = columns.value[toIndex]
-      if (!toBeReorderedCol || !toCol) return
+      if (!toBeReorderedCol || !toCol || !meta.value?.columns) return
 
       const toBeReorderedViewCol = gridViewCols.value[toBeReorderedCol.id]
       const toViewCol = gridViewCols.value[toCol.id]
@@ -832,7 +833,7 @@ export function useCanvasTable({
   watch(
     cachedCurrentRow,
     (cached) => {
-      if (editEnabled.value) {
+      if (editEnabled.value?.row) {
         editEnabled.value.row = cached
       }
     },

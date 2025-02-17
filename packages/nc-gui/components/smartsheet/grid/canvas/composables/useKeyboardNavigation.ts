@@ -90,7 +90,7 @@ export function useKeyboardNavigation({
       const row = cachedRows.value.get(activeCell.value.row)
       if (row && column?.columnObj && !editEnabled.value) {
         const value = row.row[column.columnObj.title]
-        const pk = extractPkFromRow(row.row, meta.value?.columns)
+        const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
         const res = await handleCellKeyDown({ e, column, row, pk, value })
 
         if (res) {
@@ -164,14 +164,16 @@ export function useKeyboardNavigation({
         if (!editEnabled.value) {
           e.preventDefault()
           const column = columns.value[activeCell.value.column]
-          if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt)) {
-            selection.value.clear()
-            makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
+          if (column?.columnObj?.uidt) {
+            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt)) {
+              selection.value.clear()
+              makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
+            }
           }
         } else {
           const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment, UITypes.Barcode, UITypes.QrCode]
-          const column = columns.value[activeCell.value.column]
-          if (NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.columnObj.uidt)) {
+          const column = columns.value[activeCell.value.column]?.columnObj
+          if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt)) {
             return
           }
           editEnabled.value = null

@@ -364,8 +364,8 @@ export const AttachmentCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
     tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
   },
-  async handleKeyDown({ row, column, key, makeCellEditable }) {
-    if (key === 'Enter') {
+  async handleKeyDown({ row, column, e, makeCellEditable }) {
+    if (e.key === 'Enter') {
       makeCellEditable(row.rowMeta.rowIndex!, column)
       return true
     }

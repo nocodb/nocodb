@@ -193,8 +193,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
   async handleClick({ row, column, makeCellEditable }) {
     if (column.columnObj?.readonly) return false
-
-    makeCellEditable(row.rowMeta?.rowIndex, column)
+    makeCellEditable(row, column)
     return true
   },
   async handleKeyDown({ e, row, column, makeCellEditable }) {

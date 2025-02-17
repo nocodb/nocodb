@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, type TableType } from 'nocodb-sdk'
-import { isBoxHovered, renderCheckbox, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
+import { isBoxHovered, renderCheckbox, renderIconButton, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -534,13 +534,30 @@ export function useCanvasRender({
       ctx.textBaseline = 'middle'
       ctx.fillText(commentCount, x + bubbleWidth / 2, y + bubbleHeight / 2)
     } else if (isHover) {
-      spriteLoader.renderIcon(ctx, {
-        icon: 'maximize',
-        size: 14,
-        x: currentX,
-        y: yOffset + (rowHeight.value - 14) / 2,
-        color: '#6B7280',
-      })
+      const box = { x: currentX, y: yOffset + (rowHeight.value - 14) / 2, height: 14, width: 14 }
+      if (!isBoxHovered(box, mousePosition)) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'maximize',
+          size: 14,
+          x: currentX,
+          y: yOffset + (rowHeight.value - 14) / 2,
+          color: '#6B7280',
+        })
+      } else {
+        renderIconButton(ctx, {
+          buttonX: box.x - 2,
+          buttonY: box.y - 2,
+          buttonSize: 18,
+          icon: 'maximize',
+          iconData: {
+            size: 14,
+            xOffset: 2,
+            yOffset: 2,
+          },
+          borderRadius: 4,
+          spriteLoader,
+        })
+      }
     }
   }
 

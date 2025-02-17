@@ -126,6 +126,9 @@ provide(ClientMousePositionInj, clientMousePosition)
 // and this need to avail the column ref inside modals(delete, duplicate,... etc) even after closing menu
 provide(CanvasColumnInj, lastOpenColumnDropdownField)
 
+const selectCellHook = createEventHook()
+provide(CanvasSelectCellInj, selectCellHook)
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const isExpandTableModalOpen = ref(false)
@@ -1557,9 +1560,17 @@ watch(
   },
 )
 
+function selectCell() {
+  editEnabled.value = null
+  selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
+  selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
 reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
+selectCellHook.on(selectCell)
 
 watch(
   view,
@@ -1587,6 +1598,7 @@ onBeforeUnmount(() => {
   reloadViewDataHook.off(reloadViewDataHookHandler)
   reloadVisibleDataHook?.off(triggerReload)
   openNewRecordFormHook?.off(openNewRecordHandler)
+  selectCellHook.off(selectCell)
 })
 
 eventBus.on(async (event, payload) => {
@@ -1644,6 +1656,14 @@ defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
 })
+
+function updateValue(val: any) {
+  const title = editEnabled.value?.column?.title ?? ''
+  if (!title) return
+  if (editEnabled.value?.row?.row?.[title]) {
+    editEnabled.value.row.row[title] = val
+  }
+}
 </script>
 
 <template>
@@ -1764,12 +1784,13 @@ defineExpose({
                     />
                     <SmartsheetCell
                       v-else
-                      v-model="editEnabled.row.row[editEnabled.column.title]"
+                      :model-value="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row-index="editEnabled.rowIndex"
                       active
                       edit-enabled
                       :read-only="!isDataEditAllowed"
+                      @update:model-value="updateValue"
                       @save="updateOrSaveRow?.(...$event)"
                       @save-with-state="updateOrSaveRow?.(...$event)"
                       @navigate="onNavigate"

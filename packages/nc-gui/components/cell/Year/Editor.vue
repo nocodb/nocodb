@@ -11,6 +11,8 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
@@ -221,6 +223,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false

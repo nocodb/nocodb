@@ -496,7 +496,7 @@ export default class Model implements TableType {
 
       await m.getColumns(context, ncMeta, defaultViewId);
 
-      await m.getColumnsHash(context, ncMeta, false);
+      await m.getColumnsHash(context, ncMeta);
 
       return m;
     }

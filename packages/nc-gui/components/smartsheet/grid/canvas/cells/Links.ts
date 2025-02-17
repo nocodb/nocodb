@@ -2,7 +2,7 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel } from '../utils/can
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition } = props
+    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition, readonly, setCursor } = props
 
     const parsedValue = +value || 0
 
@@ -28,7 +28,7 @@ export const LinksCellRenderer: CellRenderer = {
         height,
       })
 
-      if (mousePosition.x >= x && mousePosition.x <= x + width && mousePosition.y >= y && mousePosition.y <= y + height) {
+      if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncPlus',
           x: x + width - 16 - padding,
@@ -36,6 +36,10 @@ export const LinksCellRenderer: CellRenderer = {
           size: 16,
           color: '#374151',
         })
+
+        if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
+          setCursor('pointer')
+        }
       }
 
       return {

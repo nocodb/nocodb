@@ -314,7 +314,7 @@ defineExpose({
     <div
       v-if="!isReadonly && active && !visibleItems.length"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
-      class="group cursor-pointer flex gap-1 items-center rounded border-none"
+      class="group cursor-pointer flex nc-upload-btn gap-1 items-center rounded border-none"
       tabindex="0"
       @keydown.enter="keydownEnter"
       @keydown.space="keydownSpace"
@@ -354,8 +354,8 @@ defineExpose({
           height: `max(${
             !rowHeight || rowHeight === 1 ? Number(rowHeightInPx['1']) - 1 : rowHeightInPx[`${rowHeight}`] - 17
           }px, ${isGrid ? 22 : 32}px)`,
-          paddingTop: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
-          paddingBottom: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
+          paddingTop: !rowHeight || rowHeight === 1 ? '4px' : undefined,
+          paddingBottom: !rowHeight || rowHeight === 1 ? '4px' : undefined,
         }"
       >
         <NcTooltip v-for="(item, i) of visibleItems" :key="item.url || item.title" placement="bottom" class="nc-attachment-item">

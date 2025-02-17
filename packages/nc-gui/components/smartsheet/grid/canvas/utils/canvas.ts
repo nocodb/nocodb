@@ -154,12 +154,21 @@ export const renderCheckbox = (
   }
 }
 
-export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: RenderSingleLineTextProps) => {
+export const renderSingleLineText = (
+  ctx: CanvasRenderingContext2D,
+  params: RenderSingleLineTextProps,
+): {
+  text: string
+  width: number
+  x?: number
+  y?: number
+} => {
   const {
     x = 0,
     y = 0,
     text,
     fillStyle,
+    height,
     fontSize = 13,
     fontFamily = '500 13px Manrope',
     textAlign = 'left',
@@ -195,7 +204,7 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
   }
 
   if (render) {
-    const yOffset = verticalAlign === 'middle' ? fontSize / 2 : 0
+    const yOffset = verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2) : 0
 
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
@@ -219,6 +228,8 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
 
       ctx.stroke()
     }
+
+    return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
   }
 
   return { text: truncatedText, width }

@@ -43,7 +43,7 @@ export const UrlCellRenderer: CellRenderer = {
   },
   async handleHover({ column, row, getCellPosition, value, mousePosition }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     const urlText = value?.toString().trim() ?? ''
     const isValid = urlText && isValidURL(urlText)
@@ -53,14 +53,12 @@ export const UrlCellRenderer: CellRenderer = {
     const iconX = x + width - iconSize - padding
     const textY = y + height / 2
     const box = { x: iconX, y: textY, width: iconSize, height: iconSize }
-    if (isBoxHovered(box, mousePosition))
-      showTooltip({
-        position: {
-          x: box.x + box.width / 2,
-          y: box.y + 10,
-        },
-        text: getI18n().global.t('msg.error.invalidURL'),
-      })
+
+    tryShowTooltip({
+      rect: box,
+      text: getI18n().global.t('msg.error.invalidURL'),
+      mousePosition,
+    })
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, type TableType, UITypes, type ViewType, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
@@ -123,7 +124,13 @@ const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
 const tooltipStore = useTooltipStore()
-const { showTooltip, hideTooltip } = tooltipStore
+const { targetReference, placement } = storeToRefs(tooltipStore)
+const tooltipRef = ref()
+const { floatingStyles } = useFloating(targetReference, tooltipRef, {
+  placement,
+  middleware: [offset(8), flip(), shift({ padding: 5 })],
+})
+const { tryShowTooltip, hideTooltip } = tooltipStore
 const { containerSize } = storeToRefs(tooltipStore)
 
 const {
@@ -860,7 +867,10 @@ const getHeaderTooltipRegions = (
 
     xOffset += width
   })
-
+  regions.forEach((region) => {
+    region.y = 8
+    region.height = region.width
+  })
   return regions
 }
 
@@ -888,9 +898,10 @@ const handleMouseMove = (e: MouseEvent) => {
     )
 
     if (activeRegion) {
-      showTooltip({
-        position: { x: activeRegion.x, y: 16 },
+      tryShowTooltip({
+        rect: activeRegion,
         text: activeRegion.text,
+        mousePosition,
       })
     }
 
@@ -903,9 +914,10 @@ const handleMouseMove = (e: MouseEvent) => {
       )
 
       if (activeFixedRegion && activeRegion) {
-        showTooltip({
-          position: { x: activeRegion.x, y: 16 },
+        tryShowTooltip({
+          rect: activeFixedRegion,
           text: activeFixedRegion.text,
+          mousePosition,
         })
       }
     }
@@ -1207,7 +1219,11 @@ const editEnabledCellPosition = computed(() => {
           width: `${totalWidth}px`,
         }"
       >
-        <Tooltip />
+        <Teleport to="body">
+          <Transition name="tooltip">
+            <Tooltip v-if="tooltipStore.tooltipText" ref="tooltipRef" :tooltip-style="floatingStyles" />
+          </Transition>
+        </Teleport>
         <NcDropdown
           v-model:visible="isContextMenuOpen"
           :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"

@@ -1220,19 +1220,21 @@ const editEnabledCellPosition = computed(() => {
     }
   }
 
+  const top = Math.max(
+    32,
+    Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
+  )
+
+  const left = editEnabled.value.fixed
+    ? editEnabled.value.x
+    : Math.max(
+        fixedLeftWidth.value,
+        Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
+      )
+
   return {
-    top: `${Math.max(
-      32,
-      Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
-    )}px`,
-    left: `${
-      editEnabled.value.fixed
-        ? editEnabled.value.x
-        : Math.max(
-            fixedLeftWidth.value,
-            Math.min(containerRef.value?.clientWidth - editEnabled.value.width - 18, editEnabled.value.x - scrollLeft.value),
-          )
-    }px`,
+    top: `${top}px`,
+    left: `${left}px`,
   }
 })
 </script>
@@ -1314,7 +1316,7 @@ const editEnabledCellPosition = computed(() => {
               minHeight: `${editEnabled.minHeight}px`,
               height: `${editEnabled.height}px`,
               borderRadius: '2px',
-              willChange: 'top, bottom, left, width, height',
+              willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
             :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true }"

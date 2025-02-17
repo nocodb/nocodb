@@ -606,6 +606,7 @@ const handleMouseUp = async (e: MouseEvent) => {
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
   editColumn.value = null
+  columnOrder.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -1055,37 +1056,44 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
   await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
-function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null) {
+function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null, renderAtCurrentPosition = false) {
   columnOrder.value = columnOrderData
   editColumn.value = null
   openColumnDropdownField.value = null
   if (!isAddingColumnAllowed.value) return
   $e('c:shortcut', { key: 'ALT + C' })
-  containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
-
-  // Wait for the scroll to end since the column will be added at the end
-  // and calculation of the column position will be wrong if the scroll is not completed
-  waitForScrollEnd(containerRef.value).then(() => {
-    const rect = canvasRef.value?.getBoundingClientRect()
-
-    const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-    const plusColumnX = totalColumnsWidth - scrollLeft.value
-
-    const plusColumnWidth = 60
-
-    overlayStyle.value = {
-      top: `${rect.top}px`,
-      left: `${plusColumnX + rect.left}px`,
-      width: `${plusColumnWidth}px`,
-      height: '32px',
-      position: 'fixed',
-    }
-
+  if (renderAtCurrentPosition) {
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
 
     requestAnimationFrame(triggerRefreshCanvas)
-  })
+  } else {
+    containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
+
+    // Wait for the scroll to end since the column will be added at the end
+    // and calculation of the column position will be wrong if the scroll is not completed
+    waitForScrollEnd(containerRef.value).then(() => {
+      const rect = canvasRef.value?.getBoundingClientRect()
+
+      const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+      const plusColumnX = totalColumnsWidth - scrollLeft.value
+
+      const plusColumnWidth = 60
+
+      overlayStyle.value = {
+        top: `${rect.top}px`,
+        left: `${plusColumnX + rect.left}px`,
+        width: `${plusColumnWidth}px`,
+        height: '32px',
+        position: 'fixed',
+      }
+
+      isDropdownVisible.value = true
+      isCreateOrEditColumnDropdownOpen.value = true
+
+      requestAnimationFrame(triggerRefreshCanvas)
+    })
+  }
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
@@ -1359,7 +1367,7 @@ const editEnabledCellPosition = computed(() => {
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
               @edit="handleEditColumn"
-              @add-column="addEmptyColumn"
+              @add-column="addEmptyColumn($event, true)"
             />
             <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
               <LazySmartsheetColumnEditOrAddProvider

@@ -74,7 +74,7 @@ export function useCanvasRender({
   editEnabled: Ref<CanvasEditEnabledType>
 }) {
   const canvasRef = ref()
-  function renderHeader(ctx: CanvasRenderingContext2D) {
+  function renderHeader(ctx: CanvasRenderingContext2D, activeState?: { x: number; y: number; width: number; height: number }) {
     const canvasWidth = width.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
@@ -198,11 +198,34 @@ export function useCanvasRender({
     ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
     ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
     ctx.stroke()
-    ctx.strokeStyle = '#f4f4f5'
-    ctx.beginPath()
-    ctx.moveTo(xOffset - scrollLeft.value, 32)
-    ctx.lineTo(xOffset - scrollLeft.value, height.value)
-    ctx.stroke()
+    const fillHandler = getFillHandlerPosition()
+
+    // The issue is the border gets drawn over the active state border.
+    // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
+    if (
+      activeState &&
+      xOffset - scrollLeft.value >= activeState.x &&
+      xOffset - scrollLeft.value <= activeState.x + activeState.width
+    ) {
+      // Draw line above active state
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(xOffset - scrollLeft.value, 32)
+      ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
+      ctx.stroke()
+      // Draw line below active state
+      ctx.beginPath()
+      ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height + (fillHandler ? 4 : 0))
+      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+      ctx.stroke()
+    } else {
+      // Draw full line if not intersecting with active state
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(xOffset - scrollLeft.value, 32)
+      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+      ctx.stroke()
+    }
 
     // Fixed columns
     const fixedCols = columns.value.filter((col) => col.fixed)
@@ -382,6 +405,8 @@ export function useCanvasRender({
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
+
+    if (fillHandler.fixedCol && !renderOverFixed) return false
 
     let fixedWidth = 0
     for (const col of columns.value) {
@@ -570,6 +595,8 @@ export function useCanvasRender({
     let yOffset = -partialRowHeight.value + 33
 
     let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    // We need this variable because the activeState will get rewritten on fixedCol rendering.
+    let returnActiveState = null
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {
@@ -627,6 +654,7 @@ export function useCanvasRender({
                 width,
                 height: rowHeight.value,
               }
+              returnActiveState = activeState
             }
 
             const value = row.row[column.title]
@@ -655,6 +683,7 @@ export function useCanvasRender({
 
           renderActiveState(ctx, activeState)
           activeState = null
+
           fillHandlerRendered = renderFillHandle(ctx)
 
           const fixedCols = columns.value.filter((col) => col.fixed)
@@ -688,6 +717,7 @@ export function useCanvasRender({
                     width,
                     height: rowHeight.value,
                   }
+                  returnActiveState = activeState
                 }
 
                 renderCell(ctx, column.columnObj, {
@@ -739,9 +769,10 @@ export function useCanvasRender({
               ctx.lineTo(xOffset, activeState.y)
               ctx.stroke()
 
+              const fillHandler = getFillHandlerPosition()
               // Draw border below active state
               ctx.beginPath()
-              ctx.moveTo(xOffset, activeState.y + activeState.height)
+              ctx.moveTo(xOffset, activeState.y + activeState.height + (fillHandler ? 4 : 0))
               ctx.lineTo(xOffset, yOffset + rowHeight.value)
               ctx.stroke()
             } else {
@@ -784,7 +815,7 @@ export function useCanvasRender({
 
     // Add New Row
     const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: adjustedWidth }, mousePosition)
-    ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+    ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : 'transparent'
     ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
     // Bottom border for new row
     ctx.strokeStyle = '#f4f4f5'
@@ -833,6 +864,8 @@ export function useCanvasRender({
     if (!fillHandlerRendered) {
       renderFillHandle(ctx, true)
     }
+
+    return returnActiveState
   }
 
   const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
@@ -1231,8 +1264,8 @@ export function useCanvasRender({
 
     ctx.clearRect(0, 0, width.value, canvas.height)
 
-    renderRows(ctx)
-    renderHeader(ctx)
+    const activeState = renderRows(ctx)
+    renderHeader(ctx, activeState)
     renderColumnDragIndicator(ctx)
     renderRowDragPreview(ctx)
     renderAggregations(ctx)

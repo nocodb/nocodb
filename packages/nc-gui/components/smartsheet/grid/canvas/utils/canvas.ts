@@ -182,16 +182,21 @@ export const renderCheckbox = (
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
-    ctx.fillStyle = '#3366FF'
+    ctx.fillStyle = '#4351e7'
     ctx.fill()
 
-    spriteLoader.renderIcon(ctx, {
-      icon: 'ncCheck',
-      size: 12,
-      x: x + 2,
-      y: y + 2,
-      color: '#FFFFFF',
-    })
+    const checkX = x + 3.5
+    const checkY = y + 4.5
+    const checkSize = 7
+
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 2
+
+    ctx.beginPath()
+    ctx.moveTo(checkX, checkY + checkSize * 0.6)
+    ctx.lineTo(checkX + checkSize * 0.35 + 0.7, checkY + checkSize)
+    ctx.lineTo(checkX + checkSize + 2, checkY)
+    ctx.stroke()
   } else {
     ctx.fillStyle = '#FFFFFF'
     ctx.fill()

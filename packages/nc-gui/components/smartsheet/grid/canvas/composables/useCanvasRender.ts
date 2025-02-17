@@ -375,12 +375,9 @@ export function useCanvasRender({
 
         // Border
         const resizeHandleWidth = 10
-        const isNearEdge =
-          column.id !== 'row_number' &&
-          mousePosition &&
-          Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth &&
-          mousePosition.y <= 32
-        if (isNearEdge) {
+        const isNearEdge = mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
+
+        if (isNearEdge && column.id !== 'row_number') {
           colResizeHoveredColIds.value.add(column.id)
           ctx.strokeStyle = '#9CDAFA'
           ctx.lineWidth = 2
@@ -393,6 +390,9 @@ export function useCanvasRender({
           ctx.strokeStyle = '#e7e7e9'
           ctx.lineWidth = 1
         } else {
+          // Reset for regular column separator
+          ctx.strokeStyle = '#e7e7e9'
+          ctx.lineWidth = 1
           colResizeHoveredColIds.value.delete(column.id)
           ctx.beginPath()
           ctx.moveTo(xOffset, 0)

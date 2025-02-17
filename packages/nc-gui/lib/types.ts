@@ -397,6 +397,10 @@ interface CellRendererOptions {
     tagBorderColor?: string
     tagBorderWidth?: number
   }
+  disabled?: {
+    isInvalid: boolean
+    tooltip?: string
+  }
   fontSize?: number
   textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
   textColor?: string

@@ -30,6 +30,9 @@ export function useCanvasRender({
   vSelectedAllRecords,
   isRowDraggingEnabled,
   selectedRows,
+  isDragging,
+  draggedRowIndex,
+  targetRowIndex,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -53,6 +56,9 @@ export function useCanvasRender({
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: ComputedRef<Row[]>
+  isDragging: Ref<boolean>
+  draggedRowIndex: Ref<number | null>
+  targetRowIndex: Ref<number | null>
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -375,6 +381,10 @@ export function useCanvasRender({
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
         const row = cachedRows.value.get(rowIdx)
 
+        if (rowIdx === draggedRowIndex.value) {
+          ctx.globalAlpha = 0.5
+        }
+
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, width.value, rowHeight.value)
         if (row) {
@@ -517,6 +527,10 @@ export function useCanvasRender({
           ctx.fillRect(0, yOffset, width.value, rowHeight.value)
         }
 
+        if (rowIdx === draggedRowIndex.value) {
+          ctx.globalAlpha = 1
+        }
+
         // Bottom border for each row
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
@@ -532,7 +546,7 @@ export function useCanvasRender({
     }
   }
 
-  const renderDragIndicator = (ctx: CanvasRenderingContext2D) => {
+  const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
     if (!dragOver.value) return
 
     let xPosition = 0
@@ -583,7 +597,7 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
-      if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn)) {
+      if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
         ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
@@ -633,7 +647,7 @@ export function useCanvasRender({
         ctx.fillStyle = '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
-        if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn)) {
+        if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
           ctx.save()
           ctx.beginPath()
           ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
@@ -724,6 +738,21 @@ export function useCanvasRender({
     }
   }
 
+  const renderRowDragPreview = (ctx: CanvasRenderingContext2D) => {
+    if (!isDragging.value || draggedRowIndex.value === null || targetRowIndex.value === null) return
+
+    const targetY = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + 32
+
+    ctx.strokeStyle = '#3366ff'
+    ctx.lineWidth = 2
+    ctx.setLineDash([4, 4])
+    ctx.beginPath()
+    ctx.moveTo(0, targetY)
+    ctx.lineTo(ctx.canvas.width, targetY)
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+
   function renderCanvas() {
     const canvas = canvasRef.value
     if (!canvas) return
@@ -743,7 +772,8 @@ export function useCanvasRender({
 
     renderRows(ctx)
     renderHeader(ctx)
-    renderDragIndicator(ctx)
+    renderColumnDragIndicator(ctx)
+    renderRowDragPreview(ctx)
     renderAggregations(ctx)
   }
 

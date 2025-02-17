@@ -92,6 +92,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Button, ButtonCellRenderer)
   cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
+  cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

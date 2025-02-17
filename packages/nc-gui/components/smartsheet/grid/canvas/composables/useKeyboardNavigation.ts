@@ -68,6 +68,18 @@ export function useKeyboardNavigation({
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
 
+    if (e.key === ' ') {
+      const isRichModalOpen = isExpandedCellInputExist()
+
+      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {
+        e.preventDefault()
+        const row = cachedRows.value.get(activeCell.value.row)
+        if (!row) return
+        expandForm(row)
+        return
+      }
+    }
+
     if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell()) {
       const column = columns.value[activeCell.value.column]
       const row = cachedRows.value.get(activeCell.value.row)
@@ -79,18 +91,6 @@ export function useKeyboardNavigation({
         if (res) {
           return
         }
-      }
-    }
-
-    if (e.key === ' ') {
-      const isRichModalOpen = isExpandedCellInputExist()
-
-      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {
-        e.preventDefault()
-        const row = cachedRows.value.get(activeCell.value.row)
-        if (!row) return
-        expandForm(row)
-        return
       }
     }
 

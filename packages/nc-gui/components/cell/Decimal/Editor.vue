@@ -14,17 +14,17 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
-
 const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj, ref(false))
-
 const column = inject(ColumnInj, null)!
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
+const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
@@ -43,13 +43,8 @@ const vModel = computed({
 const precision = computed(() => {
   const meta = typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
   const _precision = meta.precision ?? 1
-
   return Number(0.1 ** _precision).toFixed(_precision)
 })
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
 
 // Handle the arrow keys as its default behavior is to increment/decrement the value
 const onKeyDown = (e: any) => {
@@ -61,19 +56,29 @@ const onKeyDown = (e: any) => {
     e.target.type = 'number'
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
-
     e.target.type = 'text'
     e.target?.setSelectionRange(0, 0)
     e.target.type = 'number'
   }
 }
 
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
+
+onMounted(() => {
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    forcedNextTick(() => {
+      inputRef.value?.focus()
+    })
+  }
+})
 </script>
 
 <template>
-  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     :ref="focus"
     v-model="vModel"

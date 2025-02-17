@@ -1,4 +1,4 @@
-import { truncateText } from '../utils/canvas'
+import { renderSingleLineText } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -12,9 +12,9 @@ export const PercentCellRenderer: CellRenderer = {
     }
 
     if (meta.is_progress && value !== null && value !== undefined) {
-      const percent = Number(parseFloat(value.toString()).toFixed(2))
+      const percent = Math.min(100, Math.max(0, value))
       const barHeight = 4
-      const barY = y + (height - barHeight) / 2
+      const barY = y + 16
       const barWidth = (width - padding * 2) * (percent / 100)
 
       ctx.fillStyle = '#E5E5E5'
@@ -25,12 +25,30 @@ export const PercentCellRenderer: CellRenderer = {
       return
     }
 
-    const percentStr = value && !isNaN(Number(value)) ? `${value}%` : value?.toString() ?? ''
-    const maxWidth = width - padding * 2
-    const truncatedText = truncateText(ctx, percentStr, maxWidth)
-    const textY = y + height / 2
-
     ctx.fillStyle = selected || pv ? '#4351e8' : '#4a5268'
-    ctx.fillText(truncatedText, x + padding, textY)
+
+    renderSingleLineText(ctx, {
+      x: x + width - padding,
+      y,
+      text: value ? `${value}%` : '',
+      textAlign: 'right',
+      maxWidth: width - padding * 2,
+      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fillStyle: pv ? '#4351e8' : '#4a5268',
+      height,
+    })
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const columnObj = column.columnObj
+
+    if (/^[0-9]$/.test(e.key) && isTypableInputColumn(columnObj) && columnObj.title) {
+      row.row[columnObj.title] = row.row[columnObj.title] ? +`${row.row[columnObj.title]}` + e.key : e.key
+      makeCellEditable(row, column)
+      updateOrSaveRow(row, columnObj.title)
+      return true
+    }
+
+    return false
   },
 }

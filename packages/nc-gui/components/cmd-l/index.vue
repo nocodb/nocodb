@@ -132,7 +132,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     hide()
   } else if (e.key === 'Enter') {
-    if (newView.value) {
+    if (newView.value && vOpen.value) {
       changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
     }
   } else if (e.key === 'ArrowUp') {

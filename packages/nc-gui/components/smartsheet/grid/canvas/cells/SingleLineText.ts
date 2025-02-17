@@ -5,20 +5,6 @@ export const SingleLineTextCellRenderer: CellRenderer = {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
     const { renderAsTag, tagPaddingX = 8, tagPaddingY = 4, tagHeight = 24 } = props.tag || {}
 
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'left'
-
-    const emailText = value?.toString() ?? ''
-    const maxWidth = width - padding * 2
-    const truncatedText = truncateText(ctx, emailText, maxWidth)
-    const textY = y + height / 2
-    ctx.fillStyle = pv ? '#4351e8' : '#4a5268'
-    ctx.fillText(truncatedText, x + padding, textY)
-
-    return
-
-    // Fix me: truncateText() and renderSingleLineText uses same logic to slice extra text but the output is different which is causing issue
     const text = value?.toString() ?? ''
 
     if (renderAsTag) {
@@ -59,8 +45,6 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#4351e8' : textColor,
       })
-
-      console.log('ctx', truncateText(ctx, text, maxWidth), ctx.measureText(truncateText(ctx, text, maxWidth)).width)
 
       // const textY = y + height / 2
     }

@@ -3952,10 +3952,8 @@ export class ColumnsService {
       NcError.tableNotFound(tableId);
     }
 
-    const columns = await table.getColumns(context);
-
     return {
-      hash: hash(columns),
+      hash: table.columnsHash,
     };
   }
 
@@ -3981,9 +3979,7 @@ export class ColumnsService {
       NcError.tableNotFound(tableId);
     }
 
-    const columns = await table.getColumns(context);
-
-    if (hash(columns) !== params.hash) {
+    if (table.columnsHash !== params.hash) {
       NcError.badRequest(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
       );

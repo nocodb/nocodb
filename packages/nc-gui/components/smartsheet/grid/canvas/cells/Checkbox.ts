@@ -1,6 +1,6 @@
 import { isBoxHovered } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, readonly, column, spriteLoader }) => {
+  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader }) => {
     const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
 
     const columnMeta = {
@@ -15,7 +15,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
       size: 14,
       x: x + width / 2 - 7,
-      y: y + 8,
+      y: y + height / 2 - 7,
       color: columnMeta.color,
     })
   },

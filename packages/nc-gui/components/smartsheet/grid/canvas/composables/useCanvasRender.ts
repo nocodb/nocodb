@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations } from 'nocodb-sdk'
+import { AllAggregations, type TableType } from 'nocodb-sdk'
 import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
@@ -62,7 +62,7 @@ export function useCanvasRender({
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
-  renderCell: (ctx: CanvasRenderingContext2D, column: Column, options: RenderCellOptions) => void
+  renderCell: (ctx: CanvasRenderingContext2D, column: CanvasGridColumn, options: RenderCellOptions) => void
   meta: ComputedRef<TableType>
 }) {
   const canvasRef = ref()

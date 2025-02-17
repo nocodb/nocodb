@@ -148,10 +148,13 @@ export function useCanvasTable({
   const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
   const fields = inject(FieldsInj, ref([]))
+  const { sqlUis } = storeToRefs(useBase())
+  const tooltipStore = useTooltipStore()
+  const { hideTooltip } = tooltipStore
+
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
   const isLocked = inject(IsLockedInj, ref(false))
-  const { sqlUis } = storeToRefs(useBase())
 
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
@@ -834,6 +837,7 @@ export function useCanvasTable({
       width: parseInt(clickedColumn.width, 10) + 2,
       fixed: clickedColumn.fixed,
     }
+    hideTooltip()
     return true
   }
 

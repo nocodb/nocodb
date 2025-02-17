@@ -1435,6 +1435,9 @@ const increaseMinHeightBy: Record<string, number> = {
     }
 
     :deep(.nc-cell-longtext) {
+      &.nc-cell-longtext-ai .nc-cell-ai-button {
+        @apply mt-[3px];
+      }
       .nc-readonly-rich-text-wrapper {
         @apply !pl-2 pt-0.5;
       }

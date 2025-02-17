@@ -102,7 +102,7 @@ export const LookupCellRenderer: CellRenderer = {
 
               x = _x
               width = _width - ellipsisWidth
-              y = point?.y && y !== point?.y ? point?.y : y + 24
+              y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
               line += 1
             } else {
               width = x + width - (point?.x - 2 * 4) - padding * 2 - ellipsisWidth
@@ -155,7 +155,7 @@ export const LookupCellRenderer: CellRenderer = {
               x = _x
               width = _width
 
-              y = point?.y && y !== point?.y ? point?.y : y + 24
+              y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
               line += 1
               if (renderOnly1Row.includes(lookupColumn.uidt)) break
             } else {

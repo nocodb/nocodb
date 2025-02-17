@@ -1,6 +1,16 @@
-import { isBoxHovered } from '../utils/canvas'
+import { isBoxHovered, renderTag } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader }) => {
+  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader, padding, tag = {} }) => {
+    const {
+      renderAsTag,
+      tagPaddingX = 6,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagSpacing = 4,
+      tagBorderColor,
+      tagBorderWidth,
+    } = tag
     const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
 
     const columnMeta = {
@@ -9,15 +19,44 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
-    if (readonly && !checked) return
+    if (readonly && !checked && !renderAsTag) return
 
-    spriteLoader.renderIcon(ctx, {
-      icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
-      size: 14,
-      x: x + width / 2 - 7,
-      y: y + height / 2 - 7,
-      color: columnMeta.color,
-    })
+    if (renderAsTag) {
+      const tagWidth = 14 + tagPaddingX * 2
+      const initialY = y + height / 2 - tagHeight / 2
+      renderTag(ctx, {
+        x: x + tagSpacing,
+        y: initialY,
+        width: tagWidth,
+        height: tagHeight,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
+      })
+
+      !!checked &&
+        spriteLoader.renderIcon(ctx, {
+          icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
+          size: 14,
+          x: x + tagWidth / 2 - 4,
+          y: initialY + 3,
+          color: columnMeta.color,
+        })
+
+      return {
+        x: x + tagWidth + 8,
+        y: y + tagHeight,
+      }
+    } else {
+      spriteLoader.renderIcon(ctx, {
+        icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
+        size: 14,
+        x: x + width / 2 - 7,
+        y: y + height / 2 - 7,
+        color: columnMeta.color,
+      })
+    }
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow } = ctx

@@ -155,6 +155,7 @@ export const nocoModuleEeMetadata = {
 
     /* Workspaces */
     WorkspacesService,
+    WorkspaceUsersService,
   ],
 };
 

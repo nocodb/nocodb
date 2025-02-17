@@ -10,6 +10,7 @@ import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
+import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 
 @Module({
   ...JobsModuleMetadata,
@@ -26,6 +27,8 @@ import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.process
     HealthCheckProcessor,
     CleanUpProcessor,
     SnapshotProcessor,
+    RemoteImportService,
   ],
+  exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })
 export class JobsModule extends JobsModuleCE {}

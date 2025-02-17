@@ -82,6 +82,8 @@ export default class WorkspaceUser {
           updated_at: workspaceUser.updated_at,
           order: workspaceUser.order ?? order,
           invited_by: workspaceUser.invited_by,
+          deleted: workspaceUser.deleted,
+          deleted_at: workspaceUser.deleted_at,
         },
         true,
       );

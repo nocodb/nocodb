@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -21,14 +22,17 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DuplicateController extends DuplicateControllerCE {
   constructor(
-    @Inject('JobsService') protected readonly jobsService,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly remoteImportService: RemoteImportService,
   ) {
     super(jobsService, basesService, appHooksService);
   }
@@ -108,5 +112,18 @@ export class DuplicateController extends DuplicateControllerCE {
     });
 
     return { id: job.id, base_id: dupProject.id, fk_workspace_id: workspaceId };
+  }
+
+  @Post(['/api/v2/meta/duplicate/remote/:secret'])
+  @HttpCode(200)
+  public async duplicateRemote(
+    @Req() req: Request,
+    @Param('secret') secret: string,
+  ) {
+    if (!secret) {
+      throw new Error('Secret missing');
+    }
+
+    return await this.remoteImportService.remoteImportProcess(secret, req);
   }
 }

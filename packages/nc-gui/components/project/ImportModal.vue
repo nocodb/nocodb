@@ -16,6 +16,8 @@ const transitionName = ref<string | undefined>(undefined)
 
 const { $e } = useNuxtApp()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
@@ -31,6 +33,34 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'modelValue': isOpen,
     'baseId': baseId,
     'sourceId': sourceId,
+    'onUpdate:modelValue': closeDialog,
+    'transition': 'dissolve',
+    'onBack': () => {
+      visible.value = true
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+async function openNocoDbImportDialog(baseId?: string) {
+  if (!baseId) return
+
+  // $e('a:actions:import-nocodb')
+
+  const isOpen = ref(true)
+  transitionName.value = 'dissolve'
+
+  await nextTick()
+  visible.value = false
+
+  const { close } = useDialog(resolveComponent('DlgNocoDbImport'), {
+    'modelValue': isOpen,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
     'onBack': () => {
@@ -75,9 +105,11 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   }
 }
 
-const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
+const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
+  } else if (type === 'nocodb') {
+    openNocoDbImportDialog(source.value.base_id)
   } else {
     openQuickImportDialog(type)
   }
@@ -109,6 +141,11 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
         <NcMenuItem @click="onClick('excel')">
           <GeneralIcon icon="importExcel" class="w-5 h-5" />
           <span class="ml-1 text-[13px] font-weight-700"> Excel </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
+        <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB)" @click="onClick('nocodb')">
+          <GeneralIcon icon="nocodb" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> NocoDB </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <!-- <NcMenuItem disabled>

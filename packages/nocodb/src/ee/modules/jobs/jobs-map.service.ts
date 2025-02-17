@@ -16,6 +16,7 @@ import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processo
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { JobTypes } from '~/interface/Jobs';
+import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -36,6 +37,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
     protected readonly cleanUpProcessor: CleanUpProcessor,
     protected readonly snapshotProcessor: SnapshotProcessor,
+    protected readonly noOpJob: NoOpMigration,
   ) {
     super(
       duplicateProcessor,
@@ -80,6 +82,9 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.RestoreSnapshot]: {
         this: this.snapshotProcessor,
         fn: 'restoreSnapshot',
+      },
+      [JobTypes.ListenImport]: {
+        this: this.noOpJob,
       },
     };
   }

@@ -292,6 +292,8 @@ export class WorkspaceUsersService {
       siteUrl: string;
       req: NcRequest;
       skipEmailInvite?: boolean;
+      // invite user as soft deleted from workspace
+      invitePassive?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -361,7 +363,11 @@ export class WorkspaceUsersService {
     );
 
     // check if user limit is reached or going to be exceeded
-    if (usersInWorkspace + emails.length > userLimitForWorkspace) {
+    if (
+      usersInWorkspace + emails.length > userLimitForWorkspace &&
+      // if invitePassive is true then don't check for user limit
+      !param.invitePassive
+    ) {
       NcError.badRequest(
         `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
       );
@@ -409,6 +415,9 @@ export class WorkspaceUsersService {
           fk_user_id: user.id,
           roles: roles || WorkspaceUserRoles.VIEWER,
           invited_by: param.req?.user?.id,
+          ...(param.invitePassive
+            ? { deleted: true, deleted_at: ncMeta.now() }
+            : {}),
         },
         ncMeta,
       );

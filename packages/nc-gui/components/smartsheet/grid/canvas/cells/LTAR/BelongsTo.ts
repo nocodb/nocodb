@@ -5,7 +5,7 @@ import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 export const BelongsToCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell, readonly } = props
+    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, renderCell, readonly, setCursor } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -20,7 +20,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     if (!btColumn) return
 
     if (isValidValue(value)) {
-      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly ? 14 : 0)
+      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 26 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'
@@ -63,6 +63,10 @@ export const BelongsToCellRenderer: CellRenderer = {
         size: 14,
         color: '#374151',
       })
+
+      if (isBoxHovered({ x: x + width - 26, y: y + 8, width: 14, height: 14 }, mousePosition)) {
+        setCursor('pointer')
+      }
     }
   },
   async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {

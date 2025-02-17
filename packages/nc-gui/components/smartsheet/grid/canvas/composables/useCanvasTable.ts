@@ -45,6 +45,7 @@ export function useCanvasTable({
   onActiveCellChanged,
   addNewColumn,
   mousePosition,
+  setCursor,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -100,6 +101,7 @@ export function useCanvasTable({
   addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
   onActiveCellChanged: () => void
   addNewColumn: () => void
+  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
 }) {
   const { metas, getMeta } = useMetas()
 
@@ -612,6 +614,7 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
+    setCursor,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>

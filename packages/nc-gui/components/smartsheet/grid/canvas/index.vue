@@ -163,6 +163,7 @@ const {
   // RowReorder
   onMouseDownRowReorderStart,
   isRowReOrderEnabled,
+  isRowReorderActive,
 
   // Order Column
   isOrderColumnExists,
@@ -576,6 +577,8 @@ const handleMouseUp = async (e: MouseEvent) => {
   e.preventDefault()
   onMouseUpFillHandlerEnd()
   onMouseUpSelectionHandler(e)
+
+  if (isDragging.value || isRowReorderActive.value) return
 
   editEnabled.value = null
   openAggregationField.value = null

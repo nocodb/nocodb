@@ -324,6 +324,7 @@ const pGoToPreviousRow = () => {
 
     <CanvasTable
       v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
+      ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"

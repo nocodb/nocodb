@@ -78,3 +78,19 @@ export const renderAsCellLookupOrLtarValue = [
   UITypes.Barcode,
   UITypes.Lookup,
 ]
+
+export const MouseClickType = {
+  SINGLE_CLICK: 1,
+  DOUBLE_CLICK: 2,
+  RIGHT_CLICK: 'right',
+} as const
+
+export function getMouseClickType(e: MouseEvent) {
+  if (e.button === 2) return MouseClickType.RIGHT_CLICK
+
+  if (e.button === 0) {
+    return e.detail === 1 ? MouseClickType.SINGLE_CLICK : MouseClickType.DOUBLE_CLICK
+  }
+
+  return null
+}

@@ -1197,9 +1197,9 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80) {
-    cursor = getRowMetaCursor({ e, row, x, onlyDrag: true }) || cursor
-  }
+  // if (mousePosition.x < 80) {
+  //   // cursor = getRowMetaCursor({ e, row, x, onlyDrag: true }) || cursor
+  // }
 
   if (cursor) setCursor(cursor)
 }

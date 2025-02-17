@@ -357,7 +357,7 @@ export const UserFieldCellRenderer: CellRenderer = {
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly) return false
+    if (column.readonly || !column.isCellEditable) return false
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

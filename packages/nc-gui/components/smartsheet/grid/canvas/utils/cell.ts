@@ -21,6 +21,13 @@ export const timeCellMaxWidthMap = {
   },
 }
 
+export const EDIT_CELL_REDUCTION = {
+  1: 0,
+  2: 28,
+  4: 58,
+  6: 88,
+} as const
+
 export const getSingleMultiselectColOptions = (column: ColumnType) => {
   const colOptions: {
     options: (SelectOptionType & { value: string })[]

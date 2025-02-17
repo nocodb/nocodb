@@ -18,25 +18,6 @@ export const LongTextCellRenderer: CellRenderer = {
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
-    if (!props.tag?.renderAsTag && isHovered) {
-      renderIconButton(ctx, {
-        buttonX: x + width - 28,
-        buttonY: y + 7,
-        buttonSize: 20,
-        borderRadius: 6,
-        iconData: {
-          size: 13,
-          xOffset: (20 - 13) / 2,
-          yOffset: (20 - 13) / 2,
-        },
-        mousePosition,
-        spriteLoader,
-        icon: 'maximize',
-        background: 'white',
-        setCursor,
-      })
-    }
-
     if (!text) {
       return {
         x,
@@ -62,6 +43,25 @@ export const LongTextCellRenderer: CellRenderer = {
         mousePosition,
       })
 
+      if (!props.tag?.renderAsTag && isHovered) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 28,
+          buttonY: y + 7,
+          buttonSize: 20,
+          borderRadius: 6,
+          iconData: {
+            size: 13,
+            xOffset: (20 - 13) / 2,
+            yOffset: (20 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+          background: 'white',
+          setCursor,
+        })
+      }
+
       return {
         x: xOffset,
         y: yOffset,
@@ -77,6 +77,25 @@ export const LongTextCellRenderer: CellRenderer = {
         fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
+
+      if (!props.tag?.renderAsTag && isHovered) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 28,
+          buttonY: y + 7,
+          buttonSize: 20,
+          borderRadius: 6,
+          iconData: {
+            size: 13,
+            xOffset: (20 - 13) / 2,
+            yOffset: (20 - 13) / 2,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+          background: 'white',
+          setCursor,
+        })
+      }
 
       return {
         x: xOffset,

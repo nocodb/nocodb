@@ -101,10 +101,15 @@ export default class Model implements TableType {
   public async getColumnsHash(
     context: NcContext,
     ncMeta = Noco.ncMeta,
+    updateColumns = false,
   ): Promise<string> {
-    this.columns = await this.getColumns(context, ncMeta);
+    const columns = await this.getColumns(context, ncMeta);
 
-    return (this.columnsHash = hash(this.columns));
+    if (updateColumns) {
+      this.columns = columns;
+    }
+
+    return (this.columnsHash = hash(columns));
   }
 
   // get columns cached under the instance or fetch from db/redis cache
@@ -491,7 +496,7 @@ export default class Model implements TableType {
 
       await m.getColumns(context, ncMeta, defaultViewId);
 
-      m.columnsHash = hash(m.columns);
+      await m.getColumnsHash(context, ncMeta);
 
       return m;
     }

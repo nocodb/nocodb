@@ -424,7 +424,7 @@ export function useCanvasRender({
           if (isRequired) {
             ctx.save()
             ctx.fillStyle = '#EF4444'
-            ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, 16)
+            ctx.fillText('*', xOffset + 28 + ctx.measureText(truncatedText).width, 16)
             ctx.restore()
           }
         }

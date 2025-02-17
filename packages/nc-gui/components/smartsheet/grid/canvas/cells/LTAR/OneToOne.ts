@@ -47,7 +47,7 @@ export const OneToOneCellRenderer: CellRenderer = {
         },
         meta: relatedTableMeta,
         x: x + 4,
-        y: y + 2,
+        y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })
     }
 

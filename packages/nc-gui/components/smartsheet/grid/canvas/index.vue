@@ -1283,14 +1283,10 @@ onBeforeUnmount(() => {
             v-if="editEnabled?.row"
             :key="editEnabled?.rowIndex"
             :style="{
-              top: '32px',
+              top: `${Math.max(32, editEnabled.y - scrollTop - rowHeight)}px`,
+              left: `${editEnabled.fixed ? editEnabled.x : Math.max(fixedLeftWidth, editEnabled.x - scrollLeft)}px`,
               bottom: `36px`,
               right: '0px',
-              marginTop: `${
-                rowHeight * (editEnabled.rowIndex < rowSlice.start ? rowSlice.start : editEnabled.rowIndex + 1) -
-                EDIT_CELL_REDUCTION[rowHeightEnum ?? 1]
-              }px`,
-              left: `${editEnabled.fixed ? editEnabled.x : Math.max(fixedLeftWidth, editEnabled.x - scrollLeft)}px`,
               width: `${editEnabled.width}px`,
               minHeight: `${editEnabled.minHeight}px`,
               height: `${editEnabled.height}px`,

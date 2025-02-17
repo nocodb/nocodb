@@ -137,6 +137,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 // Composables
 const { height, width } = useElementSize(wrapperRef)
+const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
@@ -1481,10 +1482,8 @@ const onNavigate = (dir: NavigateDir) => {
   })
 }
 
-watch([height, width], () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(triggerRefreshCanvas)
-  })
+watch([height, width, windowWidth, windowHeight], () => {
+  nextTick(() => requestAnimationFrame(triggerRefreshCanvas))
 })
 
 // Watch for Rowheight Changes

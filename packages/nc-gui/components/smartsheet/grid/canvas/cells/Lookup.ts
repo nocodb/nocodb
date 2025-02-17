@@ -1,19 +1,10 @@
 import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType } from 'nocodb-sdk'
-import { getSingleMultiselectColOptions } from '../utils/cell'
+import { getSingleMultiselectColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
+import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode]
-const renderAsCell = [
-  UITypes.SingleSelect,
-  UITypes.MultiSelect,
-  UITypes.User,
-  UITypes.Checkbox,
-  UITypes.Attachment,
-  UITypes.Rating,
-  UITypes.QrCode,
-  UITypes.Barcode,
-  UITypes.Lookup,
-]
+
 const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
@@ -37,7 +28,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
-    if (!lookupColumn) return
+    if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
 
     y = y + (renderOnly1Row.includes(lookupColumn.uidt) ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
 
@@ -77,6 +68,13 @@ export const LookupCellRenderer: CellRenderer = {
         tagBorderColor: themeV3Colors.gray['200'],
         tagBorderWidth: 1,
       },
+      meta: relatedTableMeta,
+    }
+
+    const lookupRenderer = (options: CellRendererOptions) => {
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt)
+        ? renderCell(ctx, lookupColumn, options)
+        : PlainCellRenderer.render(ctx, options)
     }
 
     const maxLines = rowHeightTruncateLines(height, true)
@@ -92,7 +90,7 @@ export const LookupCellRenderer: CellRenderer = {
           [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
         for (const v of arrValue) {
-          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
+          const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
 
           if (point?.x) {
             if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
@@ -137,7 +135,7 @@ export const LookupCellRenderer: CellRenderer = {
           })
         }
       } else {
-        renderCell(ctx, lookupColumn, renderProps)
+        lookupRenderer(renderProps)
       }
     } else {
       if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {
@@ -150,7 +148,7 @@ export const LookupCellRenderer: CellRenderer = {
         })
       } else {
         for (const v of arrValue) {
-          const point = renderCell(ctx, lookupColumn, { ...renderProps, value: v, x, y, width })
+          const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
 
           if (point?.x && !point?.nextLine) {
             if (point?.x >= _x + _width - padding * 2 - 50) {

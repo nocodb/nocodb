@@ -88,7 +88,10 @@ const syncValue = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 onBeforeUnmount(() => {
+  if (!isCanvasInjected) return
   if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
   currentRow.value.rowMeta.changed = false
   emitSave()

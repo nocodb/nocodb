@@ -790,6 +790,12 @@ export function useCanvasRender({
             ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
             ctx.stroke()
 
+            // add white background color for active cell
+            if (startColIndex + colIdx === activeCell.value.column && startRowIndex + rowIdx === activeCell.value.row) {
+              ctx.fillStyle = '#FFFFFF'
+              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+            }
+
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
 
             if (isActive) {
@@ -846,6 +852,12 @@ export function useCanvasRender({
               } else {
                 ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+              }
+
+              // add white background color for active cell
+              if (startColIndex + colIdx === activeCell.value.column && startRowIndex + rowIdx === activeCell.value.row) {
+                ctx.fillStyle = '#FFFFFF'
+                ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
               }
 
               if (column.id === 'row_number') {

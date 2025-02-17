@@ -350,7 +350,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
       }
 
-      let savedColumn: ColumnType | undefined = undefined
+      let savedColumn: ColumnType | undefined
 
       try {
         formState.value.table_name = meta.value?.table_name

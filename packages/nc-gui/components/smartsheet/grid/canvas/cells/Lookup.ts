@@ -39,7 +39,11 @@ export const LookupCellRenderer: CellRenderer = {
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
 
-    y = y + (renderOnly1Row.includes(lookupColumn.uidt) ? Math.floor(height / 2 - rowHeightInPx['1']! / 2) : 0)
+    y =
+      y +
+      (renderOnly1Row.includes(lookupColumn.uidt) && lookupColumn.uidt !== UITypes.Attachment
+        ? Math.floor(height / 2 - rowHeightInPx['1']! / 2)
+        : 0)
 
     if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(lookupColumn.uidt)) {
       lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
@@ -65,7 +69,7 @@ export const LookupCellRenderer: CellRenderer = {
     // Begin clipping
     ctx.save()
     ctx.beginPath()
-    ctx.rect(_x, _y, _width, height) // Define the clipping rectangle
+    ctx.rect(_x, _y, _width - padding, height) // Define the clipping rectangle
     ctx.clip()
 
     const renderProps: CellRendererOptions = {

@@ -358,7 +358,7 @@ interface ViewActionState {
   >
 }
 
-export interface CellRenderer {
+interface CellRenderer {
   render: (
     ctx: CanvasRenderingContext2D,
     options: {
@@ -374,6 +374,12 @@ export interface CellRenderer {
       readonly?: boolean
     },
   ) => void
+}
+
+interface FillHandlerPosition {
+  x: number
+  y: number
+  size: number
 }
 
 export type {
@@ -415,4 +421,5 @@ export type {
   NestedArray,
   ViewActionState,
   CellRenderer,
+  FillHandlerPosition,
 }

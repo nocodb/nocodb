@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
+  LinkedFieldListType,
   type PageDesignerLinkedFieldWidget,
   type PageDesignerWidgetComponentProps,
   horizontalAlignTotextAlignMap,
@@ -84,6 +85,8 @@ const inlineValue = computed(() => {
       .join(', ') ?? ''
   )
 })
+
+const isNumberedList = computed(() => widget.value.listType === LinkedFieldListType.Number)
 </script>
 
 <template>
@@ -113,11 +116,17 @@ const inlineValue = computed(() => {
         class="px-2 py-1"
       >
         <template v-if="row">
-          <ul v-if="widget.displayAs === LinkedFieldDisplayAs.LIST" class="list-disc list-inside">
+          <component
+            :is="isNumberedList ? 'ol' : 'ul'"
+            v-if="widget.displayAs === LinkedFieldDisplayAs.LIST"
+            :class="['list-inside m-0 p-0', isNumberedList ? 'list-decimal' : 'list-disc']"
+          >
             <li v-for="value in row.row[widget.field.title ?? '']">
-              {{ value[relatedTableDisplayValueProp] }}
+              <span :class="{ 'relative left-[-8px]': !isNumberedList }">
+                {{ value[relatedTableDisplayValueProp] }}
+              </span>
             </li>
-          </ul>
+          </component>
           <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE">
             {{ inlineValue }}
           </span>

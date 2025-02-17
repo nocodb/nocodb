@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
-import { LinkedFieldDisplayAs, type PageDesignerLinkedFieldWidget } from '../lib/widgets'
+import { LinkedFieldDisplayAs, type PageDesignerLinkedFieldWidget, LinkedFieldListType } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
@@ -42,6 +42,12 @@ const displayAsOptionsMap = {
           </div>
         </template>
       </TabbedSelect>
+      <div v-if="fieldWidget.displayAs === LinkedFieldDisplayAs.LIST">
+        <a-radio-group v-model:value="fieldWidget.listType" class="field-list-type w-full">
+          <a-radio :value="LinkedFieldListType.Bullet">{{ LinkedFieldListType.Bullet }}</a-radio>
+          <a-radio :value="LinkedFieldListType.Number">{{ LinkedFieldListType.Number }}</a-radio>
+        </a-radio-group>
+      </div>
     </GroupedSettings>
     <GroupedSettings title="Border">
       <div class="flex gap-2 items-center">
@@ -84,3 +90,31 @@ const displayAsOptionsMap = {
     </GroupedSettings>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.field-list-type {
+  :deep(.ant-radio-input:focus + .ant-radio-inner) {
+    box-shadow: none !important;
+  }
+  :deep(.ant-radio-wrapper) {
+    @apply flex px-4 py-2 border-1 border-nc-gray-medium m-0;
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #1677ff !important;
+      background-color: #1677ff !important;
+      &::after {
+        background: #fff;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        margin-left: -6px;
+      }
+    }
+    &:first-child {
+      @apply rounded-tl-lg rounded-tr-lg;
+    }
+    &:last-child {
+      @apply border-t-0 rounded-bl-lg rounded-br-lg;
+    }
+  }
+}
+</style>

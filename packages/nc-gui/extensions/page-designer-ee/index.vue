@@ -146,9 +146,11 @@ watch(
 )
 
 async function tryInitializeTableAndView() {
-  if (savedPayload.value.selectedTableId) return
-  savedPayload.value.selectedTableId = activeTableId.value ?? ''
-  savedPayload.value.selectedViewId = activeViewId.value ?? ''
+  if (!savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
+    savedPayload.value.selectedTableId = activeTableId.value ?? ''
+    savedPayload.value.selectedViewId = activeViewId.value ?? ''
+  }
+  if (!savedPayload.value.selectedTableId) savedPayload.value.selectedTableId = activeTableId.value ?? ''
   if (savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
     const views = await getViewsForTable(savedPayload.value.selectedTableId)
     savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id

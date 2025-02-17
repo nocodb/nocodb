@@ -84,6 +84,12 @@ export enum LinkedFieldDisplayAs {
   INLINE = 'Inline',
   TABLE = 'Table',
 }
+
+export enum LinkedFieldListType {
+  Bullet = 'Bulleted',
+  Number = 'Numbered',
+}
+
 export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   type: PageDesignerWidgetType.LINKED_FIELD
   field: ColumnType
@@ -100,6 +106,7 @@ export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   fontFamily: string
   textColor: string
   lineHeight: string
+  listType: LinkedFieldListType
   objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
@@ -224,6 +231,7 @@ export class PageDesignerWidgetFactory {
       horizontalAlign: 'flex-start',
       verticalAlign: 'flex-start',
       objectFit: 'contain',
+      listType: LinkedFieldListType.Bullet,
       type: PageDesignerWidgetType.LINKED_FIELD,
       zIndex: 0,
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,

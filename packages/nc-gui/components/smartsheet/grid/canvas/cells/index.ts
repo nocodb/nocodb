@@ -133,8 +133,11 @@ export function useGridCellHandler(params: {
       mousePosition,
       pk,
       meta = params.meta?.value,
+      skipRender = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis'>,
   ) => {
+    if (skipRender) return
+
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)

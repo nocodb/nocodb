@@ -85,9 +85,9 @@ const height = computed(() => {
 })
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
-  if (!getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-qrcode-container > img', clientMousePosition)) return
-  modalVisible.value = true
+  if (isCanvasInjected && !isUnderLookup.value) {
+    modalVisible.value = true
+  }
 })
 </script>
 

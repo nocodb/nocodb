@@ -5,7 +5,6 @@ import { IsCanvasInjectionInj } from '../../../context'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
@@ -65,15 +64,9 @@ const cellIcon = (column: ColumnType) =>
   })
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
-  if (!getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .barcode-wrapper', clientMousePosition)) return
-  modalVisible.value = true
-  const canvasCellWrapper = document.querySelector<HTMLElement>('.nc-canvas-table-editable-cell-wrapper')
-  if (!canvasCellWrapper) return
-  canvasCellWrapper.style.background = 'transparent'
-  const barcodeVirtualCell = canvasCellWrapper.querySelector<HTMLElement>('.nc-virtual-cell-barcode')
-  if (!barcodeVirtualCell) return
-  barcodeVirtualCell.style.display = 'none'
+  if (isCanvasInjected && !isUnderLookup.value) {
+    modalVisible.value = true
+  }
 })
 </script>
 

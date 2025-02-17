@@ -67,5 +67,17 @@ export const OneToOneCellRenderer: CellRenderer = {
       })
     }
   },
-  handleClick: async () => {},
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    const rowIndex = row.rowMeta.rowIndex!
+    const { x, y, width } = getCellPosition(column, rowIndex)
+    const hasValue = !!row.row[column.title!]
+    const size = hasValue ? 16 : 14
+    if (
+      isBoxHovered({ x: x + width - (hasValue ? 27 : 26), y: y + (hasValue ? 7 : 8), height: size, width: size }, mousePosition)
+    ) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+    return false
+  },
 }

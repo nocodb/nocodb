@@ -1,11 +1,12 @@
 import QRCode from 'qrcode'
-import { truncateText } from '../utils/canvas'
 
 export class ImageWindowLoader {
   private cache = new Map<string, HTMLImageElement>()
   private qrCache = new Map<string, HTMLCanvasElement>()
   private loadingImages = new Map<string, Promise<HTMLImageElement | undefined>>()
   private loadingQRs = new Map<string, Promise<HTMLCanvasElement | undefined>>()
+  private failedUrls = new Set<string>()
+
   private pendingSprites = 0
   constructor(private onSettled?: () => void) {}
 
@@ -15,33 +16,48 @@ export class ImageWindowLoader {
 
   loadOrGetImage(urls: string[] | string): HTMLImageElement | undefined {
     urls = Array.isArray(urls) ? urls : [urls]
+
     for (const url of urls) {
       const cachedImage = this.cache.get(url)
       if (cachedImage) return cachedImage
     }
 
-    const urlToLoad = urls.find((url) => !this.loadingImages.has(url))
-
-    if (urlToLoad) {
-      const loadPromise = this.loadImage(urlToLoad).then(async (image) => {
-        if (image) return image
-
-        for (const url of urls.slice(urls.indexOf(urlToLoad) + 1)) {
-          try {
-            const nextImage = await this.loadImage(url)
-            if (nextImage) return nextImage
-          } catch {}
-        }
-        return undefined
-      })
-
-      this.loadingImages.set(urlToLoad, loadPromise)
-
-      loadPromise.finally(() => {
-        this.loadingImages.delete(urlToLoad)
-      })
+    const isAnyLoading = urls.some((url) => this.loadingImages.has(url))
+    if (isAnyLoading) {
+      return undefined
     }
 
+    const urlToLoad = urls.find((url) => !this.failedUrls.has(url))
+    if (!urlToLoad) return undefined
+
+    const loadPromise = (async () => {
+      try {
+        const image = await this.loadImage(urlToLoad)
+        if (image) return image
+
+        this.failedUrls.add(urlToLoad)
+      } catch {
+        this.failedUrls.add(urlToLoad)
+      }
+
+      for (const url of urls.slice(urls.indexOf(urlToLoad) + 1)) {
+        if (this.failedUrls.has(url)) continue
+
+        try {
+          const nextImage = await this.loadImage(url)
+          if (nextImage) return nextImage
+        } catch {
+          this.failedUrls.add(url)
+        }
+      }
+      return undefined
+    })().finally(() => {
+      for (const url of urls) {
+        this.loadingImages.delete(url)
+      }
+    })
+
+    this.loadingImages.set(urlToLoad, loadPromise)
     return undefined
   }
 
@@ -88,27 +104,8 @@ export class ImageWindowLoader {
       return undefined
     } finally {
       this.pendingSprites--
-      if (this.pendingSprites === 0) {
-        this.onSettled?.()
-      }
+      this.onSettled?.()
     }
-  }
-
-  renderError(
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    padding = 10,
-  ): void {
-    ctx.font = '500 13px Manrope'
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'left'
-    ctx.fillStyle = '#e65100'
-    const truncatedError = truncateText(ctx, text, width - padding * 2)
-    ctx.fillText(truncatedError, x + padding, y + height / 2)
   }
 
   renderQRCode(ctx: CanvasRenderingContext2D, qrCanvas: HTMLCanvasElement, x: number, y: number, size: number): void {
@@ -122,12 +119,12 @@ export class ImageWindowLoader {
     this.pendingSprites++
 
     try {
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         img.onload = () => {
           resolve()
         }
         img.onerror = () => {
-          // reject(new Error('Failed to load image'))
+          reject(new Error('Failed to load image'))
         }
         img.src = url
       })

@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { type ColumnType, UITypes, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import FieldElement from './FieldElement.vue'
+import { isLinkedField } from '../lib/utils'
+import { PageDesignerWidgetFactory } from '../lib/widgets'
 
 const meta = inject(PageDesignerTableTypeInj)
 const row = inject(PageDesignerRowInj)!
+const payload = inject(PageDesignerPayloadInj)!
 
 const { metaColumnById } = useViewColumnsOrThrow()
 
@@ -80,6 +83,14 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+function onFieldClick(field: ColumnType) {
+  if (isLinkedField(field)) {
+    PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field))
+    return
+  }
+  PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyFieldWidget(field))
+}
 </script>
 
 <template>
@@ -113,7 +124,12 @@ const getIcon = (c: ColumnType) =>
         </div>
 
         <template v-for="field in filteredFieldList" :key="field.id">
-          <FieldElement :field="field" :icon="getIcon(metaColumnById[field.fk_column_id])" />
+          <FieldElement
+            :field="field"
+            :icon="getIcon(metaColumnById[field.fk_column_id]!)"
+            draggable="true"
+            @click="onFieldClick(field)"
+          />
         </template>
       </div>
     </div>

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { PageDesignerPayloadInj } from '../lib/context'
+import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { LinkedFieldDisplayAs, type PageDesignerLinkedFieldWidget, LinkedFieldListType } from '../lib/widgets'
 import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import TabbedSelect from './TabbedSelect.vue'
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import FieldElement from './FieldElement.vue'
+import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
+const row = inject(PageDesignerRowInj)! as Ref<Row>
 
 const fieldWidget = ref<PageDesignerLinkedFieldWidget>()
 watch(
@@ -19,6 +22,12 @@ watch(
   { immediate: true },
 )
 
+const column = computed(() => fieldWidget.value!.field as Required<ColumnType>)
+
+const isNew = ref(false)
+
+const { relatedTableMeta, loadRelatedTableMeta } = useProvideLTARStore(column, row, isNew)
+
 const displayAsOptionsMap = {
   [LinkedFieldDisplayAs.INLINE]: iconMap.ncAlignLeft,
   [LinkedFieldDisplayAs.LIST]: iconMap.ncList,
@@ -28,6 +37,33 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+const columns = computed(() => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [])
+const columnsMapById = computed(() =>
+  columns.value.reduce((map, col) => {
+    map[col.id!] = col
+    return map
+  }, {} as Record<string, Record<string, any>>),
+)
+
+const tableColumns = computed(() => {
+  return fieldWidget.value?.tableColumns.map((colId) => columnsMapById.value[colId]!) ?? []
+})
+
+onMounted(() => {
+  loadRelatedTableMeta()
+})
+
+watch(
+  columns,
+  (val) => {
+    if (fieldWidget.value && !fieldWidget.value.tableColumns.length) {
+      const pvCol = val.find((col) => col.pv)
+      if (pvCol) fieldWidget.value.tableColumns.push(pvCol.id!)
+    }
+  },
+  { immediate: true, deep: true },
+)
 </script>
 
 <template>
@@ -62,6 +98,13 @@ const getIcon = (c: ColumnType) =>
           <a-radio :value="LinkedFieldListType.Bullet">{{ LinkedFieldListType.Bullet }}</a-radio>
           <a-radio :value="LinkedFieldListType.Number">{{ LinkedFieldListType.Number }}</a-radio>
         </a-radio-group>
+      </div>
+      <div v-else-if="fieldWidget.displayAs === LinkedFieldDisplayAs.TABLE" class="flex flex-col gap-2">
+        <label>Table columns</label>
+        <div>
+          <FieldElement v-for="field in tableColumns" :icon="getIcon(field)" :field="field" :key="field.id" display-drag-handle />
+          <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
+        </div>
       </div>
     </GroupedSettings>
     <GroupedSettings title="Border">

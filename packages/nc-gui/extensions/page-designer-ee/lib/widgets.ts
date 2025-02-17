@@ -107,6 +107,7 @@ export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   textColor: string
   lineHeight: string
   listType: LinkedFieldListType
+  tableColumns: string[]
   objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
@@ -216,6 +217,7 @@ export class PageDesignerWidgetFactory {
       id: 0,
       field,
       displayAs: LinkedFieldDisplayAs.LIST,
+      tableColumns: [],
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',

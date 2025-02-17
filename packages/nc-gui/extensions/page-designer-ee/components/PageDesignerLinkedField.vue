@@ -98,8 +98,15 @@ const inlineValue = computed(() => {
 
 const isNumberedList = computed(() => widget.value.listType === LinkedFieldListType.Number)
 const isTable = computed(() => widget.value.displayAs === LinkedFieldDisplayAs.TABLE)
-const columns = computed(() => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [])
+const columns = computed(() => relatedTableMeta.value.columns ?? [])
+const columnsMapById = computed(() =>
+  columns.value.reduce((map, col) => {
+    map[col.id!] = col
+    return map
+  }, {} as Record<string, Record<string, any>>),
+)
 
+const tableColumns = computed(() => widget.value.tableColumns.map((colId) => columnsMapById.value[colId]!).filter(Boolean))
 async function loadRelatedRows() {
   if (!row.value) return
   relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
@@ -153,14 +160,14 @@ watch(row, loadRelatedRows)
           <table v-else class="w-full">
             <thead>
               <tr>
-                <th v-for="column in columns" :key="column.id">
+                <th v-for="column in tableColumns" :key="column.id">
                   {{ column.title }}
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in relatedRows" :key="row.Id">
-                <td v-for="column in columns" :key="column.id">
+                <td v-for="column in tableColumns" :key="column.id">
                   <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
                 </td>
               </tr>

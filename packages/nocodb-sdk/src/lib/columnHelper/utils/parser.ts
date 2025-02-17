@@ -24,11 +24,7 @@ export const parseDecimalValue = (
   value: string | null | number,
   col: ColumnType
 ) => {
-  if (ncIsNumber(value)) {
-    return value;
-  }
-
-  if (!value || isNaN(Number(value))) {
+  if (ncIsNaN(value)) {
     return null;
   }
 
@@ -38,11 +34,11 @@ export const parseDecimalValue = (
 };
 
 export const parsePercentValue = (value: string | null) => {
-  if (!value || isNaN(Number(value))) {
+  if (ncIsNaN(value)) {
     return null;
   }
 
-  return `${value}%`;
+  return `${Number(value)}%`;
 };
 
 export const parseDurationValue = (value: string | null, col: ColumnType) => {

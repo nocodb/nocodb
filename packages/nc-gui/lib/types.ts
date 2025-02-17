@@ -434,6 +434,8 @@ interface CellRenderer {
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    selected: boolean
+    imageLoader: ImageWindowLoader
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent

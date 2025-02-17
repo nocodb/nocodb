@@ -22,6 +22,7 @@ import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
+import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 
 interface User {
   id: string
@@ -382,6 +383,7 @@ interface CellRendererOptions {
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
   actionManager: ActionManager
+  tableMetaLoader: TableMetaLoader
   isMysql: (sourceId?: string) => boolean
   isMssql: (sourceId?: string) => boolean
   isXcdbBase: (sourceId?: string) => boolean

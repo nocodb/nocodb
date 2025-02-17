@@ -137,6 +137,7 @@ export function useCanvasTable({
   const { metas, getMeta } = useMetas()
   const { isMysql } = useBase()
   const { isDataReadOnly, isUIAllowed } = useRoles()
+  const { aiIntegrations } = useNocoAi()
 
   const fields = inject(FieldsInj, ref([]))
   const isPublicView = inject(IsPublicInj, ref(false))
@@ -197,6 +198,8 @@ export function useCanvasTable({
           f.extra = getSingleMultiselectColOptions(f)
         }
 
+        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || isAddingEmptyRowAllowed.value)
+
         return {
           id: f.id,
           grid_column_id: gridViewCol.id,
@@ -213,6 +216,7 @@ export function useCanvasTable({
           relatedColObj,
           relatedTableMeta,
           isMysql,
+          isInvalidColumn: isInvalid,
         }
       })
       .filter((c) => !!c)

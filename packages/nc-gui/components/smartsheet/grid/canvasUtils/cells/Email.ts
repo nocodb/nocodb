@@ -1,5 +1,5 @@
-import { truncateText } from '../canvasUtils';
-import type { CellEditor, CellRenderer } from '../useCellRenderer'
+import { truncateText } from '../canvasUtils'
+import type { CellRenderer } from '../useCellRenderer'
 
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected }) => {
@@ -32,5 +32,3 @@ export const EmailCellRenderer: CellRenderer = {
     }
   },
 }
-
-export const EmailCellEditor: CellEditor = {} as CellEditor

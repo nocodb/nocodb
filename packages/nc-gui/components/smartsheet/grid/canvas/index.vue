@@ -227,6 +227,7 @@ const {
   totalColumnsWidth,
 
   isFieldEditAllowed,
+  isContextMenuAllowed,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -691,9 +692,11 @@ async function handleMouseDown(e: MouseEvent) {
       selection.value.endRange({ row: rowIndex, col: columnIndex })
     }
 
-    // Set the context Menu Targer and return
-    contextMenuTarget.value = { row: rowIndex, col: columnIndex }
-    requestAnimationFrame(triggerRefreshCanvas)
+    if (isContextMenuAllowed.value) {
+      // Set the context Menu Targer and return
+      contextMenuTarget.value = { row: rowIndex, col: columnIndex }
+      requestAnimationFrame(triggerRefreshCanvas)
+    }
     return
   }
 
@@ -1593,7 +1596,7 @@ const increaseMinHeightBy: Record<string, number> = {
         <NcDropdown
           v-model:visible="isContextMenuOpen"
           :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
-          :trigger="['contextmenu']"
+          :trigger="isContextMenuAllowed ? ['contextmenu'] : []"
           overlay-class-name="nc-dropdown-grid-context-menu"
         >
           <canvas

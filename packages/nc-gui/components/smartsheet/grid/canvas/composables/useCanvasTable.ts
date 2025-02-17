@@ -274,6 +274,8 @@ export function useCanvasTable({
 
   const totalColumnsWidth = computed(() => columnWidths.value.reduce((sum, val) => sum + val, 0))
 
+  const isContextMenuAllowed = computed(() => !isSqlView.value)
+
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
@@ -1005,5 +1007,6 @@ export function useCanvasTable({
     // permissions
     isFieldEditAllowed,
     isDataEditAllowed,
+    isContextMenuAllowed,
   }
 }

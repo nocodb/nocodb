@@ -28,8 +28,6 @@ export function useKeyboardNavigation({
   selection: Ref<CellRange>
 }) {
   const handleKeyDown = (e: KeyboardEvent) => {
-    e.preventDefault()
-
     let moved = false
 
     if (e.shiftKey && selection.value.isEmpty()) {
@@ -41,6 +39,7 @@ export function useKeyboardNavigation({
     switch (e.key) {
       case 'ArrowUp':
         if (activeCell.value.row > 0) {
+          e.preventDefault()
           activeCell.value.row = moveToExtreme ? 0 : activeCell.value.row - 1
           moved = true
         }
@@ -48,6 +47,7 @@ export function useKeyboardNavigation({
 
       case 'ArrowDown':
         if (activeCell.value.row < totalRows.value - 1) {
+          e.preventDefault()
           activeCell.value.row = moveToExtreme ? totalRows.value - 1 : activeCell.value.row + 1
           moved = true
         }
@@ -55,6 +55,7 @@ export function useKeyboardNavigation({
 
       case 'ArrowLeft':
         if (activeCell.value.column > 1) {
+          e.preventDefault()
           activeCell.value.column = moveToExtreme ? 1 : activeCell.value.column - 1
           moved = true
         }
@@ -62,6 +63,7 @@ export function useKeyboardNavigation({
 
       case 'ArrowRight':
         if (activeCell.value.column < columns.value.length - 1) {
+          e.preventDefault()
           activeCell.value.column = moveToExtreme ? columns.value.length - 1 : activeCell.value.column + 1
           moved = true
         }
@@ -106,6 +108,7 @@ export function useKeyboardNavigation({
         selection.value.endRange(newEnd)
       } else {
         selection.value.clear()
+        selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
       scrollToCell(activeCell.value.row, activeCell.value.column)
       triggerReRender()

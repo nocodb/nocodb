@@ -1,7 +1,7 @@
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
+  render: (ctx, { value, x, y, width, height, pv, column, padding }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'

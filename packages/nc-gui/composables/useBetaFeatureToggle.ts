@@ -9,17 +9,17 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'canvas_grid_view',
+    title: 'Improved Grid View',
+    description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
+    enabled: false,
+    isEngineering: false,
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
-  },
-  {
-    id: 'canvas_table',
-    title: 'Canvas Table',
-    description: 'More performant table with canvas rendering.',
-    enabled: !ncIsPlaywright(),
-    isEngineering: true,
   },
   {
     id: 'ai_features',

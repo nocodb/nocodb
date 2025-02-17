@@ -51,7 +51,7 @@ export const DateTimeCellRenderer: CellRenderer = {
   },
 
   async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected, readonly } = ctx
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
     if (!selected || column.readonly) return false

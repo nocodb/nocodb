@@ -51,6 +51,8 @@ export const LookupCellRenderer: CellRenderer = {
         renderAsTag: true,
         tagBgColor: themeV3Colors.base.white,
         tagHeight: 20,
+        tagBorderColor: themeV3Colors.gray['200'],
+        tagBorderWidth: 1,
       },
     }
 

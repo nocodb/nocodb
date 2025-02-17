@@ -22,6 +22,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const colTitle = computed(() => column.value?.title || '')
 
 const listItemsDlg = ref(false)
@@ -140,7 +142,7 @@ watch(
 )
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
       openListDlg()

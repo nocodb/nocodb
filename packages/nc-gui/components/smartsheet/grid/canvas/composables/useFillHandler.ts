@@ -304,7 +304,6 @@ export function useFillHandler({
               bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
                 activeCell.value.column = tempActiveCell.col
                 activeCell.value.row = tempActiveCell.row
-                selection.value.clear()
                 fillStartCell.value = null
                 isFillMode.value = false
               })
@@ -321,11 +320,9 @@ export function useFillHandler({
           activeCell.value.column = tempActiveCell.col
           activeCell.value.row = tempActiveCell.row
           fillStartCell.value = null
-          selection.value.clear()
           isFillMode.value = false
         })
       } else {
-        selection.value.clear()
         fillStartCell.value = null
         isFillMode.value = false
       }

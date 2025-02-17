@@ -199,24 +199,15 @@ export class RecoverDisconnectedTableNames {
           );
         }
       }
+      let counter = 1;
       replacingTableName = replacingTableName.replace(/[?$]/g, '_');
+      const initialTableName = replacingTableName;
       while (
         await checkIfTableNameExists(baseModel, replacingTableName, dbDriver)
       ) {
         const oldReplacingTableName = replacingTableName;
-        const replacingTableIndexIdentifier = /_\d+$/;
-        if (replacingTableIndexIdentifier.test(replacingTableName)) {
-          const existingIndex = replacingTableName
-            .match(replacingTableIndexIdentifier)[0]
-            .replace('_', '');
-          const newIndex = parseInt(existingIndex) + 1;
-          replacingTableName = replacingTableName.replace(
-            replacingTableIndexIdentifier,
-            '_' + newIndex.toString(),
-          );
-        } else {
-          replacingTableName += '_1';
-        }
+        replacingTableName = `${initialTableName}_${counter}`;
+        counter++;
         this.log(
           'Table ' +
             oldReplacingTableName +

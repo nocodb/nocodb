@@ -18,7 +18,16 @@ export const QRCodeCellRenderer: CellRenderer = {
     }
 
     const meta = parseProp(column?.meta)
-    const size = Math.min(width - padding * 2, height - padding)
+
+    let maxHeight = height - padding * 2
+
+    if (pxToRowHeight[height] === 1) {
+      maxHeight = height - 4
+    } else {
+      maxHeight = height - 20
+    }
+
+    const size = Math.min(width - padding * 2, maxHeight)
 
     const qrCanvas = imageLoader.loadOrGetQR(qrValue, size, {
       dark: meta.dark,

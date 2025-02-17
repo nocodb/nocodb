@@ -1,5 +1,6 @@
 import { type TableType, UITypes, type ViewType } from 'nocodb-sdk'
-import { renderSingleLineText } from '../utils/canvas'
+import { renderSingleLineText, renderSpinner } from '../utils/canvas'
+import type { ActionManager } from '../loaders/ActionManager'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -27,9 +28,10 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
-
-export function useGridCellHandler(params?: {
+import { ButtonCellRenderer } from './Button'
+export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  actionManager: ActionManager
   updateOrSaveRow?: (
     row: Row,
     property?: string,
@@ -40,6 +42,7 @@ export function useGridCellHandler(params?: {
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
+  const actionManager = params?.actionManager
 
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -74,6 +77,7 @@ export function useGridCellHandler(params?: {
   cellTypesRegistry.set(UITypes.Rollup, RollupCellRenderer)
   cellTypesRegistry.set(UITypes.Links, LinksCellRenderer)
   cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
+  cellTypesRegistry.set(UITypes.Button, ButtonCellRenderer)
   // cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
 
   const renderCell = (
@@ -100,9 +104,17 @@ export function useGridCellHandler(params?: {
       textAlign = 'center',
       textColor,
       mousePosition,
+      pk,
     }: CellRendererOptions,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
+    if (actionManager?.isLoading(pk, column.id) && column.uidt !== UITypes.Button) {
+      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
+      if (loadingStartTime) {
+        renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
+        return
+      }
+    }
 
     if (cellType) {
       return cellType.render(ctx, {
@@ -118,6 +130,7 @@ export function useGridCellHandler(params?: {
         readonly,
         spriteLoader,
         imageLoader,
+        actionManager,
         isMysql,
         t,
         padding,
@@ -130,6 +143,7 @@ export function useGridCellHandler(params?: {
         textAlign,
         mousePosition,
         textColor,
+        pk,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -150,6 +164,7 @@ export function useGridCellHandler(params?: {
     column: CanvasGridColumn
     value: any
     mousePosition: { x: number; y: number }
+    pk: any
   }) => {
     if (!params?.getCellPosition) return
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
@@ -160,6 +175,7 @@ export function useGridCellHandler(params?: {
         isDoubleClick: ctx.event.detail === 2,
         getCellPosition: params?.getCellPosition,
         updateOrSaveRow: params?.updateOrSaveRow,
+        actionManager,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.uidt)

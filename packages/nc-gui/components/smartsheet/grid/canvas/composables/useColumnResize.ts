@@ -22,23 +22,14 @@ export function useColumnResize(
     document.body.style.cursor = type
   }
 
-  const handleMouseLeave = () => {
-    if (!isResizing.value) {
-      setCursor('default')
-      mousePosition.value = null
-    }
-  }
-
   const resizeableColumn = computed(() => {
     if (!mousePosition.value) {
-      if (!isResizing.value) document.body.style.cursor = 'default'
       return null
     }
 
     const fixedCols = columns.value.filter((col) => col.fixed)
     let currentX = 0
 
-    // Check fixed columns first
     for (const column of fixedCols) {
       const width = parseInt(column.width, 10)
       const nextX = currentX + width
@@ -51,7 +42,6 @@ export function useColumnResize(
       currentX = nextX
     }
 
-    // Check visible columns
     let accumulatedWidth = 0
     for (let i = 0; i < colSlice.value.start; i++) {
       if (!columns.value[i]) continue
@@ -70,7 +60,9 @@ export function useColumnResize(
       currentX = nextX
     }
 
-    if (!isResizing.value) document.body.style.cursor = 'default'
+    if (!isResizing.value) {
+      setCursor('default')
+    }
     return null
   })
 
@@ -104,12 +96,22 @@ export function useColumnResize(
 
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
-    window.removeEventListener('mouseleave', handleMouseLeave)
   }
 
-  const handleMouseDown = (_e: MouseEvent) => {
+  const handleMouseDown = (e: MouseEvent) => {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+
+    mousePosition.value = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    }
+
     const column = resizeableColumn.value
-    if (!column) return
+    if (!column) {
+      mousePosition.value = null
+      return
+    }
 
     isResizing.value = true
     activeColumn.value = {
@@ -122,17 +124,16 @@ export function useColumnResize(
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
-    window.addEventListener('mouseleave', handleMouseLeave)
   }
 
   function handleMouseUp() {
-    if (!isResizing.value || !activeColumn.value || !mousePosition.value) return
-    const delta = mousePosition.value.x - activeColumn.value.startX
-    const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
-    onResizeEnd?.(activeColumn.value?.id, newWidth)
+    const shouldTriggerResize = isResizing.value && activeColumn.value && mousePosition.value
 
-    activeColumn.value = null
-
+    if (shouldTriggerResize) {
+      const delta = mousePosition.value.x - activeColumn.value.startX
+      const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
+      onResizeEnd?.(activeColumn.value.id, newWidth)
+    }
     cleanupResize()
   }
 
@@ -161,7 +162,7 @@ export const columnWidthLimit = {
     minWidth: 100,
     maxWidth: 320,
   },
-}
+} as const
 
 const getColumnWidthLimit = (uidt: keyof typeof columnWidthLimit) => {
   if (uidt in columnWidthLimit) return columnWidthLimit[uidt]

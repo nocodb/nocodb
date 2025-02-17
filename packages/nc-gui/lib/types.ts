@@ -396,6 +396,10 @@ interface CellRendererOptions {
   fontSize?: number
   textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
   textColor?: string
+  mousePosition: {
+    x: number
+    y: number
+  }
 }
 
 interface CellRenderer {

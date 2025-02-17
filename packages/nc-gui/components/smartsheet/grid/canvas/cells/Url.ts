@@ -3,7 +3,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268' } = props
+    const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268', spriteLoader } = props
 
     const text = value?.toString() ?? ''
 
@@ -39,14 +39,13 @@ export const UrlCellRenderer: CellRenderer = {
       if (validate && !isValid) {
         const iconX = x + width - iconSize - padding
 
-        ctx.fillStyle = '#f87171'
-        ctx.beginPath()
-        ctx.arc(iconX + iconSize / 2, yOffset!, iconSize / 2, 0, 2 * Math.PI)
-        ctx.fill()
-
-        ctx.fillStyle = '#ffffff'
-        ctx.font = 'bold 12px sans-serif'
-        ctx.fillText('i', iconX + 6, yOffset! + 2)
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncInfo',
+          size: iconSize,
+          color: themeV3Colors.red['400'],
+          x: iconX,
+          y: y + (yOffset - y) / 2,
+        })
       }
 
       return {
@@ -57,16 +56,33 @@ export const UrlCellRenderer: CellRenderer = {
   },
   async handleHover({ column, row, getCellPosition, value, mousePosition }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    const urlText = value?.toString().trim() ?? ''
-    const isValid = urlText && isValidURL(urlText)
-    if (isValid) return
+
+    const text = value?.toString().trim() ?? ''
+
+    const isValid = text && isValidURL(text)
+    if (isValid) return false
+
+    const pv = column.pv
+    const ctx = defaultOffscreen2DContext
+
     const iconSize = 16
     const padding = 10
     const iconX = x + width - iconSize - padding
-    const textY = y + height / 2
-    const box = { x: iconX, y: textY, width: iconSize, height: iconSize }
+
+    const { y: yOffset } = renderMultiLineText(ctx, {
+      x: x + padding,
+      y,
+      text,
+      maxWidth: width - padding * 2,
+      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      height,
+      render: false,
+    })
+
+    const box = { x: iconX, y: y + (yOffset - y) / 2, width: iconSize, height: iconSize }
 
     tryShowTooltip({
       rect: box,
@@ -89,7 +105,7 @@ export const UrlCellRenderer: CellRenderer = {
   async handleClick({ value, row, column, getCellPosition, mousePosition }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
-    
+
     const text = value?.toString().trim() ?? ''
 
     const isValid = text && isValidURL(text)

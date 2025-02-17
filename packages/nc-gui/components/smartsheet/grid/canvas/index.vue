@@ -1179,9 +1179,10 @@ const onNavigate = (dir: NavigateDir) => {
       if (activeCell.value.row > 0) {
         activeCell.value.row--
       }
-      triggerRefreshCanvas()
       break
   }
+
+  requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick(() => {
     scrollToCell()
@@ -1314,7 +1315,7 @@ onBeforeUnmount(() => {
                   :row-index="editEnabled.rowIndex"
                   active
                   edit-enabled
-                  @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                  @save="updateOrSaveRow?.(...$event)"
                   @save-with-state="updateOrSaveRow?.(...$event)"
                   @navigate="onNavigate"
                 />

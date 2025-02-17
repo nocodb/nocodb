@@ -65,12 +65,10 @@ const onFocus = () => {
 
 onMounted(() => {
   if (isCanvasInjected && (!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
-    forcedNextTick(() => {
-      inputRef.value?.focus()
-      if (isExpandedFormOpen.value) {
-        inputRef.value?.select()
-      }
-    })
+    inputRef.value?.focus()
+    if (isExpandedFormOpen.value) {
+      inputRef.value?.select()
+    }
   }
 })
 </script>

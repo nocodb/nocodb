@@ -75,10 +75,14 @@ const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : 
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
+const emitSave = () => {
+  emit('save', [currentRow.value, column.value.title, state])
+}
+
 const syncValue = useDebounceFn(
   () => {
     currentRow.value.rowMeta.changed = false
-    emit('save')
+    emitSave()
   },
   500,
   { maxWait: 2000 },
@@ -87,7 +91,7 @@ const syncValue = useDebounceFn(
 onBeforeUnmount(() => {
   if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
   currentRow.value.rowMeta.changed = false
-  emit('saveWithState', [currentRow.value, column.value.title, state])
+  emitSave()
 })
 
 let saveTimer: number
@@ -97,7 +101,7 @@ const updateWhenEditCompleted = () => {
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = window.setTimeout(updateWhenEditCompleted, 500)
   } else {
-    emit('save')
+    emitSave()
   }
 }
 
@@ -116,7 +120,7 @@ const vModel = computed({
       } else if (isAutoSaved(column.value)) {
         syncValue()
       } else if (!isManualSaved(column.value)) {
-        emit('save')
+        emitSave()
       }
     }
   },
@@ -308,7 +312,7 @@ const cellClassName = computed(() => {
         </NcTooltip>
       </div>
       <LazyCellNull v-else-if="showNullComponent" />
-      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
+      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
       <template v-else-if="cellType === 'geoData'">
@@ -343,7 +347,7 @@ const cellClassName = computed(() => {
           :model-value="vModel"
           :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
         />
-        <LazyCellDateTimeEditor
+        <CellDateTimeEditor
           v-else
           v-model="vModel"
           :is-pk="isPrimaryKeyCol"
@@ -378,7 +382,7 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'timePicker'">
         <LazyCellTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
+        <CellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'rating'">
@@ -413,7 +417,7 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'currency'">
         <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <CellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
+        <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
       </template>
 
       <LazyCellUser

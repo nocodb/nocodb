@@ -1,6 +1,10 @@
+import { LRUCache } from 'lru-cache'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
-
 import type { RenderSingleLineTextProps } from './types'
+
+const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
+  max: 1000,
+})
 
 export const truncateText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   if (!text || ctx.measureText(text).width <= maxWidth) {
@@ -99,8 +103,8 @@ export const renderCheckbox = (
 
 export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: RenderSingleLineTextProps) => {
   const {
-    x,
-    y,
+    x = 0,
+    y = 0,
     text,
     fillStyle,
     fontSize = 13,
@@ -109,21 +113,52 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     verticalAlign = 'middle',
     maxWidth = Infinity,
     height,
+    render = true,
   } = params
 
-  const truncatedText = maxWidth !== Infinity ? truncateText(ctx, text, maxWidth) : text
+  let truncatedText = ''
+  let width = 0
 
-  const yOffset = verticalAlign === 'middle' ? height / 2 : 0
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}`
+  const cachedText = singleLineTextCache.get(cacheKey)
 
-  if (fontFamily) {
-    ctx.font = fontFamily
+  if (cachedText) {
+    truncatedText = cachedText.text
+    width = cachedText.width
+  } else if (maxWidth === Infinity || !text || ctx.measureText(text).width <= maxWidth) {
+    truncatedText = text
+    width = ctx.measureText(truncatedText).width
+
+    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
+  } else {
+    truncatedText = text
+    while (ctx.measureText(`${truncatedText}...`).width > maxWidth && truncatedText.length > 0) {
+      truncatedText = truncatedText.slice(0, -1)
+      width = ctx.measureText(`${truncatedText}...`).width
+    }
+
+    truncatedText = ctx.direction === 'rtl' ? `...${truncatedText}` : `${truncatedText}...`
+    width = Math.min(width, maxWidth)
+
+    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   }
 
-  if (fillStyle) {
-    ctx.fillStyle = fillStyle
-    ctx.strokeStyle = fillStyle
+  if (render) {
+    const yOffset = verticalAlign === 'middle' ? fontSize / 2 : 0
+
+    if (fontFamily) {
+      ctx.font = fontFamily
+    }
+
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle
+      ctx.strokeStyle = fillStyle
+    }
+
+    ctx.textAlign = textAlign
+    ctx.textBaseline = verticalAlign
+    ctx.fillText(truncatedText, x, y + yOffset)
   }
-  ctx.textAlign = textAlign
-  ctx.textBaseline = verticalAlign
-  ctx.fillText(truncatedText, x, y + yOffset)
+
+  return { text: truncatedText, width }
 }

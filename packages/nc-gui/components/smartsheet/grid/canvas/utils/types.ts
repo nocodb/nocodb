@@ -20,6 +20,11 @@ export interface RenderSingleLineTextProps {
   render?: boolean
 }
 
+export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
+  maxLines?: number
+  lineHeight?: number
+}
+
 export interface RenderRectangleProps {
   x: number
   y: number

@@ -122,7 +122,7 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
   let truncatedText = ''
   let width = 0
 
-  const cacheKey = `${text}-${fontFamily}-${maxWidth}`
+  const cacheKey = `${text}-${fontSize}-${maxWidth}`
   const cachedText = singleLineTextCache.get(cacheKey)
 
   if (cachedText) {

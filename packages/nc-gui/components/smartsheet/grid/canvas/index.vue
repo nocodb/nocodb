@@ -440,7 +440,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
-const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+function extractHoverMetaColRegions(row: Row) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -491,6 +491,11 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
     width: row.rowMeta?.commentCount ? 24 : 14,
     action: 'comment',
   })
+  return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
+}
+
+const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+  const { isAtMaxSelection, isCheckboxDisabled, regions, currentX } = extractHoverMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -523,57 +528,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 
 // check exact row meta region hovered and return the cursor type
 const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
-  const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-  const isHover = hoverRow.value === row.rowMeta.rowIndex
-  const regions = []
-  let currentX = 4
-  let isCheckboxRendered = false
-
-  if (isChecked || (selectedRows.value.length && isHover)) {
-    if (isChecked || isHover) {
-      regions.push({
-        x: currentX + 6,
-        width: 24,
-        action: isCheckboxDisabled ? 'none' : 'select',
-      })
-      isCheckboxRendered = true
-      currentX += 30
-    }
-  } else {
-    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
-      regions.push({
-        x: currentX,
-        width: 24,
-        action: 'reorder',
-      })
-      currentX += 24
-    } else if (!isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'none',
-      })
-      currentX += 24
-    }
-  }
-
-  if (isHover && !isCheckboxRendered && !isPublicView.value) {
-    regions.push({
-      x: currentX,
-      width: 24,
-      action: isCheckboxDisabled ? 'none' : 'select',
-    })
-    currentX += 24
-  }
-
-  // Comment/maximize icon region
-  regions.push({
-    x: currentX,
-    width: row.rowMeta?.commentCount ? 24 : 14,
-    action: 'comment',
-  })
+  const { regions } = extractHoverMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -623,8 +578,6 @@ async function handleMouseDown(e: MouseEvent) {
   columnOrder.value = null
   isCreateOrEditColumnDropdownOpen.value = false
   overlayStyle.value = null
-
-  isContextMenuOpen.value = false
   contextMenuTarget.value = null
   prevActiveCell = null
 
@@ -715,9 +668,6 @@ async function handleMouseDown(e: MouseEvent) {
 
     // Set the context Menu Targer and return
     contextMenuTarget.value = { row: rowIndex, col: columnIndex }
-    await nextTick(() => {
-      isContextMenuOpen.value = true
-    })
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1243,9 +1193,7 @@ const handleMouseMove = (e: MouseEvent) => {
   // check if hovering row meta column and set cursor
   if (mousePosition.x < 80 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
     // handle hovering on the aggregation dropdown
-    if (mousePosition.y > height.value - 36) {
-      cursor = 'pointer'
-    } else {
+    if (mousePosition.y <= height.value - 36) {
       const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
       const row = cachedRows.value.get(rowIndex)
       cursor = getRowMetaCursor({ row, x: mousePosition.x }) || cursor
@@ -1253,7 +1201,7 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   if (mousePosition.y > height.value - 36) {
-    cursor = 'pointer'
+    cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
   }
 
   if (cursor) setCursor(cursor)
@@ -1636,6 +1584,7 @@ const increaseMinHeightBy: Record<string, number> = {
           </canvas>
           <template #overlay>
             <SmartsheetGridCanvasContextCell
+              v-if="contextMenuTarget !== null || selectedRows.length || vSelectedAllRecords"
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
               :total-rows="totalRows"

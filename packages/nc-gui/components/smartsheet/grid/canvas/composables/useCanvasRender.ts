@@ -775,6 +775,15 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
+      const isHovered = isBoxHovered(
+        {
+          x: xOffset - scrollLeft.value,
+          y: height.value - AGGREGATION_HEIGHT,
+          width,
+          height: AGGREGATION_HEIGHT,
+        },
+        mousePosition,
+      )
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
@@ -802,6 +811,32 @@ export function useCanvasRender({
         ctx.fillText(column.aggregation, xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
         ctx.restore()
+      } else if (isHovered) {
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+        ctx.clip()
+
+        ctx.font = '600 10px Manrope'
+        ctx.fillStyle = '#6a7184'
+        ctx.textAlign = 'right'
+        ctx.textBaseline = 'middle'
+
+        const rightEdge = xOffset + width - 8 - scrollLeft.value
+        const textY = height.value - AGGREGATION_HEIGHT / 2
+
+        ctx.fillText('Summary', rightEdge, textY)
+
+        const textLen = ctx.measureText('Summary').width
+
+        spriteLoader.renderIcon(ctx, {
+          icon: 'chevronDown',
+          size: 14,
+          color: '#6a7184',
+          x: rightEdge - textLen - 18,
+          y: textY - 7,
+        })
+        ctx.restore()
       }
 
       ctx.beginPath()
@@ -821,6 +856,16 @@ export function useCanvasRender({
 
       if (rowNumberCol && firstFixedCol) {
         const mergedWidth = parseInt(rowNumberCol.width, 10) + parseInt(firstFixedCol.width, 10)
+
+        const isHovered = isBoxHovered(
+          {
+            x: xOffset,
+            y: height.value - AGGREGATION_HEIGHT,
+            width: mergedWidth,
+            height: AGGREGATION_HEIGHT,
+          },
+          mousePosition,
+        )
 
         ctx.fillStyle = '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
@@ -848,6 +893,32 @@ export function useCanvasRender({
           ctx.fillText(firstFixedCol.aggregation, mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
           ctx.restore()
+        } else if (isHovered) {
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
+          ctx.clip()
+
+          ctx.font = '600 10px Manrope'
+          ctx.fillStyle = '#6a7184'
+          ctx.textAlign = 'right'
+          ctx.textBaseline = 'middle'
+
+          const rightEdge = xOffset + mergedWidth - 8
+          const textY = height.value - AGGREGATION_HEIGHT / 2
+
+          ctx.fillText('Summary', rightEdge, textY)
+
+          const textLen = ctx.measureText('Summary').width
+
+          spriteLoader.renderIcon(ctx, {
+            icon: 'chevronDown',
+            size: 14,
+            color: '#6a7184',
+            x: rightEdge - textLen - 18,
+            y: textY - 7,
+          })
+          ctx.restore()
         }
 
         ctx.strokeStyle = '#e7e7e9'
@@ -860,6 +931,16 @@ export function useCanvasRender({
 
         fixedCols.slice(2).forEach((column) => {
           const width = parseInt(column.width, 10)
+
+          const isHovered = isBoxHovered(
+            {
+              x: xOffset,
+              y: height.value - AGGREGATION_HEIGHT,
+              width,
+              height: AGGREGATION_HEIGHT,
+            },
+            mousePosition,
+          )
 
           ctx.fillStyle = '#F9F9FA'
           ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
@@ -883,6 +964,32 @@ export function useCanvasRender({
             ctx.fillStyle = '#4a5268'
             ctx.fillText(column.aggregation, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
+            ctx.restore()
+          } else if (isHovered) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+            ctx.clip()
+
+            ctx.font = '600 10px Manrope'
+            ctx.fillStyle = '#6a7184'
+            ctx.textAlign = 'right'
+            ctx.textBaseline = 'middle'
+
+            const rightEdge = xOffset + width - 8
+            const textY = height.value - AGGREGATION_HEIGHT / 2
+
+            ctx.fillText('Summary', rightEdge, textY)
+
+            const textLen = ctx.measureText('Summary').width
+
+            spriteLoader.renderIcon(ctx, {
+              icon: 'chevronDown',
+              size: 14,
+              color: '#6a7184',
+              x: rightEdge - textLen - 18,
+              y: textY - 7,
+            })
             ctx.restore()
           }
 

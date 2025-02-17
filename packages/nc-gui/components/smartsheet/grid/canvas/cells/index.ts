@@ -246,6 +246,7 @@ export function useGridCellHandler(params: {
         cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
         getCellPosition: params?.getCellPosition,
+        readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
@@ -263,6 +264,7 @@ export function useGridCellHandler(params: {
       return await cellHandler.handleKeyDown({
         ...ctx,
         cellRenderStore,
+        readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

@@ -453,6 +453,7 @@ export function useCanvasTable({
     makeCellEditable,
     meta,
     hasEditPermission: isAddingEmptyRowAllowed,
+    setCursor,
   })
 
   const { canvasRef, renderCanvas } = useCanvasRender({

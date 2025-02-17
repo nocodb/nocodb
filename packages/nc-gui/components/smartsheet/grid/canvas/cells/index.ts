@@ -49,6 +49,7 @@ export function useGridCellHandler(params: {
   ) => Promise<any>
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
+  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -59,6 +60,7 @@ export function useGridCellHandler(params: {
 
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
+  const setCursor = params.setCursor
 
   const cellRenderStoreMap = new Map<string, CellRenderStore>()
   const expirationTimes = new Map()
@@ -273,6 +275,7 @@ export function useGridCellHandler(params: {
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
+        setCursor,
       })
     }
   }

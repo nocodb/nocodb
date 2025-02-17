@@ -1,24 +1,33 @@
-import { renderSingleLineText } from '../utils/canvas'
-
-const tagPadding = 8
-const tagHeight = 20
-const topPadding = 6
+import { getRenderAsTextFunForUiType, UITypes, type ColumnType, type RollupType } from 'nocodb-sdk'
+import { DecimalCellRenderer } from './Decimal'
 
 export const RollupCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, height, pv, padding }) => {
+  render: (ctx, props) => {
+    const { column, value, relatedTableMeta, renderCell } = props
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
     if (!text) return
 
-    renderSingleLineText(ctx, {
-      x: x + padding,
-      y: y + padding,
-      text,
-      maxWidth: width - padding * 2,
-      fontFamily: `500 13px Manrope`,
-      fillStyle: '#4a5268',
-      height,
-    })
+    const colOptions = column.colOptions as RollupType
+
+    const childColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id)
+
+    if (!childColumn) return
+
+    const renderAsTextFun = getRenderAsTextFunForUiType((childColumn?.uidt as UITypes) || UITypes.SingleLineText)
+
+    const renderProps: CellRendererOptions = {
+      ...props,
+      column: childColumn,
+      relatedColObj: undefined,
+      relatedTableMeta: undefined,
+    }
+
+    if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
+      DecimalCellRenderer.render(ctx, renderProps)
+    } else if (childColumn) {
+      renderCell(ctx, childColumn, renderProps)
+    }
   },
 }

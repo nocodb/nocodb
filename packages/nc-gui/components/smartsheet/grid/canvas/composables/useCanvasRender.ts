@@ -288,10 +288,9 @@ export function useCanvasRender({
     // The issue is the border gets drawn over the active state border.
     // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
     if (
-      (activeState &&
-        xOffset - scrollLeft.value >= activeState.x &&
-        xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
-      (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
+      activeState &&
+      ((xOffset - scrollLeft.value >= activeState.x && xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
+        (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x))
     ) {
       // Draw line above active state
       ctx.strokeStyle = '#f4f4f5'

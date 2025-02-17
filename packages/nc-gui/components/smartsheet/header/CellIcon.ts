@@ -13,7 +13,7 @@ export const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isDateTime(column, abstractType)) {
     return iconMap.cellDatetime
   } else if (isGeoData(column)) {
-    return iconMap.geoData
+    return iconMap.ncMapPin
   } else if (isSet(column)) {
     return iconMap.cellMultiSelect
   } else if (isSingleSelect(column)) {

@@ -243,7 +243,7 @@ function handleMouseDown(e: MouseEvent) {
           column: metaColumnById.value[clickedColumn.id],
           row: cachedRows.value.get(rowIndex),
           height: rowHeight.value,
-          width: parseInt(clickedColumn.width, 10),
+          width: parseInt(clickedColumn.width, 10) + 2,
         }
       } else {
         onMouseDownSelectionHandler(e)
@@ -399,10 +399,10 @@ onMounted(async () => {
           top: `${rowHeight * editEnabled.rowIndex + 32}px`,
           left: `${editEnabled.x}px`,
           width: `${editEnabled.width}px`,
-          height: `${editEnabled.height}`,
+          height: `${editEnabled.height}px`,
           borderRadius: '2px',
         }"
-        class="nc-canvas-table-editable-cell-wrapper absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
+        class="nc-canvas-table-editable-cell-wrapper"
       >
         <LazySmartsheetRow :row="editEnabled.row">
           <template #default="{ state }">
@@ -423,6 +423,6 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply px-2;
+  @apply px-2 absolute bg-white border-2 !rounded border-[#3366ff];
 }
 </style>

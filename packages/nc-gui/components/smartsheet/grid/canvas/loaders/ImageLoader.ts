@@ -13,16 +13,32 @@ export class ImageWindowLoader {
     return `qr-${value}-${size}-${dark}-${light}`
   }
 
-  loadOrGetImage(url: string): HTMLImageElement | undefined {
-    const cachedImage = this.cache.get(url)
-    if (cachedImage) return cachedImage
+  loadOrGetImage(urls: string[] | string): HTMLImageElement | undefined {
+    urls = Array.isArray(urls) ? urls : [urls]
+    for (const url of urls) {
+      const cachedImage = this.cache.get(url)
+      if (cachedImage) return cachedImage
+    }
 
-    if (!this.loadingImages.has(url)) {
-      const loadPromise = this.loadImage(url)
-      this.loadingImages.set(url, loadPromise)
+    const urlToLoad = urls.find((url) => !this.loadingImages.has(url))
+
+    if (urlToLoad) {
+      const loadPromise = this.loadImage(urlToLoad).then(async (image) => {
+        if (image) return image
+
+        for (const url of urls.slice(urls.indexOf(urlToLoad) + 1)) {
+          try {
+            const nextImage = await this.loadImage(url)
+            if (nextImage) return nextImage
+          } catch {}
+        }
+        return undefined
+      })
+
+      this.loadingImages.set(urlToLoad, loadPromise)
 
       loadPromise.finally(() => {
-        this.loadingImages.delete(url)
+        this.loadingImages.delete(urlToLoad)
       })
     }
 

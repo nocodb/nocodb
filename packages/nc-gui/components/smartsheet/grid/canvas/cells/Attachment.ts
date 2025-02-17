@@ -11,7 +11,7 @@ interface Attachment {
 
 function getAttachmentIcon(title?: string, mimetype?: string): string {
   if (isImage(title ?? '', mimetype)) {
-    return 'image'
+    return 'ncFileTypeImage'
   }
 
   if (isPdf(title ?? '', mimetype)) {
@@ -60,6 +60,38 @@ function getAttachmentSize(rowHeight: number) {
 
 function isImage(title?: string, mimetype?: string) {
   return mimetype?.includes('image/') || title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+}
+
+function renderFallback(
+  item: Attachment,
+  {
+    itemX,
+    itemY,
+    itemSize,
+    spriteLoader,
+    ctx,
+  }: {
+    itemX: number
+    itemY: number
+    itemSize: number
+    spriteLoader: any
+    ctx: CanvasRenderingContext2D
+  },
+) {
+  const icon = getAttachmentIcon(item.title, item.mimetype || item.type)
+  ctx.beginPath()
+  ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
+  ctx.strokeStyle = '#D5D5D9'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  spriteLoader.renderIcon(ctx, {
+    icon,
+    x: itemX,
+    y: itemY,
+    size: itemSize,
+    color: '#6b7280',
+  })
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
@@ -141,10 +173,10 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       if (isImage(item.title, item.mimetype || item.type)) {
         const size = getAttachmentSize(rowHeight!)
-        const url = getPossibleAttachmentSrc(item, size)?.[0]
+        const url = getPossibleAttachmentSrc(item, size)
 
-        if (!url) {
-          imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, 'broken_image')
+        if (!url?.length) {
+          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
           return
         }
 
@@ -157,22 +189,11 @@ export const AttachmentCellRenderer: CellRenderer = {
             borderColor: '#D5D5D9',
             borderWidth: 1,
           })
+        } else {
+          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
         }
       } else {
-        const icon = getAttachmentIcon(item.title, item.mimetype || item.type)
-        ctx.beginPath()
-        ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
-        ctx.strokeStyle = '#D5D5D9'
-        ctx.lineWidth = 1
-        ctx.stroke()
-
-        spriteLoader.renderIcon(ctx, {
-          icon,
-          x: itemX,
-          y: itemY,
-          size: itemSize,
-          color: '#6b7280',
-        })
+        renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
       }
 
       if (isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {

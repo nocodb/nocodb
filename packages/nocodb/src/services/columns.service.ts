@@ -13,6 +13,7 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
+  SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
@@ -442,6 +443,22 @@ export class ColumnsService {
       );
     }
 
+    // for API call, if dt is not supplied
+    // but uidt is present
+    // and uidt is different, try to get dt from uidt
+    if (
+      param.column.uidt &&
+      param.column.uidt !== column.uidt &&
+      !(param.column as Column).dt &&
+      // if uidt valid, do not randomly use default dt
+      Object.values(UITypes).includes(param.column.uidt as UITypes)
+    ) {
+      const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
+      (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+        { uidt: param.column.uidt as UITypes },
+        column?.['meta']?.['ag'] ? 'AG' : 'AI',
+      )?.dt;
+    }
     // extract missing required props from column to avoid broken column
     param.column = {
       ...extractProps(column, ['column_name', 'uidt', 'dt']),

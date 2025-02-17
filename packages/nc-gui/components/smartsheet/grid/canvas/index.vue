@@ -104,6 +104,7 @@ const containerRef = ref()
 const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
+const preloadColumn = ref<any>()
 const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
@@ -1435,7 +1436,7 @@ function openColumnCreate(data: any) {
     }
 
     openColumnDropdownField.value = false
-    editColumn.value = data
+    preloadColumn.value = data
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
     requestAnimationFrame(triggerRefreshCanvas)
@@ -1802,8 +1803,10 @@ defineExpose({
                 :column="columnOrder ? null : editColumn"
                 :column-position="columnOrder"
                 :edit-description="isEditColumnDescription"
+                :preload="preloadColumn"
                 @submit="closeAddColumnDropdownMenu(!editColumn?.id, $event)"
                 @cancel="closeAddColumnDropdownMenu()"
+                @mounted="preloadColumn = undefined"
                 @click.stop
                 @keydown.stop
               />

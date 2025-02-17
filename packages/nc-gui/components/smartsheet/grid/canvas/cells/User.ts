@@ -1,5 +1,5 @@
-import type { UserType } from 'nocodb-sdk'
-import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag } from '../utils/canvas'
+import { IconType, type UserType } from 'nocodb-sdk'
+import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 
 const tagPadding = 8
@@ -8,9 +8,65 @@ const tagHeight = 20
 const iconSize = 14
 const ellipsisWidth = 15
 
+const getUserIcon = (userMeta?: any) => {
+  if (!userMeta) {
+    return {
+      icon: '',
+      iconType: '',
+    }
+  }
+
+  const icon = parseProp(userMeta).icon || ''
+  const iconType = parseProp(userMeta).iconType || ''
+
+  return {
+    icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),
+    iconType,
+  }
+}
+
+const usernameInitials = (displayName: string, email: string) => {
+  const displayNameSplit = displayName?.split(' ').filter((name) => name) ?? []
+
+  if (displayNameSplit.length > 0) {
+    if (displayNameSplit.length > 1) {
+      return displayNameSplit?.[0]?.[0] ?? `${displayNameSplit?.[1]?.[0]}` ?? ''
+    } else {
+      return displayName.slice(0, 2)
+    }
+  } else {
+    return email?.split('@')?.[0]?.slice(0, 2) ?? ''
+  }
+}
+
+const backgroundColor = (displayName: string, email: string, userIcon: ReturnType<typeof getUserIcon>) => {
+  // in comments we need to generate user icon from email
+  const color = displayName ? stringToColor(displayName) : email ? stringToColor(email) : '#FFFFFF'
+  const bgColor = '#F4F4F5'
+  if (userIcon.icon) {
+    switch (userIcon.iconType) {
+      case IconType.IMAGE: {
+        return ''
+      }
+      case IconType.EMOJI: {
+        return bgColor
+      }
+      case IconType.ICON: {
+        return bgColor
+      }
+
+      default: {
+        return color || '#FFFFFF'
+      }
+    }
+  }
+
+  return color || '#FFFFFF'
+}
+
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding } = props
+    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding, imageLoader } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
@@ -89,13 +145,40 @@ export const UserFieldCellRenderer: CellRenderer = {
         fillStyle: '#e7e7e9',
       })
 
-      spriteLoader.renderIcon(ctx, {
-        icon: 'user',
-        size: iconSize,
-        x: x + tagPadding,
-        y: y + 6 + (tagHeight - iconSize) / 2,
-        color: '#0b1d05',
-      })
+      // icon/image/emoji rendering
+      const userIcon = getUserIcon(user.meta)
+
+      const isImage = userIcon.icon && userIcon.iconType === IconType.IMAGE && !!userIcon.icon[0]
+      const circleSize = 17
+      const circleRadius = circleSize / 2
+      const enableBackground = false
+      if (enableBackground) {
+        roundedRect(ctx, x, y + 8, circleSize, circleSize, circleRadius, {
+          backgroundColor: isImage ? 'transparent' : backgroundColor(displayName, user.email ?? '', userIcon),
+        })
+      }
+      let needsPlaceholder = true
+      if (isImage) {
+        const img = imageLoader.loadOrGetImage(userIcon.icon[0])
+        if (img) {
+          imageLoader.renderImage(ctx, img, x, y + 6, circleSize, circleSize, circleRadius, { border: false })
+          needsPlaceholder = false
+        }
+      } else if (userIcon.icon && userIcon.iconType === IconType.EMOJI) {
+        // render emoji
+        needsPlaceholder = false
+      }
+
+      if (needsPlaceholder) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'user',
+          size: iconSize,
+          x: x + tagPadding,
+          y: y + 6 + (tagHeight - iconSize) / 2,
+          color: '#0b1d05',
+        })
+      }
+      // end
 
       renderSingleLineText(ctx, {
         x: x + tagPadding + iconSize + 4,

@@ -43,4 +43,14 @@ export const QRCodeCellRenderer: CellRenderer = {
       }
     }
   },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+
+    if (e.key === 'Enter') {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
 }

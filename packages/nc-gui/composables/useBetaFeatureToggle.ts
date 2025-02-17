@@ -12,7 +12,7 @@ const FEATURES = [
     id: 'canvas_grid_view',
     title: 'Improved Grid View',
     description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'link_to_another_record',

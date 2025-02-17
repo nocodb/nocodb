@@ -31,7 +31,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ? 'expand' : 'plus'))
+const addIcon = computed(() => (cellValue?.value ? 'maximize' : 'plus'))
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -85,7 +85,7 @@ watch(
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
     <div class="nc-cell-field flex w-full chips-wrapper items-center min-h-4" :class="{ active }">
-      <div class="chips flex items-center flex-1 max-w-[calc(100%_-_16px)]">
+      <div class="chips flex items-center flex-1 max-w-[calc(100%_-_16px)] min-h-[28px]">
         <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
           <VirtualCellComponentsItemChip
             :item="value"
@@ -109,11 +109,7 @@ watch(
       >
         <GeneralIcon
           :icon="addIcon"
-          class="select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
-          :class="{
-            '!text-[14px]': addIcon === 'expand',
-            '!text-md': addIcon !== 'expand',
-          }"
+          class="!text-md select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
           @click.stop="listItemsDlg = true"
         />
       </div>

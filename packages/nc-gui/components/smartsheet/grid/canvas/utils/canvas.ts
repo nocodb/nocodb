@@ -104,6 +104,7 @@ export function roundedRect(
   width: number,
   height: number,
   radius: number,
+  { backgroundColor, borderColor }: { backgroundColor?: string; borderColor?: string } = {},
 ): void {
   ctx.beginPath()
   ctx.moveTo(x + radius, y)
@@ -125,7 +126,14 @@ export function roundedRect(
   ctx.arcTo(x, y, x + radius, y, radius)
 
   ctx.closePath()
+
+  if (borderColor) ctx.strokeStyle = borderColor
   ctx.stroke()
+
+  if (backgroundColor) {
+    ctx.fillStyle = backgroundColor
+    ctx.fill()
+  }
 }
 
 export const renderCheckbox = (
@@ -490,4 +498,56 @@ export const renderSpinner = (
   ctx.stroke()
 
   ctx.restore()
+}
+
+export function isBoxHovered(
+  { x, y, height, width }: { x: number; y: number; height: number; width: number },
+  { x: mouseX, y: mouseY }: { x: number; y: number },
+) {
+  return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height
+}
+
+export function renderIconButton(
+  ctx: CanvasRenderingContext2D,
+  {
+    buttonX,
+    buttonY,
+    buttonSize,
+    borderRadius,
+    mousePosition,
+    spriteLoader,
+    icon,
+    iconData = {},
+    background = '#ffffff',
+    hoveredBackground = '#f4f4f5',
+    borderColor = '#e7e7e9',
+  }: {
+    buttonX: number
+    buttonY: number
+    buttonSize: number
+    borderRadius: number
+    spriteLoader: SpriteLoader
+    icon: IconMapKey | VNode
+    mousePosition?: { x: number; y: number }
+    iconData?: { xOffset?: number; yOffset?: number; size?: number; color?: string }
+    background?: string
+    hoveredBackground?: string
+    borderColor?: string
+  },
+) {
+  const hovered = mousePosition && isBoxHovered({ x: buttonX, y: buttonY, height: buttonSize, width: buttonSize }, mousePosition)
+  roundedRect(ctx, buttonX, buttonY, buttonSize, buttonSize, borderRadius, {
+    backgroundColor: hovered ? hoveredBackground : background,
+    borderColor,
+  })
+
+  const { color = '#374151', xOffset = 4, yOffset = 4, size: iconSize = 16 } = iconData
+
+  spriteLoader.renderIcon(ctx, {
+    icon,
+    x: buttonX + xOffset,
+    y: buttonY + yOffset,
+    size: iconSize,
+    color,
+  })
 }

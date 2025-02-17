@@ -11,6 +11,8 @@ export interface RenderSingleLineTextProps {
   fillStyle?: string
   height?: number
   underline?: boolean
+  py?: number
+  px?: number
 
   /**
    * Need to render or just return truncated text

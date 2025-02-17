@@ -1580,7 +1580,7 @@ const increaseMinHeightBy: Record<string, number> = {
               @add-column="addEmptyColumn($event, true)"
             />
             <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
-              <LazySmartsheetColumnEditOrAddProvider
+              <SmartsheetColumnEditOrAddProvider
                 :key="editColumn?.id || 'new'"
                 ref="columnEditOrAddProviderRef"
                 :column="columnOrder ? null : editColumn"

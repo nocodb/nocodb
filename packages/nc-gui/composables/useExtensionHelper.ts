@@ -99,11 +99,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         inserted += chunk.length
-        await $api.dbDataTableRow.create(
-          tableId,
-          chunk,
-          params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
-        )
+        await $api.dbDataTableRow.create(tableId, chunk, params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined)
       }
 
       return {

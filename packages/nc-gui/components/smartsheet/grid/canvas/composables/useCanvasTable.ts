@@ -121,6 +121,7 @@ export function useCanvasTable({
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
+  const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -588,7 +589,7 @@ export function useCanvasTable({
 
     const normalizedWidth = normalizeWidth(metaCol, width)
     updateFn(`${normalizedWidth}px`)
-    triggerRefreshCanvas()
+    reloadVisibleDataHook?.trigger()
   }
 
   const updateDefaultViewColumnOrder = (columnId: string, order: number) => {

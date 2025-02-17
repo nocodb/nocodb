@@ -442,6 +442,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     makeCellEditable,
     meta,
+    totalWidth,
   })
 
   const { canvasRef, renderCanvas } = useCanvasRender({

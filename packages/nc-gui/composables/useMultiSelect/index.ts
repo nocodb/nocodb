@@ -24,6 +24,10 @@ import {
 import { parse } from 'papaparse'
 import type { Row } from '../../lib/types'
 import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
+import { TypeConversionError } from '../../error/type-conversion.error'
+import type { SuppressedError } from '../../error/suppressed.error'
+import { ComputedTypePasteError } from '../../error/computed-type-paste.error'
+import { SelectTypeConversionError } from '../../error/select-type-conversion.error'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
@@ -449,7 +453,7 @@ export function useMultiSelect(
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col)) {
       if (showInfo) {
-        message.info(t('msg.info.pasteNotSupported'))
+        throw new ComputedTypePasteError(col.uidt! as UITypes)
       }
       return false
     }
@@ -1199,6 +1203,7 @@ export function useMultiSelect(
                   column,
                   appInfo: unref(appInfo),
                   oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                  meta: (column as any).meta,
                 },
                 isMysql(meta.value?.source_id),
                 true,
@@ -1243,6 +1248,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                meta: (columnObj as any).meta,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1279,6 +1285,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                meta: (columnObj as any).meta,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1555,6 +1562,7 @@ export function useMultiSelect(
               appInfo: unref(appInfo),
               files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
               oldValue: rowObj.row[columnObj.title!],
+              meta: (columnObj as any).meta,
             },
             isMysql(meta.value?.source_id),
           )
@@ -1622,6 +1630,7 @@ export function useMultiSelect(
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
+                      meta: (col as any).meta,
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1641,6 +1650,7 @@ export function useMultiSelect(
                     column: col,
                     appInfo: unref(appInfo),
                     oldValue: row.row[col.title],
+                    meta: (col as any).meta,
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -1661,8 +1671,29 @@ export function useMultiSelect(
         }
       }
     } catch (error: any) {
-      console.error(error)
-      message.error(await extractSdkResponseErrorMsg(error))
+      if (error instanceof TypeConversionError) {
+        // for now, set field as empty when single cell and not computer or select
+        if (
+          error instanceof SelectTypeConversionError !== true &&
+          error instanceof ComputedTypePasteError !== true &&
+          selectedRange.isSingleCell()
+        ) {
+          const rowObj = isArrayStructure
+            ? (unref(data) as Row[])[activeCell.row]
+            : (unref(data) as Map<number, Row>).get(activeCell.row)
+          if (!rowObj) return
+          const columnObj = unref(fields)[activeCell.col]
+          rowObj.row[columnObj!.title!] = undefined
+          // TODO: handle undo
+          await syncCellData?.(activeCell)
+        }
+        if (!(error as SuppressedError).isErrorSuppressed) {
+          message.error(await extractSdkResponseErrorMsg(error as any))
+        }
+      } else {
+        console.error(error, (error as SuppressedError).isErrorSuppressed)
+        message.error(await extractSdkResponseErrorMsg(error))
+      }
     }
   }
 

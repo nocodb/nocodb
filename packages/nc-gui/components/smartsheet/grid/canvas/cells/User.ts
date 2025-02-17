@@ -1,6 +1,7 @@
 import { IconType, type UserType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
+import { getSelectedUsers } from '../../../../cell/User/utils'
 
 const tagPadding = 8
 const tagSpacingY = 4
@@ -79,23 +80,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     const meta = parseProp(column?.meta)
     const isMultiple = meta?.is_multi ?? false
 
-    let users: Partial<UserType>[] = []
-    try {
-      if (typeof value === 'string') {
-        if (value.startsWith('[') || value.startsWith('{')) {
-          users = JSON.parse(value)
-        } else {
-          users = value.split(',').map((id) => ({ id: id.trim(), email: id.trim() }))
-        }
-      } else if (Array.isArray(value)) {
-        users = value
-      } else if (value) {
-        users = [value]
-      }
-      users = users.filter((u) => u && (u.id || u.email))
-    } catch {
-      users = []
-    }
+    let users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
 
     if (!users.length) return
 
@@ -260,25 +245,10 @@ export const UserFieldCellRenderer: CellRenderer = {
     const meta = parseProp(column?.columnObj.meta)
     const isMultiple = meta?.is_multi ?? false
 
-    let users: Partial<UserType>[] = []
-    try {
-      if (typeof value === 'string') {
-        if (value.startsWith('[') || value.startsWith('{')) {
-          users = JSON.parse(value)
-        } else {
-          users = value.split(',').map((id) => ({ id: id.trim(), email: id.trim() }))
-        }
-      } else if (Array.isArray(value)) {
-        users = value
-      } else if (value) {
-        users = [value]
-      }
-      users = users.filter((u) => u && (u.id || u.email))
-    } catch {
-      users = []
-    }
+    const users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
 
     if (!users.length) return
+
     const boxes: (RenderRectangleProps & { text: string })[] = []
     const ctx = defaultOffscreen2DContext
 

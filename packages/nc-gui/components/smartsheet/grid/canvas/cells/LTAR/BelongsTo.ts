@@ -65,5 +65,14 @@ export const BelongsToCellRenderer: CellRenderer = {
       })
     }
   },
-  handleClick: async () => {},
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+    const rowIndex = row.rowMeta.rowIndex!
+    const { x, y, width } = getCellPosition(column, rowIndex)
+    const size = 14
+    if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+    return false
+  },
 }

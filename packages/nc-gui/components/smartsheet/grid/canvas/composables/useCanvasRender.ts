@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import type { UITypes } from 'nocodb-sdk'
 import { roundedRect, truncateText } from '../utils/canvas'
 import { useCellRenderer } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -11,6 +11,7 @@ export function useCanvasRender({
   columns,
   colSlice,
   scrollLeft,
+  scrollTop,
   rowSlice,
   rowHeight,
   cachedRows,
@@ -23,6 +24,7 @@ export function useCanvasRender({
   getFillHandlerPosition,
   spriteLoader,
   imageLoader,
+  partialRowHeight,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -42,6 +44,7 @@ export function useCanvasRender({
   rowSlice: Ref<{ start: number; end: number }>
   activeCell: Ref<{ row: number; column: number }>
   scrollLeft: Ref<number>
+  scrollTop: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
@@ -51,11 +54,10 @@ export function useCanvasRender({
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
+  partialRowHeight: Ref<number>
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
-  const { metaColumnById } = useViewColumnsOrThrow()
-
   function renderHeader(ctx: CanvasRenderingContext2D) {
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -85,12 +87,11 @@ export function useCanvasRender({
     ctx.textBaseline = 'middle'
     ctx.imageSmoothingEnabled = false
 
-    let xOffset = initialOffset
+    let xOffset = initialOffset + 1
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
-      const icon = renderIcon(column, null)
-
+      const icon = renderIcon(column.columnObj, null)
       if (column.uidt) {
         spriteLoader.renderIcon(ctx, {
           icon,
@@ -102,11 +103,9 @@ export function useCanvasRender({
       }
 
       const truncatedText = truncateText(ctx, column.title!, width - 20)
-
       ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, 16)
 
       xOffset += width
-
       ctx.beginPath()
       ctx.moveTo(xOffset - scrollLeft.value, 0)
       ctx.lineTo(xOffset - scrollLeft.value, 32)
@@ -118,18 +117,14 @@ export function useCanvasRender({
     if (fixedCols.length) {
       xOffset = 0
 
-      fixedCols.forEach((column, index) => {
+      fixedCols.forEach((column) => {
         const width = parseInt(column.width, 10)
 
-        // Draw background
         ctx.fillStyle = '#f4f4f5'
         ctx.fillRect(xOffset, 0, width, 32)
 
-        // Draw title
         ctx.fillStyle = '#6a7184'
-
         const icon = renderIcon(column, null)
-
         if (column.uidt) {
           spriteLoader.renderIcon(ctx, {
             icon,
@@ -143,15 +138,32 @@ export function useCanvasRender({
         const truncatedText = truncateText(ctx, column.title!, width - 20)
         ctx.fillText(truncatedText, xOffset + (column.uidt ? 26 : 10), 16)
 
-        xOffset += width
-
-        // Draw vertical border
-        ctx.strokeStyle = index === fixedCols.length - 1 ? '#d1d1d1' : '#e7e7e9'
+        ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
         ctx.moveTo(xOffset, 0)
         ctx.lineTo(xOffset, 32)
         ctx.stroke()
+
+        xOffset += width
       })
+
+      if (scrollLeft.value) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+        ctx.shadowBlur = 2
+        ctx.shadowOffsetX = 1
+        ctx.shadowOffsetY = 0
+      }
+
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(xOffset, 0)
+      ctx.lineTo(xOffset, 32)
+      ctx.stroke()
+
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
     }
   }
 
@@ -168,6 +180,7 @@ export function useCanvasRender({
       ctx.strokeStyle = '#3366ff'
       ctx.lineWidth = 2
       roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height - 2, 2)
+      ctx.lineWidth = 1
     }
   }
 
@@ -192,88 +205,86 @@ export function useCanvasRender({
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return
+
     ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
     ctx.beginPath()
     ctx.arc(fillHandler.x, fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
     ctx.fill()
 
     if (isFillMode.value) {
+      const startY = -partialRowHeight.value + 33 + (selection.value.start.row - rowSlice.value.start) * rowHeight.value
+
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
       ctx.strokeRect(
         calculateXPosition(selection.value.start.col) - scrollLeft.value,
-        (selection.value.start.row - rowSlice.value.start) * rowHeight.value + 32,
+        startY,
         calculateSelectionWidth(selection.value.start.col, selection.value.end.col),
         (selection.value.end.row - selection.value.start.row + 1) * rowHeight.value,
       )
-
       ctx.setLineDash([])
     }
   }
-
   function renderRows(ctx: CanvasRenderingContext2D) {
-    const { start: startRowIndex, end: endRowIndex } = rowSlice.value
+    const { end: endRowIndex } = rowSlice.value
     const { start: startColIndex, end: endColIndex } = colSlice.value
-    const visibleCols = columns.value.slice(startColIndex, endColIndex)
+    const startRowIndex = Math.floor(scrollTop.value / rowHeight.value)
 
-    let yOffset = 32
+    const visibleCols = columns.value.slice(startColIndex, endColIndex)
+    let yOffset = -partialRowHeight.value + 33
+
     let activeState = null
 
-    let initialXOffset = 0
+    let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {
       initialXOffset += parseInt(columns.value[i]!.width, 10)
     }
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
-      const row = cachedRows.value.get(rowIdx)
+      if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
+        const row = cachedRows.value.get(rowIdx)
 
-      // Row background
-      ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-      ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+        ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+        ctx.fillRect(0, yOffset, width.value, rowHeight.value)
 
-      if (row) {
-        let xOffset = initialXOffset
+        if (row) {
+          let xOffset = initialXOffset
 
-        visibleCols.forEach((column, colIdx) => {
-          const width = parseInt(column.width, 10)
-          const absoluteColIdx = startColIndex + colIdx
+          visibleCols.forEach((column, colIdx) => {
+            const width = parseInt(column.width, 10)
+            const absoluteColIdx = startColIndex + colIdx
 
-          if (column.fixed) {
-            xOffset += width
-            return
-          }
-
-          if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-            ctx.fillStyle = '#EBF0FF'
-            ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-          }
-
-          ctx.strokeStyle = '#f4f4f5'
-          ctx.beginPath()
-          ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-          ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-          ctx.stroke()
-
-          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
-
-          if (isActive) {
-            activeState = {
-              col: column,
-              x: xOffset - scrollLeft.value,
-              y: yOffset,
-              width,
-              height: rowHeight.value,
+            if (column.fixed) {
+              xOffset += width
+              return
             }
-          }
 
-          const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
+            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+              ctx.fillStyle = '#EBF0FF'
+              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+            }
 
-          renderCell(
-            ctx,
-            metaColumnById.value[column.id] ?? {
-              uidt: UITypes.AutoNumber,
-            },
-            {
+            ctx.strokeStyle = '#f4f4f5'
+            ctx.beginPath()
+            ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+            ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
+            ctx.stroke()
+
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+            if (isActive) {
+              activeState = {
+                col: column,
+                x: xOffset - scrollLeft.value,
+                y: yOffset,
+                width,
+                height: rowHeight.value,
+              }
+            }
+
+            const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
+
+            renderCell(ctx, column.columnObj, {
               value,
               x: xOffset - scrollLeft.value,
               y: yOffset,
@@ -284,50 +295,43 @@ export function useCanvasRender({
               pv: column.pv,
               spriteLoader,
               imageLoader,
-            },
-          )
-          xOffset += width
-        })
+            })
+            xOffset += width
+          })
 
-        renderActiveState(ctx, activeState)
-        activeState = null
-        renderFillHandle(ctx)
+          renderActiveState(ctx, activeState)
+          activeState = null
+          renderFillHandle(ctx)
 
-        // Draw fixed columns if any (overlay on top)
-        const fixedCols = columns.value.filter((col) => col.fixed)
-        if (fixedCols.length) {
-          xOffset = 0
+          const fixedCols = columns.value.filter((col) => col.fixed)
+          if (fixedCols.length) {
+            xOffset = 0
 
-          fixedCols.forEach((column, index) => {
-            const width = parseInt(column.width, 10)
-            const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
-            const colIdx = columns.value.findIndex((col) => col.id === column.id)
-            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+            fixedCols.forEach((column) => {
+              const width = parseInt(column.width, 10)
+              const value = column.id === 'row_number' ? row.rowMeta.rowIndex! + 1 : row.row[column.title]
+              const colIdx = columns.value.findIndex((col) => col.id === column.id)
+              const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
-            if (isActive) {
-              activeState = {
-                col: column,
-                x: xOffset,
-                y: yOffset,
-                width,
-                height: rowHeight.value,
+              if (isActive) {
+                activeState = {
+                  col: column,
+                  x: xOffset,
+                  y: yOffset,
+                  width,
+                  height: rowHeight.value,
+                }
               }
-            }
 
-            if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-              ctx.fillStyle = '#EBF0FF'
-              ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-            } else {
-              ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-              ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-            }
+              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+                ctx.fillStyle = '#EBF0FF'
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+              } else {
+                ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+              }
 
-            renderCell(
-              ctx,
-              metaColumnById.value[column.id] ?? {
-                uidt: UITypes.AutoNumber,
-              },
-              {
+              renderCell(ctx, column.columnObj, {
                 value,
                 x: xOffset,
                 y: yOffset,
@@ -338,32 +342,50 @@ export function useCanvasRender({
                 pv: column.pv,
                 spriteLoader,
                 imageLoader,
-              },
-            )
+              })
 
-            ctx.strokeStyle = index === fixedCols.length - 1 ? '#f4f4f5' : '#d1d1d1'
+              ctx.strokeStyle = '#f4f4f5'
+              ctx.beginPath()
+
+              ctx.moveTo(xOffset, yOffset)
+              ctx.lineTo(xOffset, yOffset + rowHeight.value)
+              ctx.stroke()
+
+              xOffset += width
+            })
+            if (scrollLeft.value) {
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+              ctx.shadowBlur = 2
+              ctx.shadowOffsetX = 1
+              ctx.shadowOffsetY = 0
+            }
+
+            ctx.strokeStyle = '#f4f4f5'
             ctx.beginPath()
             ctx.moveTo(xOffset, yOffset)
             ctx.lineTo(xOffset, yOffset + rowHeight.value)
             ctx.stroke()
 
-            xOffset += width
-          })
+            ctx.shadowColor = 'transparent'
+            ctx.shadowBlur = 0
+            ctx.shadowOffsetX = 0
+            ctx.shadowOffsetY = 0
+          }
+        } else {
+          // Loading state
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, yOffset, width.value, rowHeight.value)
         }
-      } else {
-        // Loading state
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, yOffset, width.value, rowHeight.value)
+
+        // Bottom border for each row
+        ctx.strokeStyle = '#e7e7e9'
+        ctx.beginPath()
+        ctx.moveTo(0, yOffset + rowHeight.value)
+        ctx.lineTo(width.value, yOffset + rowHeight.value)
+        ctx.stroke()
+
+        yOffset += rowHeight.value
       }
-
-      // Bottom border for each row
-      ctx.strokeStyle = '#e7e7e9'
-      ctx.beginPath()
-      ctx.moveTo(0, yOffset + rowHeight.value)
-      ctx.lineTo(width.value, yOffset + rowHeight.value)
-      ctx.stroke()
-
-      yOffset += rowHeight.value
     }
     renderActiveState(ctx, activeState)
     renderFillHandle(ctx)
@@ -411,8 +433,8 @@ export function useCanvasRender({
 
     ctx.clearRect(0, 0, width.value, canvas.height)
 
-    renderHeader(ctx)
     renderRows(ctx)
+    renderHeader(ctx)
     renderDragIndicator(ctx)
   }
 
@@ -422,7 +444,6 @@ export function useCanvasRender({
 
   return {
     canvasRef,
-    renderHeader,
     renderActiveState,
     triggerRefreshCanvas,
   }

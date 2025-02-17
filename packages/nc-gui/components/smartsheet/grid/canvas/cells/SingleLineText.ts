@@ -12,7 +12,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
     const maxWidth = width - padding * 2
     const truncatedText = truncateText(ctx, emailText, maxWidth)
     const textY = y + height / 2
-    ctx.fillStyle = selected || pv ? '#4351e8' : '#4a5268'
+    ctx.fillStyle = pv ? '#4351e8' : '#4a5268'
     ctx.fillText(truncatedText, x + padding, textY)
   },
 }

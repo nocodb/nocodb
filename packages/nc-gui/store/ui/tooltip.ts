@@ -32,6 +32,8 @@ export const useTooltipStore = defineStore('tooltip', () => {
   })
 
   function showTooltip({ text, rect }: { text: string; rect: RenderRectangleProps }) {
+    if (!text) return
+
     let canvasX = 0
     let canvasY = 0
     const canvasRect = document.querySelector('canvas')?.getBoundingClientRect()
@@ -67,7 +69,7 @@ export const useTooltipStore = defineStore('tooltip', () => {
       y: number
     }
   }) {
-    if (!rect || !isBoxHovered(rect, mousePosition)) return false
+    if (!rect || !isBoxHovered(rect, mousePosition) || !text) return false
 
     showTooltip({ text, rect })
     return true

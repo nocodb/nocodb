@@ -961,6 +961,34 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
   }
 }
 
+const onNavigate = (dir: NavigateDir) => {
+  if (activeCell.value.row === null || activeCell.value.column === null) return
+
+  editEnabled.value = null
+  selection.value.clear()
+
+  switch (dir) {
+    case NavigateDir.NEXT:
+      if (activeCell.value.row < totalRows.value - 1) {
+        activeCell.value.row++
+      } else {
+        addEmptyRow()
+        activeCell.value.row++
+      }
+      break
+    case NavigateDir.PREV:
+      if (activeCell.value.row > 0) {
+        activeCell.value.row--
+      }
+      triggerRefreshCanvas()
+      break
+  }
+
+  nextTick(() => {
+    scrollToCell()
+  })
+}
+
 watch([height, width], () => {
   containerSize.value = { height: height.value, width: width.value }
   requestAnimationFrame(() => {
@@ -1074,6 +1102,7 @@ onBeforeUnmount(() => {
               :row="editEnabled.row"
               active
               @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+              @navigate="onNavigate"
             />
             <SmartsheetCell
               v-else
@@ -1083,6 +1112,7 @@ onBeforeUnmount(() => {
               active
               edit-enabled
               @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+              @navigate="onNavigate"
             />
           </template>
         </LazySmartsheetRow>

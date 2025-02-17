@@ -242,7 +242,7 @@ const generateAIBulk = async () => {
           {{ $t('general.insertBelow') }}
         </div>
       </NcMenuItem>
-      <NcDivider />
+      <NcDivider v-if="contextMenuTarget" />
     </template>
 
     <NcTooltip

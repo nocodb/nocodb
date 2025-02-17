@@ -354,34 +354,44 @@ const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number 
   if (isChecked || (selectedRows.value.length && isHover)) {
     if (isChecked || isHover) {
       regions.push({
-        x: currentX,
+        x: currentX + 6,
         width: 24,
         action: isCheckboxDisabled ? 'none' : 'select',
       })
       isCheckboxRendered = true
-      currentX += 24
+      currentX += 30
     }
   } else {
+    if (isHover && isRowReOrderEnabled.value) {
+      regions.push({
+        x: currentX,
+        width: 24,
+        action: 'reorder',
+      })
+      currentX += 24
+    } else if (!isHover) {
+      regions.push({
+        x: currentX + 8,
+        width: 24,
+        action: 'none',
+      })
+      currentX += 24
+    }
+  }
+
+  if (isHover && !isCheckboxRendered) {
     regions.push({
       x: currentX,
       width: 24,
-      action: isRowReOrderEnabled.value ? 'reorder' : 'none',
+      action: isCheckboxDisabled ? 'none' : 'select',
     })
     currentX += 24
   }
 
-  if (!isCheckboxRendered) {
-    regions.push({
-      x: currentX,
-      width: 24,
-      action: 'select',
-    })
-    currentX += 24
-  }
-
+  // Comment/maximize icon region
   regions.push({
     x: currentX,
-    width: 24,
+    width: row.rowMeta?.commentCount ? 24 : 14,
     action: 'comment',
   })
 

@@ -1,5 +1,5 @@
-import { getI18n } from '../../../../../plugins/a.i18n'
-import { isBoxHovered, truncateText } from '../utils/canvas'
+import { getI18n } from '../../../../../plugins/a.i18n';
+import { isBoxHovered, truncateText } from '../utils/canvas';
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
@@ -11,9 +11,7 @@ export const UrlCellRenderer: CellRenderer = {
     const isValid = urlText && isValidURL(urlText)
     const maxWidth = width - padding * 2
 
-    const displayText = isValid ? urlText : ''
-
-    const truncatedText = truncateText(ctx, displayText, maxWidth)
+    const truncatedText = truncateText(ctx, urlText, maxWidth)
     const textY = y + height / 2
     const textMetrics = ctx.measureText(truncatedText)
 
@@ -63,5 +61,18 @@ export const UrlCellRenderer: CellRenderer = {
         },
         text: getI18n().global.t('msg.error.invalidURL'),
       })
+  },
+  async handleKeyDown(ctx) {
+    const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    const columnObj = column.columnObj
+
+    if (isTypableInputColumn(columnObj) && columnObj.title && e.key.length === 1) {
+      row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
+      makeCellEditable(row, column)
+      updateOrSaveRow(row, columnObj.title)
+      return true
+    }
+
+    return false
   },
 }

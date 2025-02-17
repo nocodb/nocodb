@@ -446,9 +446,10 @@ const currentDate = ($event) => {
   emit('currentDate', $event)
 }
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 onMounted(() => {
   forcedNextTick(() => {
-    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
       isDatePicker.value = true
       open.value = true
     }

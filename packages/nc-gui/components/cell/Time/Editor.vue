@@ -325,10 +325,10 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 onMounted(() => {
   forcedNextTick(() => {
-    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
       open.value = true
       open.value = true
     }

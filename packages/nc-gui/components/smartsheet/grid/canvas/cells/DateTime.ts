@@ -6,7 +6,7 @@ import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 dayjs.extend(utc)
 
 export const DateTimeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, selected, pv, column, padding }) => {
+  render: (ctx, { value, x, y, width, selected, pv, column, padding, readonly }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -17,7 +17,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const timeFormat = columnMeta?.time_format ?? 'HH:mm'
     const is12hrFormat = columnMeta?.is12hrFormat
 
-    if (!value && selected) {
+    if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Manrope'
 

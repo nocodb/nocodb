@@ -3,7 +3,7 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from
 
 export const YearCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { selected, value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { selected, value, x, y, width, height, pv, padding, readonly, textColor = '#4a5268' } = props
 
     let text = ''
 
@@ -14,7 +14,7 @@ export const YearCellRenderer: CellRenderer = {
       }
     }
 
-    if (!value && selected) {
+    if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Manrope'
       const truncatedFormat = truncateText(ctx, 'YYYY', width - padding * 2, true)

@@ -542,7 +542,7 @@ const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
       return 'pointer'
     case 'reorder':
       if (isRowReOrderEnabled.value) {
-        return 'pointer'
+        return 'move'
       }
       break
     case 'comment':

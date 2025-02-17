@@ -17,6 +17,7 @@ import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
+import Scroller from './Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
 import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
@@ -117,9 +118,8 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
-
 const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
-
+const scroller = ref()
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
 // and this need to avail the column ref inside modals(delete, duplicate,... etc) even after closing menu
@@ -420,12 +420,13 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
       }
 
       if (!isColPresent) return
+      scroller.value?.scrollTo(width, 0)
 
       containerRef.value?.scrollTo({ left: width, behavior: 'smooth' })
     }, 200)
   } else if (scrollToLastCol) {
     setTimeout(() => {
-      containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
+      scroller.value?.scrollTo(totalWidth.value, 0)
     }, 200)
   }
 }
@@ -521,7 +522,7 @@ function extractHoverMetaColRegions(row: Row) {
 }
 
 const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions, currentX } = extractHoverMetaColRegions(row)
+  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -708,46 +709,58 @@ async function handleMouseDown(e: MouseEvent) {
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
-function scrollToCell(row?: number, column?: number) {
-  if (!containerRef.value) return
-  row = row ?? activeCell.value.row
-  column = column ?? activeCell.value.column
+const PADDING_BOTTOM = 96
+const FIXED_COLUMN_PADDING = 128
 
-  if (typeof row !== 'number' || !column) return
+function scrollToCell(row?: number, column?: number): void {
+  const currentRow = row ?? activeCell.value.row
+  const currentColumn = column ?? activeCell.value.column
 
-  const cellTop = row * rowHeight.value
-  const cellBottom = cellTop + rowHeight.value + 96
-  const scrollTop = containerRef.value.scrollTop
-  const viewportHeight = containerRef.value.clientHeight
+  const cellTop = currentRow * rowHeight.value
+  const cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  const scrollTop = scroller.value?.getScrollPosition().top ?? 0
+  const viewportHeight = height.value
 
   if (cellTop < scrollTop) {
-    containerRef.value.scrollTop = cellTop
+    scroller.value?.scrollTo(undefined, cellTop)
   } else if (cellBottom > scrollTop + viewportHeight) {
-    containerRef.value.scrollTop = cellBottom - viewportHeight
+    scroller.value?.scrollTo(undefined, cellBottom - viewportHeight)
   }
+
+  const fixedWidth =
+    columns.value
+      .filter((col) => col.fixed)
+      .reduce((sum: number, col) => {
+        const width = typeof col.width === 'string' ? parseInt(col.width, 10) : col.width
+        return sum + (isNaN(width) ? 0 : width)
+      }, 0) + FIXED_COLUMN_PADDING
 
   let cellLeft = 0
-  let cellRight = 0
 
-  const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0) + 128
+  for (let i = 0; i < currentColumn; i++) {
+    const column = columns.value[i]
+    if (!column) continue
 
-  for (let i = 0; i < column; i++) {
-    if (!columns.value[i].fixed) {
-      cellLeft += parseInt(columns.value[i].width, 10)
+    if (!column.fixed) {
+      const width = parseInt(column.width, 10)
+      cellLeft += isNaN(width) ? 0 : width
     }
   }
-  cellRight = cellLeft + parseInt(columns.value[column].width, 10)
+
+  const currentColumnWidth = columns.value[currentColumn]?.width
+  const parsedWidth = parseInt(currentColumnWidth, 10)
+  let cellRight = cellLeft + parsedWidth
 
   cellLeft += fixedWidth
   cellRight += fixedWidth
 
-  const scrollLeft = containerRef.value.scrollLeft
-  const viewportWidth = containerRef.value.clientWidth
+  const scrollLeft = scroller.value?.getScrollPosition().left ?? 0
+  const viewportWidth = width.value
 
   if (cellLeft < scrollLeft + fixedWidth) {
-    containerRef.value.scrollLeft = cellLeft - fixedWidth
+    scroller.value?.scrollTo(cellLeft - fixedWidth, undefined)
   } else if (cellRight > scrollLeft + viewportWidth) {
-    containerRef.value.scrollLeft = cellRight - viewportWidth
+    scroller.value?.scrollTo(cellRight - viewportWidth, undefined)
   }
 }
 
@@ -1235,13 +1248,6 @@ const handleMouseMove = (e: MouseEvent) => {
   if (cursor) setCursor(cursor)
 }
 
-const handleScrollEnd = (_e: Event) => {
-  const rect = canvasRef.value?.getBoundingClientRect()
-  if (!rect) return
-  hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)
-  requestAnimationFrame(triggerRefreshCanvas)
-}
-
 const reloadViewDataHookHandler = async (param) => {
   if (param?.fieldAdd) {
     containerRef.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
@@ -1251,28 +1257,33 @@ const reloadViewDataHookHandler = async (param) => {
   await syncCount()
 
   calculateSlices()
-
-  await Promise.all([updateVisibleRows()])
+  await updateVisibleRows()
 
   triggerRefreshCanvas()
 }
 
-let rafnId: number | null = null
+let rafId: number | null = null
+let scrollTimeout: number | null = null
 
-useScroll(containerRef, {
-  behavior: 'instant',
-  onScroll: (e) => {
-    if (rafnId) cancelAnimationFrame(rafnId)
+const handleScroll = (e: { left: number; top: number }) => {
+  if (rafId) cancelAnimationFrame(rafId)
+  if (scrollTimeout) clearTimeout(scrollTimeout)
 
-    rafnId = requestAnimationFrame(() => {
-      scrollTop.value = e.target.scrollTop
-      scrollLeft.value = e.target.scrollLeft
-      calculateSlices()
-      triggerRefreshCanvas()
-    })
-  },
-  onStop: handleScrollEnd,
-})
+  rafId = requestAnimationFrame(() => {
+    scrollTop.value = e.top
+    scrollLeft.value = e.left
+    calculateSlices()
+    triggerRefreshCanvas()
+  })
+
+  scrollTimeout = window.setTimeout(() => {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (!rect) return
+
+    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)
+    requestAnimationFrame(triggerRefreshCanvas)
+  }, 150)
+}
 
 const triggerReload = () => {
   calculateSlices()
@@ -1580,74 +1591,82 @@ const increaseMinHeightBy: Record<string, number> = {
     >
       <GeneralLoader size="regular" />
     </div>
-    <div ref="containerRef" class="relative w-full h-full overflow-auto border border-gray-200">
-      <div
-        class="relative"
-        :style="{
-          height: `${totalHeight}px`,
-          width: `${totalWidth}px`,
-        }"
-      >
-        <Teleport to="body">
-          <Transition name="tooltip">
-            <Tooltip v-if="tooltipStore.tooltipText" ref="tooltipRef" :tooltip-style="floatingStyles" />
-          </Transition>
-        </Teleport>
-        <NcDropdown
-          v-model:visible="isContextMenuOpen"
-          :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
-          :trigger="isContextMenuAllowed ? ['contextmenu'] : []"
-          overlay-class-name="nc-dropdown-grid-context-menu"
+    <div
+      ref="containerRef"
+      :style="{
+        height: `${height}px`,
+        width: `${width}px`,
+      }"
+      class="relative ps-canvas-scroller w-full h-full overflow-auto border border-gray-200"
+    >
+      <Scroller ref="scroller" class="relative sticky" :height="height" :width="width" @scroll="handleScroll">
+        <div
+          class="sticky top-0 left-0"
+          :style="{
+            height: `${totalHeight}px`,
+            width: `${totalWidth}px`,
+          }"
         >
-          <canvas
-            ref="canvasRef"
-            class="sticky top-0 left-0"
-            :height="`${height}px`"
-            :width="`${width}px`"
-            oncontextmenu="return false"
-            @mousedown="handleMouseDown"
-            @mousemove="handleMouseMove"
-            @mouseup="handleMouseUp"
+          <Teleport to="body">
+            <Transition name="tooltip">
+              <Tooltip v-if="tooltipStore.tooltipText" ref="tooltipRef" :tooltip-style="floatingStyles" />
+            </Transition>
+          </Teleport>
+          <NcDropdown
+            v-model:visible="isContextMenuOpen"
+            :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
+            :trigger="['contextmenu']"
+            overlay-class-name="nc-dropdown-grid-context-menu"
           >
-          </canvas>
-          <template #overlay>
-            <SmartsheetGridCanvasContextCell
-              v-if="contextMenuTarget !== null || selectedRows.length || vSelectedAllRecords"
-              v-model:context-menu-target="contextMenuTarget"
-              v-model:selected-all-records="vSelectedAllRecords"
-              :total-rows="totalRows"
-              :selection="selection"
-              :columns="columns"
-              :cached-rows="cachedRows"
-              :active-cell="activeCell"
-              :action-manager="actionManager"
-              :clear-cell="clearCell"
-              :is-primary-key-available="isPrimaryKeyAvailable"
-              :is-selection-read-only="isSelectionReadOnly"
-              :is-selection-only-a-i="isSelectedOnlyAI"
-              :is-selection-only-script="isSelectedOnlyScript"
-              :is-insert-below-disabled="isInsertBelowDisabled"
-              :is-order-column-exists="isOrderColumnExists"
-              :delete-row="deleteRow"
-              :delete-range-of-rows="deleteRangeOfRows"
-              :delete-selected-rows="deleteSelectedRows"
-              :bulk-delete-all="bulkDeleteAll"
-              :call-add-new-row="callAddNewRow"
-              :copy-value="copyValue"
-              :bulk-update-rows="bulkUpdateRows"
-              :expand-form="expandForm"
-              :selected-rows="selectedRows"
-              :clear-selected-range-of-cells="clearSelectedRangeOfCells"
-              @click="isContextMenuOpen = false"
-              @bulk-update-dlg="emits('bulkUpdateDlg')"
-            />
-          </template>
-        </NcDropdown>
-        <div class="absolute pointer-events-none inset-0">
-          <div
-            v-if="editEnabled?.row"
-            :key="editEnabled?.rowIndex"
-            :style="{
+            <canvas
+              ref="canvasRef"
+              class="sticky top-0 left-0"
+              :height="`${height}px`"
+              :width="`${width}px`"
+              oncontextmenu="return false"
+              @mousedown="handleMouseDown"
+              @mousemove="handleMouseMove"
+              @mouseup="handleMouseUp"
+            >
+            </canvas>
+            <template #overlay>
+              <SmartsheetGridCanvasContextCell
+                v-if="contextMenuTarget !== null || selectedRows.length || vSelectedAllRecords"
+                v-model:context-menu-target="contextMenuTarget"
+                v-model:selected-all-records="vSelectedAllRecords"
+                :total-rows="totalRows"
+                :selection="selection"
+                :columns="columns"
+                :cached-rows="cachedRows"
+                :active-cell="activeCell"
+                :action-manager="actionManager"
+                :clear-cell="clearCell"
+                :is-primary-key-available="isPrimaryKeyAvailable"
+                :is-selection-read-only="isSelectionReadOnly"
+                :is-selection-only-a-i="isSelectedOnlyAI"
+                :is-selection-only-script="isSelectedOnlyScript"
+                :is-insert-below-disabled="isInsertBelowDisabled"
+                :is-order-column-exists="isOrderColumnExists"
+                :delete-row="deleteRow"
+                :delete-range-of-rows="deleteRangeOfRows"
+                :delete-selected-rows="deleteSelectedRows"
+                :bulk-delete-all="bulkDeleteAll"
+                :call-add-new-row="callAddNewRow"
+                :copy-value="copyValue"
+                :bulk-update-rows="bulkUpdateRows"
+                :expand-form="expandForm"
+                :selected-rows="selectedRows"
+                :clear-selected-range-of-cells="clearSelectedRangeOfCells"
+                @click="isContextMenuOpen = false"
+                @bulk-update-dlg="emits('bulkUpdateDlg')"
+              />
+            </template>
+          </NcDropdown>
+          <div class="absolute pointer-events-none inset-0">
+            <div
+              v-if="editEnabled?.row"
+              :key="editEnabled?.rowIndex"
+              :style="{
               top: editEnabledCellPosition.top,
               left: editEnabledCellPosition.left,
               width: `${editEnabled.width}px`,
@@ -1656,38 +1675,40 @@ const increaseMinHeightBy: Record<string, number> = {
               borderRadius: '2px',
               willChange: 'top, left, width, height',
             }"
-            class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
-          >
-            <div class="px-[1px] pt-[2.5px]">
-              <SmartsheetRow :row="editEnabled.row">
-                <template #default="{ state }">
-                  <SmartsheetVirtualCell
-                    v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
-                    v-model="editEnabled.row.row[editEnabled.column.title]"
-                    :column="editEnabled.column"
-                    :row="editEnabled.row"
-                    active
-                    @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
-                    @navigate="onNavigate"
-                  />
-                  <SmartsheetCell
-                    v-else
-                    v-model="editEnabled.row.row[editEnabled.column.title]"
-                    :column="editEnabled.column"
-                    :row-index="editEnabled.rowIndex"
-                    active
-                    edit-enabled
-                    @save="updateOrSaveRow?.(...$event)"
-                    @save-with-state="updateOrSaveRow?.(...$event)"
-                    @navigate="onNavigate"
-                  />
-                </template>
-              </SmartsheetRow>
+              class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
+              :class="{ 'px-2.5': !noPadding, [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
+            >
+              <div class="px-[1px] pt-[2.5px]">
+                <SmartsheetRow :row="editEnabled.row">
+                  <template #default="{ state }">
+                    <SmartsheetVirtualCell
+                      v-if="isVirtualCol(editEnabled.column) && editEnabled.column.title"
+                      v-model="editEnabled.row.row[editEnabled.column.title]"
+                      :column="editEnabled.column"
+                      :row="editEnabled.row"
+                      active
+                      @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                      @navigate="onNavigate"
+                    />
+                    <SmartsheetCell
+                      v-else
+                      v-model="editEnabled.row.row[editEnabled.column.title]"
+                      :column="editEnabled.column"
+                      :row-index="editEnabled.rowIndex"
+                      active
+                      edit-enabled
+                      @save="updateOrSaveRow?.(...$event)"
+                      @save-with-state="updateOrSaveRow?.(...$event)"
+                      @navigate="onNavigate"
+                    />
+                  </template>
+                </SmartsheetRow>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Scroller>
+
       <template v-if="overlayStyle">
         <NcDropdown
           :trigger="['click']"

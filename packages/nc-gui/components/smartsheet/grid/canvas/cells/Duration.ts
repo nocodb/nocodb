@@ -38,22 +38,11 @@ export const DurationCellRenderer: CellRenderer = {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (/^[0-9]$/.test(e.key) && isTypableInputColumn(columnObj) && columnObj.title) {
-      const meta = typeof columnObj.meta === 'string' ? JSON.parse(columnObj.meta) : columnObj.meta
-      const durationType = meta?.duration || 0
-
-      const currentDisplay = convertMS2Duration(row.row[columnObj.title], durationType)
-
-      const newDisplayValue = currentDisplay ? `${currentDisplay}${e.key}` : e.key
-
-      const res = convertDurationToSeconds(newDisplayValue, durationType)
-
-      if (res._isValid) {
-        row.row[columnObj.title] = res._sec
-        makeCellEditable(row, column)
-        await updateOrSaveRow(row, columnObj.title)
-        return true
-      }
+    if (/^[0-9]$/.test(e.key) && columnObj.title) {
+      row.row[columnObj.title] = e.key
+      makeCellEditable(row, column)
+      await updateOrSaveRow(row, columnObj.title)
+      return true
     }
 
     return false

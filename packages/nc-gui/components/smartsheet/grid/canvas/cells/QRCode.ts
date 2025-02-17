@@ -1,5 +1,5 @@
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, row, tag = {} }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {} }) => {
     const { renderAsTag } = tag
     padding = 4
     if (!value || value === 'ERR!') {

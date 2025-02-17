@@ -42,8 +42,8 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (isTypableInputColumn(columnObj) && columnObj.title && e.key.length === 1) {
-      row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
+    if (e.key.length === 1 && columnObj.title) {
+      row.row[columnObj.title] = e.key
       makeCellEditable(row, column)
       updateOrSaveRow(row, columnObj.title)
       return true

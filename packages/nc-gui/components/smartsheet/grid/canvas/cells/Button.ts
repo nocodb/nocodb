@@ -330,7 +330,7 @@ export const ButtonCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition }) {
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 

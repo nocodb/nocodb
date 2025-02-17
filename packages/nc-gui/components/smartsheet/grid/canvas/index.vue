@@ -1670,7 +1670,15 @@ defineExpose({
     >
       <GeneralLoader size="regular" />
     </div>
-    <Scroller ref="scroller" class="relative sticky" :height="height" :width="width" @scroll="handleScroll">
+    <Scroller
+      ref="scroller"
+      class="relative sticky"
+      :scroll-height="totalHeight"
+      :scroll-width="totalWidth"
+      :height="height"
+      :width="width"
+      @scroll="handleScroll"
+    >
       <div
         class="sticky top-0 left-0"
         :style="{

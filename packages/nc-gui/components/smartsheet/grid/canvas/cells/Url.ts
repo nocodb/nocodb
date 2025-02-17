@@ -29,7 +29,7 @@ export const UrlCellRenderer: CellRenderer = {
         x: x + padding,
         y,
         text,
-        maxWidth: maxWidth,
+        maxWidth,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
         underline: isValid,

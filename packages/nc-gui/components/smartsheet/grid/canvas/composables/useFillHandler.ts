@@ -5,6 +5,7 @@ export function useFillHandler({
   rowHeight,
   getFillHandlerPosition,
   triggerReRender,
+  rowSlice,
 }: {
   selection: Ref<CellRange>
   canvasRef: Ref<HTMLCanvasElement>
@@ -12,6 +13,7 @@ export function useFillHandler({
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   triggerReRender: () => void
+  rowSlice: Ref<{ start: number; end: number }>
 }) {
   const fillStartCell = ref<{ row: number; col: number } | null>(null)
   const isFillEnded = ref(false)
@@ -52,9 +54,8 @@ export function useFillHandler({
 
     const y = e.clientY - rect.top
     const row = Math.floor((y - 32) / rowHeight.value)
-
     selection.value.endRange({
-      row,
+      row: row + rowSlice.value.start,
       col: fillStartCell.value.col,
     })
     triggerReRender()

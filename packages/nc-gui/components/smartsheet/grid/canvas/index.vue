@@ -634,7 +634,6 @@ async function handleMouseDown(e: MouseEvent) {
 
   const clickType = getMouseClickType(e)
   if (!clickType) return
-
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
@@ -790,7 +789,6 @@ const handleMouseUp = async (e: MouseEvent) => {
       return
     }
   }
-
   if (isRowReorderActive.value) return
 
   const clickType = getMouseClickType(e)
@@ -995,6 +993,7 @@ const handleMouseUp = async (e: MouseEvent) => {
   activeCell.value.row = rowIndex
   activeCell.value.column = colIndex
 
+
   if (res) {
     // If the cellClick performed an action, return
     // Set the cell as selected
@@ -1003,7 +1002,7 @@ const handleMouseUp = async (e: MouseEvent) => {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-
+  scrollToCell()
   requestAnimationFrame(triggerRefreshCanvas)
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
 

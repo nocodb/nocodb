@@ -35,7 +35,7 @@ provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 const tableRef = ref<typeof InfiniteTable>()
 
-useProvideViewAggregate(view, meta, xWhere)
+useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
 const {
   loadData,
@@ -328,6 +328,7 @@ const pGoToPreviousRow = () => {
       :update-or-save-row="updateOrSaveRow"
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"
@@ -338,7 +339,6 @@ const pGoToPreviousRow = () => {
       :data="cachedRows"
       :total-rows="totalRows"
       :sync-count="syncCount"
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
       :chunk-states="chunkStates"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"

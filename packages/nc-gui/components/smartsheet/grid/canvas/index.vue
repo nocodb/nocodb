@@ -181,7 +181,7 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
-function handleMouseDown(e: MouseEvent) {
+async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
   const rect = canvasRef.value?.getBoundingClientRect()
@@ -227,7 +227,6 @@ function handleMouseDown(e: MouseEvent) {
     if (clickedColumn) {
       clickedColumn.x = xOffset
       openAggregationField.value = clickedColumn
-      console.log(clickedColumn)
 
       return
     }
@@ -485,14 +484,14 @@ onMounted(async () => {
           :visible="true"
           :overlay-style="{
             top: `${height - 162}px`,
-            minWidth: `${openAggregationField?.width}px`,
-            width: `${openAggregationField?.width}px`,
-            left: `calc(100svh-${width}px+${openAggregationField?.x}px)`,
+            minWidth: `${openAggregationField?.width}`,
+            width: `${openAggregationField?.width}`,
+            left: `calc(100svw - ${width}px + ${openAggregationField?.x}px)`,
           }"
         >
           <div></div>
           <template #overlay>
-            <Aggregation :column="openAggregationField" />
+            <Aggregation v-model:column="openAggregationField" />
           </template>
         </NcDropdown>
       </template>

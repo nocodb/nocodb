@@ -400,30 +400,28 @@ export function useCanvasRender({
     return width
   }
 
-  const renderFillHandle = (ctx: CanvasRenderingContext2D, renderOverFixed = false) => {
+  const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
     if (selection.value.isEmpty() || editEnabled.value) return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
 
-    if (fillHandler.fixedCol && !renderOverFixed) return false
-
     let fixedWidth = 0
     for (const col of columns.value) {
-      if (!col.fixed) break
+      if (!col.fixed) continue
       fixedWidth += parseInt(col.width, 10)
     }
 
     const isInFixedColumn = fillHandler.x <= fixedWidth
-    if (isInFixedColumn) {
-      if (!renderOverFixed && !fillHandler.fixedCol) {
-        return true
-      }
+
+    // Don't render if the handle is in fixed column area but the column itself isn't fixed
+    if (isInFixedColumn && !fillHandler.fixedCol) {
+      return false
     }
 
     ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
     ctx.beginPath()
-    ctx.arc(fillHandler.x + (renderOverFixed ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
+    ctx.arc(fillHandler.x + (fillHandler.fixedCol ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
     ctx.fill()
 
     if (isFillMode.value) {
@@ -602,7 +600,6 @@ export function useCanvasRender({
     for (let i = 0; i < startColIndex; i++) {
       initialXOffset += parseInt(columns.value[i]!.width, 10)
     }
-    let fillHandlerRendered = false
 
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
@@ -683,8 +680,6 @@ export function useCanvasRender({
 
           renderActiveState(ctx, activeState)
           activeState = null
-
-          fillHandlerRendered = renderFillHandle(ctx)
 
           const fixedCols = columns.value.filter((col) => col.fixed)
           if (fixedCols.length) {
@@ -861,9 +856,7 @@ export function useCanvasRender({
         fontFamily: '600 12px Manrope',
       })
     }
-    if (!fillHandlerRendered) {
-      renderFillHandle(ctx, true)
-    }
+    renderFillHandle(ctx)
 
     return returnActiveState
   }

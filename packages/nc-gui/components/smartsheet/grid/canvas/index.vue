@@ -1108,6 +1108,10 @@ onBeforeUnmount(() => {
     @apply !pl-1 !pt-1.75;
   }
 
+  :deep(.nc-multi-select) {
+    @apply !h-auto;
+  }
+
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

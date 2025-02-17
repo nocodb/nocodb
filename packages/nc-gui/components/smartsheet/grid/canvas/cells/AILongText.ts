@@ -220,7 +220,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
     ) {
       makeCellEditable(row.rowMeta.rowIndex!, column)
-      return false
+      return true
     }
 
     if (!value || !value?.value) {

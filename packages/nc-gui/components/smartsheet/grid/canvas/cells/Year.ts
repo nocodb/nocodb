@@ -85,7 +85,7 @@ export const YearCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return
-    if (/^[0-9]$/.test(e.key)) {
+    if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true
     }

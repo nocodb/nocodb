@@ -384,6 +384,7 @@ interface FillHandlerPosition {
   x: number
   y: number
   size: number
+  fixedCol: boolean
 }
 
 export type {

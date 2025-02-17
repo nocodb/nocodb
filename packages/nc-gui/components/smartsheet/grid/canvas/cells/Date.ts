@@ -1,11 +1,13 @@
 import dayjs from 'dayjs'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
+const defaultDateFormat = 'YYYY-MM-DD'
+
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', selected, readonly } = props
 
-    const dateFormat = parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'
+    const dateFormat = parseProp(column?.meta)?.date_format ?? defaultDateFormat
     let formattedDate = ''
 
     if (!value && selected && !readonly) {
@@ -17,7 +19,7 @@ export const DateCellRenderer: CellRenderer = {
     }
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
+      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
       if (date.isValid()) {
         formattedDate = date.format(dateFormat)
       }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type TableType, type ViewType, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
-
+import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
   selectedAllRecords: boolean
   contextMenuTarget: { row: number; col: number } | null
@@ -21,6 +21,7 @@ const props = defineProps<{
     enabled: boolean
     disabled: boolean
   }
+  actionManager: ActionManager
   isInsertBelowDisabled: boolean
   isOrderColumnExists: boolean
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -53,7 +54,10 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 const totalRows = toRef(props, 'totalRows')
 const selection = toRef(props, 'selection')
 const cachedRows = toRef(props, 'cachedRows')
+const actionManager = toRef(props, 'actionManager')
 const columns = toRef(props, 'columns')
+const isSelectionOnlyAI = toRef(props, 'isSelectionOnlyAI')
+const isSelectionOnlyScript = toRef(props, 'isSelectionOnlyScript')
 const activeCell = toRef(props, 'activeCell')
 const isOrderColumnExists = toRef(props, 'isOrderColumnExists')
 
@@ -134,6 +138,36 @@ const commentRow = (rowId: number) => {
   } catch (e: any) {
     message.error(e.message)
   }
+}
+
+const generateAIBulk = async () => {
+  if (!isSelectionOnlyAI.value.enabled) return
+  const column = columns.value[selection.value.start.col]
+
+  const field = column?.columnObj
+
+  const cols = columns.value.map((v) => v.columnObj).filter(Boolean)
+
+  if (!field || !field.id) return
+
+  const rows = Array.from(cachedRows.value.values()).slice(selection.value.start.row, selection.value.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  const pks = rows
+    .map((row) => ({
+      pk: extractPkFromRow(row.row, cols!),
+      row,
+    }))
+    .filter((row) => row.pk !== null)
+
+  await actionManager.value.executeButtonAction(
+    pks.map((r) => r.pk),
+    column,
+    {
+      row: pks.map((r) => r.row),
+    },
+  )
 }
 </script>
 
@@ -223,6 +257,7 @@ const commentRow = (rowId: number) => {
         class="nc-base-menu-item"
         data-testid="context-menu-item-bulk"
         :disabled="isSelectionOnlyAI.disabled"
+        @click="generateAIBulk"
       >
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />

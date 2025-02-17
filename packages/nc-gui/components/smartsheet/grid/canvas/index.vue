@@ -292,6 +292,10 @@ const editEnabledCellPosition = computed(() => {
 const isClamped = computed(() => {
   if (!editEnabled.value || !containerRef.value) return false
 
+  if (editEnabled.value.column?.uidt === UITypes.LongText) {
+    return true
+  }
+
   const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value
   const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
   const verticalStuck = clampedTop !== rawTop

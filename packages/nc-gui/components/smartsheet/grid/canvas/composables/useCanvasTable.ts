@@ -740,11 +740,12 @@ export function useCanvasTable({
     return _generateRows(meta.value?.id, columnId, rowIds)
   }
 
-  function makeCellEditable(rowIndex: number, clickedColumn: CanvasGridColumn) {
+  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
     const column = metaColumnById.value[clickedColumn.id]
-    const row = cachedRows.value.get(rowIndex)
+    row = typeof row === 'number' ? cachedRows.value.get(row)! : row
+    const rowIndex = row.rowMeta.rowIndex
 
-    if (!row || !column) return null
+    if (!row || !column || !rowIndex) return null
 
     if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemColumn(column)) {
       return null
@@ -800,6 +801,7 @@ export function useCanvasTable({
       width: parseInt(clickedColumn.width, 10) + 2,
       fixed: clickedColumn.fixed,
     }
+    return true
   }
 
   function triggerRefreshCanvas() {

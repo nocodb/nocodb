@@ -451,7 +451,7 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
   }) => Promise<void>
   handleHover?: (options: {
     event: MouseEvent

@@ -316,10 +316,11 @@ const currentDate = ($event) => {
 }
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
   forcedNextTick(() => {
-    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value) {
+    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
       open.value = true
     }
   })

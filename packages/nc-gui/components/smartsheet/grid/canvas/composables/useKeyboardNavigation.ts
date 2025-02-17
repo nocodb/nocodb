@@ -71,7 +71,7 @@ export function useKeyboardNavigation({
     if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell()) {
       const column = columns.value[activeCell.value.column]
       const row = cachedRows.value.get(activeCell.value.row)
-      if (row && column?.columnObj) {
+      if (row && column?.columnObj && !editEnabled.value) {
         const value = row[column.columnObj.title]
         const pk = extractPkFromRow(row.row, meta.value?.columns)
         const res = await handleCellKeyDown({ e, column, row, pk, value })

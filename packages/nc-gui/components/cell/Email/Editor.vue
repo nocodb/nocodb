@@ -6,29 +6,24 @@ interface Props {
   modelValue: string | null | undefined
 }
 
-const { modelValue: value } = defineProps<Props>()
-
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
-
 const editEnabled = inject(EditModeInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
-
 const column = inject(ColumnInj)!
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
 const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
-// Used in the logic of when to display error since we are not storing the email if it's not valid
-const localState = ref(value)
+const localState = ref(props.modelValue)
+const inputRef = ref<HTMLInputElement>()
 
 const vModel = computed({
-  get: () => value,
+  get: () => props.modelValue,
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
@@ -37,12 +32,15 @@ const vModel = computed({
   },
 })
 
-const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
+  }
+}
 
 const onPaste = (e: ClipboardEvent) => {
   const pastedText = e.clipboardData?.getData('text') ?? ''
-
   if (parseProp(column.value.meta).validate) {
     vModel.value = extractEmail(pastedText) || pastedText
   } else {
@@ -62,12 +60,19 @@ onBeforeUnmount(() => {
     localState.value = undefined
     return
   }
-  localState.value = value
+  localState.value = props.modelValue
+})
+
+onMounted(() => {
+  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && !isUnderLookup.value) {
+    forcedNextTick(() => {
+      inputRef.value?.focus()
+    })
+  }
 })
 </script>
 
 <template>
-  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     :ref="focus"
     v-model="vModel"

@@ -64,7 +64,7 @@ const cellIcon = (column: ColumnType) =>
   })
 
 onMounted(() => {
-  if (isCanvasInjected && !isUnderLookup.value) {
+  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value) {
     modalVisible.value = true
   }
 })

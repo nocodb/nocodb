@@ -833,13 +833,15 @@ const getHeaderTooltipRegions = (
     text: string
   }[] = []
   let xOffset = initialOffset + 1
-
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseInt(column.width, 10)
     const rightPadding = 8
     const iconSpace = rightPadding + 16
 
+    let totalIconWidth = iconSpace
+
     if (column.uidt) {
+      totalIconWidth += 26
       regions.push({
         x: xOffset + 8 - scrollLeftValue,
         width: 13,
@@ -848,21 +850,28 @@ const getHeaderTooltipRegions = (
       })
     }
 
+    if (column.isInvalidColumn?.isInvalid) {
+      totalIconWidth += 18
+    }
+
+    if (column?.columnObj?.description?.length) {
+      totalIconWidth += 18
+    }
+
     const ctx = defaultOffscreen2DContext
-    const availableTextWidth = width - (26 + iconSpace)
+    const availableTextWidth = width - totalIconWidth
     const isTruncated = ctx.measureText(column.title!).width > availableTextWidth
+
     if (isTruncated) {
       regions.push({
-        x: xOffset + 26 - scrollLeftValue,
+        x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
         width: availableTextWidth,
         type: 'title',
         text: column.title!,
       })
     }
 
-    let rightOffset = xOffset + width - rightPadding
-
-    rightOffset -= 16
+    let rightOffset = xOffset + width - rightPadding - 16
 
     // Error icon region
     if (column.isInvalidColumn?.isInvalid) {
@@ -888,10 +897,12 @@ const getHeaderTooltipRegions = (
 
     xOffset += width
   })
+
   regions.forEach((region) => {
     region.y = 8
     region.height = region.width
   })
+
   return regions
 }
 
@@ -907,39 +918,46 @@ const handleMouseMove = (e: MouseEvent) => {
   hideTooltip()
 
   if (mousePosition.y < 32) {
-    let initialOffset = 0
-    for (let i = 0; i < colSlice.value.start; i++) {
-      initialOffset += parseInt(columns.value[i]!.width, 10)
-    }
-
-    const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)
-
-    const activeRegion = tooltipRegions.find(
-      (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
-    )
-
-    if (activeRegion) {
-      tryShowTooltip({
-        rect: activeRegion,
-        text: activeRegion.text,
-        mousePosition,
-      })
-    }
-
     const fixedCols = columns.value.filter((col) => col.fixed)
+    let isTooltipShown = false
+
     if (fixedCols.length) {
       const fixedRegions = getHeaderTooltipRegions(0, fixedCols.length, 0, 0)
-
       const activeFixedRegion = fixedRegions.find(
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (activeFixedRegion && activeRegion) {
+      if (activeFixedRegion) {
         tryShowTooltip({
           rect: activeFixedRegion,
           text: activeFixedRegion.text,
           mousePosition,
         })
+        isTooltipShown = true
+      }
+    }
+
+    if (!isTooltipShown) {
+      let initialOffset = 0
+      for (let i = 0; i < colSlice.value.start; i++) {
+        initialOffset += parseInt(columns.value[i]!.width, 10)
+      }
+
+      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+
+      if (mousePosition.x >= fixedWidth) {
+        const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)
+        const activeRegion = tooltipRegions.find(
+          (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
+        )
+
+        if (activeRegion) {
+          tryShowTooltip({
+            rect: activeRegion,
+            text: activeRegion.text,
+            mousePosition,
+          })
+        }
       }
     }
   }

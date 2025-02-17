@@ -81,7 +81,6 @@ export const JsonCellRenderer: CellRenderer = {
     return false
   },
   async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
-    if (column.readonly) return
     const rowIndex = row?.rowMeta?.rowIndex
     if (typeof rowIndex !== 'number') return false
     const { x, y, width } = getCellPosition(column, rowIndex)

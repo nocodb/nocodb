@@ -215,7 +215,6 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
     if (e.key === 'Enter') {
-      // TODO: Add additional props to makeCellEditable to injectDown to CellEditor
       makeCellEditable(row.rowMeta?.rowIndex, column)
       return true
     }

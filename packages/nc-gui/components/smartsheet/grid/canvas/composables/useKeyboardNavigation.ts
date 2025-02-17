@@ -173,7 +173,7 @@ export function useKeyboardNavigation({
         return
 
       case 'ArrowUp':
-        if (!editEnabled.value && currentRow > 0) {
+        if (currentRow > 0) {
           e.preventDefault()
           activeCell.value.row = moveToExtreme ? 0 : currentRow - 1
           onActiveCellChanged()
@@ -182,7 +182,7 @@ export function useKeyboardNavigation({
         break
 
       case 'ArrowDown':
-        if (!editEnabled.value && currentRow < lastRow) {
+        if (currentRow < lastRow) {
           e.preventDefault()
           activeCell.value.row = moveToExtreme ? lastRow : currentRow + 1
           onActiveCellChanged()
@@ -191,7 +191,7 @@ export function useKeyboardNavigation({
         break
 
       case 'ArrowLeft':
-        if (!editEnabled.value && currentCol > MIN_COLUMN_INDEX) {
+        if (currentCol > MIN_COLUMN_INDEX) {
           e.preventDefault()
           activeCell.value.column = moveToExtreme ? MIN_COLUMN_INDEX : currentCol - 1
           moved = true
@@ -199,7 +199,7 @@ export function useKeyboardNavigation({
         break
 
       case 'ArrowRight':
-        if (!editEnabled.value && currentCol < lastCol) {
+        if (currentCol < lastCol) {
           e.preventDefault()
           activeCell.value.column = moveToExtreme ? lastCol : currentCol + 1
           moved = true
@@ -208,39 +208,39 @@ export function useKeyboardNavigation({
 
       case 'Tab': {
         let isAdded = false
-        if (!editEnabled.value) {
-          e.preventDefault()
-          if (!e.shiftKey && currentRow === lastRow && currentCol === lastCol) {
-            if (isAddingEmptyRowAllowed.value) {
-              addEmptyRow()
-              isAdded = true
-            }
-          } else if (e.shiftKey && currentRow === 0 && currentCol === MIN_COLUMN_INDEX) {
-            return
+        e.preventDefault()
+        if (!e.shiftKey && currentRow === lastRow && currentCol === lastCol) {
+          if (isAddingEmptyRowAllowed.value) {
+            addEmptyRow()
+            isAdded = true
           }
-
-          if (e.shiftKey) {
-            if (currentCol > MIN_COLUMN_INDEX) {
-              activeCell.value.column--
-            } else if (currentRow > 0) {
-              activeCell.value.row--
-              activeCell.value.column = lastCol
-            }
-          } else {
-            if (currentCol < lastCol) {
-              activeCell.value.column++
-            } else if (currentRow < (isAdded ? lastRow + 1 : lastRow)) {
-              activeCell.value.row++
-              activeCell.value.column = MIN_COLUMN_INDEX
-            }
-          }
-          moved = true
+        } else if (e.shiftKey && currentRow === 0 && currentCol === MIN_COLUMN_INDEX) {
+          return
         }
+
+        if (e.shiftKey) {
+          if (currentCol > MIN_COLUMN_INDEX) {
+            activeCell.value.column--
+          } else if (currentRow > 0) {
+            activeCell.value.row--
+            activeCell.value.column = lastCol
+          }
+        } else {
+          if (currentCol < lastCol) {
+            activeCell.value.column++
+          } else if (currentRow < (isAdded ? lastRow + 1 : lastRow)) {
+            activeCell.value.row++
+            activeCell.value.column = MIN_COLUMN_INDEX
+          }
+        }
+        moved = true
+
         break
       }
     }
 
     if (moved) {
+      editEnabled.value = null
       if (e.shiftKey && e.key !== 'Tab') {
         const newEnd = { row: activeCell.value.row, col: activeCell.value.column }
         const maxRow = Math.max(selection.value._start?.row ?? 0, newEnd.row)

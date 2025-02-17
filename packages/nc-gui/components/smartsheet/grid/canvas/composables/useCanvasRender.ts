@@ -634,7 +634,7 @@ export function useCanvasRender({
             }
 
             if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-              ctx.fillStyle = '#EBF0FF'
+              ctx.fillStyle = '#F6F7FE'
               ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
             }
 
@@ -695,7 +695,7 @@ export function useCanvasRender({
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
               if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-                ctx.fillStyle = '#EBF0FF'
+                ctx.fillStyle = '#F6F7FE'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               } else {
                 ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'

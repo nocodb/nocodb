@@ -333,7 +333,12 @@ export const wrapTextToLines = (
 
     // Check if the line ends in the middle of a word
     const lastSpaceIndex = line.lastIndexOf(' ')
-    if (lastSpaceIndex !== -1 && remainingText[line.length] !== ' ' && lines.length < maxLines - 1) {
+    if (
+      lastSpaceIndex !== -1 && // There is at least one space in the line
+      remainingText[line.length] !== ' ' && // The line ends mid-word
+      remainingText.length > line.length && // There is more text left
+      lines.length < maxLines - 1 // We are not on the last line
+    ) {
       // If the line ends mid-word, break at the last space
       line = line.slice(0, lastSpaceIndex)
       width = ctx.measureText(line).width

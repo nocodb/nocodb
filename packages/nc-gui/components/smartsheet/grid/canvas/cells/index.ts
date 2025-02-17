@@ -19,6 +19,8 @@ import { GeoDataCellRenderer } from './GeoData'
 import { PhoneNumberCellRenderer } from './PhoneNumber'
 import { DurationCellRenderer } from './Duration'
 import { JsonCellRenderer } from './Json'
+import { BarcodeCellRenderer } from './Barcode'
+import { QRCodeCellRenderer } from './QRCode'
 export function useCellRenderer() {
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -42,6 +44,8 @@ export function useCellRenderer() {
   cellTypesRegistry.set(UITypes.CreatedTime, DateTimeCellRenderer)
   cellTypesRegistry.set(UITypes.LastModifiedTime, DateTimeCellRenderer)
   cellTypesRegistry.set(UITypes.JSON, JsonCellRenderer)
+  cellTypesRegistry.set(UITypes.Barcode, BarcodeCellRenderer)
+  cellTypesRegistry.set(UITypes.QrCode, QRCodeCellRenderer)
 
   const renderCell = (
     ctx: CanvasRenderingContext2D,

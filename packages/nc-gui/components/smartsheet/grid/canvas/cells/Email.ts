@@ -24,7 +24,7 @@ export const EmailCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: (isValidEmail && selected) || pv ? '#4351e8' : textColor,
+        fillStyle: (isValidEmail && selected) || pv ? '#3366FF' : textColor,
         underline: isValidEmail,
         height,
       })
@@ -37,6 +37,7 @@ export const EmailCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return
     const columnObj = column.columnObj
 
     if (columnObj.title && e.key.length === 1) {

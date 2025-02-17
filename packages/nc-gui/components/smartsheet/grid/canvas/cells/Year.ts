@@ -38,7 +38,7 @@ export const YearCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: selected || pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -49,7 +49,8 @@ export const YearCellRenderer: CellRenderer = {
     }
   },
   async handleClick(ctx) {
-    const { row, column, makeCellEditable, getCellPosition, mousePosition, value } = ctx
+    const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
+    if (!selected) return false
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
 

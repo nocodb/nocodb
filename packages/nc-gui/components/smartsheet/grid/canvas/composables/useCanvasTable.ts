@@ -231,7 +231,12 @@ export function useCanvasTable({
           uidt: f.uidt,
           width: gridViewCol.width,
           fixed: f.pv,
-          readonly: isSystemColumn(f) || isCreatedOrLastModifiedByCol(f) || isCreatedOrLastModifiedTimeCol(f),
+          readonly:
+            isSystemColumn(f) ||
+            isCreatedOrLastModifiedByCol(f) ||
+            isCreatedOrLastModifiedTimeCol(f) ||
+            !isAddingEmptyRowAllowed.value ||
+            isDataReadOnly.value,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -442,7 +447,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     makeCellEditable,
     meta,
-    totalWidth,
+    hasEditPermission: isAddingEmptyRowAllowed,
   })
 
   const { canvasRef, renderCanvas } = useCanvasRender({

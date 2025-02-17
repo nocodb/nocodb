@@ -44,7 +44,7 @@ export const CurrencyRenderer: CellRenderer = {
         text: formattedValue,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-        fillStyle: pv ? '#4351e8' : textColor,
+        fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
@@ -56,6 +56,7 @@ export const CurrencyRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, makeCellEditable } = ctx
+    if (column.readonly) return false
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key) && columnObj.title) {

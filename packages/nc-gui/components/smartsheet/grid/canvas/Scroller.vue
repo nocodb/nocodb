@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-defineProps({
+const props = defineProps({
   width: {
     type: Number,
     required: true,
@@ -8,9 +8,25 @@ defineProps({
     type: Number,
     required: true,
   },
+  scrollWidth: {
+    type: Number,
+    default: 0,
+  },
+  scrollHeight: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const emit = defineEmits(['scroll'])
+
+const scrollWidth = toRef(props, 'scrollWidth')
+
+const scrollHeight = toRef(props, 'scrollHeight')
+
+const height = toRef(props, 'height')
+
+const width = toRef(props, 'width')
 
 const wrapperRef = ref()
 const contentWrapper = ref()
@@ -22,7 +38,7 @@ const scrollLeft = ref(0)
 const isDragging = ref(false)
 const dragStartPosition = ref(0)
 const dragStartScroll = ref(0)
-const currentDragAxis = ref(null)
+const currentDragAxis = ref<'vertical' | 'horizontal' | null>(null)
 const lastTouchY = ref(0)
 const lastTouchX = ref(0)
 
@@ -42,44 +58,36 @@ const showScrollbars = () => {
 }
 
 const showVerticalScrollbar = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return false
-  return contentWrapper.value.scrollHeight > wrapperRef.value.clientHeight
+  return scrollHeight.value > height.value
 })
 
 const showHorizontalScrollbar = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return false
-  return contentWrapper.value.scrollWidth > wrapperRef.value.clientWidth
+  return scrollWidth.value > width.value
 })
 
 const verticalThumbHeight = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return 100
-  const ratio = wrapperRef.value.clientHeight / contentWrapper.value.scrollHeight
+  const ratio = height.value / scrollHeight.value
   return Math.max(ratio * 100, 10)
 })
 
 const horizontalThumbWidth = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return 100
-  const ratio = wrapperRef.value.clientWidth / contentWrapper.value.scrollWidth
+  const ratio = width.value / scrollWidth.value
   return Math.max(ratio * 100, 10)
 })
 
 const verticalThumbPosition = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return 0
-  const availableSpace =
-    wrapperRef.value.clientHeight - 72 - ((wrapperRef.value.clientHeight - 72) * verticalThumbHeight.value) / 100
-  const scrollRatio = scrollTop.value / (contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight)
+  const availableSpace = height.value - 72 - ((height.value - 72) * verticalThumbHeight.value) / 100
+  const scrollRatio = scrollTop.value / (scrollHeight.value - height.value)
   return scrollRatio * availableSpace
 })
 
 const horizontalThumbPosition = computed(() => {
-  if (!contentWrapper.value || !wrapperRef.value) return 0
-  const availableSpace =
-    wrapperRef.value.clientWidth - 12 - ((wrapperRef.value.clientWidth - 12) * horizontalThumbWidth.value) / 100
-  const scrollRatio = scrollLeft.value / (contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth)
+  const availableSpace = width.value - 12 - ((width.value - 12) * horizontalThumbWidth.value) / 100
+  const scrollRatio = scrollLeft.value / (scrollWidth.value - width.value)
   return scrollRatio * availableSpace
 })
 
-const updateScroll = (vertical, horizontal) => {
+const updateScroll = (vertical?: number, horizontal?: number) => {
   if (!contentWrapper.value) return
 
   if (vertical !== undefined) {
@@ -100,12 +108,12 @@ const updateScroll = (vertical, horizontal) => {
   })
 }
 
-const handleWheel = (e) => {
+const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
   updateScroll(scrollTop.value + e.deltaY, scrollLeft.value + e.deltaX)
 }
 
-const startDragging = (axis, event) => {
+const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
@@ -146,7 +154,7 @@ function stopDragging() {
   document.removeEventListener('mouseup', stopDragging)
 }
 
-const handleTrackClick = (axis, event) => {
+const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
   if (event.target === (axis === 'vertical' ? verticalScrollbar.value : horizontalScrollbar.value)) return
 
   const rect = event.currentTarget.getBoundingClientRect()

@@ -36,7 +36,7 @@ export function useColumnResize(
   }
 
   const resizeableColumn = computed(() => {
-    if (!mousePosition.value || mousePosition.value.y > 32) {
+    if (!mousePosition.value) {
       if (!isResizing.value) document.body.style.cursor = 'default'
       return null
     }

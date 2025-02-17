@@ -104,7 +104,7 @@ export const LookupCellRenderer: CellRenderer = {
     let count = 1
 
     const handleRenderEllipsis = () => {
-      if (x == _x) return
+      if (x === _x) return
 
       renderSingleLineText(ctx, {
         x: x + padding,

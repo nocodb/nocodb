@@ -1,4 +1,4 @@
-import type { TableType } from 'nocodb-sdk'
+import type { ButtonType, TableType } from 'nocodb-sdk'
 
 export class ActionManager {
   private api: ReturnType<typeof createApiInstance>
@@ -122,7 +122,7 @@ export class ActionManager {
       isAiPromptCol?: boolean
     },
   ) {
-    const colOptions = column?.columnObj.colOptions
+    const colOptions = column?.columnObj.colOptions as ButtonType
     if (!colOptions) return
 
     if (column.isInvalidColumn?.isInvalid) {

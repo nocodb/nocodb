@@ -33,6 +33,8 @@ export const clearTextCache = () => {
   singleLineTextCache.clear()
   multiLineTextCache.clear()
   abstractTypeCache.clear()
+  markdownTextCache.clear()
+  barcodeCache.clear()
 }
 
 interface TruncateTextWithInfoType {
@@ -408,7 +410,7 @@ export const wrapTextToLines = (
 }
 
 const renderLines = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   {
     lines,
     x,
@@ -442,7 +444,7 @@ const renderLines = (
 }
 
 export const renderMarkdownBlocks = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   {
     blocks,
     x,

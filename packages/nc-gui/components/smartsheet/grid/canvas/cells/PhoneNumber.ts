@@ -42,7 +42,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     const columnObj = column.columnObj
 
-    if (e.key.length === 1) {
+    if (e.key.length === 1 && columnObj.title) {
       row.row[columnObj.title] = ''
       makeCellEditable(row, column)
       return true
@@ -62,9 +62,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     if (!isValid) return false
 
     const pv = column.pv
-    const ctx = defaultOffscreen2DContext
-
-    const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+    const { x: xOffset, y: yOffset } = renderMultiLineText(defaultOffscreen2DContext, {
       x: x + padding,
       y,
       text,

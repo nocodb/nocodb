@@ -1,3 +1,4 @@
+import type { ButtonType } from 'nocodb-sdk'
 import { getI18n } from '../../../../../plugins/a.i18n'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../utils/canvas'
 
@@ -239,7 +240,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
 
-    const colOptions = column.colOptions
+    const colOptions = column.colOptions as ButtonType
     if (!colOptions) return
 
     const buttonMeta = {
@@ -333,12 +334,16 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
+    const colOptions = column?.columnObj?.colOptions as ButtonType
+
+    if (!colOptions) return false
+
     const buttonMeta = {
-      label: column.columnObj.colOptions?.label || '',
-      icon: column.columnObj.colOptions?.icon,
-      theme: column.columnObj.colOptions?.theme || 'solid',
-      color: column.columnObj.colOptions?.color || 'brand',
-      type: column.columnObj.colOptions?.type,
+      label: colOptions?.label || '',
+      icon: colOptions?.icon,
+      theme: colOptions?.theme || 'solid',
+      color: colOptions?.color || 'brand',
+      type: colOptions?.type,
     }
 
     const hasIcon = !!buttonMeta.icon
@@ -377,7 +382,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y >= startY &&
       mousePosition.y <= startY + buttonHeight
 
-    if (!isHovered) return
+    if (!isHovered) return false
 
     await actionManager.executeButtonAction([pk], column, { row: [row] })
     return true
@@ -396,12 +401,16 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const { aiIntegrations } = useNocoAi()
 
+    const colOptions = column.columnObj?.colOptions as ButtonType
+
+    if (!colOptions) return
+
     const buttonMeta = {
-      label: column.columnObj.colOptions?.label || '',
-      icon: column.columnObj.colOptions?.icon,
-      theme: column.columnObj.colOptions?.theme || 'solid',
-      color: column.columnObj.colOptions?.color || 'brand',
-      type: column.columnObj.colOptions?.type,
+      label: colOptions?.label || '',
+      icon: colOptions?.icon,
+      theme: colOptions?.theme || 'solid',
+      color: colOptions?.color || 'brand',
+      type: colOptions?.type,
     }
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label

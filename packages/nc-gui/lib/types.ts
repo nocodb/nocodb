@@ -523,6 +523,7 @@ interface CanvasGridColumn {
     extra?: any | never
   }
   readonly: boolean
+  isCellEditable?: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string

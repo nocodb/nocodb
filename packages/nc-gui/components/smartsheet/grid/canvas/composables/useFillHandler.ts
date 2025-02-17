@@ -45,7 +45,7 @@ export function useFillHandler({
 
   const { appInfo } = useGlobal()
 
-  const fillStartCell = ref<{ row: number; col: number } | null>(null)
+  const fillStartRange = ref<CellRange | null>(null)
 
   const isFillEnded = ref(false)
 
@@ -58,11 +58,11 @@ export function useFillHandler({
       return map
     }
 
-    if (isFillMode.value && fillStartCell.value) {
-      const startRow = Math.min(fillStartCell.value.row, selection.value._start.row)
-      const endRow = Math.max(fillStartCell.value.row, selection.value._start.row)
-      const startCol = Math.min(fillStartCell.value.col, selection.value._start.col)
-      const endCol = Math.max(fillStartCell.value.col, selection.value._start.col)
+    if (isFillMode.value && fillStartRange.value) {
+      const startRow = Math.min(fillStartRange.value.start.row, selection.value._start.row)
+      const endRow = Math.max(fillStartRange.value.end.row, selection.value._start.row)
+      const startCol = Math.min(fillStartRange.value.start.col, selection.value._start.col)
+      const endCol = Math.max(fillStartRange.value.end.col, selection.value._start.col)
 
       for (let row = startRow; row <= endRow; row++) {
         for (let col = startCol; col <= endCol; col++) {
@@ -106,10 +106,18 @@ export function useFillHandler({
           col: activeCell.value.column,
         })
       }
-      fillStartCell.value = {
-        row: activeCell.value.row,
-        col: activeCell.value.column,
-      }
+
+      fillStartRange.value = new CellRange()
+
+      fillStartRange.value.startRange({
+        row: selection.value.start.row,
+        col: selection.value.start.col,
+      })
+
+      fillStartRange.value.endRange({
+        row: selection.value.end.row,
+        col: selection.value.end.col,
+      })
     }
 
     triggerReRender()
@@ -126,7 +134,7 @@ export function useFillHandler({
 
     selection.value.endRange({
       row: row + rowSlice.value.start,
-      col: selection.value.end.col ?? fillStartCell.value?.col,
+      col: selection.value.end.col ?? fillStartRange.value?.end.col,
     })
 
     triggerReRender()
@@ -137,17 +145,17 @@ export function useFillHandler({
       isFillEnded.value = true
       const localAiMode = Boolean(isAiFillMode.value)
 
-      if (fillStartCell.value === null) return
+      if (fillStartRange.value === null) return
 
       if (selection.value._start !== null && selection.value._end !== null) {
         const tempActiveCell = { row: selection.value._start.row, col: selection.value._start.col }
 
         const cprows = Array.from(unref(cachedRows) as Map<number, Row>)
           .filter(([index]) => {
-            if (fillStartCell.value) {
+            if (fillStartRange.value) {
               // Use the original selection area bounds
-              const startRow = Math.min(fillStartCell.value.row, selection.value._start!.row)
-              const endRow = Math.max(fillStartCell.value.row, selection.value._start!.row)
+              const startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
+              const endRow = Math.max(fillStartRange.value.end.row, selection.value._start!.row)
               return index >= startRow && index <= endRow
             } else {
               // Normal selection behavior
@@ -166,7 +174,7 @@ export function useFillHandler({
           meta: unref(meta),
         }).json
 
-        const fillDirection = fillStartCell.value.row <= selection.value._end.row ? 1 : -1
+        const fillDirection = selection.value._start.row <= selection.value._end.row ? 1 : -1
 
         let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 
@@ -304,13 +312,13 @@ export function useFillHandler({
               bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
                 activeCell.value.column = tempActiveCell.col
                 activeCell.value.row = tempActiveCell.row
-                fillStartCell.value = null
+                fillStartRange.value = null
                 isFillMode.value = false
               })
             })
             .catch((_e) => {
               selection.value.clear()
-              fillStartCell.value = null
+              fillStartRange.value = null
               isFillMode.value = false
             })
           return
@@ -319,11 +327,11 @@ export function useFillHandler({
         bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
           activeCell.value.column = tempActiveCell.col
           activeCell.value.row = tempActiveCell.row
-          fillStartCell.value = null
+          fillStartRange.value = null
           isFillMode.value = false
         })
       } else {
-        fillStartCell.value = null
+        fillStartRange.value = null
         isFillMode.value = false
       }
     }

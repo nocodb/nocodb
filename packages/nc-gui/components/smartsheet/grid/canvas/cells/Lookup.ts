@@ -51,7 +51,7 @@ export const LookupCellRenderer: CellRenderer = {
       isUnderLookup: true,
       readonly: true,
       value: arrValue,
-      height: isAttachment(lookupColumn) ? props.height : rowHeightInPx['1']!,
+      height: rowHeightInPx['1']!,
       padding: 10,
       tag: {
         renderAsTag: true,
@@ -101,7 +101,7 @@ export const LookupCellRenderer: CellRenderer = {
         renderCell(ctx, lookupColumn, renderProps)
       }
     } else {
-      if (isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object') {
+      if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {
         renderCell(ctx, lookupColumn, {
           ...renderProps,
           tag: {

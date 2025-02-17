@@ -518,13 +518,11 @@ function extractHoverMetaColRegions(row: Row) {
   }
 
   // Comment/maximize icon region
-  if (!isLocked.value) {
-    regions.push({
-      x: currentX,
-      width: row.rowMeta?.commentCount ? 24 : 14,
-      action: 'comment',
-    })
-  }
+  regions.push({
+    x: currentX,
+    width: row.rowMeta?.commentCount ? 24 : 14,
+    action: 'comment',
+  })
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 

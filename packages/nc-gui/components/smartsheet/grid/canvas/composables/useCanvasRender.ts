@@ -644,8 +644,9 @@ export function useCanvasRender({
         ctx.fillStyle = '#6B7280'
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'left'
+        const len = ctx.measureText(totalRows.value.toString()).width
         ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
-        currentX += 24
+        currentX += Math.max(24, len + 16)
       } else {
         // add 6px padding to the left of the row meta column if the row number is not rendered
         currentX += 6
@@ -712,7 +713,7 @@ export function useCanvasRender({
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(commentCount, x + bubbleWidth / 2, y + bubbleHeight / 2)
-    } else if (isHover && !isLocked.value) {
+    } else if (isHover) {
       const box = { x: currentX, y: yOffset + (rowHeight.value - 14) / 2, height: 14, width: 14 }
       if (!isBoxHovered(box, mousePosition)) {
         spriteLoader.renderIcon(ctx, {

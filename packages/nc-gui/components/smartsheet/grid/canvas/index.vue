@@ -446,7 +446,6 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
   const regions = []
   let currentX = 4
   let isCheckboxRendered = false
-
   if (isChecked || (selectedRows.value.length && isHover)) {
     if (isChecked || isHover) {
       regions.push({
@@ -475,7 +474,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
     }
   }
 
-  if (isHover && !isCheckboxRendered) {
+  if (isHover && !isCheckboxRendered && !isPublicView.value) {
     regions.push({
       x: currentX,
       width: 24,
@@ -521,7 +520,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 }
 
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -558,7 +557,7 @@ const getRowMetaCursor = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x:
     }
   }
 
-  if (isHover && !isCheckboxRendered) {
+  if (isHover && !isCheckboxRendered && !isPublicView.value) {
     regions.push({
       x: currentX,
       width: 24,
@@ -577,14 +576,11 @@ const getRowMetaCursor = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x:
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
   if (!clickedRegion) return
-
-  if (onlyDrag && clickedRegion.action !== 'reorder') return
-
   switch (clickedRegion.action) {
     case 'select':
       return 'pointer'
     case 'reorder':
-      if (e.detail === 1 && isRowReOrderEnabled.value) {
+      if (isRowReOrderEnabled.value) {
         return 'pointer'
       }
       break
@@ -1246,9 +1242,16 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   // check if hovering row meta column and set cursor
-  // if (mousePosition.x < 80) {
-  //   // cursor = getRowMetaCursor({ e, row, x, onlyDrag: true }) || cursor
-  // }
+  if (mousePosition.x < 80) {
+    // skip if hovering on the aggregation dropdown
+    if (mousePosition.y > height.value - 36) {
+      cursor = 'pointer'
+    } else {
+      const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+      const row = cachedRows.value.get(rowIndex)
+      cursor = getRowMetaCursor({ row, x: mousePosition.x }) || cursor
+    }
+  }
 
   if (cursor) setCursor(cursor)
 }

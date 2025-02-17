@@ -175,6 +175,7 @@ export const renderSingleLineText = (
     verticalAlign = 'middle',
     render = true,
     underline,
+    py = 10,
   } = params
   let { maxWidth = Infinity } = params
 
@@ -204,7 +205,12 @@ export const renderSingleLineText = (
   }
 
   if (render) {
-    const yOffset = verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2) : 0
+    const yOffset =
+      verticalAlign === 'middle'
+        ? height && rowHeightInPx['1'] === height
+          ? height / 2
+          : fontSize / 2 + (py ?? 0)
+        : 0 + (py ?? 0)
 
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
@@ -218,8 +224,8 @@ export const renderSingleLineText = (
 
     if (underline) {
       ctx.beginPath()
-      ctx.moveTo(x, y + fontSize)
-      ctx.lineTo(x + width, y + fontSize)
+      ctx.moveTo(x, y + yOffset + fontSize / 2)
+      ctx.lineTo(x + width, y + yOffset + fontSize / 2)
 
       if (fillStyle) {
         ctx.strokeStyle = fillStyle

@@ -82,118 +82,115 @@ export const LookupCellRenderer: CellRenderer = {
     let flag = false
     let count = 1
 
-    // Todo: handle x and y value if we are rendering multiple chips also we have to wrap each cell in chip
+    const handleRenderEllipsis = () => {
+      renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text: '...',
+        maxWidth: ellipsisWidth,
+        textAlign: 'right',
+        verticalAlign: 'middle',
+        fontFamily: '500 13px Manrope',
+        fillStyle: '#666',
+        height,
+      })
+    }
+
+    const handleRenderVirtualCol = () => {
+      for (const v of arrValue) {
+        const point = lookupRenderer({
+          ...renderProps,
+          value: v,
+          x,
+          y,
+          width,
+          tag: { ...renderProps.tag, renderAsTag: false },
+        })
+
+        if (point?.x) {
+          if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
+            if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+              flag = true
+              break
+            }
+
+            x = _x
+            width = _width - ellipsisWidth
+            y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
+            line += 1
+          } else {
+            width = x + width - (point?.x - 2 * 4) - padding * 2 - ellipsisWidth
+            x = point?.x
+          }
+        } else {
+          if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+            break
+          }
+
+          x = _x
+          y += 24
+          width = _width
+          line += 1
+        }
+        count += 1
+      }
+
+      if (flag && count < arrValue.length) {
+        handleRenderEllipsis()
+      }
+    }
+
+    const handleRenderDefault = () => {
+      for (const v of arrValue) {
+        const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
+
+        if (point?.x && !point?.nextLine) {
+          if (point?.x >= _x + _width - padding * 2 - 50) {
+            x = _x
+            width = _width
+            y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
+            line += 1
+            if (renderOnly1Row.includes(lookupColumn.uidt)) break
+          } else {
+            width = _x + _width - (point?.x - 2 * 4) - padding * 2
+            x = point?.x
+          }
+        } else {
+          x = _x
+          y += 24
+          width = _width
+          line += 1
+          if (renderOnly1Row.includes(lookupColumn.uidt)) break
+        }
+
+        if (line > maxLines) {
+          break
+        }
+        count++
+      }
+    }
+
     if (isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup) {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
           [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions?.type))
       ) {
-        for (const v of arrValue) {
-          const point = lookupRenderer({
-            ...renderProps,
-            value: v,
-            x,
-            y,
-            width,
-            tag: {
-              ...renderProps.tag,
-              renderAsTag: false,
-            },
-          })
-
-          if (point?.x) {
-            if (point?.x >= _x + _width - padding * 2 - (count < arrValue.length ? 50 - ellipsisWidth : 0)) {
-              if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
-                x = point?.x
-                flag = true
-                break
-              }
-
-              x = _x
-              width = _width - ellipsisWidth
-              y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
-              line += 1
-            } else {
-              width = x + width - (point?.x - 2 * 4) - padding * 2 - ellipsisWidth
-              x = point?.x
-            }
-          } else {
-            if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
-              break
-            }
-
-            x = _x
-            y = y + 24
-
-            width = _width
-            line += 1
-          }
-          count += 1
-        }
-        if (flag && count < arrValue.length) {
-          renderSingleLineText(ctx, {
-            x: x + padding,
-            y,
-            text: '...',
-            maxWidth: ellipsisWidth,
-            textAlign: 'right',
-            verticalAlign: 'middle',
-            fontFamily: '500 13px Manrope',
-            fillStyle: '#666',
-            height,
-          })
-        }
+        handleRenderVirtualCol()
       } else {
         lookupRenderer({
           ...renderProps,
-          tag: {
-            ...renderProps.tag,
-            renderAsTag: false,
-          },
+          tag: { ...renderProps.tag, renderAsTag: false },
         })
       }
     } else {
       if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {
         renderCell(ctx, lookupColumn, {
           ...renderProps,
-          tag: {
-            ...renderProps.tag,
-            renderAsTag: false,
-          },
+          tag: { ...renderProps.tag, renderAsTag: false },
         })
       } else {
-        for (const v of arrValue) {
-          const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
-
-          if (point?.x && !point?.nextLine) {
-            if (point?.x >= _x + _width - padding * 2 - 50) {
-              x = _x
-              width = _width
-
-              y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
-              line += 1
-              if (renderOnly1Row.includes(lookupColumn.uidt)) break
-            } else {
-              width = _x + _width - (point?.x - 2 * 4) - padding * 2
-
-              x = point?.x
-            }
-          } else {
-            x = _x
-            y = y + 24
-
-            width = _width
-            line += 1
-            if (renderOnly1Row.includes(lookupColumn.uidt)) break
-          }
-
-          if (line > maxLines) {
-            break
-          }
-
-          count++
-        }
+        handleRenderDefault()
       }
     }
   },

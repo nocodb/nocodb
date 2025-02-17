@@ -1,12 +1,13 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
+import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 const ellipsisWidth = 15
 
 export const ManyToManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, padding } = props
+    const { value, x, y, width, height, spriteLoader, mousePosition, relatedTableMeta, padding, renderCell } = props
 
     const relatedTableDisplayValueProp =
       (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
@@ -27,8 +28,6 @@ export const ManyToManyCellRenderer: CellRenderer = {
       return acc
     }, []) as { value: any; items: Record<string, any> }[]
 
-    // Todo: Handle non select type, attachment, checkbox, lookup cell render
-
     const initialX = x + 4
     const initialWidth = width - 8
 
@@ -42,7 +41,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       relatedColObj: undefined,
       relatedTableMeta: undefined,
       readonly: true,
-      height: isAttachment(m2mColumn) ? props.height : rowHeightInPx['1']!,
+      height: rowHeightInPx['1']!,
       padding: 10,
       textColor: themeV3Colors.brand['500'],
       tag: {
@@ -53,13 +52,19 @@ export const ManyToManyCellRenderer: CellRenderer = {
       meta: relatedTableMeta,
     }
 
+    const cellRenderer = (options: CellRendererOptions) => {
+      return renderAsCellLookupOrLtarValue.includes(m2mColumn.uidt)
+        ? renderCell(ctx, m2mColumn, options)
+        : PlainCellRenderer.render(ctx, options)
+    }
+
     const maxLines = rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
     const count = 1
 
     for (const cell of cells) {
-      const point = PlainCellRenderer.render(ctx, {
+      const point = cellRenderer({
         ...renderProps,
         value: cell.value,
         x: currentX,
@@ -77,7 +82,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
           currentX = initialX
           currentWidth = initialWidth
-          currentY = point?.y ? point?.y : currentY + 28
+          currentY = point?.y && y !== point?.y && point?.y - y >= 28 ? point?.y : currentY + 28
           line += 1
         } else {
           currentWidth = currentX + currentWidth - point?.x

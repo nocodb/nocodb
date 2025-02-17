@@ -680,7 +680,7 @@ const handleMouseUp = async (e: MouseEvent) => {
       const plusColumnWidth = 60
       // If the user is trying to add a new column
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
-        if(!isAddingColumnAllowed.value) return
+        if (!isAddingColumnAllowed.value) return
 
         // if menu already in open state then close it on second click
         if (prevMenuState.isCreateOrEditColumnDropdownOpen && !prevMenuState.editColumn) {
@@ -704,7 +704,7 @@ const handleMouseUp = async (e: MouseEvent) => {
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
-          if(!isUIAllowed('fieldEdit')) return
+          if (!isUIAllowed('fieldEdit')) return
 
           // IF Right-click on a column, open the column dropdown menu
           openColumnDropdownField.value = clickedColumn.columnObj
@@ -724,8 +724,7 @@ const handleMouseUp = async (e: MouseEvent) => {
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
           if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
-
-            if(!isUIAllowed('fieldEdit')) return
+            if (!isUIAllowed('fieldEdit')) return
 
             // if menu already in open state then close it on second click
             if (prevMenuState.isDropdownVisible && prevMenuState.openColumnDropdownField === clickedColumn.columnObj) {
@@ -793,7 +792,9 @@ const handleMouseUp = async (e: MouseEvent) => {
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
   if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
-    await addEmptyRow()
+    if (isAddingEmptyRowAllowed.value) {
+      await addEmptyRow()
+    }
     selection.value.clear()
     activeCell.value.row = rowIndex
     activeCell.value.column = 1

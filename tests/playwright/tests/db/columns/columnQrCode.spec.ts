@@ -2,7 +2,6 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { GridPage } from '../../../pages/Dashboard/Grid';
-import { isCanvas } from '../../../setup/db';
 
 type ExpectedQrCodeData = {
   referencedValue: string;
@@ -120,11 +119,6 @@ test.describe('Virtual Columns', () => {
     });
 
     test('deletion of the QR column: directly and indirectly when the reference value column is deleted', async () => {
-      if (isCanvas()) {
-        console.log('Skipping test on canvas');
-        return;
-      }
-
       await dashboard.treeView.openTable({ title: 'City' });
 
       await grid.column.create({ title: 'column_name_a' });

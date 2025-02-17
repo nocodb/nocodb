@@ -8,7 +8,7 @@ import {
 } from '../../../tests/utils/sakila';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { isCanvas, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { isMysql, isPg, isSqlite } from '../../../setup/db';
 
 // Global ERD to be enabled after base-menu landing page is implemented
 test.describe('Erd', () => {
@@ -183,11 +183,6 @@ test.describe('Erd', () => {
   });
 
   test('Verify ERD Table view, and verify column operations are reflected to the ERD view', async () => {
-    if (isCanvas()) {
-      console.log('Skipping test on canvas');
-      return;
-    }
-
     await openErdOfATable('Country');
     const erd = dashboard.details.relations;
 

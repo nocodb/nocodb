@@ -361,24 +361,25 @@ interface ViewActionState {
   >
 }
 
+interface CellRendererOptions {
+  value: any
+  row: any
+  column: ColumnType
+  x: number
+  y: number
+  width: number
+  height: number
+  selected: boolean
+  pv?: boolean
+  readonly?: boolean
+  imageLoader: ImageWindowLoader
+  spriteLoader: SpriteLoader
+  isMysql: CanvasGridColumn['isMysql']
+}
+
 interface CellRenderer {
-  render: (
-    ctx: CanvasRenderingContext2D,
-    options: {
-      value: any
-      row: any
-      column: ColumnType
-      x: number
-      y: number
-      width: number
-      height: number
-      selected: boolean
-      pv?: boolean
-      readonly?: boolean
-      imageLoader: ImageWindowLoader
-      spriteLoader: SpriteLoader
-    },
-  ) => void
+  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void
+  [key: string]: any
 }
 
 interface FillHandlerPosition {
@@ -402,6 +403,7 @@ interface CanvasGridColumn {
   agg_fn: string
   agg_prefix: string
   relatedColObj?: ColumnType
+  isMysql: (sourceId?: string) => boolean
 }
 
 export type {
@@ -443,6 +445,7 @@ export type {
   NestedArray,
   ViewActionState,
   CellRenderer,
+  CellRendererOptions,
   CanvasGridColumn,
   FillHandlerPosition,
 }

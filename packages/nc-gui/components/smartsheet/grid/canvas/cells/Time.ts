@@ -93,9 +93,7 @@ export const TimeCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly) return
-    const title = column.columnObj.title
-    if (e.key.length === 1 && title) {
-      row.row[title] = ''
+    if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true
     }

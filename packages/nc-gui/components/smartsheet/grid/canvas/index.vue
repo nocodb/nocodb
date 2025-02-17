@@ -534,7 +534,6 @@ function extractHoverMetaColRegions(row: Row) {
       action: 'comment',
     })
   }
-  console.log(regions)
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 

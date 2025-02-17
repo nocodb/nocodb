@@ -344,7 +344,7 @@ export function useCanvasTable({
         !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
           ?.new &&
         activeCell.value.column !== null &&
-        fields.value[activeCell.value.column] &&
+        fields.value[activeCell.value.column - 1] &&
         totalRows.value &&
         !isSelectionReadOnly.value
       ),

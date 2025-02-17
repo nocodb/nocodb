@@ -1162,11 +1162,11 @@ onBeforeUnmount(() => {
       }
     }
   }
-
-  :deep(.nc-multi-select) {
-    @apply !h-auto;
-  }
-
+  :deep(.nc-cell-number),
+  :deep(.nc-cell-geometry),
+  :deep(.nc-multi-select),
+  :deep(.nc-cell-decimal),
+  :deep(.nc-cell-currency),
   :deep(.nc-single-select) {
     @apply !h-auto;
   }
@@ -1174,24 +1174,12 @@ onBeforeUnmount(() => {
   :deep(.nc-cell-datetime) {
     @apply !py-1 !px-2;
   }
-  :deep(.nc-cell-date) {
-    @apply !h-auto !py-1;
-  }
-
+  :deep(.nc-cell-date),
+  :deep(.nc-cell-year),
   :deep(.nc-cell-time) {
     @apply !h-auto !py-1;
   }
 
-  :deep(.nc-cell-geometry) {
-    @apply !h-auto;
-  }
-  :deep(.nc-cell-decimal) {
-    @apply !h-auto;
-  }
-
-  :deep(.nc-cell-year) {
-    @apply !h-auto !py-1;
-  }
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

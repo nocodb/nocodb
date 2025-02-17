@@ -1,13 +1,19 @@
 import type { UserType } from 'nocodb-sdk'
+import { renderSingleLineText, renderTag } from '../utils/canvas'
 
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, spriteLoader, } = props
-    const padding = 6
+    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding } = props
+    let x = _x + padding
+    let y = _y
+    let width = _width - padding * 2
+    const tagPadding = 8
     const tagSpacing = 4
     const tagHeight = 20
     const iconSize = 14
     const ellipsisWidth = 15
+
+    width = width - padding * 2
 
     const meta = parseProp(column?.meta)
     const isMultiple = meta?.is_multi ?? false
@@ -31,79 +37,79 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
 
     if (!users.length) return
-    const maxRows = Math.floor((height - padding) / (tagHeight + tagSpacing))
-    if (maxRows < 1) return
 
-    ctx.font = '500 13px Manrope'
-    const firstUser = users[0]
-    if (!firstUser) return
-    const displayName = firstUser.display_name?.trim() || firstUser.email!
-    const textWidth = ctx.measureText(displayName).width
-    const minTagWidth = iconSize + 8 + textWidth + padding
-
-    if (minTagWidth > width - padding * 2) {
-      ctx.fillStyle = '#666'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('...', x + padding, y + height / 2)
-      return
-    }
-
-    let currentX = x + padding
-    let currentY = y + padding
-    let currentRow = 0
-    let drawnUsers = 0
-
+    let count = 0
+    let line = 1
     for (const user of users) {
       const displayName = user.display_name?.trim() || user.email!
-      const textWidth = ctx.measureText(displayName).width
-      const tagWidth = iconSize + 8 + textWidth + padding
 
-      const needsNewRow = currentX + tagWidth > x + width - (drawnUsers < users.length - 1 ? ellipsisWidth + padding : 0)
+      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+        text: displayName,
+        maxWidth: width - tagPadding * 2 - iconSize - 8,
+        render: false,
+      })
+      const minTagWidth = iconSize + 8 + textWidth + tagPadding * 2
 
-      if (needsNewRow) {
-        // If we'll exceed max rows, show ellipsis on current line and break
-        if (currentRow + 1 >= maxRows) {
-          if (drawnUsers < users.length) {
-            ctx.fillStyle = '#0b1d05'
-            ctx.fillText('...', currentX + tagSpacing, currentY + tagHeight / 2)
-          }
+      // Check if the tag fits in the current row
+      if (x + minTagWidth > _x + _width - padding * 2) {
+        // Check if there is space for `...` on the same line
+
+        if (y + tagHeight * 2 + tagSpacing > _y + height || line >= rowHeightTruncateLines(height, true)) {
+          // Not enough space for `...` on the current line, so stop rendering
+          renderSingleLineText(ctx, {
+            x: x + padding + tagSpacing, // Align `...` at the end
+            y: y,
+            text: '...',
+            maxWidth: ellipsisWidth,
+            textAlign: 'right',
+            verticalAlign: 'middle',
+            fontFamily: '500 13px Manrope',
+            fillStyle: '#0b1d05',
+            height,
+          })
+
           break
         }
 
-        // Otherwise move to next row
-        currentRow++
-        currentX = x + padding
-        currentY += tagHeight + tagSpacing
+        // Wrap to the next line
+        x = _x + padding // Reset x to start of the row
+        y += tagHeight + tagSpacing // Move to the next line
+        line += 1
       }
 
-      ctx.fillStyle = '#e7e7e9'
-      ctx.beginPath()
-      ctx.roundRect(currentX, currentY, tagWidth, tagHeight, 12)
-      ctx.fill()
+      renderTag(ctx, {
+        x,
+        y: y + 6,
+        width: minTagWidth,
+        height: tagHeight,
+        radius: 12,
+        fillStyle: '#e7e7e9',
+      })
 
       spriteLoader.renderIcon(ctx, {
         icon: 'user',
         size: iconSize,
-        x: currentX + 4,
-        y: currentY + (tagHeight - iconSize) / 2,
+        x: x + tagPadding,
+        y: y + 6 + (tagHeight - iconSize) / 2,
         color: '#0b1d05',
       })
 
-      ctx.fillStyle = '#0b1d05'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(displayName, currentX + iconSize + 8, currentY + tagHeight / 2)
+      renderSingleLineText(ctx, {
+        x: x + tagPadding + iconSize + 4,
+        y: y,
+        text: truncatedText,
+        maxWidth: width - tagPadding * 2,
+        textAlign: 'left',
+        verticalAlign: 'middle',
+        fontFamily: '500 13px Manrope',
+        fillStyle: '#0b1d05',
+        height,
+      })
 
-      currentX += tagWidth + tagSpacing
-      drawnUsers++
+      x = x + minTagWidth + tagSpacing
+      count++
 
       if (!isMultiple) break
-
-      // Check if we need to show ellipsis on the current line
-      if (drawnUsers < users.length && currentX + ellipsisWidth > x + width - padding) {
-        ctx.fillStyle = '#666'
-        ctx.fillText('...', currentX, currentY + tagHeight / 2)
-        break
-      }
     }
   },
 }

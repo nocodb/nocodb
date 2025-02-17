@@ -43,6 +43,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!users.length) return
 
+    let count = 0
     let line = 1
     for (const user of users) {
       const displayName = user.display_name?.trim() || user.email!
@@ -71,7 +72,8 @@ export const UserFieldCellRenderer: CellRenderer = {
             fillStyle: '#0b1d05',
             height,
           })
-
+          x = x + padding + tagSpacing + ellipsisWidth
+          y = y + tagHeight + tagSpacing
           break
         }
 
@@ -111,8 +113,14 @@ export const UserFieldCellRenderer: CellRenderer = {
       })
 
       x = x + minTagWidth + tagSpacing
+      count++
 
       if (!isMultiple) break
+    }
+    return {
+      x,
+      y,
+      nextLine: count < users.length,
     }
   },
 

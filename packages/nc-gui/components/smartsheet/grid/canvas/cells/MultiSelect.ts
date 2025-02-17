@@ -53,6 +53,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
             fillStyle: defaultColor,
             height,
           })
+          x = x + padding + tagSpacing + ellipsisWidth
+          y = y + tagHeight + tagSpacing
           break
         }
 
@@ -85,6 +87,11 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       x = x + optionWidth + tagPadding * 2 + tagSpacing
       count++
+    }
+    return {
+      x,
+      y,
+      nextLine: count < selectedOptions.length,
     }
   },
   getSelectedOptions: (props: Partial<CellRendererOptions>): string[] => {

@@ -440,7 +440,7 @@ onMounted(() => {
           class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
-          <MaterialSymbolsAttachFile class="text-gray-500 text-tiny group-hover:(!text-grey-800) text-gray-700" />
+          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-grey-800) text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
     </template>

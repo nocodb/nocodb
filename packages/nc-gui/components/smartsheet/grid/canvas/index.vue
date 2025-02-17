@@ -404,7 +404,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
       currentX += 30
     }
   } else {
-    if (isHover && isRowReOrderEnabled.value) {
+    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
       regions.push({
         x: currentX,
         width: 24,

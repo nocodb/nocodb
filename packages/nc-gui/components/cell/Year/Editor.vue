@@ -19,7 +19,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const rawReadOnly = inject(RawReadonlyInj, ref(false))
 
-const active = inject(ActiveCellInj, ref(false))
+const active = inject(ActiveCellInj, ref(true))
 
 const editable = inject(EditModeInj, ref(false))
 
@@ -277,12 +277,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 onMounted(() => {
-  forcedNextTick(() => {
-    if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
-      open.value = true
-      open.value = true
-    }
-  })
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    open.value = true
+  }
 })
 </script>
 

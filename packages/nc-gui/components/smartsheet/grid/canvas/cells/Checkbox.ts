@@ -68,9 +68,9 @@ export const CheckboxCellRenderer: CellRenderer = {
     }
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow } = ctx
+    const { e, row, column, updateOrSaveRow, readonly } = ctx
     const columnObj = column.columnObj
-    if (column.readonly) return
+    if (column.readonly || readonly) return
 
     if (e.key === 'Enter') {
       row.row[columnObj.title!] = !row.row[columnObj.title!]
@@ -81,8 +81,8 @@ export const CheckboxCellRenderer: CellRenderer = {
     return false
   },
   async handleClick(ctx) {
-    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected } = ctx
-    if (column.readonly) return false
+    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly } = ctx
+    if (column.readonly || readonly) return false
 
     if (selected) {
       row.row[column.title!] = !row.row[column.title!]

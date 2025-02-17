@@ -444,6 +444,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     pk: any
+    readonly: boolean
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
     updateOrSaveRow: (
@@ -465,6 +466,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     value: any
     pk: any
+    readonly: boolean
     updateOrSaveRow: (
       row: Row,
       property?: string,

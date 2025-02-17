@@ -36,6 +36,15 @@ export default function convertCellData(
       }
       return parsedNumber
     }
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Decimal: {
+      const parsedNumber = Number(value)
+      if (isNaN(parsedNumber)) {
+        throw new TypeError(`Invalid value`)
+      }
+      return value
+    }
     case UITypes.Rating: {
       const parsedNumber = Number(value ?? 0)
       if (isNaN(parsedNumber)) {

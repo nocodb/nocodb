@@ -186,13 +186,15 @@ watch(
         name="fk_lookup_column_id"
         placeholder="-select-"
         :disabled="!vModel.fk_relation_column_id"
+        show-search
+        :filter-option="antSelectFilterOption"
         dropdown-class-name="nc-dropdown-relation-column !rounded-md"
         @change="onDataTypeChange"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>
-        <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+        <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
           <div class="w-full flex gap-2 truncate items-center justify-between">
             <div class="inline-flex items-center gap-2 flex-1 truncate">
               <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />

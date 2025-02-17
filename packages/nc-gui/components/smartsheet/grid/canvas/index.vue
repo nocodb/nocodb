@@ -1656,14 +1656,6 @@ defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
 })
-
-function updateValue(val: any) {
-  const title = editEnabled.value?.column?.title ?? ''
-  if (!title) return
-  if (editEnabled.value?.row?.row?.[title]) {
-    editEnabled.value.row.row[title] = val
-  }
-}
 </script>
 
 <template>
@@ -1784,13 +1776,12 @@ function updateValue(val: any) {
                     />
                     <SmartsheetCell
                       v-else
-                      :model-value="editEnabled.row.row[editEnabled.column.title]"
+                      v-model="editEnabled.row.row[editEnabled.column.title]"
                       :column="editEnabled.column"
                       :row-index="editEnabled.rowIndex"
                       active
                       edit-enabled
                       :read-only="!isDataEditAllowed"
-                      @update:model-value="updateValue"
                       @save="updateOrSaveRow?.(...$event)"
                       @save-with-state="updateOrSaveRow?.(...$event)"
                       @navigate="onNavigate"

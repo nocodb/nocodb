@@ -321,6 +321,7 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
@@ -328,7 +329,6 @@ const pGoToPreviousRow = () => {
       :update-or-save-row="updateOrSaveRow"
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"

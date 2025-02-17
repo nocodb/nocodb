@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { isBoxHovered, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 
 dayjs.extend(utc)
@@ -57,7 +57,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
 
-    const canvasContext = new OffscreenCanvas(0, 0).getContext('2d')!
+    const canvasContext = defaultOffscreen2DContext
 
     canvasContext.font = '500 13px Manrope'
 

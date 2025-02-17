@@ -1,8 +1,6 @@
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import { isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
-const offscreenCanvas = new OffscreenCanvas(0, 0)
-const defaultContext = offscreenCanvas.getContext('2d')!
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected } = props
@@ -59,7 +57,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     const isValid = text && isMobilePhone(text)
     if (!isValid) return false
     const pv = column.pv
-    const ctx = defaultContext
+    const ctx = defaultOffscreen2DContext
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
 
     const maxWidth = width - padding * 2

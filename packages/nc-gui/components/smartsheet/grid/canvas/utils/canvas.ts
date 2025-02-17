@@ -135,11 +135,15 @@ export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: Rend
     singleLineTextCache.set(cacheKey, { text: truncatedText, width })
   } else {
     truncatedText = text
+    let showAsTruncated = false
     while (ctx.measureText(`${truncatedText}...`).width > maxWidth && truncatedText.length > 0) {
       truncatedText = truncatedText.slice(0, -1)
+      showAsTruncated = true
     }
 
-    truncatedText = ctx.direction === 'rtl' ? `...${truncatedText}` : `${truncatedText}...`
+    if (showAsTruncated) {
+      truncatedText = ctx.direction === 'rtl' ? `...${truncatedText}` : `${truncatedText}...`
+    }
 
     // width = Math.min(ctx.measureText(truncatedText).width, maxWidth)
     width = ctx.measureText(truncatedText).width

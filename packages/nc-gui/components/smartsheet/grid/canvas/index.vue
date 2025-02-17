@@ -511,7 +511,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply px-2 absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
+  @apply px-2.5 absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
 
   .nc-cell,
   .nc-virtual-cell {

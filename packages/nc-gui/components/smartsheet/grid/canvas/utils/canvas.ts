@@ -454,6 +454,7 @@ export const renderMarkdownBlocks = (
     lineHeight,
     fillStyle,
     mousePosition = { x: 0, y: 0 },
+    cellRenderStore,
   }: {
     blocks: Block[]
     x: number
@@ -463,6 +464,7 @@ export const renderMarkdownBlocks = (
     maxLines?: number
     maxWidth: number
     lineHeight: number
+    cellRenderStore: CellRenderStore
     fillStyle?: string
     mousePosition?: { x: number; y: number }
   },
@@ -578,14 +580,12 @@ export const renderMarkdownBlocks = (
     renderedLineCount++
   }
 
+  cellRenderStore.links = links
+
   // Restore the original font
   ctx.font = defaultFont
   ctx.fillStyle = defaultFillStyle
   ctx.strokeStyle = defaultStrokeStyle
-
-  return {
-    links,
-  }
 }
 
 export const renderMultiLineText = (
@@ -804,7 +804,6 @@ export const renderMarkdown = (
   x: number
   y: number
   height: number
-  links: { x: number; y: number; width: number; height: number; url: string }[]
 } => {
   const {
     x = 0,
@@ -822,6 +821,7 @@ export const renderMarkdown = (
     py = 10,
     mousePosition = { x: 0, y: 0 },
     spriteLoader,
+    cellRenderStore,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -865,10 +865,6 @@ export const renderMarkdown = (
   const yOffset =
     verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
 
-  let renderRes: {
-    links: { x: number; y: number; width: number; height: number; url: string }[]
-  } = { links: [] }
-
   if (render) {
     ctx.textAlign = textAlign
     ctx.textBaseline = verticalAlign
@@ -878,7 +874,7 @@ export const renderMarkdown = (
       ctx.strokeStyle = fillStyle
     }
     // Render the text lines
-    renderRes = renderMarkdownBlocks(ctx, {
+    renderMarkdownBlocks(ctx, {
       blocks,
       x,
       y: y + yOffset,
@@ -892,6 +888,7 @@ export const renderMarkdown = (
       maxWidth,
       mousePosition,
       spriteLoader,
+      cellRenderStore,
     })
   } else {
     /**
@@ -901,7 +898,7 @@ export const renderMarkdown = (
     ctx.font = originalFontFamily
   }
   const newY = y + yOffset + (blocks.length - 1) * lineHeight
-  return { width, x: x + width, y: newY, height: newY - y, links: renderRes?.links }
+  return { width, x: x + width, y: newY, height: newY - y }
 }
 
 export const renderTag = (

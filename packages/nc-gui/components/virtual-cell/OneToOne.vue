@@ -90,6 +90,8 @@ onMounted(() => {
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true
+    } else {
+      listItemsDlg.value = true
     }
   })
 })

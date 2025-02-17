@@ -1034,6 +1034,10 @@ const getHeaderTooltipRegions = (
     disableTooltip?: boolean
   }[] = []
   let xOffset = initialOffset + 1
+
+  const ctx = defaultOffscreen2DContext
+  ctx.save()
+  ctx.font = '550 12px Manrope'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseInt(column.width, 10)
     const rightPadding = 8
@@ -1060,8 +1064,6 @@ const getHeaderTooltipRegions = (
     }
 
     const availableTextWidth = width - totalIconWidth
-    const ctx = defaultOffscreen2DContext
-    ctx.font = '550 12px Manrope'
     const measuredTextWidth = ctx.measureText(column.title!).width
     const isTruncated = measuredTextWidth > availableTextWidth
 
@@ -1109,7 +1111,7 @@ const getHeaderTooltipRegions = (
 
     xOffset += width
   })
-
+  ctx.restore()
   regions.forEach((region) => {
     region.y = 8
     region.height = region.width

@@ -96,7 +96,7 @@ export default function convertCellData(
     case UITypes.Duration: {
       const conversionResult = convertDurationToSeconds(value, (column.meta as any)?.duration ?? 0)
       if (conversionResult._isValid) {
-        return conversionResult._sec
+        return value
       } else {
         throw new SilentTypeConversionError()
       }

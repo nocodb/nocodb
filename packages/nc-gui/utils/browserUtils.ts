@@ -16,6 +16,7 @@ export const isActiveInputElementExist = () => {
 }
 
 export const isNcDropdownOpen = () => document.querySelector('.nc-dropdown.active')
+export const isDropdownActive = () => document.querySelector('.nc-dropdown')
 
 export const isFieldEditOrAddDropdownOpen = () => document.querySelector('.nc-dropdown-edit-column.active')
 export const getScrollbarWidth = () => {

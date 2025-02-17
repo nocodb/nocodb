@@ -63,7 +63,7 @@ export function useKeyboardNavigation({
       return true
     }
     if (isExpandedCellInputExist()) return
-
+    if (isNcDropdownOpen()) return
     if (isDrawerOrModalExist() || isLinkDropdownExist()) return
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey

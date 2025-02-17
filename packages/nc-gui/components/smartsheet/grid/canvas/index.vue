@@ -5,6 +5,7 @@ import {
   type TableType,
   UITypes,
   type ViewType,
+  ViewTypes,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -127,13 +128,15 @@ const isExpandTableModalOpen = ref(false)
 // Injections
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 // Composables
 const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
-const { isMobileMode } = useGlobal()
+const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 const { $e } = useNuxtApp()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
@@ -192,6 +195,7 @@ const {
   meta,
   view,
   isAddingColumnAllowed,
+  isAddingEmptyRowAllowed,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -302,6 +306,16 @@ function onActiveCellChanged() {
     applySorting?.(rowSortRequiredRows.value)
   }
   triggerRefreshCanvas()
+}
+
+const onNewRecordToGridClick = () => {
+  setAddNewRecordGridMode(true)
+  addEmptyRow()
+}
+
+const onNewRecordToFormClick = () => {
+  setAddNewRecordGridMode(false)
+  openNewRecordFormHook.trigger()
 }
 
 const onVisibilityChange = (value) => {
@@ -514,7 +528,11 @@ async function handleMouseDown(e: MouseEvent) {
 
   const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
 
-  if (!clickedColumn?.columnObj) return
+  if (!clickedColumn?.columnObj) {
+    selection.value.clear()
+    activeCell.value = { row: -1, column: -1 }
+    editEnabled.value = null
+  }
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
@@ -1171,6 +1189,13 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   return rowObj
 }
 
+async function openNewRecordHandler() {
+  // Add an empty row
+  const newRow = await addEmptyRow(totalRows.value + 1, true)
+  // Expand the form
+  if (newRow) expandForm?.(newRow, undefined, true)
+}
+
 const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
   const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
 
@@ -1238,6 +1263,7 @@ watch(
 
 reloadViewDataHook.on(reloadViewDataHookHandler)
 reloadVisibleDataHook?.on(triggerReload)
+openNewRecordFormHook?.on(openNewRecordHandler)
 
 onMounted(async () => {
   clearTextCache()
@@ -1250,6 +1276,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   reloadViewDataHook.off(reloadViewDataHookHandler)
   reloadVisibleDataHook?.off(triggerReload)
+  openNewRecordFormHook?.off(openNewRecordHandler)
 })
 
 const editEnabledCellPosition = computed(() => {
@@ -1431,6 +1458,73 @@ const increaseMinHeightBy: Record<string, number> = {
           </template>
         </NcDropdown>
       </template>
+    </div>
+    <div class="absolute bottom-12 z-5 left-2" @click.stop>
+      <NcDropdown v-if="isAddingEmptyRowAllowed">
+        <div class="flex shadow-nc-sm rounded-lg">
+          <NcButton
+            v-if="isMobileMode"
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            class="nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            :shadow="false"
+            @click.stop="onNewRecordToFormClick()"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              New Record
+            </div>
+          </NcButton>
+          <NcButton
+            v-else
+            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            size="small"
+            type="secondary"
+            :shadow="false"
+            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+          >
+            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+              <template v-if="isAddNewRecordGridMode">
+                {{ $t('activity.newRecord') }}
+              </template>
+              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
+            </div>
+          </NcButton>
+          <NcButton
+            v-if="!isMobileMode"
+            size="small"
+            class="!rounded-l-none nc-add-record-more-info"
+            type="secondary"
+            :shadow="false"
+          >
+            <GeneralIcon icon="arrowUp" />
+          </NcButton>
+        </div>
+
+        <template #overlay>
+          <NcMenu variant="small">
+            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
+              </div>
+
+              <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+            <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
+              <div class="flex flex-row items-center justify-start gap-x-3">
+                <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
+                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
+              </div>
+
+              <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>

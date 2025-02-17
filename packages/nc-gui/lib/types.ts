@@ -425,7 +425,7 @@ interface CellRenderStore {
 
 type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
 
-type SetCursorType = (cursor: CursorType) => void
+type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }

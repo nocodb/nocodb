@@ -80,6 +80,8 @@ const horizontalThumbPosition = computed(() => {
 })
 
 const updateScroll = (vertical, horizontal) => {
+  if (!contentWrapper.value) return
+
   if (vertical !== undefined) {
     const maxScroll = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
     scrollTop.value = Math.max(0, Math.min(vertical, maxScroll))

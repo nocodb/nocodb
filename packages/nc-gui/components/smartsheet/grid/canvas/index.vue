@@ -90,6 +90,8 @@ const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const _isContextMenuOpen = ref(false)
+const isCreateNewColumnDropdownOpen = ref(false)
+const columnEditOrAddProviderRef = ref()
 
 const isExpandTableModalOpen = ref(false)
 // Injections
@@ -100,6 +102,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 const { height, width } = useElementSize(wrapperRef)
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly } = useRoles()
+const { $e } = useNuxtApp()
 
 const {
   rowSlice,
@@ -147,6 +150,7 @@ const {
   isPrimaryKeyAvailable,
   meta,
   view,
+  isAddingColumnAllowed,
 
   // Selections
   isSelectedOnlyScript,
@@ -180,6 +184,7 @@ const {
   bulkUpsertRows,
   addEmptyRow,
   onActiveCellChanged,
+  addNewColumn: addEmptyColumn,
 })
 
 // Computed
@@ -235,6 +240,23 @@ function onActiveCellChanged() {
   }
 }
 
+const onVisibilityChange = () => {
+  if (isCreateNewColumnDropdownOpen.value) {
+    isDropdownVisible.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    isCreateNewColumnDropdownOpen.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+  }
+}
+
+function closeAddColumnDropdownMenu(scrollToLastCol = false) {
+  isCreateNewColumnDropdownOpen.value = false
+  isDropdownVisible.value = false
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
+    }, 200)
+  }
+}
+
 function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
   // First check fixed columns
   let xOffset = 0
@@ -284,6 +306,23 @@ function handleMouseDown(e: MouseEvent) {
 
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
+
+  if (y < 32) {
+    const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+    const plusColumnX = totalColumnsWidth - scrollLeft.value
+    const plusColumnWidth = 60
+
+    if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
+      isCreateNewColumnDropdownOpen.value = true
+      overlayStyle.value = {
+        top: `calc(100svh - ${height.value}px + 32px)`,
+        left: `calc(100svw - ${width.value}px + ${plusColumnX - 200}px)`,
+      }
+      isDropdownVisible.value = true
+      triggerRefreshCanvas()
+      return
+    }
+  }
 
   // Column Dropdown Menu
   if (y < 32 && (e.button === 2 || e.detail === 2)) {
@@ -539,6 +578,24 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
   await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
 }
 
+function addEmptyColumn() {
+  if (!isAddingColumnAllowed.value) return
+  $e('c:shortcut', { key: 'ALT + C' })
+  containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
+
+  isCreateNewColumnDropdownOpen.value = true
+
+  const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+  const plusColumnX = totalColumnsWidth - scrollLeft.value
+
+  overlayStyle.value = {
+    top: `calc(100svh - ${height.value}px + 32px)`,
+    left: `calc(100svw - ${width.value}px + ${plusColumnX - 200}px)`,
+  }
+  isDropdownVisible.value = true
+  triggerRefreshCanvas()
+}
+
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
@@ -604,6 +661,7 @@ onMounted(async () => {
             class="sticky top-0 left-0"
             :height="`${height}px`"
             :width="`${width}px`"
+            oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
             @mouseup="handleMouseUp"
@@ -675,7 +733,7 @@ onMounted(async () => {
       </div>
 
       <template v-if="overlayStyle">
-        <NcDropdown :visible="isDropdownVisible" :overlay-style="overlayStyle">
+        <NcDropdown :visible="isDropdownVisible" :overlay-style="overlayStyle" @visible-change="onVisibilityChange">
           <div></div>
           <template #overlay>
             <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" />
@@ -684,6 +742,15 @@ onMounted(async () => {
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
             />
+            <div v-if="isCreateNewColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
+              <LazySmartsheetColumnEditOrAddProvider
+                ref="columnEditOrAddProviderRef"
+                @submit="closeAddColumnDropdownMenu(true)"
+                @cancel="closeAddColumnDropdownMenu()"
+                @click.stop
+                @keydown.stop
+              />
+            </div>
           </template>
         </NcDropdown>
       </template>

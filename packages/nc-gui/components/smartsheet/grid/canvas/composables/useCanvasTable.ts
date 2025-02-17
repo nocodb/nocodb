@@ -37,6 +37,7 @@ export function useCanvasTable({
   expandForm,
   addEmptyRow,
   onActiveCellChanged,
+  addNewColumn,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -90,6 +91,7 @@ export function useCanvasTable({
   ) => Promise<void>
   addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
   onActiveCellChanged: () => void
+  addNewColumn: () => void
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -139,6 +141,7 @@ export function useCanvasTable({
   const fields = inject(FieldsInj, ref([]))
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
+  const isLocked = inject(IsLockedInj, ref(false))
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -151,6 +154,8 @@ export function useCanvasTable({
   )
 
   const isAddingEmptyRowAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
+
+  const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
@@ -568,6 +573,7 @@ export function useCanvasTable({
     isAddingEmptyRowAllowed,
     addEmptyRow,
     onActiveCellChanged,
+    addNewColumn,
   })
 
   const {
@@ -764,6 +770,7 @@ export function useCanvasTable({
     meta,
     view,
     isAddingEmptyRowAllowed,
+    isAddingColumnAllowed,
 
     // Context Actions
     clearCell,

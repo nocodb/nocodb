@@ -63,7 +63,7 @@ function isImage(title?: string, mimetype?: string) {
 }
 
 export const AttachmentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly }) => {
+  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly, setCursor }) => {
     let attachments: Attachment[] = []
 
     const rowHeight = pxToRowHeight[height]
@@ -86,6 +86,10 @@ export const AttachmentCellRenderer: CellRenderer = {
       const buttonY = y + verticalPadding
 
       const isButtonHovered = isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)
+
+      if (isButtonHovered) {
+        setCursor('pointer')
+      }
 
       roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 8, {
         backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
@@ -170,6 +174,10 @@ export const AttachmentCellRenderer: CellRenderer = {
           color: '#6b7280',
         })
       }
+
+      if (isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
+        setCursor('pointer')
+      }
     })
 
     if (isHovered && attachments.length > 0) {
@@ -188,6 +196,7 @@ export const AttachmentCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         icon: 'maximize',
+        setCursor,
       })
 
       if (readonly) return
@@ -205,6 +214,7 @@ export const AttachmentCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         icon: 'ncPaperclip',
+        setCursor,
       })
     }
   },
@@ -295,7 +305,6 @@ export const AttachmentCellRenderer: CellRenderer = {
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
     if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) {
-      setCursor('pointer')
       return
     }
 
@@ -316,12 +325,8 @@ export const AttachmentCellRenderer: CellRenderer = {
       height: 18,
     }
 
-    if (
-      tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition }) ||
-      tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
-    ) {
-      setCursor('pointer')
-    }
+    tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
+    tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
   },
   async handleKeyDown({ row, column, key, makeCellEditable }) {
     if (key === 'Enter') {

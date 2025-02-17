@@ -235,14 +235,24 @@ defineExpose({
 })
 
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
-  forcedNextTick(() => {
-    const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
-      .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
-      .join(', ')
-    const clickable = getElementAtMouse<HTMLElement>(clickableSelectors, clientMousePosition)
-    if (clickable) clickable.click()
-  })
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    forcedNextTick(() => {
+      const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
+        .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
+        .join(', ')
+      const clickable = getElementAtMouse<HTMLElement>(clickableSelectors, clientMousePosition)
+      if (clickable) {
+        clickable.click()
+      } else {
+        if (attachments.value.length) {
+          modalRendered.value = true
+          modalVisible.value = true
+        } else if (isEditAllowed.value) {
+          isNewAttachmentModalOpen.value = true
+        }
+      }
+    })
+  }
 })
 </script>
 

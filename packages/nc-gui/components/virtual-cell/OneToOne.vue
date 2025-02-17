@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
 
@@ -86,11 +87,11 @@ watch(
 
 onMounted(() => {
   if (!isCanvasInjected || !clientMousePosition) return
-  setTimeout(() => {
+  forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
       listItemsDlg.value = true
     }
-  }, 100)
+  })
 })
 </script>
 

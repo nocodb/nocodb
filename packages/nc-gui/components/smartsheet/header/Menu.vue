@@ -42,17 +42,10 @@ const emitAddColumn = (...args: any[]) => {
 const emitEdit = (...args: any[]) => {
   emit('edit', ...args)
 }
-
-const dropdownRef = ref()
-
-onClickOutside(dropdownRef, () => {
-  isOpen.value = false
-})
 </script>
 
 <template>
   <a-dropdown
-    ref="dropdownRef"
     v-model:visible="isOpen"
     :disabled="isLocked"
     :trigger="['click']"

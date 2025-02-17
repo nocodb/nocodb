@@ -1,44 +1,58 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
 
 export const UrlCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv, column, padding }) => {
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'left'
+  render: (ctx, props) => {
+    const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268' } = props
 
-    const urlText = value?.toString().trim() ?? ''
-    const isValid = urlText && isValidURL(urlText)
-    const maxWidth = width - padding * 2
+    const text = value?.toString() ?? ''
 
-    const truncatedText = truncateText(ctx, urlText, maxWidth)
-    const textY = y + height / 2
-    const textMetrics = ctx.measureText(truncatedText)
-
-    ctx.fillStyle = (isValid && selected) || pv ? '#3366FF' : '#4a5268'
-    ctx.fillText(truncatedText, x + padding, textY)
-
-    if (isValid) {
-      ctx.beginPath()
-      ctx.moveTo(x + padding, textY + 6)
-      ctx.lineTo(x + padding + textMetrics.width, textY + 6)
-      ctx.strokeStyle = selected ? '#3366FF' : '#4a5268'
-      ctx.lineWidth = 1
-      ctx.stroke()
+    if (!text) {
+      return {
+        x,
+        y,
+      }
     }
 
-    if (parseProp(column?.meta).validate && !isValid && urlText.length) {
+    const isValid = text && isValidURL(text)
+
+    if (props.tag?.renderAsTag) {
+      return renderTagLabel(ctx, { ...props, text })
+    } else {
       const iconSize = 16
-      const iconX = x + width - iconSize - padding
 
-      ctx.fillStyle = '#f87171'
-      ctx.beginPath()
-      ctx.arc(iconX + iconSize / 2, textY, iconSize / 2, 0, 2 * Math.PI)
-      ctx.fill()
+      const validate = parseProp(column?.meta).validate
 
-      ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 12px sans-serif'
-      ctx.fillText('i', iconX + 6, textY + 2)
+      const maxWidth = width - padding * 2 - (validate && !isValid ? iconSize + 4 : 0)
+
+      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+        x: x + padding,
+        y,
+        text,
+        maxWidth: maxWidth,
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
+        underline: isValid,
+        height,
+      })
+
+      if (validate && !isValid) {
+        const iconX = x + width - iconSize - padding
+
+        ctx.fillStyle = '#f87171'
+        ctx.beginPath()
+        ctx.arc(iconX + iconSize / 2, yOffset!, iconSize / 2, 0, 2 * Math.PI)
+        ctx.fill()
+
+        ctx.fillStyle = '#ffffff'
+        ctx.font = 'bold 12px sans-serif'
+        ctx.fillText('i', iconX + 6, yOffset! + 2)
+      }
+
+      return {
+        x: xOffset ? xOffset + (validate && !isValid ? iconSize + 4 : 0) : xOffset,
+        y: yOffset,
+      }
     }
   },
   async handleHover({ column, row, getCellPosition, value, mousePosition }) {

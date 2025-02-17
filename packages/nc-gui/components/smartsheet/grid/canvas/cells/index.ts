@@ -161,7 +161,7 @@ export function useGridCellHandler(params: {
         textColor,
         pk,
         disabled,
-        sqlUis,
+        sqlUis: sqlUis.value,
       })
     } else {
       return renderSingleLineText(ctx, {

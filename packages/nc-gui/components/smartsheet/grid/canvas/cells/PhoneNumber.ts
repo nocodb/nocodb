@@ -75,7 +75,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     })
 
     if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
-      window.open(`mailto:${text}`, '_blank')
+      window.open(`tel:${text}`, '_blank')
       return true
     }
     return false

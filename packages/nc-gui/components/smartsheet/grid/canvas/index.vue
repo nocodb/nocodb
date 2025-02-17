@@ -1105,6 +1105,8 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
+  selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
   requestAnimationFrame(triggerRefreshCanvas)
 

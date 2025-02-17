@@ -10,7 +10,6 @@ import {
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
-import { IsCanvasInjectionInj } from '../../../../context'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
@@ -109,6 +108,7 @@ const _isContextMenuOpen = ref(false)
 const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
+const lastOpenColumnDropdownField = ref<ColumnType | null>(null)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
@@ -117,6 +117,9 @@ const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
 const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
 
 provide(ClientMousePositionInj, clientMousePosition)
+// provide the column ref since at a time only one column can be active
+// and this need to avail the column ref inside modals(delete, duplicate,... etc) even after closing menu
+provide(CanvasColumnInj, lastOpenColumnDropdownField)
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
@@ -664,6 +667,7 @@ const handleMouseUp = async (e: MouseEvent) => {
         } else if (clickType === MouseClickType.RIGHT_CLICK) {
           // IF Right-click on a column, open the column dropdown menu
           openColumnDropdownField.value = clickedColumn.columnObj
+          lastOpenColumnDropdownField.value = clickedColumn.columnObj
           isDropdownVisible.value = true
           overlayStyle.value = {
             top: `${rect.top}px`,
@@ -686,6 +690,7 @@ const handleMouseUp = async (e: MouseEvent) => {
             }
 
             openColumnDropdownField.value = clickedColumn.columnObj
+            lastOpenColumnDropdownField.value = clickedColumn.columnObj
             isDropdownVisible.value = true
             overlayStyle.value = {
               top: `${rect.top}px`,

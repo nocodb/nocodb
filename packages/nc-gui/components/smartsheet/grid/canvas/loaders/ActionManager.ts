@@ -138,8 +138,8 @@ export class ActionManager {
     try {
       switch (colOptions.type) {
         case 'url': {
-          const value = extra?.row[0]?.row?.[column.columnObj.title]
-          this.handleUrl(colOptions, value?.url)
+          const value = extra?.row?.[0]?.row?.[column.columnObj.title]
+          this.handleUrl(colOptions, value?.url?.toString() ?? '')
           break
         }
         case 'webhook': {

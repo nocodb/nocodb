@@ -1382,7 +1382,7 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
-    (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
+    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {

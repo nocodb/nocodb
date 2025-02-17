@@ -254,7 +254,7 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
-        const dataRef = clone(unref(cachedRows))
+        const dataRef = unref(cachedRows)
 
         const updatedRows: Row[] = [] as Row[]
         const newRows: Row[] = []
@@ -267,7 +267,7 @@ export function useCopyPaste({
 
           if (i < availableRowsToUpdate) {
             const absoluteRowIndex = totalRowsBeforeActiveCell + i
-            targetRow = dataRef.get(absoluteRowIndex) || {
+            targetRow = clone(dataRef.get(absoluteRowIndex)) || {
               row: {},
               oldRow: {},
               rowMeta: {

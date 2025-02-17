@@ -17,7 +17,7 @@ import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
 import Tooltip from './Tooltip.vue'
 import { columnTypeName } from './utils/headerUtils'
-import { MouseClickType, getMouseClickType } from './utils/cell'
+import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
 import { COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS } from './utils/constants'
 
 const props = defineProps<{
@@ -217,7 +217,7 @@ const {
 
   actionManager,
   imageLoader,
-  readOnly
+  readOnly,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -887,6 +887,8 @@ const handleMouseUp = async (e: MouseEvent) => {
   // If the cell is editable, make the cell editable
   // Virtual Cells BARCODE, QRCode, Lookup, we need to render the actual cell if double clicked
   if (clickType === MouseClickType.DOUBLE_CLICK) {
+    if (NO_EDITABLE_CELL.includes(columnUIType)) return
+
     const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]
     if (!supportedVirtualColumns.includes(columnUIType) && clickedColumn?.virtual) return
     makeCellEditable(rowIndex, clickedColumn)

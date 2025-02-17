@@ -402,7 +402,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell } = useGridCellHandler({
+  const { handleCellClick, renderCell, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     updateOrSaveRow,
@@ -664,6 +664,7 @@ export function useCanvasTable({
     addEmptyRow,
     onActiveCellChanged,
     addNewColumn,
+    handleCellKeyDown,
   })
 
   const {

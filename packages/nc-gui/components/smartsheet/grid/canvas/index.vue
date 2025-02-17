@@ -271,6 +271,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
+  triggerRefreshCanvas()
 }
 
 const onVisibilityChange = () => {
@@ -712,7 +713,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
     if (activeRegion) {
       showTooltip({
-        position: { x: mousePosition.x, y: mousePosition.y },
+        position: { x: activeRegion.x, y: 16 },
         text: activeRegion.text,
       })
     }
@@ -725,19 +726,14 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (activeFixedRegion) {
+      if (activeFixedRegion && activeRegion) {
         showTooltip({
-          position: { x: mousePosition.x, y: mousePosition.y },
+          position: { x: activeRegion.x, y: 16 },
           text: activeFixedRegion.text,
         })
       }
     }
   }
-
-  /* showTooltip({
-    position: mousePosition,
-    text: 'Tooltip',
-  }) */
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {

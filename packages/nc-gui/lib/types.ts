@@ -11,6 +11,7 @@ import {
   type RolesObj,
   type TableType,
   type UITypes,
+  type UserType,
   type ViewType,
   type ViewTypes,
 } from 'nocodb-sdk'
@@ -417,6 +418,7 @@ interface CellRendererOptions {
   skipRender?: boolean
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
+  baseUsers?: (Partial<UserType> | Partial<User>)[]
 }
 
 interface CellRenderStore {

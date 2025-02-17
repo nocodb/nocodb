@@ -1,5 +1,13 @@
 import JsBarcode from 'jsbarcode'
-import { type ColumnType, type SelectOptionType, type SelectOptionsType, UITypes, timeFormats } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type SelectOptionType,
+  type SelectOptionsType,
+  UITypes,
+  type UserFieldRecordType,
+  type UserType,
+  timeFormats,
+} from 'nocodb-sdk'
 import { LRUCache } from 'lru-cache'
 import { getI18n } from '../../../../../plugins/a.i18n'
 
@@ -62,6 +70,42 @@ export const getSingleMultiselectColOptions = (column: ColumnType) => {
     }
     return acc
   }, {} as Record<string, (typeof colOptions.options)[number]>)
+
+  return colOptions
+}
+
+export const getUserColOptions = (column: ColumnType, baseUsers: (Partial<UserType> | Partial<User>)[]) => {
+  const colOptions: {
+    options: UserFieldRecordType[]
+    optionsMap: Record<string, UserFieldRecordType>
+  } = {
+    options: [],
+    optionsMap: {},
+  }
+
+  let order = 1
+  colOptions.options.push(
+    ...(baseUsers || [])
+      .map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        display_name: user.display_name,
+        deleted: user.deleted,
+        order: order++,
+        meta: user.meta,
+      }))
+      .sort((a, b) => a.order - b.order),
+  )
+
+  colOptions.optionsMap = colOptions.options.reduce((acc, op) => {
+    if (op.id) {
+      acc[op.id] = op
+    }
+    if (op.email) {
+      acc[op.email.trim()] = op
+    }
+    return acc
+  }, {} as Record<string, UserFieldRecordType>)
 
   return colOptions
 }

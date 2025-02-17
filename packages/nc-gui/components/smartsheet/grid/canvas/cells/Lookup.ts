@@ -216,4 +216,13 @@ export const LookupCellRenderer: CellRenderer = {
     // Restore context after clipping
     ctx.restore()
   },
+  async handleKeyDown(ctx) {
+    const { e, row, column, makeCellEditable } = ctx
+    if (e.key === 'Enter') {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
 }

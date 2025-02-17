@@ -125,6 +125,10 @@ export class ActionManager {
     const colOptions = column?.columnObj.colOptions
     if (!colOptions) return
 
+    if (column.isInvalidColumn?.isInvalid) {
+      return
+    }
+
     if (extra?.isAiPromptCol) {
       colOptions.type = 'ai'
     }

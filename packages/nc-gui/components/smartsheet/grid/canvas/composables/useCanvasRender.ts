@@ -581,6 +581,7 @@ export function useCanvasRender({
               isMysql: column.isMysql,
               relatedColObj: column.relatedColObj,
               relatedTableMeta: column.relatedTableMeta,
+              mousePosition,
             })
             xOffset += width
           })
@@ -636,6 +637,7 @@ export function useCanvasRender({
                   isMysql: column.isMysql,
                   relatedColObj: column.relatedColObj,
                   relatedTableMeta: column.relatedTableMeta,
+                  mousePosition,
                 })
               }
 

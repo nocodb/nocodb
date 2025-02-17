@@ -89,6 +89,7 @@ export function useCellRenderer() {
       fontSize = 13,
       textAlign = 'center',
       textColor,
+      mousePosition,
     }: CellRendererOptions,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -117,6 +118,7 @@ export function useCellRenderer() {
         tag,
         fontSize,
         textAlign,
+        mousePosition,
         textColor,
       })
     } else {

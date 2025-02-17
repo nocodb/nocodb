@@ -1,6 +1,6 @@
 export const RatingCellRenderer: CellRenderer = {
-  render: (ctx, props) => {
-    const { value, x, y, width, height, column, spriteLoader, padding } = props
+  render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
+    const { value, x, y, width, height, column, spriteLoader, padding, mousePosition } = props
 
     const ratingMeta = {
       color: '#fcb401',
@@ -30,18 +30,52 @@ export const RatingCellRenderer: CellRenderer = {
     const startX = x + padding
     const startY = y + padding
 
+    let hoveredIconIndex = -1
+    if (mousePosition) {
+      const { x: mouseX, y: mouseY } = mousePosition
+      const relativeX = mouseX - startX
+      const relativeY = mouseY - startY
+
+      const hoveredRow = Math.floor(relativeY / (iconSize + rowSpacing))
+      const hoveredCol = Math.floor(relativeX / iconWidthWithSpacing)
+
+      if (
+        hoveredRow >= 0 &&
+        hoveredRow < maxRows &&
+        hoveredCol >= 0 &&
+        hoveredCol < iconsPerRow &&
+        relativeX >= 0 &&
+        relativeY >= 0 &&
+        mouseX < x + width &&
+        mouseY < y + height
+      ) {
+        hoveredIconIndex = hoveredRow * iconsPerRow + hoveredCol
+        if (hoveredIconIndex >= iconsToShow) {
+          hoveredIconIndex = -1
+        }
+      }
+    }
+
     for (let i = 0; i < iconsToShow; i++) {
       const row = Math.floor(i / iconsPerRow)
       const col = i % iconsPerRow
       const isActive = i < rating
+      const isHovered = hoveredIconIndex >= 0 && i <= hoveredIconIndex
+
+      let iconColor
+      if (isHovered || isActive) {
+        iconColor = ratingMeta.color
+      } else {
+        iconColor = '#d9d9d9'
+      }
 
       if (row < maxRows) {
         spriteLoader.renderIcon(ctx, {
-          icon: isActive ? ratingMeta.icon.full : ratingMeta.icon.empty,
+          icon: isActive || isHovered ? ratingMeta.icon.full : ratingMeta.icon.empty,
           size: iconSize,
           x: startX + col * iconWidthWithSpacing,
           y: startY + row * (iconSize + rowSpacing),
-          color: isActive ? ratingMeta.color : '#d9d9d9',
+          color: iconColor,
         })
       }
     }

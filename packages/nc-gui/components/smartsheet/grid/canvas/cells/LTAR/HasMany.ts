@@ -1,6 +1,8 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { isBoxHovered, renderIconButton } from '../../utils/canvas'
+import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
+
+const ellipsisWidth = 15
 
 export const HasManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -53,6 +55,8 @@ export const HasManyCellRenderer: CellRenderer = {
 
     const maxLines = rowHeightTruncateLines(height, true)
     let line = 1
+    let flag = false
+    let count = 1
 
     for (const cell of cells) {
       const point = PlainCellRenderer.render(ctx, {
@@ -64,7 +68,13 @@ export const HasManyCellRenderer: CellRenderer = {
       })
 
       if (point?.x) {
-        if (point?.x >= x + initialWidth - padding * 2 - 50) {
+        if (point?.x >= x + initialWidth - padding * 2 - (count < cells.length ? 50 - ellipsisWidth : 0)) {
+          if (line + 1 > maxLines) {
+            currentX = point?.x
+            flag = true
+            break
+          }
+
           currentX = initialX
           currentWidth = initialWidth
           currentY = point?.y ? point?.y : currentY + 28
@@ -74,6 +84,10 @@ export const HasManyCellRenderer: CellRenderer = {
           currentX = point?.x
         }
       } else {
+        if (line + 1 > maxLines) {
+          break
+        }
+
         currentX = initialX
         currentY = currentY + 28
 
@@ -84,6 +98,20 @@ export const HasManyCellRenderer: CellRenderer = {
       if (line > maxLines) {
         break
       }
+    }
+
+    if (flag && count < cells.length) {
+      renderSingleLineText(ctx, {
+        x: currentX + 12,
+        y,
+        text: '...',
+        maxWidth: ellipsisWidth,
+        textAlign: 'right',
+        verticalAlign: 'middle',
+        fontFamily: '500 13px Manrope',
+        fillStyle: '#666',
+        height,
+      })
     }
 
     if (isBoxHovered({ x, y, width, height }, mousePosition)) {

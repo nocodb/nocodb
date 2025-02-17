@@ -127,6 +127,7 @@ export function useCellRenderer() {
         text: value?.toString() ?? '',
         fontFamily: `${pv ? 600 : 500} 13px Manrope`,
         fillStyle: pv ? '#4351e8' : textColor,
+        height,
       })
     }
   }

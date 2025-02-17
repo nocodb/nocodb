@@ -314,7 +314,7 @@ export function useCanvasRender({
     // Fixed columns
     const fixedCols = columns.value.filter((col) => col.fixed)
     if (fixedCols.length) {
-      xOffset = 0
+      xOffset = 0.5
 
       fixedCols.forEach((column) => {
         const width = parseInt(column.width, 10)
@@ -421,6 +421,16 @@ export function useCanvasRender({
         // Border
         const resizeHandleWidth = 10
         const isNearEdge = mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
+
+        // Right border for row number field
+        if (column.id === 'row_number') {
+          ctx.strokeStyle = '#e7e7e9'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(xOffset, 0)
+          ctx.lineTo(xOffset, 32)
+          ctx.stroke()
+        }
 
         if (isNearEdge && column.id !== 'row_number') {
           colResizeHoveredColIds.value.add(column.id)

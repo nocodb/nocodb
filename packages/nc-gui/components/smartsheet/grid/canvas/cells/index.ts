@@ -33,6 +33,7 @@ import { LtarCellRenderer } from './LTAR'
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
+  makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow?: (
     row: Row,
     property?: string,
@@ -44,6 +45,7 @@ export function useGridCellHandler(params: {
   const { t } = useI18n()
   const { metas } = useMetas()
   const actionManager = params?.actionManager
+  const makeCellEditable = params?.makeCellEditable
 
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -179,6 +181,7 @@ export function useGridCellHandler(params: {
         getCellPosition: params?.getCellPosition,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
+        makeCellEditable,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.uidt)

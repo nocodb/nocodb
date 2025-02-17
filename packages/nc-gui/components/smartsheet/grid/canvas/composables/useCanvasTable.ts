@@ -399,7 +399,12 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell } = useGridCellHandler({ getCellPosition, actionManager, updateOrSaveRow })
+  const { handleCellClick, renderCell } = useGridCellHandler({
+    getCellPosition,
+    actionManager,
+    updateOrSaveRow,
+    makeCellEditable,
+  })
 
   const { canvasRef, renderCanvas } = useCanvasRender({
     width,

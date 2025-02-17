@@ -784,6 +784,10 @@ onMounted(async () => {
   triggerRefreshCanvas()
   await loadViewAggregate()
 })
+
+const paddingLessUITypes = new Set([UITypes.LongText])
+
+const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 </script>
 
 <template>
@@ -862,6 +866,7 @@ onMounted(async () => {
           borderRadius: '2px',
         }"
         class="nc-canvas-table-editable-cell-wrapper"
+        :class="{ 'px-2.5': !noPadding }"
       >
         <LazySmartsheetRow :row="editEnabled.row">
           <template #default="{ state }">
@@ -917,7 +922,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .nc-canvas-table-editable-cell-wrapper {
-  @apply px-2.5 absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
+  @apply absolute bg-white border-2 !rounded border-[#3366ff] !text-small !leading-[18px];
 
   .nc-cell,
   .nc-virtual-cell {

@@ -131,6 +131,7 @@ export default defineNuxtConfig({
       // Config Endpoint for fetching various config from the server
       // Used for Downtime alerts
       configServerUrl: process.env.NUXT_NC_CONFIG_ENDPOINT,
+      maxPageDesignerTableRows: 100,
     },
   },
   sourcemap: process.env.NC_ON_PREM !== 'true',

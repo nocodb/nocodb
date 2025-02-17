@@ -11,15 +11,7 @@ const { metaColumnById } = useViewColumnsOrThrow()
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
-const fieldsToIgnore = new Set([
-  // UITypes.LinkToAnotherRecord,
-  UITypes.Links,
-  UITypes.Button,
-  UITypes.GeoData,
-  UITypes.Geometry,
-  UITypes.Lookup,
-  UITypes.Rollup,
-])
+const fieldsToIgnore = new Set([UITypes.Button, UITypes.GeoData, UITypes.Geometry, UITypes.Lookup, UITypes.Rollup])
 const columns = computed(() =>
   (meta?.value?.columns ?? []).filter(
     (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),

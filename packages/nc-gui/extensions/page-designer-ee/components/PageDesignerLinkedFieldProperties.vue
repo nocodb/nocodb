@@ -6,6 +6,7 @@ import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import TabbedSelect from './TabbedSelect.vue'
+import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -23,12 +24,26 @@ const displayAsOptionsMap = {
   [LinkedFieldDisplayAs.LIST]: iconMap.ncList,
   [LinkedFieldDisplayAs.TABLE]: iconMap.table,
 }
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
 </script>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
     <header class="widget-header">
-      <h1 class="m-0">{{ fieldWidget.field.title }}</h1>
+      <h1 class="m-0 flex items-center gap-3 flex-wrap">
+        Link Fields
+        <div class="flex items-center px-2 py-1 gap-2 bg-nc-bg-gray-medium rounded-lg">
+          <component :is="getIcon(fieldWidget.field)" class="!m-0" />
+          <span class="text-[14px] font-medium text-nc-content-gray-subtle2">{{ fieldWidget.field.title }}</span>
+        </div>
+        <div class="flex-1"></div>
+        <span class="text-[13px] -mt-1 font-medium text-nc-content-gray-subtle2"
+          >Display Linked fields Inline, as a list or in a tabular format.</span
+        >
+      </h1>
     </header>
     <GroupedSettings title="Display as">
       <TabbedSelect

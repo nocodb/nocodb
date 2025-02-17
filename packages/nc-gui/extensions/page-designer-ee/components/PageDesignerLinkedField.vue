@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { ColumnType } from 'nocodb-sdk'
+import { isLinksOrLTAR, isSystemColumn, type ColumnType } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
   LinkedFieldListType,
@@ -12,13 +12,19 @@ import {
 } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { Removable } from '../lib/removable'
+import PlainCell from '../../../components/smartsheet/PlainCell.vue'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
+const runtimeConfig = useRuntimeConfig()
+
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerLinkedFieldWidget>
 const row = inject(PageDesignerRowInj)! as Ref<Row>
+
+const relatedRows = ref<Record<string, any>[]>([])
+
 watch(
   () => props.id,
   (id) => {
@@ -74,12 +80,16 @@ const column = computed(() => widget.value!.field as Required<ColumnType>)
 
 const isNew = ref(false)
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(column, row, isNew)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink, loadChildrenList } = useProvideLTARStore(
+  column,
+  row,
+  isNew,
+)
 
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
   return (
-    row.value.row[widget.value.field.title ?? '']
+    relatedRows.value
       ?.map((relatedRow: Record<string, any>) => relatedRow[relatedTableDisplayValueProp.value] ?? '')
       .filter(Boolean)
       .join(', ') ?? ''
@@ -87,6 +97,16 @@ const inlineValue = computed(() => {
 })
 
 const isNumberedList = computed(() => widget.value.listType === LinkedFieldListType.Number)
+const isTable = computed(() => widget.value.displayAs === LinkedFieldDisplayAs.TABLE)
+const columns = computed(() => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [])
+
+async function loadRelatedRows() {
+  if (!row.value) return
+  relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
+}
+
+onMounted(loadRelatedRows)
+watch(row, loadRelatedRows)
 </script>
 
 <template>
@@ -113,7 +133,7 @@ const isNumberedList = computed(() => widget.value.listType === LinkedFieldListT
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           overflow: 'hidden',
         }"
-        class="px-2 py-1"
+        :class="{ 'px-2 py-1': !isTable }"
       >
         <template v-if="row">
           <component
@@ -121,15 +141,31 @@ const isNumberedList = computed(() => widget.value.listType === LinkedFieldListT
             v-if="widget.displayAs === LinkedFieldDisplayAs.LIST"
             :class="['list-inside m-0 p-0', isNumberedList ? 'list-decimal' : 'list-disc']"
           >
-            <li v-for="value in row.row[widget.field.title ?? '']">
+            <li v-for="row in relatedRows">
               <span :class="{ 'relative left-[-8px]': !isNumberedList }">
-                {{ value[relatedTableDisplayValueProp] }}
+                {{ row[relatedTableDisplayValueProp] }}
               </span>
             </li>
           </component>
           <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE">
             {{ inlineValue }}
           </span>
+          <table v-else class="w-full">
+            <thead>
+              <tr>
+                <th v-for="column in columns" :key="column.id">
+                  {{ column.title }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in relatedRows" :key="row.Id">
+                <td v-for="column in columns" :key="column.id">
+                  <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </template>
         <span v-else class="text-nc-content-gray-muted print-hide">{{ fieldTitle }}</span>
       </div>
@@ -174,5 +210,26 @@ const isNumberedList = computed(() => widget.value.listType === LinkedFieldListT
   :deep(.plain-cell) {
     font-family: inherit;
   }
+}
+table,
+th,
+td {
+  @apply border-1 border-nc-border-gray-dark;
+}
+table {
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+th {
+  @apply text-nc-content-gray;
+  font-weight: 700;
+}
+td {
+  @apply text-nc-content-gray-subtle2;
+  font-weight: 500;
 }
 </style>

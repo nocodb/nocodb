@@ -18,6 +18,7 @@ export function useKeyboardNavigation({
   cachedRows,
   isAddingEmptyRowAllowed,
   addEmptyRow,
+  addNewColumn,
   onActiveCellChanged,
 }: {
   totalRows: Ref<number>
@@ -41,7 +42,8 @@ export function useKeyboardNavigation({
   makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   cachedRows: Ref<Map<number, Row>>
-  isAddingEmptyRowAllowed: Ref<boolean>
+  isAddingEmptyRowAllowed: ComputedRef<boolean>
+  addNewColumn: () => void
   addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
   onActiveCellChanged: () => void
 }) {
@@ -102,23 +104,15 @@ export function useKeyboardNavigation({
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
             activeCell.value.row = totalRows.value
-            activeCell.value.col = 1
+            activeCell.value.column = 1
             selection.value.clear()
             scrollToCell(activeCell.value.row, 1)
           }
           return
         }
         case 67: {
-          // TODO: @DarkPhonix2704
-          /* // ALT + C
-          if (isAddingColumnAllowed.value) {
-            $e('c:shortcut', { key: 'ALT + C' })
-            scrollToAddNewColumnHeader('instant')
-
-            setTimeout(() => {
-              addColumnDropdown.value = true
-            }, 250)
-          } */
+          // ALT + C
+          addNewColumn()
           break
         }
       }

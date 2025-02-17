@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type TableType } from 'nocodb-sdk'
-import { isBoxHovered, renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
+import { isBoxHovered, renderCheckbox, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -522,6 +522,8 @@ export function useCanvasRender({
     }
     let fillHandlerRendered = false
 
+    let warningRow: { row: Row; yOffset: number } | null = null
+
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
         const row = cachedRows.value.get(rowIdx)
@@ -695,6 +697,10 @@ export function useCanvasRender({
         ctx.lineTo(width.value, yOffset + rowHeight.value)
         ctx.stroke()
 
+        if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
+          warningRow = { row, yOffset }
+        }
+
         yOffset += rowHeight.value
       }
     }
@@ -704,7 +710,7 @@ export function useCanvasRender({
     const isNewRowHovered = isBoxHovered({ x: 0, y: yOffset, height: rowHeight.value, width: width.value }, mousePosition)
     ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
     ctx.fillRect(0, yOffset, width.value, rowHeight.value)
-    // Bottom border for each row
+    // Bottom border for new row
     ctx.strokeStyle = '#f4f4f5'
     ctx.beginPath()
     ctx.moveTo(0, yOffset + rowHeight.value)
@@ -721,6 +727,36 @@ export function useCanvasRender({
 
     if (!fillHandlerRendered) {
       renderFillHandle(ctx, true)
+    }
+
+    if (warningRow) {
+      const orange = '#fcbe3a'
+      // Warning top border
+      ctx.strokeStyle = 'orange'
+      ctx.beginPath()
+      ctx.moveTo(0, warningRow.yOffset - 2)
+      ctx.lineTo(width.value, warningRow.yOffset)
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // Warning bottom border
+      ctx.strokeStyle = 'orange'
+      ctx.beginPath()
+      ctx.moveTo(0, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(width.value, warningRow.yOffset + rowHeight.value)
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      roundedRect(ctx, 0, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
+      renderSingleLineText(ctx, {
+        text: warningRow.row.rowMeta.isValidationFailed ? 'Row filtered' : 'Row moved',
+        x: 10,
+        y: warningRow.yOffset + rowHeight.value,
+        py: 7,
+        fillStyle: '#1f293a',
+        fontSize: 12,
+        fontFamily: '600 12px Manrope',
+      })
     }
   }
 

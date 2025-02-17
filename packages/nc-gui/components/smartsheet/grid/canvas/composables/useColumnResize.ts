@@ -137,6 +137,8 @@ export function useColumnResize(
     const newWidth = Math.max(50, activeColumn.value.initialWidth + delta)
     onResizeEnd?.(activeColumn.value?.id, newWidth)
 
+    activeColumn.value = null
+
     cleanupResize()
   }
 

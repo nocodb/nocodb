@@ -49,7 +49,7 @@ export function useGridCellHandler(params: {
   ) => Promise<any>
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
-  setCursor: (cursor: 'auto' | 'pointer' | 'col-resize') => void
+  setCursor: SetCursorType
 }) {
   const { t } = useI18n()
   const { metas } = useMetas()
@@ -182,6 +182,7 @@ export function useGridCellHandler(params: {
         pk,
         disabled,
         sqlUis: sqlUis.value,
+        setCursor,
       })
     } else {
       renderResult = renderSingleLineText(ctx, {

@@ -165,7 +165,7 @@ export const renderCheckbox = (
   ctx.roundRect(x, y, size, size, radius)
 
   if (isDisabled) {
-    ctx.fillStyle = '#F3F4F6'
+    ctx.fillStyle = '#F5F5F5'
     ctx.fill()
 
     if (isChecked) {
@@ -174,11 +174,11 @@ export const renderCheckbox = (
         size: 12,
         x: x + 2,
         y: y + 2,
-        color: '#9CA3AF',
+        color: '#B8B8B8',
       })
     }
 
-    ctx.strokeStyle = strokeColor ?? '#E5E7EB'
+    ctx.strokeStyle = strokeColor ?? '#D9D9D9'
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {

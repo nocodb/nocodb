@@ -57,7 +57,7 @@ export function useCanvasTable({
   scrollToCell: (row?: number, column?: number) => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
-  selectedRows: Row[]
+  selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
@@ -162,7 +162,7 @@ export function useCanvasTable({
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
   const isRowDraggingEnabled = computed(
-    () => !selectedRows.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
+    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
   const isAddingEmptyRowAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)

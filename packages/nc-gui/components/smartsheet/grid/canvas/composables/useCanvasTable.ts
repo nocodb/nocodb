@@ -117,7 +117,6 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { metas, getMeta } = useMetas()
-  const { allFilters, sorts, isPkAvail } = useSmartsheetStoreOrThrow()
   const { isMysql } = useBase()
 
   const fields = inject(FieldsInj, ref([]))

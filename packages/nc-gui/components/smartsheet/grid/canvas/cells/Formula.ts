@@ -62,7 +62,7 @@ export const FormulaCellRenderer: CellRenderer = {
     const { x, y } = getCellPosition(column, row.rowMeta.rowIndex!)
     if (isBoxHovered({ x: x + 10, y, height: 25, width: 45 }, mousePosition)) {
       showTooltip({
-        position: { x: x + 20, y: y + 30 },
+        position: { x: x + 30, y: y + 28 },
         text: error,
       })
     }

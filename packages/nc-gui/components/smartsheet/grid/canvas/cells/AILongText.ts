@@ -260,14 +260,22 @@ export const AILongTextCellRenderer: CellRenderer = {
     if (!row || !column?.id || !mousePosition || column?.disabled?.isInvalid) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
-    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+    const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
+    const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
+    if (isBoxHovered(expandIconBox, mousePosition)) {
       showTooltip({
-        position: mousePosition,
+        position: {
+          x: expandIconBox.x + 10,
+          y: expandIconBox.y + 20,
+        },
         text: getI18n().global.t('title.expand'),
       })
-    } else if (isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+    } else if (isBoxHovered(regenerateIconBox, mousePosition)) {
       showTooltip({
-        position: mousePosition,
+        position: {
+          x: regenerateIconBox.x + 10,
+          y: regenerateIconBox.y + 20,
+        },
         text: 'Re-generate',
       })
     }

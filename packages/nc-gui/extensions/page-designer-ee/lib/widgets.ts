@@ -1,5 +1,6 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import type { PageDesignerPayload } from './payload'
+import { isLinkedField } from './utils'
 
 export interface PageDesignerWidgetComponentProps {
   id: number | string
@@ -317,6 +318,10 @@ export function getInitialSizeHeightOfWidget(type: PageDesignerWidgetType, field
     }
     if (isAttachment(field) || isTextArea(field)) {
       width = 200
+      height = 200
+    }
+    if (isLinkedField(field)) {
+      width = 300
       height = 200
     }
   } else if (type === PageDesignerWidgetType.DIVIDER) {

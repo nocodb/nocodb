@@ -1,3 +1,5 @@
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+
 export interface RenderSingleLineTextProps {
   text: string
   x?: number
@@ -19,6 +21,8 @@ export interface RenderSingleLineTextProps {
    */
   render?: boolean
   isTagLabel?: boolean
+
+  spriteLoader?: SpriteLoader
 }
 
 export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {

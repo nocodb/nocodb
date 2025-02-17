@@ -9,7 +9,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
     let y = _y
     let width = _width - padding * 2
     const tagPadding = 9
-    const tagSpacing = 4
+    const tagSpacingY = 4
+    const tagSpacingX = 8
     const tagHeight = 20
     const topPadding = 6
     const defaultColor = '#666'
@@ -37,10 +38,10 @@ export const MultiSelectCellRenderer: CellRenderer = {
       if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
 
-        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
+        if (y + tagHeight * 2 + tagSpacingY > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
-            x: x + padding + tagSpacing, // Align `...` at the end
+            x: x + padding + tagSpacingX, // Align `...` at the end
             y,
             text: '...',
             maxWidth: ellipsisWidth,
@@ -50,14 +51,14 @@ export const MultiSelectCellRenderer: CellRenderer = {
             fillStyle: defaultColor,
             height,
           })
-          x = x + padding + tagSpacing + ellipsisWidth
-          y = y + tagHeight + tagSpacing
+          x = x + padding + tagSpacingX + ellipsisWidth
+          y = y + tagHeight + tagSpacingY
           break
         }
 
         // Wrap to the next line
         x = _x + padding // Reset x to start of the row
-        y += tagHeight + tagSpacing // Move to the next line
+        y += tagHeight + tagSpacingY // Move to the next line
         line += 1
       }
 
@@ -82,7 +83,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         height,
       })
 
-      x = x + optionWidth + tagPadding * 2 + tagSpacing
+      x = x + optionWidth + tagPadding * 2 + tagSpacingX
       count++
     }
     return {
@@ -128,7 +129,8 @@ export const MultiSelectCellRenderer: CellRenderer = {
     let y = _y
     let width = _width - padding * 2
     const tagPadding = 8
-    const tagSpacing = 4
+    const tagSpacingY = 4
+    const tagSpacingX = 8
     const tagHeight = 20
     const topPadding = 6
 
@@ -154,14 +156,14 @@ export const MultiSelectCellRenderer: CellRenderer = {
       if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
 
-        if (y + tagHeight * 2 + tagSpacing > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
+        if (y + tagHeight * 2 + tagSpacingY > _y + height || count === 0 || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
           break
         }
 
         // Wrap to the next line
         x = _x + padding // Reset x to start of the row
-        y += tagHeight + tagSpacing // Move to the next line
+        y += tagHeight + tagSpacingY // Move to the next line
         line += 1
       }
       if (text !== truncatedText) {
@@ -174,7 +176,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         })
       }
 
-      x = x + optionWidth + tagPadding * 2 + tagSpacing
+      x = x + optionWidth + tagPadding * 2 + tagSpacingX
       count++
     }
 

@@ -3,7 +3,8 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 import type { RenderRectangleProps } from '../utils/types'
 
 const tagPadding = 8
-const tagSpacing = 4
+const tagSpacingY = 4
+const tagSpacingX = 8
 const tagHeight = 20
 const iconSize = 14
 const ellipsisWidth = 15
@@ -116,10 +117,10 @@ export const UserFieldCellRenderer: CellRenderer = {
       if (x + minTagWidth > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
 
-        if (y + tagHeight * 2 + tagSpacing > _y + height || line >= rowHeightTruncateLines(height, true)) {
+        if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
           renderSingleLineText(ctx, {
-            x: x + padding + tagSpacing, // Align `...` at the end
+            x: x + padding + tagSpacingX, // Align `...` at the end
             y,
             text: '...',
             maxWidth: ellipsisWidth,
@@ -129,14 +130,14 @@ export const UserFieldCellRenderer: CellRenderer = {
             fillStyle: '#0b1d05',
             height,
           })
-          x = x + padding + tagSpacing + ellipsisWidth
-          y = y + tagHeight + tagSpacing
+          x = x + padding + tagSpacingX + ellipsisWidth
+          y = y + tagHeight + tagSpacingY
           break
         }
 
         // Wrap to the next line
         x = _x + padding // Reset x to start of the row
-        y += tagHeight + tagSpacing // Move to the next line
+        y += tagHeight + tagSpacingY // Move to the next line
         line += 1
       }
 
@@ -233,7 +234,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         height,
       })
 
-      x = x + minTagWidth + tagSpacing
+      x = x + minTagWidth + tagSpacingX
       count++
 
       if (!isMultiple) break
@@ -296,14 +297,14 @@ export const UserFieldCellRenderer: CellRenderer = {
       if (x + minTagWidth > _x + _width - padding * 2) {
         // Check if there is space for `...` on the same line
 
-        if (y + tagHeight * 2 + tagSpacing > _y + height || line >= rowHeightTruncateLines(height, true)) {
+        if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= rowHeightTruncateLines(height, true)) {
           // Not enough space for `...` on the current line, so stop rendering
           break
         }
 
         // Wrap to the next line
         x = _x + padding // Reset x to start of the row
-        y += tagHeight + tagSpacing // Move to the next line
+        y += tagHeight + tagSpacingY // Move to the next line
         line += 1
       }
       if (displayName !== truncatedText) {
@@ -316,7 +317,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         })
       }
 
-      x = x + minTagWidth + tagSpacing
+      x = x + minTagWidth + tagSpacingX
 
       if (!isMultiple) break
     }

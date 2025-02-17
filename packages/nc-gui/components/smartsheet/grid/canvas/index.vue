@@ -501,6 +501,9 @@ function extractHoverMetaColRegions(row: Row) {
         action: 'none',
       })
       currentX += 24
+    } else {
+      // add 6px padding to the left of the row meta column if the row number is not rendered
+      currentX += 6
     }
   }
 

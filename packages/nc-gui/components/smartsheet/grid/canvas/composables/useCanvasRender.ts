@@ -308,7 +308,7 @@ export function useCanvasRender({
       ctx.strokeStyle = '#f4f4f5'
       ctx.beginPath()
       ctx.moveTo(xOffset - scrollLeft.value, 32)
-      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+      ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value)
       ctx.stroke()
     }
 

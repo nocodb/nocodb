@@ -16,7 +16,7 @@ const props = withDefaults(
     disabled: false,
     overlayClassName: undefined,
     autoClose: true,
-    overlayStyle: {},
+    overlayStyle: () => ({}),
   },
 )
 

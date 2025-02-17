@@ -66,6 +66,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-row items-center justify-between w-full h-full">
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"
       v-model="vModel"

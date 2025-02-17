@@ -1139,6 +1139,11 @@ export function useCanvasRender({
     visibleCols.forEach((column) => {
       const width = parseInt(column.width, 10)
 
+      if (column.fixed) {
+        xOffset += width
+        return
+      }
+
       const isHovered = isBoxHovered(
         {
           x: xOffset - scrollLeft.value,
@@ -1148,10 +1153,13 @@ export function useCanvasRender({
         },
         mousePosition,
       )
+      ctx.fillStyle = isHovered ? '#F4F4F5' : '#F9F9FA'
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
+
         ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+        ctx.fill()
         ctx.clip()
 
         ctx.textBaseline = 'middle'
@@ -1159,7 +1167,6 @@ export function useCanvasRender({
 
         ctx.font = '600 12px Manrope'
         const aggWidth = ctx.measureText(column.aggregation).width
-
         if (column.agg_prefix) {
           ctx.font = '400 12px Manrope'
           ctx.fillStyle = '#6a7184'
@@ -1169,7 +1176,6 @@ export function useCanvasRender({
             height.value - AGGREGATION_HEIGHT / 2,
           )
         }
-
         ctx.font = '600 12px Manrope'
         ctx.fillStyle = '#4a5268'
         ctx.fillText(column.aggregation, xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
@@ -1178,7 +1184,9 @@ export function useCanvasRender({
       } else if (isHovered) {
         ctx.save()
         ctx.beginPath()
+
         ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+        ctx.fill()
         ctx.clip()
 
         ctx.font = '600 10px Manrope'
@@ -1231,7 +1239,7 @@ export function useCanvasRender({
           mousePosition,
         )
 
-        ctx.fillStyle = '#F9F9FA'
+        ctx.fillStyle = isHovered ? '#F4F4F5' : '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
         ctx.fillStyle = '#6a7184'

@@ -41,6 +41,13 @@ onMounted(() => {
     inputRef.value?.focus()
   }
 })
+
+// This way special characters are updated immediately
+// which does not occur in vanilla v-model
+// See https://github.com/vuejs/vue/issues/9777
+function updateInput(e: any) {
+  vModel.value = (e.target as HTMLInputElement)?.value ?? ''
+}
 </script>
 
 <template>
@@ -48,8 +55,9 @@ onMounted(() => {
   <input
     v-if="!isExpandedFormOpen"
     :ref="focus"
-    v-model="vModel"
+    :value="vModel"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
+    @input="updateInput"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

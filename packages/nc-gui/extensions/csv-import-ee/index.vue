@@ -92,6 +92,8 @@ const importTypeOptions = [
 
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
+const { getMeta } = useMetas()
+
 const EXTENSION_ID = extension.value.extensionId
 
 const fileList = ref<UploadFile[]>([])
@@ -120,6 +122,8 @@ const processedRecords = ref(0)
 const isImportingRecords = ref(false)
 
 const viewImportHistory = ref(false)
+
+const autoInsertOption = ref(false)
 
 const parsedData = ref<any>()
 
@@ -458,6 +462,7 @@ const onImport = async () => {
           upsertField: columns.value[importPayload.value.upsertColumnId!],
           data: chunk,
           importType: importPayload.value.importType,
+          autoInsertOption: autoInsertOption.value,
         })
 
         stats.value = {
@@ -470,12 +475,17 @@ const onImport = async () => {
           inserted: (importPayload.value.stats.inserted ?? 0) + upsertStats.inserted,
           updated: (importPayload.value.stats.updated ?? 0) + upsertStats.updated,
         }
+
+        if (autoInsertOption.value) {
+          await getMeta(importPayload.value.tableId, true)
+        }
       } else {
         // insert data
         $e(`c:extension:${EXTENSION_ID}:insert`)
         const insertStats = await insertData({
           tableId: importPayload.value.tableId,
           data: chunk,
+          autoInsertOption: autoInsertOption.value,
         })
 
         stats.value = {
@@ -485,6 +495,10 @@ const onImport = async () => {
         importPayload.value.stats = {
           ...importPayload.value.stats,
           inserted: (importPayload.value.stats.inserted ?? 0) + insertStats.inserted,
+        }
+
+        if (autoInsertOption.value) {
+          await getMeta(importPayload.value.tableId, true)
         }
       }
 
@@ -990,6 +1004,11 @@ onMounted(async () => {
                 <div>
                   <NcCheckbox v-model:checked="importPayload.header" @change="updateHistory()">
                     Use first record as header
+                  </NcCheckbox>
+                </div>
+                <div>
+                  <NcCheckbox v-model:checked="autoInsertOption">
+                    {{ $t('labels.autoCreateMissingSelectionOptions') }}
                   </NcCheckbox>
                 </div>
               </div>

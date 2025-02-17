@@ -5,6 +5,7 @@ import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
+import { NcCheckbox } from '#components'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -33,9 +34,11 @@ dayjs.extend(utc)
 
 const { t } = useI18n()
 
+const { getMeta } = useMetas()
+
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -79,6 +82,8 @@ const hasSelectColumn = ref<boolean[]>([])
 const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
+
+const autoInsertOption = ref<boolean>(false)
 
 const inputRefs = ref<HTMLInputElement[]>([])
 
@@ -448,10 +453,11 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
+              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&typecast=true' : ''
               const res = await $fetch.raw(
                 `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
                   operationId ? `&operation_id=${operationId}` : ''
-                }`,
+                }${autoInsertOptionQuery}`,
                 {
                   baseURL,
                   method: 'POST',
@@ -467,6 +473,9 @@ async function importTemplate() {
               operationId = res.headers?.['nc-operation-id']
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
+              if (autoInsertOption.value) {
+                await getMeta(tableId, true)
+              }
             }
           })(key),
         ),
@@ -621,7 +630,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
+        const tableColumn = columns.value.find((c) => c.title === col.column_name)
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {
@@ -766,7 +775,6 @@ const currentColumnToEdit = ref('')
               {{ table.table_name }}
             </span>
           </template>
-
           <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
             <NcTable
               class="template-form flex-1"
@@ -789,7 +797,7 @@ const currentColumnToEdit = ref('')
 
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'source_column'">
-                  <div class="flex items-center gap-3 w-70">
+                  <label class="flex items-center gap-3 w-70 h-full">
                     <a-checkbox v-model:checked="record.enabled" />
                     <div class="flex items-center flex-grow truncate">
                       <NcTooltip class="inline-block max-w-full truncate">
@@ -798,8 +806,8 @@ const currentColumnToEdit = ref('')
                       </NcTooltip>
                     </div>
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-1" />
-                  </div>
-                  <div class="absolute h-1 border-t top-0 left-3 right-3" />
+                  </label>
+                  <div class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
                 </template>
 
                 <template v-else-if="column.key === 'destination_column'">
@@ -837,6 +845,13 @@ const currentColumnToEdit = ref('')
           </div>
         </a-collapse-panel>
       </a-collapse>
+
+      <div v-if="isEeUI" class="pt-4 pb-2 px-2">
+        <label class="flex">
+          <NcCheckbox v-model:checked="autoInsertOption" />
+          <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>
+        </label>
+      </div>
     </div>
 
     <a-card v-else class="!border-none !px-0 !mx-0" :body-style="{ padding: '0 !important' }">

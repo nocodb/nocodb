@@ -142,6 +142,7 @@ export class DataTableService {
         cookie: param.cookie,
         insertOneByOneAsFallback: true,
         isSingleRecordInsertion: !Array.isArray(param.body),
+        typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         undo: param.undo,
         apiVersion: param.apiVersion,
       },

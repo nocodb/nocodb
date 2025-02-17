@@ -1,25 +1,25 @@
 import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
-import { DurationColumn } from './columns/Duration';
-import { NumberColumn } from './columns/Number';
-import { SingleLineTextColumn } from './columns/SingleLineText';
+import { DurationHelper } from './columns/Duration';
+import { NumberHelper } from './columns/Number';
+import { SingleLineTextHelper } from './columns/SingleLineText';
 
-export abstract class AbstractColumn {
+export abstract class AbstractColumnHelper {
   static columnDefaultMeta?: Record<string, any> = {};
   abstract serializeValue(value: unknown, column: ColumnType): any;
   abstract parseValue(value: unknown, column: ColumnType): any;
   abstract parsePlainCellValue(value: unknown, column: ColumnType): string;
 }
 
-export class ColumnFactory {
-  private registry: Record<string, new () => AbstractColumn> = {
-    [UITypes.SingleLineText]: SingleLineTextColumn,
-    [UITypes.Number]: NumberColumn,
-    [UITypes.Duration]: DurationColumn,
+export class ColumnHelper {
+  private registry: Record<string, new () => AbstractColumnHelper> = {
+    [UITypes.SingleLineText]: SingleLineTextHelper,
+    [UITypes.Number]: NumberHelper,
+    [UITypes.Duration]: DurationHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it
-  getColumn(column: ColumnType): AbstractColumn | undefined {
+  getColumn(column: ColumnType): AbstractColumnHelper | undefined {
     if (!column) return undefined;
 
     const ColumnClass = this.registry[column.uidt];

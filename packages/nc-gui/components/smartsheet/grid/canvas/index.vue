@@ -1104,6 +1104,10 @@ onBeforeUnmount(() => {
     }
   }
 
+  :deep(.nc-cell-attachment) {
+    @apply !pl-1 !pt-1.75;
+  }
+
   .nc-cell,
   .nc-virtual-cell {
     @apply !text-small !leading-[18px];

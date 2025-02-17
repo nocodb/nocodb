@@ -137,8 +137,23 @@ export class ImageWindowLoader {
     width: number,
     height: number,
     borderRadius = 4,
+    borderOptions: {
+      border?: boolean
+      borderColor?: string
+      borderWidth?: number
+    },
   ): void {
+    const { border = false, borderColor = '#e5e7eb', borderWidth = 1 } = borderOptions
+
     ctx.save()
+
+    if (border) {
+      ctx.beginPath()
+      ctx.roundRect(x, y, width, height, borderRadius)
+      ctx.strokeStyle = borderColor
+      ctx.lineWidth = borderWidth
+      ctx.stroke()
+    }
 
     if (borderRadius > 0) {
       ctx.beginPath()
@@ -146,11 +161,24 @@ export class ImageWindowLoader {
       ctx.clip()
     }
 
-    const scale = Math.max(width / image.width, height / image.height)
+    ctx.beginPath()
+    ctx.roundRect(
+      x + (border ? borderWidth / 2 : 0),
+      y + (border ? borderWidth / 2 : 0),
+      width - (border ? borderWidth : 0),
+      height - (border ? borderWidth : 0),
+      Math.max(0, borderRadius - (border ? borderWidth / 2 : 0)),
+    )
+    ctx.clip()
+
+    const scale = Math.max(
+      (width - (border ? borderWidth : 0)) / image.width,
+      (height - (border ? borderWidth : 0)) / image.height,
+    )
     const scaledWidth = image.width * scale
     const scaledHeight = image.height * scale
-    const offsetX = (width - scaledWidth) / 2
-    const offsetY = (height - scaledHeight) / 2
+    const offsetX = (width - (border ? borderWidth : 0) - scaledWidth) / 2
+    const offsetY = (height - (border ? borderWidth : 0) - scaledHeight) / 2
 
     ctx.drawImage(image, x + offsetX, y + offsetY, scaledWidth, scaledHeight)
     ctx.restore()

@@ -1,32 +1,135 @@
+import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
+import { pxToRowHeight } from '../../../../../utils/cell'
+
 interface Attachment {
   mimetype?: string
+  type?: string
   title?: string
 }
 
-export const AttachmentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, imageLoader }) => {
-    const { getPossibleAttachmentSrc } = useAttachment()
-    const padding = 8
-    const itemSize = height - padding * 2
-    const itemPadding = 4
+function getAttachmentIcon(title?: string, mimetype?: string): string {
+  if (isImage(title ?? '', mimetype)) {
+    return 'image'
+  }
 
+  if (isPdf(title ?? '', mimetype)) {
+    return 'ncFileTypePdf'
+  }
+
+  if (isVideo(title ?? '', mimetype)) {
+    return 'ncFileTypeVideo'
+  }
+
+  if (isAudio(title ?? '', mimetype)) {
+    return 'ncFileTypeAudio'
+  }
+
+  if (isWord(title ?? '', mimetype)) {
+    return 'ncFileTypeWord'
+  }
+
+  if (isExcel(title ?? '', mimetype)) {
+    return 'ncFileTypeCsv'
+  }
+
+  if (isPresentation(title ?? '', mimetype)) {
+    return 'ncFileTypePresentation'
+  }
+
+  if (isZip(title ?? '', mimetype)) {
+    return 'ncFileTypeZip'
+  }
+
+  return 'ncFileTypeUnknown'
+}
+
+function getAttachmentSize(rowHeight: number) {
+  switch (rowHeight) {
+    case 1:
+    case 2:
+      return 'tiny'
+    case 4:
+    case 6:
+      return 'small'
+    default:
+      return 'tiny'
+  }
+}
+
+function isImage(title?: string, mimetype?: string) {
+  return mimetype?.includes('image/') || title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+}
+
+export const AttachmentCellRenderer: CellRenderer = {
+  render: (ctx, { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected }) => {
     let attachments: Attachment[] = []
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
     } catch {
       attachments = []
     }
+    if (selected && attachments.length === 0) {
+      const buttonWidth = 84
+      const buttonHeight = 24
+      const buttonX = x + (width - buttonWidth) / 2
+      const buttonY = y + 8
 
-    attachments.slice(0, 3).forEach((item, index) => {
+      const isButtonHovered = isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)
+
+      roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 8, {
+        backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
+        borderColor: '#e7e7e9',
+      })
+
+      spriteLoader.renderIcon(ctx, {
+        icon: 'upload',
+        x: buttonX + 8,
+        y: buttonY + (buttonHeight - 14) / 2,
+        size: 14,
+        color: '#6a7184',
+      })
+
+      ctx.fillStyle = '#374151'
+      ctx.font = '10px Manrope'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('Add File(s)', buttonX + 28, buttonY + buttonHeight / 2)
+      return
+    }
+    const rowHeight = pxToRowHeight[height]
+
+    const { getPossibleAttachmentSrc } = useAttachment()
+    const horizontalPadding = 10
+    const verticalPadding = rowHeight === 1 ? 4 : 8
+    const itemSize = rowHeight === 1 ? 24 : rowHeight === 2 ? 32 : 64
+    const gap = 8
+    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
+    const itemsPerRow = Math.floor((width - horizontalPadding * 2 + gap) / (itemSize + gap))
+    const totalItems = attachments.length
+    const itemsInLastRow = totalItems % itemsPerRow || itemsPerRow
+
+    const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
+    const maxVisibleItems = maxRows * itemsPerRow
+
+    attachments.slice(0, maxVisibleItems).forEach((item, index) => {
       if (!item) return
 
-      const itemX = x + padding + (itemSize + itemPadding) * index
-      const itemY = y + padding
+      const row = Math.floor(index / itemsPerRow)
+      const col = index % itemsPerRow
 
-      const isImage = item.mimetype?.includes('image/') || item.title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+      const isLastRow = row === Math.floor((index + 1) / itemsPerRow)
+      const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
-      if (isImage) {
-        const url = getPossibleAttachmentSrc(item, 'tiny')?.[0]
+      const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
+      const rowStartX = x + horizontalPadding + (width - horizontalPadding * 2 - currentRowWidth) / 2
+
+      const itemX = rowStartX + col * (itemSize + gap)
+      const itemY = y + verticalPadding + row * (itemSize + gap)
+
+      if (isImage(item.title, item.mimetype || item.type)) {
+        const size = getAttachmentSize(rowHeight)
+        const url = getPossibleAttachmentSrc(item, size)?.[0]
+
         if (!url) {
           imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, 'broken_image')
           return
@@ -34,22 +137,64 @@ export const AttachmentCellRenderer: CellRenderer = {
 
         const img = imageLoader.loadOrGetImage(url)
         if (img) {
-          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize)
-        } else {
-          // imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, 'hourglass_empty')
+          ctx.strokeStyle = '#D5D5D9'
+          ctx.lineWidth = 1
+          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize, 8, {
+            border: true,
+            borderColor: '#D5D5D9',
+            borderWidth: 1,
+          })
         }
       } else {
-        imageLoader.renderPlaceholder(ctx, itemX, itemY, itemSize, '')
+        const icon = getAttachmentIcon(item.title, item.mimetype || item.type)
+        ctx.beginPath()
+        ctx.roundRect(itemX, itemY, itemSize, itemSize, 8)
+        ctx.strokeStyle = '#D5D5D9'
+        ctx.lineWidth = 1
+        ctx.stroke()
+
+        spriteLoader.renderIcon(ctx, {
+          icon,
+          x: itemX,
+          y: itemY,
+          size: itemSize,
+          color: '#6b7280',
+        })
       }
     })
 
-    if (attachments.length > 3) {
-      const moreX = x + padding + (itemSize + itemPadding) * 3
-      ctx.fillStyle = '#6b7280'
-      ctx.font = '12px Manrope'
-      ctx.textBaseline = 'middle'
-      ctx.textAlign = 'left'
-      ctx.fillText(`+${attachments.length - 3}`, moreX + padding, y + height / 2)
+    if (isHovered && attachments.length > 0) {
+      const buttonY = y + 8
+
+      renderIconButton(ctx, {
+        buttonX: x + width - 30,
+        buttonY,
+        buttonSize: 18,
+        borderRadius: 6,
+        iconData: {
+          size: 13,
+          xOffset: 2.5,
+          yOffset: 2.5,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+      })
+
+      renderIconButton(ctx, {
+        buttonX: x + 14,
+        buttonY,
+        buttonSize: 18,
+        borderRadius: 6,
+        iconData: {
+          size: 13,
+          xOffset: 2.5,
+          yOffset: 2.5,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'attachFile',
+      })
     }
   },
 }

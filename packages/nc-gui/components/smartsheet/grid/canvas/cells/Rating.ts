@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { isBoxHovered, renderTag } from '../utils/canvas'
+import { renderTag } from '../utils/canvas'
 
 function getIconsData({
   width,
@@ -260,22 +260,5 @@ export const RatingCellRenderer: CellRenderer = {
     }
 
     return false
-  },
-  async handleHover(ctx) {
-    const { row, column, mousePosition, getCellPosition, cellRenderStore, setCursor } = ctx
-    if (column.readonly) return
-
-    const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
-
-    // const checkboxBounds = {
-    //   x: bounds.x + bounds.width / 2 - 7,
-    //   y: bounds.y + bounds.height / 2 - 8,
-    //   width: 14,
-    //   height: 14,
-    // }
-
-    // if (isBoxHovered(checkboxBounds, mousePosition)) {
-    //   setCursor('pointer')
-    // }
   },
 }

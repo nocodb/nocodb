@@ -129,7 +129,7 @@ const onTouchStart = (e: TouchEvent) => {
         loading="lazy"
         @error="onError"
       />
-      <GeneralIcon icon="ncFileTypeImage" v-else class="flex-none w-6" />
+      <GeneralIcon v-else icon="ncFileTypeImage" class="flex-none w-6" />
     </div>
 
     <div v-if="controls" class="absolute mx-auto w-full bottom-4 flex items-center justify-center gap-2">

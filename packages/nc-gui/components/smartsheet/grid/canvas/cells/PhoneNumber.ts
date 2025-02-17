@@ -1,5 +1,5 @@
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {

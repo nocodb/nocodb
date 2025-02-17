@@ -896,7 +896,6 @@ const handleMouseUp = async (e: MouseEvent) => {
       requestAnimationFrame(triggerRefreshCanvas)
       return
     }
-    return
   }
 
   // If the user is clicking on the Aggregation in bottom
@@ -1270,7 +1269,7 @@ const handleMouseMove = (e: MouseEvent) => {
   if (cursor) setCursor(cursor)
 }
 
-const reloadViewDataHookHandler = async (param) => {
+const reloadViewDataHookHandler = async () => {
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 
   await syncCount()

@@ -890,6 +890,7 @@ export function useCanvasTable({
 
     // Action Manager
     actionManager,
+    imageLoader,
     handleCellClick,
     handleCellHover,
     renderCell,

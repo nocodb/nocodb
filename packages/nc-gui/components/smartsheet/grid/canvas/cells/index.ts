@@ -1,6 +1,7 @@
 import { type TableType, UITypes, type ViewType, isAIPromptCol } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -224,6 +225,8 @@ export function useGridCellHandler(params: {
     value: any
     mousePosition: { x: number; y: number }
     pk: any
+    selected: boolean
+    imageLoader: ImageWindowLoader
   }) => {
     if (!params?.getCellPosition) return
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)

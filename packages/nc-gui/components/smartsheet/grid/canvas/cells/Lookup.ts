@@ -1,4 +1,5 @@
 import { isVirtualCol, RelationTypes, UITypes, type ColumnType, type LookupType, type RollupType } from 'nocodb-sdk'
+import { getSingleMultiselectColOptions } from '../utils/cell'
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -11,17 +12,21 @@ export const LookupCellRenderer: CellRenderer = {
 
     const colOptions = column.colOptions as LookupType
 
-    const relatedColObj = metas.value?.[column.fk_model_id!]?.columns?.find(
+    const relatedColObj = metas?.[column.fk_model_id!]?.columns?.find(
       (c) => c.id === column?.colOptions?.fk_relation_column_id,
     ) as ColumnType
 
     if (!relatedColObj) return
 
-    const relatedTableMeta = metas.value?.[relatedColObj.colOptions?.fk_related_model_id]
+    const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
 
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
     if (!lookupColumn) return
+
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(lookupColumn.uidt)) {
+      lookupColumn.extra = getSingleMultiselectColOptions(lookupColumn)
+    }
 
     let arrValue = []
 

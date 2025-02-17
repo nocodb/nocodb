@@ -473,7 +473,7 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-  if (rowIndex === totalRows.value) {
+  if (rowIndex === totalRows.value && e.button === 1) {
     await addEmptyRow()
     selection.value.clear()
     activeCell.value.row = rowIndex

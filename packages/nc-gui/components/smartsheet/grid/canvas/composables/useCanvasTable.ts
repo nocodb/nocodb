@@ -429,7 +429,7 @@ export function useCanvasTable({
     return {
       x: xPos,
       y: startY,
-      size: 8,
+      size: isAiFillMode.value ? 10 : 8,
       fixedCol: selection.value.end.col < fixedCols.length,
     }
   }
@@ -832,6 +832,10 @@ export function useCanvasTable({
 
   watch(rowHeight, () => {
     clearTextCache()
+    triggerRefreshCanvas()
+  })
+
+  watch(isAiFillMode, () => {
     triggerRefreshCanvas()
   })
 

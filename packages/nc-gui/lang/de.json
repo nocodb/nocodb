@@ -603,6 +603,7 @@
     "teamAndSettings": "Team & Einstellungen",
     "apiDocs": "API-Dokumentation",
     "importFromAirtable": "Importieren aus Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Token generieren",
     "APIsAndSupport": "APIs & Support",
     "helpCenter": "Hilfecenter",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Schnell importieren von",
     "quickImport": "Schnellimport",
     "quickImportAirtable": "Aus Airtable importieren",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "CSV-Datei importieren",
     "quickImportExcel": "Excel-Datei importieren",
     "quickImportJSON": "JSON importieren",
@@ -676,6 +678,8 @@
     "customUrl": "Eigene URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "Kein Bild",
@@ -977,7 +981,7 @@
     "barcodeFormat": "Barcode-Format",
     "qrCodeValueTooLong": "Zu viele Zeichen für einen QR-Code",
     "barcodeValueTooLong": "Zu viele Zeichen für einen Barcode",
-    "currentLocation": "Aktueller Standort",
+    "currentLocation": "Set to current location",
     "lng": "Längengrad",
     "lat": "Breitengrad",
     "aggregateFunction": "Globale Funktion",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "Zum Dashboard",
     "importing": "Wird importiert",
     "importingFromAirtable": "Importiere aus Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable-Daten importiert",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "JSON formatieren",
     "autoSelectFieldTypes": "Spaltentypen automatisch auswählen",
     "firstRowAsHeaders": "Ersten Eintrag als Kopfzeile verwenden",
@@ -1118,7 +1124,8 @@
     "viewHide": "Sichtbarkeit anzeigen",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "Stapel hinzufügen / bearbeiten"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Zugeordnet von",
       "chooseMappingField": "Mapping-Feld auswählen",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Legen Sie Ihr Dokument hier ab",
     "airtableImportSuccess": "Daten aus Airtable-Datenbank erfolgreich importiert.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Ihr Konto dauerhaft löschen",
     "learnMore": "Mehr erfahren",
     "connectIntegrations": "Verbinden Sie Integrationen mit NocoDB.",

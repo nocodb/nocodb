@@ -329,6 +329,7 @@ const hideOrShowField = async () => {
   }
 
   isLoading.value = ''
+  isOpen.value = false
 }
 
 const handleDelete = () => {

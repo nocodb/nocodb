@@ -603,7 +603,11 @@ function scrollToCell(row?: number, column?: number) {
 const handleMouseUp = async (e: MouseEvent) => {
   e.preventDefault()
   onMouseUpFillHandlerEnd()
-  onMouseUpSelectionHandler(e)
+
+  if (onMouseUpSelectionHandler(e)) {
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
 
   if (isRowReorderActive.value) return
 

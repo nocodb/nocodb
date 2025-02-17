@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { type TableType, UITypes, type ViewType } from 'nocodb-sdk'
-import type { ColumnType } from 'ant-design-vue/lib/table'
+import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { normalizeWidth, useColumnResize } from './composables/useColumnResize'
 import { useCellRenderer } from './cells'
@@ -79,9 +78,11 @@ const cachedRows = toRef(props, 'data')
 // Refs
 const canvasRef = ref()
 const containerRef = ref()
+const wrapperRef = ref()
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
 const rowSlice = ref({ start: 0, end: 0 })
+const colSlice = ref({ start: 0, end: 0 })
 const activeCell = ref({ row: -1, column: -1 })
 const editEnabled = ref<{
   rowIndex: number
@@ -101,11 +102,11 @@ provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 // Composables
 const { gridViewCols, updateGridViewColumn, metaColumnById } = useViewColumnsOrThrow()
-const { height } = useElementSize(containerRef)
+const { height, width } = useElementSize(wrapperRef)
 const { renderCell } = useCellRenderer()
 
 // Computed
-const visibleColumns = computed(() => {
+const columns = computed(() => {
   const cols = fields.value.map((f) => {
     const gridViewCol = gridViewCols.value[f.id]
 
@@ -132,8 +133,10 @@ const visibleColumns = computed(() => {
 })
 
 const totalWidth = computed(() => {
-  return visibleColumns.value.reduce((acc, col) => acc + +col.width.split('px')[0], 0) + 256
+  return columns.value.reduce((acc, col) => acc + +col.width.split('px')[0], 0) + 256
 })
+
+const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width, 10)))
 
 const totalHeight = computed(() => {
   const rowsHeight = totalRows.value * 32
@@ -143,13 +146,13 @@ const totalHeight = computed(() => {
 
 const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
   canvasRef,
-  visibleColumns,
+  columns,
   (columnId, newWidth) => {
-    const columnIndex = visibleColumns.value.findIndex((col) => col.id === columnId)
+    const columnIndex = columns.value.findIndex((col) => col.id === columnId)
     if (columnIndex !== -1) {
       try {
         const normalizedWidth = normalizeWidth(metaColumnById.value[columnId], newWidth)
-        visibleColumns.value[columnIndex].width = `${normalizedWidth}px`
+        columns.value[columnIndex].width = `${normalizedWidth}px`
         requestAnimationFrame(drawCanvas)
       } catch (error) {
         console.error('Error updating column width:', error)
@@ -158,7 +161,7 @@ const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
     }
   },
   (columnId, width) => {
-    const columnIndex = visibleColumns.value.findIndex((col) => col.id === columnId)
+    const columnIndex = columns.value.findIndex((col) => col.id === columnId)
 
     if (columnIndex === -1) return
 
@@ -171,6 +174,7 @@ const { handleMouseMove, handleMouseDown, cleanupResize } = useColumnResize(
   },
 )
 
+const COLUMN_BUFFER_SIZE = 5
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
@@ -244,18 +248,41 @@ const updateVisibleRows = async () => {
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
-const calculateSlices = () => {
-  if (containerRef.value.clientWidth === 0) {
-    setTimeout(calculateSlices, 50)
+const findColumnIndex = (target: number, start = 0, end = columnWidths.value.length) => {
+  let accumulatedWidth = 0
+
+  for (let i = 0; i < end; i++) {
+    if (accumulatedWidth > target) {
+      return Math.max(0, i - 1)
+    }
+    accumulatedWidth += columnWidths.value[i]
   }
-  const startIndex = Math.max(0, Math.floor(scrollTop.value / 32))
-  const visibleCount = Math.ceil(containerRef.value.clientHeight / 32)
-  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
-  const newEnd = Math.min(totalRows.value, Math.max(endIndex, startIndex + 50))
+  return end - 1
+}
 
-  if (startIndex !== rowSlice.value.start || newEnd !== rowSlice.value.end) {
-    rowSlice.value = { start: startIndex, end: newEnd }
+const calculateSlices = () => {
+  if (containerRef.value?.clientWidth === 0) {
+    setTimeout(calculateSlices, 50)
+    return
+  }
+  const startRowIndex = Math.max(0, Math.floor(scrollTop.value / 32))
+  const visibleRowCount = Math.ceil(containerRef.value.clientHeight / 32)
+  const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
+  const newEndRow = Math.min(totalRows.value, Math.max(endRowIndex, startRowIndex + 50))
+
+  const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
+  const endColIndex = Math.min(
+    columnWidths.value.length,
+    findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
+  )
+
+  if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
+    rowSlice.value = { start: startRowIndex, end: newEndRow }
+  }
+
+  if (startColIndex !== colSlice.value.start || endColIndex !== colSlice.value.end) {
+    colSlice.value = { start: startColIndex, end: endColIndex }
   }
 
   updateVisibleRows()
@@ -264,7 +291,7 @@ const calculateSlices = () => {
 function renderHeader(ctx: CanvasRenderingContext2D) {
   // Header background
   ctx.fillStyle = '#f4f4f5'
-  ctx.fillRect(0, 0, totalWidth.value, 32)
+  ctx.fillRect(0, 0, width.value, 32)
 
   // Header borders
   ctx.strokeStyle = '#e7e7e9'
@@ -273,20 +300,16 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
   // Bottom border
   ctx.beginPath()
   ctx.moveTo(0, 32)
-  ctx.lineTo(totalWidth.value, 32)
+  ctx.lineTo(width.value, 32)
   ctx.stroke()
 
-  // Left border
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.lineTo(0, 32)
-  ctx.stroke()
+  const { start: startColIndex, end: endColIndex } = colSlice.value
+  const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-  // Right border
-  ctx.beginPath()
-  ctx.moveTo(totalWidth.value, 0)
-  ctx.lineTo(totalWidth.value, 32)
-  ctx.stroke()
+  let initialOffset = 0
+  for (let i = 0; i < startColIndex; i++) {
+    initialOffset += parseInt(columns.value[i].width, 10)
+  }
 
   // Regular columns
   ctx.fillStyle = '#6a7184'
@@ -294,23 +317,23 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
   ctx.textBaseline = 'middle'
   ctx.imageSmoothingEnabled = false
 
-  let xOffset = 0
-  visibleColumns.value.forEach((column) => {
+  let xOffset = initialOffset
+  visibleCols.forEach((column) => {
     const width = parseInt(column.width, 10)
-    ctx.fillText(column.title, xOffset + 10, 16)
+    ctx.fillText(column.title, xOffset + 10 - scrollLeft.value, 16)
 
     xOffset += width
 
     ctx.beginPath()
-    ctx.moveTo(xOffset, 0)
-    ctx.lineTo(xOffset, 32)
+    ctx.moveTo(xOffset - scrollLeft.value, 0)
+    ctx.lineTo(xOffset - scrollLeft.value, 32)
     ctx.stroke()
   })
 
   // Fixed columns
-  const fixedCols = visibleColumns.value.filter((col) => col.fixed)
+  const fixedCols = columns.value.filter((col) => col.fixed)
   if (fixedCols.length) {
-    xOffset = scrollLeft.value
+    xOffset = 0
 
     fixedCols.forEach((column, index) => {
       const width = parseInt(column.width, 10)
@@ -336,38 +359,49 @@ function renderHeader(ctx: CanvasRenderingContext2D) {
 }
 
 function renderRows(ctx: CanvasRenderingContext2D) {
-  const { start: startIndex, end: endIndex } = rowSlice.value
+  const { start: startRowIndex, end: endRowIndex } = rowSlice.value
+  const { start: startColIndex, end: endColIndex } = colSlice.value
+  const visibleCols = columns.value.slice(startColIndex, endColIndex)
+
   let yOffset = 32
   let activeState = null
 
-  for (let rowIdx = startIndex; rowIdx < endIndex; rowIdx++) {
+  let initialXOffset = 0
+  for (let i = 0; i < startColIndex; i++) {
+    initialXOffset += parseInt(columns.value[i].width, 10)
+  }
+
+  for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
     const row = cachedRows.value.get(rowIdx)
 
     // Row background
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, yOffset, totalWidth.value, 32)
+    ctx.fillRect(0, yOffset, width.value, 32)
 
     if (row) {
-      let xOffset = 0
-      visibleColumns.value.forEach((column, index) => {
+      let xOffset = initialXOffset
+
+      visibleCols.forEach((column, colIdx) => {
         const width = parseInt(column.width, 10)
+        const absoluteColIdx = startColIndex + colIdx
 
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
-        ctx.moveTo(xOffset, yOffset)
-        ctx.lineTo(xOffset, yOffset + 32)
+        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+        ctx.lineTo(xOffset - scrollLeft.value, yOffset + 32)
         ctx.stroke()
 
-        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === index
+        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
 
         if (isActive) {
           activeState = {
-            x: xOffset,
+            x: xOffset - scrollLeft.value,
             y: yOffset,
             width,
             height: 32,
           }
         }
+
         const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
 
         renderCell(
@@ -377,7 +411,7 @@ function renderRows(ctx: CanvasRenderingContext2D) {
           },
           {
             value,
-            x: xOffset,
+            x: xOffset - scrollLeft.value,
             y: yOffset,
             width,
             height: 32,
@@ -390,15 +424,15 @@ function renderRows(ctx: CanvasRenderingContext2D) {
       })
 
       // Draw fixed columns if any (overlay on top)
-      const fixedCols = visibleColumns.value.filter((col) => col.fixed)
+      const fixedCols = columns.value.filter((col) => col.fixed)
       if (fixedCols.length) {
-        xOffset = scrollLeft.value
+        xOffset = 0
 
         fixedCols.forEach((column, index) => {
           const width = parseInt(column.width, 10)
           const value = column.id === 'row_number' ? row.rowMeta.rowIndex + 1 : row.row[column.title]
-
-          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === index
+          const colIdx = columns.value.findIndex((col) => col.id === column.id)
+          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
           if (isActive) {
             activeState = {
@@ -448,17 +482,19 @@ function renderRows(ctx: CanvasRenderingContext2D) {
     ctx.strokeStyle = '#e7e7e9'
     ctx.beginPath()
     ctx.moveTo(0, yOffset + 32)
-    ctx.lineTo(totalWidth.value, yOffset + 32)
+    ctx.lineTo(width.value, yOffset + 32)
     ctx.stroke()
 
     yOffset += 32
   }
+
   if (activeState) {
     ctx.strokeStyle = '#3366ff'
     ctx.lineWidth = 2
     roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2)
   }
 }
+
 function drawCanvas() {
   const canvas = canvasRef.value
   if (!canvas) return
@@ -468,10 +504,10 @@ function drawCanvas() {
 
   const dpr = window.devicePixelRatio || 1
 
-  canvas.width = totalWidth.value * dpr
+  canvas.width = width.value * dpr
   canvas.height = height.value * dpr
 
-  canvas.style.width = `${totalWidth.value}px`
+  canvas.style.width = `${width.value}px`
   ctx.scale(dpr, dpr)
 
   renderHeader(ctx)
@@ -483,51 +519,54 @@ function handleMouseClick(e: MouseEvent) {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
-  const x = e.clientX - rect.left
   const y = e.clientY - rect.top - 32
-
   const rowIndex = Math.floor((y + scrollTop.value) / 32)
 
-  let xOffset = 0
+  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) return
+
+  const x = e.clientX - rect.left
   let clickedColumn = null
 
-  // Check fixed columns first
-  const fixedCols = visibleColumns.value.filter((col) => col.fixed)
-  if (fixedCols.length) {
-    xOffset = scrollLeft.value
-    for (const column of fixedCols) {
-      const width = parseInt(column.width, 10)
-      if (x >= xOffset && x < xOffset + width) {
-        clickedColumn = column
-        break
-      }
-      xOffset += width
+  const fixedCols = columns.value.filter((col) => col.fixed)
+  let xOffset = 0
+
+  for (const column of fixedCols) {
+    const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
+    if (x >= xOffset && x < xOffset + width) {
+      clickedColumn = column
+      break
     }
+    xOffset += width
   }
 
-  // If not clicked on fixed column, check regular columns
   if (!clickedColumn) {
-    xOffset = 0
-    for (const column of visibleColumns.value) {
-      const width = parseInt(column.width, 10)
+    const visibleStart = colSlice.value.start
+    const visibleEnd = colSlice.value.end
+
+    const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+    xOffset = startOffset - scrollLeft.value
+
+    for (let i = visibleStart; i < visibleEnd; i++) {
+      const width = columnWidths.value[i] ?? 10
       if (x >= xOffset && x < xOffset + width) {
-        clickedColumn = column
+        clickedColumn = columns.value[i]
         break
       }
       xOffset += width
     }
   }
-
-  const colIndex = visibleColumns.value.findIndex((col) => col.id === clickedColumn?.id)
 
   if (clickedColumn) {
-    // Update active cell
-    activeCell.value = { row: rowIndex, column: colIndex }
+    activeCell.value = {
+      row: rowIndex,
+      column: columns.value.findIndex((col) => col.id === clickedColumn.id),
+    }
 
     if (e.detail === 2) {
       editEnabled.value = {
         rowIndex,
-        x: xOffset,
+        x: xOffset + scrollLeft.value,
         y: (rowIndex + 1) * 32 - scrollTop.value,
         column: metaColumnById.value[clickedColumn.id],
         row: cachedRows.value.get(rowIndex),
@@ -535,7 +574,7 @@ function handleMouseClick(e: MouseEvent) {
         width: parseInt(clickedColumn.width, 10),
       }
     }
-    // Redraw canvas
+
     requestAnimationFrame(drawCanvas)
   }
 }
@@ -556,7 +595,7 @@ useScroll(containerRef, {
   },
 })
 
-watch([rowSlice, cachedRows], () => {
+watch([rowSlice, cachedRows, colSlice], () => {
   requestAnimationFrame(drawCanvas)
 })
 
@@ -576,48 +615,49 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full h-full">
+  <div ref="wrapperRef" class="w-full h-full">
     <div ref="containerRef" class="relative w-full h-full overflow-auto border border-gray-200">
       <div
         class="relative"
         :style="{
-          width: `${totalWidth}px`,
           height: `${totalHeight}px`,
+          width: `${totalWidth}px`,
         }"
       >
         <canvas
           ref="canvasRef"
-          class="sticky top-0"
+          class="sticky top-0 left-0"
           :height="`${height}px`"
+          :width="`${width}px`"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
           @click="handleMouseClick"
         >
         </canvas>
-        <div
-          v-if="editEnabled"
-          :style="{
-            top: `${32 * (editEnabled.rowIndex + 1)}px`,
-            left: `${editEnabled.x}px`,
-            width: `${editEnabled.width}px`,
-            height: `${editEnabled.height}`,
-            borderRadius: '2px',
-          }"
-          class="absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
-        >
-          <LazySmartsheetRow :row="editEnabled.row">
-            <template #default="{ state }">
-              <SmartsheetCell
-                v-model="editEnabled.row.row[editEnabled.column.title]"
-                :column="editEnabled.column"
-                :row-index="editEnabled.rowIndex"
-                active
-                edit-enabled
-                @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
-              />
-            </template>
-          </LazySmartsheetRow>
-        </div>
+      </div>
+      <div
+        v-if="editEnabled"
+        :style="{
+          top: `${32 * (editEnabled.rowIndex + 1)}px`,
+          left: `${editEnabled.x}px`,
+          width: `${editEnabled.width}px`,
+          height: `${editEnabled.height}`,
+          borderRadius: '2px',
+        }"
+        class="absolute bg-white border border-2 border-[#3366ff] pointer-events-none"
+      >
+        <LazySmartsheetRow :row="editEnabled.row">
+          <template #default="{ state }">
+            <SmartsheetCell
+              v-model="editEnabled.row.row[editEnabled.column.title]"
+              :column="editEnabled.column"
+              :row-index="editEnabled.rowIndex"
+              active
+              edit-enabled
+              @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+            />
+          </template>
+        </LazySmartsheetRow>
       </div>
     </div>
   </div>

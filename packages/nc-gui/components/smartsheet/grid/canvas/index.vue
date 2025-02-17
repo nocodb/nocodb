@@ -285,16 +285,20 @@ function onActiveCellChanged() {
   triggerRefreshCanvas()
 }
 
-const onVisibilityChange = () => {
-  if (isCreateOrEditColumnDropdownOpen.value) {
+const onVisibilityChange = (value) => {
+  if (value) {
+    isDropdownVisible.value = true
+  } else if (isCreateOrEditColumnDropdownOpen.value) {
     isDropdownVisible.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
     isCreateOrEditColumnDropdownOpen.value = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    editColumn.value = null
   }
 }
 
 function closeAddColumnDropdownMenu(scrollToLastCol = false) {
   isCreateOrEditColumnDropdownOpen.value = false
   isDropdownVisible.value = false
+  editColumn.value = null
   if (scrollToLastCol) {
     setTimeout(() => {
       containerRef.value?.scrollTo({ left: totalWidth.value, behavior: 'smooth' })
@@ -701,10 +705,136 @@ function scrollToCell(row?: number, column?: number) {
   }
 }
 
-const handleMouseUp = (e: MouseEvent) => {
+const handleMouseUp = async (e: MouseEvent) => {
   e.preventDefault()
   onMouseUpFillHandlerEnd()
   onMouseUpSelectionHandler(e)
+
+  editEnabled.value = null
+  openAggregationField.value = null
+  openColumnDropdownField.value = null
+  isDropdownVisible.value = false
+  editColumn.value = null
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  const y = e.clientY - rect.top
+  const x = e.clientX - rect.left
+
+  if (y <= COLUMN_HEADER_HEIGHT_IN_PX && x < parseInt(columns.value[0]?.width ?? '', 10)) {
+    if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      vSelectedAllRecords.value = !vSelectedAllRecords.value
+      return
+    }
+  }
+
+  if (y < 32 && x > 80) {
+    const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+    const plusColumnX = totalColumnsWidth - scrollLeft.value
+    const plusColumnWidth = 60
+
+    if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
+      isDropdownVisible.value = true
+      isCreateOrEditColumnDropdownOpen.value = true
+      overlayStyle.value = {
+        top: `${rect.top}px`,
+        left: `${plusColumnX + rect.left}px`,
+        width: `${plusColumnWidth}px`,
+        height: '32px',
+        position: 'fixed',
+      }
+      return
+    }
+  }
+
+  // Column Dropdown Menu
+  if (y < 32 && (e.button === 2 || e.detail === 2) && x > 80) {
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+    if (clickedColumn) {
+      if (e.button === 2) {
+        openColumnDropdownField.value = clickedColumn.columnObj
+        isDropdownVisible.value = true
+        overlayStyle.value = {
+          top: `${rect.top}px`,
+          left: `${rect.left + xOffset}px`,
+          width: `${clickedColumn.width}`,
+          height: `32px`,
+          position: 'fixed',
+        }
+      } else if (e.detail === 2) {
+        handleEditColumn(e, false, clickedColumn.columnObj)
+      }
+    }
+    triggerRefreshCanvas()
+    return
+  } else if (y < 32 && x < 80) {
+    return
+  }
+
+  // Column Dropdown Menu
+  if (y <= 21 && y >= 9 && x > 80) {
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+
+    if (!clickedColumn) return
+
+    const columnWidth = parseInt(clickedColumn.width, 10)
+    const iconOffsetX = xOffset + columnWidth - 24
+
+    // check if clicked on the menu icon
+    if (iconOffsetX > x || iconOffsetX + 14 < x) {
+      return
+    }
+
+    if (clickedColumn) {
+      openColumnDropdownField.value = clickedColumn.columnObj
+      isDropdownVisible.value = true
+      overlayStyle.value = {
+        top: `${rect.top}px`,
+        left: `${rect.left + xOffset}px`,
+        width: `${clickedColumn.width}`,
+        height: `32px`,
+        position: 'fixed',
+      }
+    }
+    triggerRefreshCanvas()
+    return
+  }
+
+  // Aggregation Dropdown Menu
+  if (y > height.value - 36) {
+    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+    if (clickedColumn) {
+      openAggregationField.value = clickedColumn
+      isDropdownVisible.value = true
+      overlayStyle.value = {
+        top: `${rect.top + height.value - 36}px`,
+        left: `${rect.left + xOffset}px`,
+        width: clickedColumn.width,
+        height: `36px`,
+        position: 'fixed',
+      }
+      triggerRefreshCanvas()
+      return
+    }
+  }
+
+  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+  if (rowIndex === totalRows.value && e.button === 0) {
+    await addEmptyRow()
+    selection.value.clear()
+    activeCell.value.row = rowIndex
+    activeCell.value.column = 1
+    return
+  } else if (rowIndex > totalRows.value) {
+    selection.value.clear()
+    activeCell.value = { row: -1, column: -1 }
+  }
+
+  if (e.detail === 1 && x < 80) {
+    const row = cachedRows.value.get(rowIndex)
+    if (!row) return
+    handleRowMetaClick({ e, row, x })
+  }
 }
 
 const getHeaderTooltipRegions = (
@@ -957,9 +1087,13 @@ function addEmptyColumn() {
   const plusColumnX = totalColumnsWidth - scrollLeft.value
 
   overlayStyle.value = {
-    top: `calc(100svh - ${height.value}px + 32px)`,
-    left: `calc(100svw - ${width.value}px + ${plusColumnX - 200}px)`,
+    top: `calc(100svh + 32px)`,
+    left: `calc(100svw + ${plusColumnX - 200}px)`,
+    width: `${width.value}px`,
+    height: `${height.value}px`,
+    position: 'fixed',
   }
+
   isDropdownVisible.value = true
   triggerRefreshCanvas()
 }
@@ -971,6 +1105,7 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     !isMobileMode.value &&
     (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
   ) {
+    const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {
       isEditColumnDescription.value = true
     }
@@ -981,10 +1116,14 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
       xOffset += parseInt(columns.value[i]!.width, 10)
     }
     overlayStyle.value = {
-      top: `calc(100svh - ${height.value}px + ${32}px)`,
-      left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
+      top: `${rect.top}px`,
+      left: `${xOffset + rect.left}px`,
+      width: columns.value[colIndex]!.width,
+      height: '32px',
+      position: 'fixed',
     }
 
+    openColumnDropdownField.value = false
     editColumn.value = column
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
@@ -1188,19 +1327,24 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <template v-if="overlayStyle">
-        <NcDropdown :visible="isDropdownVisible" :overlay-style="overlayStyle" @visible-change="onVisibilityChange">
-          <div></div>
+        <NcDropdown
+            :visible="isDropdownVisible"
+            overlay-class-name="!border-none !bg-transparent"
+            @visible-change="onVisibilityChange"
+        >
+          <div :style="overlayStyle" class="hide pointer-events-none"></div>
           <template #overlay>
             <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" />
             <SmartsheetHeaderColumnMenu
-              v-if="openColumnDropdownField"
+                v-else-if="openColumnDropdownField"
               v-model:is-open="isDropdownVisible"
               :column="openColumnDropdownField"
               @edit="handleEditColumn"
             />
             <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
               <LazySmartsheetColumnEditOrAddProvider
-                ref="columnEditOrAddProviderRef"
+                  :key="editColumn?.id || 'new'"
+                  ref="columnEditOrAddProviderRef"
                 :column="editColumn"
                 :edit-description="isEditColumnDescription"
                 @submit="closeAddColumnDropdownMenu(true)"

@@ -1060,8 +1060,9 @@ const getHeaderTooltipRegions = (
       totalIconWidth += 18
     }
 
-    const ctx = defaultOffscreen2DContext
     const availableTextWidth = width - totalIconWidth
+    const ctx = defaultOffscreen2DContext
+    ctx.font = '550 12px Manrope'
     const measuredTextWidth = ctx.measureText(column.title!).width
     const isTruncated = measuredTextWidth > availableTextWidth
 
@@ -1125,7 +1126,7 @@ function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType)
 
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
-    if (canvasRef.value && canvasRef.value !== cursor) canvasRef.value.style.cursor = cursor
+    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
   }
 }
 

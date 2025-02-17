@@ -41,6 +41,8 @@ export function useRowReorder({
     const row = cachedRows.value.get(rowIndex)
     if (!row) return
 
+    row.rowMeta.isDragging = true
+    cachedRows.value.set(rowIndex, row)
     isDragging.value = true
     draggedRowIndex.value = rowIndex
     targetRowIndex.value = rowIndex + 1

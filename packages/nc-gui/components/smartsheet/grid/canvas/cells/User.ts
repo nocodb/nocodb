@@ -32,7 +32,7 @@ const usernameInitials = (displayName: string, email: string) => {
 
   if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
-      return displayNameSplit?.[0]?.[0] ?? `${displayNameSplit?.[1]?.[0]}` ?? ''
+      return (displayNameSplit[0]?.[0] ?? '') + (displayNameSplit[1]?.[0] ?? '')
     } else {
       return displayName.slice(0, 2)
     }

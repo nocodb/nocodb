@@ -342,7 +342,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   return { column: null, xOffset }
 }
 
-const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number }) => {
+const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -399,6 +399,8 @@ const handleRowMetaClick = ({ e, row, x }: { e: MouseEvent; row: Row; x: number 
 
   if (!clickedRegion) return
 
+  if (onlyDrag && clickedRegion.action !== 'reorder') return
+
   switch (clickedRegion.action) {
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
@@ -442,15 +444,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80) {
-      // If the click is not normal single click, return
-      if (clickType !== MouseClickType.SINGLE_CLICK) return
-      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-        vSelectedAllRecords.value = !vSelectedAllRecords.value
-      }
-      requestAnimationFrame(triggerRefreshCanvas)
-      return
-    } else {
+    if (x > 80) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -463,126 +457,38 @@ async function handleMouseDown(e: MouseEvent) {
           requestAnimationFrame(triggerRefreshCanvas)
         }
       })
-
-      // If x more than 80px, check if the user is trying to add a new column
-      const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-      const plusColumnX = totalColumnsWidth - scrollLeft.value
-      const plusColumnWidth = 60
-      // If the user is trying to add a new column
-      if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
-        // If the click is not normal single click, return
-        if (clickType !== MouseClickType.SINGLE_CLICK) return
-        isCreateOrEditColumnDropdownOpen.value = true
-        overlayStyle.value = {
-          top: `calc(100svh - ${height.value}px + 32px)`,
-          left: `calc(100svw - ${width.value}px + ${plusColumnX - 200}px)`,
-        }
-        isDropdownVisible.value = true
-        requestAnimationFrame(triggerRefreshCanvas)
-        return
-      }
-
-      // If user is clicking on a existing column
-      const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
-      if (clickedColumn) {
-        // If the user clicked on a column, check if the user is trying to edit the column
-        // On Double-click, should open the column edit dialog
-        if (clickType === MouseClickType.DOUBLE_CLICK) {
-          handleEditColumn(e, false, clickedColumn.columnObj)
-          return
-        } else if (clickType === MouseClickType.RIGHT_CLICK) {
-          // IF Right-click on a column, open the column dropdown menu
-          openColumnDropdownField.value = clickedColumn.columnObj
-          isDropdownVisible.value = true
-          overlayStyle.value = {
-            top: `calc(100svh - ${height.value}px + ${32}px)`,
-            minWidth: `${clickedColumn.width}`,
-            width: `${clickedColumn.width}`,
-            left: `calc(100svw - ${width.value}px + ${x}px)`,
-          }
-          requestAnimationFrame(triggerRefreshCanvas)
-          return
-        }
-      }
+    } else {
       return
     }
+    // DO NOT TRIGGER ANY OTHER MOUSE_DOWN ACTION IF USER IS CLICKING ON COLUMN HEADER
+    return
   }
 
-  // If the user is clicking on the Aggregation in bottom
+  // DO NOT TRIGGER MOUSE_DOWN ACTION IF USER IS CLICKING ON AGGREGATION DROPDOWN
   if (y > height.value - 36) {
-    // If the click is not normal single click, return
-    if (clickType !== MouseClickType.SINGLE_CLICK) return
-    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-    if (clickedColumn) {
-      openAggregationField.value = clickedColumn
-      isDropdownVisible.value = true
-      overlayStyle.value = {
-        top: `${height.value - 162}px`,
-        minWidth: `${clickedColumn.width}`,
-        width: `${clickedColumn.width}`,
-        left: `calc(100svw - ${width.value}px + ${xOffset}px)`,
-      }
-      requestAnimationFrame(triggerRefreshCanvas)
-      return
-    }
     return
   }
 
-  // If the user is clicking on places other than header and aggregation
-  // The rowIndex is calculated based on the y position of the mouse and rowSlice and partialRowHeight
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-  if (rowIndex === totalRows.value) {
-    if (clickType !== MouseClickType.SINGLE_CLICK) return
-    await addEmptyRow()
-    selection.value.clear()
-    activeCell.value.row = rowIndex
-    activeCell.value.column = 1
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  } else if (rowIndex > totalRows.value) {
-    selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  }
 
+  // onMouseDown event, we only handle the fillHandler and selectionHandler
+  // and rowReorder. Other events should be handled in onMouseUp
   if (x < 80) {
     const row = cachedRows.value.get(rowIndex)
     if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
-    handleRowMetaClick({ e, row, x })
+    handleRowMetaClick({ e, row, x, onlyDrag: true })
     return
   }
+
   // Check if the user is clicking on a fillHandler
   // If user clicked on fillHandler, we set the isFillHandlerActive to true
   // So we can handle the fillHandler operations
   onMouseDownFillHandlerStart(e)
   if (isFillHandlerActive.value) return
 
-  // Normal cell click operation
-  // We set the activeCell to -1, -1 to clear the active cell
-  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
-    activeCell.value.row = -1
-    activeCell.value.column = -1
-    requestAnimationFrame(triggerRefreshCanvas)
-  }
-
   const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
 
-  if (!clickedColumn) {
-    // If the user is not clicked in a column, clear the active cell and selection
-    // Return
-    activeCell.value.row = -1
-    activeCell.value.column = -1
-    selection.value.clear()
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  }
-
-  // If the new cell user clicked is not the active cell
-  // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row) {
-    onActiveCellChanged()
-  }
+  if (!clickedColumn?.columnObj) return
 
   // If the user is trying to open the context menu
   if (clickType === MouseClickType.RIGHT_CLICK) {
@@ -606,39 +512,6 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  // If the user is trying to click on a cell
-  const row = cachedRows.value.get(rowIndex)
-  if (!row) return
-  const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
-  const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
-
-  // handle the cellClick to corresponding cell.
-  // If it performed an action, will return true
-
-  const res = await handleCellClick({
-    event: e,
-    row: row!,
-    column: clickedColumn,
-    value: row?.row[clickedColumn.title],
-    mousePosition: { x, y },
-    pk,
-    selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
-    imageLoader,
-  })
-  // Set the active cell to the clicked cell
-  activeCell.value.row = rowIndex
-  activeCell.value.column = colIndex
-
-  if (res) {
-    // If the cellClick performed an action, return
-    // Set the cell as selected
-    selection.value.startRange({ row: rowIndex, col: colIndex })
-    selection.value.endRange({ row: rowIndex, col: colIndex })
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  }
-  requestAnimationFrame(triggerRefreshCanvas)
-
   // Check if the cell support transfer to editable state
   // If not, just continue to onMouseDownSelectionHandler which is used for selection with mouse
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
@@ -649,13 +522,7 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  // If the cell is editable, make the cell editable
-  // Virtual Cells BARCODE, QRCode, Lookup, we need to render the actual cell if double clicked
-  if (clickType === MouseClickType.DOUBLE_CLICK) {
-    const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]
-    if (!supportedVirtualColumns.includes(columnUIType) && clickedColumn?.virtual) return
-    makeCellEditable(rowIndex, clickedColumn)
-  } else {
+  if (clickType !== MouseClickType.DOUBLE_CLICK) {
     // If the cell is not double clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
@@ -721,87 +588,75 @@ const handleMouseUp = async (e: MouseEvent) => {
   const y = e.clientY - rect.top
   const x = e.clientX - rect.left
 
-  if (y <= COLUMN_HEADER_HEIGHT_IN_PX && x < parseInt(columns.value[0]?.width ?? '', 10)) {
-    if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-      vSelectedAllRecords.value = !vSelectedAllRecords.value
-      return
-    }
-  }
+  const clickType = getMouseClickType(e)
+  if (!clickType) return
 
-  if (y < 32 && x > 80) {
-    const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
-    const plusColumnX = totalColumnsWidth - scrollLeft.value
-    const plusColumnWidth = 60
-
-    if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
-      isDropdownVisible.value = true
-      isCreateOrEditColumnDropdownOpen.value = true
-      overlayStyle.value = {
-        top: `${rect.top}px`,
-        left: `${plusColumnX + rect.left}px`,
-        width: `${plusColumnWidth}px`,
-        height: '32px',
-        position: 'fixed',
+  // Handle all Column Header Operations
+  if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
+    // If x less than 80px, use is hovering over the row meta column
+    if (x < 80) {
+      // If the click is not normal single click, return
+      if (clickType !== MouseClickType.SINGLE_CLICK) return
+      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+        vSelectedAllRecords.value = !vSelectedAllRecords.value
       }
+      requestAnimationFrame(triggerRefreshCanvas)
       return
-    }
-  }
-
-  // Column Dropdown Menu
-  if (y < 32 && (e.button === 2 || e.detail === 2) && x > 80) {
-    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-    if (clickedColumn) {
-      if (e.button === 2) {
-        openColumnDropdownField.value = clickedColumn.columnObj
-        isDropdownVisible.value = true
+    } else {
+      // If x more than 80px, check if the user is trying to add a new column
+      const totalColumnsWidth = columns.value.reduce((acc, col) => acc + parseInt(col.width, 10), 0)
+      const plusColumnX = totalColumnsWidth - scrollLeft.value
+      const plusColumnWidth = 60
+      // If the user is trying to add a new column
+      if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
+        // If the click is not normal single click, return
+        if (clickType !== MouseClickType.SINGLE_CLICK) return
+        isCreateOrEditColumnDropdownOpen.value = true
         overlayStyle.value = {
           top: `${rect.top}px`,
-          left: `${rect.left + xOffset}px`,
-          width: `${clickedColumn.width}`,
-          height: `32px`,
+          left: `${plusColumnX + rect.left}px`,
+          width: `${plusColumnWidth}px`,
+          height: '32px',
           position: 'fixed',
         }
-      } else if (e.detail === 2) {
-        handleEditColumn(e, false, clickedColumn.columnObj)
+        isDropdownVisible.value = true
+        requestAnimationFrame(triggerRefreshCanvas)
+        return
       }
-    }
-    triggerRefreshCanvas()
-    return
-  } else if (y < 32 && x < 80) {
-    return
-  }
 
-  // Column Dropdown Menu
-  if (y <= 21 && y >= 9 && x > 80) {
-    const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-
-    if (!clickedColumn) return
-
-    const columnWidth = parseInt(clickedColumn.width, 10)
-    const iconOffsetX = xOffset + columnWidth - 24
-
-    // check if clicked on the menu icon
-    if (iconOffsetX > x || iconOffsetX + 14 < x) {
+      // If user is clicking on a existing column
+      const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+      if (clickedColumn) {
+        // If the user clicked on a column, check if the user is trying to edit the column
+        // On Double-click, should open the column edit dialog
+        if (clickType === MouseClickType.DOUBLE_CLICK) {
+          handleEditColumn(e, false, clickedColumn.columnObj)
+          return
+        } else if (clickType === MouseClickType.RIGHT_CLICK) {
+          // IF Right-click on a column, open the column dropdown menu
+          openColumnDropdownField.value = clickedColumn.columnObj
+          isDropdownVisible.value = true
+          overlayStyle.value = {
+            top: `${rect.top}px`,
+            left: `${rect.left + xOffset}px`,
+            width: `${clickedColumn.width}`,
+            height: `32px`,
+            position: 'fixed',
+          }
+          requestAnimationFrame(triggerRefreshCanvas)
+          return
+        }
+      }
+      requestAnimationFrame(triggerRefreshCanvas)
       return
     }
-
-    if (clickedColumn) {
-      openColumnDropdownField.value = clickedColumn.columnObj
-      isDropdownVisible.value = true
-      overlayStyle.value = {
-        top: `${rect.top}px`,
-        left: `${rect.left + xOffset}px`,
-        width: `${clickedColumn.width}`,
-        height: `32px`,
-        position: 'fixed',
-      }
-    }
-    triggerRefreshCanvas()
     return
   }
 
-  // Aggregation Dropdown Menu
+  // If the user is clicking on the Aggregation in bottom
   if (y > height.value - 36) {
+    // If the click is not normal single click, return
+    if (clickType !== MouseClickType.SINGLE_CLICK) return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
     if (clickedColumn) {
       openAggregationField.value = clickedColumn
@@ -813,27 +668,96 @@ const handleMouseUp = async (e: MouseEvent) => {
         height: `36px`,
         position: 'fixed',
       }
-      triggerRefreshCanvas()
-      return
     }
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
   }
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-  if (rowIndex === totalRows.value && e.button === 0) {
+
+  if (x < 80) {
+    const row = cachedRows.value.get(rowIndex)
+    if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
+    handleRowMetaClick({ e, row, x })
+    return
+  }
+
+  // Normal cell click operation
+  // We set the activeCell to -1, -1 to clear the active cell
+  if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
+    activeCell.value.row = -1
+    activeCell.value.column = -1
+    requestAnimationFrame(triggerRefreshCanvas)
+  }
+
+  const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
+
+  if (!clickedColumn) {
+    // If the user is not clicked in a column, clear the active cell and selection
+    // Return
+    activeCell.value.row = -1
+    activeCell.value.column = -1
+    selection.value.clear()
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
+  // If the new cell user clicked is not the active cell
+  // call onActiveCellChanged to clear invalid rows and reorder records locally if required
+  if (rowIndex !== activeCell.value?.row) {
+    onActiveCellChanged()
+  }
+
+  if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
     await addEmptyRow()
     selection.value.clear()
     activeCell.value.row = rowIndex
     activeCell.value.column = 1
-    return
   } else if (rowIndex > totalRows.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1 }
   }
 
-  if (e.detail === 1 && x < 80) {
-    const row = cachedRows.value.get(rowIndex)
-    if (!row) return
-    handleRowMetaClick({ e, row, x })
+  // If the user is trying to click on a cell
+  const row = cachedRows.value.get(rowIndex)
+  if (!row) return
+  const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
+  const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+
+  // handle the cellClick to corresponding cell.
+  // If it performed an action, will return true
+  const res = await handleCellClick({
+    event: e,
+    row: row!,
+    column: clickedColumn,
+    value: row?.row[clickedColumn.title],
+    mousePosition: { x, y },
+    pk,
+    selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
+    imageLoader,
+  })
+  // Set the active cell to the clicked cell
+  activeCell.value.row = rowIndex
+  activeCell.value.column = colIndex
+
+  if (res) {
+    // If the cellClick performed an action, return
+    // Set the cell as selected
+    selection.value.startRange({ row: rowIndex, col: colIndex })
+    selection.value.endRange({ row: rowIndex, col: colIndex })
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+  const columnUIType = clickedColumn.columnObj.uidt as UITypes
+
+  // If the cell is editable, make the cell editable
+  // Virtual Cells BARCODE, QRCode, Lookup, we need to render the actual cell if double clicked
+  if (clickType === MouseClickType.DOUBLE_CLICK) {
+    const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]
+    if (!supportedVirtualColumns.includes(columnUIType) && clickedColumn?.virtual) return
+    makeCellEditable(rowIndex, clickedColumn)
   }
 }
 
@@ -1117,9 +1041,9 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     }
     overlayStyle.value = {
       top: `${rect.top}px`,
-      left: `${xOffset + rect.left}px`,
+      left: `${rect.left + xOffset}px`,
       width: columns.value[colIndex]!.width,
-      height: '32px',
+      height: `32px`,
       position: 'fixed',
     }
 

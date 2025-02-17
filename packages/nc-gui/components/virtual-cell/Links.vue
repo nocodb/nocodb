@@ -199,6 +199,7 @@ onMounted(() => {
           :column="relatedTableDisplayColumn"
           :cell-value="localCellValue"
           @attach-record="onAttachRecord"
+          @escape="isOpen = false"
         />
         <VirtualCellComponentsUnLinkedItems
           v-if="listItemsDlg"
@@ -206,6 +207,7 @@ onMounted(() => {
           :column="relatedTableDisplayColumn"
           :hide-back-btn="hideBackBtn"
           @attach-linked-record="onAttachLinkedRecord"
+          @escape="isOpen = false"
         />
       </template>
     </VirtualCellComponentsLinkRecordDropdown>

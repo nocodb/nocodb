@@ -11,7 +11,7 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const emit = defineEmits(['update:modelValue', 'attachRecord'])
+const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -323,6 +323,7 @@ const isSearchInputFocused = ref(false)
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
+    if (!childrenListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
   } else if (e.key === 'Enter') {
     const list = childrenList.value?.list ?? state.value?.[colTitle.value]

@@ -161,13 +161,19 @@ export function useCanvasTable({
 
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
+  const isFillHanldeDisabled = computed(() => readOnly.value)
+
+  const isDataEditAllowed = computed(() => isDataEditAllowed.value)
+
+  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
+
   const isRowDraggingEnabled = computed(
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
-  const isAddingEmptyRowAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value)
 
-  const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+  const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isFieldEditAllowed.value && !isSqlView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
@@ -386,7 +392,7 @@ export function useCanvasTable({
   }
 
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
-    if (selection.value.isEmpty()) return null
+    if (selection.value.isEmpty() || isFillHanldeDisabled.value) return null
 
     if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
       return null
@@ -487,6 +493,7 @@ export function useCanvasTable({
     isAddingColumnAllowed,
     isAddingEmptyRowAllowed,
     readOnly,
+    isFillHanldeDisabled,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -735,7 +742,7 @@ export function useCanvasTable({
   })
 
   async function clearSelectedRangeOfCells() {
-    if (!isUIAllowed('dataEdit') || isDataReadOnly.value) return
+    if (!isDataEditAllowed.value || isDataReadOnly.value) return
 
     const start = selection.value.start
     const end = selection.value.end
@@ -809,7 +816,7 @@ export function useCanvasTable({
 
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
-    if (!isUIAllowed('dataEdit') || editEnabled.value || readOnly.value || isSystemCol) {
+    if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
       return null
     }
 
@@ -930,6 +937,7 @@ export function useCanvasTable({
     onMouseMoveFillHandlerMove: handleFillMove,
     onMouseUpFillHandlerEnd: handleFillEnd,
     isFillHandlerActive: isFillMode,
+    isFillHanldeDisabled,
 
     // Row Reorder
     isRowReOrderEnabled: isRowDraggingEnabled,

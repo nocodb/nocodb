@@ -5,6 +5,11 @@ export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropd
 export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
 export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
+export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
+export const isSelectActive = () => document.querySelector('.ant-select-dropdown')
+export function hasAncestorWithClass(element: HTMLElement, className: string): boolean {
+  return !!element.closest(`.${className}`)
+}
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isActiveInputElementExist = () => {
   return (

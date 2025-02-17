@@ -1,5 +1,5 @@
 import { getI18n } from '../../../../../plugins/a.i18n'
-import { isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
 
 const buttonColorMap = {
   solid: {
@@ -348,7 +348,7 @@ export const ButtonCellRenderer: CellRenderer = {
     let labelWidth = 0
 
     if (hasLabel) {
-      const ctx = defaultContext
+      const ctx = defaultOffscreen2DContext
       ctx.font = '500 13px Manrope'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
@@ -407,7 +407,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const maxButtonWidth = width - 8
 
     if (hasLabel) {
-      const ctx = defaultContext
+      const ctx = defaultOffscreen2DContext
       ctx.font = '500 13px Manrope'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)

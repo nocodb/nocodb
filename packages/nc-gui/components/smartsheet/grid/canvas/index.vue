@@ -1108,6 +1108,13 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 }
 
+const handleScrollEnd = (e: Event) => {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
 const reloadViewDataHookHandler = async (param) => {
   if (param?.fieldAdd) {
     containerRef.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
@@ -1137,6 +1144,7 @@ useScroll(containerRef, {
       triggerRefreshCanvas()
     })
   },
+  onStop: handleScrollEnd,
 })
 
 const triggerReload = () => {

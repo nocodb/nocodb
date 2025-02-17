@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, type ViewType, isLinksOrLTAR, isVirtualCol, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type TableType,
+  UITypes,
+  type ViewType,
+  isLinksOrLTAR,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
@@ -431,7 +439,13 @@ async function handleMouseDown(e: MouseEvent) {
         })
       }
       if (e.detail === 2 || (e.detail === 1 && clickedColumn?.virtual)) {
-        if (clickedColumn?.virtual && !isLinksOrLTAR(clickedColumn.columnObj)) return
+        const supportedVirtuals = [UITypes.Barcode, UITypes.QrCode]
+        if (
+          !supportedVirtuals.includes(clickedColumn.columnObj.uidt as UITypes) &&
+          clickedColumn?.virtual &&
+          !isLinksOrLTAR(clickedColumn.columnObj)
+        )
+          return
         makeCellEditable(rowIndex, clickedColumn)
       } else {
         onMouseDownSelectionHandler(e)

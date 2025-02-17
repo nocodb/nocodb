@@ -727,6 +727,20 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
+  if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
+    await addEmptyRow()
+    selection.value.clear()
+    activeCell.value.row = rowIndex
+    activeCell.value.column = 1
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  } else if (rowIndex > totalRows.value) {
+    selection.value.clear()
+    activeCell.value = { row: -1, column: -1 }
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
   if (x < 80) {
     const row = cachedRows.value.get(rowIndex)
     if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
@@ -753,17 +767,6 @@ const handleMouseUp = async (e: MouseEvent) => {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-
-  if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
-    await addEmptyRow()
-    selection.value.clear()
-    activeCell.value.row = rowIndex
-    activeCell.value.column = 1
-  } else if (rowIndex > totalRows.value) {
-    selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
-  }
-
   // If the user is trying to click on a cell
   const row = cachedRows.value.get(rowIndex)
   if (!row) return

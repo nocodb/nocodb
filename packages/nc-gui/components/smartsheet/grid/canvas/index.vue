@@ -455,6 +455,10 @@ async function handleMouseDown(e: MouseEvent) {
   }
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+  if (rowIndex === rowSlice.value.end) {
+    addEmptyRow()
+    return
+  }
 
   if (e.detail === 1 && x < 80) {
     const row = cachedRows.value.get(rowIndex)

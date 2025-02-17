@@ -1,3 +1,5 @@
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+
 export const truncateText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   if (!text || ctx.measureText(text).width <= maxWidth) {
     return text
@@ -39,4 +41,56 @@ export function roundedRect(
 
   ctx.closePath()
   ctx.stroke()
+}
+
+export const renderCheckbox = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  isChecked: boolean,
+  isDisabled: boolean,
+  spriteLoader: SpriteLoader,
+) => {
+  const size = 16
+  const radius = 4
+
+  ctx.beginPath()
+  ctx.roundRect(x, y, size, size, radius)
+
+  if (isDisabled) {
+    ctx.fillStyle = '#F3F4F6'
+    ctx.fill()
+
+    if (isChecked) {
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncCheck',
+        size: 12,
+        x: x + 2,
+        y: y + 2,
+        color: '#9CA3AF',
+      })
+    }
+
+    ctx.strokeStyle = '#E5E7EB'
+    ctx.lineWidth = 1
+    ctx.stroke()
+  } else if (isChecked) {
+    ctx.fillStyle = '#3366FF'
+    ctx.fill()
+
+    spriteLoader.renderIcon(ctx, {
+      icon: 'ncCheck',
+      size: 12,
+      x: x + 2,
+      y: y + 2,
+      color: '#FFFFFF',
+    })
+  } else {
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fill()
+
+    ctx.strokeStyle = '#D1D5DB'
+    ctx.lineWidth = 1
+    ctx.stroke()
+  }
 }

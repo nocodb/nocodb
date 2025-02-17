@@ -14,6 +14,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -36,7 +37,7 @@ const textareaValue = computed({
 })
 
 onMounted(() => {
-  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     forcedNextTick(() => {
       inputRef.value?.focus()
     })

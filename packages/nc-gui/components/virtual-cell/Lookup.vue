@@ -24,6 +24,7 @@ const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
@@ -158,7 +159,7 @@ onMounted(() => {
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
 
-  if (!isCanvasInjected || !clientMousePosition) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition) return
   if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-lookup-cell', clientMousePosition)) {
     dropdownVisible.value = true
   }

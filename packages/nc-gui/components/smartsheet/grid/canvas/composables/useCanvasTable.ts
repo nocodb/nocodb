@@ -826,7 +826,7 @@ export function useCanvasTable({
       column,
       row,
       minHeight: rowHeight.value,
-      height: column.uidt === UITypes.LongText ? 'auto' : rowHeight.value,
+      height: column.uidt === UITypes.LongText ? 'auto' : rowHeight.value + 2,
       width: parseInt(clickedColumn.width, 10) + 2,
       fixed: clickedColumn.fixed,
     }

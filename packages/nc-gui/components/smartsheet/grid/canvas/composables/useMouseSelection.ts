@@ -103,13 +103,15 @@ export function useMouseSelection({
       }
 
       selection.value.endRange(cell)
-      activeCell.value = { row: cell.row, column: cell.col }
       scrollToCell(cell.row, cell.col)
       triggerReRender()
     }
   }
   const handleMouseUp = () => {
-    isSelecting.value = false
+    if (isSelecting.value) {
+      isSelecting.value = false
+      return true
+    }
   }
 
   return {

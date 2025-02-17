@@ -3,9 +3,24 @@ import { renderMultiLineText, renderSingleLineText, renderTag } from '../utils/c
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
-    const { renderAsTag, tagPaddingX = 8, tagHeight = 20, tagRadius = 6, tagBgColor = '#f4f4f0' } = props.tag || {}
+    const {
+      renderAsTag,
+      tagPaddingX = 8,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = '#f4f4f0',
+      tagBorderColor,
+      tagBorderWidth,
+    } = props.tag || {}
 
     const text = value?.toString() ?? ''
+
+    if (!text) {
+      return {
+        x,
+        y,
+      }
+    }
 
     if (renderAsTag) {
       const maxWidth = width - padding * 2 - tagPaddingX * 2
@@ -26,6 +41,8 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         height: tagHeight,
         radius: tagRadius,
         fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
       })
 
       renderSingleLineText(ctx, {

@@ -1,7 +1,8 @@
-import { truncateText } from '../utils/canvas'
+import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
+import { pxToRowHeight } from '../../../../../utils/cell'
 
 export const GeoDataCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, selected, pv, readonly, padding }) => {
+  render: (ctx, { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected }) => {
     ctx.font = `${pv ? 600 : 500} 13px Manrope`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -9,33 +10,48 @@ export const GeoDataCellRenderer: CellRenderer = {
     const [latitude, longitude] = (value || '').split(';')
     const isLocationSet = !!(latitude && longitude)
     const displayText = isLocationSet ? `${latitude}; ${longitude}` : 'Set location'
-    const textY = y + height / 2
+    const rowHeight = pxToRowHeight[height]
 
-    if (!isLocationSet && !readonly) {
-      // Draw location button
-      const buttonWidth = Math.min(width - padding * 2, 256)
+    const verticalPadding = rowHeight === 1 ? 4 : 8
+
+    if (!isLocationSet && !readonly && selected) {
+      const buttonWidth = 100
+      const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
+      const buttonY = y + verticalPadding
 
-      // Button background
-      ctx.fillStyle = selected ? '#eef2ff' : '#f3f4f6'
-      ctx.fillRect(buttonX, y + 2, buttonWidth, height - 4)
+      const isButtonHovered = isBoxHovered({ x: buttonX, y: buttonY, width: buttonWidth, height: buttonHeight }, mousePosition)
 
-      // Map marker icon
-      ctx.fillStyle = selected ? '#3366FF' : '#6b7280'
-      ctx.font = '12px Material Icons'
-      ctx.fillText('place', buttonX + padding, textY)
+      roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 6, {
+        backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
+        borderColor: '#E7E7E9',
+        borderWidth: 2,
+      })
 
-      // Button text
-      ctx.font = `${pv ? 600 : 500} 13px Manrope`
-      ctx.fillStyle = selected ? '#3366FF' : '#6b7280'
-      const iconWidth = ctx.measureText('place').width
-      ctx.fillText(displayText, buttonX + padding + iconWidth + 6, textY)
-    } else {
-      // Draw normal text
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncMapPin',
+        x: buttonX + 8,
+        y: buttonY + (buttonHeight - 16) / 2,
+        size: 14,
+        color: '#6a7184',
+      })
+
+      ctx.fillStyle = '#374151'
+      ctx.font = '10px Manrope'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('Set location', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
+    } else if (isLocationSet) {
       const maxWidth = width - padding * 2
-      const truncatedText = truncateText(ctx, displayText, maxWidth)
-      ctx.fillStyle = selected || pv ? '#3366FF' : '#4a5268'
-      ctx.fillText(truncatedText, x + padding, textY)
+
+      renderMultiLineText(ctx, {
+        x: x + padding,
+        height,
+        y,
+        text: displayText,
+        maxWidth,
+        lineHeight: 16,
+        fillStyle: pv ? '#3366FF' : '#4a5268',
+      })
     }
   },
 }

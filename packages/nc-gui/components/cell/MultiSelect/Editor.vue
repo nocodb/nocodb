@@ -315,6 +315,23 @@ watch(
     isOpen.value = false
   },
 )
+
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
+onMounted(() => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key)) {
+        onFocus()
+        searchVal.value = key
+      }
+    })
+  }
+})
 </script>
 
 <template>
@@ -383,6 +400,7 @@ watch(
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
+      :search-value="searchVal ?? ''"
       @search="search"
       @keydown="onKeyDown"
       @focus="onFocus"

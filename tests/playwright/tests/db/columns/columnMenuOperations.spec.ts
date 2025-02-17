@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
+import { isCanvas } from '../../../setup/db';
 
 const columns = [
   // text type
@@ -55,6 +56,11 @@ test.describe('Column menu operations', () => {
   });
 
   test('Duplicate fields', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     await dashboard.treeView.openTable({ title: 'Film' });
 
     for (const { title, type } of columns) {

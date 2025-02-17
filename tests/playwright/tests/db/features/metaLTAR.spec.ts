@@ -25,6 +25,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import { createXcdb, deleteXcdb } from '../../../setup/xcdbProject';
+import { isCanvas } from '../../../setup/db';
 
 let api: Api<any>;
 const recordCount = 10;
@@ -306,6 +307,11 @@ test.describe.serial('Test table', () => {
   });
 
   test('Delete column', async () => {
+    if (isCanvas()) {
+      console.log('Skipping test on canvas');
+      return;
+    }
+
     // has-many
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:hm:TableB' });

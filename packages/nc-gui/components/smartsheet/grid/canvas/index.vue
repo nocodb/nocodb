@@ -443,7 +443,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 
   triggerRefreshCanvas()
 }
-
+let prevActiveCell = null
 async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
@@ -451,6 +451,7 @@ async function handleMouseDown(e: MouseEvent) {
   isDropdownVisible.value = false
   isContextMenuOpen.value = false
   contextMenuTarget.value = null
+  prevActiveCell = null
 
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -540,17 +541,8 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  // Check if the cell support transfer to editable state
-  // If not, just continue to onMouseDownSelectionHandler which is used for selection with mouse
-  const columnUIType = clickedColumn.columnObj.uidt as UITypes
-  // NO_EDITABLE_CELL is the list of cell types which are not editable
-  if (NO_EDITABLE_CELL.includes(columnUIType)) {
-    onMouseDownSelectionHandler(e)
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  }
-
   if (clickType !== MouseClickType.DOUBLE_CLICK) {
+    prevActiveCell = activeCell.value
     // If the cell is not double clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
@@ -787,7 +779,7 @@ const handleMouseUp = async (e: MouseEvent) => {
     value: row?.row[clickedColumn.title],
     mousePosition: { x, y },
     pk,
-    selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
+    selected: prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex,
     imageLoader,
   })
   // Set the active cell to the clicked cell

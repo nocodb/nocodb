@@ -458,3 +458,31 @@ export const renderTag = (
     ctx.stroke()
   }
 }
+
+export const renderSpinner = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  startTime: number,
+  speed = 1,
+) => {
+  const currentTime = Date.now()
+  const elapsed = (currentTime - startTime) * speed
+  const rotation = ((elapsed % 1000) / 1000) * Math.PI * 2
+  const arcLength = Math.PI * 0.75 // 3/4 of a full circle
+  const lineWidth = Math.max(2, size * 0.1) // Proportional line width
+
+  ctx.save()
+  ctx.translate(x, y)
+
+  ctx.beginPath()
+  ctx.arc(size / 2, size / 2, (size - lineWidth) / 2, rotation, rotation + arcLength)
+  ctx.strokeStyle = color
+  ctx.lineWidth = lineWidth
+  ctx.lineCap = 'round'
+  ctx.stroke()
+
+  ctx.restore()
+}

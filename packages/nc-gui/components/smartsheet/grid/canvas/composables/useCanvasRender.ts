@@ -1,7 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations } from 'nocodb-sdk'
 import { renderCheckbox, roundedRect, truncateText } from '../utils/canvas'
-import { useGridCellHandler } from '../cells'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -34,6 +33,8 @@ export function useCanvasRender({
   draggedRowIndex,
   targetRowIndex,
   mousePosition,
+  renderCell,
+  meta,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -61,9 +62,10 @@ export function useCanvasRender({
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
+  renderCell: (ctx: CanvasRenderingContext2D, column: Column, options: RenderCellOptions) => void
+  meta: ComputedRef<TableType>
 }) {
   const canvasRef = ref()
-  const { renderCell } = useGridCellHandler()
   function renderHeader(ctx: CanvasRenderingContext2D) {
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -531,6 +533,8 @@ export function useCanvasRender({
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, width.value, rowHeight.value)
         if (row) {
+          const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
+
           let xOffset = initialXOffset
 
           visibleCols.forEach((column, colIdx) => {
@@ -582,6 +586,7 @@ export function useCanvasRender({
               relatedColObj: column.relatedColObj,
               relatedTableMeta: column.relatedTableMeta,
               mousePosition,
+              pk,
             })
             xOffset += width
           })
@@ -638,6 +643,7 @@ export function useCanvasRender({
                   relatedColObj: column.relatedColObj,
                   relatedTableMeta: column.relatedTableMeta,
                   mousePosition,
+                  pk,
                 })
               }
 

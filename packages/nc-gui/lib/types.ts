@@ -19,6 +19,7 @@ import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
+import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
@@ -365,6 +366,7 @@ interface ViewActionState {
 interface CellRendererOptions {
   value: any
   row: any
+  pk: any
   column: ColumnType
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
@@ -378,6 +380,7 @@ interface CellRendererOptions {
   readonly?: boolean
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
+  actionManager: ActionManager
   isMysql: CanvasGridColumn['isMysql']
   t: Composer['t']
   padding: number
@@ -405,20 +408,13 @@ interface CellRendererOptions {
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
-  handleClick?: ({
-    event,
-    mousePosition,
-    value,
-    column,
-    row,
-    getCellPosition,
-    updateOrSaveRow,
-  }: {
+  handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
     value: any
     column: CanvasGridColumn
     row: Row
+    pk: any
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
     updateOrSaveRow?: (
@@ -428,6 +424,7 @@ interface CellRenderer {
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
     ) => Promise<any>
+    actionManager: ActionManager
   }) => Promise<void>
   [key: string]: any
 }

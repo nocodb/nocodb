@@ -14,6 +14,7 @@ export function useCanvasRender({
   activeCell,
   dragOver,
   hoverRow,
+  selection,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -36,6 +37,7 @@ export function useCanvasRender({
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
+  selection: Ref<CellRange>
 }) {
   const canvasRef = ref()
   const { renderCell } = useCellRenderer()
@@ -162,6 +164,11 @@ export function useCanvasRender({
             return
           }
 
+          if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+            ctx.fillStyle = '#EBF0FF'
+            ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+          }
+
           ctx.strokeStyle = '#f4f4f5'
           ctx.beginPath()
           ctx.moveTo(xOffset - scrollLeft.value, yOffset)
@@ -215,6 +222,7 @@ export function useCanvasRender({
             const colIdx = columns.value.findIndex((col) => col.id === column.id)
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
+
             if (isActive) {
               activeState = {
                 col: column,
@@ -225,8 +233,13 @@ export function useCanvasRender({
               }
             }
 
-            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+            if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+              ctx.fillStyle = '#EBF0FF'
+              ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+            } else {
+              ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+              ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+            }
 
             renderCell(
               ctx,

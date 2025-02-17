@@ -226,14 +226,18 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable }) {
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
+    if (!row || !column?.id || !mousePosition) return false
 
-    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!) || column?.isInvalidColumn?.isInvalid
 
-    if (
-      isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
-      isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
-    ) {
+    if (column?.isInvalidColumn?.isInvalid) {
+      // If the column is invalid and user clicked on regenerate icon
+      if (isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+        return true
+      }
+    }
+
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
       makeCellEditable(row.rowMeta.rowIndex!, column)
       return true
     }

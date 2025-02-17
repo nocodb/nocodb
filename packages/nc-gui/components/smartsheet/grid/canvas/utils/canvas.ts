@@ -1,5 +1,7 @@
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 
+import type { RenderSingleLineTextProps } from './types'
+
 export const truncateText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   if (!text || ctx.measureText(text).width <= maxWidth) {
     return text
@@ -93,4 +95,35 @@ export const renderCheckbox = (
     ctx.lineWidth = 1
     ctx.stroke()
   }
+}
+
+export const renderSingleLineText = (ctx: CanvasRenderingContext2D, params: RenderSingleLineTextProps) => {
+  const {
+    x,
+    y,
+    text,
+    fillStyle,
+    fontSize = 13,
+    fontFamily,
+    textAlign = 'left',
+    verticalAlign = 'middle',
+    maxWidth = Infinity,
+    height,
+  } = params
+
+  const truncatedText = maxWidth !== Infinity ? truncateText(ctx, text, maxWidth) : text
+
+  const yOffset = verticalAlign === 'middle' ? height / 2 : 0
+
+  if (fontFamily) {
+    ctx.font = fontFamily
+  }
+
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle
+    ctx.strokeStyle = fillStyle
+  }
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
+  ctx.fillText(truncatedText, x, y + yOffset)
 }

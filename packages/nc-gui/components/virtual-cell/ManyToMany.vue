@@ -153,6 +153,8 @@ onMounted(() => {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-maximize-icon', clientMousePosition)) {
       openChildList()
+    } else {
+      openListDlg()
     }
   })
 })

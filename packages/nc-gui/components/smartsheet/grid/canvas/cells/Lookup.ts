@@ -87,7 +87,7 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     const lookupRenderer = (options: CellRendererOptions) => {
-      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt)
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)
     }

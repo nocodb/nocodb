@@ -58,7 +58,6 @@ export const SingleSelectCellRenderer: CellRenderer = {
     // If it is empty text then no need to render
     if (!text) return
     const truncatedText = truncateText(ctx, text, maxWidth, true)
-    console.log({ text, truncatedText: truncatedText.text })
     if (text === truncatedText.text) return
     const box = { x: x + padding, y: y + topPadding, width: truncatedText.width + tagPadding * 2, height: tagHeight }
     if (isBoxHovered(box, mousePosition)) {

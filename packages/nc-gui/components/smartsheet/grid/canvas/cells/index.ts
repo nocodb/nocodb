@@ -28,8 +28,10 @@ import { MultiSelectCellRenderer } from './MultiSelect'
 import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
+import { renderSingleLineText } from '../utils/canvas'
 export function useCellRenderer() {
   const { t } = useI18n()
+  const { metas } = useMetas()
 
   const cellTypesRegistry = new Map<string, CellRenderer>()
 
@@ -84,23 +86,11 @@ export function useCellRenderer() {
       padding = 10,
       relatedColObj,
       relatedTableMeta,
-    }: {
-      value: any
-      row: any
-      x: number
-      y: number
-      width: number
-      height: number
-      selected?: boolean
-      pv?: boolean
-      readonly?: boolean
-      spriteLoader: SpriteLoader
-      imageLoader: ImageWindowLoader
-      isMysql: CanvasGridColumn['isMysql']
-      padding?: number
-      relatedColObj?: ColumnType
-      relatedTableMeta?: TableType
-    },
+      tag = {},
+      fontSize = 13,
+      textAlign = 'center',
+      textColor,
+    }: CellRendererOptions,
   ) => {
     const cellType = cellTypesRegistry.get(column.uidt)
 
@@ -124,6 +114,11 @@ export function useCellRenderer() {
         relatedColObj,
         relatedTableMeta,
         renderCell,
+        metas,
+        tag,
+        fontSize,
+        textAlign,
+        textColor,
       })
     } else {
       ctx.fillStyle = pv ? '#4351e8' : '#4a5268'

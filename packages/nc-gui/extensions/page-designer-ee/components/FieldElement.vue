@@ -20,7 +20,7 @@ function onDragStart(e: DragEvent) {
 
 <template>
   <div
-    class="pl-1 pr-2 flex flex-row items-center hover:bg-gray-50 cursor-pointer"
+    class="field-element pl-1 pr-2 flex flex-row items-center hover:bg-gray-50 cursor-pointer"
     :class="{ dragging }"
     @dragstart="onDragStart"
   >
@@ -42,9 +42,3 @@ function onDragStart(e: DragEvent) {
     <slot name="suffixIcon"></slot>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.dragging {
-  @apply w-[200px];
-}
-</style>

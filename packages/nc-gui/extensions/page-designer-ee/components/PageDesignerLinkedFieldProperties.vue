@@ -9,6 +9,7 @@ import TabbedSelect from './TabbedSelect.vue'
 import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import FieldElement from './FieldElement.vue'
 import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
+import Draggable from 'vuedraggable'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)! as Ref<Row>
@@ -45,10 +46,6 @@ const columnsMapById = computed(() =>
     return map
   }, {} as Record<string, Record<string, any>>),
 )
-
-const tableColumns = computed(() => {
-  return fieldWidget.value?.tableColumns.map((colId) => columnsMapById.value[colId]!) ?? []
-})
 
 onMounted(() => {
   loadRelatedTableMeta()
@@ -101,8 +98,17 @@ watch(
       </div>
       <div v-else-if="fieldWidget.displayAs === LinkedFieldDisplayAs.TABLE" class="flex flex-col gap-2">
         <label>Table columns</label>
-        <div>
-          <FieldElement v-for="field in tableColumns" :icon="getIcon(field)" :field="field" :key="field.id" display-drag-handle />
+        <div class="rounded-lg border-1 border-nc-border-gray-medium">
+          <Draggable v-model="fieldWidget.tableColumns" :item-key="(id: string) => id" handle=".cursor-move">
+            <template #item="{ element: fieldId }">
+              <FieldElement
+                class="table-column-field-element"
+                :icon="getIcon(columnsMapById[fieldId]!)"
+                :field="columnsMapById[fieldId]!"
+                display-drag-handle
+              />
+            </template>
+          </Draggable>
           <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
         </div>
       </div>
@@ -174,5 +180,8 @@ watch(
       @apply border-t-0 rounded-bl-lg rounded-br-lg;
     }
   }
+}
+.table-column-field-element :deep(.truncate) {
+  font-weight: 700;
 }
 </style>

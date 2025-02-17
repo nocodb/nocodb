@@ -9,8 +9,6 @@ const meta = inject(PageDesignerTableTypeInj)
 const row = inject(PageDesignerRowInj)!
 const payload = inject(PageDesignerPayloadInj)!
 
-const { metaColumnById } = useViewColumnsOrThrow()
-
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
@@ -43,7 +41,7 @@ const fields = computed(() => {
           title: column.title,
           fk_column_id: column.id,
           ...currentColumnField,
-          system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+          system: isSystemColumn(fieldById?.value?.[currentColumnField.fk_column_id!]),
           initialShow: true,
         }
       })
@@ -59,14 +57,14 @@ const filteredFieldList = computed(() => {
       }
 
       if (
-        metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+        fieldById?.value?.[field.fk_column_id!]?.pv &&
         (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
       ) {
         return true
       }
 
       // hide system columns if not enabled
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+      if (!showSystemFields.value && isSystemColumn(fieldById?.value?.[field.fk_column_id!])) {
         return false
       }
 
@@ -124,12 +122,7 @@ function onFieldClick(field: ColumnType) {
         </div>
 
         <template v-for="field in filteredFieldList" :key="field.id">
-          <FieldElement
-            :field="field"
-            :icon="getIcon(metaColumnById[field.fk_column_id]!)"
-            draggable="true"
-            @click="onFieldClick(field)"
-          />
+          <FieldElement :field="field" :icon="getIcon(fieldById[field.id]!)" draggable="true" @click="onFieldClick(field)" />
         </template>
       </div>
     </div>
@@ -147,6 +140,9 @@ function onFieldClick(field: ColumnType) {
   }
   :deep(.nc-field-elements-search input) {
     @apply !rounded-none caret-nc-fill-primary;
+  }
+  :deep(.field-element.dragging) {
+    @apply w-[200px];
   }
 }
 </style>

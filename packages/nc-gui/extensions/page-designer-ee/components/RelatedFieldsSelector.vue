@@ -20,9 +20,11 @@ const fieldsToIgnore = new Set([
   UITypes.Links,
 ])
 const columns = computed(() =>
-  (props.relatedTableMeta?.columns ?? []).filter(
-    (column) => !fieldsToIgnore.has(column.uidt as UITypes) && !isSystemColumn(column) && !isLinksOrLTAR(column),
-  ),
+  (props.relatedTableMeta?.columns ?? [])
+    .filter((column) => !fieldsToIgnore.has(column.uidt as UITypes) && !isSystemColumn(column) && !isLinksOrLTAR(column))
+    .sort((a, b) => {
+      return (parseProp(a.meta)?.defaultViewColOrder ?? Infinity) - (parseProp(b.meta)?.defaultViewColOrder ?? Infinity)
+    }),
 )
 
 const metaColumnById = computed(() =>
@@ -42,21 +44,17 @@ const fieldById = computed(() =>
 )
 
 const fields = computed(() => {
-  return (
-    columns.value
-      .map((column: ColumnType) => {
-        const currentColumnField = fieldById.value[column.id!] || {}
+  return columns.value.map((column: ColumnType) => {
+    const currentColumnField = fieldById.value[column.id!] || {}
 
-        return {
-          title: column.title,
-          fk_column_id: column.id,
-          ...currentColumnField,
-          system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
-          initialShow: true,
-        }
-      })
-      .sort((a: Field, b: Field) => a.order - b.order) ?? []
-  )
+    return {
+      title: column.title,
+      fk_column_id: column.id,
+      ...currentColumnField,
+      system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+      initialShow: true,
+    }
+  })
 })
 
 const filteredFieldList = computed(() => {
@@ -108,7 +106,9 @@ function updateChecked(checked: boolean, field: ColumnType) {
 
 <template>
   <NcDropdown v-model:visible="isOpen">
-    <div class="text-nc-fill-primary text-[13px] font-bold flex gap-2 items-center px-2 py-1 cursor-pointer">
+    <div
+      class="text-nc-fill-primary text-[13px] font-700 flex gap-2 items-center p-2 border-t-1 border-nc-border-gray-medium cursor-pointer"
+    >
       <GeneralIcon icon="ncPlus"></GeneralIcon>
       Add Column
     </div>
@@ -175,6 +175,9 @@ function updateChecked(checked: boolean, field: ColumnType) {
   }
   :deep(.nc-field-elements-search input) {
     @apply !rounded-none caret-nc-fill-primary;
+  }
+  :deep(.field-element .truncate) {
+    font-weight: 700;
   }
 }
 </style>

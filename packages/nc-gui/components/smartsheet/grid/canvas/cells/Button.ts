@@ -1,4 +1,5 @@
-import { renderSpinner, truncateText } from '../utils/canvas'
+import { getI18n } from '../../../../../plugins/a.i18n'
+import { isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
 
 const buttonColorMap = {
   solid: {
@@ -226,6 +227,13 @@ const getButtonColors = (
   }
 }
 
+const horizontalPadding = 12
+const buttonHeight = 24
+const buttonMinWidth = 32
+
+const iconSize = 14
+const iconSpacing = 6
+
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
     const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled } = props
@@ -245,14 +253,8 @@ export const ButtonCellRenderer: CellRenderer = {
       type: colOptions.type,
     }
 
-    const horizontalPadding = 12
-    const buttonHeight = 24
-    const buttonMinWidth = 32
-
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
-    const iconSize = 14
-    const iconSpacing = 6
 
     const maxButtonWidth = width - 8
 
@@ -340,14 +342,8 @@ export const ButtonCellRenderer: CellRenderer = {
       type: column.columnObj.colOptions?.type,
     }
 
-    const horizontalPadding = 12
-    const buttonHeight = 24
-    const buttonMinWidth = 32
-
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
-    const iconSize = 14
-    const iconSpacing = 6
 
     const maxButtonWidth = width - 8
 
@@ -386,5 +382,61 @@ export const ButtonCellRenderer: CellRenderer = {
 
     await actionManager.executeButtonAction([pk], column, { row: [row] })
     return true
+  },
+
+  async handleHover({ column, getCellPosition, row, mousePosition }) {
+    const { showTooltip, hideTooltip } = useTooltipStore()
+    hideTooltip()
+
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    const isInvalid = column?.isInvalidColumn?.isInvalid
+    if (!isInvalid) return
+
+    const { aiIntegrations } = useNocoAi()
+
+    const buttonMeta = {
+      label: column.columnObj.colOptions?.label || '',
+      icon: column.columnObj.colOptions?.icon,
+      theme: column.columnObj.colOptions?.theme || 'solid',
+      color: column.columnObj.colOptions?.color || 'brand',
+      type: column.columnObj.colOptions?.type,
+    }
+    const hasIcon = !!buttonMeta.icon
+    const hasLabel = !!buttonMeta.label
+    if (!hasLabel) return
+    let contentWidth = 0
+    let labelWidth = 0
+    const maxButtonWidth = width - 8
+
+    if (hasLabel) {
+      const ctx = defaultContext
+      ctx.font = '500 13px Manrope'
+
+      const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+
+      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
+      labelWidth = truncatedInfo.width
+      contentWidth += labelWidth
+    }
+
+    const tooltip = aiIntegrations.value.length
+      ? getI18n().global.t('tooltip.aiIntegrationReConfigure')
+      : getI18n().global.t('tooltip.aiIntegrationAddAndReConfigure')
+
+    const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
+
+    const startX = x + (width - buttonWidth) / 2
+    const startY = y + 4
+
+    if (isBoxHovered({ x: startX, y: startY, height: buttonHeight, width: buttonWidth }, mousePosition)) {
+      showTooltip({
+        position: {
+          x: mousePosition.x,
+          y: mousePosition.y - 40,
+        },
+        text: tooltip,
+      })
+    }
   },
 }

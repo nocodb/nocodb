@@ -1,5 +1,6 @@
 import { type ColumnType } from 'nocodb-sdk'
 import { isBoxHovered, renderSingleLineText } from '../utils/canvas'
+import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
@@ -12,7 +13,6 @@ import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
-import { showFieldEditWarning } from '../utils/cell'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)

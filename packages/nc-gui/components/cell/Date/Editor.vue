@@ -30,6 +30,8 @@ const editable = inject(EditModeInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
@@ -248,6 +250,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       }
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false

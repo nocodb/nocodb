@@ -34,6 +34,7 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -251,6 +252,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
 

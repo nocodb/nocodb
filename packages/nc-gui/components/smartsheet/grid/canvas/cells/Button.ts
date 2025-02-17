@@ -382,7 +382,7 @@ export const ButtonCellRenderer: CellRenderer = {
   },
 
   async handleHover({ column, getCellPosition, row, mousePosition }) {
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -426,15 +426,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const startX = x + (width - buttonWidth) / 2
     const startY = y + 4
     const box = { x: startX, y: startY, height: buttonHeight, width: buttonWidth }
-    if (isBoxHovered(box, mousePosition)) {
-      showTooltip({
-        position: {
-          x: box.x + box.width / 2,
-          y: box.y - 30,
-        },
-        text: tooltip,
-      })
-    }
+    tryShowTooltip({ rect: box, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
     const { e, row, column, actionManager, pk } = ctx

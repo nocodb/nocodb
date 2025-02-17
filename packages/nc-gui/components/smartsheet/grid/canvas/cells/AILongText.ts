@@ -265,29 +265,14 @@ export const AILongTextCellRenderer: CellRenderer = {
     return false
   },
   async handleHover({ row, column, mousePosition, getCellPosition }) {
-    const { showTooltip, hideTooltip } = useTooltipStore()
+    const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
-    if (isBoxHovered(expandIconBox, mousePosition)) {
-      showTooltip({
-        position: {
-          x: expandIconBox.x + 10,
-          y: expandIconBox.y + 20,
-        },
-        text: getI18n().global.t('title.expand'),
-      })
-    } else if (isBoxHovered(regenerateIconBox, mousePosition)) {
-      showTooltip({
-        position: {
-          x: regenerateIconBox.x + 10,
-          y: regenerateIconBox.y + 20,
-        },
-        text: 'Re-generate',
-      })
-    }
+    tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
+    tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
   },
 }

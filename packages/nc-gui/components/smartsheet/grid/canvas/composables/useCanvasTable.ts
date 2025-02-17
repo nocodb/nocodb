@@ -171,8 +171,6 @@ export function useCanvasTable({
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
-  const totalColumnsWidth = computed(() => columns.value.reduce((sum, col) => sum + parseInt(col.width, 10), 0))
-
   const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value)
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isFieldEditAllowed.value && !isSqlView.value)
@@ -274,6 +272,10 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
+  const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width!, 10)))
+
+  const totalColumnsWidth = computed(() => columnWidths.value.reduce((sum, val) => sum + val, 0))
+
   const isSelectedOnlyAI = computed(() => {
     // selectedRange
     if (selection.value.start.col === selection.value.end.col) {
@@ -326,8 +328,6 @@ export function useCanvasTable({
   const totalWidth = computed(() => {
     return columns.value.reduce((acc, col) => acc + +(col.width?.split('px')?.[0] ?? 50), 0) + 256
   })
-
-  const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width!, 10)))
 
   const findColumnIndex = (target: number, _start = 0, end = columnWidths.value.length) => {
     let accumulatedWidth = 0
@@ -987,5 +987,9 @@ export function useCanvasTable({
     renderCell,
 
     totalColumnsWidth,
+
+    // permissions
+    isFieldEditAllowed,
+    isDataEditAllowed,
   }
 }

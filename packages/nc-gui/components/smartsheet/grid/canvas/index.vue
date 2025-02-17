@@ -1934,6 +1934,10 @@ defineExpose({
     :deep(.nc-cell-geodata) {
       @apply !pt-0.5;
     }
+
+    :deep(.nc-virtual-cell-lookup:has(.nc-cell-attachment)) {
+      @apply !h-full;
+    }
   }
 
   :deep(.nc-cell-longtext) {

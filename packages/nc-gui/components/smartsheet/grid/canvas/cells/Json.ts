@@ -72,8 +72,8 @@ export const JsonCellRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (isTypableInputColumn(columnObj) && columnObj.title && e.key.length === 1) {
-      row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
+    if (columnObj.title && e.key.length === 1) {
+      row.row[columnObj.title] = e.key
       makeCellEditable(row, column)
       return true
     }

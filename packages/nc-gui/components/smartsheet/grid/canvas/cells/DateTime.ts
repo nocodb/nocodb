@@ -89,7 +89,7 @@ export const DateTimeCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(dateArea, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex, column)
+        makeCellEditable(row, column)
         return true
       }
     }
@@ -103,7 +103,7 @@ export const DateTimeCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(timeArea, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex, column)
+        makeCellEditable(row, column)
         return true
       }
     }

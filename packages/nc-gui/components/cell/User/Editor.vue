@@ -62,6 +62,8 @@ const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
@@ -140,6 +142,10 @@ useSelectedCellKeydownListener(
   (e) => {
     switch (e.key) {
       case 'Escape':
+        if (canvasSelectCell) {
+          canvasSelectCell.trigger()
+          return
+        }
         isOpen.value = false
         break
       case 'Enter':
@@ -182,7 +188,10 @@ useSelectedCellKeydownListener(
 useSelectedCellKeydownListener(
   isOpen,
   (e) => {
-    if (e.key === 'Escape') isOpen.value = false
+    if (e.key === 'Escape') {
+      isOpen.value = false
+      canvasSelectCell?.trigger()
+    }
   },
   {
     isGridCell: false,

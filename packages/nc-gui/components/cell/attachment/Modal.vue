@@ -21,6 +21,7 @@ const {
 
 const dropZoneRef = ref<HTMLDivElement>()
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
 const sortableRef = ref<HTMLDivElement>()
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
@@ -38,6 +39,10 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
 onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
+})
+
+watch(modalVisible, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 function onClick(item: Record<string, any>) {

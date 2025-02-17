@@ -37,6 +37,7 @@ const isGrid = inject(IsGridInj, ref(false))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const { isMobileMode } = useGlobal()
 
@@ -136,6 +137,14 @@ watch(
 )
 
 const isNewAttachmentModalOpen = ref(false)
+
+watch(isNewAttachmentModalOpen, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
+})
+
+watch(selectedFile, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
+})
 
 const openAttachmentModal = (e: Event) => {
   e?.stopPropagation()

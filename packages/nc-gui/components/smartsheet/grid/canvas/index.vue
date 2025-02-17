@@ -68,11 +68,15 @@ const {
   bulkDeleteAll,
 } = props
 
+// VModels
+const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
 const rowHeightEnum = toRef(props, 'rowHeightEnum')
+const selectedRows = toRef(props, 'selectedRows')
 
 // Refs
 const containerRef = ref()
@@ -133,6 +137,8 @@ const {
   scrollToCell,
   scrollTop,
   aggregations,
+  vSelectedAllRecords,
+  selectedRows,
 })
 
 const { metaColumnById } = useViewColumnsOrThrow()

@@ -1,4 +1,5 @@
-import { type ColumnType, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isOrderCol, isVirtualCol } from 'nocodb-sdk'
+import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDataFetch } from './useDataFetch'
@@ -22,6 +23,8 @@ export function useCanvasTable({
   height,
   scrollToCell,
   aggregations,
+  vSelectedAllRecords,
+  selectedRows,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -35,6 +38,8 @@ export function useCanvasTable({
   height: Ref<number>
   scrollToCell: (row: number, column: number) => void
   aggregations: Ref<Record<string, any>>
+  vSelectedAllRecords: WritableComputedRef<boolean>
+  selectedRows: ComputedRef<Row[]>
 }) {
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -63,8 +68,20 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { metas } = useMetas()
+  const { allFilters, sorts, isPkAvail } = useSmartsheetStoreOrThrow()
 
   const fields = inject(FieldsInj, ref([]))
+  const isPublicView = inject(IsPublicInj, ref(false))
+
+  const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
+
+  const isInsertBelowDisabled = computed(() => allFilters.value?.length || sorts.value?.length || isPublicView.value)
+
+  const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPkAvail.value)
+
+  const isRowDraggingEnabled = computed(
+    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
+  )
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
@@ -72,7 +89,7 @@ export function useCanvasTable({
 
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value))
 
-  const columns = computed<CanvasGridColumn>(() => {
+  const columns = computed<CanvasGridColumn[]>(() => {
     const cols = fields.value
       .map((f) => {
         const gridViewCol = gridViewCols.value[f.id!]
@@ -81,7 +98,7 @@ export function useCanvasTable({
         let relatedColObj
 
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
-          relatedColObj = metas.value?.[f.fk_model_id]?.columns?.find(
+          relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
         }
@@ -114,7 +131,7 @@ export function useCanvasTable({
         uidt: UITypes.AutoNumber,
       },
     })
-    return cols as CanvasGridColumn
+    return cols as unknown as CanvasGridColumn[]
   })
 
   const totalWidth = computed(() => {
@@ -147,13 +164,13 @@ export function useCanvasTable({
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
-      if (columns.value[i].fixed) {
-        xPos += parseInt(columns.value[i].width, 10)
+      if (columns.value[i]?.fixed) {
+        xPos += parseInt(columns.value[i]?.width, 10)
       }
     }
 
     for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
-      xPos += parseInt(columns.value[i].width, 10)
+      xPos += parseInt(columns.value[i]?.width, 10)
     }
 
     if (selection.value.end.col >= fixedCols.length) {
@@ -189,6 +206,9 @@ export function useCanvasTable({
     imageLoader,
     spriteLoader,
     partialRowHeight,
+    vSelectedAllRecords,
+    isRowDraggingEnabled,
+    selectedRows,
   })
 
   const { fetchChunk, updateVisibleRows } = useDataFetch({
@@ -224,7 +244,7 @@ export function useCanvasTable({
   }
 
   const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
-    if (!meta.value?.columns) return
+    if (!meta.value?.columns || !meta.value?.columnsById) return
 
     meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
       if (c.id !== columnId) return c
@@ -244,7 +264,6 @@ export function useCanvasTable({
     resizeableColumn,
   } = useColumnResize(
     canvasRef,
-    // @ts-expect-error - some properties may be undefined
     columns,
     colSlice,
     scrollLeft,

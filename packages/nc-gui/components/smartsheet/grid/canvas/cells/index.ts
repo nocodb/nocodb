@@ -35,7 +35,7 @@ export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
   makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
-  updateOrSaveRow?: (
+  updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
@@ -186,11 +186,31 @@ export function useGridCellHandler(params: {
         makeCellEditable,
       })
     }
+    return false
+  }
+
+  const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
+    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
+
+    if (cellHandler?.handleKeyDown) {
+      return await cellHandler.handleKeyDown({
+        ...ctx,
+        column: ctx.column.columnObj!,
+        updateOrSaveRow: params?.updateOrSaveRow,
+        actionManager,
+        makeCellEditable,
+      })
+    } else {
+      console.log('No handler found for cell type', ctx.column.columnObj.uidt)
+    }
+
+    return false
   }
 
   return {
     cellTypesRegistry,
     renderCell,
     handleCellClick,
+    handleCellKeyDown,
   }
 }

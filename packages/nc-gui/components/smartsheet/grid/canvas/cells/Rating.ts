@@ -149,20 +149,33 @@ export const RatingCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow }) {
-    if (!row || !column) return
+    if (!row || !column) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })
 
-    if (!iconsData) return
+    if (!iconsData) return false
     const { iconSize, iconPositions } = iconsData
     const { x: mouseX, y: mouseY } = mousePosition
 
     const iconIdx = iconPositions.findIndex(({ iconX, iconY }) => {
       return mouseX >= iconX && mouseX <= iconX + iconSize && mouseY >= iconY && mouseY <= iconY + iconSize
     })
-    if (iconIdx === -1) return
+    if (iconIdx === -1) return false
     row.row[column.title] = iconIdx + 1
-    updateOrSaveRow?.(row, column.title)
+    await updateOrSaveRow?.(row, column.title)
+    return true
+  },
+
+  async handleKeyDown(ctx) {
+    const { e, row, column, updateOrSaveRow } = ctx
+
+    if (/^[0-9]$/.test(e.key)) {
+      row.row[column.title!] = Number(e.key)
+      await updateOrSaveRow(row, column.title)
+      return true
+    }
+
+    return false
   },
 }

@@ -41,13 +41,13 @@ export function useCanvasRender({
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
-  activeCell: { row: number; column: number }
+  activeCell: Ref<{ row: number; column: number }>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
-  selection: CellRange
+  selection: Ref<CellRange>
   isAiFillMode: ComputedRef<boolean>
   isRowDraggingEnabled: ComputedRef<boolean>
   isFillMode: Ref<boolean>
@@ -342,7 +342,7 @@ export function useCanvasRender({
   }
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D, renderOverFixed = false) => {
-    if (selection.isEmpty()) return true
+    if (selection.value.isEmpty()) return true
 
     const fillHandler = getFillHandlerPosition()
     if (!fillHandler) return true
@@ -366,15 +366,15 @@ export function useCanvasRender({
     ctx.fill()
 
     if (isFillMode.value) {
-      const startY = -partialRowHeight.value + 33 + (selection.start.row - rowSlice.value.start) * rowHeight.value
+      const startY = -partialRowHeight.value + 33 + (selection.value.start.row - rowSlice.value.start) * rowHeight.value
 
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
       ctx.strokeRect(
-        calculateXPosition(selection.start.col) - scrollLeft.value,
+        calculateXPosition(selection.value.start.col) - scrollLeft.value,
         startY,
-        calculateSelectionWidth(selection.start.col, selection.end.col),
-        (selection.end.row - selection.start.row + 1) * rowHeight.value,
+        calculateSelectionWidth(selection.value.start.col, selection.value.end.col),
+        (selection.value.end.row - selection.value.start.row + 1) * rowHeight.value,
       )
       ctx.setLineDash([])
     }
@@ -542,7 +542,7 @@ export function useCanvasRender({
               return
             }
 
-            if (selection.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
               ctx.fillStyle = '#EBF0FF'
               ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
             }
@@ -553,7 +553,7 @@ export function useCanvasRender({
             ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
             ctx.stroke()
 
-            const isActive = activeCell.row === rowIdx && activeCell.column === absoluteColIdx
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
 
             if (isActive) {
               activeState = {
@@ -597,7 +597,7 @@ export function useCanvasRender({
               const width = parseInt(column.width, 10)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
-              if (selection.isCellInRange({ row: rowIdx, col: colIdx })) {
+              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
                 ctx.fillStyle = '#EBF0FF'
                 ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               } else {
@@ -610,7 +610,7 @@ export function useCanvasRender({
               } else {
                 const value = row.row[column.title]
 
-                const isActive = activeCell.row === rowIdx && activeCell.column === colIdx
+                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
                 if (isActive) {
                   activeState = {

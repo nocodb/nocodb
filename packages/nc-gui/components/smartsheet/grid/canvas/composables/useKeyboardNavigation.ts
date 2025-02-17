@@ -22,11 +22,11 @@ export function useKeyboardNavigation({
   onActiveCellChanged,
 }: {
   totalRows: Ref<number>
-  activeCell: { row: number; column: number }
+  activeCell: Ref<{ row: number; column: number }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: (row?: number, column?: number) => void
-  selection: CellRange
+  selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number
     column: ColumnType
@@ -67,9 +67,9 @@ export function useKeyboardNavigation({
     if (e.key === ' ') {
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.row !== -1 && !isRichModalOpen) {
+      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {
         e.preventDefault()
-        const row = cachedRows.value.get(activeCell.row)
+        const row = cachedRows.value.get(activeCell.value.row)
         if (!row) return
         expandForm(row)
         return
@@ -87,13 +87,13 @@ export function useKeyboardNavigation({
       }
     }
 
-    if (e.shiftKey && selection.isEmpty()) {
-      selection.startRange({ row: activeCell.row, col: activeCell.column })
+    if (e.shiftKey && selection.value.isEmpty()) {
+      selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
     }
 
     const moveToExtreme = cmdOrCtrl
-    const currentRow = activeCell.row
-    const currentCol = activeCell.column
+    const currentRow = activeCell.value.row
+    const currentCol = activeCell.value.column
     const lastRow = totalRows.value - 1
     const lastCol = columns.value.length - 1
 
@@ -104,10 +104,10 @@ export function useKeyboardNavigation({
           if (isAddingEmptyRowAllowed.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
-            activeCell.row = totalRows.value
-            activeCell.column = 1
-            selection.clear()
-            scrollToCell(activeCell.row, 1)
+            activeCell.value.row = totalRows.value
+            activeCell.value.column = 1
+            selection.value.clear()
+            scrollToCell(activeCell.value.row, 1)
           }
           return
         }
@@ -125,27 +125,27 @@ export function useKeyboardNavigation({
         if (isDataReadOnly.value) return
         if (!editEnabled.value) {
           e.preventDefault()
-          if (selection.isSingleCell()) {
+          if (selection.value.isSingleCell()) {
             await clearCell?.({
-              row: activeCell.row,
-              col: activeCell.column,
+              row: activeCell.value.row,
+              col: activeCell.value.column,
             })
           } else {
             await clearSelectedRangeOfCells()
-            selection.clear()
+            selection.value.clear()
           }
         }
         return
 
       case 'Enter':
-        selection.clear()
+        selection.value.clear()
         if (e.shiftKey) return
         if (!editEnabled.value) {
           e.preventDefault()
           makeCellEditable(currentRow, columns.value[currentCol]!)
         } else {
           editEnabled.value = null
-          activeCell.row++
+          activeCell.value.row++
         }
         break
 
@@ -158,7 +158,7 @@ export function useKeyboardNavigation({
       case 'ArrowUp':
         if (!editEnabled.value && currentRow > 0) {
           e.preventDefault()
-          activeCell.row = moveToExtreme ? 0 : currentRow - 1
+          activeCell.value.row = moveToExtreme ? 0 : currentRow - 1
           onActiveCellChanged()
           moved = true
         }
@@ -167,7 +167,7 @@ export function useKeyboardNavigation({
       case 'ArrowDown':
         if (!editEnabled.value && currentRow < lastRow) {
           e.preventDefault()
-          activeCell.row = moveToExtreme ? lastRow : currentRow + 1
+          activeCell.value.row = moveToExtreme ? lastRow : currentRow + 1
           onActiveCellChanged()
           moved = true
         }
@@ -176,7 +176,7 @@ export function useKeyboardNavigation({
       case 'ArrowLeft':
         if (!editEnabled.value && currentCol > MIN_COLUMN_INDEX) {
           e.preventDefault()
-          activeCell.column = moveToExtreme ? MIN_COLUMN_INDEX : currentCol - 1
+          activeCell.value.column = moveToExtreme ? MIN_COLUMN_INDEX : currentCol - 1
           moved = true
         }
         break
@@ -184,7 +184,7 @@ export function useKeyboardNavigation({
       case 'ArrowRight':
         if (!editEnabled.value && currentCol < lastCol) {
           e.preventDefault()
-          activeCell.column = moveToExtreme ? lastCol : currentCol + 1
+          activeCell.value.column = moveToExtreme ? lastCol : currentCol + 1
           moved = true
         }
         break
@@ -204,17 +204,17 @@ export function useKeyboardNavigation({
 
           if (e.shiftKey) {
             if (currentCol > MIN_COLUMN_INDEX) {
-              activeCell.column--
+              activeCell.value.column--
             } else if (currentRow > 0) {
-              activeCell.row--
-              activeCell.column = lastCol
+              activeCell.value.row--
+              activeCell.value.column = lastCol
             }
           } else {
             if (currentCol < lastCol) {
-              activeCell.column++
+              activeCell.value.column++
             } else if (currentRow < (isAdded ? lastRow + 1 : lastRow)) {
-              activeCell.row++
-              activeCell.column = MIN_COLUMN_INDEX
+              activeCell.value.row++
+              activeCell.value.column = MIN_COLUMN_INDEX
             }
           }
           moved = true
@@ -225,25 +225,25 @@ export function useKeyboardNavigation({
 
     if (moved) {
       if (e.shiftKey && e.key !== 'Tab') {
-        const newEnd = { row: activeCell.row, col: activeCell.column }
-        const maxRow = Math.max(selection._start?.row ?? 0, newEnd.row)
-        const minRow = Math.min(selection._start?.row ?? 0, newEnd.row)
+        const newEnd = { row: activeCell.value.row, col: activeCell.value.column }
+        const maxRow = Math.max(selection.value._start?.row ?? 0, newEnd.row)
+        const minRow = Math.min(selection.value._start?.row ?? 0, newEnd.row)
 
         if (maxRow - minRow >= MAX_SELECTION_LIMIT) {
-          const direction = newEnd.row > (selection._start?.row ?? 0) ? 1 : -1
-          const limitedRow = (selection._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
-          activeCell.row = limitedRow
+          const direction = newEnd.row > (selection.value._start?.row ?? 0) ? 1 : -1
+          const limitedRow = (selection.value._start?.row ?? 0) + (MAX_SELECTION_LIMIT - 1) * direction
+          activeCell.value.row = limitedRow
           newEnd.row = limitedRow
         }
 
-        selection.endRange(newEnd)
+        selection.value.endRange(newEnd)
       } else {
-        selection.clear()
-        selection.startRange({ row: activeCell.row, col: activeCell.column })
-        selection.endRange({ row: activeCell.row, col: activeCell.column })
+        selection.value.clear()
+        selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
+        selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
 
-      scrollToCell(activeCell.row, activeCell.column)
+      scrollToCell(activeCell.value.row, activeCell.value.column)
     }
     triggerReRender()
   }

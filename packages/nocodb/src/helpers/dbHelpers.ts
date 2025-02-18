@@ -1,6 +1,5 @@
-import { RelationTypes } from 'nocodb-sdk';
-import NcConnectionMgrv2 from 'src/utils/common/NcConnectionMgrv2';
-import type { NcContext } from 'nocodb-sdk';
+import { type NcContext, RelationTypes } from 'nocodb-sdk';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   type Column,
   type LinkToAnotherRecordColumn,

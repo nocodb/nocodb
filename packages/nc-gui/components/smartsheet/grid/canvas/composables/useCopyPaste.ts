@@ -107,7 +107,12 @@ export function useCopyPaste({
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
-    return !editEnabled.value && !(activeCell.value.row === -1 || activeCell.value.column === -1)
+    return (
+      !editEnabled.value ||
+      (editEnabled.value &&
+        [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User].includes(editEnabled.value.column?.uidt) &&
+        !(activeCell.value.row === -1 || activeCell.value.column === -1))
+    )
   })
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
@@ -147,7 +152,9 @@ export function useCopyPaste({
   }
 
   const handlePaste = async (e: ClipboardEvent) => {
-    if (!canPasteCell.value) return
+    if (!canPasteCell.value) {
+      return
+    }
     if (!meta.value?.id) return
 
     if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {

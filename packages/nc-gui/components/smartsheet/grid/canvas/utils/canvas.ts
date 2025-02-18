@@ -502,6 +502,7 @@ export const renderMarkdownBlocks = (
       tokens = [{ styles: [], value: `${block.number}. ` }, ...tokens]
     }
 
+    let tokenIndex = 0
     let cursorX = x
     const cursorY = y + renderedLineCount * lineHeight
 
@@ -554,14 +555,16 @@ export const renderMarkdownBlocks = (
         const ellipsis = '...'
         const ellipsisWidth = ctx.measureText(ellipsis).width
 
-        while (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
-          tokenText = tokenText.slice(0, -1)
-          tokenWidth = ctx.measureText(tokenText).width
-        }
+        if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth || tokenIndex === tokens.length - 1) {
+          while (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
+            tokenText = tokenText.slice(0, -1)
+            tokenWidth = ctx.measureText(tokenText).width
+          }
 
-        tokenText += ellipsis
-        tokenWidth = ctx.measureText(tokenText).width
-        isTruncated = true
+          tokenText += ellipsis
+          tokenWidth = ctx.measureText(tokenText).width
+          isTruncated = true
+        }
       }
 
       ctx.fillText(tokenText, cursorX, cursorY)
@@ -575,6 +578,7 @@ export const renderMarkdownBlocks = (
       }
 
       cursorX += tokenWidth
+      tokenIndex++
       if (cursorX >= x + maxWidth) break
       if (isTruncated) break
     }

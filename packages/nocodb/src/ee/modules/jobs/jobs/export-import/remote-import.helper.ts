@@ -30,6 +30,10 @@ export class RemoteImportHandler {
     title?: string;
     meta?: any;
   };
+  private _workspaceProgress: {
+    current: number;
+    total: number;
+  };
 
   private handlers: Map<string, (payload: MessagePayload) => void>;
   private logger = new Logger('RemoteImportHandler');
@@ -51,6 +55,7 @@ export class RemoteImportHandler {
       ['base', this.handleBase.bind(this)],
       ['data', this.handleData.bind(this)],
       ['link', this.handleLink.bind(this)],
+      ['workspaceProgress', this.handleWorkspaceProgress.bind(this)],
     ]);
   }
 
@@ -72,6 +77,10 @@ export class RemoteImportHandler {
 
   public get baseProps() {
     return this._baseProps;
+  }
+
+  public get workspaceProgress() {
+    return this._workspaceProgress;
   }
 
   private handleQueueStart() {
@@ -224,6 +233,10 @@ export class RemoteImportHandler {
 
       this.importPromises.push(p);
     });
+  }
+
+  private handleWorkspaceProgress(payload: MessagePayload) {
+    this._workspaceProgress = payload.data;
   }
 
   public handleMessage(payload: MessagePayload) {

@@ -25,6 +25,8 @@ const row = inject(PageDesignerRowInj)! as Ref<Row>
 
 const relatedRows = ref<Record<string, any>[]>([])
 
+const defaultBlackColor = '#000000'
+
 watch(
   () => props.id,
   (id) => {
@@ -159,21 +161,29 @@ watch(row, loadRelatedRows)
           </span>
           <table
             v-else
-            :class="['w-full', { 'default-text-color': widget.textColor === '#000000' }]"
+            :class="['w-full', { 'default-text-color': widget.textColor === defaultBlackColor }]"
             :style="{
               color: widget.textColor,
             }"
           >
             <thead>
               <tr>
-                <th v-for="column in tableColumns" :key="column.id">
+                <th
+                  v-for="column in tableColumns"
+                  :key="column.id"
+                  :style="widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }"
+                >
                   {{ column.title }}
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in relatedRows" :key="row.Id">
-                <td v-for="column in tableColumns" :key="column.id">
+                <td
+                  v-for="column in tableColumns"
+                  :key="column.id"
+                  :style="widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }"
+                >
                   <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
                 </td>
               </tr>

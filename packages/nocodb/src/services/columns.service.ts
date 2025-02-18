@@ -23,7 +23,6 @@ import hash from 'object-hash';
 import rfdc from 'rfdc';
 import { parseMetaProp } from 'src/utils/modelUtils';
 import { NcApiVersion } from 'nocodb-sdk';
-import { FormulaColumnTypeChanger } from './formula-column-type-changer.service';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -36,6 +35,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import {
   BaseUser,
   CalendarRange,

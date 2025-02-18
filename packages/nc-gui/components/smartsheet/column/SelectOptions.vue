@@ -576,13 +576,7 @@ if (!isKanbanStack.value) {
             <span></span>
           </template>
         </InfiniteLoading>
-        <Draggable
-          :list="renderedOptions"
-          item-key="id"
-          handle=".nc-child-draggable-icon"
-          :filter="isTouchEvent"
-          @change="syncOptions"
-        >
+        <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
           <template #item="{ element, index }">
             <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
               <div

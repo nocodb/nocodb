@@ -82,10 +82,10 @@ export const LookupCellRenderer: CellRenderer = {
       }
 
       if (ncIsArray(value)) {
-        arrValue = value.filter((v) => v !== null)
+        return value.filter((v) => v !== null)
       }
 
-      arrValue = [value]
+      return [value]
     }
 
     let arrValue = getArrValue()

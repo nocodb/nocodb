@@ -394,8 +394,8 @@ export const wrapTextToLines = (
       const ellipsis = '...'
       const ellipsisWidth = ctx.measureText(ellipsis).width
 
-      while (width + ellipsisWidth > maxWidth && line.length > 0) {
-        line = line.slice(0, -1) // Remove one character at a time
+      if (width + ellipsisWidth > maxWidth && line.length > 0) {
+        line = truncateText(ctx, line, maxWidth - ellipsisWidth, false, false) // Truncate the line to fit within maxWidth
         width = ctx.measureText(line).width
       }
 
@@ -466,7 +466,7 @@ export const renderMarkdownBlocks = (
     maxLines?: number
     maxWidth: number
     lineHeight: number
-    cellRenderStore: CellRenderStore
+    cellRenderStore?: CellRenderStore
     fillStyle?: string
     mousePosition?: { x: number; y: number }
   },
@@ -519,8 +519,9 @@ export const renderMarkdownBlocks = (
       let tokenWidth = ctx.measureText(tokenText).width
 
       // Truncate the token if it exceeds the max width of the line
-      while (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
-        tokenText = tokenText.slice(0, -1)
+      if (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
+        // cursorX starts at x, so we need to subtract x to get used space
+        tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x), false, false)
         tokenWidth = ctx.measureText(tokenText).width
       }
 
@@ -556,8 +557,9 @@ export const renderMarkdownBlocks = (
         const ellipsisWidth = ctx.measureText(ellipsis).width
 
         if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth || tokenIndex === tokens.length - 1) {
-          while (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
-            tokenText = tokenText.slice(0, -1)
+          if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
+            // cursorX starts at x, so we need to subtract x to get used space
+            tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x) - ellipsisWidth, false, false)
             tokenWidth = ctx.measureText(tokenText).width
           }
 
@@ -586,7 +588,7 @@ export const renderMarkdownBlocks = (
     renderedLineCount++
   }
 
-  cellRenderStore.links = links
+  if (cellRenderStore) cellRenderStore.links = links
 
   // Restore the original font
   ctx.font = defaultFont
@@ -823,10 +825,8 @@ export const renderMarkdown = (
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
-    underline,
     py = 10,
     mousePosition = { x: 0, y: 0 },
-    spriteLoader,
     cellRenderStore,
     isTagLabel = false,
   } = params
@@ -893,12 +893,9 @@ export const renderMarkdown = (
       verticalAlign,
       lineHeight,
       maxLines,
-      fontSize,
       fillStyle,
-      underline,
       maxWidth,
       mousePosition,
-      spriteLoader,
       cellRenderStore,
     })
   } else {

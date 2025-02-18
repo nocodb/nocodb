@@ -46,7 +46,6 @@ export function useSortable(
       onStart: onSortStart,
       onEnd: onSortEnd,
       revertOnSpill: true,
-      filter: isTouchEvent,
     })
   }
 

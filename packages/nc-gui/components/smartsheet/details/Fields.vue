@@ -1742,7 +1742,6 @@ const rightPanelWidth = computed(() => {
                 :disabled="isLocked"
                 item-key="id"
                 data-testid="nc-field-list-wrapper"
-                :filter="isTouchEvent"
                 @change="onMove($event)"
               >
                 <template #item="{ element: field }">

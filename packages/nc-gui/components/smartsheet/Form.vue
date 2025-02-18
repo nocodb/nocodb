@@ -1219,6 +1219,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                         class="h-full px-4 lg:px-6"
                         :move="onMoveCallback"
                         :disabled="isLocked || !isEditable"
+                        :filter="
+                          (event) => {
+                            return !isMousePointerType(event)
+                          }
+                        "
                         @change="onMove($event, true)"
                       >
                         <template #item="{ element }">
@@ -1610,6 +1615,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                             ghost-class="nc-form-field-ghost"
                             :style="{ height: 'calc(100% - 64px)' }"
                             :disabled="isLocked || !isEditable"
+                            :filter="
+                              (event) => {
+                                return !isMousePointerType(event)
+                              }
+                            "
                             @change="onMove($event)"
                             @start="drag = true"
                             @end="drag = false"

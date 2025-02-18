@@ -166,7 +166,17 @@ onMounted(async () => {
         }"
         class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
       >
-        <Draggable v-if="!isLoadingModel" v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
+        <Draggable
+          v-if="!isLoadingModel"
+          v-model="filteredColumns"
+          item-key="id"
+          ghost-class="nc-lookup-menu-items-ghost"
+          :filter="
+            (event) => {
+              return !isMousePointerType(event)
+            }
+          "
+        >
           <template #item="{ element: field }">
             <div
               :key="field.id"

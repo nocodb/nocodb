@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { type NcContext } from 'nocodb-sdk';
 import { type NcRequest } from 'nocodb-sdk';
-import { PgDataMigration } from './formula-column-type-changer/pg-data-migration';
 import type { ColumnReqType } from 'nocodb-sdk';
-import type { FormulaDataMigrationDriver } from './formula-column-type-changer';
+import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
+import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { Column, Model } from '~/models';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
+import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
@@ -15,7 +17,15 @@ export const DEFAULT_BATCH_LIMIT = 100000;
 export class FormulaColumnTypeChanger {
   constructor() {
     const pgDriver = new PgDataMigration();
+    const mysqlDriver = new MysqlDataMigration();
+    const sqliteDriver = new SqliteDataMigration();
+    this.dataMigrationDriver['postgre'] = pgDriver;
     this.dataMigrationDriver[pgDriver.dbDriverName] = pgDriver;
+    this.dataMigrationDriver['maridb'] = mysqlDriver;
+    this.dataMigrationDriver['mysql2'] = mysqlDriver;
+    this.dataMigrationDriver[mysqlDriver.dbDriverName] = mysqlDriver;
+    this.dataMigrationDriver[sqliteDriver.dbDriverName] = sqliteDriver;
+    this.dataMigrationDriver['sqlite3'] = sqliteDriver;
   }
 
   dataMigrationDriver: {

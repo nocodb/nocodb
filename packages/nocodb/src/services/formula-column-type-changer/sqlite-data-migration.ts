@@ -11,9 +11,9 @@ knex.raw(qb.builder).wrap('(',')').toSQL().toNative().sql
 (select (CONCAT("Text1","Text2") as myColumn) from "p4oi1n99ziywqze"."formula-parent" where "p4oi1n99ziywqze"."formula-parent"."id" = "__nc_root"."formula-parent_id")
 */
 
-export class PgDataMigration implements FormulaDataMigrationDriver {
+export class SqliteDataMigration implements FormulaDataMigrationDriver {
   constructor() {
-    this.dbDriverName = 'pg';
+    this.dbDriverName = 'sqlite';
   }
   dbDriverName: string;
 
@@ -59,6 +59,19 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
       ),
     )
       .select(getPrimaryKeySelectColumns(idOffsetTableAlias))
+      .whereRaw(
+        Object.keys(getPrimaryKeySelectColumns())
+          .map(() => '?? = ??')
+          .join(' and '),
+        Object.keys(getPrimaryKeySelectColumns()).reduce(
+          (arr, primaryColName) => {
+            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
+            arr.push(`${formulaValueTableAlias}.${primaryColName}`);
+            return arr;
+          },
+          [],
+        ),
+      )
       .orderBy(getPrimaryKeySortColumns(idOffsetTableAlias))
       .limit(limit)
       .offset(offset);
@@ -84,44 +97,28 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
             undefined,
           )
         ).builder,
-        ...getPrimaryKeySelectColumns(formulaValueTableAlias),
       })
-      .innerJoin(
-        knex.raw(`?? as ${idOffsetTableAlias}`, [
-          knex.raw(idOffsetTable).wrap('(', ')'),
-        ]),
-        function () {
-          for (const primaryColName of Object.keys(
-            getPrimaryKeySelectColumns(),
-          )) {
-            this.on(
-              `${idOffsetTableAlias}.${primaryColName}`,
-              '=',
-              `${formulaValueTableAlias}.${primaryColName}`,
-            );
-          }
-        },
+      .whereRaw(
+        Object.keys(getPrimaryKeySelectColumns())
+          .map(() => '?? = ??')
+          .join(' and '),
+        Object.keys(getPrimaryKeySelectColumns()).reduce(
+          (arr, primaryColName) => {
+            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
+            arr.push(`${formulaValueTableAlias}.${primaryColName}`);
+            return arr;
+          },
+          [],
+        ),
       );
 
     // knex qb is not yet suppport update select / update join
     // so we need to compose them manually (sad)
-    const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
+    const qb = knex.raw(`update ?? set ?? = (??) where exists (??)`, [
       baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
       knex.raw(knex.ref(destinationColumn.column_name)),
-      knex.raw(knex.ref(`${formulaValueTableAlias}.${formulaColumnAlias}`)),
       knex.raw(formulaValueTable),
-      knex.raw(`as ${formulaValueTableAlias}`),
-      knex.raw(
-        baseModelSqlV2.model.primaryKeys
-          .map((col) => {
-            return (
-              knex.ref(`${ROOT_ALIAS}.${col.column_name}`).toQuery() +
-              '=' +
-              knex.ref(`${formulaValueTableAlias}.${col.column_name}`).toQuery()
-            );
-          })
-          .join(' and '),
-      ),
+      knex.raw(idOffsetTable),
     ]);
     await qb;
   }

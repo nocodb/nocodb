@@ -11,9 +11,9 @@ knex.raw(qb.builder).wrap('(',')').toSQL().toNative().sql
 (select (CONCAT("Text1","Text2") as myColumn) from "p4oi1n99ziywqze"."formula-parent" where "p4oi1n99ziywqze"."formula-parent"."id" = "__nc_root"."formula-parent_id")
 */
 
-export class PgDataMigration implements FormulaDataMigrationDriver {
+export class MysqlDataMigration implements FormulaDataMigrationDriver {
   constructor() {
-    this.dbDriverName = 'pg';
+    this.dbDriverName = 'mysql';
   }
   dbDriverName: string;
 
@@ -105,10 +105,8 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
 
     // knex qb is not yet suppport update select / update join
     // so we need to compose them manually (sad)
-    const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
+    const qb = knex.raw(`update ?? inner join (??) as ?? on ?? set ?? = ??`, [
       baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
-      knex.raw(knex.ref(destinationColumn.column_name)),
-      knex.raw(knex.ref(`${formulaValueTableAlias}.${formulaColumnAlias}`)),
       knex.raw(formulaValueTable),
       knex.raw(`as ${formulaValueTableAlias}`),
       knex.raw(
@@ -122,6 +120,8 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
           })
           .join(' and '),
       ),
+      knex.raw(knex.ref(destinationColumn.column_name)),
+      knex.raw(knex.ref(`${formulaValueTableAlias}.${formulaColumnAlias}`)),
     ]);
     await qb;
   }

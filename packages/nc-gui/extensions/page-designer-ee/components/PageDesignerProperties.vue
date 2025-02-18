@@ -28,7 +28,7 @@ function print() {
 </script>
 
 <template>
-  <div v-if="payload" class="flex flex-col page-properties overflow-y-auto max-h-full pb-8">
+  <div v-if="payload" class="flex flex-col properties overflow-y-auto max-h-full">
     <header class="widget-header flex w-full justify-between">
       <h1 class="m-0">Page</h1>
       <NcButton size="small" type="secondary" @click="print">

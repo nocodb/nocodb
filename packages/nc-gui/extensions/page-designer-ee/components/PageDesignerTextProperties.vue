@@ -43,12 +43,73 @@ watch(
   },
   { immediate: true },
 )
+
+const textPresets = {
+  h1: {
+    fontSize: '26',
+    lineHeight: '1.2',
+    fontWeight: '700',
+  },
+  h2: {
+    fontSize: '20',
+    lineHeight: '1.2',
+    fontWeight: '700',
+  },
+  h3: {
+    fontSize: '16',
+    lineHeight: '1.5',
+    fontWeight: '700',
+  },
+}
+
+function isTextPresetActive(heading: 'h1' | 'h2' | 'h3') {
+  if (!textWidget.value) return
+  return (
+    textWidget.value?.fontSize === textPresets[heading].fontSize &&
+    textWidget.value?.lineHeight === textPresets[heading].lineHeight &&
+    textWidget.value.fontWeight === textPresets[heading].fontWeight
+  )
+}
+
+function setTextPreset(heading: 'h1' | 'h2' | 'h3') {
+  if (!textWidget.value) return
+
+  textWidget.value.fontSize = textPresets[heading].fontSize
+  textWidget.value.lineHeight = textPresets[heading].lineHeight
+  textWidget.value.fontWeight = textPresets[heading].fontWeight
+}
 </script>
 
 <template>
-  <div v-if="textWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
-    <header class="widget-header">
+  <div v-if="textWidget" class="flex flex-col properties overflow-y-auto max-h-full">
+    <header class="widget-header flex items-center justify-between">
       <h1 class="m-0">Text</h1>
+      <div class="flex gap-3">
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h1') }"
+          @click="setTextPreset('h1')"
+        >
+          <GeneralIcon icon="ncHeading1" />
+        </NcButton>
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h2') }"
+          @click="setTextPreset('h2')"
+        >
+          <GeneralIcon icon="ncHeading2" />
+        </NcButton>
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h3') }"
+          @click="setTextPreset('h3')"
+        >
+          <GeneralIcon icon="ncHeading3" />
+        </NcButton>
+      </div>
     </header>
     <GroupedSettings title="Content">
       <AiPromptWithFields
@@ -150,5 +211,9 @@ watch(
   :deep(.ProseMirror) {
     @apply !rounded-lg;
   }
+}
+.text-preset-active {
+  @apply !border-nc-fill-primary;
+  box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
 }
 </style>

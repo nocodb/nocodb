@@ -37,5 +37,11 @@ const propertiesComponent = computed(() => {
 <style lang="scss" scoped>
 .properties-panel {
   @apply border-l-1 border-nc-border-gray-medium;
+  :deep(> .properties) {
+    .grouped-settings:last-child {
+      border-bottom: none;
+      padding-bottom: 80px;
+    }
+  }
 }
 </style>

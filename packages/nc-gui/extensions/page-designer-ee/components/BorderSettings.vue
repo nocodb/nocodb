@@ -16,7 +16,10 @@ const isBorderNone = computed(() => {
   return values.size === 1 && values.values().next().value === '0'
 })
 
+const lastBorderValue = ref('')
+
 function syncIfBorderLocked(val: string) {
+  lastBorderValue.value = val
   if (!isBorderLocked.value) return
   borderLeft.value = val
   borderRight.value = val
@@ -37,6 +40,11 @@ watch(borderColor, (_, oldVal) => {
     borderBottom.value = '1'
   }
 })
+
+function toggleBorderLock() {
+  isBorderLocked.value = !isBorderLocked.value
+  if (isBorderLocked.value && lastBorderValue.value) syncIfBorderLocked(lastBorderValue.value)
+}
 </script>
 
 <template>
@@ -51,7 +59,7 @@ watch(borderColor, (_, oldVal) => {
           <div class="h-10 w-1 rounded-lg bg-nc-bg-gray-light"></div>
           <div class="flex flex-col gap-4 items-center">
             <div class="w-10 h-1 rounded-lg bg-nc-bg-gray-light"></div>
-            <NcButton size="xsmall" type="secondary" @click="isBorderLocked = !isBorderLocked" class="shrink-0">
+            <NcButton size="xsmall" type="secondary" @click="toggleBorderLock" class="shrink-0">
               <GeneralIcon :icon="isBorderLocked ? 'ncLock' : 'ncUnlock'" />
             </NcButton>
             <div class="w-10 h-1 rounded-lg bg-nc-bg-gray-light"></div>

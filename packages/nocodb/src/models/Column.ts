@@ -1595,7 +1595,6 @@ export default class Column<T = any> implements ColumnType {
       'validate',
       'meta',
     ]);
-    // prototype
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
@@ -1603,15 +1602,24 @@ export default class Column<T = any> implements ColumnType {
       prepareForDb(updateObj),
       formulaColumn.id,
     );
-    await NocoCache.update(
-      `${CacheScope.COLUMN}:${formulaColumn.id}`,
-      prepareForResponse(updateObj),
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_FORMULA,
+      {
+        fk_column_id: formulaColumn.id,
+      },
     );
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,
       destinationColumn.id,
+    );
+    // update the caches to reflect new columns
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${formulaColumn.id}`,
+      prepareForResponse(updateObj),
     );
     await NocoCache.del(`${CacheScope.COLUMN}:${destinationColumn.id}`);
   }

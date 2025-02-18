@@ -98,7 +98,8 @@ watch(
       </div>
       <div v-else-if="fieldWidget.displayAs === LinkedFieldDisplayAs.TABLE" class="flex flex-col gap-2">
         <label>Table columns</label>
-        <div class="rounded-lg border-1 border-nc-border-gray-medium">
+        <div class="rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
+          <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
           <Draggable v-model="fieldWidget.tableColumns" :item-key="(id: string) => id" handle=".cursor-move">
             <template #item="{ element: fieldId }">
               <FieldElement
@@ -109,7 +110,6 @@ watch(
               />
             </template>
           </Draggable>
-          <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
         </div>
       </div>
     </GroupedSettings>

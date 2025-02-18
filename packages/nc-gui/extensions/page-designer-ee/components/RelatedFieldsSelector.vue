@@ -107,7 +107,7 @@ function updateChecked(checked: boolean, field: ColumnType) {
 <template>
   <NcDropdown v-model:visible="isOpen">
     <div
-      class="text-nc-fill-primary text-[13px] font-700 flex gap-2 items-center p-2 border-t-1 border-nc-border-gray-medium cursor-pointer"
+      class="text-nc-fill-primary text-[13px] font-700 flex gap-2 items-center p-2 border-b-1 border-nc-border-gray-medium cursor-pointer"
     >
       <GeneralIcon icon="ncPlus"></GeneralIcon>
       Add Column

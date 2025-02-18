@@ -23,6 +23,7 @@ import hash from 'object-hash';
 import rfdc from 'rfdc';
 import { parseMetaProp } from 'src/utils/modelUtils';
 import { NcApiVersion } from 'nocodb-sdk';
+import { FormulaColumnTypeChanger } from './formula-column-type-changer.service';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -189,6 +190,7 @@ export class ColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly formulaColumnTypeChanger: FormulaColumnTypeChanger,
   ) {}
 
   async updateFormulas(
@@ -297,7 +299,26 @@ export class ColumnsService {
     const { req } = param;
 
     const column = await Column.get(context, { colId: param.columnId });
-
+    if (column.uidt === UITypes.Formula && param.column.uidt !== column.uidt) {
+      (param.column as any).id = undefined;
+      const newColumn = await this.columnAdd<NcApiVersion.V3>(context, {
+        column: param.column,
+        req: param.req,
+        user: param.user,
+        reuse: param.reuse,
+        tableId: column.fk_model_id,
+        apiVersion: NcApiVersion.V3,
+        suppressFormulaError: false,
+      });
+      return await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
+        context,
+        {
+          req,
+          formulaColumn: column,
+          newColumn,
+        },
+      );
+    }
     const oldColumn = deepClone(column);
 
     const table = await reuseOrSave('table', reuse, async () =>

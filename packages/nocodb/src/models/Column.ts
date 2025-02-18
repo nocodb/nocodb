@@ -7,6 +7,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
@@ -1552,6 +1553,67 @@ export default class Column<T = any> implements ColumnType {
         );
       }
     }
+  }
+
+  static async updateFormulaColumnToNewType(
+    context: NcContext,
+    {
+      formulaColumn,
+      destinationColumn,
+      ncMeta = Noco.ncMeta,
+    }: {
+      formulaColumn: Column;
+      destinationColumn: Column;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const updateObj = extractProps(destinationColumn, [
+      'column_name',
+      'title',
+      'description',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'system',
+      'validate',
+      'meta',
+    ]);
+    // prototype
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      prepareForDb(updateObj),
+      formulaColumn.id,
+    );
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${formulaColumn.id}`,
+      prepareForResponse(updateObj),
+    );
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      destinationColumn.id,
+    );
+    return await Column.get(context, { colId: formulaColumn.id });
   }
 
   static async updateAlias(

@@ -157,7 +157,13 @@ watch(row, loadRelatedRows)
           <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE">
             {{ inlineValue }}
           </span>
-          <table v-else class="w-full">
+          <table
+            v-else
+            :class="['w-full', { 'default-text-color': widget.textColor === '#000000' }]"
+            :style="{
+              color: widget.textColor,
+            }"
+          >
             <thead>
               <tr>
                 <th v-for="column in tableColumns" :key="column.id">
@@ -232,11 +238,17 @@ td {
   font-size: 12px;
 }
 th {
-  @apply text-nc-content-gray;
   font-weight: 700;
 }
 td {
-  @apply text-nc-content-gray-subtle2;
   font-weight: 500;
+}
+table.default-text-color {
+  th {
+    @apply text-nc-content-gray;
+  }
+  td {
+    @apply text-nc-content-gray-subtle2;
+  }
 }
 </style>

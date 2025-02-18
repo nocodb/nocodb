@@ -195,7 +195,7 @@ const uiFilters = (t: UiTypesType) => {
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
-    formulaColumnTypeValid = [UITypes.SingleLineText, UITypes.Formula].includes(t.name)
+    formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
   return (
     systemFiledNotEdited &&

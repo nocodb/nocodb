@@ -708,10 +708,7 @@ export class ColumnsService implements IColumnsService {
         }
 
         await this.updateRollupOrLookup(context, colBody, column);
-      }
-      // for update formula field type,
-      // currently somehow it goes to this block
-      else if ([UITypes.Formula].includes(column.uidt)) {
+      } else if ([UITypes.Formula].includes(column.uidt)) {
         (param.column as any).id = undefined;
         await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
           context,
@@ -726,24 +723,6 @@ export class ColumnsService implements IColumnsService {
       } else {
         NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
-    }
-    // for update formula column type
-    // unsure if this block is still needed
-    else if (
-      [UITypes.Formula].includes(column.uidt) &&
-      param.column.uidt !== column.uidt
-    ) {
-      (param.column as any).id = undefined;
-      await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
-        context,
-        {
-          req,
-          formulaColumn: column,
-          newColumnRequest: param.column,
-          user: param.user,
-          reuse: param.reuse,
-        },
-      );
     } else if (
       [
         UITypes.Lookup,

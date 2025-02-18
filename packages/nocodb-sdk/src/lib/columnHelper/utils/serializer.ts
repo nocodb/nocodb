@@ -5,7 +5,7 @@ import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
-    return value;
+    return parseInt(value.toString(), 10);
   }
 
   // If it's a string, remove commas and check if it's a valid number
@@ -17,7 +17,7 @@ export const serializeIntValue = (value: string | null | number) => {
 
     // If it's a valid number, return it
     if (!isNaN(numberValue)) {
-      return numberValue;
+      return parseInt(numberValue.toString(), 10);
     }
   }
 

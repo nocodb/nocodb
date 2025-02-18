@@ -63,9 +63,9 @@ const showCol = (col: ColumnType) => {
       />
       <NcTooltip
         v-else
-        class="<lg:!w-full lg:flex-1 flex"
+        class="<lg:(!w-full !flex-none) lg:flex-1 flex"
         :class="{
-          'w-full': props.forceVerticalMode,
+          'w-full !flex-none': props.forceVerticalMode,
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
         placement="right"

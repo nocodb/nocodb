@@ -1426,6 +1426,7 @@ const colSlice = ref({
 const lastScrollTop = ref()
 const lastScrollLeft = ref()
 const lastTotalRows = ref()
+const lastTotalFields = ref()
 
 // Store the previous results for binary search to avoid redundant calculations
 let prevScrollLeft = -1
@@ -1503,7 +1504,8 @@ const calculateSlices = () => {
     lastScrollLeft.value &&
     lastScrollLeft.value === scrollLeft.value &&
     Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
-    lastTotalRows.value === totalRows.value
+    lastTotalRows.value === totalRows.value &&
+    lastTotalFields.value === fields.value.length
   ) {
     return
   }
@@ -1511,6 +1513,7 @@ const calculateSlices = () => {
   // Cache the current scroll positions
   lastScrollLeft.value = scrollLeft.value
   lastScrollTop.value = scrollTop.value
+  lastTotalFields.value = fields.value.length
 
   // Determine visible column range using binary search
   const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value, gridWrapper.value.clientWidth)

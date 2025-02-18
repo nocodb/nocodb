@@ -86,8 +86,8 @@ test.describe('View', () => {
     });
 
     // hide fields
-    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
-    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false, isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false, isKanban: true });
     await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],
@@ -221,8 +221,8 @@ test.describe('View', () => {
     });
     await toolbar.clickFilter();
 
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
     await toolbar.fields.toggle({ title: 'Title' });
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
@@ -279,8 +279,8 @@ test.describe('View', () => {
     await kanban.verifyCollapseStackCount({ count: 0 });
 
     // add record to stack & verify
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
     await toolbar.fields.toggleShowSystemFields();
     await toolbar.fields.toggle({ title: 'LanguageId' });
     await toolbar.fields.toggle({ title: 'Title' });

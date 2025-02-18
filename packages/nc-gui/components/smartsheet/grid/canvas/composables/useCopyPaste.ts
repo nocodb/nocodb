@@ -19,6 +19,7 @@ import { ComputedTypePasteError } from '../../../../../error/computed-type-paste
 import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
+import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const CHUNK_SIZE = 50
 
@@ -110,7 +111,7 @@ export function useCopyPaste({
     return (
       !editEnabled.value ||
       (editEnabled.value &&
-        [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User].includes(editEnabled.value.column?.uidt) &&
+        EDIT_INTERACTABLE.includes(editEnabled.value.column?.uidt) &&
         !(activeCell.value.row === -1 || activeCell.value.column === -1))
     )
   })

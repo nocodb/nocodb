@@ -163,10 +163,9 @@ watch(
   :deep(.ant-radio-wrapper) {
     @apply flex px-4 py-2 border-1 border-nc-gray-medium m-0;
     .ant-radio-checked .ant-radio-inner {
-      border-color: #1677ff !important;
-      background-color: #1677ff !important;
+      @apply !bg-nc-fill-primary !border-nc-fill-primary;
       &::after {
-        background: #fff;
+        @apply bg-nc-bg-default;
         width: 12px;
         height: 12px;
         margin-top: -6px;

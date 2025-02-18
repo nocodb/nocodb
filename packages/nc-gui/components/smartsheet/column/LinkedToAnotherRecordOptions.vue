@@ -26,6 +26,10 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
+const crossBase = ref(false)
+
+const { basesList, bases } = storeToRefs(useBases())
+
 const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
@@ -96,12 +100,35 @@ if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'm
 
 const advancedOptions = ref(false)
 
+
+const tablesStore = useTablesStore()
+const { baseTables, activeTable, activeTables: sourceTables } = storeToRefs(tablesStore)
+
+const onBaseChange = async (baseId: string) => {
+  // load tables for the selected base
+  await tablesStore.loadProjectTables(baseId)
+
+  // reset current model id value
+  if (referenceTableChildId.value) {
+    referenceTableChildId.value = null
+  }
+}
+
 const refTables = computed(() => {
-  if (!tables.value || !tables.value.length) {
+  if(!crossBase.value){
+      if (!tables.value || !tables.value.length) {
     return []
   }
 
   return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+  }
+
+
+  if (!baseTables.value.get(vModel.value.ref_base_id)) {
+    return []
+  }
+
+  return [...baseTables.value.get(vModel.value.ref_base_id).filter((t) => t.type === ModelTypes.TABLE)]
 })
 
 const refViews = computed(() => {
@@ -258,6 +285,14 @@ const onFilterLabelClick = () => {
 
   limitRecToCond.value = !limitRecToCond.value
 }
+const referenceBaseId = computed({
+  get: () => vModel.value?.ref_base_id ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.ref_base_id = value
+    }
+  },
+})
 </script>
 
 <template>
@@ -301,6 +336,45 @@ const onFilterLabelClick = () => {
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
     <template v-else>
+
+      <div >
+        <a-switch
+            v-model:checked="crossBase"
+            :disabled="isEdit"
+            :is-edit="isEdit"
+            size="small"
+            name="crossBase"
+        />
+        <span class="ml-3 cursor-pointer" @click="onCustomSwitchLabelClick">Cross Base Link</span>
+      </div>
+
+      <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
+        <a-select
+          v-model:value="referenceBaseId"
+          show-search
+          :disabled="isEdit"
+          :filter-option="filterOption"
+          placeholder="select table to link"
+          dropdown-class-name="nc-dropdown-ltar-child-table"
+          @change="onBaseChange(referenceBaseId)"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type"  class="nc-project-icon" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ base.title }}</template>
+                <span>{{ base.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
         <a-select
           v-model:value="referenceTableChildId"

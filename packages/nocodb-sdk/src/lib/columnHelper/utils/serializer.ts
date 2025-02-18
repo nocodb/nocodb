@@ -1,7 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
+import { ncIsBoolean, ncIsNumber, ncIsString } from '~/lib/is';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
@@ -24,17 +24,25 @@ export const serializeIntValue = (value: string | null | number) => {
   return null; // Return null if it's not a valid number
 };
 
-export const serializeDecimalValue = (
-  value: null | number,
-  col: ColumnType
-) => {
-  if (ncIsNaN(value)) {
-    return null;
+export const serializeDecimalValue = (value: string | null | number) => {
+  if (ncIsNumber(value)) {
+    return Number(value);
   }
 
-  const columnMeta = parseProp(col.meta);
+  // If it's a string, remove commas and check if it's a valid number
+  if (ncIsString(value)) {
+    const cleanedValue = value.replace(/,/g, '').trim(); // Remove commas
 
-  return Number(value).toFixed(columnMeta?.precision ?? 1);
+    // Try converting the cleaned value to a number
+    const numberValue = Number(cleanedValue);
+
+    // If it's a valid number, return it
+    if (!isNaN(numberValue)) {
+      return numberValue;
+    }
+  }
+
+  return null;
 };
 
 export const serializePercentValue = (value: string | null) => {

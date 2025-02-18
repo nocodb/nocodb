@@ -1,6 +1,6 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
-import { parseProp } from '~/lib/helperFunctions';
+import { parseProp, roundUpToPrecision } from '~/lib/helperFunctions';
 import { ncIsBoolean, ncIsNaN, ncIsString } from '~/lib/is';
 
 export const parseIntValue = (
@@ -32,7 +32,16 @@ export const parseDecimalValue = (
 
   const columnMeta = parseProp(col.meta);
 
-  return Number(value).toFixed(columnMeta?.precision ?? 1);
+  if (columnMeta.isLocaleString) {
+    return Number(
+      roundUpToPrecision(Number(value), columnMeta.precision ?? 1)
+    ).toLocaleString(undefined, {
+      minimumFractionDigits: columnMeta.precision ?? 1,
+      maximumFractionDigits: columnMeta.precision ?? 1,
+    });
+  }
+
+  return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
 };
 
 export const parsePercentValue = (value: string | null) => {

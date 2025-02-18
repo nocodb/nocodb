@@ -1,4 +1,4 @@
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import { renderSingleLineText } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
@@ -13,6 +13,7 @@ import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
+import { FloatCellRenderer } from './Number';
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
@@ -36,8 +37,17 @@ function getDisplayValueCellRenderer(column: ColumnType) {
 
 export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x, y, padding } = props
+    const { column, x, y, padding, isPg, value } = props
     const colMeta = parseProp(column.meta)
+    if (parseProp(column.colOptions)?.error) {
+      renderSingleLineText(ctx, {
+        text: 'ERR!',
+        x: x + padding,
+        y,
+      })
+      return
+    }
+
     if (colMeta?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
@@ -47,17 +57,25 @@ export const FormulaCellRenderer: CellRenderer = {
           ...colMeta.display_column_meta,
         },
         readonly: true,
+        formula: true,
       })
     } else {
-      if (parseProp(column.colOptions)?.error) {
-        renderSingleLineText(ctx, {
-          text: 'ERR!',
-          x: x + padding,
-          y,
+      const result = isPg(column.source_id) ? renderValue(handleTZ(value)) : renderValue(value)
+
+      if (column?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+        FloatCellRenderer.render(ctx, {
+          ...props,
+          value: result,
+          formula: true,
         })
         return
       }
-      SingleLineTextCellRenderer.render(ctx, props)
+
+      SingleLineTextCellRenderer.render(ctx, {
+        ...props,
+        value: result,
+        formula: true,
+      })
     }
   },
   handleClick: async (props) => {

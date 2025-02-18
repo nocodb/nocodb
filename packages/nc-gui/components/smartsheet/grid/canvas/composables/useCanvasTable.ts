@@ -5,7 +5,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_FILL_ENABLED } from '../utils/constants'
+import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -343,7 +343,7 @@ export function useCanvasTable({
       !(
         !isDataReadOnly.value &&
         !readOnly.value &&
-        (!editEnabled.value || EDIT_FILL_ENABLED.includes(editEnabled.value?.column?.uidt)) &&
+        (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
         (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
         !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
           ?.new &&

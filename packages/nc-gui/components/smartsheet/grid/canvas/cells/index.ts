@@ -57,7 +57,7 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()
-  const { isMssql, isMysql, isXcdbBase } = baseStore
+  const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
@@ -154,7 +154,7 @@ export function useGridCellHandler(params: {
       meta = params.meta?.value,
       skipRender = false,
       isUnderLookup = false,
-    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers'>,
+    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
 
@@ -189,6 +189,7 @@ export function useGridCellHandler(params: {
         tableMetaLoader,
         isMssql,
         isMysql,
+        isPg,
         isXcdbBase,
         t,
         padding,

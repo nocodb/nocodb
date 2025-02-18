@@ -3,7 +3,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268', spriteLoader } = props
+    const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268', spriteLoader, setCursor } = props
 
     const text = value?.toString() ?? ''
 
@@ -36,6 +36,14 @@ export const UrlCellRenderer: CellRenderer = {
         height,
       })
 
+      const isHover = isBoxHovered(
+        { x: x + padding, y: y + padding, width: xOffset - x - padding, height: yOffset - y },
+        props.mousePosition,
+      )
+      if (isHover && isValid) {
+        setCursor('pointer')
+      }
+
       if (validate && !isValid) {
         const iconX = x + width - iconSize - padding
 
@@ -63,7 +71,7 @@ export const UrlCellRenderer: CellRenderer = {
     const text = value?.toString().trim() ?? ''
 
     const isValid = text && isValidURL(text)
-    if (isValid) return false
+    if (isValid) return
 
     const pv = column.pv
     const ctx = defaultOffscreen2DContext
@@ -92,8 +100,6 @@ export const UrlCellRenderer: CellRenderer = {
         mousePosition,
       })
     }
-
-    return true
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
@@ -121,7 +127,7 @@ export const UrlCellRenderer: CellRenderer = {
 
     const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
       x: x + padding,
-      y,
+      y: y + padding,
       text,
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,

@@ -603,6 +603,7 @@
     "teamAndSettings": "দল এবং সেটিংস",
     "apiDocs": "API Docs",
     "importFromAirtable": "এয়ারটেবল থেকে আমদানি করুন",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Generate Token",
     "APIsAndSupport": "APIs & Support",
     "helpCenter": "Help center",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -977,7 +981,7 @@
     "barcodeFormat": "বারকোড ফরম্যাট",
     "qrCodeValueTooLong": "QR কোডের জন্য অনেক বেশি অক্ষর রয়েছে",
     "barcodeValueTooLong": "বারকোডের জন্য অনেক বেশি অক্ষর রয়েছে",
-    "currentLocation": "বর্তমান অবস্থান",
+    "currentLocation": "Set to current location",
     "lng": "দ্রাঘিমাংশ",
     "lat": "অক্ষাংশ",
     "aggregateFunction": "সামগ্রিক ফাংশন",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "জসন ফরম্যাট করুন",
     "autoSelectFieldTypes": "স্বয়ং-নির্বাচিত ফিল্ডের ধরণ",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "স্ট্যাক যোগ করুন / সম্পাদনা করুন"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "ম্যাপ করেছেন",
       "chooseMappingField": "ম্যাপিং ক্ষেত্র নির্বাচন করুন",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

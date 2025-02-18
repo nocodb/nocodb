@@ -603,6 +603,7 @@
     "teamAndSettings": "팀 & 설정",
     "apiDocs": "API 문서",
     "importFromAirtable": "Airtable에서 불러오기",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Token 생성",
     "APIsAndSupport": "API 및 지원",
     "helpCenter": "도움말 센터",
@@ -611,6 +612,7 @@
     "quickImportFrom": "빠른 가져오기",
     "quickImport": "빠른 가져오기",
     "quickImportAirtable": "Airtable에서 가져오기",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "CSV 가져오기",
     "quickImportExcel": "Excel 가져오기",
     "quickImportJSON": "JSON 가져오기",
@@ -676,6 +678,8 @@
     "customUrl": "사용자 정의 URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "실패",
     "succeeded": "성공",
     "noImage": "이미지 없음",
@@ -977,7 +981,7 @@
     "barcodeFormat": "바코드 형식",
     "qrCodeValueTooLong": "QR코드 문자가 너무 깁니다",
     "barcodeValueTooLong": "바코드 문자가 너무 깁니다",
-    "currentLocation": "현재 위치",
+    "currentLocation": "Set to current location",
     "lng": "경도",
     "lat": "위도",
     "aggregateFunction": "집합 함수",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "대시보드로 이동",
     "importing": "가져오는 중",
     "importingFromAirtable": "Airtable에서 가져오기",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable베이스 가져오기",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "JSON 형식",
     "autoSelectFieldTypes": "자동 선택 필드 유형",
     "firstRowAsHeaders": "첫 번째 레코드를 헤더로 사용",
@@ -1118,7 +1124,8 @@
     "viewHide": "뷰 보임 여부 ",
     "osBrowser": "OS, 브라우저",
     "rowId": "행 ID",
-    "showJsonPayload": "JSON 페이로드 표시"
+    "showJsonPayload": "JSON 페이로드 표시",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "스택 추가 또는 편집"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "지도 기준",
       "chooseMappingField": "지도 필드 선택",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "여기에 문서를 놓습니다",
     "airtableImportSuccess": "Airtable Base에서 성공적으로 가져왔습니다.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "계정을 영구적으로 삭제하십시오.",
     "learnMore": "더 보기",
     "connectIntegrations": "NocoDB와 통합을 연결합니다.",

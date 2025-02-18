@@ -91,32 +91,28 @@ export class FormulaColumnTypeChanger {
         reuse: params.reuse,
         suppressFormulaError: true,
       });
+
+      try {
+        await this.startMigrateData(context, {
+          formulaColumn: params.formulaColumn,
+          destinationColumn: newColumn,
+          baseModel,
+        });
+      } catch (ex) {
+        await (
+          await this.columnsService
+        ).columnDelete(context, {
+          columnId: newColumn.id,
+          req: params.req,
+          user: params.user,
+          reuse: params.reuse,
+          forceDeleteSystem: false,
+        });
+        throw ex;
+      }
     } catch (ex) {
       // when failed during create new column for whatever reason
       // we need to rollback the old column name / title
-      if (params.newColumnRequest.title === oldTitle) {
-        await Column.updateAlias(context, params.formulaColumn.id, {
-          title: oldTitle,
-        });
-      }
-      throw ex;
-    }
-    try {
-      await this.startMigrateData(context, {
-        formulaColumn: params.formulaColumn,
-        destinationColumn: newColumn,
-        baseModel,
-      });
-    } catch (ex) {
-      await (
-        await this.columnsService
-      ).columnDelete(context, {
-        columnId: newColumn.id,
-        req: params.req,
-        user: params.user,
-        reuse: params.reuse,
-        forceDeleteSystem: false,
-      });
       if (params.newColumnRequest.title === oldTitle) {
         await Column.updateAlias(context, params.formulaColumn.id, {
           title: oldTitle,

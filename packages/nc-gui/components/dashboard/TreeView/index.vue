@@ -352,6 +352,7 @@ watch(
           item-key="id"
           handle=".base-title-node"
           ghost-class="ghost"
+          :filter="isTouchEvent"
           @change="onMove($event)"
         >
           <template #item="{ element: baseItem }">

@@ -580,11 +580,7 @@ if (!isKanbanStack.value) {
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
-          :filter="
-            (event) => {
-              return !isMousePointerType(event)
-            }
-          "
+          :filter="isTouchEvent"
           @change="syncOptions"
         >
           <template #item="{ element, index }">

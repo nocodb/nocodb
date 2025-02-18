@@ -111,9 +111,7 @@ const initSortable = (el: Element) => {
       )
     },
     revertOnSpill: true,
-    filter(event) {
-      return !isMousePointerType(event)
-    },
+    filter: isTouchEvent,
   })
 }
 

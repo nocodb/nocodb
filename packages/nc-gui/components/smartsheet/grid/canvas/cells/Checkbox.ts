@@ -1,6 +1,6 @@
 import { isBoxHovered, renderTag } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor }) => {
+  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor, formula }) => {
     height = rowHeightInPx[1]!
 
     const {
@@ -21,7 +21,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
-    if (readonly && !checked && !renderAsTag) return
+    if (readonly && !formula && !renderAsTag) return
 
     if (renderAsTag) {
       const tagWidth = 14 + tagPaddingX * 2

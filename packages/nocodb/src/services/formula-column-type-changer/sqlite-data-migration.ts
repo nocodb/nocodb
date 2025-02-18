@@ -66,7 +66,7 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
         Object.keys(getPrimaryKeySelectColumns()).reduce(
           (arr, primaryColName) => {
             arr.push(`${ROOT_ALIAS}.${primaryColName}`);
-            arr.push(`${formulaValueTableAlias}.${primaryColName}`);
+            arr.push(`${idOffsetTableAlias}.${primaryColName}`);
             return arr;
           },
           [],
@@ -120,6 +120,7 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
       knex.raw(formulaValueTable),
       knex.raw(idOffsetTable),
     ]);
+    console.log(qb.toQuery())
     await qb;
   }
 }

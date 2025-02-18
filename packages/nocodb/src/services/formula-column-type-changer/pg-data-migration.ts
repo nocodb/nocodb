@@ -12,7 +12,10 @@ knex.raw(qb.builder).wrap('(',')').toSQL().toNative().sql
 */
 
 export class PgDataMigration implements FormulaDataMigrationDriver {
-  dbDriverName: 'pg';
+  constructor() {
+    this.dbDriverName = 'pg';
+  }
+  dbDriverName: string;
 
   async migrate({
     baseModelSqlV2,
@@ -32,25 +35,20 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
     const knex = baseModelSqlV2.dbDriver;
     const formulaColumnAlias = '__nc_formula_value';
 
-    const primaryKeySelectColumns =
-      await baseModelSqlV2.model.primaryKeys.reduce(
-        async (propsPromise, col) => {
-          const props = await propsPromise;
-          props[await knex.ref(col.column_name)] = await knex.ref(
-            col.column_name,
-          );
-          return props;
-        },
-        Promise.resolve({}),
-      );
-    const primaryKeySortColumns = Object.keys(primaryKeySelectColumns).map(
-      (colName) => {
+    const getPrimaryKeySelectColumns = (sourceTable?: string) => {
+      return baseModelSqlV2.model.primaryKeys.reduce((props, col) => {
+        const prefix = sourceTable ? `${sourceTable}.` : '';
+        props[col.column_name] = `${prefix}${col.column_name}`;
+        return props;
+      }, {});
+    };
+    const getPrimaryKeySortColumns = (sourceTable?: string) =>
+      Object.keys(getPrimaryKeySelectColumns(sourceTable)).map((colName) => {
         return {
           column: colName,
           order: 'asc',
         };
-      },
-    );
+      });
 
     const idOffsetTable = knex(
       baseModelSqlV2.getTnPath(
@@ -58,8 +56,8 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
         'id_offset_tbl',
       ),
     )
-      .select(primaryKeySelectColumns)
-      .orderBy(primaryKeySortColumns)
+      .select(getPrimaryKeySelectColumns('id_offset_tbl'))
+      .orderBy(getPrimaryKeySortColumns('id_offset_tbl'))
       .limit(limit)
       .offset(offset);
 
@@ -68,48 +66,67 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
         baseModelSqlV2.model.table_name,
         'formula_value_tbl',
       ),
-    ).select({
-      [formulaColumnAlias]: await formulaQueryBuilderv2(
-        baseModelSqlV2,
-        formulaColumnOption.formula_raw,
-        undefined,
-        baseModelSqlV2.model,
-        formulaColumn,
-        {},
-        undefined,
-        false,
-        formulaColumnOption.getParsedTree,
-        undefined,
-      ),
-      ...primaryKeySelectColumns,
-    });
-
-    await knex(
-      baseModelSqlV2.getTnPath(baseModelSqlV2.model.table_name, ROOT_ALIAS),
     )
-      .update(
-        await knex.ref(destinationColumn.column_name),
-        await knex.ref(`${formulaColumnAlias}`),
-      )
-      .from(
-        idOffsetTable.innerJoin(formulaValueTable, function () {
-          for (const primaryColName of Object.keys(primaryKeySelectColumns)) {
+      .select({
+        [formulaColumnAlias]: (
+          await formulaQueryBuilderv2(
+            baseModelSqlV2,
+            formulaColumnOption.formula_raw,
+            undefined,
+            baseModelSqlV2.model,
+            formulaColumn,
+            {},
+            undefined,
+            false,
+            formulaColumnOption.getParsedTree(),
+            undefined,
+          )
+        ).builder,
+        ...getPrimaryKeySelectColumns('formula_value_tbl'),
+      })
+      .innerJoin(
+        knex.raw('?? as id_offset_tbl', [
+          knex.raw(idOffsetTable).wrap('(', ')'),
+        ]),
+        function () {
+          for (const primaryColName of Object.keys(
+            getPrimaryKeySelectColumns(),
+          )) {
             this.on(
               `id_offset_tbl.${primaryColName}`,
               '=',
               `formula_value_tbl.${primaryColName}`,
             );
           }
-        }),
-      )
-      .where(function () {
-        for (const primaryColName of Object.keys(primaryKeySelectColumns)) {
-          this.where(
-            `${ROOT_ALIAS}.${primaryColName}`,
-            '=',
-            `id_offset_tbl.${primaryColName}`,
-          );
-        }
-      });
+        },
+      );
+
+    try {
+      // knex qb is not yet suppport update select / update join
+      // so we need to compose them manually (sad)
+      const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
+        baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
+        knex.raw(knex.ref(destinationColumn.column_name)),
+        knex.raw(knex.ref(`formula_value_tbl.${formulaColumnAlias}`)),
+        knex.raw(formulaValueTable),
+        knex.raw('as formula_value_tbl'),
+        knex.raw(
+          baseModelSqlV2.model.primaryKeys
+            .map((col) => {
+              return (
+                knex.ref(`${ROOT_ALIAS}.${col.column_name}`).toQuery() +
+                '=' +
+                knex.ref(`formula_value_tbl.${col.column_name}`).toQuery()
+              );
+            })
+            .join(' and '),
+        ),
+      ]);
+      console.log(qb.toQuery());
+      await qb;
+    } catch (ex) {
+      console.log(ex);
+      throw ex;
+    }
   }
 }

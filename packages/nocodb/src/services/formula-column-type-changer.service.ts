@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PgDataMigration } from './formula-column-type-changer/pg-data-migration';
 import type { FormulaDataMigrationDriver } from './formula-column-type-changer';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { Column, FormulaColumn } from '~/models';
+import type { FormulaColumn } from '~/models';
 import type { NcContext } from 'nocodb-sdk';
+import { Column, Model } from '~/models';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
@@ -21,27 +22,29 @@ export class FormulaColumnTypeChanger {
 
   async migrateDataFromId({
     context,
-    modelId,
     formulaColumnId,
     destinationColumnId,
     offset = 0,
     limit = DEFAULT_BATCH_LIMIT,
   }: {
     context: NcContext;
-    modelId: string;
     formulaColumnId: string;
     destinationColumnId: string;
     offset?: number;
     limit?: number;
   }) {
-    const baseModel = await getBaseModelSqlFromModelId({ context, modelId });
+    const formulaColumn = await Column.get(context, { colId: formulaColumnId });
+    const destinationColumn = await Column.get(context, {
+      colId: destinationColumnId,
+    });
+    const model = await Model.getWithInfo(context, {
+      id: formulaColumn.fk_model_id,
+    });
+    const baseModel = await getBaseModelSqlFromModelId({
+      context,
+      modelId: model.id,
+    });
     await baseModel.model.getColumns(context);
-    const formulaColumn = baseModel.model.columns.find(
-      (k) => k.id === formulaColumnId,
-    );
-    const destinationColumn = baseModel.model.columns.find(
-      (k) => k.id === destinationColumnId,
-    );
     const formulaColumnOption =
       await formulaColumn.getColOptions<FormulaColumn>(context);
     return await this.migrateData({

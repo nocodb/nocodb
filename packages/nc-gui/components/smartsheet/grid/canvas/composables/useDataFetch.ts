@@ -21,15 +21,15 @@ export function useDataFetch({
   totalRows: Ref<number>
   triggerRefreshCanvas: () => void
 }) {
+  // previousRowSlice to determine the scroll direction
+  const previousRowSlice = ref({ start: rowSlice.value.start, end: rowSlice.value.end })
+
   const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
     if (chunkStates.value[chunkId]) return
 
     const offset = chunkId * CHUNK_SIZE
     const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
-
-    if (offset >= totalRows.value) {
-      return
-    }
+    if (offset >= totalRows.value) return
 
     chunkStates.value[chunkId] = 'loading'
     if (isInitialLoad) {
@@ -38,7 +38,6 @@ export function useDataFetch({
     try {
       const newItems = await loadData({ offset, limit })
       newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
-
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = 'loaded'
@@ -52,18 +51,59 @@ export function useDataFetch({
     }
   }
 
+  // Fetch a group of contiguous chunks in one API
+  const fetchChunksForGroup = async (group: number[]) => {
+    if (group.length === 0) return
+
+    const startChunk = group[0]!
+    const endChunk = group[group.length - 1]!
+    const offset = startChunk * CHUNK_SIZE
+    const limit = (endChunk + 1) * CHUNK_SIZE - offset
+
+    if (offset >= totalRows.value) return
+
+    group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
+    try {
+      const newItems = await loadData({ offset, limit })
+      newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+      group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
+    } catch (error) {
+      console.error(`Error fetching chunks group from ${startChunk} to ${endChunk}:`, error)
+      group.forEach((chunkId) => (chunkStates.value[chunkId] = undefined))
+    }
+  }
+
   const debouncedFetchChunks = useThrottleFn(
     async (chunksToFetch: Set<number>, firstChunkId: number) => {
       if (chunksToFetch.size > 0) {
-        const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
-        if (isInitialLoad) {
-          await fetchChunk(0, true)
-          chunksToFetch.delete(0)
-          chunksToFetch.delete(1)
-        }
-        await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-      }
+        const chunks = Array.from(chunksToFetch).sort((a, b) => a - b)
+        const groups: number[][] = []
+        let currentGroup: number[] = [chunks[0]!]
 
+        for (let i = 1; i < chunks.length; i++) {
+          if (chunks[i] === chunks[i - 1]! + 1) {
+            currentGroup.push(chunks[i]!)
+          } else {
+            groups.push(currentGroup)
+            currentGroup = [chunks[i]!]
+          }
+        }
+        groups.push(currentGroup)
+
+        for (const group of groups) {
+          // Use initial load for the first chunk
+          if (group[0] === 0 && firstChunkId === 0 && !chunkStates.value[0]) {
+            await fetchChunk(0, true)
+            // Remove the first two chunks (0 & 1) from the group
+            const remainingGroup = group.filter((id) => id > 1)
+            if (remainingGroup.length) {
+              await fetchChunksForGroup(remainingGroup)
+            }
+          } else {
+            await fetchChunksForGroup(group)
+          }
+        }
+      }
       nextTick(triggerRefreshCanvas)
     },
     API_THROTTLE,
@@ -72,24 +112,39 @@ export function useDataFetch({
 
   const updateVisibleRows = () => {
     const { start, end } = rowSlice.value
-
     const firstChunkId = Math.floor(start / CHUNK_SIZE)
     const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
+    // Determine scroll direction based on previous rowSlice
+    let scrollDirection: 'down' | 'up' | 'none' = 'none'
+    if (start > previousRowSlice.value.start) {
+      scrollDirection = 'down'
+    } else if (start < previousRowSlice.value.start) {
+      scrollDirection = 'up'
+    }
+
+    previousRowSlice.value = { start, end }
+
     const chunksToFetch = new Set<number>()
 
+    // Always fetch the visible chunk
     for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
-      if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
+      if (!chunkStates.value[chunkId]) {
+        chunksToFetch.add(chunkId)
+      }
     }
 
-    const nextChunkId = lastChunkId + 1
-    if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
-      chunksToFetch.add(nextChunkId)
-    }
-
-    const prevChunkId = firstChunkId - 1
-    if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
-      chunksToFetch.add(prevChunkId)
+    // Based on the scroll direction, prefetch the next or previous chunk
+    if (scrollDirection === 'down' || scrollDirection === 'none') {
+      const nextChunkId = lastChunkId + 1
+      if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
+        chunksToFetch.add(nextChunkId)
+      }
+    } else if (scrollDirection === 'up') {
+      const prevChunkId = firstChunkId - 1
+      if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
+        chunksToFetch.add(prevChunkId)
+      }
     }
 
     nextTick(triggerRefreshCanvas)
@@ -101,9 +156,7 @@ export function useDataFetch({
 
   const rafId = ref<number | null>(null)
   const rafUpdateVisibleRows = () => {
-    if (rafId.value) {
-      cancelAnimationFrame(rafId.value)
-    }
+    if (rafId.value) cancelAnimationFrame(rafId.value)
     rafId.value = requestAnimationFrame(() => {
       updateVisibleRows()
       rafId.value = null

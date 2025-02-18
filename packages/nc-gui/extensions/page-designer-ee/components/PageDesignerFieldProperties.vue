@@ -2,12 +2,12 @@
 import type { UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
-import BorderImage from '../assets/border.svg'
 import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import TabbedSelect from './TabbedSelect.vue'
+import BorderSettings from './BorderSettings.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -93,33 +93,16 @@ const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachmen
         </template>
       </TabbedSelect>
     </GroupedSettings>
-    <GroupedSettings title="Border">
-      <div class="flex gap-2 items-center">
-        <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
-          <div>
-            <NonNullableNumberInput v-model="fieldWidget.borderTop" />
-          </div>
-          <div class="flex gap-2 items-center">
-            <NonNullableNumberInput v-model="fieldWidget.borderLeft" />
-            <img :src="BorderImage" />
-            <NonNullableNumberInput v-model="fieldWidget.borderRight" />
-          </div>
-          <div>
-            <NonNullableNumberInput v-model="fieldWidget.borderBottom" />
-          </div>
-        </div>
-        <div class="flex-1 flex flex-col gap-2">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Color</label>
-            <ColorPropertyPicker v-model="fieldWidget.borderColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Radius</label>
-            <NonNullableNumberInput v-model="fieldWidget.borderRadius" />
-          </div>
-        </div>
-      </div>
-    </GroupedSettings>
+
+    <BorderSettings
+      v-model:border-top="fieldWidget.borderTop"
+      v-model:border-bottom="fieldWidget.borderBottom"
+      v-model:border-left="fieldWidget.borderLeft"
+      v-model:border-right="fieldWidget.borderRight"
+      v-model:border-radius="fieldWidget.borderRadius"
+      v-model:border-color="fieldWidget.borderColor"
+    />
+
     <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">

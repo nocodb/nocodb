@@ -2,10 +2,10 @@
 import { UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
-import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import BorderSettings from './BorderSettings.vue'
 
 defineEmits(['deleteCurrentWidget'])
 
@@ -116,33 +116,16 @@ watch(
         </div>
       </div>
     </GroupedSettings>
-    <GroupedSettings title="Border">
-      <div class="flex gap-2 items-center">
-        <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
-          <div>
-            <NonNullableNumberInput v-model="textWidget.borderTop" />
-          </div>
-          <div class="flex gap-2 items-center">
-            <NonNullableNumberInput v-model="textWidget.borderLeft" />
-            <img :src="BorderImage" />
-            <NonNullableNumberInput v-model="textWidget.borderRight" />
-          </div>
-          <div>
-            <NonNullableNumberInput v-model="textWidget.borderBottom" />
-          </div>
-        </div>
-        <div class="flex-1 flex flex-col gap-2">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Color</label>
-            <ColorPropertyPicker v-model="textWidget.borderColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Radius</label>
-            <NonNullableNumberInput v-model="textWidget.borderRadius" />
-          </div>
-        </div>
-      </div>
-    </GroupedSettings>
+
+    <BorderSettings
+      v-model:border-top="textWidget.borderTop"
+      v-model:border-bottom="textWidget.borderBottom"
+      v-model:border-left="textWidget.borderLeft"
+      v-model:border-right="textWidget.borderRight"
+      v-model:border-radius="textWidget.borderRadius"
+      v-model:border-color="textWidget.borderColor"
+    />
+
     <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">

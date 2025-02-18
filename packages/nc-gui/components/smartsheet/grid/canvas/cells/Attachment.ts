@@ -219,7 +219,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       lastX = itemX + itemSize
 
-      if (isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
+      if (!isUnderLookup && isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
         setCursor('pointer')
       }
     })

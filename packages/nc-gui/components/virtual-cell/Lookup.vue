@@ -490,6 +490,10 @@ const handleCloseDropdown = (e: MouseEvent) => {
   &:has(.nc-cell-attachment) {
     height: auto !important;
   }
+
+  .nc-attachment-image {
+    @apply !hover:cursor-pointer;
+  }
 }
 .lookup-dropdown {
   .nc-cell-field > span {
@@ -511,6 +515,10 @@ const handleCloseDropdown = (e: MouseEvent) => {
   .nc-lookup-attachment-wrapper {
     .nc-attachment-cell > div:first-of-type {
       @apply !h-auto justify-start pr-6;
+
+      .nc-attachment-image {
+        @apply !hover:cursor-pointer;
+      }
     }
   }
 }

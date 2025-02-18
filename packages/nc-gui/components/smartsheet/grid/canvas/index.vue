@@ -1983,6 +1983,10 @@ defineExpose({
         @apply mt-[4px];
       }
     }
+
+    .nc-attachment-image {
+      @apply !hover:cursor-pointer;
+    }
   }
 
   :deep(.nc-cell-multiselect) {

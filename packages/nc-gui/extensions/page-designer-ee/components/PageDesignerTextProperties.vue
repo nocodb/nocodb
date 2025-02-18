@@ -108,7 +108,7 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Size</label>
-          <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="5" class="flex-1" placeholder="16" />
+          <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="1" class="flex-1" placeholder="16" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Line Height</label>

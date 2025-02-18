@@ -8,7 +8,7 @@ interface Token {
 
 export interface Marker {
   open: string
-  close: string
+  close?: string
   style?: MarkdownStyle
   // Optional handler to process complex markers (like links)
   handler?: (text: string, index: number, activeStyles: MarkdownStyle[]) => { tokens: Token[]; newIndex: number }
@@ -19,6 +19,17 @@ const markers: Marker[] = [
   { open: '_', close: '_', style: 'italic' },
   { open: '<u>', close: '</u>', style: 'underline' },
   { open: '<s>', close: '</s>', style: 'strikethrough' },
+  {
+    open: '\\',
+    handler: (text: string, index: number, activeStyles: MarkdownStyle[]) => {
+      const nextChar = text[index] || ''
+
+      return {
+        tokens: [{ styles: activeStyles, value: nextChar }],
+        newIndex: index + 1,
+      }
+    },
+  },
   {
     open: '[',
     close: ']',

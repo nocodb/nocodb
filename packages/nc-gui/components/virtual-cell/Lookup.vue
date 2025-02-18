@@ -85,7 +85,7 @@ const arrValue = computed(() => {
   // since the attachment component expects an array or JSON string array
   if (lookupColumn.value?.uidt === UITypes.Attachment) {
     if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)) {
-      return [cellValue.value]
+      return ncIsArray(cellValue.value) ? cellValue.value : [cellValue.value]
     }
 
     if (
@@ -510,7 +510,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 
   .nc-lookup-attachment-wrapper {
     .nc-attachment-cell > div:first-of-type {
-      @apply !h-auto;
+      @apply !h-auto justify-start pr-6;
     }
   }
 }

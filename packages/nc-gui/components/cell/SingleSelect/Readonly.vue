@@ -32,7 +32,7 @@ const optionsMap = computed(() => {
 })
 
 const selectedOpt = computed(() => {
-  return modelValue ? optionsMap.value[modelValue.trim()] : undefined
+  return modelValue ? optionsMap.value[modelValue?.trim()] : undefined
 })
 </script>
 

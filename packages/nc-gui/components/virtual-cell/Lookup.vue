@@ -64,13 +64,19 @@ const lookupColumn = computed(
       | undefined,
 )
 
-watch([lookupColumn, rowHeight], () => {
-  if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
-    providedHeightRef.value = 1
-  } else {
-    providedHeightRef.value = rowHeight.value
-  }
-})
+watch(
+  [lookupColumn, rowHeight],
+  () => {
+    if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
+      providedHeightRef.value = 1
+    } else {
+      providedHeightRef.value = rowHeight.value
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 const arrValue = computed(() => {
   if (!cellValue.value) return []
@@ -231,7 +237,7 @@ const cellHeight = computed(() =>
 )
 
 const handleCloseDropdown = (e: MouseEvent) => {
-  if (e.target.closest('.nc-attachment-item')) {
+  if (e.target && e.target.closest('.nc-attachment-item')) {
     dropdownVisible.value = false
   }
 }
@@ -255,9 +261,10 @@ const handleCloseDropdown = (e: MouseEvent) => {
       @dblclick="activateShowEditNonEditableFieldWarning"
     >
       <div
-        class="h-full w-full flex gap-1"
+        class="h-full w-full"
         :class="{
           '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
+          'flex gap-1': !(lookupColumn && isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])),
         }"
         @click="handleCloseDropdown"
       >
@@ -409,7 +416,11 @@ const handleCloseDropdown = (e: MouseEvent) => {
             </template>
           </template>
           <template v-else>
-            <div v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])" class="nc-lookup-attachment-wrapper">
+            <div
+              v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])"
+              class="nc-lookup-attachment-wrapper"
+              @click="handleCloseDropdown"
+            >
               <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
             </div>
             <!-- For attachment cell avoid adding chip style -->
@@ -430,7 +441,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
                   ].includes(lookupColumn.uidt),
                   'min-h-0 min-w-0': isAttachment(lookupColumn),
                 }"
-              @click="handleCloseDropdown"
+                @click="handleCloseDropdown"
               >
                 <LazySmartsheetVirtualCell
                   v-if="lookupColumn.uidt === UITypes.Rollup"

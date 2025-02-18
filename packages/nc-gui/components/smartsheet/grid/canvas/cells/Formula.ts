@@ -39,6 +39,15 @@ export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268', mousePosition, setCursor } = props
     const colMeta = parseProp(column.meta)
+    if (parseProp(column.colOptions)?.error) {
+      renderSingleLineText(ctx, {
+        text: 'ERR!',
+        x: x + padding,
+        y,
+      })
+      return
+    }
+
     if (colMeta?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,

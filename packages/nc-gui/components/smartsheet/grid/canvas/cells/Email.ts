@@ -2,7 +2,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268' } = props
+    const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268', setCursor } = props
 
     const text = value?.toString() ?? ''
 
@@ -28,6 +28,15 @@ export const EmailCellRenderer: CellRenderer = {
         underline: isValidEmail,
         height,
       })
+
+      const isHover = isBoxHovered(
+        { x: x + padding, y: y + padding, width: xOffset - x - padding, height: yOffset - y },
+        props.mousePosition,
+      )
+
+      if (isHover && isValidEmail) {
+        setCursor('pointer')
+      }
 
       return {
         x: xOffset,
@@ -64,7 +73,7 @@ export const EmailCellRenderer: CellRenderer = {
 
     const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
       x: x + padding,
-      y,
+      y: y + padding,
       text,
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,

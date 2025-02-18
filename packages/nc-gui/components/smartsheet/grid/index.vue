@@ -323,7 +323,7 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"

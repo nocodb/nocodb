@@ -60,6 +60,20 @@ watch(
   },
   { immediate: true, deep: true },
 )
+
+watch(
+  () => fieldWidget.value?.displayAs,
+  (val) => {
+    if (!fieldWidget.value) return
+    const { borderTop, borderBottom, borderLeft, borderRight } = fieldWidget.value
+    if (val === LinkedFieldDisplayAs.TABLE && [borderTop, borderBottom, borderLeft, borderRight].every((val) => val === '0')) {
+      fieldWidget.value.borderTop = '1'
+      fieldWidget.value.borderBottom = '1'
+      fieldWidget.value.borderLeft = '1'
+      fieldWidget.value.borderRight = '1'
+    }
+  },
+)
 </script>
 
 <template>

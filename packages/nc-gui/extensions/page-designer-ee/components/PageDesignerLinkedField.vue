@@ -116,6 +116,16 @@ async function loadRelatedRows() {
 
 onMounted(loadRelatedRows)
 watch(row, loadRelatedRows)
+
+const borderProps = computed(() => {
+  return {
+    borderWidth: `${widget.value.borderTop || 0}px ${widget.value.borderRight || 0}px ${widget.value.borderBottom || 0}px ${
+      widget.value.borderLeft || 0
+    }px`,
+    borderColor: widget.value.borderColor,
+    borderRadius: `${widget.value.borderRadius || 0}px`,
+  }
+})
 </script>
 
 <template>
@@ -126,11 +136,7 @@ watch(row, loadRelatedRows)
           display: 'flex',
           height: '100%',
           width: '100%',
-          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
-            widget.borderLeft || 0
-          }px`,
-          borderColor: widget.borderColor,
-          borderRadius: `${widget.borderRadius || 0}px`,
+          ...(isTable ? {} : borderProps),
           background: widget.backgroundColor,
           fontSize: `${widget.fontSize}px`,
           fontWeight: widget.fontWeight,
@@ -164,6 +170,7 @@ watch(row, loadRelatedRows)
             :class="['w-full', { 'default-text-color': widget.textColor === defaultBlackColor }]"
             :style="{
               color: widget.textColor,
+              ...borderProps,
             }"
           >
             <thead>

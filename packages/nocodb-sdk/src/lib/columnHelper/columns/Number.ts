@@ -3,9 +3,7 @@ import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper from '../column.interface';
 
 export class NumberHelper extends AbstractColumnHelper {
-  columnDefaultMeta = {
-    isLocaleString: false,
-  };
+  columnDefaultMeta = {};
 
   serializeValue(value: any): number | null {
     return serializeIntValue(value);

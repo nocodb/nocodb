@@ -41,6 +41,7 @@ export class FormulaColumnTypeChanger {
       // we need to do this because circular dependency between
       // this class and columns service
       createNewColumnHandle: () => Promise<Column<any>>;
+      deleteNewColumnHandler: (columnId: any) => Promise<void>;
     },
   ) {
     const baseModel = await getBaseModelSqlFromModelId({
@@ -60,7 +61,20 @@ export class FormulaColumnTypeChanger {
         title: '__nc_temp_field',
       });
     }
-    const newColumn = await params.createNewColumnHandle();
+
+    let newColumn: Column;
+    try {
+      newColumn = await params.createNewColumnHandle();
+    } catch (ex) {
+      // when failed during create new column for whatever reason
+      // we need to rollback the old column name / title
+      if (params.newColumnRequest.title === oldTitle) {
+        await Column.updateAlias(context, params.formulaColumn.id, {
+          title: oldTitle,
+        });
+      }
+      throw ex;
+    }
     try {
       await this.startMigrateData(context, {
         formulaColumn: params.formulaColumn,
@@ -68,7 +82,7 @@ export class FormulaColumnTypeChanger {
         baseModel,
       });
     } catch (ex) {
-      await Column.delete(context, newColumn.id);
+      await params.deleteNewColumnHandler(newColumn.id);
       if (params.newColumnRequest.title === oldTitle) {
         await Column.updateAlias(context, params.formulaColumn.id, {
           title: oldTitle,

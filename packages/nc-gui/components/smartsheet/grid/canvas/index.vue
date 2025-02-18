@@ -479,7 +479,7 @@ function extractHoverMetaColRegions(row: Row) {
   const regions = []
   let currentX = 4
   let isCheckboxRendered = false
-  if (isChecked || (selectedRows.value.length && isHover)) {
+  if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
     if (isChecked || isHover) {
       regions.push({
         x: currentX + 6,

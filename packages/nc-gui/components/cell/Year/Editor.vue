@@ -11,6 +11,8 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
@@ -19,7 +21,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const rawReadOnly = inject(RawReadonlyInj, ref(false))
 
-const active = inject(ActiveCellInj, ref(false))
+const active = inject(ActiveCellInj, ref(true))
 
 const editable = inject(EditModeInj, ref(false))
 
@@ -221,6 +223,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false
@@ -274,6 +280,21 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    open.value = true
+    forcedNextTick(() => {
+      open.value = true
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
+    })
+  }
+})
 </script>
 
 <template>

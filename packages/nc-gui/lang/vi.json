@@ -603,6 +603,7 @@
     "teamAndSettings": "Cài đặt nhóm",
     "apiDocs": "Văn bản API",
     "importFromAirtable": "Nhập khẩu từ CSDL Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Tạo mã Token",
     "APIsAndSupport": "APIS và Hỗ trợ",
     "helpCenter": "Help center",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Kết nhập nhanh dữ liệu từ",
     "quickImport": "Quick Import",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -977,7 +981,7 @@
     "barcodeFormat": "Định dạng mã vạch",
     "qrCodeValueTooLong": "Quá nhiều ký tự cho mã QR",
     "barcodeValueTooLong": "Quá nhiều ký tự cho mã vạch",
-    "currentLocation": "Vị trí hiện tại",
+    "currentLocation": "Set to current location",
     "lng": "Kinh độ",
     "lat": "Vĩ độ",
     "aggregateFunction": "Chức năng tổng hợp",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Định dạng JSON",
     "autoSelectFieldTypes": "Tự động chọn loại trường",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "Thêm / Chỉnh sửa Ngăn xếp"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Bản đồ Bởi",
       "chooseMappingField": "Chọn Trường Bản đồ",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

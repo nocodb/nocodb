@@ -4,9 +4,13 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { meta } = useSmartsheetStoreOrThrow()
-
 const activeView = inject(ActiveViewInj, ref())
+
+const { meta, eventBus } = useSmartsheetStoreOrThrow()
+
+const router = useRouter()
+
+const route = router.currentRoute
 
 const { search, loadFieldQuery } = useFieldQuery()
 
@@ -91,6 +95,14 @@ onMounted(() => {
     showSearchBox.value = true
   }
 })
+
+// on filter param changes reload the data
+watch(
+  () => route.value?.query?.where,
+  () => {
+    eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+  },
+)
 </script>
 
 <template>
@@ -146,7 +158,7 @@ onMounted(() => {
           v-model:value="search.query"
           name="globalSearchQuery"
           size="small"
-          class="text-xs w-40 h-full"
+          class="text-xs w-40 h-full nc-view-search-data"
           :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
           :bordered="false"
           data-testid="search-data-input"

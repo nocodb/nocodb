@@ -603,6 +603,7 @@
     "teamAndSettings": "チームと設定",
     "apiDocs": "API ドキュメント",
     "importFromAirtable": "Airtable からインポート",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "トークンを生成",
     "APIsAndSupport": "APIとサポート",
     "helpCenter": "ヘルプセンター",
@@ -611,6 +612,7 @@
     "quickImportFrom": "クイックインポート元",
     "quickImport": "クイックインポート",
     "quickImportAirtable": "Airtable からインポート",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "カスタムURL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "画像なし",
@@ -977,7 +981,7 @@
     "barcodeFormat": "バーコードのフォーマット",
     "qrCodeValueTooLong": "QRコードにするには文字数が多すぎる",
     "barcodeValueTooLong": "バーコードの文字数が多すぎる",
-    "currentLocation": "現在地",
+    "currentLocation": "Set to current location",
     "lng": "経度",
     "lat": "緯度",
     "aggregateFunction": "集約関数",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "ダッシュボードに移動",
     "importing": "インポート中",
     "importingFromAirtable": "Airtableからのインポート",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtableベースがインポートされました",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "JSONをフォーマット",
     "autoSelectFieldTypes": "フィールドタイプを自動選択",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "表示の可視性 ",
     "osBrowser": "OS、ブラウザ",
     "rowId": "行ID",
-    "showJsonPayload": "JSONペイロードを表示"
+    "showJsonPayload": "JSONペイロードを表示",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "スタックの追加/編集"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "によってマッピング",
       "chooseMappingField": "マッピングフィールドを選択",
       "openInGoogleMaps": "Googleマップ",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "アカウントを永久に削除する",
     "learnMore": "詳細はこちら",
     "connectIntegrations": "NocoDBで統合を接続します。",

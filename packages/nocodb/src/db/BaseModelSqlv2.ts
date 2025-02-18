@@ -11,6 +11,7 @@ import {
   AuditV1OperationTypes,
   ButtonActionsType,
   convertDurationToSeconds,
+  enumColors,
   extractFilterFromXwhere,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
@@ -92,7 +93,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
-import { NcError } from '~/helpers/catchError';
+import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
@@ -5896,7 +5897,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   private async handleValidateBulkInsert(
     d: Record<string, any>,
     columns?: Column[],
-    params = { allowSystemColumn: false, undo: false },
+    params: {
+      allowSystemColumn: boolean;
+      undo: boolean;
+      typecast: boolean;
+    } = {
+      allowSystemColumn: false,
+      undo: false,
+      typecast: false,
+    },
   ) {
     const { allowSystemColumn } = params;
     const cols = columns || (await this.model.getColumns(this.context));
@@ -6072,6 +6081,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       raw = false,
       insertOneByOneAsFallback = false,
       isSingleRecordInsertion = false,
+      typecast = false,
       allowSystemColumn = false,
       undo = false,
     }: {
@@ -6083,6 +6093,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       insertOneByOneAsFallback?: boolean;
       isSingleRecordInsertion?: boolean;
       allowSystemColumn?: boolean;
+      typecast?: boolean;
       undo?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
@@ -6104,6 +6115,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const insertObj = await this.handleValidateBulkInsert(d, columns, {
             allowSystemColumn,
             undo,
+            typecast,
           });
 
           await this.prepareNocoData(insertObj, true, cookie, null, {
@@ -7553,6 +7565,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async validate(
     data: Record<string, any>,
     columns?: Column[],
+    { typecast }: { typecast?: boolean } = {
+      typecast: false,
+    },
   ): Promise<boolean> {
     const cols = columns || (await this.model.getColumns(this.context));
     // let cols = Object.keys(this.columns);
@@ -7578,7 +7593,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
       }
-      await this.validateOptions(column, data);
+      try {
+        await this.validateOptions(column, data);
+      } catch (ex) {
+        if (ex instanceof OptionsNotExistsError && typecast) {
+          await Column.update(this.context, column.id, {
+            ...column,
+            colOptions: {
+              options: [
+                ...column.colOptions.options,
+                ...ex.options.map((k, index) => ({
+                  fk_column_id: column.id,
+                  title: k,
+                  color: enumColors.get(
+                    'light',
+                    (column.colOptions.options ?? []).length + index,
+                  ),
+                })),
+              ],
+            },
+          });
+        } else {
+          throw ex;
+        }
+      }
+
       // Validates the constraints on the data based on the column definitions
       this.validateConstraints(column, data);
 
@@ -7695,15 +7734,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       columnValueArr = [columnValue];
     }
 
+    const notExistedOptions: any[] = [];
     for (let j = 0; j < columnValueArr.length; ++j) {
       const val = columnValueArr[j];
       if (!options.includes(val) && !options.includes(`'${val}'`)) {
-        NcError.badRequest(
-          `Invalid option "${val}" provided for column "${columnTitle}". Valid options are "${options.join(
-            ', ',
-          )}"`,
-        );
+        notExistedOptions.push(val);
       }
+    }
+    if (notExistedOptions.length > 0) {
+      NcError.optionsNotExists({
+        columnTitle,
+        validOptions: options,
+        options: notExistedOptions,
+      });
     }
   }
 
@@ -8674,6 +8717,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       );
                     }
                   } else if (lookedUpAttachment?.url) {
+                    if (lookedUpAttachment?.url.startsWith('data:')) {
+                      continue;
+                    }
+
                     promises.push(
                       PresignedUrl.signAttachment({
                         attachment: lookedUpAttachment,
@@ -8751,6 +8798,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     );
                   }
                 } else if (attachment?.url) {
+                  if (attachment?.url.startsWith('data:')) {
+                    continue;
+                  }
+
                   promises.push(
                     PresignedUrl.signAttachment({
                       attachment,

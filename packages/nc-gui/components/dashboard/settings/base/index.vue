@@ -3,6 +3,8 @@ const { isUIAllowed } = useRoles()
 
 const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
+const hasPermissionForMigrate = computed(() => isUIAllowed('migrateBase'))
+
 const router = useRouter()
 
 const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
@@ -31,7 +33,7 @@ onMounted(() => {
 <template>
   <div class="w-full flex p-6 nc-base-settings overflow-auto gap-8">
     <!-- Left Pane -->
-    <div v-if="isEeUI" class="flex flex-col">
+    <div class="flex flex-col">
       <div class="h-full flex flex-col gap-1 w-60">
         <div
           v-if="isEeUI && hasPermissionForSnapshots"
@@ -62,6 +64,19 @@ onMounted(() => {
             {{ $t('labels.visibilityAndDataHandling') }}
           </span>
         </div>
+
+        <div
+          v-if="!isEeUI && hasPermissionForMigrate"
+          :class="{
+            'active-menu': activeMenu === 'migrate',
+          }"
+          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          data-testid="migrate-tab"
+          @click="selectMenu('migrate')"
+        >
+          <GeneralIcon icon="move" />
+          <span> Migrate </span>
+        </div>
       </div>
     </div>
     <!-- Data Pane -->
@@ -69,6 +84,7 @@ onMounted(() => {
     <div class="flex flex-col flex-1 max-w-[760px]">
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
+      <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
     </div>
   </div>
 </template>

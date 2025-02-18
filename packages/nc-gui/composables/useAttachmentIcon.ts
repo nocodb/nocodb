@@ -4,7 +4,7 @@ export const useAttachmentIcon = (
 ) => {
   return computed<keyof typeof iconMap>(() => {
     if (isImage(toValue(title) || '', toValue(mimetype))) {
-      return 'image'
+      return 'ncFileTypeImage'
     }
 
     if (isPdf(toValue(title) || '', toValue(mimetype))) {

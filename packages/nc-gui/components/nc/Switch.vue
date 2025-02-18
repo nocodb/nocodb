@@ -51,7 +51,7 @@ const onChange = (e: boolean, updateValue = false) => {
     <slot />
   </span>
   <a-switch
-    v-model:checked="checked"
+    :checked="checked"
     :disabled="disabled"
     class="nc-switch"
     :class="{

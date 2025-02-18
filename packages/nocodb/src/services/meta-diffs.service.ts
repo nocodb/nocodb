@@ -138,7 +138,7 @@ export class MetaDiffsService {
     source: Source,
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
-    if (source.is_meta) {
+    if (source.isMeta()) {
       return [];
     }
 
@@ -634,7 +634,7 @@ export class MetaDiffsService {
     for (const source of base.sources) {
       try {
         // skip meta base
-        if (source.is_meta) continue;
+        if (source.isMeta()) continue;
 
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
@@ -680,7 +680,7 @@ export class MetaDiffsService {
       user: UserType;
     },
   ) {
-    if (source.is_meta) {
+    if (source.isMeta()) {
       if (throwOnFail) NcError.badRequest('Cannot sync meta source');
       return;
     }

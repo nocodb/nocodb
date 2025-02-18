@@ -26,9 +26,14 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
@@ -225,7 +230,6 @@ const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
 onClickOutside(datePickerRef, (e) => {
   if ((e.target as HTMLElement)?.closest(`.${randomClass}, .nc-${randomClass}`)) return
-
   datePickerRef.value?.blur?.()
   timePickerRef.value?.blur?.()
   open.value = false
@@ -286,10 +290,6 @@ const cellClickHandler = () => {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
-
-onMounted(() => {
-  cellClickHook?.on(cellClickHandler)
-})
 onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })
@@ -330,6 +330,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
 
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false
@@ -443,6 +447,22 @@ const currentDate = ($event) => {
   open.value = false
   emit('currentDate', $event)
 }
+
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    isDatePicker.value = true
+    open.value = true
+    forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
+      isDatePicker.value = true
+      open.value = true
+    })
+  }
+  cellClickHook?.on(cellClickHandler)
+})
 </script>
 
 <template>
@@ -526,7 +546,7 @@ const currentDate = ($event) => {
 
       <template #overlay>
         <div
-          class="min-w-[72px]"
+          class="min-w-[120px]"
           :class="{
             'w-[256px]': isDatePicker,
           }"

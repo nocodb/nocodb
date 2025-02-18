@@ -1,12 +1,16 @@
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
-import type { ComputedRef, InjectionKey, Ref } from 'vue'
+import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
+
+export type ExtractInjectedRef<T> = T extends InjectionKey<Ref<infer U>> ? U : never
+export type ExtractInjectedReactive<T> = T extends InjectionKey<Reactive<infer U>> ? U : never
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
+export const CanvasColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('canvas-column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
@@ -100,3 +104,15 @@ export const ActiveSourceInj: InjectionKey<
 export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
 export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
   Symbol('field-name-alias')
+export const IsCanvasInjectionInj: InjectionKey<boolean> = Symbol('is-canvas-injection')
+export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; clientY: number }>> = Symbol(
+  'client-mouse-position-injection',
+)
+export const CanvasCellEventDataInj: InjectionKey<
+  Reactive<{
+    keyboardKey?: string
+  }>
+> = Symbol('canvas-cell-event-data-injection')
+
+// triggering this hook from within an editable cell will turn it into "selection state"
+export const CanvasSelectCellInj: InjectionKey<EventHook> = Symbol('canvas-select-cell-inj')

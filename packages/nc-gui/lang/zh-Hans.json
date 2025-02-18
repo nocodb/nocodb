@@ -603,6 +603,7 @@
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
     "importFromAirtable": "从 Airtable 导入",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "生成令牌",
     "APIsAndSupport": "API与支持",
     "helpCenter": "帮助中心",
@@ -611,6 +612,7 @@
     "quickImportFrom": "快速导入自",
     "quickImport": "快速导入",
     "quickImportAirtable": "从 Airtable 导入",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "自定义URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "失败",
     "succeeded": "成功",
     "noImage": "无图片",
@@ -977,7 +981,7 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
-    "currentLocation": "当前位置",
+    "currentLocation": "Set to current location",
     "lng": "经度",
     "lat": "纬度",
     "aggregateFunction": "聚合函数",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "转到仪表板",
     "importing": "导入中",
     "importingFromAirtable": "从 Airtable 导入",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base 导入完成",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "JSON 格式",
     "autoSelectFieldTypes": "自动选择字段类型",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "查看可见性 ",
     "osBrowser": "操作系统，浏览器",
     "rowId": "行 ID",
-    "showJsonPayload": "显示JSON负载"
+    "showJsonPayload": "显示JSON负载",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "添加/编辑分类标签"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "映射字段",
       "chooseMappingField": "选择映射字段",
       "openInGoogleMaps": "谷歌地图",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "将文档拖放到这里",
     "airtableImportSuccess": "成功导入自Airtable Base。",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "永久删除您的账户",
     "learnMore": "了解更多",
     "connectIntegrations": "连接 NocoDB 的集成。",

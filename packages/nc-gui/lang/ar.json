@@ -603,6 +603,7 @@
     "teamAndSettings": "الفريق والإعدادات",
     "apiDocs": "مستندات API",
     "importFromAirtable": "استيراد من Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "إنشاء الرمز المميز",
     "APIsAndSupport": "APIs & الدعم",
     "helpCenter": "مركز المساعدة",
@@ -611,6 +612,7 @@
     "quickImportFrom": "استيراد سريع من",
     "quickImport": "استيراد سريع",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -977,7 +981,7 @@
     "barcodeFormat": "تنسيق الباركود",
     "qrCodeValueTooLong": "عدد كبير من الأحرف لرمز الاستجابة السريعة",
     "barcodeValueTooLong": "عدد كبير من الأحرف للباركود",
-    "currentLocation": "الموقع الحالي",
+    "currentLocation": "Set to current location",
     "lng": "خط الطول",
     "lat": "خط العرض",
     "aggregateFunction": "وظيفة التجميع",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "الذهاب إلى لوحة التحكم",
     "importing": "الاستيراد",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "تنسيق JSON",
     "autoSelectFieldTypes": "تحديد نوع الحقول تلقائيًا",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "إضافة / تعديل حزمة"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "تم رسمها بواسطة",
       "chooseMappingField": "اختر حقل تحديد",
       "openInGoogleMaps": "خرائط جوجل",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

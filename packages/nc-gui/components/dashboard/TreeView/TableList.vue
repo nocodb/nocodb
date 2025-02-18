@@ -111,6 +111,7 @@ const initSortable = (el: Element) => {
       )
     },
     revertOnSpill: true,
+    filter: isTouchEvent,
   })
 }
 

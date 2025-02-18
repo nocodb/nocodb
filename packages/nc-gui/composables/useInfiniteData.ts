@@ -173,17 +173,23 @@ export function useInfiniteData(args: {
     const safeStartChunk = getChunkIndex(safeStartIndex)
     const safeEndChunk = getChunkIndex(safeEndIndex)
 
+    const importantChunks = new Set<number>()
+    let maxChunk = 0
+    for (const index of cachedRows.value.keys()) {
+      const chunkIndex = getChunkIndex(index)
+      maxChunk = Math.max(maxChunk, chunkIndex)
+      const row = cachedRows.value.get(index)
+      if (row && (row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)) {
+        importantChunks.add(chunkIndex)
+      }
+    }
+
     const newCachedRows = new Map<number, Row>()
-    for (let chunk = 0; chunk <= Math.max(...Array.from(cachedRows.value.keys()).map(getChunkIndex)); chunk++) {
+    for (let chunk = 0; chunk <= maxChunk; chunk++) {
       const isVisibleChunk = chunk >= safeStartChunk && chunk <= safeEndChunk
-      const chunkStart = chunk * CHUNK_SIZE
-      const chunkEnd = chunkStart + CHUNK_SIZE
-
-      const hasImportantRows = Array.from(cachedRows.value)
-        .filter(([index]) => index >= chunkStart && index < chunkEnd)
-        .some(([_, row]) => row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)
-
-      if (isVisibleChunk || hasImportantRows) {
+      if (isVisibleChunk || importantChunks.has(chunk)) {
+        const chunkStart = chunk * CHUNK_SIZE
+        const chunkEnd = chunkStart + CHUNK_SIZE
         for (let i = chunkStart; i < chunkEnd; i++) {
           const row = cachedRows.value.get(i)
           if (row) newCachedRows.set(i, row)
@@ -192,8 +198,8 @@ export function useInfiniteData(args: {
     }
 
     cachedRows.value = newCachedRows
-    chunkStates.value = chunkStates.value.map((state, chunk) =>
-      chunk >= safeStartChunk && chunk <= safeEndChunk ? state : undefined,
+    chunkStates.value = chunkStates.value.map((state, chunkIndex) =>
+      (chunkIndex >= safeStartChunk && chunkIndex <= safeEndChunk) || importantChunks.has(chunkIndex) ? state : undefined,
     )
   }
 
@@ -337,15 +343,16 @@ export function useInfiniteData(args: {
 
     const targetChunkIndex = getChunkIndex(finalTargetIndex)
     const sourceChunkIndex = getChunkIndex(draggedIndex)
-
-    for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+    // TODO: Fix if issue aries with missing records. Chances are low
+    // @DarkPhoenix2704
+    /* for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
       chunkStates.value[i] = undefined
     }
 
     for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
       chunkStates.value[i] = undefined
     }
-
+*/
     if (!isFailed) {
       $api.dbDataTableRow
         .move(meta.value!.id!, recordPk, {
@@ -363,28 +370,30 @@ export function useInfiniteData(args: {
     if (!undo) {
       addUndo({
         undo: {
-          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
             await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
               before: beforePk,
             })
 
-            for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
+            /* for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
               chunkStates.value[i] = undefined
-            }
+            } */
 
             await callbacks?.syncVisibleData?.()
           },
           args: [beforeDraggedPk, recordPk, targetChunkIndex, sourceChunkIndex],
         },
         redo: {
-          fn: async (beforePk: string | null, recPk: string, targetCkIdx: number, sourceChkIdx: number) => {
+          fn: async (beforePk: string | null, recPk: string, _targetCkIdx: number, _sourceChkIdx: number) => {
             await $api.dbDataTableRow.move(meta.value!.id!, recPk, {
               before: beforePk,
             })
+            /*
 
             for (let i = Math.min(sourceChkIdx, targetCkIdx); i <= Math.max(sourceChkIdx, targetCkIdx); i++) {
               chunkStates.value[i] = undefined
             }
+*/
 
             await callbacks?.syncVisibleData?.()
           },
@@ -1300,11 +1309,12 @@ export function useInfiniteData(args: {
   }
   const removeRowIfNew = (row: Row): boolean => {
     const index = Array.from(cachedRows.value.entries()).find(([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex)?.[0]
-
     if (index !== undefined && row.rowMeta.new) {
       cachedRows.value.delete(index)
+      totalRows.value--
       return true
     }
+    callbacks?.syncVisibleData?.()
     return false
   }
 

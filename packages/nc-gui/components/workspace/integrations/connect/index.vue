@@ -82,7 +82,7 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="24">
                           <a-form-item label="Connection URL">
-                            <LazyWorkspaceIntegrationsConnectCopyInput v-model="connectionUrl" class="nc-connection-url" />
+                            <LazyGeneralCopyInput v-model="connectionUrl" class="nc-connection-url" />
                           </a-form-item>
                         </a-col>
                       </a-row>
@@ -90,15 +90,12 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="Host">
-                            <LazyWorkspaceIntegrationsConnectCopyInput v-model="connectionHost" class="nc-connection-host" />
+                            <LazyGeneralCopyInput v-model="connectionHost" class="nc-connection-host" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
                           <a-form-item label="Port">
-                            <LazyWorkspaceIntegrationsConnectCopyInput
-                              v-model="connectionDetails.port"
-                              class="nc-connection-port"
-                            />
+                            <LazyGeneralCopyInput v-model="connectionDetails.port" class="nc-connection-port" />
                           </a-form-item>
                         </a-col>
                       </a-row>
@@ -106,19 +103,12 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="Username">
-                            <LazyWorkspaceIntegrationsConnectCopyInput
-                              v-model="connectionDetails.username"
-                              class="nc-connection-username"
-                            />
+                            <LazyGeneralCopyInput v-model="connectionDetails.username" class="nc-connection-username" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">
                           <a-form-item label="Password">
-                            <LazyWorkspaceIntegrationsConnectCopyInput
-                              v-model="connectionDetails.password"
-                              password
-                              class="nc-connection-password"
-                            />
+                            <LazyGeneralCopyInput v-model="connectionDetails.password" password class="nc-connection-password" />
                           </a-form-item>
                         </a-col>
                       </a-row>
@@ -126,10 +116,7 @@ onMounted(async () => {
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="Database">
-                            <LazyWorkspaceIntegrationsConnectCopyInput
-                              v-model="connectionDetails.database"
-                              class="nc-connection-database"
-                            />
+                            <LazyGeneralCopyInput v-model="connectionDetails.database" class="nc-connection-database" />
                           </a-form-item>
                         </a-col>
                         <a-col :span="12">

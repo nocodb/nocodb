@@ -273,6 +273,21 @@ async function deleteSelectedRowsWrapper() {
   // reload table data
   await reloadTableData({ shouldShowLoading: false })
 }
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+onBeforeUnmount(async () => {
+  // reset hooks
+  reloadViewDataHook?.off(reloadTableData)
+})
+
+reloadViewDataHook?.on(reloadTableData)
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 </script>
 
 <template>

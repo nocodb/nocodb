@@ -24,6 +24,8 @@ provide(IsExpandedFormOpenInj, ref(true))
 
 provide(RowHeightInj, ref(1 as const))
 
+provide(IsUnderLookupInj, ref(true))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')

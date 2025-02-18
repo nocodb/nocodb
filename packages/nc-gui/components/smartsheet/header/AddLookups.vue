@@ -4,7 +4,6 @@ import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
-  column: ColumnType
   value?: boolean
 }
 
@@ -18,7 +17,11 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const column = toRef(props, 'column')
+const menuColumn = inject(ColumnInj)
+
+const canvasColumn = inject(CanvasColumnInj)
+
+const column = computed(() => menuColumn?.value || canvasColumn?.value)
 
 const value = useVModel(props, 'value')
 

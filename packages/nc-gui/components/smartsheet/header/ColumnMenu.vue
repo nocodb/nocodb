@@ -677,15 +677,6 @@ const onDeleteColumn = () => {
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>
-
-    <LazySmartsheetHeaderAddLookups v-if="addLookupMenu" v-model:value="addLookupMenu" :column="column" />
-    <LazySmartsheetHeaderUpdateDisplayValue
-      v-if="changeTitleFieldMenu"
-      v-model:value="changeTitleFieldMenu"
-      :column="column"
-      :use-meta-fields="meta?.id !== view?.fk_model_id"
-    />
-
     <div class="non-menu-items">
       <SmartsheetHeaderDeleteColumnModal key="dc" v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
       <DlgColumnDuplicate
@@ -695,6 +686,12 @@ const onDeleteColumn = () => {
         v-model="isDuplicateDlgOpen"
         :column="column"
         :extra="selectedColumnExtra"
+      />
+      <LazySmartsheetHeaderAddLookups key="dcx" v-model:value="addLookupMenu" />
+      <LazySmartsheetHeaderUpdateDisplayValue
+        key="dcxx"
+        v-model:value="changeTitleFieldMenu"
+        :use-meta-fields="meta?.id !== view?.fk_model_id"
       />
     </div>
   </NcMenu>

@@ -59,19 +59,6 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
       ),
     )
       .select(getPrimaryKeySelectColumns(idOffsetTableAlias))
-      .whereRaw(
-        Object.keys(getPrimaryKeySelectColumns())
-          .map(() => '?? = ??')
-          .join(' and '),
-        Object.keys(getPrimaryKeySelectColumns()).reduce(
-          (arr, primaryColName) => {
-            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
-            arr.push(`${idOffsetTableAlias}.${primaryColName}`);
-            return arr;
-          },
-          [],
-        ),
-      )
       .orderBy(getPrimaryKeySortColumns(idOffsetTableAlias))
       .limit(limit)
       .offset(offset);
@@ -97,28 +84,44 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
             undefined,
           )
         ).builder,
+        ...getPrimaryKeySelectColumns(formulaValueTableAlias),
       })
-      .whereRaw(
-        Object.keys(getPrimaryKeySelectColumns())
-          .map(() => '?? = ??')
-          .join(' and '),
-        Object.keys(getPrimaryKeySelectColumns()).reduce(
-          (arr, primaryColName) => {
-            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
-            arr.push(`${formulaValueTableAlias}.${primaryColName}`);
-            return arr;
-          },
-          [],
-        ),
+      .innerJoin(
+        knex.raw(`?? as ${idOffsetTableAlias}`, [
+          knex.raw(idOffsetTable).wrap('(', ')'),
+        ]),
+        function () {
+          for (const primaryColName of Object.keys(
+            getPrimaryKeySelectColumns(),
+          )) {
+            this.on(
+              `${idOffsetTableAlias}.${primaryColName}`,
+              '=',
+              `${formulaValueTableAlias}.${primaryColName}`,
+            );
+          }
+        },
       );
 
-    // formula do not alias the column name (yet)
-    // so it's required to use where exists instead (sad)
-    const qb = knex.raw(`update ?? set ?? = (??) where exists (??)`, [
+    // knex qb is not yet suppport update select / update join
+    // so we need to compose them manually (sad)
+    const qb = knex.raw(`update ?? inner join (??) ?? on ?? set ?? = ??`, [
       baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),
-      knex.raw(knex.ref(destinationColumn.column_name)),
       knex.raw(formulaValueTable),
-      knex.raw(idOffsetTable),
+      knex.raw(`as ${formulaValueTableAlias}`),
+      knex.raw(
+        baseModelSqlV2.model.primaryKeys
+          .map((col) => {
+            return (
+              knex.ref(`${ROOT_ALIAS}.${col.column_name}`).toQuery() +
+              '=' +
+              knex.ref(`${formulaValueTableAlias}.${col.column_name}`).toQuery()
+            );
+          })
+          .join(' and '),
+      ),
+      knex.raw(knex.ref(destinationColumn.column_name)),
+      knex.raw(knex.ref(`${formulaValueTableAlias}.${formulaColumnAlias}`)),
     ]);
     await qb;
   }

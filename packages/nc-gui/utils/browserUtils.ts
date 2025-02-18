@@ -63,3 +63,9 @@ export function isSinglePrintableKey(key: string) {
   // handles other languages as well which key.length === 1 might not
   return [...key].length === 1
 }
+
+export const isMousePointerType = (event: Event) => {
+  return event instanceof PointerEvent && event?.pointerType === 'mouse'
+}
+
+export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)

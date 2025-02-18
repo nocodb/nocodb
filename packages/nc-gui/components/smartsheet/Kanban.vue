@@ -454,6 +454,24 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
   isSavingStack.value = null
 }
+
+const draggableStackFilter = (event: Event) => {
+  return event.target?.closest('.not-draggable')
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
+
+const draggableCardFilter = (event: Event, target: HTMLElement) => {
+  const eventTarget = event.target as HTMLElement | null
+  const closestNotDraggable = eventTarget?.closest('.not-draggable')
+
+  return !!(
+    eventTarget &&
+    target.contains(eventTarget) &&
+    closestNotDraggable &&
+    (target.contains(closestNotDraggable) || closestNotDraggable === target)
+  )
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
 </script>
 
 <template>
@@ -490,7 +508,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             group="kanban-stack"
             draggable=".nc-kanban-stack"
             handle=".nc-kanban-stack-drag-handler"
-            filter=".not-draggable"
+            :filter="draggableStackFilter"
             :move="onMoveCallback"
             @start="(e) => e.target.classList.add('grabbing')"
             @end="(e) => e.target.classList.remove('grabbing')"
@@ -745,7 +763,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
-                          filter=".not-draggable"
+                          :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"

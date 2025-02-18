@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
-  if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()
   }
 })

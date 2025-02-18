@@ -161,7 +161,8 @@ onKeyDown('Enter', () => {
     }
   }
 })
-useSelectedCellKeydownListener(ref(true), (e) => {
+useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (isCanvasInjected) return
   if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return

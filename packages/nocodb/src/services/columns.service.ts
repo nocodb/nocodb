@@ -718,21 +718,24 @@ export class ColumnsService {
       // currently somehow it goes to this block
       else if ([UITypes.Formula].includes(column.uidt)) {
         (param.column as any).id = undefined;
-        const newColumn = await this.columnAdd<NcApiVersion.V3>(context, {
-          column: param.column,
-          req: param.req,
-          user: param.user,
-          reuse: param.reuse,
-          tableId: column.fk_model_id,
-          apiVersion: NcApiVersion.V3,
-          suppressFormulaError: false,
-        });
         await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
           context,
           {
             req,
             formulaColumn: column,
-            newColumn,
+            newColumnRequest: param.column,
+            // we need to do this because circular dependency between
+            // this class and formulaColumnTypeChanger
+            createNewColumnHandle: () =>
+              this.columnAdd<NcApiVersion.V3>(context, {
+                column: param.column,
+                req: param.req,
+                user: param.user,
+                reuse: param.reuse,
+                tableId: column.fk_model_id,
+                apiVersion: NcApiVersion.V3,
+                suppressFormulaError: false,
+              }),
           },
         );
       } else {
@@ -745,23 +748,25 @@ export class ColumnsService {
       [UITypes.Formula].includes(column.uidt) &&
       param.column.uidt !== column.uidt
     ) {
-      console.log('B');
       (param.column as any).id = undefined;
-      const newColumn = await this.columnAdd<NcApiVersion.V3>(context, {
-        column: param.column,
-        req: param.req,
-        user: param.user,
-        reuse: param.reuse,
-        tableId: column.fk_model_id,
-        apiVersion: NcApiVersion.V3,
-        suppressFormulaError: false,
-      });
       await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
         context,
         {
           req,
           formulaColumn: column,
-          newColumn,
+          newColumnRequest: param.column,
+          // we need to do this because circular dependency between
+          // this class and formulaColumnTypeChanger
+          createNewColumnHandle: () =>
+            this.columnAdd<NcApiVersion.V3>(context, {
+              column: param.column,
+              req: param.req,
+              user: param.user,
+              reuse: param.reuse,
+              tableId: column.fk_model_id,
+              apiVersion: NcApiVersion.V3,
+              suppressFormulaError: false,
+            }),
         },
       );
     } else if (

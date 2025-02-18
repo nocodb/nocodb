@@ -1613,6 +1613,7 @@ export default class Column<T = any> implements ColumnType {
       MetaTable.COLUMNS,
       destinationColumn.id,
     );
+    await NocoCache.del(`${CacheScope.COLUMN}:${destinationColumn.id}`);
   }
 
   static async updateAlias(

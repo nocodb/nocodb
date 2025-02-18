@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { type NcContext } from 'nocodb-sdk';
 import { type NcRequest } from 'nocodb-sdk';
 import { PgDataMigration } from './formula-column-type-changer/pg-data-migration';
+import type { ColumnReqType } from 'nocodb-sdk';
 import type { FormulaDataMigrationDriver } from './formula-column-type-changer';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
@@ -26,21 +27,38 @@ export class FormulaColumnTypeChanger {
     params: {
       req: NcRequest;
       formulaColumn: Column;
-      newColumn: Column;
+      newColumnRequest: ColumnReqType & { colOptions?: any };
+      // we need to do this because circular dependency between
+      // this class and columns service
+      createNewColumnHandle: () => Promise<Column<any>>;
     },
   ) {
+    const oldTitle = params.formulaColumn.title;
+    if (params.newColumnRequest.title === oldTitle) {
+      // we rename the alias first so the new created temporary column
+      // do not cause duplicated alias
+      await Column.updateAlias(context, params.formulaColumn.id, {
+        title: '__nc_temp_field',
+      });
+    }
+    const newColumn = await params.createNewColumnHandle();
     try {
       await this.startMigrateData(context, {
         formulaColumn: params.formulaColumn,
-        destinationColumn: params.newColumn,
+        destinationColumn: newColumn,
       });
     } catch (ex) {
-      await Column.delete(context, params.newColumn.id);
+      await Column.delete(context, newColumn.id);
+      if (params.newColumnRequest.title === oldTitle) {
+        await Column.updateAlias(context, params.formulaColumn.id, {
+          title: oldTitle,
+        });
+      }
       throw ex;
     }
     return await Column.updateFormulaColumnToNewType(context, {
       formulaColumn: params.formulaColumn,
-      destinationColumn: params.newColumn,
+      destinationColumn: newColumn,
     });
   }
 

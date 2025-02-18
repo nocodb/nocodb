@@ -603,6 +603,7 @@
     "teamAndSettings": "團隊 & 設定",
     "apiDocs": "API 說明文件",
     "importFromAirtable": "從 Airtable 匯入",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "產生 Token",
     "APIsAndSupport": "APIs及支援",
     "helpCenter": "幫助中心",
@@ -611,6 +612,7 @@
     "quickImportFrom": "快速匯入從",
     "quickImport": "快速匯入",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -977,7 +981,7 @@
     "barcodeFormat": "條碼格式",
     "qrCodeValueTooLong": "QR碼字元過多",
     "barcodeValueTooLong": "條碼字元過多",
-    "currentLocation": "目前位置",
+    "currentLocation": "Set to current location",
     "lng": "經度",
     "lat": "緯度",
     "aggregateFunction": "匯總功能",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "前往儀表板",
     "importing": "匯入中",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "格式化 JSON",
     "autoSelectFieldTypes": "自動選擇欄位類型",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "新增/編輯類別"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "映射依據",
       "chooseMappingField": "選擇一個映射欄位",
       "openInGoogleMaps": "Google 地圖",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

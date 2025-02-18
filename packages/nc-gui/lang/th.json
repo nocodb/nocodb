@@ -603,6 +603,7 @@
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
     "importFromAirtable": "นำเข้าจาก Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Generate Token",
     "APIsAndSupport": "APIs & Support",
     "helpCenter": "ศูนย์ช่วยเหลือ",
@@ -611,6 +612,7 @@
     "quickImportFrom": "นำเข้าด่วนจาก",
     "quickImport": "นำเข้าด่วน",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,6 +678,8 @@
     "customUrl": "Custom URL"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "No Image",
@@ -977,7 +981,7 @@
     "barcodeFormat": "รูปแบบบาร์โค้ด",
     "qrCodeValueTooLong": "จำนวนอักขระมากเกินไปสำหรับรหัส QR",
     "barcodeValueTooLong": "จำนวนอักขระมากเกินไปสำหรับบาร์โค้ด",
-    "currentLocation": "ตำแหน่งปัจจุบัน",
+    "currentLocation": "Set to current location",
     "lng": "ลองจิจูด",
     "lat": "ละติจูด",
     "aggregateFunction": "ฟังก์ชั่นรวม",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "จัดรูปแบบ JSON",
     "autoSelectFieldTypes": "เลือกประเภทฟิลด์อัตโนมัติ",
     "firstRowAsHeaders": "Use first record as header",
@@ -1118,7 +1124,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "Add / Edit Stack"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "จัดทำแผนที่โดย",
       "chooseMappingField": "เลือกฟิลด์การทำแผนที่",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

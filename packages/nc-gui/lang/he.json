@@ -603,6 +603,7 @@
     "teamAndSettings": "הגדרות קבוצה",
     "apiDocs": "מסמכי API",
     "importFromAirtable": "ייבוא מ-Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "יצירת אסימון",
     "APIsAndSupport": "APIs ותמיכה",
     "helpCenter": "מרכז עזרה",
@@ -611,6 +612,7 @@
     "quickImportFrom": "ייבוא מהיר מ",
     "quickImport": "ייבוא מהיר",
     "quickImportAirtable": "ייבוא מ-Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "ייבוא קובץ CSV",
     "quickImportExcel": "יבוא מאקסל",
     "quickImportJSON": "ייבוא Json",
@@ -676,6 +678,8 @@
     "customUrl": "כתובת URL מותאמת אישית"
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "failed": "Failed",
     "succeeded": "Succeeded",
     "noImage": "אין תמונה",
@@ -977,7 +981,7 @@
     "barcodeFormat": "תבנית ברקוד",
     "qrCodeValueTooLong": "יותר מדי תווים לקוד QR",
     "barcodeValueTooLong": "יותר מדי תווים לברקוד",
-    "currentLocation": "מיקום נוכחי",
+    "currentLocation": "Set to current location",
     "lng": "לונגיטוד",
     "lat": "לטיטוד",
     "aggregateFunction": "פונקציה מצטברת",
@@ -1036,7 +1040,9 @@
     "goToDashboard": "עבור אל לוח המחוונים",
     "importing": "מייבא",
     "importingFromAirtable": "ייבוא מ-Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "בסיס Airtable יובא",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "פורמט JSON",
     "autoSelectFieldTypes": "בחירת סוגי שדות אוטומטית",
     "firstRowAsHeaders": "השתמש בשורה הראשונה ככותרת",
@@ -1118,7 +1124,8 @@
     "viewHide": "הצג נראות ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1375,6 +1382,8 @@
       "addOrEditStack": "הוסף / ערוך מחסנית"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "ממופה על ידי",
       "chooseMappingField": "בחר שדה למיפוי",
       "openInGoogleMaps": "Google Maps",
@@ -1514,6 +1523,7 @@
   "msg": {
     "dropYourDocHere": "גרור את המסמך שלך כאן",
     "airtableImportSuccess": "יובא בהצלחה ממסד Airtable.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "מחק את החשבון שלך לצמיתות",
     "learnMore": "מידע נוסף",
     "connectIntegrations": "חבר אינטגרציות עם NocoDB.",

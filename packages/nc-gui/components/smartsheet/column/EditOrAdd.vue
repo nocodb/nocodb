@@ -178,6 +178,10 @@ const isSystemField = (t: { name: UITypes }) =>
   [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
 
 const uiFilters = (t: UiTypesType) => {
+  // always enable field to return to it's  column type
+  if (t.name === column?.value?.uidt) {
+    return true
+  }
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
   const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
@@ -189,6 +193,10 @@ const uiFilters = (t: UiTypesType) => {
   const showLTAR =
     t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
 
+  let formulaColumnTypeValid = true
+  if (column?.value?.uidt === UITypes.Formula) {
+    formulaColumnTypeValid = [UITypes.SingleLineText, UITypes.Formula].includes(t.name)
+  }
   return (
     systemFiledNotEdited &&
     geoDataToggle &&
@@ -196,7 +204,8 @@ const uiFilters = (t: UiTypesType) => {
     showDeprecatedField &&
     isAllowToAddInFormView &&
     showAiFields &&
-    showLTAR
+    showLTAR &&
+    formulaColumnTypeValid
   )
 }
 

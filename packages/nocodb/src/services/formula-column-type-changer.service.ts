@@ -6,7 +6,7 @@ import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
-import { Column, Model } from '~/models';
+import { Column } from '~/models';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
@@ -43,6 +43,15 @@ export class FormulaColumnTypeChanger {
       createNewColumnHandle: () => Promise<Column<any>>;
     },
   ) {
+    const baseModel = await getBaseModelSqlFromModelId({
+      context,
+      modelId: params.formulaColumn.fk_model_id,
+    });
+    if (!this.dataMigrationDriver[baseModel.dbDriver.clientType()]) {
+      throw new NotImplementedException(
+        `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
+      );
+    }
     const oldTitle = params.formulaColumn.title;
     if (params.newColumnRequest.title === oldTitle) {
       // we rename the alias first so the new created temporary column
@@ -56,6 +65,7 @@ export class FormulaColumnTypeChanger {
       await this.startMigrateData(context, {
         formulaColumn: params.formulaColumn,
         destinationColumn: newColumn,
+        baseModel,
       });
     } catch (ex) {
       await Column.delete(context, newColumn.id);
@@ -77,18 +87,19 @@ export class FormulaColumnTypeChanger {
     {
       formulaColumn,
       destinationColumn,
+      baseModel,
     }: {
       formulaColumn: Column;
       destinationColumn: Column;
+      baseModel?: BaseModelSqlv2;
     },
   ) {
-    const model = await Model.getWithInfo(context, {
-      id: formulaColumn.fk_model_id,
-    });
-    const baseModel = await getBaseModelSqlFromModelId({
-      context,
-      modelId: model.id,
-    });
+    baseModel =
+      baseModel ??
+      (await getBaseModelSqlFromModelId({
+        context,
+        modelId: formulaColumn.fk_model_id,
+      }));
     const rowCount = await baseModel.count();
     if (rowCount === 0) {
       return;
@@ -123,15 +134,14 @@ export class FormulaColumnTypeChanger {
     limit?: number;
   }) {
     const qb = baseModelSqlV2.dbDriver;
-    const dbDriver = this.dataMigrationDriver[qb.clientType()];
-    if (!dbDriver) {
-      // TODO: better error
+    const dataMigrationDriver = this.dataMigrationDriver[qb.clientType()];
+    if (!dataMigrationDriver) {
       throw new NotImplementedException(
         `${qb.clientType()} database is not supported in this operation`,
       );
     }
 
-    await dbDriver.migrate({
+    await dataMigrationDriver.migrate({
       baseModelSqlV2,
       destinationColumn,
       formulaColumn,

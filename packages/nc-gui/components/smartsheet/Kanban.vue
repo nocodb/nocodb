@@ -456,21 +456,21 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 }
 
 const draggableStackFilter = (event: Event) => {
-  return event.target?.closest('.not-draggable') || isTouchEvent(event)
+  return event.target?.closest('.not-draggable')
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
 const draggableCardFilter = (event: Event, target: HTMLElement) => {
   const eventTarget = event.target as HTMLElement | null
   const closestNotDraggable = eventTarget?.closest('.not-draggable')
 
-  return (
-    !!(
-      eventTarget &&
-      target.contains(eventTarget) &&
-      closestNotDraggable &&
-      (target.contains(closestNotDraggable) || closestNotDraggable === target)
-    ) || isTouchEvent(event)
+  return !!(
+    eventTarget &&
+    target.contains(eventTarget) &&
+    closestNotDraggable &&
+    (target.contains(closestNotDraggable) || closestNotDraggable === target)
   )
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 </script>
 

@@ -861,7 +861,10 @@ export const renderMarkdown = (
     width = cachedText.width
     blocks = cachedText.blocks
   } else {
-    const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
+    // Render 2000 characters of the text in the canvas
+    const processText = text.length > 2000 ? text.slice(0, 2000) : text
+
+    const renderText = NcMarkdownParser.preprocessMarkdown(processText, true)
 
     width = maxWidth
     blocks = parseMarkdown(renderText)

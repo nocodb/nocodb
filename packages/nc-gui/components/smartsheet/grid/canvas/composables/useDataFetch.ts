@@ -1,5 +1,6 @@
-const INITIAL_LOAD_SIZE = 100
-const CHUNK_SIZE = 50
+const MAX_RECORDS_PER_CALL = 100
+const INITIAL_LOAD_SIZE = 100 // Shouldn't exceed MAX_RECORDS_PER_CALL
+const CHUNK_SIZE = 50 // Shouldn't exceed MAX_RECORDS_PER_CALL
 const BUFFER_SIZE = 100
 const PREFETCH_THRESHOLD = 50
 const API_THROTTLE = 500
@@ -29,6 +30,7 @@ export function useDataFetch({
 
     const offset = chunkId * CHUNK_SIZE
     const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
+
     if (offset >= totalRows.value) return
 
     chunkStates.value[chunkId] = 'loading'
@@ -90,17 +92,27 @@ export function useDataFetch({
         }
         groups.push(currentGroup)
 
+        const maxGroupSize = Math.floor(MAX_RECORDS_PER_CALL / CHUNK_SIZE)
         for (const group of groups) {
-          // Use initial load for the first chunk
           if (group[0] === 0 && firstChunkId === 0 && !chunkStates.value[0]) {
             await fetchChunk(0, true)
-            // Remove the first two chunks (0 & 1) from the group
             const remainingGroup = group.filter((id) => id > 1)
             if (remainingGroup.length) {
-              await fetchChunksForGroup(remainingGroup)
+              for (let i = 0; i < remainingGroup.length; i += maxGroupSize) {
+                const subGroup = remainingGroup.slice(i, i + maxGroupSize)
+                await fetchChunksForGroup(subGroup)
+              }
             }
           } else {
-            await fetchChunksForGroup(group)
+            // If the group is larger than what we can fetch in one call
+            if (group.length > maxGroupSize) {
+              for (let i = 0; i < group.length; i += maxGroupSize) {
+                const subGroup = group.slice(i, i + maxGroupSize)
+                await fetchChunksForGroup(subGroup)
+              }
+            } else {
+              await fetchChunksForGroup(group)
+            }
           }
         }
       }

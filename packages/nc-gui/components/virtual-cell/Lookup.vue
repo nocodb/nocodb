@@ -77,11 +77,32 @@ const arrValue = computed(() => {
 
   // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (
-    lookupColumn.value?.uidt === UITypes.Attachment &&
-    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
-  )
-    return [cellValue.value]
+  if (lookupColumn.value?.uidt === UITypes.Attachment) {
+    if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)) {
+      return [cellValue.value]
+    }
+
+    if (
+      ncIsArray(cellValue.value) &&
+      cellValue.value.every((v) => {
+        if (ncIsNull(v)) return true
+
+        if (ncIsArray(v)) {
+          return !v.length || ncIsObject(v[0])
+        }
+
+        return false
+      })
+    ) {
+      return cellValue.value
+        .filter((v) => v !== null)
+        .reduce((acc, v) => {
+          acc.push(...v)
+
+          return acc
+        }, [])
+    }
+  }
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
   if (Array.isArray(cellValue.value)) return cellValue.value.filter((v) => v !== null)
@@ -272,9 +293,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 
           <!-- Render normal cell -->
           <template v-else>
-            <div
-              v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
-            >
+            <div v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])">
               <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
             </div>
             <!-- For attachment cell avoid adding chip style -->
@@ -345,6 +364,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
     </div>
     <template #overlay>
       <div
+        v-if="lookupColumn"
         ref="dropdownOverlayRef"
         class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown outline-none"
         :class="[randomClass]"
@@ -389,42 +409,48 @@ const handleCloseDropdown = (e: MouseEvent) => {
             </template>
           </template>
           <template v-else>
-            <div
-              v-for="(v, i) of filteredArrValues"
-              :key="i"
-              class="flex-none"
-              :class="{
-                'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                'border-gray-200 rounded border-1 max-w-full': ![
-                  UITypes.Attachment,
-                  UITypes.MultiSelect,
-                  UITypes.SingleSelect,
-                  UITypes.User,
-                  UITypes.CreatedBy,
-                  UITypes.LastModifiedBy,
-                ].includes(lookupColumn.uidt),
-                'min-h-0 min-w-0': isAttachment(lookupColumn),
-              }"
-              @click="handleCloseDropdown"
-            >
-              <LazySmartsheetVirtualCell
-                v-if="lookupColumn.uidt === UITypes.Rollup"
-                :edit-enabled="false"
-                :read-only="true"
-                :model-value="v"
-                :column="lookupColumn"
-                class="px-2"
-              />
-              <LazySmartsheetCell
-                v-else
-                :model-value="v"
-                :column="lookupColumn"
-                :edit-enabled="false"
-                :virtual="true"
-                :read-only="true"
-                :class="smartsheetCellClass"
-              />
+            <div v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])" class="nc-lookup-attachment-wrapper">
+              <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
             </div>
+            <!-- For attachment cell avoid adding chip style -->
+            <template v-else>
+              <div
+                v-for="(v, i) of filteredArrValues"
+                :key="i"
+                class="flex-none"
+                :class="{
+                  'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
+                  'border-gray-200 rounded border-1 max-w-full': ![
+                    UITypes.Attachment,
+                    UITypes.MultiSelect,
+                    UITypes.SingleSelect,
+                    UITypes.User,
+                    UITypes.CreatedBy,
+                    UITypes.LastModifiedBy,
+                  ].includes(lookupColumn.uidt),
+                  'min-h-0 min-w-0': isAttachment(lookupColumn),
+                }"
+              @click="handleCloseDropdown"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="lookupColumn.uidt === UITypes.Rollup"
+                  :edit-enabled="false"
+                  :read-only="true"
+                  :model-value="v"
+                  :column="lookupColumn"
+                  class="px-2"
+                />
+                <LazySmartsheetCell
+                  v-else
+                  :model-value="v"
+                  :column="lookupColumn"
+                  :edit-enabled="false"
+                  :virtual="true"
+                  :read-only="true"
+                  :class="smartsheetCellClass"
+                />
+              </div>
+            </template>
           </template>
         </div>
       </div>
@@ -468,6 +494,12 @@ const handleCloseDropdown = (e: MouseEvent) => {
     }
     .ant-input-prefix {
       @apply mr-2;
+    }
+  }
+
+  .nc-lookup-attachment-wrapper {
+    .nc-attachment-cell > div:first-of-type {
+      @apply !h-auto;
     }
   }
 }

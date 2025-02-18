@@ -97,7 +97,21 @@ function renderFallback(
 export const AttachmentCellRenderer: CellRenderer = {
   render: (
     ctx,
-    { value, x, y, width, height, imageLoader, mousePosition, spriteLoader, selected, readonly, setCursor, isUnderLookup },
+    {
+      value,
+      x,
+      y,
+      width,
+      height,
+      imageLoader,
+      mousePosition,
+      spriteLoader,
+      selected,
+      readonly,
+      setCursor,
+      isUnderLookup,
+      textAlign,
+    },
   ) => {
     let attachments: Attachment[] = []
 
@@ -171,9 +185,10 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemsInCurrentRow = isLastRow ? itemsInLastRow : itemsPerRow
 
       const currentRowWidth = itemsInCurrentRow * itemSize + (itemsInCurrentRow - 1) * gap
-      const rowStartX = isUnderLookup
-        ? x + horizontalPadding
-        : x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
+      const rowStartX =
+        isUnderLookup && textAlign !== 'center'
+          ? x + horizontalPadding
+          : x + horizontalPadding + Math.max(0, (width - horizontalPadding * 2 - currentRowWidth) / 2)
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
@@ -204,7 +219,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       lastX = itemX + itemSize
 
-      if (isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
+      if (!isUnderLookup && isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
         setCursor('pointer')
       }
     })

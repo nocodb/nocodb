@@ -51,18 +51,44 @@ export const LookupCellRenderer: CellRenderer = {
       lookupColumn.extra = getUserColOptions(lookupColumn, props.baseUsers || [])
     }
 
-    let arrValue = []
+    const getArrValue = () => {
+      if (!value) return []
 
-    if (
-      lookupColumn.uidt === UITypes.Attachment &&
-      [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)
-    ) {
-      arrValue = [value]
-    } else if (ncIsArray(value)) {
-      arrValue = value.filter((v) => v !== null)
-    } else {
-      arrValue = [value]
+      if (lookupColumn.uidt === UITypes.Attachment) {
+        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)) {
+          return ncIsArray(value) ? value : [value]
+        }
+
+        if (
+          ncIsArray(value) &&
+          value.every((v) => {
+            if (ncIsNull(v)) return true
+
+            if (ncIsArray(v)) {
+              return !v.length || ncIsObject(v[0])
+            }
+
+            return false
+          })
+        ) {
+          return value
+            .filter((v) => v !== null)
+            .reduce((acc, v) => {
+              acc.push(...v)
+
+              return acc
+            }, [])
+        }
+      }
+
+      if (ncIsArray(value)) {
+        return value.filter((v) => v !== null)
+      }
+
+      return [value]
     }
+
+    let arrValue = getArrValue()
 
     if (!arrValue.length) return
 
@@ -80,7 +106,7 @@ export const LookupCellRenderer: CellRenderer = {
       isUnderLookup: true,
       readonly: true,
       value: arrValue,
-      height: rowHeightInPx['1']!,
+      height: isAttachment(lookupColumn) ? height : rowHeightInPx['1']!,
       padding: 10,
       tag: {
         renderAsTag: true,
@@ -90,6 +116,7 @@ export const LookupCellRenderer: CellRenderer = {
         tagBorderWidth: 1,
       },
       meta: relatedTableMeta,
+      textAlign: isAttachment(lookupColumn) ? 'center' : props.textAlign,
     }
 
     const lookupRenderer = (options: CellRendererOptions) => {

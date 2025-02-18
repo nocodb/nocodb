@@ -167,7 +167,13 @@ const borderProps = computed(() => {
           </span>
           <table
             v-else
-            :class="['w-full', { 'default-text-color': widget.textColor === defaultBlackColor }]"
+            :class="[
+              'w-full',
+              {
+                'default-text-color': widget.textColor === defaultBlackColor,
+                'default-border-color': widget.borderColor === defaultBlackColor,
+              },
+            ]"
             :style="{
               color: widget.textColor,
               ...borderProps,
@@ -241,13 +247,23 @@ const borderProps = computed(() => {
     font-family: inherit;
   }
 }
-table,
+
 th,
 td {
-  @apply border-1 border-nc-border-gray-dark;
+  @apply border-b-1 border-r border-nc-border-gray-dark;
+  &:last-child {
+    border-right: 0;
+  }
 }
+tr:last-child {
+  td {
+    border-bottom: 0;
+  }
+}
+
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 th,
 td {
@@ -267,5 +283,8 @@ table.default-text-color {
   td {
     @apply text-nc-content-gray-subtle2;
   }
+}
+table.default-border-color {
+  @apply !border-nc-border-gray-dark;
 }
 </style>

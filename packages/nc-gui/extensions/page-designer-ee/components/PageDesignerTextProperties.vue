@@ -7,7 +7,7 @@ import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import BorderSettings from './BorderSettings.vue'
 
-defineEmits(['deleteCurrentWidget'])
+const emit = defineEmits(['deleteCurrentWidget'])
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -78,6 +78,14 @@ function setTextPreset(heading: 'h1' | 'h2' | 'h3') {
   textWidget.value.lineHeight = textPresets[heading].lineHeight
   textWidget.value.fontWeight = textPresets[heading].fontWeight
 }
+
+const textValue = computed(() => textWidget.value?.value ?? '')
+const previousTextValue = usePrevious(textValue)
+
+function onTextFieldDelete() {
+  const prevLen = previousTextValue.value?.length ?? 0
+  if (prevLen <= 2 && !textValue.value) emit('deleteCurrentWidget')
+}
 </script>
 
 <template>
@@ -118,7 +126,7 @@ function setTextPreset(heading: 'h1' | 'h2' | 'h3') {
         v-model="textWidget.value"
         :options="columns"
         placeholder="Lorem ipsum..."
-        @keydown.delete="!textWidget.value && $emit('deleteCurrentWidget')"
+        @keydown.delete="onTextFieldDelete"
       />
     </GroupedSettings>
     <GroupedSettings title="Alignment">

@@ -810,6 +810,19 @@ const handleMouseUp = async (e: MouseEvent) => {
   const clickType = getMouseClickType(e)
   if (!clickType) return
 
+  if (isMobileMode.value) {
+    if (y > 32 && y < height.value - 36) {
+      const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+      const row = cachedRows.value.get(rowIndex)
+
+      if (row) {
+        expandForm(row)
+      }
+      return
+    } else if (y < 32) {
+      return
+    }
+  }
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column

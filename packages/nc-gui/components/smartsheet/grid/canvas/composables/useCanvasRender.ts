@@ -96,6 +96,7 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
+  const { isMobileMode } = useGlobal()
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -126,7 +127,8 @@ export function useCanvasRender({
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
-    const columnsWidth = totalColumnsWidth.value + (isAddingColumnAllowed.value ? plusColumnWidth : 0) - scrollLeft.value
+    const columnsWidth =
+      totalColumnsWidth.value + (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) - scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -269,7 +271,7 @@ export function useCanvasRender({
       }
     }
 
-    if (isAddingColumnAllowed.value) {
+    if (isAddingColumnAllowed.value && !isMobileMode.value) {
       ctx.fillStyle = '#F9F9FA'
       ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
       spriteLoader.renderIcon(ctx, {
@@ -1133,7 +1135,7 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,

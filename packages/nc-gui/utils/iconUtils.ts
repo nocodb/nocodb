@@ -580,6 +580,7 @@ import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
 import NcInfoSolid from '~icons/nc-icons/info-solid'
 import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcImagePlaceholderIcon from '~icons/nc-icons/image-placeholder.svg'
 import NcSpanner from '~icons/nc-icons/spanner'
 import NcScript from '~icons/nc-icons/script'
 import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
@@ -1536,6 +1537,7 @@ export const iconMap = {
   'ncPuzzleOutline': NcPuzzleOutline,
   'ncInfoSolid': NcInfoSolid,
   'ncPlaceholderIcon': NcPlaceholderIcon,
+  'ncImagePlaceholderIcon': h(NcImagePlaceholderIcon, { stroke: 'transparent' }),
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,

@@ -214,7 +214,11 @@ onUnmounted(() => {
     & > .absolute {
       outline: 2px solid #ddd;
       transition: outline 200ms ease-in-out;
-      @apply rounded-[2px] cursor-pointer;
+      @apply rounded-[2px];
+      cursor: grab !important;
+      &:active {
+        cursor: grabbing !important;
+      }
     }
     &:hover {
       > .absolute {

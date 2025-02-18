@@ -57,11 +57,20 @@ const eventHook = inject(PageDesignerEventHookInj)!
   }
 }
 .record-navigator {
+  .prev,
+  .next {
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
+
   .prev {
-    @apply !rounded-[8px_0_0_8px] border-r-0 shadow-none;
+    width: calc(100% + 4px);
+    .nc-icon {
+      margin-left: -4px;
+    }
+    @apply !rounded-[8px_0_0_8px] border-r-0;
   }
   .next {
-    @apply !rounded-[0_8px_8px_0] shadow-none;
+    @apply !rounded-[0_8px_8px_0];
   }
 }
 </style>

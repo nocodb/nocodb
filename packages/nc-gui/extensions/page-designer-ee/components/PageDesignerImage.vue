@@ -75,7 +75,7 @@ const container = useParentElement()
           borderColor: widget.borderColor,
           borderRadius: `${widget.borderRadius || 0}px`,
         }"
-        :class="{ 'px-2 py-1': errored || !widget.imageSrc }"
+        :class="{ 'px-2 py-1': errored }"
       >
         <img
           v-if="widget.imageSrc"
@@ -89,7 +89,9 @@ const container = useParentElement()
           @load="errored = false"
         />
         <span v-if="widget.imageSrc && errored" class="text-nc-content-gray-muted print-hide">Unable to load the image</span>
-        <span v-else-if="!widget.imageSrc" class="text-nc-content-gray-muted print-hide">Add an image source</span>
+        <div v-else-if="!widget.imageSrc" class="bg-nc-bg-gray-medium h-full w-full flex justify-center items-center print-hide">
+          <component :is="iconMap.ncImagePlaceholderIcon" />
+        </div>
       </div>
     </div>
     <Moveable

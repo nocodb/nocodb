@@ -1,3 +1,4 @@
+import { ClientType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column, FormulaColumn } from '~/models';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer/index';
@@ -13,7 +14,7 @@ knex.raw(qb.builder).wrap('(',')').toSQL().toNative().sql
 
 export class PgDataMigration implements FormulaDataMigrationDriver {
   constructor() {
-    this.dbDriverName = 'pg';
+    this.dbDriverName = ClientType.PG;
   }
   dbDriverName: string;
 

@@ -419,6 +419,7 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  formula?: boolean
 }
 
 interface CellRenderStore {

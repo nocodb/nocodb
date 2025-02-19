@@ -37,7 +37,7 @@ function getDisplayValueCellRenderer(column: ColumnType) {
 
 export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268' } = props
+    const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268', mousePosition, setCursor } = props
     const colMeta = parseProp(column.meta)
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
@@ -77,7 +77,7 @@ export const FormulaCellRenderer: CellRenderer = {
         const texts = getFormulaTextSegments(urls)
         ctx.font = `${pv ? 600 : 500} 13px Manrope`
         ctx.fillStyle = pv ? '#3366FF' : textColor
-        renderFormulaURL(ctx, {
+        const boxes = renderFormulaURL(ctx, {
           texts,
           height,
           maxWidth,
@@ -86,6 +86,10 @@ export const FormulaCellRenderer: CellRenderer = {
           lineHeight: 16,
           underlineOffset: y < 36 ? 0 : 3,
         })
+        const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+        if (hoveredBox) {
+          setCursor('pointer')
+        }
         return
       }
 

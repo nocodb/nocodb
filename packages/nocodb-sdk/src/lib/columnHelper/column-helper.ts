@@ -6,6 +6,7 @@ import {
   DecimalHelper,
   DurationHelper,
   EmailHelper,
+  JsonHelper,
   LongTextHelper,
   NumberHelper,
   PercentHelper,
@@ -28,6 +29,7 @@ export class ColumnHelper {
     [UITypes.PhoneNumber]: PhoneNumberHelper,
     [UITypes.Email]: EmailHelper,
     [UITypes.URL]: UrlHelper,
+    [UITypes.JSON]: JsonHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

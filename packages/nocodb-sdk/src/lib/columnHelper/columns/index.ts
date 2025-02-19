@@ -10,3 +10,4 @@ export * from './Decimal';
 export * from './PhoneNumber';
 export * from './Email';
 export * from './Url';
+export * from './Json';

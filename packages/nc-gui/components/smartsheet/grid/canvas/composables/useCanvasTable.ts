@@ -3,7 +3,7 @@ import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'noco
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
-import { getSingleMultiselectColOptions, getUserColOptions } from '../utils/cell'
+import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
 import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
@@ -197,8 +197,8 @@ export function useCanvasTable({
 
     const cols = fields.value
       .map((f) => {
-        const gridViewCol = gridViewCols.value[f.id!]
-
+        if (!f.id) return false
+        const gridViewCol = gridViewCols.value[f.id]
         if (!gridViewCol) return false
         let relatedColObj
         let relatedTableMeta
@@ -246,7 +246,7 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed: isMobileMode.value ? false : f.pv,
+          fixed: isMobileMode.value ? false : !!f.pv,
           readonly: !isAddingEmptyRowAllowed.value || isDataReadOnly.value,
           isCellEditable: !isReadonly(f),
           pv: !!f.pv,
@@ -271,9 +271,9 @@ export function useCanvasTable({
     cols.splice(0, 0, {
       id: 'row_number',
       grid_column_id: 'row_number',
-      title: '#',
       uidt: null,
-      width: '80',
+      title: '#',
+      width: '80px',
       fixed: true,
       pv: false,
       columnObj: {
@@ -283,7 +283,7 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
-  const columnWidths = computed(() => columns.value.map((col) => parseInt(col.width!, 10)))
+  const columnWidths = computed(() => columns.value.map((col) => parseCellWidth(col.width)))
 
   const totalColumnsWidth = computed(() => columnWidths.value.reduce((sum, val) => sum + val, 0))
 
@@ -355,7 +355,11 @@ export function useCanvasTable({
   )
 
   const totalWidth = computed(() => {
-    return columns.value.reduce((acc, col) => acc + +(col.width?.split('px')?.[0] ?? 50), 0) + 256
+    return (
+      columns.value.reduce((acc, col) => {
+        return acc + parseCellWidth(col.width)
+      }, 0) + 256
+    )
   })
 
   const findColumnIndex = (target: number, _start = 0, end = columnWidths.value.length) => {
@@ -378,18 +382,18 @@ export function useCanvasTable({
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
         const column = columns.value[i]
-        if (column.id === targetColumn.id) {
+        if (column?.id === targetColumn.id) {
           break
         }
-        if (column.fixed) {
-          xOffset += parseInt(column.width, 10)
+        if (column?.fixed) {
+          xOffset += parseCellWidth(column?.width)
         }
       }
 
       return {
         x: xOffset,
         y: yOffset,
-        width: parseInt(targetColumn.width, 10),
+        width: parseCellWidth(targetColumn.width),
         height: rowHeight.value,
       }
     }
@@ -399,7 +403,7 @@ export function useCanvasTable({
     // Add width of all fixed columns first
     columns.value.forEach((column) => {
       if (column.fixed) {
-        xOffset += parseInt(column.width, 10)
+        xOffset += parseCellWidth(column.width)
       }
     })
 
@@ -410,14 +414,14 @@ export function useCanvasTable({
         break
       }
       if (!column.fixed) {
-        xOffset += parseInt(column.width, 10)
+        xOffset += parseCellWidth(column.width)
       }
     }
 
     return {
       x: initialXOffset + (xOffset - initialXOffset) - scrollLeft.value,
       y: yOffset,
-      width: parseInt(targetColumn.width, 10),
+      width: parseCellWidth(targetColumn.width),
       height: rowHeight.value,
     }
   }
@@ -455,12 +459,12 @@ export function useCanvasTable({
 
     for (let i = 0; i <= Math.min(selection.value.end.col, fixedCols.length - 1); i++) {
       if (columns.value[i]?.fixed) {
-        xPos += parseInt(columns.value[i]?.width ?? '', 10)
+        xPos += parseCellWidth(columns.value[i]?.width)
       }
     }
 
     for (let i = fixedCols.length; i <= selection.value.end.col; i++) {
-      xPos += parseInt(columns.value[i]?.width ?? '', 10)
+      xPos += parseCellWidth(columns.value[i]?.width)
     }
 
     if (selection.value.end.col >= fixedCols.length) {
@@ -880,7 +884,7 @@ export function useCanvasTable({
       row,
       minHeight: rowHeight.value,
       height: column.uidt === UITypes.LongText ? 'auto' : rowHeight.value + 2,
-      width: parseInt(clickedColumn.width, 10) + 2,
+      width: parseCellWidth(clickedColumn.width) + 2,
       fixed: clickedColumn.fixed,
     }
     hideTooltip()

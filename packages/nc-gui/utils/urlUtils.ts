@@ -33,6 +33,18 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrl ? out : false
 }
 
+export function getFormulaLabelAndUrl(anchorLinkHTML: string) {
+  const parser = new DOMParser()
+  const dom = parser.parseFromString(anchorLinkHTML, 'text/html')
+  const anchor = dom.querySelector('a')
+  return {
+    label: anchor?.textContent ?? '',
+    url: anchor?.href ?? '',
+    suffixText: anchor?.nextSibling?.nodeValue ?? '',
+    prefixText: anchor?.previousSibling?.nodeValue ?? '',
+  }
+}
+
 export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
   return isURL(`${str}`, extraProps)
 }

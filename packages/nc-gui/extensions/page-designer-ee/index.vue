@@ -287,6 +287,9 @@ onUnmounted(() => {
     > :last-child {
       @apply rounded-[0_8px_8px_0] !border-r-0;
     }
+    > :hover {
+      @apply !bg-nc-bg-gray-medium;
+    }
     .nc-icon {
       @apply -mt-[2px];
     }

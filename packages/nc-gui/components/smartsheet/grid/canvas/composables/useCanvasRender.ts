@@ -929,9 +929,10 @@ export function useCanvasRender({
               }
 
               // add white background color for active cell
-              if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+              // For Fixed columns, do not need to add startColIndex
+              if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
                 ctx.fillStyle = '#FFFFFF'
-                ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               }
 
               if (column.id === 'row_number') {

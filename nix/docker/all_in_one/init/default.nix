@@ -8,11 +8,12 @@
   dockerTools,
 }:
 let
-  basedir = "/run/s6-init";
+  base_dir = "/run/s6-init";
+  kernal_env_store_dir = "/run/kernalenvs";
   srv_compile_dir = "/run/s6-service-compiled";
 
   s6-linux-init = callPackage ./s6-linux-init {
-    inherit basedir;
+    inherit base_dir kernal_env_store_dir;
   };
   s6-service-compiled = callPackage ./s6-services-compiled { };
 in
@@ -35,10 +36,13 @@ writeShellApplication {
     mount -t tmpfs -o nodev,nosuid,mode=0755 none /run
 
     # setup basedir
-    mkdir -p ${basedir}
-    cd ${basedir}/
+    mkdir -p ${base_dir}
+    cd ${base_dir}/
     cpio --extract -d < ${s6-linux-init}
     cd -
+
+    # setup kernal_env_store_dir
+    mkdir -p ${kernal_env_store_dir}
 
     # setup compiled services
     mkdir -p ${srv_compile_dir}
@@ -64,6 +68,6 @@ writeShellApplication {
     mkdir -p /var/log/
 
     # exec into s6-linux-init
-    exec ${basedir}/bin/init
+    exec ${base_dir}/bin/init
   '';
 }

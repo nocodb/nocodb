@@ -12,7 +12,8 @@
   # directories, which the Nix sandbox forbids
   fakeroot,
   s6-linux-init,
-  basedir ? "/run/init",
+  base_dir ? "/run/init",
+  kernal_env_store_dir ? "/run/kernelenvs"
 }:
 
 stdenv.mkDerivation {
@@ -31,7 +32,12 @@ stdenv.mkDerivation {
 
   installPhase = ''
     # patchShebangs skel
-    fakeroot s6-linux-init-maker -C -N -1 -f ${./skel} -c ${basedir} compiled
+    fakeroot s6-linux-init-maker \
+      -C -N -1 \
+      -f ${./skel} \
+      -c ${base_dir} \
+      -s ${kernal_env_store_dir} \
+      compiled
 
     cd compiled
     find . | cpio -Hnewc --create > $out

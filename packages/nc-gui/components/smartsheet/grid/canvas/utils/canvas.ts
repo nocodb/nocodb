@@ -26,6 +26,14 @@ const barcodeCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
 
+export const replaceUrlsWithLinkCache: LRUCache<string, boolean | string> = new LRUCache({
+  max: 1000,
+})
+
+export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; url?: string }>> = new LRUCache({
+  max: 1000,
+})
+
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */
@@ -35,6 +43,8 @@ export const clearTextCache = () => {
   abstractTypeCache.clear()
   markdownTextCache.clear()
   barcodeCache.clear()
+  replaceUrlsWithLinkCache.clear()
+  formulaTextSegmentsCache.clear()
 }
 
 interface TruncateTextWithInfoType {
@@ -1157,5 +1167,73 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   return abstractType
 }
 
+export function renderFormulaURL(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  params: {
+    texts: Array<{ text: string; url?: string }>
+    x: number
+    y: number
+    maxWidth: number
+    height: number
+    lineHeight: number
+    underlineOffset: number
+  },
+): { x: number; y: number; width: number; height: number; url?: string }[] {
+  const { texts, x, y, maxWidth, height, lineHeight, underlineOffset } = params
+
+  let currentX = x
+  let currentY = y
+  let remainingHeight = height
+
+  const urlRects: { x: number; y: number; width: number; height: number; url: string }[] = []
+
+  const renderText = (text: string, url?: string): void => {
+    const words = text.split(' ')
+
+    let wordCount = 0
+    for (const word of words) {
+      wordCount++
+      const separator = wordCount === words.length ? '' : ' '
+      const wordWidth = ctx.measureText(word + separator).width
+
+      if (currentX + wordWidth > x + maxWidth) {
+        currentX = x
+        currentY += lineHeight
+        remainingHeight -= lineHeight
+
+        if (remainingHeight < lineHeight) {
+          return // Stop rendering if out of height
+        }
+      }
+
+      ctx.fillText(word + separator, currentX, currentY + lineHeight * 0.8) // Adjust vertical position
+
+      if (url) {
+        urlRects.push({
+          x: currentX,
+          y: currentY,
+          width: wordWidth,
+          height: lineHeight,
+          url: url,
+        })
+
+        const underlineY = currentY + lineHeight + underlineOffset
+        ctx.strokeStyle = 'black'
+        ctx.beginPath()
+        ctx.moveTo(currentX, underlineY)
+        ctx.lineTo(currentX + wordWidth, underlineY)
+        ctx.stroke()
+      }
+
+      currentX += wordWidth
+    }
+  }
+
+  for (const item of texts) {
+    renderText(item.text, item.url)
+  }
+
+  return urlRects
+}
 const offscreenCanvas = new OffscreenCanvas(0, 0)
 export const defaultOffscreen2DContext = offscreenCanvas.getContext('2d')!

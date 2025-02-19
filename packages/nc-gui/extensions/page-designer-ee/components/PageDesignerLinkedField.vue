@@ -108,7 +108,12 @@ const columnsMapById = computed(() =>
   }, {} as Record<string, Record<string, any>>),
 )
 
-const tableColumns = computed(() => widget.value.tableColumns.map((colId) => columnsMapById.value[colId]!).filter(Boolean))
+const tableColumns = computed(() =>
+  widget.value.tableColumns
+    .filter((col) => col.selected)
+    .map((col) => columnsMapById.value[col.id]!)
+    .filter(Boolean),
+)
 async function loadRelatedRows() {
   if (!row.value) return
   relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []

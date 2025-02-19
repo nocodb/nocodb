@@ -5,9 +5,7 @@ import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import TabbedSelect from './TabbedSelect.vue'
 import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import FieldElement from './FieldElement.vue'
 import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
-import Draggable from 'vuedraggable'
 import BorderSettings from './BorderSettings.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -38,25 +36,34 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-const columns = computed(() => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [])
-const columnsMapById = computed(() =>
-  columns.value.reduce((map, col) => {
-    map[col.id!] = col
-    return map
-  }, {} as Record<string, Record<string, any>>),
+const relatedColumns = computed(
+  () => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [],
 )
 
 onMounted(() => {
   loadRelatedTableMeta()
 })
 
+const tableColumnsIdMap = computed(() =>
+  (fieldWidget.value?.tableColumns ?? []).reduce((map, col) => {
+    map[col.id] = col
+    return map
+  }, {} as Record<string, { id: string; selected: boolean }>),
+)
+
 watch(
-  columns,
+  relatedColumns,
   (val) => {
-    if (fieldWidget.value && !fieldWidget.value.tableColumns.length) {
-      const pvCol = val.find((col) => col.pv)
-      if (pvCol) fieldWidget.value.tableColumns.push(pvCol.id!)
+    if (!fieldWidget.value) return
+    let tableColumns = [...fieldWidget.value.tableColumns]
+    // add new column
+    for (const col of val) {
+      if (!tableColumnsIdMap.value[col.id!]) tableColumns.push({ id: col.id!, selected: false })
     }
+    const colIdSet = new Set(val.map((col) => col.id!))
+    // remove deleted column
+    tableColumns = tableColumns.filter((col) => colIdSet.has(col.id))
+    fieldWidget.value.tableColumns = tableColumns
   },
   { immediate: true, deep: true },
 )
@@ -113,16 +120,6 @@ watch(
         <label>Table columns</label>
         <div class="rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
           <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
-          <Draggable v-model="fieldWidget.tableColumns" :item-key="(id: string) => id" handle=".cursor-move">
-            <template #item="{ element: fieldId }">
-              <FieldElement
-                class="table-column-field-element"
-                :icon="getIcon(columnsMapById[fieldId]!)"
-                :field="columnsMapById[fieldId]!"
-                display-drag-handle
-              />
-            </template>
-          </Draggable>
         </div>
       </div>
     </GroupedSettings>

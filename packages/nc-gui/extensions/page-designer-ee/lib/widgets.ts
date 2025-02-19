@@ -108,7 +108,7 @@ export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   textColor: string
   lineHeight: string
   listType: LinkedFieldListType
-  tableColumns: string[]
+  tableColumns: Array<{ id: string; selected: boolean }>
   objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'

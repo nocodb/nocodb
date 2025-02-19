@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { type ColumnType, type TableType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import FieldElement from './FieldElement.vue'
+import Draggable from 'vuedraggable'
 
 const props = defineProps<{
   relatedTableMeta?: TableType
 }>()
 
-const selectedFields = defineModel<string[]>({ required: true })
+const selectedFields = defineModel<{ id: string; selected: boolean }[]>({ required: true })
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
@@ -29,23 +30,14 @@ const columns = computed(() =>
 
 const metaColumnById = computed(() =>
   columns.value.reduce((map, column) => {
-    map[column.id!] = parseProp(column)
+    map[column.id!] = column
     return map
-  }, {} as Record<string, Record<string, any>>),
-)
-
-const isOpen = ref(false)
-
-const fieldById = computed(() =>
-  columns.value.reduce<Record<string, any>>((acc, curr) => {
-    acc[curr.id ?? ''] = curr
-    return acc
-  }, {}),
+  }, {} as Record<string, ColumnType>),
 )
 
 const fields = computed(() => {
   return columns.value.map((column: ColumnType) => {
-    const currentColumnField = fieldById.value[column.id!] || {}
+    const currentColumnField = metaColumnById.value[column.id!] || {}
 
     return {
       title: column.title,
@@ -57,31 +49,33 @@ const fields = computed(() => {
   })
 })
 
-const filteredFieldList = computed(() => {
-  return (
-    fields.value?.filter((field: Field) => {
-      if (!field.initialShow) {
-        return false
-      }
+const filteredFieldSet = computed(() => {
+  return new Set(
+    (
+      fields.value?.filter((field: Field) => {
+        if (!field.initialShow) {
+          return false
+        }
 
-      if (
-        metaColumnById?.value?.[field.fk_column_id!]?.pv &&
-        (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
-      ) {
-        return true
-      }
+        if (
+          metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+          (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
+        ) {
+          return true
+        }
 
-      // hide system columns if not enabled
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
-        return false
-      }
+        // hide system columns if not enabled
+        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+          return false
+        }
 
-      if (filterQuery.value === '') {
-        return true
-      } else {
-        return field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
-      }
-    }) || []
+        if (filterQuery.value === '') {
+          return true
+        } else {
+          return field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
+        }
+      }) || []
+    ).map((col) => col.id),
   )
 })
 
@@ -90,79 +84,87 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-function isChecked(field: ColumnType) {
-  return selectedFields.value.includes(field.id!)
+const selectedMap = computed(() => {
+  return selectedFields.value.reduce((map, col) => {
+    map[col.id] = col.selected
+    return map
+  }, {} as Record<string, boolean>)
+})
+
+function isChecked(fieldId: string) {
+  return !!selectedMap.value[fieldId]
 }
 
-function updateChecked(checked: boolean, field: ColumnType) {
-  if (checked) {
-    selectedFields.value.push(field.id!)
-  } else if (selectedFields.value.length !== 1) {
-    const idx = selectedFields.value.indexOf(field.id!)
-    if (idx !== -1) selectedFields.value.splice(idx, 1)
-  }
+const selectedFieldsCount = computed(() => Object.values(selectedMap.value).filter((v) => v).length)
+const isSingleFieldSelected = computed(() => selectedFieldsCount.value === 1)
+
+function updateChecked(checked: boolean, fieldId: string) {
+  const idx = selectedFields.value.findIndex((col) => col.id === fieldId)
+  if (idx === -1 || (isSingleFieldSelected.value && !checked)) return
+  selectedFields.value.splice(idx, 1, { id: fieldId, selected: checked })
 }
+
+whenever(
+  () => selectedFieldsCount.value === 0,
+  () => {
+    const idx = selectedFields.value.findIndex((col) => metaColumnById.value[col.id]?.pv)
+    if (idx !== -1) {
+      const field = selectedFields.value[idx]
+      if (!field) return
+      selectedFields.value.splice(idx, 1, { id: field.id, selected: true })
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
-    <div
-      class="text-nc-fill-primary text-[13px] font-700 flex gap-2 items-center p-2 border-b-1 border-nc-border-gray-medium cursor-pointer"
-    >
-      <GeneralIcon icon="ncSettings"></GeneralIcon>
-      Manage Columns
+  <div class="field-elements rounded-lg">
+    <div class="py-1">
+      <a-input
+        v-model:value="filterQuery"
+        :placeholder="$t('placeholder.searchFields')"
+        class="nc-field-elements-search !h-[26px]"
+      >
+        <template #prefix> <GeneralIcon icon="ncSearch" class="mr-2" /> </template>
+      </a-input>
     </div>
-    <template #overlay>
-      <div class="field-elements rounded-lg">
-        <div class="py-1">
-          <a-input
-            v-model:value="filterQuery"
-            :placeholder="$t('placeholder.searchFields')"
-            class="nc-field-elements-search !h-[34px]"
-          >
-            <template #prefix> <GeneralIcon icon="ncSearch" class="mr-2" /> </template>
-          </a-input>
-        </div>
 
+    <div
+      class="flex flex-col nc-scrollbar-thin max-h-[205px] overflow-y-auto border-t-1 border-nc-border-gray-medium"
+      style="scrollbar-gutter: stable !important"
+    >
+      <div>
         <div
-          class="flex flex-col nc-scrollbar-thin max-h-[205px] overflow-y-auto border-t-1 border-nc-border-gray-medium"
-          style="scrollbar-gutter: stable !important"
+          v-if="filterQuery.length && !filteredFieldSet.size"
+          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
         >
-          <div>
-            <div
-              v-if="filterQuery.length && !filteredFieldList.length"
-              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
-            >
-              <img
-                src="~assets/img/placeholder/no-search-result-found.png"
-                class="!w-[164px] flex-none"
-                alt="No search results found"
-              />
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[164px] flex-none"
+            alt="No search results found"
+          />
 
-              {{ $t('title.noResultsMatchedYourSearch') }}
-            </div>
-
-            <template v-for="field in filteredFieldList" :key="field.id">
-              <FieldElement
-                :field="field"
-                :icon="getIcon(metaColumnById[field.id]!)"
-                @click.stop="updateChecked(!isChecked(field), field)"
-              >
-                <template #suffixIcon>
-                  <a-checkbox
-                    :disabled="selectedFields.length === 1 && isChecked(field)"
-                    :checked="isChecked(field)"
-                    @click.stop
-                    @update:checked="(checked) => updateChecked(checked, field)"
-                  />
-                </template>
-              </FieldElement>
-            </template>
-          </div>
+          {{ $t('title.noResultsMatchedYourSearch') }}
         </div>
+        <Draggable v-model="selectedFields" handle=".cursor-move">
+          <template #item="{ element: field }">
+            <FieldElement
+              v-show="filteredFieldSet.has(field.id)"
+              :field="metaColumnById[field.id]!"
+              :icon="getIcon(metaColumnById[field.id]!)"
+              display-drag-handle
+              @click.stop="updateChecked(!isChecked(field.id), field.id)"
+            >
+              <template #suffixIcon>
+                <NcSwitch :disabled="isSingleFieldSelected && isChecked(field.id)" :checked="isChecked(field.id)" size="xsmall" />
+              </template>
+            </FieldElement>
+          </template>
+        </Draggable>
       </div>
-    </template>
-  </NcDropdown>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>

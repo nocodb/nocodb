@@ -1,7 +1,11 @@
 import isURL, { type IsURLOptions } from 'validator/lib/isURL'
 import { decode } from 'html-entities'
+import { LRUCache } from 'lru-cache'
 
-export const replaceUrlsWithLink = (text: string): boolean | string => {
+const replaceUrlsWithLinkCache: LRUCache<string, boolean | string> = new LRUCache({
+  max: 1000,
+})
+const _replaceUrlsWithLink = (text: string): boolean | string => {
   if (!text) {
     return false
   }
@@ -33,7 +37,22 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrl ? out : false
 }
 
+export const replaceUrlsWithLink = (text: string) => {
+  if (replaceUrlsWithLinkCache.has(text)) {
+    return replaceUrlsWithLinkCache.get(text)!
+  }
+  const result = _replaceUrlsWithLink(text)
+  replaceUrlsWithLinkCache.set(text, result)
+  return result
+}
+
+const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; url?: string }>> = new LRUCache({
+  max: 1000,
+})
 export function getFormulaTextSegments(anchorLinkHTML: string) {
+  if (formulaTextSegmentsCache.has(anchorLinkHTML)) {
+    return formulaTextSegmentsCache.get(anchorLinkHTML)!
+  }
   const container = document.createElement('div')
   container.innerHTML = anchorLinkHTML
 
@@ -56,6 +75,7 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
   }
 
   container.childNodes.forEach(traverseNodes)
+  formulaTextSegmentsCache.set(anchorLinkHTML, result)
   return result
 }
 

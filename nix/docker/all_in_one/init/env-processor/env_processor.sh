@@ -2,16 +2,19 @@
 
 envs_docker_def=' HOME  HOSTNAME  OLDPWD  PATH  PORT  PWD  SHLVL TERM '
 aio_env_prefix='aio_'
-nocodb_env_path='/run/nocodb.env'
+nocodb_env_path='/run/nocodb.dynamic.env'
 kernal_env_store_dir="/run/kernelenvs"
 
 aio_postgres_enable=true
 aio_minio_enable=true
 
 env_passthrough() {
-	for key in "$kernal_env_store_dir"/*; do
-		# ignore aio envs
+	for file in "$kernal_env_store_dir"/*; do
+		key="$(basename "$file")"
+
 		case "$key" in
+		"_") continue ;;
+		# ignore aio envs
 		"$aio_env_prefix"*) continue ;;
 		esac
 
@@ -20,22 +23,24 @@ env_passthrough() {
 		*" $key "*) continue ;;
 		esac
 
-		value="$(cat "$kernal_env_store_dir/$key")"
+		echo "$key=$(cat "$file")" >> "$nocodb_env_path"
 	done
 }
 
 env_aio_set() {
-	for key in "$kernal_env_store_dir"/*; do
+	for file in "$kernal_env_store_dir"/*; do
+		key="$(basename "$file")"
+
 		case "$key" in
 		"$aio_env_prefix"*) : ;;
 		*) continue ;
 		esac
-		value="$(cat "$kernal_env_store_dir/$key")"
+		value="$(cat "$file")"
 
 		case "$key" in
 		aio_postgres_enable) aio_postgres_enable="$value" ;;
 		aio_minio_enable) aio_minio_enable="$value" ;;
-		*) echo env processor: ignoring unknown env "$key"
+		*) echo env processor: ignoring unknown aio env "$key=$value"
 		esac
 	done
 }

@@ -1,7 +1,5 @@
 {
-  s6-rc,
   stdenv,
-  cpio,
 }:
 
 stdenv.mkDerivation {
@@ -12,20 +10,11 @@ stdenv.mkDerivation {
     "fixupPhase"
   ];
 
-  nativeBuildInputs = [
-    s6-rc
-    cpio
-  ];
-
   installPhase = ''
-    mkdir -p "$out/etc"
-    cp -r ${./configs} "$out/etc/s6-confs"
+    mkdir -p $out/etc
+    cp -r ${./configs} $out/etc/s6-confs
 
-    s6-rc-compile compiled ${./services}
-
-    mkdir -p $out/share/s6-service-compiled
-    cd compiled
-    find . | cpio -Hnewc --create > $out/share/s6-service-compiled/archive.cpio
-    cd -
+    mkdir -p $out/share/s6
+    cp -r ${./services} $out/share/s6/services
   '';
 }

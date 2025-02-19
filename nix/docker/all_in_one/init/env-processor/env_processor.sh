@@ -4,9 +4,14 @@ envs_docker_def=' HOME  HOSTNAME  OLDPWD  PATH  PORT  PWD  SHLVL TERM '
 aio_env_prefix='aio_'
 nocodb_env_path='/run/nocodb.dynamic.env'
 kernal_env_store_dir="/run/kernelenvs"
+s6_services_temp_path='/run/s6-service-temp'
 
 aio_postgres_enable=true
 aio_minio_enable=true
+
+log() {
+	echo env processor: "$@"
+}
 
 env_passthrough() {
 	for file in "$kernal_env_store_dir"/*; do
@@ -40,18 +45,34 @@ env_aio_set() {
 		case "$key" in
 		aio_postgres_enable) aio_postgres_enable="$value" ;;
 		aio_minio_enable) aio_minio_enable="$value" ;;
-		*) echo env processor: ignoring unknown aio env "$key=$value"
+		*) log ignoring unknown aio env "$key=$value"
 		esac
 	done
 }
 
 env_aio_act() {
 	# TODO
-	"$aio_postgres_enable" &&
-		:
+	if "$aio_postgres_enable"; then
+		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/postgresql
 
-	"$aio_minio_enable" &&
-		:
+		cat <<- EOF >> "$nocodb_env_path"
+			NC_S3_ACCESS_KEY="minioadmin"
+			NC_S3_ACCESS_SECRET="minioadmin"
+			NC_S3_ENDPOINT="http://127.0.0.1:9000"
+		EOF
+
+		log enabled postgresql
+	fi
+
+	if "$aio_minio_enable"; then
+		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/minio
+
+		cat <<- EOF >> "$nocodb_env_path"
+			DATABASE_URL="postgresql:///nocodb?host=/run/postgresql&user=postgres"
+		EOF
+
+		log enabled minio
+	fi
 }
 
 ##########

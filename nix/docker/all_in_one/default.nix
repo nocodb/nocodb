@@ -21,7 +21,7 @@ let
 
   init = callPackage ./init { };
   pgconf = callPackage ./pgconf.nix { };
-  s6-services-compiled = callPackage ./init/s6-services-compiled { };
+  s6-services = callPackage ./init/s6-services { };
 in
 dockerTools.buildLayeredImage {
   name = "nocodb_aio";
@@ -42,7 +42,7 @@ dockerTools.buildLayeredImage {
     vim
 
     pgconf
-    s6-services-compiled
+    s6-services
 
     s6
     s6-rc

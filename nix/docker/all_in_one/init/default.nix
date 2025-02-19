@@ -15,7 +15,7 @@ let
   s6-linux-init = callPackage ./s6-linux-init {
     inherit base_dir;
   };
-  s6-service-compiled = callPackage ./s6-services-compiled { };
+  s6-services = callPackage ./s6-services { };
   env-processor = callPackage ./env-processor { };
 in
 writeShellApplication {
@@ -28,7 +28,6 @@ writeShellApplication {
     shadow
 
     s6-linux-init
-    s6-service-compiled
   ];
 
   text = ''
@@ -43,10 +42,11 @@ writeShellApplication {
     cd -
 
     # setup envs
+    cp -r ${s6-services}/share/s6/services  /run/s6-service-temp
     ${lib.getExe env-processor}
 
     # compile services
-    s6-rc-compile ${srv_compile_dir} ${s6-service-compiled}/share/s6/services
+    s6-rc-compile ${srv_compile_dir} /run/s6-service-temp
 
     # setup users & groups
     ${dockerTools.shadowSetup}

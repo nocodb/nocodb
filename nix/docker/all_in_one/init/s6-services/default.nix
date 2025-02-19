@@ -3,7 +3,7 @@
 }:
 
 stdenv.mkDerivation {
-  name = "s6-services-compiled";
+  name = "s6-services";
 
   phases = [
     "installPhase"

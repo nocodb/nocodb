@@ -65,6 +65,7 @@ export interface SelectedUserType {
   meta: any
   display_name?: string
   email: string
+  deleted?: boolean
 }
 
 /**
@@ -99,6 +100,7 @@ export const getSelectedUsers = (
           label: user?.display_name || user?.email,
           value: user.id,
           meta: user.meta,
+          deleted: user?.deleted,
           display_name: user?.display_name,
           email: user?.email,
         })
@@ -109,10 +111,12 @@ export const getSelectedUsers = (
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
           const label = item?.display_name || item?.email
+          const user = optionsMap[item.id]
           if (label) {
             acc.push({
               label,
               value: item.id,
+              deleted: user?.deleted,
               meta: item?.meta,
               display_name: item?.display_name,
               email: item?.email,

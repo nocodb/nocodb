@@ -41,7 +41,7 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
 
   function traverseNodes(node: ChildNode) {
     if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent?.trim()
+      const text = node.textContent
       if (text) {
         result.push({ text })
       }

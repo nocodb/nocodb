@@ -10,11 +10,10 @@
 }:
 let
   base_dir = "/run/s6-init";
-  kernal_env_store_dir = "/run/kernalenvs";
   srv_compile_dir = "/run/s6-service-compiled";
 
   s6-linux-init = callPackage ./s6-linux-init {
-    inherit base_dir kernal_env_store_dir;
+    inherit base_dir;
   };
   s6-service-compiled = callPackage ./s6-services-compiled { };
   env-processor = callPackage ./env-processor { };
@@ -42,9 +41,6 @@ writeShellApplication {
     cd ${base_dir}/
     cpio --extract -d < ${s6-linux-init}
     cd -
-
-    # setup kernal_env_store_dir
-    mkdir -p ${kernal_env_store_dir}
 
     # setup compiled services
     mkdir -p ${srv_compile_dir}

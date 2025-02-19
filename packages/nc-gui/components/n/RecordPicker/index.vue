@@ -128,7 +128,7 @@ whenever(isOpen, () => {
     :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
     <NcButton type="secondary" size="small" icon-position="right" full-width :class="{ 'record-picker-active': isOpen }">
-      <span class="truncate text-left">{{ props.label }}</span>
+      <span class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
       <template #icon>
         <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" />
       </template>

@@ -70,7 +70,7 @@ const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachmen
           <label>Weight</label>
           <NcSelect v-model:value="fieldWidget.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
             </a-select-option>
           </NcSelect>
         </div>

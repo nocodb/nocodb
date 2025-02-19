@@ -50,7 +50,7 @@ function toggleBorderLock() {
 <template>
   <GroupedSettings title="Border">
     <div class="flex gap-2 items-center">
-      <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
+      <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1 relative -left-[18px]">
         <div>
           <NonNullableNumberInput v-model="borderTop" />
         </div>

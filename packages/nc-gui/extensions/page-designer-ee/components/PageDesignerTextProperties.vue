@@ -169,7 +169,7 @@ function onTextFieldDelete() {
           <label>Weight</label>
           <NcSelect v-model:value="textWidget.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
             </a-select-option>
           </NcSelect>
         </div>

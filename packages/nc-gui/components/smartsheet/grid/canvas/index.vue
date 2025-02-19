@@ -377,7 +377,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const onNewRecordToGridClick = () => {
@@ -566,7 +566,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
       break
   }
 
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 // check exact row meta region hovered and return the cursor type
@@ -1318,7 +1318,7 @@ const reloadViewDataHookHandler = async () => {
   calculateSlices()
   await updateVisibleRows()
 
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 let rafId: number | null = null
@@ -1501,6 +1501,9 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
     saveEmptyRow(rowObj, before)
   }
 
+  calculateSlices()
+  requestAnimationFrame(triggerRefreshCanvas)
+
   nextTick().then(() => {
     activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1 }
     selection.value.startRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
@@ -1650,11 +1653,11 @@ eventBus.on(async (event, payload) => {
     activeCell.value.row = -1
     activeCell.value.column = -1
     removeRowIfNew(payload)
-    triggerRefreshCanvas()
+    requestAnimationFrame(triggerRefreshCanvas)
   } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     // This event is triggered when a field is updated
     calculateSlices()
-    triggerRefreshCanvas()
+    requestAnimationFrame(triggerRefreshCanvas)
   }
 })
 
@@ -1682,7 +1685,7 @@ onClickOutside(
       editEnabled.value = null
       isFillHandlerActive.value = false
       selection.value.clear()
-      triggerRefreshCanvas()
+      requestAnimationFrame(triggerRefreshCanvas)
     }
   },
   {

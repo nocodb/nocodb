@@ -1,5 +1,10 @@
-import { type ColumnType } from 'nocodb-sdk'
-import { renderSingleLineText } from '../utils/canvas'
+import { type ColumnType, FormulaDataTypes, handleTZ } from 'nocodb-sdk'
+import {
+  defaultOffscreen2DContext,
+  isBoxHovered,
+  renderMultiLineURLWithPrefixAndSuffix,
+  renderSingleLineText,
+} from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
@@ -13,6 +18,7 @@ import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
+import { FloatCellRenderer } from './Number'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
@@ -36,7 +42,7 @@ function getDisplayValueCellRenderer(column: ColumnType) {
 
 export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x, y, padding } = props
+    const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268' } = props
     const colMeta = parseProp(column.meta)
     if (colMeta?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
@@ -57,10 +63,65 @@ export const FormulaCellRenderer: CellRenderer = {
         })
         return
       }
-      SingleLineTextCellRenderer.render(ctx, props)
+
+      const urls = replaceUrlsWithLink(result)
+      const maxWidth = width - padding * 2
+      if (typeof urls === 'string') {
+        const { label, suffixText, prefixText } = getFormulaLabelAndUrl(urls)
+        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.fillStyle = pv ? '#3366FF' : textColor
+        renderMultiLineURLWithPrefixAndSuffix(ctx, {
+          urlText: label,
+          height,
+          maxWidth,
+          prefixText,
+          suffixText,
+          x: x + padding,
+          y: Math.max(y, 36),
+          lineHeight: 16,
+          underlineOffset: y < 36 ? 0 : 3,
+        })
+        return
+      }
+
+      SingleLineTextCellRenderer.render(ctx, {
+        ...props,
+        value: result,
+        formula: true,
+      })
     }
   },
   handleClick: async (props) => {
+    const { x, y, width, height } = props.getCellPosition(props.column, props.row.rowMeta.rowIndex!)
+    const baseStore = useBase()
+    const { isPg } = baseStore
+    const result = isPg(props.column.columnObj.source_id) ? renderValue(handleTZ(props.value)) : renderValue(props.value)
+    const urls = replaceUrlsWithLink(result)
+    const padding = 10
+    const maxWidth = width - padding * 2
+    const pv = props.column.pv
+    const textColor = '#4a5268'
+    if (typeof urls === 'string') {
+      const { label, suffixText, prefixText, url } = getFormulaLabelAndUrl(urls)
+      const ctx = defaultOffscreen2DContext
+      ctx.font = `${pv ? 600 : 500} 13px Manrope`
+      ctx.fillStyle = pv ? '#3366FF' : textColor
+      const boxes = renderMultiLineURLWithPrefixAndSuffix(ctx, {
+        urlText: label,
+        height,
+        maxWidth,
+        prefixText,
+        suffixText,
+        x: x + padding,
+        y: Math.max(y, 36),
+        lineHeight: 16,
+        underlineOffset: y < 36 ? 0 : 3,
+      })
+      if (boxes.some((box) => isBoxHovered(box, props.mousePosition))) {
+        window.open(url, '_blank')
+      }
+      return true
+    }
     // Todo: show inline warning
     if (props.event?.detail === 2) {
       showFieldEditWarning()

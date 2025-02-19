@@ -1157,5 +1157,78 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   return abstractType
 }
 
+export function renderMultiLineURLWithPrefixAndSuffix(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  params: {
+    urlText: string
+    prefixText: string
+    suffixText: string
+    x: number
+    y: number
+    maxWidth: number
+    height: number
+    lineHeight: number
+    underlineOffset: number
+  },
+): { x: number; y: number; width: number; height: number }[] {
+  const { urlText, prefixText, suffixText, x, y, maxWidth, height, lineHeight, underlineOffset } = params
+
+  let currentX = x
+  let currentY = y
+  let remainingHeight = height
+
+  const urlRects: { x: number; y: number; width: number; height: number }[] = []
+
+  const renderText = (text: string, isUrl: boolean): void => {
+    const words = text.split(' ')
+
+    let wordCount = 0
+    for (const word of words) {
+      wordCount++
+      const separator = wordCount === words.length ? '' : ' '
+      const wordWidth = ctx.measureText(word + separator).width
+
+      if (currentX + wordWidth > x + maxWidth) {
+        currentX = x
+        currentY += lineHeight
+        remainingHeight -= lineHeight
+
+        if (remainingHeight < lineHeight) {
+          return // Stop rendering if out of height
+        }
+      }
+
+      ctx.fillText(word + separator, currentX, currentY + lineHeight * 0.8) // Adjust vertical position
+
+      if (isUrl) {
+        urlRects.push({
+          x: currentX,
+          y: currentY,
+          width: wordWidth,
+          height: lineHeight,
+        })
+
+        const underlineY = currentY + lineHeight + underlineOffset
+        ctx.strokeStyle = 'black'
+        ctx.beginPath()
+        ctx.moveTo(currentX, underlineY)
+        ctx.lineTo(currentX + wordWidth, underlineY)
+        ctx.stroke()
+      }
+
+      currentX += wordWidth
+    }
+  }
+
+  // Render prefix
+  renderText(prefixText, false)
+
+  renderText(urlText, true)
+
+  // Render suffix
+  renderText(suffixText, false)
+
+  return urlRects
+}
 const offscreenCanvas = new OffscreenCanvas(0, 0)
 export const defaultOffscreen2DContext = offscreenCanvas.getContext('2d')!

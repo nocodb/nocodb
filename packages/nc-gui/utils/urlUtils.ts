@@ -33,16 +33,30 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrl ? out : false
 }
 
-export function getFormulaLabelAndUrl(anchorLinkHTML: string) {
-  const parser = new DOMParser()
-  const dom = parser.parseFromString(anchorLinkHTML, 'text/html')
-  const anchor = dom.querySelector('a')
-  return {
-    label: anchor?.textContent ?? '',
-    url: anchor?.href ?? '',
-    suffixText: anchor?.nextSibling?.nodeValue ?? '',
-    prefixText: anchor?.previousSibling?.nodeValue ?? '',
+export function getFormulaTextSegments(anchorLinkHTML: string) {
+  const container = document.createElement('div')
+  container.innerHTML = anchorLinkHTML
+
+  const result: Array<{ text: string; url?: string }> = []
+
+  function traverseNodes(node: ChildNode) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim()
+      if (text) {
+        result.push({ text })
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      if ((node as Element).tagName === 'A') {
+        const anchor = node as HTMLAnchorElement
+        result.push({ text: node.textContent ?? '', url: anchor.href })
+      } else {
+        node.childNodes.forEach(traverseNodes)
+      }
+    }
   }
+
+  container.childNodes.forEach(traverseNodes)
+  return result
 }
 
 export const isValidURL = (str: string, extraProps?: IsURLOptions) => {

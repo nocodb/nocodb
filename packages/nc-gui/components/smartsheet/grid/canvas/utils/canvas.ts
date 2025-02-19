@@ -1157,12 +1157,10 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   return abstractType
 }
 
-export function renderMultiLineURLWithPrefixAndSuffix(
+export function renderFormulaURL(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: {
-    urlText: string
-    prefixText: string
-    suffixText: string
+    texts: Array<{ text: string; url?: string }>
     x: number
     y: number
     maxWidth: number
@@ -1170,16 +1168,16 @@ export function renderMultiLineURLWithPrefixAndSuffix(
     lineHeight: number
     underlineOffset: number
   },
-): { x: number; y: number; width: number; height: number }[] {
-  const { urlText, prefixText, suffixText, x, y, maxWidth, height, lineHeight, underlineOffset } = params
+): { x: number; y: number; width: number; height: number; url?: string }[] {
+  const { texts, x, y, maxWidth, height, lineHeight, underlineOffset } = params
 
   let currentX = x
   let currentY = y
   let remainingHeight = height
 
-  const urlRects: { x: number; y: number; width: number; height: number }[] = []
+  const urlRects: { x: number; y: number; width: number; height: number; url: string }[] = []
 
-  const renderText = (text: string, isUrl: boolean): void => {
+  const renderText = (text: string, url?: string): void => {
     const words = text.split(' ')
 
     let wordCount = 0
@@ -1200,12 +1198,13 @@ export function renderMultiLineURLWithPrefixAndSuffix(
 
       ctx.fillText(word + separator, currentX, currentY + lineHeight * 0.8) // Adjust vertical position
 
-      if (isUrl) {
+      if (url) {
         urlRects.push({
           x: currentX,
           y: currentY,
           width: wordWidth,
           height: lineHeight,
+          url: url,
         })
 
         const underlineY = currentY + lineHeight + underlineOffset
@@ -1220,13 +1219,9 @@ export function renderMultiLineURLWithPrefixAndSuffix(
     }
   }
 
-  // Render prefix
-  renderText(prefixText, false)
-
-  renderText(urlText, true)
-
-  // Render suffix
-  renderText(suffixText, false)
+  for (const item of texts) {
+    renderText(item.text, item.url)
+  }
 
   return urlRects
 }

@@ -1,10 +1,5 @@
 import { type ColumnType, FormulaDataTypes, handleTZ } from 'nocodb-sdk'
-import {
-  defaultOffscreen2DContext,
-  isBoxHovered,
-  renderMultiLineURLWithPrefixAndSuffix,
-  renderSingleLineText,
-} from '../utils/canvas'
+import { defaultOffscreen2DContext, isBoxHovered, renderFormulaURL, renderSingleLineText } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
@@ -67,15 +62,13 @@ export const FormulaCellRenderer: CellRenderer = {
       const urls = replaceUrlsWithLink(result)
       const maxWidth = width - padding * 2
       if (typeof urls === 'string') {
-        const { label, suffixText, prefixText } = getFormulaLabelAndUrl(urls)
+        const texts = getFormulaTextSegments(urls)
         ctx.font = `${pv ? 600 : 500} 13px Manrope`
         ctx.fillStyle = pv ? '#3366FF' : textColor
-        renderMultiLineURLWithPrefixAndSuffix(ctx, {
-          urlText: label,
+        renderFormulaURL(ctx, {
+          texts,
           height,
           maxWidth,
-          prefixText,
-          suffixText,
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
@@ -102,23 +95,22 @@ export const FormulaCellRenderer: CellRenderer = {
     const pv = props.column.pv
     const textColor = '#4a5268'
     if (typeof urls === 'string') {
-      const { label, suffixText, prefixText, url } = getFormulaLabelAndUrl(urls)
+      const texts = getFormulaTextSegments(urls)
       const ctx = defaultOffscreen2DContext
       ctx.font = `${pv ? 600 : 500} 13px Manrope`
       ctx.fillStyle = pv ? '#3366FF' : textColor
-      const boxes = renderMultiLineURLWithPrefixAndSuffix(ctx, {
-        urlText: label,
+      const boxes = renderFormulaURL(ctx, {
+        texts,
         height,
         maxWidth,
-        prefixText,
-        suffixText,
         x: x + padding,
         y: y + 3,
         lineHeight: 16,
         underlineOffset: y < 36 ? 0 : 3,
       })
-      if (boxes.some((box) => isBoxHovered(box, props.mousePosition))) {
-        window.open(url, '_blank')
+      const hoveredBox = boxes.find((box) => isBoxHovered(box, props.mousePosition))
+      if (hoveredBox) {
+        window.open(hoveredBox.url, '_blank')
       }
       return true
     }

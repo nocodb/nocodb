@@ -77,7 +77,7 @@ export const FormulaCellRenderer: CellRenderer = {
           prefixText,
           suffixText,
           x: x + padding,
-          y: Math.max(y, 36) + 3,
+          y: y + 3,
           lineHeight: 16,
           underlineOffset: y < 36 ? 0 : 3,
         })
@@ -113,7 +113,7 @@ export const FormulaCellRenderer: CellRenderer = {
         prefixText,
         suffixText,
         x: x + padding,
-        y: Math.max(y, 36) + 3,
+        y: y + 3,
         lineHeight: 16,
         underlineOffset: y < 36 ? 0 : 3,
       })

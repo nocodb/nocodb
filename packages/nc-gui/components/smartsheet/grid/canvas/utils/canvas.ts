@@ -26,6 +26,14 @@ const barcodeCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
 
+export const replaceUrlsWithLinkCache: LRUCache<string, boolean | string> = new LRUCache({
+  max: 1000,
+})
+
+export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; url?: string }>> = new LRUCache({
+  max: 1000,
+})
+
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */
@@ -35,6 +43,8 @@ export const clearTextCache = () => {
   abstractTypeCache.clear()
   markdownTextCache.clear()
   barcodeCache.clear()
+  replaceUrlsWithLinkCache.clear()
+  formulaTextSegmentsCache.clear()
 }
 
 interface TruncateTextWithInfoType {

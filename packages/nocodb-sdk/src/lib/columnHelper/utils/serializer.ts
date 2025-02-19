@@ -1,7 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNumber, ncIsString } from '~/lib/is';
+import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
@@ -100,4 +100,12 @@ export const serializeJsonValue = (value: any) => {
   } catch {
     return null;
   }
+};
+
+export const serializeCurrencyValue = (value: any) => {
+  if (ncIsNaN(value)) {
+    return null;
+  }
+
+  return serializeDecimalValue(value);
 };

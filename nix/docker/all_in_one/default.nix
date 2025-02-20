@@ -15,12 +15,19 @@
   vim,
   minio,
   glibc,
+  minica,
+  gnused,
+  nginx,
+  nginxModules,
 }:
 let
-  port = 80;
+  nginxCustom = nginx.override {
+    modules = lib.unique (nginx.modules ++ [ nginxModules.brotli ]);
+  };
 
   init = callPackage ./init { };
-  pgconf = callPackage ./pgconf.nix { };
+  pgconf = callPackage ./confs/postgres.nix { };
+  nginxconf = callPackage ./confs/nginx.nix { };
   s6-services = callPackage ./init/s6-services { };
 in
 dockerTools.buildLayeredImage {
@@ -32,16 +39,20 @@ dockerTools.buildLayeredImage {
     postgresql
     execline.bin
     minio
+    nginxCustom
     glibc.getent
     coreutils
 
     util-linux
     gnugrep
+    gnused
+    minica
 
     htop
     vim
 
     pgconf
+    nginxconf
     s6-services
 
     s6
@@ -52,11 +63,10 @@ dockerTools.buildLayeredImage {
   config = {
     WorkingDir = "/var/lib";
 
-    Env = [
-      "PORT=${builtins.toString port}"
-    ];
     ExposedPorts = {
-      "${builtins.toString port}/tcp" = { };
+      "80/tcp" = { };
+      "443/tcp" = { };
+      "9000/tcp" = { };
     };
 
     Entrypoint = [

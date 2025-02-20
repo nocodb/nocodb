@@ -12,9 +12,8 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out/etc
-    cp -r ${./configs} $out/etc/s6-confs
 
-    mkdir -p $out/share/s6
-    cp -r ${./services} $out/share/s6/services
+    cp -r ${./configs} $out/etc/s6-confs
+    cp -r ${./services} $out/etc/s6-services
   '';
 }

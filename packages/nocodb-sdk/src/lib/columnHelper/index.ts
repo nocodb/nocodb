@@ -1,6 +1,7 @@
 import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
 import { CheckboxHelper } from './columns/Checkbox';
+import { CurrencyHelper } from './columns/Currency';
 import { DurationHelper } from './columns/Duration';
 import { NumberHelper } from './columns/Number';
 import { PercentHelper } from './columns/Percent';
@@ -20,6 +21,7 @@ export class ColumnHelper {
     [UITypes.Duration]: DurationHelper,
     [UITypes.Percent]: PercentHelper,
     [UITypes.Checkbox]: CheckboxHelper,
+    // [UITypes.Currency]: CurrencyHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

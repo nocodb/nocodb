@@ -49,7 +49,7 @@ export function validateDateWithUnknownFormat(v: string) {
 }
 
 export function getDateFormat(v: string) {
-  for (const format of dateFormats) {
+  for (const format of dateFormats.concat(dateMonthFormats)) {
     if (dayjs(v, format, true).isValid()) {
       return format;
     }

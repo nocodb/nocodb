@@ -960,14 +960,26 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               {
                 type: JSEPNode.BINARY_EXP,
                 operator: '+',
-                left: pt.arguments[0],
+                left: {
+                  type: 'CallExpression',
+                  callee: { type: 'Identifier', name: 'COALESCE' },
+                  arguments: [ pt.arguments[0], { type: 'Literal', value: 0 } ],
+                },
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
               a,
               prevBinaryOp,
             );
           } else {
-            return fn(pt.arguments[0], a, prevBinaryOp);
+            return fn(
+              {
+                type: 'CallExpression',
+                callee: { type: 'Identifier', name: 'COALESCE' },
+                arguments: [ pt.arguments[0], { type: 'Literal', value: 0 } ],
+              },
+              a,
+              prevBinaryOp
+            );
           }
           break;
         case 'CONCAT':

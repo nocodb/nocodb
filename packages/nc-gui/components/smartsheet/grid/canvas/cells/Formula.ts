@@ -60,11 +60,13 @@ export const FormulaCellRenderer: CellRenderer = {
         formula: true,
       })
     } else {
-      if (parseProp(column.colOptions)?.error) {
-        renderSingleLineText(ctx, {
-          text: 'ERR!',
-          x: x + padding,
-          y,
+      const result = isPg(column.source_id) ? renderValue(handleTZ(value)) : renderValue(value)
+
+      if (column?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+        FloatCellRenderer.render(ctx, {
+          ...props,
+          value: result,
+          formula: true,
         })
         return
       }

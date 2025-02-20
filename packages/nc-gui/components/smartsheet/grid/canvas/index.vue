@@ -566,6 +566,8 @@ let prevMenuState: {
 } = {}
 
 async function handleMouseDown(e: MouseEvent) {
+  document.addEventListener('mouseup', handleMouseUp)
+
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
   prevMenuState = {
     isCreateOrEditColumnDropdownOpen: isCreateOrEditColumnDropdownOpen.value,
@@ -751,8 +753,9 @@ function scrollToCell(row?: number, column?: number): void {
   }
 }
 
-const handleMouseUp = async (e: MouseEvent) => {
+async function handleMouseUp(e: MouseEvent) {
   e.preventDefault()
+  document.removeEventListener('mouseup', handleMouseUp)
   onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -763,6 +766,7 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   if (onMouseUpSelectionHandler(e)) {
     if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= ROW_META_COLUMN_WIDTH) {
+      // DO_NOTHING_HERE
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
       return
@@ -1728,7 +1732,6 @@ defineExpose({
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
-            @mouseup="handleMouseUp"
           >
           </canvas>
           <template #overlay>

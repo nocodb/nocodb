@@ -17,6 +17,7 @@ export * from './Barcode';
 export * from './QrCode';
 export * from './Formula';
 export * from './Date';
+export * from './DateTime';
 export * from './CreatedTime';
 export * from './LastModifiedTime';
 export * from './SingleLineText';

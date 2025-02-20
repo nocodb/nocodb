@@ -70,7 +70,7 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
-const onRenderEnd = () => {
+const onRender = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
 }
 
@@ -130,6 +130,11 @@ const borderProps = computed(() => {
     borderColor: widget.value.borderColor,
     borderRadius: `${widget.value.borderRadius || 0}px`,
   }
+})
+
+const tableRowHeight = computed(() => {
+  const height = +widget.value.cssStyle.match(/height:\s*(\d+)px/)[1]
+  return (height - widget.value.borderTop - widget.value.borderBottom) / ((relatedRows.value ?? []).length + 1)
 })
 </script>
 
@@ -194,6 +199,8 @@ const borderProps = computed(() => {
                     fontSize: `${widget.tableFontSettings.header.fontSize}px`,
                     lineHeight: widget.tableFontSettings.header.lineHeight,
                     fontWeight: widget.tableFontSettings.header.fontWeight,
+                    fontFamily: widget.fontFamily,
+                    height: `${tableRowHeight}px`,
                   }"
                 >
                   {{ column.title }}
@@ -211,6 +218,8 @@ const borderProps = computed(() => {
                     fontSize: `${widget.tableFontSettings.row.fontSize}px`,
                     lineHeight: widget.tableFontSettings.row.lineHeight,
                     fontWeight: widget.tableFontSettings.row.fontWeight,
+                    fontFamily: widget.fontFamily,
+                    height: `${tableRowHeight}px`,
                   }"
                 >
                   <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
@@ -248,7 +257,7 @@ const borderProps = computed(() => {
       :origin="false"
       :container="container"
       class-name="nc-moveable"
-      @render-end="onRenderEnd"
+      @render="onRender"
       @resize="onResize"
       @rotate="onRotate"
       @drag="onDrag"

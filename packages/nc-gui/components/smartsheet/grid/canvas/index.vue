@@ -179,6 +179,7 @@ const {
   selection,
   partialRowHeight,
   makeCellEditable,
+  findClickedColumn,
 
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -433,42 +434,6 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
       scroller.value?.scrollTo({ left: totalWidth.value })
     }, 200)
   }
-}
-
-function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
-  // First check fixed columns
-  let xOffset = 0
-  const fixedCols = columns.value.filter((col) => col.fixed)
-
-  for (const column of fixedCols) {
-    const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
-    if (x >= xOffset && x < xOffset + width) {
-      if (!column.uidt) {
-        xOffset += width
-        continue
-      }
-      return { column, xOffset }
-    }
-    xOffset += width
-  }
-
-  // Then check scrollable columns
-  const visibleStart = colSlice.value.start
-  const visibleEnd = colSlice.value.end
-
-  const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
-
-  xOffset = startOffset - scrollLeft
-
-  for (let i = visibleStart; i < visibleEnd; i++) {
-    const width = columnWidths.value[i] ?? 180
-    if (x >= xOffset && x < xOffset + width) {
-      return { column: columns.value[i], xOffset }
-    }
-    xOffset += width
-  }
-
-  return { column: null, xOffset }
 }
 
 function extractHoverMetaColRegions(row: Row) {
@@ -1330,7 +1295,11 @@ const handleScroll = (e: { left: number; top: number }) => {
 
   rafId = requestAnimationFrame(() => {
     scrollTop.value = Math.max(0, e.top)
-    scrollLeft.value = Math.max(0, e.left)
+    if (totalWidth.value < width.value) {
+      scrollLeft.value = 0
+    } else {
+      scrollLeft.value = Math.max(0, e.left)
+    }
     calculateSlices()
     triggerRefreshCanvas()
   })

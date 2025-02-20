@@ -178,7 +178,7 @@ const generateAIBulk = async () => {
   <NcMenu class="!rounded !py-0" variant="small">
     <template v-if="!vSelectedAllRecords">
       <NcMenuItem
-        v-if="isEeUI && !contextMenuCol && !isDataReadOnly && selectedRows.length"
+        v-if="isEeUI && contextMenuCol == null && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
         @click="emits('bulkUpdateDlg')"
       >
@@ -189,7 +189,7 @@ const generateAIBulk = async () => {
       </NcMenuItem>
 
       <NcMenuItem
-        v-if="!contextMenuCol && !isDataReadOnly && selectedRows.length"
+        v-if="contextMenuCol == null && !isDataReadOnly && selectedRows.length"
         key="selete-selected-rows"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
         data-testid="nc-delete-row"
@@ -221,7 +221,7 @@ const generateAIBulk = async () => {
       v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPrimaryKeyAvailable && selection.isSingleCell()"
     >
       <NcMenuItem
-        v-if="contextMenuCol && contextMenuRow"
+        v-if="contextMenuCol !== null && contextMenuRow !== null"
         key="insert-above"
         class="nc-base-menu-item"
         data-testid="context-menu-item-add-above"
@@ -234,7 +234,7 @@ const generateAIBulk = async () => {
       </NcMenuItem>
 
       <NcMenuItem
-        v-if="contextMenuCol && contextMenuRow && !isInsertBelowDisabled"
+        v-if="contextMenuCol !== null && contextMenuRow !== null && !isInsertBelowDisabled"
         key="insert-below"
         class="nc-base-menu-item"
         data-testid="context-menu-item-add-below"
@@ -245,11 +245,13 @@ const generateAIBulk = async () => {
           {{ $t('general.insertBelow') }}
         </div>
       </NcMenuItem>
-      <NcDivider v-if="contextMenuCol && contextMenuRow" />
+      <NcDivider v-if="contextMenuCol !== null && contextMenuRow !== null" />
     </template>
 
     <NcTooltip
-      v-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly && isSelectionOnlyAI.enabled"
+      v-if="
+        contextMenuCol !== null && contextMenuRow !== null && hasEditPermission && !isDataReadOnly && isSelectionOnlyAI.enabled
+      "
       :disabled="!isSelectionOnlyAI.disabled"
     >
       <template #title>
@@ -285,7 +287,7 @@ const generateAIBulk = async () => {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="contextMenuCol && contextMenuRow"
+      v-if="contextMenuCol !== null && contextMenuRow !== null"
       key="cell-copy"
       class="nc-base-menu-item"
       data-testid="context-menu-item-copy"
@@ -299,7 +301,7 @@ const generateAIBulk = async () => {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly"
+      v-if="contextMenuCol !== null && contextMenuRow !== null && hasEditPermission && !isDataReadOnly"
       key="cell-paste"
       class="nc-base-menu-item"
       data-testid="context-menu-item-paste"
@@ -315,7 +317,7 @@ const generateAIBulk = async () => {
 
     <NcMenuItem
       v-if="
-        (contextMenuCol && contextMenuRow) &&
+        (contextMenuCol != null && contextMenuRow !== null) &&
         hasEditPermission &&
         selection.isSingleCell() &&
         (isLinksOrLTAR(columns[contextMenuCol]?.columnObj!) || !columns[contextMenuCol]!.virtual) &&
@@ -333,7 +335,7 @@ const generateAIBulk = async () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-else-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly"
+      v-else-if="contextMenuCol !== null && contextMenuRow !== null && hasEditPermission && !isDataReadOnly"
       key="cells-clear"
       class="nc-base-menu-item"
       :disabled="isSelectionReadOnly"
@@ -346,7 +348,15 @@ const generateAIBulk = async () => {
       </div>
     </NcMenuItem>
 
-    <template v-if="contextMenuCol && contextMenuRow && selection.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
+    <template
+      v-if="
+        contextMenuCol !== null &&
+        contextMenuRow != null &&
+        selection.isSingleCell() &&
+        isUIAllowed('commentEdit') &&
+        !isMobileMode
+      "
+    >
       <NcDivider />
       <NcMenuItem key="add-comment" class="nc-base-menu-item" @click="commentRow(contextMenuRow)">
         <div v-e="['a:row:comment']" class="flex gap-2 items-center">
@@ -357,9 +367,9 @@ const generateAIBulk = async () => {
     </template>
 
     <template v-if="hasEditPermission && !isDataReadOnly">
-      <NcDivider v-if="!(!contextMenuCol && (selectedRows.length || vSelectedAllRecords))" />
+      <NcDivider v-if="!(!contextMenuCol !== null && (selectedRows.length || vSelectedAllRecords))" />
       <NcMenuItem
-        v-if="contextMenuCol && contextMenuRow && (selection.isSingleCell() || selection.isSingleRow())"
+        v-if="contextMenuCol !== null && contextMenuRow != null && (selection.isSingleCell() || selection.isSingleRow())"
         key="delete-row"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
         @click="confirmDeleteRow(contextMenuRow)"
@@ -371,7 +381,7 @@ const generateAIBulk = async () => {
         </div>
       </NcMenuItem>
       <NcMenuItem
-        v-else-if="contextMenuCol && contextMenuRow && deleteRangeOfRows"
+        v-else-if="contextMenuCol !== null && contextMenuRow !== null && deleteRangeOfRows"
         key="delete-selected-row"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
         @click="deleteSelectedRangeOfRows"

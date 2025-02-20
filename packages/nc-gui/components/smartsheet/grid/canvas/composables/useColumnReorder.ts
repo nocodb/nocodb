@@ -1,3 +1,5 @@
+import { parseCellWidth } from '../utils/cell'
+
 export function useColumnReorder(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: ComputedRef<CanvasGridColumn[]>,
@@ -19,15 +21,15 @@ export function useColumnReorder(
     let currentX = 0
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (const col of fixedCols) {
-      const width = parseInt(col.width, 10)
+      const width = parseCellWidth(col.width)
       if (x >= currentX && x < currentX + width) return null
       currentX += width
     }
 
-    let accWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+    let accWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     for (let i = 0; i < colSlice.value.start; i++) {
       if (!columns.value[i]?.fixed) {
-        accWidth += parseInt(columns.value[i]?.width, 10)
+        accWidth += parseCellWidth(columns.value[i]?.width)
       }
     }
 
@@ -35,7 +37,7 @@ export function useColumnReorder(
     for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
       const column = columns.value[i]
       if (!column?.fixed) {
-        const width = parseInt(column?.width ?? '', 10)
+        const width = parseCellWidth(column?.width)
         if (x >= currentX && x < currentX + width) return column
         currentX += width
       }

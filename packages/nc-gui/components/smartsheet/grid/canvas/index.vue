@@ -19,7 +19,7 @@ import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils
 import Tooltip from './Tooltip.vue'
 import Scroller from './Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
-import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
+import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from './utils/constants'
 
 const props = defineProps<{
@@ -267,7 +267,7 @@ const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.colum
 const containerRef = computed(() => scroller.value?.wrapperRef)
 
 const fixedLeftWidth = computed(() => {
-  return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+  return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 })
 
 const editEnabledCellPosition = computed(() => {
@@ -421,7 +421,7 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
         }
 
         if (!col?.fixed) {
-          width += parseInt(col.width, 10)
+          width += parseCellWidth(col.width)
         }
       }
 
@@ -441,7 +441,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   const fixedCols = columns.value.filter((col) => col.fixed)
 
   for (const column of fixedCols) {
-    const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
+    const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
     if (x >= xOffset && x < xOffset + width) {
       if (!column.uidt) {
         xOffset += width
@@ -461,7 +461,7 @@ function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColum
   xOffset = startOffset - scrollLeft
 
   for (let i = visibleStart; i < visibleEnd; i++) {
-    const width = columnWidths.value[i] ?? 10
+    const width = columnWidths.value[i] ?? 180
     if (x >= xOffset && x < xOffset + width) {
       return { column: columns.value[i], xOffset }
     }
@@ -719,7 +719,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (clickType !== MouseClickType.DOUBLE_CLICK) {
     prevActiveCell = activeCell.value
-    // If the cell is not double clicked, continue to onMouseDownSelectionHandler
+    // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
   requestAnimationFrame(triggerRefreshCanvas)
@@ -751,8 +751,7 @@ function scrollToCell(row?: number, column?: number): void {
     columns.value
       .filter((col) => col.fixed)
       .reduce((sum: number, col) => {
-        const width = typeof col.width === 'string' ? parseInt(col.width, 10) : col.width
-        return sum + (isNaN(width) ? 0 : width)
+        return sum + parseCellWidth(col.width)
       }, 0) + FIXED_COLUMN_PADDING
 
   let cellLeft = 0
@@ -762,13 +761,12 @@ function scrollToCell(row?: number, column?: number): void {
     if (!column) continue
 
     if (!column.fixed) {
-      const width = parseInt(column.width, 10)
-      cellLeft += isNaN(width) ? 0 : width
+      cellLeft += parseCellWidth(column.width)
     }
   }
 
   const currentColumnWidth = columns.value[currentColumn]?.width
-  const parsedWidth = parseInt(currentColumnWidth, 10)
+  const parsedWidth = parseCellWidth(currentColumnWidth)
   let cellRight = cellLeft + parsedWidth
 
   cellLeft += fixedWidth
@@ -881,7 +879,7 @@ const handleMouseUp = async (e: MouseEvent) => {
           requestAnimationFrame(triggerRefreshCanvas)
           return
         } else {
-          const columnWidth = parseInt(clickedColumn.width, 10)
+          const columnWidth = parseCellWidth(clickedColumn.width)
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
           if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
@@ -1082,11 +1080,9 @@ const getHeaderTooltipRegions = (
   ctx.save()
   ctx.font = '550 12px Manrope'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
-    const width = parseInt(column.width, 10)
+    const width = parseCellWidth(column.width)
     const rightPadding = 8
-    const iconSpace = rightPadding + 16
-
-    let totalIconWidth = iconSpace
+    let totalIconWidth = rightPadding + 16
 
     if (column.uidt) {
       totalIconWidth += 26
@@ -1127,6 +1123,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'columnChevron',
         disableTooltip: true,
+        text: null,
       })
     }
 
@@ -1220,10 +1217,10 @@ const handleMouseMove = (e: MouseEvent) => {
     if (!isTooltipShown) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {
-        initialOffset += parseInt(columns.value[i]!.width, 10)
+        initialOffset += parseCellWidth(columns.value[i]!.width)
       }
 
-      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
       if (mousePosition.x >= fixedWidth) {
         const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)
@@ -1316,7 +1313,7 @@ const reloadViewDataHookHandler = async () => {
   await syncCount()
 
   calculateSlices()
-  await updateVisibleRows()
+  updateVisibleRows()
 
   requestAnimationFrame(triggerRefreshCanvas)
 }
@@ -1443,7 +1440,7 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     const colIndex = columns.value.findIndex((col) => col.id === column.id)
     let xOffset = 0
     for (let i = colSlice.value.start; i < colIndex; i++) {
-      xOffset += parseInt(columns.value[i]!.width, 10)
+      xOffset += parseCellWidth(columns.value[i]?.width)
     }
     overlayStyle.value = {
       top: `${rect.top}px`,

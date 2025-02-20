@@ -441,7 +441,10 @@ const addNewRow = () => {
 useActiveKeydownListener(
   isExpanded,
   async (e: KeyboardEvent) => {
-    if (!e.altKey || isActiveInputElementExist(e)) return
+    if (!e.altKey || isNew.value || !props.showNextPrevIcons || isActiveInputElementExist(e) || isNestedExpandedFormOpenExist()) {
+      return
+    }
+
     if (e.key === 'ArrowLeft') {
       e.stopPropagation()
       if (isFirstRow.value) return

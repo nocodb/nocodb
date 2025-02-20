@@ -61,7 +61,7 @@ env_aio_set() {
 	[ "${aio_postgres_enable+set}" != set ] &&
 		aio_postgres_enable="$_aio_postgres_enable_default"
 	[ "${aio_ssl_enable+set}" != set ] &&
-		aio_ssl_enable="$_aio_ssl_domain_default"
+		aio_ssl_enable="$_aio_ssl_enable_default"
 	[ "${aio_ssl_domain+set}" != set ] &&
 		aio_ssl_domain="$_aio_ssl_domain_default"
 }

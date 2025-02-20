@@ -7,6 +7,9 @@ writeTextDir "etc/nginx.sed.conf" ''
   error_log stderr;
   daemon off;
 
+  events {
+  }
+
   http {
           # Load mime types and configure maximum size of the types hash tables.
           include ${mailcap}/etc/nginx/mime.types;

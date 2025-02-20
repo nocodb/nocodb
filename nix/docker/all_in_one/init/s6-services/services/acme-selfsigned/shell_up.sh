@@ -16,7 +16,8 @@ gen_selfsigned() {
 		--ca-cert _ca/cert.pem \
 		--domains "$aio_ssl_domain"
 
-	cat _ca/cert.pem "$aio_ssl_domain"/cert.pem > "$aio_ssl_domain"/fullchain.pem
+	cp _ca/cert.pem "$aio_ssl_domain"/chain.pem
+	cat "$aio_ssl_domain"/cert.pem "$aio_ssl_domain"/chain.pem > "$aio_ssl_domain"/fullchain.pem
 	cat "$aio_ssl_domain"/key.pem "$aio_ssl_domain"/fullchain.pem > "$aio_ssl_domain"/full.pem
 
 	touch "$aio_ssl_domain"/selfsigned

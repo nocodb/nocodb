@@ -34,10 +34,13 @@ export class ColumnHelper {
 
   // Method to retrieve the specific column class and instantiate it
   getColumn(column: ColumnType): AbstractColumnHelper | undefined {
-    if (!column) return undefined;
+    let ColumnClass: new () => AbstractColumnHelper;
 
-    const ColumnClass = this.registry[column.uidt];
-    if (!ColumnClass) return undefined;
+    if (!column || !this.registry[UITypes.SingleLineText]) {
+      ColumnClass = this.registry[UITypes.SingleLineText];
+    }
+
+    ColumnClass = this.registry[column.uidt];
 
     // Instantiate the class with the column data
     return new ColumnClass();

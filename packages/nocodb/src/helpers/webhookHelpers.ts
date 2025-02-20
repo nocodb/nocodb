@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars';
+import handlebarHelpers from 'handlebars-helpers';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
@@ -18,6 +19,10 @@ import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE } from '~/utils';
+
+handlebarHelpers({
+  handlebars: Handlebars,
+});
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);

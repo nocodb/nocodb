@@ -1,5 +1,6 @@
-import { ColumnType } from '~/lib/Api';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -9,11 +10,17 @@ export class RollupHelper extends AbstractColumnHelper {
   }
 
   // pending
-  parseValue(value: any, col: ColumnType): string | null {
+  parseValue(
+    value: any,
+    _params: SerializerOrParserFnProps['params']
+  ): string | null {
     return value?.toString();
   }
 
-  parsePlainCellValue(value: any, col: ColumnType): string {
-    return this.parseValue(value, col) ?? '';
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return this.parseValue(value, params) ?? '';
   }
 }

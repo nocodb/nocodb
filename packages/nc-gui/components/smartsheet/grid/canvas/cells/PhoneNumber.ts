@@ -3,7 +3,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected } = props
+    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected, setCursor } = props
 
     const text = value?.toString() ?? ''
 
@@ -29,6 +29,15 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         height,
         underline: isValid,
       })
+
+      const isHover = isBoxHovered(
+        { x: x + padding, y: y + padding, width: xOffset - x - padding, height: yOffset - y },
+        props.mousePosition,
+      )
+
+      if (isHover && isValid) {
+        setCursor('pointer')
+      }
 
       return {
         x: xOffset,
@@ -64,7 +73,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
     const pv = column.pv
     const { x: xOffset, y: yOffset } = renderMultiLineText(defaultOffscreen2DContext, {
       x: x + padding,
-      y,
+      y: y + padding,
       text,
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,

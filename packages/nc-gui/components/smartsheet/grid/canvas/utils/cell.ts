@@ -39,6 +39,11 @@ export const EDIT_CELL_REDUCTION = {
   6: 88,
 } as const
 
+export const parseCellWidth = (width?: string | number) => {
+  if (typeof width === 'number') return width
+  return width ? parseInt(width.replace('px', ''), 10) : 180
+}
+
 export const getSingleMultiselectColOptions = (column: ColumnType) => {
   const colOptions: {
     options: (SelectOptionType & { value: string })[]

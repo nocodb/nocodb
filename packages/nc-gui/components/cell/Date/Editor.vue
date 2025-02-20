@@ -305,6 +305,11 @@ useSelectedCellKeydownListener(
       editable.value = true
       open.value = true
     }
+
+    if (!isOpen.value && e.key === 'Enter') {
+      editable.value = true
+      open.value = true
+    }
   },
   {
     immediate: true,

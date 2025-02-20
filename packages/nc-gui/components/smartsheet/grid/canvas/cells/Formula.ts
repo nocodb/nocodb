@@ -1,5 +1,5 @@
-import { type ColumnType } from 'nocodb-sdk'
-import { renderSingleLineText } from '../utils/canvas'
+import { type ColumnType, FormulaDataTypes, handleTZ } from 'nocodb-sdk'
+import { defaultOffscreen2DContext, isBoxHovered, renderFormulaURL, renderSingleLineText } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
@@ -13,6 +13,7 @@ import { RatingCellRenderer } from './Rating'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
+import { FloatCellRenderer } from './Number'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
@@ -36,8 +37,17 @@ function getDisplayValueCellRenderer(column: ColumnType) {
 
 export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x, y, padding } = props
+    const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268', mousePosition, setCursor } = props
     const colMeta = parseProp(column.meta)
+    if (parseProp(column.colOptions)?.error) {
+      renderSingleLineText(ctx, {
+        text: 'ERR!',
+        x: x + padding,
+        y,
+      })
+      return
+    }
+
     if (colMeta?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
@@ -47,20 +57,79 @@ export const FormulaCellRenderer: CellRenderer = {
           ...colMeta.display_column_meta,
         },
         readonly: true,
+        formula: true,
       })
     } else {
-      if (parseProp(column.colOptions)?.error) {
-        renderSingleLineText(ctx, {
-          text: 'ERR!',
-          x: x + padding,
-          y,
+      const result = isPg(column.source_id) ? renderValue(handleTZ(value)) : renderValue(value)
+
+      if (column?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+        FloatCellRenderer.render(ctx, {
+          ...props,
+          value: result,
+          formula: true,
         })
         return
       }
-      SingleLineTextCellRenderer.render(ctx, props)
+
+      const urls = replaceUrlsWithLink(result)
+      const maxWidth = width - padding * 2
+      if (typeof urls === 'string') {
+        const texts = getFormulaTextSegments(urls)
+        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.fillStyle = pv ? '#3366FF' : textColor
+        const boxes = renderFormulaURL(ctx, {
+          texts,
+          height,
+          maxWidth,
+          x: x + padding,
+          y: y + 3,
+          lineHeight: 16,
+          underlineOffset: y < 36 ? 0 : 3,
+        })
+        const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
+        if (hoveredBox) {
+          setCursor('pointer')
+        }
+        return
+      }
+
+      SingleLineTextCellRenderer.render(ctx, {
+        ...props,
+        value: result,
+        formula: true,
+      })
     }
   },
   handleClick: async (props) => {
+    const { x, y, width, height } = props.getCellPosition(props.column, props.row.rowMeta.rowIndex!)
+    const baseStore = useBase()
+    const { isPg } = baseStore
+    const result = isPg(props.column.columnObj.source_id) ? renderValue(handleTZ(props.value)) : renderValue(props.value)
+    const urls = replaceUrlsWithLink(result)
+    const padding = 10
+    const maxWidth = width - padding * 2
+    const pv = props.column.pv
+    const textColor = '#4a5268'
+    if (typeof urls === 'string') {
+      const texts = getFormulaTextSegments(urls)
+      const ctx = defaultOffscreen2DContext
+      ctx.font = `${pv ? 600 : 500} 13px Manrope`
+      ctx.fillStyle = pv ? '#3366FF' : textColor
+      const boxes = renderFormulaURL(ctx, {
+        texts,
+        height,
+        maxWidth,
+        x: x + padding,
+        y: y + 3,
+        lineHeight: 16,
+        underlineOffset: y < 36 ? 0 : 3,
+      })
+      const hoveredBox = boxes.find((box) => isBoxHovered(box, props.mousePosition))
+      if (hoveredBox) {
+        window.open(hoveredBox.url, '_blank')
+      }
+      return true
+    }
     // Todo: show inline warning
     if (props.event?.detail === 2) {
       showFieldEditWarning()

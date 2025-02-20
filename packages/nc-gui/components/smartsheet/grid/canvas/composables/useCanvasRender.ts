@@ -8,6 +8,7 @@ import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
 import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from '../utils/constants'
+import { parseCellWidth } from '../utils/cell'
 
 export function useCanvasRender({
   width,
@@ -96,6 +97,7 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
+  const { isMobileMode } = useGlobal()
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -126,7 +128,8 @@ export function useCanvasRender({
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
-    const columnsWidth = totalColumnsWidth.value + (isAddingColumnAllowed.value ? plusColumnWidth : 0) - scrollLeft.value
+    const columnsWidth =
+      totalColumnsWidth.value + (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) - scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -147,7 +150,7 @@ export function useCanvasRender({
 
     let initialOffset = 1
     for (let i = 0; i < startColIndex; i++) {
-      initialOffset += parseInt(columns.value[i]!.width, 10)
+      initialOffset += parseCellWidth(columns.value[i]?.width)
     }
 
     // Regular columns
@@ -160,7 +163,7 @@ export function useCanvasRender({
 
     for (const column of visibleCols) {
       const colObj = column.columnObj
-      const width = parseInt(column.width, 10)
+      const width = parseCellWidth(column.width)
 
       if (column.fixed) {
         xOffset += width
@@ -269,7 +272,7 @@ export function useCanvasRender({
       }
     }
 
-    if (isAddingColumnAllowed.value) {
+    if (isAddingColumnAllowed.value && !isMobileMode.value) {
       ctx.fillStyle = '#F9F9FA'
       ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
       spriteLoader.renderIcon(ctx, {
@@ -357,7 +360,7 @@ export function useCanvasRender({
       xOffset = 0.5
 
       fixedCols.forEach((column) => {
-        const width = parseInt(column.width, 10)
+        const width = parseCellWidth(column.width)
         const rightPadding = 8
         let iconSpace = rightPadding
         const colObj = column.columnObj
@@ -523,7 +526,7 @@ export function useCanvasRender({
   ) => {
     if (!activeState) return
 
-    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+    const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
     if (activeState.col.fixed || !isInFixedArea) {
@@ -557,7 +560,7 @@ export function useCanvasRender({
   const calculateXPosition = (colIndex: number) => {
     let xPos = 0
     for (let i = 0; i < colIndex; i++) {
-      xPos += parseInt(columns.value[i]!.width, 10)
+      xPos += parseCellWidth(columns.value[i]?.width)
     }
     // add additional 1 px if the column is non-fixed since there is a border between fixed and non-fixed columns
     return xPos + (columns.value[colIndex]?.fixed ? 0 : 1)
@@ -568,7 +571,7 @@ export function useCanvasRender({
     let includeNonFixed = false
     let isIncludeFixed = false
     for (let i = startCol; i <= endCol; i++) {
-      width += parseInt(columns.value[i]!.width, 10)
+      width += parseCellWidth(columns.value[i]?.width)
       includeNonFixed = includeNonFixed || !columns.value[i]!.fixed
       isIncludeFixed = isIncludeFixed || columns.value[i]!.fixed
     }
@@ -583,7 +586,7 @@ export function useCanvasRender({
     let fixedWidth = 0
     for (const col of columns.value) {
       if (!col.fixed) continue
-      fixedWidth += parseInt(col.width, 10)
+      fixedWidth += parseCellWidth(col.width)
     }
 
     const isInFixedColumn = fillHandler.x <= fixedWidth
@@ -807,7 +810,7 @@ export function useCanvasRender({
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {
-      initialXOffset += parseInt(columns.value[i]!.width, 10)
+      initialXOffset += parseCellWidth(columns.value[i]?.width)
     }
 
     const renderRedBorders: {
@@ -836,7 +839,7 @@ export function useCanvasRender({
           let xOffset = initialXOffset
 
           visibleCols.forEach((column, colIdx) => {
-            const width = parseInt(column.width, 10)
+            const width = parseCellWidth(column.width)
             const absoluteColIdx = startColIndex + colIdx
 
             const isCellEditEnabled =
@@ -912,7 +915,7 @@ export function useCanvasRender({
             xOffset = 0
 
             fixedCols.forEach((column) => {
-              const width = parseInt(column.width, 10)
+              const width = parseCellWidth(column.width)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
 
@@ -927,9 +930,10 @@ export function useCanvasRender({
               }
 
               // add white background color for active cell
-              if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+              // For Fixed columns, do not need to add startColIndex
+              if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
                 ctx.fillStyle = '#FFFFFF'
-                ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
               }
 
               if (column.id === 'row_number') {
@@ -1024,7 +1028,7 @@ export function useCanvasRender({
           let xOffset = initialXOffset
 
           visibleCols.forEach((column, colIdx) => {
-            const width = parseInt(column.width, 10)
+            const width = parseCellWidth(column.width)
             const absoluteColIdx = startColIndex + colIdx
 
             if (column.fixed) {
@@ -1062,7 +1066,7 @@ export function useCanvasRender({
             xOffset = 0
 
             fixedCols.forEach((column) => {
-              const width = parseInt(column.width, 10)
+              const width = parseCellWidth(column.width)
 
               const colIdx = columns.value.findIndex((col) => col.id === column.id)
               if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
@@ -1133,7 +1137,7 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,
@@ -1196,9 +1200,9 @@ export function useCanvasRender({
       if (editEnabled.value?.column?.id === column.id && editEnabled.value?.rowIndex === rowIndex) continue
       const yOffset = -partialRowHeight.value + 33 + (rowIndex - rowSlice.value.start) * rowHeight.value
       const xOffset = calculateXPosition(columns.value.findIndex((c) => c.id === column.id))
-      const width = parseInt(column.width, 10)
+      const width = parseCellWidth(column.width)
 
-      const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 1)
+      const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
       const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
 
@@ -1229,10 +1233,10 @@ export function useCanvasRender({
 
     let xPosition = 0
     for (let i = 0; i < dragOver.value.index; i++) {
-      xPosition += parseInt(columns.value[i]!.width, 10)
+      xPosition += parseCellWidth(columns.value[i]?.width)
     }
 
-    const width = parseInt(columns.value[dragOver.value.index - 1]!.width, 10)
+    const width = parseCellWidth(columns.value[dragOver.value.index - 1]?.width)
 
     // Draw a Ghost Column
     ctx.fillStyle = '#f4f4f5'
@@ -1266,14 +1270,14 @@ export function useCanvasRender({
 
     let initialOffset = 0
     for (let i = 0; i < startColIndex; i++) {
-      initialOffset += parseInt(columns.value[i]!.width, 10)
+      initialOffset += parseCellWidth(columns.value[i]?.width)
     }
 
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     let xOffset = initialOffset
 
     visibleCols.forEach((column) => {
-      const width = parseInt(column.width, 10)
+      const width = parseCellWidth(column.width)
 
       if (column.fixed) {
         xOffset += width
@@ -1363,7 +1367,7 @@ export function useCanvasRender({
       const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
 
       if (rowNumberCol && firstFixedCol) {
-        const mergedWidth = parseInt(rowNumberCol.width, 10) + parseInt(firstFixedCol.width, 10)
+        const mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
 
         const isHovered = isBoxHovered(
           {
@@ -1473,7 +1477,7 @@ export function useCanvasRender({
         xOffset += mergedWidth
 
         fixedCols.slice(2).forEach((column) => {
-          const width = parseInt(column.width, 10)
+          const width = parseCellWidth(column.width)
 
           const isHovered = isBoxHovered(
             {
@@ -1611,7 +1615,7 @@ export function useCanvasRender({
     if (row) {
       let xOffset = xPos
       columns.value.forEach((column) => {
-        const width = parseInt(column.width, 10)
+        const width = parseCellWidth(column.width)
         if (xOffset - xPos < previewWidth) {
           ctx.save()
           renderCell(ctx, column.columnObj, {

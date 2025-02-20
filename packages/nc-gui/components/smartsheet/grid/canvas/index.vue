@@ -1651,6 +1651,10 @@ eventBus.on(async (event, payload) => {
     activeCell.value.column = -1
     removeRowIfNew(payload)
     triggerRefreshCanvas()
+  } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    // This event is triggered when a field is updated
+    calculateSlices()
+    triggerRefreshCanvas()
   }
 })
 

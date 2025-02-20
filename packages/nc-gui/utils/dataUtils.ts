@@ -766,7 +766,7 @@ export const parsePlainCellValue = (
   if (isJSON(col)) {
     try {
       if (isUnderLookup) {
-        return typeof value === 'string' ? value : JSON.stringify(value)
+        return typeof value === 'string' ? JSON.stringify(JSON.parse(value)) : JSON.stringify(value)
       } else {
         return JSON.stringify(JSON.parse(value), null, 2)
       }

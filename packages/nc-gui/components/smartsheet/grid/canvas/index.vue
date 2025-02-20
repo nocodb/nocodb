@@ -1185,7 +1185,6 @@ const handleMouseMove = (e: MouseEvent) => {
 
   if (mousePosition.y < 32) {
     const fixedCols = columns.value.filter((col) => col.fixed)
-    let isTooltipShown = false
 
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value
@@ -1210,11 +1209,15 @@ const handleMouseMove = (e: MouseEvent) => {
           text: activeFixedRegion.text,
           mousePosition,
         })
-        isTooltipShown = true
       }
     }
 
-    if (!isTooltipShown) {
+    const isMouseOverFixedRegions = fixedCols.some((col) => {
+      const width = parseCellWidth(col.width)
+      return mousePosition.x >= 0 && mousePosition.x <= width
+    })
+
+    if (isMouseOverFixedRegions) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {
         initialOffset += parseCellWidth(columns.value[i]!.width)

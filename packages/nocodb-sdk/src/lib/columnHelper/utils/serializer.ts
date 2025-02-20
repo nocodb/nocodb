@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { ColumnType } from '~/lib/Api';
+import { ColumnType, SelectOptionsType } from '~/lib/Api';
 import { getDateFormat, getDateTimeFormat } from '~/lib/dateTimeHelper';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
@@ -150,4 +150,29 @@ export const serialiseUserValue = (_value: any) => {
   //     data = JSON.parse(value);
   //   }
   // } catch {}
+};
+
+export const serializeSelectValue = (value: any, col: ColumnType) => {
+  value = value?.toString().trim();
+
+  // return null if value is empty
+  if (!value) return null;
+
+  // Todo: discuss new value creation
+  const availableOptions = (
+    (col.colOptions as SelectOptionsType)?.options || []
+  ).map((o) => o.title);
+
+  const optionsSet = new Set(availableOptions);
+
+  value = value.split(',').reduce((acc, val) => {
+    if (optionsSet.has(val)) acc.push(val);
+    return acc;
+  }, [] as string[]);
+
+  if (value.length > 0 && col.uidt === UITypes.SingleSelect) {
+    return value[0];
+  }
+
+  return value.join(',');
 };

@@ -19,3 +19,5 @@ export * from './Formula';
 export * from './Date';
 export * from './CreatedTime';
 export * from './LastModifiedTime';
+export * from './SingleLineText';
+export * from './MultiSelect';

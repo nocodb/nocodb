@@ -969,8 +969,20 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   if (x < 80) {
     const row = cachedRows.value.get(rowIndex)
-    if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
-    handleRowMetaClick({ e, row, x })
+    if (!row) return
+    if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
+
+    switch (clickType) {
+      case MouseClickType.SINGLE_CLICK:
+        handleRowMetaClick({ e, row, x })
+        break
+      case MouseClickType.RIGHT_CLICK:
+        if (isContextMenuAllowed.value) {
+          contextMenuTarget.value = { row: rowIndex, col: -1 }
+          requestAnimationFrame(triggerRefreshCanvas)
+        }
+        break
+    }
     return
   }
 
@@ -1320,7 +1332,7 @@ const handleScroll = (e: { left: number; top: number }) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)
+    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
     requestAnimationFrame(triggerRefreshCanvas)
   }, 150)
 }
@@ -1738,7 +1750,11 @@ defineExpose({
           </canvas>
           <template #overlay>
             <SmartsheetGridCanvasContextCell
-              v-if="contextMenuTarget !== null || selectedRows.length || vSelectedAllRecords"
+              v-if="
+                contextMenuTarget &&
+                contextMenuTarget?.row !== -1 &&
+                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords)
+              "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
               :total-rows="totalRows"

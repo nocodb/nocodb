@@ -76,6 +76,9 @@ const { meta } = useSmartsheetStoreOrThrow()
 // Computed States
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
+const contextMenuRow = computed(() => (contextMenuTarget.value?.row !== -1 ? contextMenuTarget.value?.row : null))
+const contextMenuCol = computed(() => (contextMenuTarget.value?.col !== -1 ? contextMenuTarget.value?.col : null))
+
 async function deleteAllRecords() {
   isDeleteAllRecordsModalOpen.value = true
 
@@ -175,7 +178,7 @@ const generateAIBulk = async () => {
   <NcMenu class="!rounded !py-0" variant="small">
     <template v-if="!vSelectedAllRecords">
       <NcMenuItem
-        v-if="isEeUI && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
+        v-if="isEeUI && !contextMenuCol && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
         @click="emits('bulkUpdateDlg')"
       >
@@ -186,7 +189,7 @@ const generateAIBulk = async () => {
       </NcMenuItem>
 
       <NcMenuItem
-        v-if="!contextMenuTarget && !isDataReadOnly && selectedRows.length"
+        v-if="!contextMenuCol && !isDataReadOnly && selectedRows.length"
         key="selete-selected-rows"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
         data-testid="nc-delete-row"
@@ -218,7 +221,7 @@ const generateAIBulk = async () => {
       v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPrimaryKeyAvailable && selection.isSingleCell()"
     >
       <NcMenuItem
-        v-if="contextMenuTarget"
+        v-if="contextMenuCol && contextMenuRow"
         key="insert-above"
         class="nc-base-menu-item"
         data-testid="context-menu-item-add-above"
@@ -231,7 +234,7 @@ const generateAIBulk = async () => {
       </NcMenuItem>
 
       <NcMenuItem
-        v-if="contextMenuTarget && !isInsertBelowDisabled"
+        v-if="contextMenuCol && contextMenuRow && !isInsertBelowDisabled"
         key="insert-below"
         class="nc-base-menu-item"
         data-testid="context-menu-item-add-below"
@@ -242,11 +245,11 @@ const generateAIBulk = async () => {
           {{ $t('general.insertBelow') }}
         </div>
       </NcMenuItem>
-      <NcDivider v-if="contextMenuTarget" />
+      <NcDivider v-if="contextMenuCol && contextMenuRow" />
     </template>
 
     <NcTooltip
-      v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectionOnlyAI.enabled"
+      v-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly && isSelectionOnlyAI.enabled"
       :disabled="!isSelectionOnlyAI.disabled"
     >
       <template #title>
@@ -282,7 +285,7 @@ const generateAIBulk = async () => {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="contextMenuTarget"
+      v-if="contextMenuCol && contextMenuRow"
       key="cell-copy"
       class="nc-base-menu-item"
       data-testid="context-menu-item-copy"
@@ -296,7 +299,7 @@ const generateAIBulk = async () => {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
+      v-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly"
       key="cell-paste"
       class="nc-base-menu-item"
       data-testid="context-menu-item-paste"
@@ -312,10 +315,10 @@ const generateAIBulk = async () => {
 
     <NcMenuItem
       v-if="
-        contextMenuTarget &&
+        (contextMenuCol && contextMenuRow) &&
         hasEditPermission &&
         selection.isSingleCell() &&
-        (isLinksOrLTAR(columns[contextMenuTarget.col]?.columnObj!) || !columns[contextMenuTarget.col]!.virtual) &&
+        (isLinksOrLTAR(columns[contextMenuCol]?.columnObj!) || !columns[contextMenuCol]!.virtual) &&
         !isDataReadOnly
       "
       key="cell-clear"
@@ -330,7 +333,7 @@ const generateAIBulk = async () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-else-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
+      v-else-if="contextMenuCol && contextMenuRow && hasEditPermission && !isDataReadOnly"
       key="cells-clear"
       class="nc-base-menu-item"
       :disabled="isSelectionReadOnly"
@@ -343,9 +346,9 @@ const generateAIBulk = async () => {
       </div>
     </NcMenuItem>
 
-    <template v-if="contextMenuTarget && selection.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
+    <template v-if="contextMenuCol && contextMenuRow && selection.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
       <NcDivider />
-      <NcMenuItem key="add-comment" class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+      <NcMenuItem key="add-comment" class="nc-base-menu-item" @click="commentRow(contextMenuRow)">
         <div v-e="['a:row:comment']" class="flex gap-2 items-center">
           <MdiMessageOutline class="h-4 w-4" />
           {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
@@ -354,12 +357,12 @@ const generateAIBulk = async () => {
     </template>
 
     <template v-if="hasEditPermission && !isDataReadOnly">
-      <NcDivider v-if="!(!contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
+      <NcDivider v-if="!(!contextMenuCol && (selectedRows.length || vSelectedAllRecords))" />
       <NcMenuItem
-        v-if="contextMenuTarget && (selection.isSingleCell() || selection.isSingleRow())"
+        v-if="contextMenuCol && contextMenuRow && (selection.isSingleCell() || selection.isSingleRow())"
         key="delete-row"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-        @click="confirmDeleteRow(contextMenuTarget.row)"
+        @click="confirmDeleteRow(contextMenuRow)"
       >
         <div v-e="['a:row:delete']" class="flex gap-2 items-center">
           <GeneralIcon icon="delete" />
@@ -368,7 +371,7 @@ const generateAIBulk = async () => {
         </div>
       </NcMenuItem>
       <NcMenuItem
-        v-else-if="contextMenuTarget && deleteRangeOfRows"
+        v-else-if="contextMenuCol && contextMenuRow && deleteRangeOfRows"
         key="delete-selected-row"
         class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
         @click="deleteSelectedRangeOfRows"

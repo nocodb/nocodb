@@ -126,6 +126,7 @@ function onTextFieldDelete() {
         v-model="textWidget.value"
         :options="columns"
         placeholder="Lorem ipsum..."
+        :markdown="false"
         @keydown.delete="onTextFieldDelete"
       />
     </GroupedSettings>

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp, roundUpToPrecision } from '~/lib/helperFunctions';
@@ -108,4 +109,12 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
   } catch {
     return value;
   }
+};
+
+export const parseYearValue = (value: any) => {
+  if (!value || !dayjs(value?.toString()).isValid()) {
+    return null;
+  }
+
+  return dayjs(value.toString(), 'YYYY').format('YYYY');
 };

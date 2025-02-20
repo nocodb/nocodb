@@ -11,27 +11,26 @@ export class AttachmentHelper extends AbstractColumnHelper {
     if (!value) return null;
 
     let parsedVal = [];
-    if (value) {
-      try {
-        parsedVal = parseProp(value);
 
-        if (ncIsArray(parsedVal)) {
-          parsedVal = parsedVal;
-        } else if (ncIsObject(parsedVal) && !ncIsEmptyObject(parsedVal)) {
-          parsedVal = [parsedVal];
-        } else {
-          parsedVal = [];
-        }
-      } catch (e) {
-        return null;
-      }
+    try {
+      parsedVal = parseProp(value);
 
-      if (
-        parsedVal.some((v: any) => !v || (v && !(v.url || v.data || v.path)))
-      ) {
-        return null;
+      if (ncIsArray(parsedVal)) {
+        parsedVal = parsedVal;
+      } else if (ncIsObject(parsedVal) && !ncIsEmptyObject(parsedVal)) {
+        parsedVal = [parsedVal];
+      } else {
+        parsedVal = [];
       }
+    } catch (e) {
+      return null;
     }
+
+    if (parsedVal.some((v: any) => !v || (v && !(v.url || v.data || v.path)))) {
+      return null;
+    }
+
+    return parsedVal;
   }
 
   parseValue(value: any): boolean {

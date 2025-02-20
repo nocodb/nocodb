@@ -37,6 +37,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
+    const targetViewColumns = ref<ColumnType[]>([])
+
+    const targetViewColumnsById = computed(() => {
+      return targetViewColumns.value.reduce((map, col) => {
+        map[col.fk_column_id!] = col
+        return map
+      }, {} as Record<string, ColumnType>)
+    })
 
     const childrenExcludedListPagination = reactive({
       page: 1,
@@ -98,6 +106,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
+      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
+      if (!viewId) return
+      targetViewColumns.value = (await $api.dbViewColumn.list(viewId))?.list ?? []
     }
 
     const relatedTableDisplayValueProp = computed(() => {
@@ -591,6 +602,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
+      targetViewColumns,
+      targetViewColumnsById,
       relatedTableDisplayValueProp,
       displayValueTypeAndFormatProp,
       childrenExcludedList,

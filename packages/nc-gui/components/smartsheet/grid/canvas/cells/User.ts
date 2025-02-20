@@ -84,6 +84,8 @@ export const UserFieldCellRenderer: CellRenderer = {
       const userEmail = user.email ?? ''
       const displayName = userDisplayName || userEmail
 
+      const isDeleted = user.deleted
+
       const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
         maxWidth: width - tagPadding * 2 - iconSize - 8,
@@ -101,7 +103,7 @@ export const UserFieldCellRenderer: CellRenderer = {
             textAlign: 'right',
             verticalAlign: 'middle',
             fontFamily: '500 13px Manrope',
-            fillStyle: '#0b1d05',
+            fillStyle: isDeleted ? '#4a5268' : '#0b1d05',
             height,
           })
           x = x + padding + tagSpacingX + ellipsisWidth
@@ -129,7 +131,7 @@ export const UserFieldCellRenderer: CellRenderer = {
       const initials = usernameInitials(userDisplayName, userEmail)
       const circleSize = 19
       const circleRadius = circleSize / 2
-      const enableBackground = !isImage
+      const enableBackground = isDeleted ? true : !isImage
       const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon)
       const textColor = isColorDark(bgColor) ? 'white' : 'black'
 
@@ -138,7 +140,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
       if (enableBackground) {
         roundedRect(ctx, x, y + 6.5, circleSize, circleSize, circleRadius, {
-          backgroundColor: bgColor,
+          backgroundColor: isDeleted ? '#BBBBBB' : bgColor,
         })
       }
 
@@ -165,6 +167,8 @@ export const UserFieldCellRenderer: CellRenderer = {
           x: x + 4,
           y: y + 9.5,
         })
+        needsPlaceholder = false
+      } else if (isDeleted) {
         needsPlaceholder = false
       } else if (initials) {
         renderSingleLineText(ctx, {

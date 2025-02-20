@@ -2556,9 +2556,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       fieldsSet: args.fieldsSet,
     });
-    await this.model.getViews(this.context);
+
+    await childTable.getViews(this.context);
     const viewId =
-      relColumn.colOptions?.fk_target_view_id ?? this.model.views?.[0]?.id;
+      relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
     let view: View | null = null;
     if (viewId) view = await View.get(this.context, viewId);
     await this.applySortAndFilter({
@@ -2689,9 +2690,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const qb = this.dbDriver(childTn);
 
-      await this.model.getViews(this.context);
+      await childTable.getViews(this.context);
       const viewId =
-        relColumn.colOptions?.fk_target_view_id ?? this.model.views?.[0]?.id;
+        relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(this.context, viewId);
       await this.applySortAndFilter({

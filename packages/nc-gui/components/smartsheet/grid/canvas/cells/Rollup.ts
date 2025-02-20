@@ -59,14 +59,16 @@ export const RollupCellRenderer: CellRenderer = {
 
     const renderAsTextFun = getRenderAsTextFunForUiType((renderProps.column?.uidt as UITypes) || UITypes.SingleLineText)
 
+    renderProps.column.meta = {
+      ...parseProp(childColumn?.meta),
+      ...parseProp(column?.meta),
+    }
+
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
       // Render as decimal cell
       renderProps.column.uidt = UITypes.Decimal
-      renderProps.column.meta = {
-        ...parseProp(childColumn?.meta),
-        ...parseProp(column?.meta),
-      }
     }
+
     renderCell(ctx, renderProps.column, renderProps)
   },
 }

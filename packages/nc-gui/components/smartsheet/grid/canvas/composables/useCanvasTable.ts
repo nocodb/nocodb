@@ -376,6 +376,42 @@ export function useCanvasTable({
     return end - 1
   }
 
+  function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
+    // First check fixed columns
+    let xOffset = 0
+    const fixedCols = columns.value.filter((col) => col.fixed)
+
+    for (const column of fixedCols) {
+      const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
+      if (x >= xOffset && x < xOffset + width) {
+        if (!column.uidt) {
+          xOffset += width
+          continue
+        }
+        return { column, xOffset }
+      }
+      xOffset += width
+    }
+
+    // Then check scrollable columns
+    const visibleStart = colSlice.value.start
+    const visibleEnd = colSlice.value.end
+
+    const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+    xOffset = startOffset - scrollLeft
+
+    for (let i = visibleStart; i < visibleEnd; i++) {
+      const width = columnWidths.value[i] ?? 180
+      if (x >= xOffset && x < xOffset + width) {
+        return { column: columns.value[i], xOffset }
+      }
+      xOffset += width
+    }
+
+    return { column: null, xOffset }
+  }
+
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number) {
     const yOffset = rowIndex * rowHeight.value - scrollTop.value + COLUMN_HEADER_HEIGHT_IN_PX + CELL_BOTTOM_BORDER_IN_PX
 
@@ -992,6 +1028,7 @@ export function useCanvasTable({
     findColumnIndex,
     triggerRefreshCanvas,
     startDrag,
+    findClickedColumn,
 
     makeCellEditable,
     // Handler

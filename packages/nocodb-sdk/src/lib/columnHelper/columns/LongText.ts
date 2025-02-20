@@ -8,7 +8,13 @@ export class LongTextHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   public serializeValue(value: any) {
-    return value?.toString()?.trim() ?? null;
+    // This is to remove the quotes added from LongText
+    // TODO (refactor): remove this when we have a better way to handle this
+    value = value?.toString() ?? null;
+    if (value && value.match(/^".*"$/)) {
+      return value.slice(1, -1);
+    }
+    return value ?? null;
   }
 
   parseValue(value: any, col: ColumnType): string | null {

@@ -2695,13 +2695,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
       let view: View | null = null;
       if (viewId) view = await View.get(this.context, viewId);
-      await this.applySortAndFilter({
-        table: childTable,
-        where,
-        qb,
-        sort,
-        view,
-      });
 
       qb.whereIn(
         chilCol.column_name,
@@ -2724,6 +2717,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         where,
         qb,
         sort,
+        view,
       });
 
       const children = await this.execAndParse(

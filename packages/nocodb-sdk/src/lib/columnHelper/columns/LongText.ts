@@ -1,8 +1,10 @@
-import { AIRecordType, ColumnType } from '~/lib/Api';
+import { AIRecordType } from '~/lib/Api';
 import { parseProp } from '~/lib/helperFunctions';
 import { LongTextAiMetaProp } from '~/lib/globals';
 import { ncIsObject } from '~/lib/is';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class LongTextHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -17,8 +19,11 @@ export class LongTextHelper extends AbstractColumnHelper {
     return value ?? null;
   }
 
-  parseValue(value: any, col: ColumnType): string | null {
-    const columnMeta = parseProp(col.meta);
+  parseValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | null {
+    const columnMeta = parseProp(params.col.meta);
 
     if (columnMeta?.[LongTextAiMetaProp]) {
       if (ncIsObject(value)) {

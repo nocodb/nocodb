@@ -1,6 +1,7 @@
-import { ColumnType } from '~/lib/Api';
 import { parseIntValue, serializeIntValue } from '..';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 import { parseProp } from '~/lib/helperFunctions';
 
 export class RatingHelper extends AbstractColumnHelper {
@@ -14,13 +15,16 @@ export class RatingHelper extends AbstractColumnHelper {
     max: 5,
   };
 
-  serializeValue(value: any, col: ColumnType): number | null {
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): number | null {
     const res = serializeIntValue(value);
 
     if (res) {
       return Math.min(
         res,
-        parseProp(col.meta)?.max || this.columnDefaultMeta.max
+        parseProp(params.col.meta)?.max || this.columnDefaultMeta.max
       );
     }
 
@@ -31,7 +35,10 @@ export class RatingHelper extends AbstractColumnHelper {
     return parseIntValue(value);
   }
 
-  parsePlainCellValue(value: any, col: ColumnType): string {
-    return `${parseIntValue(value, col) ?? ''}`;
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return `${parseIntValue(value, params.col) ?? ''}`;
   }
 }

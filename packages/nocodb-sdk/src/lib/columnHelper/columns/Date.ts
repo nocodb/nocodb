@@ -1,26 +1,32 @@
-import { parseDecimalValue, serializeDecimalValue } from '..';
+import { dateFormats } from '~/lib/dateTimeHelper';
+import { parseDateValue, serializeDateValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 
 export class DateHelper extends AbstractColumnHelper {
-  columnDefaultMeta = {};
+  columnDefaultMeta = {
+    date_format: dateFormats[0],
+  };
 
-  serializeValue(value: any): number | null {
-    return serializeDecimalValue(value);
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | null {
+    return serializeDateValue(value, params.col);
   }
 
   parseValue(
     value: any,
-    params: SerializerOrParserFnProps['params']
-  ): string | number | null {
-    return parseDecimalValue(value, params.col);
+    params: SerializerOrParserFnProps['params'] & { isSystemCol?: boolean }
+  ): string | null {
+    return parseDateValue(value, params.col, params.isSystemCol);
   }
 
   parsePlainCellValue(
     value: any,
-    params: SerializerOrParserFnProps['params']
-  ): string {
-    return `${parseDecimalValue(value, params.col) ?? ''}`;
+    params: SerializerOrParserFnProps['params'] & { isSystemCol?: boolean }
+  ): string | null {
+    return parseDateValue(value, params.col, params.isSystemCol) ?? '';
   }
 }

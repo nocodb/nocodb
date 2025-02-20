@@ -16,8 +16,8 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "lerna": "^7.4.2",
     "husky": "^8.0.3",
+    "lerna": "^7.4.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -60,6 +60,18 @@
       "ufo": ">=1.5.3",
       "ws@<8.17.1": ">=8.17.1",
       "@azure/msal-node": "^2.16.2"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@swc/core",
+      "core-js",
+      "esbuild",
+      "msgpackr-extract",
+      "nx",
+      "sharp",
+      "sqlite3",
+      "vue-demi"
+    ]
   }
 }

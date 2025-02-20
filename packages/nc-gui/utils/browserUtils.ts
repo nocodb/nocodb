@@ -4,6 +4,7 @@ export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
 export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
 export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
+export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')

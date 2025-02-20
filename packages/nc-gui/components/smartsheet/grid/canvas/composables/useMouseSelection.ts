@@ -1,3 +1,5 @@
+import { parseCellWidth } from '../utils/cell'
+
 const MAX_SELECTION_LIMIT = 100
 
 export function useMouseSelection({
@@ -34,7 +36,7 @@ export function useMouseSelection({
     const fixedCols = columns.value.filter((col) => col.fixed)
     for (let i = 0; i < fixedCols.length; i++) {
       if (!fixedCols[i]?.width) continue
-      const width = parseInt(fixedCols[i]!.width, 10)
+      const width = parseCellWidth(fixedCols[i]?.width)
       if (x >= fixedWidth && x < fixedWidth + width) {
         return { row, col: i === 0 ? -1 : columns.value.findIndex((c) => c.id === fixedCols[i]!.id) }
       }
@@ -46,7 +48,7 @@ export function useMouseSelection({
     let accumulatedWidth = 0
     for (let i = fixedCols.length; i < columns.value.length; i++) {
       if (columns.value?.[i]?.fixed) continue
-      const width = parseInt(columns.value[i]!.width, 10)
+      const width = parseCellWidth(columns.value[i]?.width)
       if (adjustedX >= accumulatedWidth && adjustedX < accumulatedWidth + width) {
         return { row, col: i }
       }
@@ -108,10 +110,11 @@ export function useMouseSelection({
     }
   }
   const handleMouseUp = () => {
-    isSelecting.value = false
-
-    if (!selection.value.isEmpty()) {
-      return !(selection.value.end?.row === selection.value.start?.row && selection.value.end?.col === selection.value.start?.col)
+    if (isSelecting.value) {
+      isSelecting.value = false
+      return true
+    } else {
+      return false
     }
   }
 

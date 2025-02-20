@@ -1,5 +1,6 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import type { SetCursorType } from '../../../../../lib/types'
+import { parseCellWidth } from '../utils/cell'
 
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
@@ -29,7 +30,7 @@ export function useColumnResize(
     let currentX = 0
 
     for (const column of fixedCols) {
-      const width = parseInt(column.width, 10)
+      const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
       if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
@@ -43,13 +44,13 @@ export function useColumnResize(
     let accumulatedWidth = 0
     for (let i = 0; i < colSlice.value.start; i++) {
       if (!columns.value[i]) continue
-      accumulatedWidth += parseInt(columns.value[i]!.width, 10)
+      accumulatedWidth += parseCellWidth(columns.value[i]?.width)
     }
 
     currentX = accumulatedWidth - scrollLeft.value
     for (let i = colSlice.value.start; i < colSlice.value.end; i++) {
       const column = columns.value[i]!
-      const width = parseInt(column.width, 10)
+      const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
       if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {

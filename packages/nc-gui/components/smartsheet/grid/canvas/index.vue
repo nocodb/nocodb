@@ -19,7 +19,7 @@ import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils
 import Tooltip from './Tooltip.vue'
 import Scroller from './Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
-import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType } from './utils/cell'
+import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from './utils/constants'
 
 const props = defineProps<{
@@ -179,6 +179,7 @@ const {
   selection,
   partialRowHeight,
   makeCellEditable,
+  findClickedColumn,
 
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -267,7 +268,7 @@ const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.colum
 const containerRef = computed(() => scroller.value?.wrapperRef)
 
 const fixedLeftWidth = computed(() => {
-  return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+  return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 })
 
 const editEnabledCellPosition = computed(() => {
@@ -377,7 +378,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const onNewRecordToGridClick = () => {
@@ -421,7 +422,7 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
         }
 
         if (!col?.fixed) {
-          width += parseInt(col.width, 10)
+          width += parseCellWidth(col.width)
         }
       }
 
@@ -433,42 +434,6 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
       scroller.value?.scrollTo({ left: totalWidth.value })
     }, 200)
   }
-}
-
-function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
-  // First check fixed columns
-  let xOffset = 0
-  const fixedCols = columns.value.filter((col) => col.fixed)
-
-  for (const column of fixedCols) {
-    const width = columnWidths.value[columns.value.indexOf(column)] ?? 10
-    if (x >= xOffset && x < xOffset + width) {
-      if (!column.uidt) {
-        xOffset += width
-        continue
-      }
-      return { column, xOffset }
-    }
-    xOffset += width
-  }
-
-  // Then check scrollable columns
-  const visibleStart = colSlice.value.start
-  const visibleEnd = colSlice.value.end
-
-  const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
-
-  xOffset = startOffset - scrollLeft
-
-  for (let i = visibleStart; i < visibleEnd; i++) {
-    const width = columnWidths.value[i] ?? 10
-    if (x >= xOffset && x < xOffset + width) {
-      return { column: columns.value[i], xOffset }
-    }
-    xOffset += width
-  }
-
-  return { column: null, xOffset }
 }
 
 function extractHoverMetaColRegions(row: Row) {
@@ -566,7 +531,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
       break
   }
 
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 // check exact row meta region hovered and return the cursor type
@@ -601,6 +566,8 @@ let prevMenuState: {
 } = {}
 
 async function handleMouseDown(e: MouseEvent) {
+  document.addEventListener('mouseup', handleMouseUp)
+
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
   prevMenuState = {
     isCreateOrEditColumnDropdownOpen: isCreateOrEditColumnDropdownOpen.value,
@@ -719,7 +686,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (clickType !== MouseClickType.DOUBLE_CLICK) {
     prevActiveCell = activeCell.value
-    // If the cell is not double clicked, continue to onMouseDownSelectionHandler
+    // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
   requestAnimationFrame(triggerRefreshCanvas)
@@ -751,8 +718,7 @@ function scrollToCell(row?: number, column?: number): void {
     columns.value
       .filter((col) => col.fixed)
       .reduce((sum: number, col) => {
-        const width = typeof col.width === 'string' ? parseInt(col.width, 10) : col.width
-        return sum + (isNaN(width) ? 0 : width)
+        return sum + parseCellWidth(col.width)
       }, 0) + FIXED_COLUMN_PADDING
 
   let cellLeft = 0
@@ -762,13 +728,12 @@ function scrollToCell(row?: number, column?: number): void {
     if (!column) continue
 
     if (!column.fixed) {
-      const width = parseInt(column.width, 10)
-      cellLeft += isNaN(width) ? 0 : width
+      cellLeft += parseCellWidth(column.width)
     }
   }
 
   const currentColumnWidth = columns.value[currentColumn]?.width
-  const parsedWidth = parseInt(currentColumnWidth, 10)
+  const parsedWidth = parseCellWidth(currentColumnWidth)
   let cellRight = cellLeft + parsedWidth
 
   cellLeft += fixedWidth
@@ -788,8 +753,9 @@ function scrollToCell(row?: number, column?: number): void {
   }
 }
 
-const handleMouseUp = async (e: MouseEvent) => {
+async function handleMouseUp(e: MouseEvent) {
   e.preventDefault()
+  document.removeEventListener('mouseup', handleMouseUp)
   onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -800,6 +766,7 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   if (onMouseUpSelectionHandler(e)) {
     if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= ROW_META_COLUMN_WIDTH) {
+      // DO_NOTHING_HERE
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
       return
@@ -881,7 +848,7 @@ const handleMouseUp = async (e: MouseEvent) => {
           requestAnimationFrame(triggerRefreshCanvas)
           return
         } else {
-          const columnWidth = parseInt(clickedColumn.width, 10)
+          const columnWidth = parseCellWidth(clickedColumn.width)
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
           if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
@@ -969,8 +936,20 @@ const handleMouseUp = async (e: MouseEvent) => {
 
   if (x < 80) {
     const row = cachedRows.value.get(rowIndex)
-    if (!row || clickType !== MouseClickType.SINGLE_CLICK) return
-    handleRowMetaClick({ e, row, x })
+    if (!row) return
+    if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
+
+    switch (clickType) {
+      case MouseClickType.SINGLE_CLICK:
+        handleRowMetaClick({ e, row, x })
+        break
+      case MouseClickType.RIGHT_CLICK:
+        if (isContextMenuAllowed.value) {
+          contextMenuTarget.value = { row: rowIndex, col: -1 }
+          requestAnimationFrame(triggerRefreshCanvas)
+        }
+        break
+    }
     return
   }
 
@@ -1070,11 +1049,9 @@ const getHeaderTooltipRegions = (
   ctx.save()
   ctx.font = '550 12px Manrope'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
-    const width = parseInt(column.width, 10)
+    const width = parseCellWidth(column.width)
     const rightPadding = 8
-    const iconSpace = rightPadding + 16
-
-    let totalIconWidth = iconSpace
+    let totalIconWidth = rightPadding + 16
 
     if (column.uidt) {
       totalIconWidth += 26
@@ -1115,6 +1092,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'columnChevron',
         disableTooltip: true,
+        text: null,
       })
     }
 
@@ -1176,7 +1154,6 @@ const handleMouseMove = (e: MouseEvent) => {
 
   if (mousePosition.y < 32) {
     const fixedCols = columns.value.filter((col) => col.fixed)
-    let isTooltipShown = false
 
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value
@@ -1201,17 +1178,21 @@ const handleMouseMove = (e: MouseEvent) => {
           text: activeFixedRegion.text,
           mousePosition,
         })
-        isTooltipShown = true
       }
     }
 
-    if (!isTooltipShown) {
+    const isMouseOverFixedRegions = fixedCols.some((col) => {
+      const width = parseCellWidth(col.width)
+      return mousePosition.x >= 0 && mousePosition.x <= width
+    })
+
+    if (isMouseOverFixedRegions) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {
-        initialOffset += parseInt(columns.value[i]!.width, 10)
+        initialOffset += parseCellWidth(columns.value[i]!.width)
       }
 
-      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseInt(col.width, 10), 0)
+      const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 
       if (mousePosition.x >= fixedWidth) {
         const tooltipRegions = getHeaderTooltipRegions(colSlice.value.start, colSlice.value.end, initialOffset, scrollLeft.value)
@@ -1259,7 +1240,14 @@ const handleMouseMove = (e: MouseEvent) => {
     const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     const row = cachedRows.value.get(rowIndex)
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
-    if (!row || !column) return
+    if (!row || !column) {
+      if (rowIndex === totalRows.value && isAddingEmptyRowAllowed.value) {
+        setCursor('pointer')
+      } else {
+        setCursor('auto')
+      }
+      return
+    }
     const pk = extractPkFromRow(row?.row ?? {}, meta.value?.columns as ColumnType[])
     const colIndex = columns.value.findIndex((col) => col.id === column.id)
     handleCellHover({
@@ -1297,9 +1285,9 @@ const reloadViewDataHookHandler = async () => {
   await syncCount()
 
   calculateSlices()
-  await updateVisibleRows()
+  updateVisibleRows()
 
-  triggerRefreshCanvas()
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 let rafId: number | null = null
@@ -1311,7 +1299,11 @@ const handleScroll = (e: { left: number; top: number }) => {
 
   rafId = requestAnimationFrame(() => {
     scrollTop.value = Math.max(0, e.top)
-    scrollLeft.value = Math.max(0, e.left)
+    if (totalWidth.value < width.value) {
+      scrollLeft.value = 0
+    } else {
+      scrollLeft.value = Math.max(0, e.left)
+    }
     calculateSlices()
     triggerRefreshCanvas()
   })
@@ -1320,7 +1312,7 @@ const handleScroll = (e: { left: number; top: number }) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value) + Math.floor(mousePosition.y / rowHeight.value)
+    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
     requestAnimationFrame(triggerRefreshCanvas)
   }, 150)
 }
@@ -1424,7 +1416,7 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     const colIndex = columns.value.findIndex((col) => col.id === column.id)
     let xOffset = 0
     for (let i = colSlice.value.start; i < colIndex; i++) {
-      xOffset += parseInt(columns.value[i]!.width, 10)
+      xOffset += parseCellWidth(columns.value[i]?.width)
     }
     overlayStyle.value = {
       top: `${rect.top}px`,
@@ -1481,6 +1473,9 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   if (!skipUpdate && rowObj) {
     saveEmptyRow(rowObj, before)
   }
+
+  calculateSlices()
+  requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick().then(() => {
     activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1 }
@@ -1631,7 +1626,11 @@ eventBus.on(async (event, payload) => {
     activeCell.value.row = -1
     activeCell.value.column = -1
     removeRowIfNew(payload)
-    triggerRefreshCanvas()
+    requestAnimationFrame(triggerRefreshCanvas)
+  } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    // This event is triggered when a field is updated
+    calculateSlices()
+    requestAnimationFrame(triggerRefreshCanvas)
   }
 })
 
@@ -1659,7 +1658,7 @@ onClickOutside(
       editEnabled.value = null
       isFillHandlerActive.value = false
       selection.value.clear()
-      triggerRefreshCanvas()
+      requestAnimationFrame(triggerRefreshCanvas)
     }
   },
   {
@@ -1733,12 +1732,15 @@ defineExpose({
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
-            @mouseup="handleMouseUp"
           >
           </canvas>
           <template #overlay>
             <SmartsheetGridCanvasContextCell
-              v-if="contextMenuTarget !== null || selectedRows.length || vSelectedAllRecords"
+              v-if="
+                contextMenuTarget &&
+                contextMenuTarget?.row !== -1 &&
+                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords)
+              "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
               :total-rows="totalRows"

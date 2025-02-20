@@ -12,3 +12,4 @@ export * from './Email';
 export * from './Url';
 export * from './Json';
 export * from './GeoData';
+export * from './Year';

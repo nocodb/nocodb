@@ -16,6 +16,7 @@ import {
   RatingHelper,
   SingleLineTextHelper,
   UrlHelper,
+  YearHelper,
 } from './columns';
 
 export class ColumnHelperClass {
@@ -34,6 +35,7 @@ export class ColumnHelperClass {
     [UITypes.URL]: UrlHelper,
     [UITypes.JSON]: JsonHelper,
     [UITypes.GeoData]: GeoDataHelper,
+    [UITypes.Year]: YearHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

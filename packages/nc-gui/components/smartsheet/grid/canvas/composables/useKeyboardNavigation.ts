@@ -56,7 +56,7 @@ export function useKeyboardNavigation({
   const meta = inject(MetaInj, ref())
 
   const handleKeyDown = async (e: KeyboardEvent) => {
-    if (isViewSearchActive()) return
+    if (isViewSearchActive() || isCreateViewActive()) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )

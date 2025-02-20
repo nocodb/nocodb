@@ -328,7 +328,7 @@ export function useGridViewData(
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
         const rowIndex = pksIndex.find((pkIndex) => pkIndex.pk === pk)?.rowIndex
 
-        if (rowIndex) {
+        if (rowIndex !== undefined && rowIndex !== null) {
           const row = cachedRows.value.get(rowIndex)
           if (row) {
             row.rowMeta.saving = false
@@ -346,9 +346,6 @@ export function useGridViewData(
         if (row.rowMeta) row.rowMeta.saving = false
       })
     }
-
-    syncVisibleData()
-
     if (!undo) {
       addUndo({
         undo: {
@@ -377,6 +374,7 @@ export function useGridViewData(
     }
 
     applySorting(rows)
+    syncVisibleData()
 
     isBulkOperationInProgress.value = false
   }

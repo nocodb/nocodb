@@ -1,0 +1,3 @@
+#!/bin/execlineb -P
+
+pg_isready -U postgres

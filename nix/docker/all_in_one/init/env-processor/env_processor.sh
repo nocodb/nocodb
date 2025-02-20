@@ -6,8 +6,8 @@ nocodb_env_path='/run/nocodb.dynamic.env'
 kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 
-aio_postgres_enable=true
-aio_minio_enable=true
+_aio_postgres_enable_default=true
+_aio_minio_enable_default=true
 
 log() {
 	echo env processor: "$@"
@@ -48,6 +48,11 @@ env_aio_set() {
 		*) log ignoring unknown aio env "$key=$value"
 		esac
 	done
+
+	[ -z "$aio_minio_enable" ] &&
+		aio_minio_enable="$_aio_minio_enable_default"
+	[ -z "$aio_postgres_enable" ] &&
+		aio_postgres_enable="$_aio_postgres_enable_default"
 }
 
 env_aio_act() {

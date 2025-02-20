@@ -15,12 +15,18 @@ export function hasAncestorWithClass(element: HTMLElement, className: string): b
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isCmdJActive = () => document.querySelector('.DocSearch--active')
-export const isActiveInputElementExist = () => {
+export const isActiveInputElementExist = (e?: Event) => {
+  const activeElement = document.activeElement
+  const target = e?.target
+
+  // A rich text editor is a div with the contenteditable attribute set to true.
   return (
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    // A rich text editor is a div with the contenteditable attribute set to true.
-    !!document.activeElement?.getAttribute('contenteditable')
+    activeElement instanceof HTMLInputElement ||
+    activeElement instanceof HTMLTextAreaElement ||
+    (activeElement instanceof HTMLElement && activeElement.isContentEditable) ||
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
   )
 }
 

@@ -164,8 +164,6 @@ export function useMultiSelect(
       col: columnObj,
     })
 
-    console.log('parsedValue', parsedValue, textToCopy, columnObj.uidt)
-
     if (columnObj.uidt === UITypes.Checkbox) {
       textToCopy = !!textToCopy
     }
@@ -296,6 +294,8 @@ export function useMultiSelect(
         textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
       }
     }
+
+    console.log('parsedValue', parsedValue, textToCopy, columnObj.uidt)
 
     return textToCopy
   }

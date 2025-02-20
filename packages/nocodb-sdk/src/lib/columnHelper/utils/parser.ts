@@ -11,6 +11,8 @@ export const parseIntValue = (
     return null;
   }
 
+  value = parseInt(value.toString(), 10);
+
   const columnMeta = parseProp(col.meta);
 
   if (columnMeta.isLocaleString) {

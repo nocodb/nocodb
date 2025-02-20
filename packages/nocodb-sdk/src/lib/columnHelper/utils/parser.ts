@@ -1,7 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
+import { ncIsBoolean, ncIsNaN, ncIsString } from '~/lib/is';
 
 export const parseIntValue = (
   value: string | null | number,

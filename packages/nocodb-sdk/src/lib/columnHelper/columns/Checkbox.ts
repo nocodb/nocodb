@@ -1,6 +1,8 @@
-import { AbstractColumnHelper } from '..';
-import { parseCheckboxValue } from '../utils/parser';
-import { serializeCheckboxValue } from '../utils/serializer';
+import {
+  AbstractColumnHelper,
+  parseCheckboxValue,
+  serializeCheckboxValue,
+} from '..';
 
 export class CheckboxHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

@@ -10,7 +10,7 @@ export const serializeIntValue = (value: string | null | number) => {
 
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
-    const cleanedValue = value.replace(/,/g, ''); // Remove commas
+    const cleanedValue = value.replace(/,/g, '').trim(); // Remove commas
 
     // Try converting the cleaned value to a number
     const numberValue = Number(cleanedValue);
@@ -38,11 +38,23 @@ export const serializeDecimalValue = (
 };
 
 export const serializePercentValue = (value: string | null) => {
-  if (!value || isNaN(Number(value))) {
-    return null;
+  if (ncIsNumber(value)) {
+    return value;
+  }
+  // If it's a string, remove % and check if it's a valid number
+  if (ncIsString(value)) {
+    const cleanedValue = value.replace('%', ''); // Remove %
+
+    // Try converting the cleaned value to a number
+    const numberValue = Number(cleanedValue);
+
+    // If it's a valid number, return it
+    if (!isNaN(numberValue)) {
+      return numberValue;
+    }
   }
 
-  return `${value}%`;
+  return null;
 };
 
 export const serializeDurationValue = (

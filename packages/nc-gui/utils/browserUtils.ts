@@ -10,6 +10,7 @@ export const isExtensionPaneActive = () => document.querySelector('.nc-extension
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
 export const isSelectActive = () => document.querySelector('.ant-select-dropdown')
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
+export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
 
 export function hasAncestorWithClass(element: HTMLElement, className: string): boolean {
   return !!element.closest(`.${className}`)

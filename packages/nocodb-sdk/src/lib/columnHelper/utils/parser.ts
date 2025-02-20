@@ -5,7 +5,7 @@ import { ncIsBoolean, ncIsNaN, ncIsString } from '~/lib/is';
 
 export const parseIntValue = (
   value: string | null | number,
-  col: ColumnType
+  col?: ColumnType
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -13,7 +13,7 @@ export const parseIntValue = (
 
   value = parseInt(value.toString(), 10);
 
-  const columnMeta = parseProp(col.meta);
+  const columnMeta = parseProp(col?.meta);
 
   if (columnMeta.isLocaleString) {
     return Number(value).toLocaleString();

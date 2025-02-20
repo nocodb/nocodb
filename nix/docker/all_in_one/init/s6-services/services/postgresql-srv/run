@@ -1,0 +1,36 @@
+#!/bin/execlineb -P
+
+envfile /etc/s6-confs/postgresql.conf
+
+importas -uD "/var/lib/postgres" PGROOT PGROOT
+importas -uD "/var/lib/postgres/data" PGDATA PGDATA
+importas -uD "/var/log/postgres.log" PGLOG PGLOG
+importas -sCuD "-A peer --auth-host=md5 --auth-local=peer" INITOPTS INITOPTS
+importas -sCuD "" PGOPTS PGOPTS
+
+foreground { mkdir -p /run/postgresql }
+foreground { chown -R postgres:postgres /run/postgresql }
+
+foreground {
+    if { test $PGROOT != /var/lib/postgres }
+    foreground { echo Creating symlink /var/lib/postgres -> $PGROOT }
+    foreground { if -n { test -L /var/lib/postgres } if { test -d /var/lib/postgres } rmdir /var/lib/postgres }
+    foreground { ln -sf $PGROOT /var/lib/postgres }
+}
+
+foreground {
+    if -n { test -d $PGDATA }
+    foreground { echo Initializing database in $PGDATA }
+    foreground { mkdir -p $PGDATA }
+    foreground { chown -R postgres:postgres $PGDATA }
+    foreground { chmod 0700 $PGDATA }
+    foreground { redirfd -w 1 /dev/null s6-setuidgid postgres initdb $INITOPTS -D $PGDATA }
+    # TODO: for some reason PGDATA is not being expanded here, look into it 
+    foreground { ln -sf /etc/postgresql/postgresql.conf /var/lib/postgres/data/postgresql.conf }
+}
+
+fdmove -c 2 1
+
+s6-notifyoncheck
+s6-setuidgid postgres
+postgres -D $PGDATA $PGOPTS

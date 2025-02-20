@@ -15,28 +15,44 @@
           pkgs = import nixpkgs { inherit system; };
         };
 
-      supportedSystems = lib.platforms.unix;
-      forAllSystems = f: lib.genAttrs supportedSystems (forSystem f);
+      forUnixSystems = f: lib.genAttrs lib.platforms.unix (forSystem f);
+      forLinuxSystems = f: lib.genAttrs lib.platforms.linux (forSystem f);
     in
     {
-      packages = forAllSystems (
-        { system, pkgs }:
-        {
-          docker = pkgs.callPackage ./nix/docker.nix { };
-          nocodb = pkgs.callPackage ./nix/package.nix { };
-          bumper = pkgs.callPackage ./nix/bumper { };
+      packages =
+        lib.recursiveUpdate
+          (forUnixSystems (
+            { system, pkgs }:
+            {
+              bumper = pkgs.callPackage ./nix/bumper { };
+              nocodb = pkgs.callPackage ./nix/package.nix {
+                version = if self ? shortRev then self.shortRev else self.dirtyShortRev;
+              };
 
-          pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;
-          default = self.packages.${system}.nocodb;
-        }
-      );
+              pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;
+              default = self.packages.${system}.nocodb;
+            }
+          ))
+          (
+            forLinuxSystems (
+              { system, pkgs }:
+              {
+                docker_sa = pkgs.callPackage ./nix/docker/stand_alone {
+                  nocodb = self.packages.${system}.nocodb;
+                };
+                docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
+                  nocodb = self.packages.${system}.nocodb;
+                };
+              }
+            )
+          );
 
       nixosModules = {
         nocodb = import ./nix/module.nix inputs;
         default = self.nixosModules.nocodb;
       };
 
-      devShells = forAllSystems (
+      devShells = forUnixSystems (
         { system, pkgs }:
         {
           nocodb = pkgs.callPackage ./nix/shell.nix {

@@ -13,7 +13,7 @@ const eventHook = inject(PageDesignerEventHookInj)!
     <NRecordPicker
       :key="payload.selectedTableId + payload.selectedViewId"
       v-model:model-value="row"
-      :label="row ? row.row[displayField?.title ?? ''] ?? 'Select Record' : 'Select Record'"
+      :label="row ? row.row[displayField?.title ?? ''] ?? '' : 'Select Record'"
       :table-id="payload.selectedTableId"
       :view-id="payload.selectedViewId"
       class="page-designer-record-picker flex-1"

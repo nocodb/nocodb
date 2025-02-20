@@ -180,7 +180,6 @@ const borderProps = computed(() => {
               },
             ]"
             :style="{
-              color: widget.textColor,
               ...borderProps,
             }"
           >
@@ -189,7 +188,13 @@ const borderProps = computed(() => {
                 <th
                   v-for="column in tableColumns"
                   :key="column.id"
-                  :style="widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }"
+                  :style="{
+                    ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
+                    color: widget.tableFontSettings.header.textColor,
+                    fontSize: `${widget.tableFontSettings.header.fontSize}px`,
+                    lineHeight: widget.tableFontSettings.header.lineHeight,
+                    fontWeight: widget.tableFontSettings.header.fontWeight,
+                  }"
                 >
                   {{ column.title }}
                 </th>
@@ -200,7 +205,13 @@ const borderProps = computed(() => {
                 <td
                   v-for="column in tableColumns"
                   :key="column.id"
-                  :style="widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }"
+                  :style="{
+                    ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
+                    color: widget.tableFontSettings.row.textColor,
+                    fontSize: `${widget.tableFontSettings.row.fontSize}px`,
+                    lineHeight: widget.tableFontSettings.row.lineHeight,
+                    fontWeight: widget.tableFontSettings.row.fontWeight,
+                  }"
                 >
                   <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
                 </td>

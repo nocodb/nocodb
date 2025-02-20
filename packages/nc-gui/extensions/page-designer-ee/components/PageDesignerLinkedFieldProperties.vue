@@ -7,6 +7,8 @@ import TabbedSelect from './TabbedSelect.vue'
 import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
 import BorderSettings from './BorderSettings.vue'
+import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
+import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)! as Ref<Row>
@@ -81,6 +83,8 @@ watch(
     }
   },
 )
+
+const isTable = computed(() => fieldWidget.value.displayAs === LinkedFieldDisplayAs.TABLE)
 </script>
 
 <template>
@@ -93,9 +97,9 @@ watch(
           <span class="text-[14px] font-medium text-nc-content-gray-subtle2">{{ fieldWidget.field.title }}</span>
         </div>
         <div class="flex-1"></div>
-        <span class="text-[13px] -mt-1 font-medium text-nc-content-gray-subtle2"
-          >Display Linked fields Inline, as a list or in a tabular format.</span
-        >
+        <span class="text-[13px] -mt-1 font-medium text-nc-content-gray-subtle2">
+          Display Linked fields Inline, as a list or in a tabular format.
+        </span>
       </h1>
     </header>
     <GroupedSettings title="Display as">
@@ -116,13 +120,102 @@ watch(
           <a-radio :value="LinkedFieldListType.Number">{{ LinkedFieldListType.Number }}</a-radio>
         </a-radio-group>
       </div>
-      <div v-else-if="fieldWidget.displayAs === LinkedFieldDisplayAs.TABLE" class="flex flex-col gap-2">
+      <div v-else-if="isTable" class="flex flex-col gap-2">
         <label>Table columns</label>
         <div class="rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
           <RelatedFieldsSelector v-model="fieldWidget.tableColumns" :related-table-meta="relatedTableMeta" />
         </div>
       </div>
     </GroupedSettings>
+
+    <template v-if="isTable">
+      <GroupedSettings title="Font settings">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Font</label>
+          <NcSelect v-model:value="fieldWidget.fontFamily" show-search>
+            <a-select-option v-for="font of fonts" :key="font" :value="font">
+              <span :style="{ fontFamily: font }">{{ font }}</span>
+            </a-select-option>
+          </NcSelect>
+        </div>
+
+        <div class="flex gap-3">
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Size</label>
+            <NonNullableNumberInput
+              v-model="fieldWidget.tableFontSettings.row.fontSize"
+              :reset-to="12"
+              :min="1"
+              class="flex-1"
+              placeholder="12"
+            />
+          </div>
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Line Height</label>
+            <NonNullableNumberInput
+              v-model="fieldWidget.tableFontSettings.row.lineHeight"
+              :reset-to="1.5"
+              :min="1"
+              class="flex-1"
+              placeholder="1.5"
+            />
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Color</label>
+            <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.row.textColor" />
+          </div>
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Weight</label>
+            <NcSelect v-model:value="fieldWidget.tableFontSettings.row.fontWeight">
+              <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+                <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
+              </a-select-option>
+            </NcSelect>
+          </div>
+        </div>
+
+        <span class="text-[14px] font-700 mt-3 leading-[20px]">Table header</span>
+
+        <div class="flex gap-3">
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Size</label>
+            <NonNullableNumberInput
+              v-model="fieldWidget.tableFontSettings.header.fontSize"
+              :reset-to="12"
+              :min="1"
+              class="flex-1"
+              placeholder="12"
+            />
+          </div>
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Line Height</label>
+            <NonNullableNumberInput
+              v-model="fieldWidget.tableFontSettings.header.lineHeight"
+              :reset-to="1.5"
+              :min="1"
+              class="flex-1"
+              placeholder="1.5"
+            />
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Color</label>
+            <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.header.textColor" />
+          </div>
+          <div class="flex flex-col gap-2 flex-1 min-w-0">
+            <label>Weight</label>
+            <NcSelect v-model:value="fieldWidget.tableFontSettings.header.fontWeight">
+              <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+                <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
+              </a-select-option>
+            </NcSelect>
+          </div>
+        </div>
+      </GroupedSettings>
+    </template>
 
     <BorderSettings
       v-model:border-top="fieldWidget.borderTop"

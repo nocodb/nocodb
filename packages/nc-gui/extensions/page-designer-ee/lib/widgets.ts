@@ -107,6 +107,20 @@ export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   fontFamily: string
   textColor: string
   lineHeight: string
+  tableFontSettings: {
+    row: {
+      fontSize: string
+      fontWeight: string
+      textColor: string
+      lineHeight: string
+    }
+    header: {
+      fontSize: string
+      fontWeight: string
+      textColor: string
+      lineHeight: string
+    }
+  }
   listType: LinkedFieldListType
   tableColumns: Array<{ id: string; selected: boolean }>
   objectFit: 'fill' | 'contain' | 'cover'
@@ -236,6 +250,20 @@ export class PageDesignerWidgetFactory {
       objectFit: 'contain',
       listType: LinkedFieldListType.Bullet,
       type: PageDesignerWidgetType.LINKED_FIELD,
+      tableFontSettings: {
+        row: {
+          fontSize: '12',
+          fontWeight: '400',
+          textColor: BLACK,
+          lineHeight: '1.5',
+        },
+        header: {
+          fontSize: '12',
+          fontWeight: '700',
+          textColor: BLACK,
+          lineHeight: '1.5',
+        },
+      },
       zIndex: 0,
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }

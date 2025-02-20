@@ -10,6 +10,7 @@ import {
   DateHelper,
   DateTimeHelper,
   DecimalHelper,
+  DefaultColumnHelper,
   DurationHelper,
   EmailHelper,
   FormulaHelper,
@@ -31,7 +32,10 @@ import {
 import { SingleSelectHelper } from './columns/SingleSelect';
 
 export class ColumnHelperClass {
+  defautlHelper = 'defautlHelper';
+
   private registry: Record<string, new () => AbstractColumnHelper> = {
+    [this.defautlHelper]: DefaultColumnHelper,
     [UITypes.SingleLineText]: SingleLineTextHelper,
     [UITypes.LongText]: LongTextHelper,
     [UITypes.Number]: NumberHelper,
@@ -59,7 +63,6 @@ export class ColumnHelperClass {
     [UITypes.User]: UserHelper,
     [UITypes.CreatedBy]: UserHelper,
     [UITypes.LastModifiedBy]: UserHelper,
-    
   };
 
   // Method to retrieve the specific column class and instantiate it
@@ -69,7 +72,7 @@ export class ColumnHelperClass {
     let ColumnClass: new () => AbstractColumnHelper;
 
     if (!params.col || !this.registry[params.col.uidt]) {
-      ColumnClass = this.registry[UITypes.SingleLineText];
+      ColumnClass = this.registry[this.defautlHelper];
     } else {
       ColumnClass = this.registry[params.col.uidt];
     }

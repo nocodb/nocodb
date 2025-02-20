@@ -27,6 +27,7 @@ export interface SerializerOrParserFnProps {
     isMysql?: (sourceId?: string) => boolean;
     isMssql?: (sourceId?: string) => boolean;
     isXcdbBase?: (sourceId?: string) => boolean;
+    isPg?: (sourceId?: string) => boolean;
     isUnderLookup?: boolean;
   };
 }

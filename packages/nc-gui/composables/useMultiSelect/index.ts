@@ -159,9 +159,10 @@ export function useMultiSelect(
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
     let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
-    // Todo: remove after testing
     const parsedValue = ColumnHelper.parseValue(textToCopy, {
       col: columnObj,
+      isMysql,
+      isPg,
     })
 
     if (columnObj.uidt === UITypes.Checkbox) {
@@ -295,6 +296,7 @@ export function useMultiSelect(
       }
     }
 
+    // Todo: remove after testing
     console.log('parsedValue', parsedValue, textToCopy, columnObj.uidt)
 
     return textToCopy

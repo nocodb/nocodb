@@ -10,7 +10,10 @@ import {
   ncIsString,
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
-import { constructDateTimeFormat } from '~/lib/dateTimeHelper';
+import {
+  constructDateTimeFormat,
+  constructTimeFormat,
+} from '~/lib/dateTimeHelper';
 
 export const parseDefault = (value: any) => {
   try {
@@ -167,6 +170,43 @@ export const parseDateTimeValue = (
   }
 
   return value;
+};
+
+export const parseTimeValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  value = value?.toString().trim();
+
+  if (!value) return null;
+
+  // remove `"`
+  // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+  value = value.replace(/["']/g, '');
+
+  const isMySQL = params.isMysql?.(params.col.source_id);
+  const isPostgres = params.isPg?.(params.col.source_id);
+
+  let d = dayjs(value);
+
+  if (!d.isValid()) {
+    // insert a datetime value, copy the value without refreshing
+    // e.g. value = 2023-05-12T03:49:25.000Z
+    // feed custom parse format
+    d = dayjs(value, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+  }
+
+  if (!d.isValid()) {
+    // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
+    d = isMySQL || isPostgres ? dayjs(value, 'HH:mm:ss') : dayjs(value);
+  }
+
+  if (!d.isValid()) {
+    // return empty string for invalid time
+    return null;
+  }
+
+  return d.format(constructTimeFormat(params.col));
 };
 
 export const parseYearValue = (value: any) => {

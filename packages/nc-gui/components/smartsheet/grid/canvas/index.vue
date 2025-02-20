@@ -1271,7 +1271,14 @@ const handleMouseMove = (e: MouseEvent) => {
     const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
     const row = cachedRows.value.get(rowIndex)
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
-    if (!row || !column) return
+    if (!row || !column) {
+      if (rowIndex === totalRows.value && isAddingEmptyRowAllowed.value) {
+        setCursor('pointer')
+      } else {
+        setCursor('auto')
+      }
+      return
+    }
     const pk = extractPkFromRow(row?.row ?? {}, meta.value?.columns as ColumnType[])
     const colIndex = columns.value.findIndex((col) => col.id === column.id)
     handleCellHover({

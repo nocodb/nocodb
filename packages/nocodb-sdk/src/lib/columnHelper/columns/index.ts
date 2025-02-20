@@ -15,3 +15,4 @@ export * from './GeoData';
 export * from './Year';
 export * from './Barcode';
 export * from './QrCode';
+export * from './Formula';

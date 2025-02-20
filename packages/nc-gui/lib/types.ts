@@ -388,6 +388,7 @@ interface CellRendererOptions {
   isMysql: (sourceId?: string) => boolean
   isMssql: (sourceId?: string) => boolean
   isXcdbBase: (sourceId?: string) => boolean
+  isPg: (sourceId?: string) => boolean
   t: Composer['t']
   padding: number
   renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
@@ -419,6 +420,7 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  formula?: boolean
 }
 
 interface CellRenderStore {

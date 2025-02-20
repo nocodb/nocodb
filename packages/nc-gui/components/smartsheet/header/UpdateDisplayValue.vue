@@ -2,7 +2,6 @@
 import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 interface Props {
-  column: ColumnType
   value?: boolean
   useMetaFields?: boolean
 }
@@ -32,7 +31,13 @@ const isVisible = computed({
   },
 })
 
-const { column, useMetaFields } = toRefs(props)
+const { useMetaFields } = toRefs(props)
+
+const menuColumn = inject(ColumnInj)
+
+const canvasColumn = inject(CanvasColumnInj)
+
+const column = computed(() => menuColumn?.value || canvasColumn?.value)
 
 const selectedFieldId = ref()
 

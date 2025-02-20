@@ -19,6 +19,7 @@ import { ComputedTypePasteError } from '../../../../../error/computed-type-paste
 import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
+import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const CHUNK_SIZE = 50
 
@@ -107,7 +108,12 @@ export function useCopyPaste({
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
-    return !editEnabled.value && !(activeCell.value.row === -1 || activeCell.value.column === -1)
+    return (
+      !editEnabled.value ||
+      (editEnabled.value &&
+        EDIT_INTERACTABLE.includes(editEnabled.value.column?.uidt) &&
+        !(activeCell.value.row === -1 || activeCell.value.column === -1))
+    )
   })
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
@@ -147,7 +153,9 @@ export function useCopyPaste({
   }
 
   const handlePaste = async (e: ClipboardEvent) => {
-    if (!canPasteCell.value) return
+    if (!canPasteCell.value) {
+      return
+    }
     if (!meta.value?.id) return
 
     if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {

@@ -1,5 +1,6 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
+import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -102,7 +103,7 @@ export function useKeyboardNavigation({
     let moved = false
     let movedSelection = false
 
-    if (cmdOrCtrl && !editEnabled.value) {
+    if (cmdOrCtrl && (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt))) {
       switch (e.key.toLowerCase()) {
         case 'c':
           e.preventDefault()

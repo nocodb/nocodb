@@ -2,7 +2,6 @@
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
-import GroupBy from './GroupBy.vue'
 import CanvasTable from './canvas/index.vue'
 
 const meta = inject(MetaInj, ref())
@@ -322,7 +321,7 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
@@ -385,22 +384,9 @@ const pGoToPreviousRow = () => {
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
 
-    <GroupBy
-      v-else
-      :group="rootGroup"
-      :load-groups="loadGroups"
-      :load-group-data="loadGroupData"
-      :call-add-empty-row="pAddEmptyRow"
-      :expand-form="expandForm"
-      :load-group-page="loadGroupPage"
-      :group-wrapper-change-page="groupWrapperChangePage"
-      :row-height="rowHeight"
-      :load-group-aggregation="loadGroupAggregation"
-      :max-depth="groupBy.length"
-      :redistribute-rows="redistributeRows"
-      :view-width="viewWidth"
-    />
-    <Suspense>
+    <SmartsheetGridGroups v-else />
+
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"

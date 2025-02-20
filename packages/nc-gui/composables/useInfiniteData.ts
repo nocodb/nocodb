@@ -12,6 +12,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
 } from 'nocodb-sdk'
+import { getI18n } from '../plugins/a.i18n'
 import type { Row } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -58,22 +59,20 @@ export function useInfiniteData(args: {
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
+  isPublic?: Ref<boolean>
 }) {
   const NOCO = 'noco'
-
-  const { meta, viewMeta, callbacks, where, disableSmartsheet } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic } = args
 
   const { $api } = useNuxtApp()
 
-  const { t } = useI18n()
+  const t = getI18n().global
 
   const router = useRouter()
 
   const { isUIAllowed } = useRoles()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-  const isPublic = inject(IsPublicInj, ref(false))
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
@@ -130,6 +129,8 @@ export function useInfiniteData(args: {
 
   const cachedRows = ref<Map<number, Row>>(new Map())
 
+  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+
   const selectedRows = computed<Row[]>(() => {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
   })
@@ -143,8 +144,6 @@ export function useInfiniteData(args: {
   const MAX_CACHE_SIZE = 200
 
   const CHUNK_SIZE = 50
-
-  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
@@ -215,7 +214,7 @@ export function useInfiniteData(args: {
   }
 
   async function loadAggCommentsCount(formattedData: Array<Row>) {
-    if (!isUIAllowed('commentCount') || isPublic.value) return
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
 
     const ids = formattedData
       .filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -252,10 +251,10 @@ export function useInfiniteData(args: {
     } = {},
     _shouldShowLoading?: boolean,
   ): Promise<Row[]> {
-    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
     try {
-      const response = !isPublic.value
+      const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
@@ -474,7 +473,6 @@ export function useInfiniteData(args: {
     const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
       (chunkId) => !chunkStates.value[chunkId],
     )
-
     await Promise.all(chunksToFetch.map(fetchChunk))
   }
 
@@ -1347,10 +1345,10 @@ export function useInfiniteData(args: {
   }
 
   async function syncCount(): Promise<void> {
-    if (!isPublic.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+    if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     try {
-      const { count } = isPublic.value
+      const { count } = isPublic?.value
         ? await fetchCount({
             filtersArr: nestedFilters.value,
             where: where?.value,

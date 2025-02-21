@@ -3251,7 +3251,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     await this.getCustomConditionsAndApply({
       column: relColumn,
-      view: childView,
+      view: relColOptions.fk_target_view_id ? childView : null,
       filters: filterObj,
       args,
       qb,
@@ -3342,7 +3342,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await this.getCustomConditionsAndApply({
       column: relColumn,
-      view: childView,
+      view: relColOptions.fk_target_view_id ? childView : null,
       filters: filterObj,
       args,
       qb,
@@ -3521,7 +3521,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     await this.getCustomConditionsAndApply({
       column: relColumn,
-      view: targetView,
+      view: relColOptions.fk_target_view_id ? targetView : null,
       filters: filterObj,
       args,
       qb,
@@ -3753,7 +3753,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
     await this.getCustomConditionsAndApply({
       column: relColumn,
-      view: targetView,
+      view: relColOptions.fk_target_view_id ? targetView : null,
       filters: filterObj,
       args,
       qb,

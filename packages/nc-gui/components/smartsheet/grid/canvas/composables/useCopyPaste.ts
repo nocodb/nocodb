@@ -499,7 +499,7 @@ export function useCopyPaste({
                       await syncCellData?.(activeCell)
                     }
                   },
-                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
+                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
                 },
                 undo: {
                   fn: async (
@@ -539,7 +539,7 @@ export function useCopyPaste({
                       await syncCellData?.(activeCell)
                     }
                   },
-                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
+                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
                 },
                 scope: defineViewScope({ view: view?.value }),
               })

@@ -59,9 +59,12 @@ function toggleBorderLock() {
           <div class="h-10 w-1 rounded-lg bg-nc-bg-gray-light"></div>
           <div class="flex flex-col gap-4 items-center">
             <div class="w-10 h-1 rounded-lg bg-nc-bg-gray-light"></div>
-            <NcButton size="xsmall" type="text" @click="toggleBorderLock" class="shrink-0">
-              <GeneralIcon :icon="isBorderLocked ? 'ncLock' : 'ncUnlock'" />
-            </NcButton>
+            <NcTooltip>
+              <NcButton size="xsmall" type="text" @click="toggleBorderLock" class="shrink-0">
+                <GeneralIcon :icon="isBorderLocked ? 'ncLock' : 'ncUnlock'" />
+              </NcButton>
+              <template #title> Locked uses equal border for all sides. Unlock to set individual values. </template>
+            </NcTooltip>
             <div class="w-10 h-1 rounded-lg bg-nc-bg-gray-light"></div>
           </div>
           <div class="h-10 w-1 rounded-lg bg-nc-bg-gray-light"></div>

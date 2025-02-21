@@ -120,7 +120,7 @@ whenever(
 
 <template>
   <div class="field-elements rounded-lg">
-    <div class="py-1">
+    <div class="py-1 field-search">
       <a-input
         v-model:value="filterQuery"
         :placeholder="$t('placeholder.searchFields')"

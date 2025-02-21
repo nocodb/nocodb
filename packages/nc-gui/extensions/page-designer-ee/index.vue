@@ -206,6 +206,28 @@ onUnmounted(() => {
 
 <style lang="scss">
 .page-designer {
+  .ant-select-selector,
+  .ant-input,
+  .ant-input-affix-wrapper {
+    &:hover:not(:focus):not(:focus-within) {
+      @apply !bg-nc-bg-gray-extralight;
+    }
+  }
+  .ant-input-affix-wrapper:hover .ant-input {
+    @apply bg-nc-bg-gray-extralight;
+  }
+  .field-search {
+    &,
+    &:hover {
+      .ant-input-affix-wrapper,
+      .ant-input {
+        &,
+        &:hover {
+          @apply !bg-nc-bg-default;
+        }
+      }
+    }
+  }
   label {
     @apply font-500 text-nc-content-gray;
   }

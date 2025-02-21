@@ -93,7 +93,7 @@ function onFieldClick(field: ColumnType) {
 
 <template>
   <div class="field-elements rounded-lg">
-    <div class="py-1">
+    <div class="py-1 field-search group">
       <a-input
         v-model:value="filterQuery"
         :placeholder="$t('placeholder.searchFields')"

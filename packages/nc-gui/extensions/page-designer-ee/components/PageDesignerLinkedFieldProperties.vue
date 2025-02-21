@@ -84,17 +84,16 @@ watch(
   },
 )
 
-const isTable = computed(() => fieldWidget.value.displayAs === LinkedFieldDisplayAs.TABLE)
+const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDisplayAs.TABLE)
 </script>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
     <header class="widget-header">
       <h1 class="m-0 flex items-center gap-3 flex-wrap">
-        Link Fields
-        <div class="flex items-center px-2 py-1 gap-2 bg-nc-bg-gray-medium rounded-lg">
-          <component :is="getIcon(fieldWidget.field)" class="!m-0" />
-          <span class="text-[14px] font-medium text-nc-content-gray-subtle2">{{ fieldWidget.field.title }}</span>
+        <div class="flex items-center gap-3">
+          <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
+          {{ fieldWidget.field.title }}
         </div>
         <div class="flex-1"></div>
         <span class="text-[13px] -mt-1 font-medium text-nc-content-gray-subtle2">

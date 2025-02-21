@@ -28,7 +28,7 @@ function onDragStart(e: DragEvent) {
     @dragstart="onDragStart"
   >
     <img draggable="false" :src="icon" class="w-10 h-10" />
-    <div class="text-center text-nc-content-gray text-[13px] font-bold leading-[18px]">{{ text }}</div>
+    <div class="text-center text-nc-content-gray text-[13px] font-700 leading-[18px]">{{ text }}</div>
   </div>
 </template>
 

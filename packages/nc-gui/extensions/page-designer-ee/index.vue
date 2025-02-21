@@ -329,7 +329,7 @@ onUnmounted(() => {
     .widget-header {
       @apply px-6 py-4 border-b border-solid border-nc-border-gray-medium;
       h1 {
-        @apply text-xl font-bold leading-8 tracking-[-0.4px];
+        @apply text-xl font-700 leading-8 tracking-[-0.4px];
       }
     }
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UITypes } from 'nocodb-sdk'
+import { isVirtualCol, type ColumnType, type UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'
@@ -23,12 +23,19 @@ watch(
 const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
 
 const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachment(fieldWidget.value.field))
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
 </script>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
     <header class="widget-header">
-      <h1 class="m-0">{{ fieldWidget.field.title }}</h1>
+      <h1 class="m-0 flex items-center gap-3">
+        <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
+        {{ fieldWidget.field.title }}
+      </h1>
     </header>
     <GroupedSettings v-if="isPlainCell" title="Alignment">
       <div class="flex gap-3">

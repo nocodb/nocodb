@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
   'NUMBER',
@@ -39,7 +40,8 @@ const dbTypes = [
   'GEOGRAPHY',
 ];
 
-export class SnowflakeUi {
+export class SnowflakeUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -1079,6 +1081,94 @@ export class SnowflakeUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return SnowflakeUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return SnowflakeUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return SnowflakeUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return SnowflakeUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return SnowflakeUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return SnowflakeUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return SnowflakeUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return SnowflakeUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return SnowflakeUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return SnowflakeUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return SnowflakeUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return SnowflakeUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return SnowflakeUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return SnowflakeUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return SnowflakeUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return SnowflakeUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return SnowflakeUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return SnowflakeUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return SnowflakeUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return SnowflakeUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return SnowflakeUi.isEqual(dataType1, dataType2);
+  }
+  //#endregion methods
 }
 
 // module.exports = SnowflakeUiHelp;

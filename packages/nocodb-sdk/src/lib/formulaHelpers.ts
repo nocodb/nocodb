@@ -2033,6 +2033,8 @@ export async function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
+      } else if(['&'].includes(parsedTree.operator)) {
+        res.dataType = FormulaDataTypes.STRING;
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }

@@ -137,4 +137,16 @@ describe('Formula parsing and type validation', () => {
       expect(result.dataType).toEqual(FormulaDataTypes.DATE);
     });
   })
+
+  describe('binary expression', () => {
+    it(`& operator will return string`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '"Hello" & "World"',
+        columns: [],
+        clientOrSqlUi: 'pg',
+        getMeta: async () => ({}),
+      })
+      expect(result.dataType).toBe(FormulaDataTypes.STRING)
+    })
+  })
 });

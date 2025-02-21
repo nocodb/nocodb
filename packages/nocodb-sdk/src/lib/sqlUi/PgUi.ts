@@ -2159,8 +2159,8 @@ export class PgUi implements SqlUi {
   getUIType(col: ColumnType): string {
     return PgUi.getUIType(col);
   }
-  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
-    return PgUi.getDataTypeForUiType(col);
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return PgUi.getDataTypeForUiType(col, idType);
   }
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
     return PgUi.getDataTypeListForUiType(col, idType);

@@ -1153,8 +1153,8 @@ export class SnowflakeUi implements SqlUi {
   getUIType(col: ColumnType): string {
     return SnowflakeUi.getUIType(col);
   }
-  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
-    return SnowflakeUi.getDataTypeForUiType(col);
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return SnowflakeUi.getDataTypeForUiType(col, idType);
   }
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
     return SnowflakeUi.getDataTypeListForUiType(col, idType);

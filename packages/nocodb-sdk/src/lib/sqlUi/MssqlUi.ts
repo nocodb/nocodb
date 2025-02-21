@@ -1087,8 +1087,8 @@ export class MssqlUi implements SqlUi {
   getUIType(col: ColumnType): string {
     return MssqlUi.getUIType(col);
   }
-  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
-    return MssqlUi.getDataTypeForUiType(col);
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return MssqlUi.getDataTypeForUiType(col, idType);
   }
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
     return MssqlUi.getDataTypeListForUiType(col, idType);

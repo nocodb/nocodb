@@ -1044,8 +1044,8 @@ export class SqliteUi {
   getUIType(col: ColumnType): string {
     return SqliteUi.getUIType(col);
   }
-  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
-    return SqliteUi.getDataTypeForUiType(col);
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return SqliteUi.getDataTypeForUiType(col, idType);
   }
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
     return SqliteUi.getDataTypeListForUiType(col, idType);

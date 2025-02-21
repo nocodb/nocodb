@@ -1469,8 +1469,8 @@ export class MysqlUi implements SqlUi {
   getUIType(col: ColumnType): string {
     return MysqlUi.getUIType(col);
   }
-  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
-    return MysqlUi.getDataTypeForUiType(col);
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return MysqlUi.getDataTypeForUiType(col, idType);
   }
   getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
     return MysqlUi.getDataTypeListForUiType(col, idType);

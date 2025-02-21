@@ -17,8 +17,10 @@ import {
   GeoDataHelper,
   JsonHelper,
   LastModifiedTimeHelper,
+  LinksHelper,
   LongTextHelper,
   LookupHelper,
+  LTARHelper,
   MultiSelectHelper,
   NumberHelper,
   PercentHelper,
@@ -69,6 +71,8 @@ export class ColumnHelperClass {
     [UITypes.LastModifiedBy]: UserHelper,
     [UITypes.Lookup]: LookupHelper,
     [UITypes.Rollup]: RollupHelper,
+    [UITypes.Links]: LinksHelper,
+    [UITypes.LinkToAnotherRecord]: LTARHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

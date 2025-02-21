@@ -20,24 +20,29 @@ const config: AppConfig = {
     data: {
       ttl: +process.env.NC_DATA_API_TTL || 1000,
       max_apis: +process.env.NC_DATA_COUNT || 10,
+      block_duration: +process.env.NC_DATA_BLOCK_DURATION || 30000,
     },
     meta: {
       ttl: +process.env.NC_META_API_TTL || 60000,
       max_apis: +process.env.NC_META_COUNT || 60,
+      block_duration: +process.env.NC_META_BLOCK_DURATION || 30000,
     },
 
     // todo: decide on xc-auth API limits
     data_gui: {
       ttl: +process.env.NC_DATA_GUI_API_TTL || 1000,
-      max_apis: +process.env.NC_DATA_GUI_COUNT || 30,
+      max_apis: +process.env.NC_DATA_GUI_COUNT || 30000,
+      block_duration: +process.env.NC_DATA_GUI_BLOCK_DURATION || 0,
     },
     meta_gui: {
       ttl: +process.env.NC_META_GUI_API_TTL || 1000,
       max_apis: +process.env.NC_META_GUI_COUNT || 30,
+      block_duration: +process.env.NC_META_GUI_BLOCK_DURATION || 0,
     },
     public: {
       ttl: +process.env.NC_PUBLIC_API_TTL || 1000,
       max_apis: +process.env.NC_PUBLIC_COUNT || 10,
+      block_duration: +process.env.NC_PUBLIC_BLOCK_DURATION || 0,
     },
     calc_execution_time: false,
   },

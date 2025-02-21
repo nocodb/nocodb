@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '~/interface/config';
 import type {
@@ -7,28 +7,6 @@ import type {
   ThrottlerOptionsFactory,
 } from '@nestjs/throttler';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
-
-class CustomThrottlerStorageRedisService extends ThrottlerStorageRedisService {
-  // keeping this for reference
-  //   getScriptSrc(): string {
-  //     return `
-  //       -- Generate a shadow key
-  //       local shadowKey = KEYS[1].."_shadow"
-  //       local totalHits = redis.call("INCR", KEYS[1])
-  //       -- Set shadow key value to totalHits
-  //       redis.call("SET", shadowKey, totalHits)
-  //       local timeToExpire = redis.call("PTTL", KEYS[1])
-  //       if timeToExpire <= 0
-  //         then
-  //           redis.call("PEXPIRE", KEYS[1], tonumber(ARGV[1]))
-  //           timeToExpire = tonumber(ARGV[1])
-  //         end
-  //       return { totalHits, timeToExpire }
-  //     `
-  //       .replace(/^\s+/gm, '')
-  //       .trim();
-  //   }
-}
 
 const HEADER_NAME = 'xc-token';
 const HEADER_NAME_GUI = 'xc-auth';
@@ -45,6 +23,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         {
           ttl: config.meta.ttl,
           limit: config.meta.max_apis,
+          blockDuration: config.meta.block_duration,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[HEADER_NAME];
           },
@@ -53,6 +32,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         {
           ttl: config.meta_gui.ttl,
           limit: config.meta_gui.max_apis,
+          blockDuration: config.meta_gui.block_duration,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[
               HEADER_NAME_GUI
@@ -63,6 +43,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         {
           ttl: config.data.ttl,
           limit: config.data.max_apis,
+          blockDuration: config.data.block_duration,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[HEADER_NAME];
           },
@@ -71,6 +52,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         {
           ttl: config.data_gui.ttl,
           limit: config.data_gui.max_apis,
+          blockDuration: config.data_gui.block_duration,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[
               HEADER_NAME_GUI
@@ -81,13 +63,14 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         {
           ttl: config.public.ttl,
           limit: config.public.max_apis,
+          blockDuration: config.public.block_duration,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().clientIp;
           },
           name: 'public',
         },
       ],
-      storage: new CustomThrottlerStorageRedisService(
+      storage: new ThrottlerStorageRedisService(
         getRedisURL(NC_REDIS_TYPE.THROTTLER),
       ),
     };

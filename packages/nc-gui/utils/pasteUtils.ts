@@ -1,5 +1,6 @@
 import {
   type AIRecordType,
+  ColumnHelper,
   type ColumnType,
   type LinkToAnotherRecordType,
   type TableType,
@@ -16,10 +17,20 @@ export const valueToCopy = (
     isPg: (sourceId: string) => boolean
     isMysql: (sourceId: string) => boolean
     meta: TableType
+    metas: { [idOrTitle: string]: TableType | any }
   },
 ) => {
-  const { isPg, isMysql, meta } = cb
+  const { isPg, isMysql, meta, metas } = cb
   let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+
+  const parsedValue = ColumnHelper.parseValue(textToCopy, {
+    col: columnObj,
+    isMysql,
+    isPg,
+    meta,
+    metas,
+    rowId: isMm(columnObj) ? extractPkFromRow(rowObj.row, meta?.columns as ColumnType[]) : null,
+  })
 
   if (columnObj.uidt === UITypes.Checkbox) {
     textToCopy = !!textToCopy
@@ -152,7 +163,10 @@ export const valueToCopy = (
     }
   }
 
-  return textToCopy
+  // Todo: remove after testing
+  console.log('parsedValue', parsedValue, '\n', 'oldCopyText', textToCopy, columnObj.uidt)
+
+  return parsedValue
 }
 
 export const serializeRange = (

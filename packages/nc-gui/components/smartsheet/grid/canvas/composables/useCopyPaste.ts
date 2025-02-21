@@ -96,7 +96,7 @@ export function useCopyPaste({
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
   const { appInfo } = useGlobal()
   const { addUndo, clone, defineViewScope } = useUndoRedo()
@@ -911,6 +911,7 @@ export function useCopyPaste({
 
           const textToCopy = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
+            metas: metas.value,
             isPg,
             isMysql,
           })

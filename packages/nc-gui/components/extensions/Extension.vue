@@ -200,6 +200,7 @@ useEventListener('keydown', (e) => {
 <style scoped lang="scss">
 .extension-wrapper {
   @apply bg-white rounded-xl w-full border-1 relative;
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.08);
 
   &.isOpen {
     resize: vertical;

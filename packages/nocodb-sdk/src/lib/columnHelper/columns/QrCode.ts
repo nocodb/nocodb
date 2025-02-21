@@ -1,10 +1,20 @@
-import AbstractColumnHelper from '../column.interface';
+import { ComputedTypePasteError } from '~/lib/error';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class QrCodeHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(_value: any): null {
-    return null;
+  serializeValue(
+    _value: any,
+    params: SerializerOrParserFnProps['params']
+  ): null {
+    if (params.isMultipleCellPaste) {
+      return undefined;
+    } else {
+      throw new ComputedTypePasteError();
+    }
   }
 
   parseValue(value: any): string | null {

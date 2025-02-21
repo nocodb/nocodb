@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -19,7 +20,15 @@ export class RatingHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    const res = serializeIntValue(value);
+    const res = serializeIntValue(value ?? 0);
+
+    if (res === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
 
     if (res) {
       return Math.min(

@@ -165,6 +165,7 @@ export function useMultiSelect(
       isPg,
       meta: meta.value,
       metas: metas.value,
+      rowId: isMm(columnObj) ? extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) : null,
     })
 
     if (columnObj.uidt === UITypes.Checkbox) {
@@ -299,9 +300,9 @@ export function useMultiSelect(
     }
 
     // Todo: remove after testing
-    console.log('parsedValue', parsedValue,'\n\n' ,textToCopy, columnObj.uidt)
+    console.log('parsedValue', parsedValue, '\n', 'oldCopyText', textToCopy, columnObj.uidt)
 
-    return textToCopy
+    return parsedValue
   }
 
   const serializeRange = (rows: Row[], cols: ColumnType[]) => {

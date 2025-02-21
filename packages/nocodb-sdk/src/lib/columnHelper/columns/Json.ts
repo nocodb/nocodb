@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper from '../column.interface';
 import { parseJsonValue, serializeJsonValue } from '../utils';
 
@@ -5,7 +6,13 @@ export class JsonHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(value: any): string | null {
-    return serializeJsonValue(value);
+    value = serializeJsonValue(value);
+
+    if (value === null) {
+      throw new SilentTypeConversionError();
+    }
+
+    return value;
   }
 
   parseValue(value: any): string | null {

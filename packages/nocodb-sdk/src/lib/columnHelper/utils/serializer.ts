@@ -3,9 +3,16 @@ import { ColumnType, SelectOptionsType } from '~/lib/Api';
 import { getDateFormat, getDateTimeFormat } from '~/lib/dateTimeHelper';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
+import {
+  ncIsBoolean,
+  ncIsFunction,
+  ncIsNaN,
+  ncIsNumber,
+  ncIsString,
+} from '~/lib/is';
 import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
+import { SelectTypeConversionError } from '~/lib/error';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
@@ -15,6 +22,8 @@ export const serializeIntValue = (value: string | null | number) => {
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
     const cleanedValue = value.replace(/,/g, '').trim(); // Remove commas
+
+    if (!cleanedValue) return null;
 
     // Try converting the cleaned value to a number
     const numberValue = Number(cleanedValue);
@@ -28,14 +37,21 @@ export const serializeIntValue = (value: string | null | number) => {
   return null; // Return null if it's not a valid number
 };
 
-export const serializeDecimalValue = (value: string | null | number) => {
+export const serializeDecimalValue = (
+  value: string | null | number,
+  callback?: (val: any) => any
+) => {
   if (ncIsNumber(value)) {
     return Number(value);
   }
 
   // If it's a string, remove commas and check if it's a valid number
   if (ncIsString(value)) {
-    const cleanedValue = value.replace(/,/g, '').trim(); // Remove commas
+    const cleanedValue = ncIsFunction(callback)
+      ? callback(value)
+      : value.replace(/,/g, '').trim(); // Remove commas
+
+    if (!cleanedValue) return null;
 
     // Try converting the cleaned value to a number
     const numberValue = Number(cleanedValue);
@@ -56,6 +72,8 @@ export const serializePercentValue = (value: string | null) => {
   // If it's a string, remove % and check if it's a valid number
   if (ncIsString(value)) {
     const cleanedValue = value.replace('%', ''); // Remove %
+
+    if (!cleanedValue) return null;
 
     // Try converting the cleaned value to a number
     const numberValue = Number(cleanedValue);
@@ -110,11 +128,9 @@ export const serializeJsonValue = (value: any) => {
 };
 
 export const serializeCurrencyValue = (value: any) => {
-  if (ncIsNaN(value)) {
-    return null;
-  }
-
-  return serializeDecimalValue(value);
+  return serializeDecimalValue(value, (value) => {
+    return value?.replace(/[^0-9.]/g, '')?.trim();
+  });
 };
 
 export const serializeDateOrDateTimeValue = (
@@ -129,6 +145,10 @@ export const serializeDateOrDateTimeValue = (
 
   if (!parsedDateOrDateTime.isValid()) {
     parsedDateOrDateTime = dayjs(value, getDateFormat(value));
+  }
+
+  if (!parsedDateOrDateTime.isValid()) {
+    return null;
   }
 
   return col.uidt === UITypes.Date
@@ -175,15 +195,6 @@ export const serializeYearValue = (value: any) => {
   return parsedDate.isValid() ? +parsedDate.format('YYYY') : null;
 };
 
-export const serialiseUserValue = (_value: any) => {
-  // let data = value;
-  // try {
-  //   if (typeof value === 'string') {
-  //     data = JSON.parse(value);
-  //   }
-  // } catch {}
-};
-
 export const serializeSelectValue = (value: any, col: ColumnType) => {
   value = value?.toString().trim();
 
@@ -197,13 +208,16 @@ export const serializeSelectValue = (value: any, col: ColumnType) => {
 
   const optionsSet = new Set(availableOptions);
 
-  const vals = value.split(',');
+  let vals = value.split(',');
   const invalidVals = vals.filter((v) => !optionsSet.has(v));
+
+  if (vals.length && col.uidt === UITypes.SingleSelect) {
+    vals = [vals[0]];
+  }
 
   // return null if no valid values
   if (invalidVals.length > 0) {
-    return null;
-    // throw new SelectTypeConversionError(vals, invalidVals);
+    throw new SelectTypeConversionError(vals, invalidVals);
   }
 
   return vals.join(',');

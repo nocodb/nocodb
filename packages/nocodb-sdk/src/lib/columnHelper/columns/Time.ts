@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -12,7 +13,17 @@ export class TimeHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    return serializeTimeValue(value, params);
+    value = serializeTimeValue(value, params);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(

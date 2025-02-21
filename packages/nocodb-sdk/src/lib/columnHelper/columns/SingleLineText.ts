@@ -1,9 +1,14 @@
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class SingleLineTextHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(value: any): string | null {
+  serializeValue(
+    value: any,
+    _params: SerializerOrParserFnProps['params']
+  ): string | null {
     // This is to remove the quotes
     value = value?.toString() ?? null;
     if (value && value.match(/^".*"$/)) {
@@ -12,11 +17,17 @@ export class SingleLineTextHelper extends AbstractColumnHelper {
     return value ?? null;
   }
 
-  parseValue(value: any): string | null {
+  parseValue(
+    value: any,
+    _params: SerializerOrParserFnProps['params']
+  ): string | null {
     return value?.toString()?.trim() ?? null;
   }
 
-  parsePlainCellValue(value: any): string {
+  parsePlainCellValue(
+    value: any,
+    _params: SerializerOrParserFnProps['params']
+  ): string {
     return value?.toString()?.trim() ?? '';
   }
 }

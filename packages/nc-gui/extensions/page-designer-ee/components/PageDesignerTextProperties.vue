@@ -185,6 +185,13 @@ function onTextFieldDelete() {
           <NonNullableNumberInput v-model="textWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Text Color</label>
+          <ColorPropertyPicker v-model="textWidget.textColor" />
+        </div>
+        <div class="flex-1"></div>
+      </div>
     </GroupedSettings>
 
     <BorderSettings
@@ -201,10 +208,6 @@ function onTextFieldDelete() {
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Background Color</label>
           <ColorPropertyPicker v-model="textWidget.backgroundColor" />
-        </div>
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Text Color</label>
-          <ColorPropertyPicker v-model="textWidget.textColor" />
         </div>
       </div>
     </GroupedSettings>

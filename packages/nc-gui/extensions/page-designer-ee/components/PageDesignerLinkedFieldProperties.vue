@@ -127,94 +127,129 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
       </div>
     </GroupedSettings>
 
-    <template v-if="isTable">
-      <GroupedSettings title="Font settings">
+    <GroupedSettings v-if="isTable" title="Font settings">
+      <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <label>Font</label>
+        <NcSelect v-model:value="fieldWidget.fontFamily" show-search>
+          <a-select-option v-for="font of fonts" :key="font" :value="font">
+            <span :style="{ fontFamily: font }">{{ font }}</span>
+          </a-select-option>
+        </NcSelect>
+      </div>
+
+      <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Font</label>
+          <label>Size</label>
+          <NonNullableNumberInput
+            v-model="fieldWidget.tableFontSettings.row.fontSize"
+            :reset-to="12"
+            :min="1"
+            class="flex-1"
+            placeholder="12"
+          />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Line Height</label>
+          <NonNullableNumberInput
+            v-model="fieldWidget.tableFontSettings.row.lineHeight"
+            :reset-to="1.5"
+            :min="1"
+            class="flex-1"
+            placeholder="1.5"
+          />
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Color</label>
+          <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.row.textColor" />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Weight</label>
+          <NcSelect v-model:value="fieldWidget.tableFontSettings.row.fontWeight">
+            <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
+            </a-select-option>
+          </NcSelect>
+        </div>
+      </div>
+
+      <span class="text-[14px] font-700 mt-3 leading-[20px]">Table header</span>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Size</label>
+          <NonNullableNumberInput
+            v-model="fieldWidget.tableFontSettings.header.fontSize"
+            :reset-to="12"
+            :min="1"
+            class="flex-1"
+            placeholder="12"
+          />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Line Height</label>
+          <NonNullableNumberInput
+            v-model="fieldWidget.tableFontSettings.header.lineHeight"
+            :reset-to="1.5"
+            :min="1"
+            class="flex-1"
+            placeholder="1.5"
+          />
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Color</label>
+          <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.header.textColor" />
+        </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Weight</label>
+          <NcSelect v-model:value="fieldWidget.tableFontSettings.header.fontWeight">
+            <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
+            </a-select-option>
+          </NcSelect>
+        </div>
+      </div>
+    </GroupedSettings>
+    <GroupedSettings v-else title="Font settings">
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Family</label>
           <NcSelect v-model:value="fieldWidget.fontFamily" show-search>
             <a-select-option v-for="font of fonts" :key="font" :value="font">
               <span :style="{ fontFamily: font }">{{ font }}</span>
             </a-select-option>
           </NcSelect>
         </div>
-
-        <div class="flex gap-3">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Size</label>
-            <NonNullableNumberInput
-              v-model="fieldWidget.tableFontSettings.row.fontSize"
-              :reset-to="12"
-              :min="1"
-              class="flex-1"
-              placeholder="12"
-            />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Line Height</label>
-            <NonNullableNumberInput
-              v-model="fieldWidget.tableFontSettings.row.lineHeight"
-              :reset-to="1.5"
-              :min="1"
-              class="flex-1"
-              placeholder="1.5"
-            />
-          </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Weight</label>
+          <NcSelect v-model:value="fieldWidget.fontWeight">
+            <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
+            </a-select-option>
+          </NcSelect>
         </div>
-        <div class="flex gap-3">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Color</label>
-            <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.row.textColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Weight</label>
-            <NcSelect v-model:value="fieldWidget.tableFontSettings.row.fontWeight">
-              <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-                <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
-              </a-select-option>
-            </NcSelect>
-          </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Size</label>
+          <NonNullableNumberInput v-model="fieldWidget.fontSize" :reset-to="16" :min="1" class="flex-1" placeholder="16" />
         </div>
-
-        <span class="text-[14px] font-700 mt-3 leading-[20px]">Table header</span>
-
-        <div class="flex gap-3">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Size</label>
-            <NonNullableNumberInput
-              v-model="fieldWidget.tableFontSettings.header.fontSize"
-              :reset-to="12"
-              :min="1"
-              class="flex-1"
-              placeholder="12"
-            />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Line Height</label>
-            <NonNullableNumberInput
-              v-model="fieldWidget.tableFontSettings.header.lineHeight"
-              :reset-to="1.5"
-              :min="1"
-              class="flex-1"
-              placeholder="1.5"
-            />
-          </div>
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Line Height</label>
+          <NonNullableNumberInput v-model="fieldWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
-        <div class="flex gap-3">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Color</label>
-            <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.header.textColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Weight</label>
-            <NcSelect v-model:value="fieldWidget.tableFontSettings.header.fontWeight">
-              <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-                <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
-              </a-select-option>
-            </NcSelect>
-          </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Text Color</label>
+          <ColorPropertyPicker v-model="fieldWidget.textColor" />
         </div>
-      </GroupedSettings>
-    </template>
+        <div class="flex-1"></div>
+      </div>
+    </GroupedSettings>
 
     <BorderSettings
       v-model:border-top="fieldWidget.borderTop"
@@ -230,10 +265,6 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Background Color</label>
           <ColorPropertyPicker v-model="fieldWidget.backgroundColor" />
-        </div>
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Text Color</label>
-          <ColorPropertyPicker v-model="fieldWidget.textColor" />
         </div>
       </div>
     </GroupedSettings>

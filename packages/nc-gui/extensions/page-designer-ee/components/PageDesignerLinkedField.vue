@@ -167,12 +167,12 @@ const tableRowHeight = computed(() => {
             :class="['list-inside m-0 p-0', isNumberedList ? 'list-decimal' : 'list-disc']"
           >
             <li v-for="row in relatedRows">
-              <span :class="{ 'relative left-[-8px]': !isNumberedList }">
+              <span :class="{ 'relative left-[-8px]': !isNumberedList }" :style="{ fontFamily: widget.fontFamily }">
                 {{ row[relatedTableDisplayValueProp] }}
               </span>
             </li>
           </component>
-          <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE">
+          <span v-else-if="widget.displayAs === LinkedFieldDisplayAs.INLINE" :style="{ fontFamily: widget.fontFamily }">
             {{ inlineValue }}
           </span>
           <table

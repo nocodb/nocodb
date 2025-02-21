@@ -92,6 +92,13 @@ const getIcon = (c: ColumnType) =>
           <NonNullableNumberInput v-model="fieldWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Text Color</label>
+          <ColorPropertyPicker v-model="fieldWidget.textColor" />
+        </div>
+        <div class="flex-1"></div>
+      </div>
     </GroupedSettings>
     <GroupedSettings v-if="isAttachmentField" title="Fitting">
       <TabbedSelect v-model="fieldWidget.objectFit" :values="['contain', 'cover', 'fill']">
@@ -115,10 +122,6 @@ const getIcon = (c: ColumnType) =>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Background Color</label>
           <ColorPropertyPicker v-model="fieldWidget.backgroundColor" />
-        </div>
-        <div v-if="isPlainCell" class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Text Color</label>
-          <ColorPropertyPicker v-model="fieldWidget.textColor" />
         </div>
       </div>
     </GroupedSettings>

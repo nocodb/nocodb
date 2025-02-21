@@ -34,8 +34,6 @@ export class RollupHelper extends AbstractColumnHelper {
       (c: ColumnType) => c.id === colOptions.fk_rollup_column_id
     ) as ColumnType | undefined;
 
-    console.log('child col', childColumn, meta, metas);
-
     if (!childColumn) return value;
 
     const renderAsTextFun = getRenderAsTextFunForUiType(

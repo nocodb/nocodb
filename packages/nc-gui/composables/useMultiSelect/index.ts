@@ -299,7 +299,7 @@ export function useMultiSelect(
     }
 
     // Todo: remove after testing
-    console.log('parsedValue', parsedValue, textToCopy, columnObj.uidt)
+    console.log('parsedValue', parsedValue,'\n\n' ,textToCopy, columnObj.uidt)
 
     return textToCopy
   }

@@ -3203,7 +3203,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const childView = await relColOptions.getChildView(
       this.context,
-      undefined,
       childTable,
     );
     let listArgs: any = {};
@@ -3314,7 +3313,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const childView = await relColOptions.getChildView(
       this.context,
-      undefined,
       childTable,
     );
 
@@ -3473,7 +3471,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const targetView = await relColOptions.getChildView(
       this.context,
-      undefined,
       isBt ? parentTable : childTable,
     );
     let listArgs: any = {};
@@ -3752,7 +3749,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const targetView = await relColOptions.getChildView(
       this.context,
-      undefined,
       parentTable,
     );
     await this.getCustomConditionsAndApply({

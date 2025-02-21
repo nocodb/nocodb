@@ -157,8 +157,8 @@ export default class LinkToAnotherRecordColumn {
 
   async getChildView(
     context: NcContext,
-    ncMeta = Noco.ncMeta,
     table: Model = undefined,
+    ncMeta = Noco.ncMeta,
   ) {
     await table?.getViews(context);
     const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';

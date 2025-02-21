@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
   'bigint',
@@ -40,7 +41,8 @@ const dbTypes = [
   'varchar',
 ];
 
-export class MssqlUi {
+export class MssqlUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -1013,4 +1015,92 @@ export class MssqlUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return MssqlUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return MssqlUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return MssqlUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return MssqlUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return MssqlUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return MssqlUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return MssqlUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return MssqlUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return MssqlUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return MssqlUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return MssqlUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return MssqlUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return MssqlUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return MssqlUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return MssqlUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return MssqlUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
+    return MssqlUi.getDataTypeForUiType(col);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return MssqlUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return MssqlUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return MssqlUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return MssqlUi.isEqual(dataType1, dataType2);
+  }
+  //#endregion methods
 }

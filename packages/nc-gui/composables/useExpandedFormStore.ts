@@ -326,20 +326,28 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     if (!recordId) return
 
-    const getSystemColumn = activeView.value?.fk_model_id === meta.value.id ? !!activeView.value?.show_system_fields : false
     let record: Record<string, any> = {}
     try {
-      record = await $api.dbTableRow.read(
-        NOCO,
-        // todo: base_id missing on view type
-        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-        meta.value.id as string,
-        encodeURIComponent(recordId),
-        {
-          getHiddenColumn: true,
-          getSystemColumn,
-        },
-      )
+      record =
+        activeView.value?.fk_model_id === meta.value.id
+          ? await $api.dbViewRow.read(
+              NOCO,
+              // todo: base_id missing on view type
+              ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value.id as string,
+              activeView.value?.id as string,
+              encodeURIComponent(recordId),
+            )
+          : await $api.dbTableRow.read(
+              NOCO,
+              // todo: base_id missing on view type
+              ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value.id as string,
+              encodeURIComponent(recordId),
+              {
+                getHiddenColumn: true,
+              },
+            )
     } catch (err: any) {
       if (err.response?.status === 404) {
         const router = useRouter()

@@ -346,10 +346,10 @@ export default function convertCellData(
       }
     }
     case UITypes.GeoData: {
-      const geoValue = value.split(',')
+      const geoValue = value.replace(',', ';').split(';')
       if (geoValue.length === 2) {
         if (!isNaN(Number(geoValue[0])) && !isNaN(Number(geoValue[1]))) {
-          return geoValue.join(';')
+          return geoValue.map(k => k.trim()).join(';')
         }
       }
       throw new SilentTypeConversionError()

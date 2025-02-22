@@ -306,8 +306,8 @@ export class RemoteImportService {
 
     const remoteImportHandler = new RemoteImportHandler(
       context,
+      this,
       this.importService,
-      this.importUsers,
       req.user,
       base,
       source,

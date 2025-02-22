@@ -6,6 +6,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source, User } from '~/models';
 import { Model } from '~/models';
 import { findWithIdentifier } from '~/helpers/exportImportHelpers';
+import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 
 interface MessagePayload {
   type: string;
@@ -35,17 +36,8 @@ export class RemoteImportHandler {
 
   constructor(
     private context: NcContext,
+    private remoteImportService: RemoteImportService,
     private importService: ImportService,
-    private importUsers: (
-      context: NcContext,
-      payload: {
-        users: {
-          email: string;
-          display_name?: string;
-        }[];
-        req: NcRequest;
-      },
-    ) => Promise<void>,
     private user: User,
     private base: Base,
     private source: Source,
@@ -127,7 +119,7 @@ export class RemoteImportHandler {
   private handleUsers(payload: MessagePayload) {
     this.log(`Importing users`);
 
-    const promise = this.importUsers(this.context, {
+    const promise = this.remoteImportService.importUsers(this.context, {
       users: payload.data,
       req: this.req,
     })

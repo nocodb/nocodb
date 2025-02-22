@@ -151,6 +151,7 @@ export class DatasService extends DatasServiceCE {
       rowId: string;
       disableOptimization?: boolean;
       getHiddenColumn?: boolean;
+      getSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -182,6 +183,7 @@ export class DatasService extends DatasServiceCE {
       });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,
+        getSystemColumn: param.getSystemColumn,
         throwErrorIfInvalidParams: true,
       });
     }

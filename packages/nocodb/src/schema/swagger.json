@@ -11289,6 +11289,15 @@
           "schema": {
             "type": "boolean"
           }
+        },
+        {
+          "name": "getSystemColumn",
+          "in": "query",
+          "description": "To get System Columns",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
         }
       ],
       "get": {

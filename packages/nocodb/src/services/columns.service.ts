@@ -442,6 +442,7 @@ export class ColumnsService {
         `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
       );
     }
+    const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
 
     // for API call, if dt is not supplied
     // but uidt is present
@@ -450,14 +451,24 @@ export class ColumnsService {
       param.column.uidt &&
       param.column.uidt !== column.uidt &&
       !(param.column as Column).dt &&
-      // if uidt valid, do not randomly use default dt
+      // if uidt is invalid, do not randomly use default dt
       Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
-      const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
       (param.column as Column).dt = sqlUi.getDataTypeForUiType(
         { uidt: param.column.uidt as UITypes },
         column?.['meta']?.['ag'] ? 'AG' : 'AI',
       )?.dt;
+    } else if (
+      (param.column.uidt &&
+        param.column.uidt !== column.uidt &&
+        (param.column as Column).dt,
+      // if uidt is invalid, do not randomly use default dt
+      Object.values(UITypes).includes(param.column.uidt as UITypes))
+    ) {
+      const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
+      if (!dtList.includes((param.column as Column).dt)) {
+        throw NcError.badRequest('dt not supported for selected uidt');
+      }
     }
     // extract missing required props from column to avoid broken column
     param.column = {

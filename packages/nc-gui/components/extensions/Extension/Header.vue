@@ -163,7 +163,11 @@ const toggleFullScreen = () => {
         <GeneralIcon icon="ncMaximize2" class="h-3.5 w-3.5" />
       </NcButton>
       <NcButton size="xs" type="text" class="!px-1" @click.stop="collapsed = !collapsed">
-        <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
+        <GeneralIcon
+          icon="arrowDown"
+          class="flex-none transform !transition-transform duration-200 rotate-270"
+          :class="{ '!rotate-360': !collapsed }"
+        />
       </NcButton>
     </template>
     <NcButton v-else :size="isFullscreen ? 'small' : 'xs'" type="text" class="flex-none !px-1" @click="fullscreen = false">

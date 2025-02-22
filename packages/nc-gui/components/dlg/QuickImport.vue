@@ -40,8 +40,6 @@ const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
 
-const activeKey = ref('uploadTab')
-
 const templateEditorRef = ref()
 
 const preImportLoading = ref(false)

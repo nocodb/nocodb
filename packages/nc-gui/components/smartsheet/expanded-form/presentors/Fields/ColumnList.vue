@@ -146,7 +146,14 @@ const showCol = (col: ColumnType) => {
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
   }
-
+  :deep(.nc-qrcode-container) {
+    height: 100%;
+  }
+  :deep(.nc-multi-select) {
+    > div {
+      margin-top: 3px;
+    }
+  }
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
   &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
     @apply !border-none px-0 !rounded-none;
@@ -162,7 +169,7 @@ const showCol = (col: ColumnType) => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+        @apply !h-full border-1 border-solid border-gray-200 rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {

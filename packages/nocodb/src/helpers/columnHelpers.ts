@@ -59,7 +59,7 @@ export async function createHmAndBtColumn(
       (type === 'bt' && alias) || `${parent.title}`,
     );
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
-      context,
+      { ...context, base_id: child.base_id },
       {
         title,
 
@@ -107,22 +107,25 @@ export async function createHmAndBtColumn(
       custom: isCustom,
     };
 
-    savedColumn = await Column.insert(context, {
-      title,
-      fk_model_id: parent.id,
-      uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-      type: 'hm',
-      fk_target_view_id: childView?.id,
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
-      fk_related_model_id: child.id,
-      virtual,
-      system: isSystemCol,
-      fk_col_name: fkColName,
-      fk_index_name: fkColName,
-      meta,
-      ...(type === 'hm' ? colExtra : {}),
-    });
+    savedColumn = await Column.insert(
+      { ...context, base_id: parent.base_id },
+      {
+        title,
+        fk_model_id: parent.id,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+        type: 'hm',
+        fk_target_view_id: childView?.id,
+        fk_child_column_id: childColumn.id,
+        fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
+        fk_related_model_id: child.id,
+        virtual,
+        system: isSystemCol,
+        fk_col_name: fkColName,
+        fk_index_name: fkColName,
+        meta,
+        ...(type === 'hm' ? colExtra : {}),
+      },
+    );
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: parent,
@@ -168,14 +171,18 @@ export async function createOOColumn(
   isCustom = false,
 ) {
   let savedColumn: Column;
+
+  let childContext = { ...context, base_id: child.base_id };
+  let parentContext = { ...context, base_id: parent.base_id };
+
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(context),
+      await child.getColumns(parentContext),
       `${parent.title}`,
     );
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
-      context,
+      childContext,
       {
         title,
         fk_model_id: child.id,
@@ -208,14 +215,14 @@ export async function createOOColumn(
       column: childRelCol,
       columnId: childRelCol.id,
       req,
-      context,
-      columns: await child.getCachedColumns(context),
+      context: childContext,
+      columns: await child.getCachedColumns(childContext),
     });
   }
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns(context),
+      await parent.getColumns(parentContext),
       alias || child.title,
     );
 
@@ -231,7 +238,7 @@ export async function createOOColumn(
       custom: isCustom,
     };
 
-    savedColumn = await Column.insert(context, {
+    savedColumn = await Column.insert(parentContext, {
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -253,8 +260,8 @@ export async function createOOColumn(
       column: savedColumn,
       columnId: savedColumn.id,
       req,
-      context,
-      columns: await parent.getCachedColumns(context),
+      context: parentContext,
+      columns: await parent.getCachedColumns(parentContext),
     });
   }
   return savedColumn;

@@ -98,6 +98,14 @@ const userDefaultMeta = {
   notify: false,
 }
 
+const formulaDefaultMeta = {
+  display_column_meta: {
+    meta: {},
+    custom: {},
+  },
+  display_type: null,
+}
+
 export const columnDefaultMeta = {
   [UITypes.Checkbox]: checkboxDefaultMeta,
   [UITypes.Currency]: currencyDefaultMeta,
@@ -112,4 +120,5 @@ export const columnDefaultMeta = {
   [UITypes.User]: userDefaultMeta,
   [UITypes.Barcode]: barcodeDefaultMeta,
   [UITypes.Rollup]: rollupDefaultMeta,
+  [UITypes.Formula]: formulaDefaultMeta,
 }

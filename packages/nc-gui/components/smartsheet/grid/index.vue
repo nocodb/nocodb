@@ -19,8 +19,6 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
-const { isMobileMode } = useGlobal()
-
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const bulkUpdateDlg = ref(false)

@@ -194,7 +194,7 @@ const onResize = () => {
     extensionPaneRef.value?.onReady()
   }
 
-  if (isActionPaneActive.value && actionPaneRef.value?.isReady) {
+  if (isActionPaneActive.value && !actionPaneRef.value?.isReady) {
     actionPaneRef.value?.onReady()
   }
 }

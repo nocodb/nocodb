@@ -26,6 +26,7 @@ defineExpose({
   onReady: () => {
     isReady.value = true
   },
+  isReady,
 })
 </script>
 

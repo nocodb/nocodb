@@ -42,7 +42,8 @@ const getAst = async (
       nested: { ...(query?.nested || {}) },
       fieldsSet: new Set(),
     },
-    getHiddenColumn = query?.['getHiddenColumn'],
+    getHiddenColumn = query?.['getHiddenColumn'] === 'true',
+    getSystemColumn = query?.['getSystemColumn'] === 'true',
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
     apiVersion = NcApiVersion.V2,
@@ -55,6 +56,7 @@ const getAst = async (
     view?: View;
     dependencyFields?: DependantFields;
     getHiddenColumn?: boolean;
+    getSystemColumn?: boolean;
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
@@ -240,10 +242,16 @@ const getAst = async (
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
     } else if (getHiddenColumn) {
+      /**
+       * Note
+       * - By default getHiddenColumn is true in expanded form
+       * - getSystemColumn is same as view.show_system_fields, it is required in expanded form to send all field if show system field is enabled
+       */
       isRequested =
         !isSystemColumn(col) ||
         (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
-        col.pk;
+        col.pk ||
+        getSystemColumn;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&

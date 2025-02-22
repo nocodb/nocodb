@@ -358,6 +358,7 @@ export class DatasService {
       rowId: string;
       disableOptimization?: boolean;
       getHiddenColumn?: boolean;
+      getSystemColumn?: boolean;
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
@@ -372,6 +373,7 @@ export class DatasService {
     });
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
       getHiddenColumn: param.getHiddenColumn,
+      getSystemColumn: param.getSystemColumn,
     });
 
     if (!row) {

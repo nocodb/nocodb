@@ -325,6 +325,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!recordId) return
+
+    const getSystemColumn = activeView.value?.fk_model_id === meta.value.id ? !!activeView.value?.show_system_fields : false
     let record: Record<string, any> = {}
     try {
       record = await $api.dbTableRow.read(
@@ -335,6 +337,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         encodeURIComponent(recordId),
         {
           getHiddenColumn: true,
+          getSystemColumn,
         },
       )
     } catch (err: any) {

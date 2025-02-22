@@ -10,6 +10,7 @@ describe('ExecutionTimeCalculatorInterceptor', () => {
           throttler: {
             ttl: 60,
             max_apis: 600,
+            block_duration: 30,
             calc_execution_time: true,
           },
         }),

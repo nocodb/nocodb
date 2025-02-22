@@ -83,6 +83,22 @@
     },
     "patchedDependencies": {
       "splitpanes@3.1.5": "packages/nc-gui/.patches/splitpanes@3.1.5.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@sentry/cli",
+      "@swc/core",
+      "core-js",
+      "esbuild",
+      "javascript-obfuscator",
+      "lz4",
+      "msgpackr-extract",
+      "nestjs-pino",
+      "nx",
+      "sharp",
+      "sqlite3",
+      "vue-demi"
+    ]
   }
 }

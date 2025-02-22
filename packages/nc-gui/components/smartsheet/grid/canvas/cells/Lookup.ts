@@ -88,7 +88,7 @@ export const LookupCellRenderer: CellRenderer = {
       return [value]
     }
 
-    let arrValue = getArrValue()
+    const arrValue = getArrValue()
 
     if (!arrValue.length) return
 

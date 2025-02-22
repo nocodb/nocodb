@@ -328,26 +328,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     let record: Record<string, any> = {}
     try {
-      record =
-        activeView.value?.fk_model_id === meta.value.id
-          ? await $api.dbViewRow.read(
-              NOCO,
-              // todo: base_id missing on view type
-              ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-              meta.value.id as string,
-              activeView.value?.id as string,
-              encodeURIComponent(recordId),
-            )
-          : await $api.dbTableRow.read(
-              NOCO,
-              // todo: base_id missing on view type
-              ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-              meta.value.id as string,
-              encodeURIComponent(recordId),
-              {
-                getHiddenColumn: true,
-              },
-            )
+      if (activeView.value?.fk_model_id === meta.value.id) {
+        record = await $api.dbViewRow.read(
+          NOCO,
+          // todo: base_id missing on view type
+          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+          meta.value.id as string,
+          activeView.value?.id as string,
+          encodeURIComponent(recordId),
+        )
+      } else {
+        record = await $api.dbTableRow.read(
+          NOCO,
+          // todo: base_id missing on view type
+          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+          meta.value.id as string,
+          encodeURIComponent(recordId),
+          {
+            getHiddenColumn: true,
+          },
+        )
+      }
     } catch (err: any) {
       if (err.response?.status === 404) {
         const router = useRouter()

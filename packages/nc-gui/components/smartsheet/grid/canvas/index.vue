@@ -1041,6 +1041,8 @@ const getHeaderTooltipRegions = (
     width: number
     type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
     text: string
+    height?: number
+    y?: number
     disableTooltip?: boolean
   }[] = []
   let xOffset = initialOffset + 1
@@ -1186,7 +1188,7 @@ const handleMouseMove = (e: MouseEvent) => {
       return mousePosition.x >= 0 && mousePosition.x <= width
     })
 
-    if (isMouseOverFixedRegions) {
+    if (!isMouseOverFixedRegions) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {
         initialOffset += parseCellWidth(columns.value[i]!.width)

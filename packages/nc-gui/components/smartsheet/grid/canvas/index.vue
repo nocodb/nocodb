@@ -1165,6 +1165,8 @@ const handleMouseMove = (e: MouseEvent) => {
       cursor = 'pointer'
     }
 
+    // We handle the tooltip & pointer related items for fixed columns first
+    // If the mouse is hovering over the fixed columns, we show the tooltip
     if (fixedCols.length) {
       const fixedRegions = getHeaderTooltipRegions(0, fixedCols.length, 0, 0)
       const activeFixedRegion = fixedRegions.find(
@@ -1183,11 +1185,14 @@ const handleMouseMove = (e: MouseEvent) => {
       }
     }
 
+    // Now we check if the mouse is over the x positions of the fixed columns
     const isMouseOverFixedRegions = fixedCols.some((col) => {
       const width = parseCellWidth(col.width)
       return mousePosition.x >= 0 && mousePosition.x <= width
     })
 
+    // We do not want to process the tooltip & pointer for the non-fixed columns if the mouse is over the fixed columns
+    // If the mouse is not over the fixed columns, we show the tooltip for the non-fixed columns
     if (!isMouseOverFixedRegions) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {

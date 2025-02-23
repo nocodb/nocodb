@@ -383,6 +383,7 @@ export const getUITypesForFormulaDataType = (
         UITypes.Currency,
         UITypes.Percent,
         UITypes.Rating,
+        UITypes.Time,
       ];
     case FormulaDataTypes.DATE:
       return [UITypes.DateTime, UITypes.Date, UITypes.Time];

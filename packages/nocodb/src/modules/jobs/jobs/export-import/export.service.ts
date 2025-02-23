@@ -695,6 +695,13 @@ export class ExportService {
               case UITypes.QrCode:
                 // skip these types
                 break;
+              case UITypes.JSON:
+                try {
+                  row[colId] = JSON.stringify(v);
+                } catch (e) {
+                  row[colId] = v;
+                }
+                break;
               default:
                 row[colId] = v;
                 break;

@@ -19,6 +19,8 @@
   gnused,
   nginx,
   nginxModules,
+  lego,
+  snooze,
 }:
 let
   nginxCustom = nginx.override {
@@ -35,6 +37,8 @@ dockerTools.buildLayeredImage {
 
   contents = [
     dockerTools.binSh
+    dockerTools.caCertificates
+
     nocodb
     postgresql
     execline.bin
@@ -47,9 +51,11 @@ dockerTools.buildLayeredImage {
     gnugrep
     gnused
     minica
+    lego
 
     htop
     vim
+    snooze
 
     pgconf
     nginxconf

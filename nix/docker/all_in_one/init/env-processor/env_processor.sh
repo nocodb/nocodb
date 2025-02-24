@@ -52,18 +52,23 @@ env_aio_set() {
 		aio_minio_enable) aio_minio_enable="$value" ;;
 		aio_ssl_enable) aio_ssl_enable="$value" ;;
 		aio_ssl_domain) aio_ssl_domain="$value" ;;
+		aio_ssl_email) aio_ssl_email="$value" ;;
 		*) log ignoring unknown aio env "$key=$value"
 		esac
 	done
 
-	[ "${aio_minio_enable+set}" != set ] &&
+	if [ "${aio_minio_enable+set}" != set ]; then
 		aio_minio_enable="$_aio_minio_enable_default"
-	[ "${aio_postgres_enable+set}" != set ] &&
+	fi
+	if [ "${aio_postgres_enable+set}" != set ]; then
 		aio_postgres_enable="$_aio_postgres_enable_default"
-	[ "${aio_ssl_enable+set}" != set ] &&
+	fi
+	if [ "${aio_ssl_enable+set}" != set ]; then
 		aio_ssl_enable="$_aio_ssl_enable_default"
-	[ "${aio_ssl_domain+set}" != set ] &&
+	fi
+	if [ "${aio_ssl_domain+set}" != set ]; then
 		aio_ssl_domain="$_aio_ssl_domain_default"
+	fi
 }
 
 env_aio_act() {
@@ -90,13 +95,23 @@ env_aio_act() {
 		log enabled minio
 	fi
 
-	# if "$aio_ssl_enable"; then
+	if "$aio_ssl_enable"; then
+		if [ "${aio_ssl_email+set}" != set ]; then
+			# shellcheck disable=SC2016
+			log '$aio_ssl_email must be set with $aio_ssl_enable'
+			exit 1
+		fi
+
+		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/acme
 		cat <<- EOF >> "$acme_env_path"
-			aio_ssl_domain="$aio_ssl_domain"
+			aio_ssl_email="$aio_ssl_email"
 		EOF
 
 		log enabled ssl
-	# fi
+	fi
+	cat <<- EOF >> "$acme_env_path"
+		aio_ssl_domain="$aio_ssl_domain"
+	EOF
 }
 
 ##########

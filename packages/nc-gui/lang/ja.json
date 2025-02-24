@@ -675,7 +675,8 @@
     "yourBaseRole": "あなたの基本の役割",
     "lockedByUser": "{user} によってロックされています",
     "thisPageDoesNotExist": "このページは存在しません",
-    "customUrl": "カスタムURL"
+    "customUrl": "カスタムURL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "Latitude",

@@ -91,3 +91,13 @@ export const serializeCheckboxValue = (
 
   return null;
 };
+
+export const serializeJsonValue = (value: any) => {
+  try {
+    return ncIsString(value)
+      ? JSON.stringify(JSON.parse(value)) // Ensure it's a valid JSON string
+      : JSON.stringify(value); // Convert object/array to JSON
+  } catch {
+    return null;
+  }
+};

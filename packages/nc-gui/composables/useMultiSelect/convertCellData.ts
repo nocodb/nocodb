@@ -27,7 +27,9 @@ export default function convertCellData(
   if (value === '' && to !== UITypes.Attachment) return null
 
   // Todo: remove after testing
-  const serializedValue = ColumnHelper.serializeValue(value, column)
+  const serializedValue = ColumnHelper.serializeValue(value, {
+    col: column,
+  })
 
   console.log('serializedValue', serializedValue, value, column.uidt)
 

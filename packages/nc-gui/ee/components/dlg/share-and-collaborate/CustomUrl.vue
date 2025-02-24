@@ -306,10 +306,10 @@ watch(
             data-testid="nc-modal-share-view__custom-url"
             :bordered="false"
             autocomplete="off"
+            :disabled="isLocked"
             @focus="isFocused = true"
             @blur="isFocused = false"
             @update:value="onChangeCustomUrl"
-            :disabled="isLocked"
           />
           <div>
             <div

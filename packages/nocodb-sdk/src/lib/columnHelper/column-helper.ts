@@ -36,11 +36,11 @@ export class ColumnHelper {
   getColumn(column: ColumnType): AbstractColumnHelper | undefined {
     let ColumnClass: new () => AbstractColumnHelper;
 
-    if (!column || !this.registry[UITypes.SingleLineText]) {
+    if (!column || !this.registry[column.uidt]) {
       ColumnClass = this.registry[UITypes.SingleLineText];
+    } else {
+      ColumnClass = this.registry[column.uidt];
     }
-
-    ColumnClass = this.registry[column.uidt];
 
     // Instantiate the class with the column data
     return new ColumnClass();

@@ -2918,7 +2918,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         this.context,
         columns,
       );
-      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+      const { filters: filterObj } = extractFilterFromXwhere(
+        where,
+        aliasColObjMap,
+      );
 
       await conditionV2(
         this,

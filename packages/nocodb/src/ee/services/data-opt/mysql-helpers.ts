@@ -217,7 +217,7 @@ export async function extractColumn({
           aliasColObjMap,
           throwErrorIfInvalidParams,
         );
-        const queryFilterObj = extractFilterFromXwhere(
+        const { filters: queryFilterObj } = extractFilterFromXwhere(
           listArgs?.where,
           aliasColObjMap,
           throwErrorIfInvalidParams,
@@ -1122,7 +1122,7 @@ export async function singleQueryRead(
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
-  const queryFilterObj = extractFilterFromXwhere(
+  const { filters: queryFilterObj } = extractFilterFromXwhere(
     listArgs?.where,
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,
@@ -1334,7 +1334,7 @@ export async function singleQueryList(
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,
   );
-  const queryFilterObj = extractFilterFromXwhere(
+  const { filters: queryFilterObj } = extractFilterFromXwhere(
     listArgs?.where,
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,

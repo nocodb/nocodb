@@ -49,12 +49,34 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const isDefaultView = computed(() => view.value?.is_default)
+
+    const aliasColObjMap = computed(() => {
+      const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
+        acc[col.title] = col;
+        return acc;
+      }, {});
+      return colObj;
+    })
+
+    const whereQueryFromUrlError = computed(() => {
+      if(route.value.query.where) {
+        return computedWhereFilter(route.value.query.where, aliasColObjMap.value, false)?.errors;
+      }
+    })
+    const whereQueryFromUrl = computed(() => {
+if(whereQueryFromUrlError.value) {
+        return null;
+}
+
+return route.value.query.where;
+    });
+
     const xWhere = computed(() => {
       let where
 
       // if where is already present in the query, use that
-      if (route.value?.query?.where) {
-        where = route.value?.query?.where
+      if (whereQueryFromUrl.value) {
+        where = whereQueryFromUrl.value
       }
 
       const col =

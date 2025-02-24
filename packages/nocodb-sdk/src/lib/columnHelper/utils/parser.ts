@@ -1,7 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsNaN, ncIsNumber } from '~/lib/is';
+import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 
 export const parseIntValue = (
   value: string | null | number,
@@ -44,4 +44,18 @@ export const parsePercentValue = (value: string | null) => {
 export const parseDurationValue = (value: string | null, col: ColumnType) => {
   const durationType = parseProp(col.meta)?.duration || 0;
   return convertMS2Duration(value, durationType);
+};
+
+export const parseCheckboxValue = (
+  value: boolean | string | number | '0' | '1'
+) => {
+  if (ncIsBoolean(value)) return value;
+
+  if (ncIsString(value)) {
+    const strval = value.trim().toLowerCase();
+    if (strval === 'true' || strval === '1') return true;
+    if (strval === 'false' || strval === '0' || strval === '') return false;
+  }
+
+  return null;
 };

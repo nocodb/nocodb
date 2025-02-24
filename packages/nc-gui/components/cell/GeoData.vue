@@ -24,7 +24,12 @@ const isExpanded = ref(false)
 
 const isLoading = ref(false)
 
-const containerRef = ref()
+const identifier = computed(() => {
+  return {
+    latitude: Math.random().toString(36).substring(2, 15),
+    longitude: Math.random().toString(36).substring(2, 15),
+  }
+})
 
 const isLocationSet = computed(() => {
   return !!vModel.value
@@ -97,23 +102,28 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const handlePaste = (e: ClipboardEvent) => {
+  if ([identifier.value.latitude, identifier.value.longitude].includes(e.target?.id)) {
+    return
+  }
   const clipboardData = e.clipboardData?.getData('text/plain') || ''
-  try {
-    const value = convertCellData(
-      {
-        value: clipboardData,
-        to: column.value.uidt,
-        column: column.value,
-      },
-      false,
-    )
-    if (value) {
-      formState.latitude = Number(value.split(';')[0])
-      formState.longitude = Number(value.split(';')[1])
-    }
-  } catch (ex) {
-    if (ex instanceof TypeConversionError !== true) {
-      throw ex
+  if (isExpanded.value) {
+    try {
+      const value = convertCellData(
+        {
+          value: clipboardData,
+          to: column.value.uidt,
+          column: column.value,
+        },
+        false,
+      )
+      if (value) {
+        formState.latitude = value.split(';')[0]
+        formState.longitude = value.split(';')[1]
+      }
+    } catch (ex) {
+      if (ex instanceof TypeConversionError !== true) {
+        throw ex
+      }
     }
   }
 }
@@ -129,14 +139,27 @@ onMounted(() => {
     })
   }
 })
+
+watch(
+  () => vModel,
+  (oldValue, newValue) => {
+    if (newValue.value) {
+      formState.latitude = newValue.value?.split(';')[0]
+      formState.longitude = newValue.value?.split(';')[1]
+    } else {
+      formState.latitude = ''
+      formState.longitude = ''
+    }
+  },
+)
 </script>
 
 <template>
-  <div ref="containerRef" @paste="handlePaste">
+  <div tabindex="0" @paste="handlePaste">
     <NcDropdown v-model:visible="isExpanded">
-      <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto" @paste="handlePaste">
+      <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto">
         <NcButton v-if="activeCell" size="xsmall" type="secondary" data-testid="nc-geo-data-set-location-button">
-          <div class="flex items-center px-2 gap-2" @paste="handlePaste">
+          <div class="flex items-center px-2 gap-2">
             <GeneralIcon class="text-gray-500 h-3.5 w-3.5" icon="ncMapPin" />
             <span class="text-tiny">
               {{ latLongStr }}
@@ -148,9 +171,8 @@ onMounted(() => {
       <div
         v-else
         data-testid="nc-geo-data-lat-long-set"
-        tabindex="0"
+        tabindex="1"
         class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
-        @paste="handlePaste"
       >
         {{ latLongStr }}
       </div>
@@ -160,6 +182,7 @@ onMounted(() => {
             <a-row class="flex gap-3 px-3">
               <a-form-item :label="$t('labels.latitude')">
                 <a-input
+                  :id="identifier.latitude"
                   v-model:value="formState.latitude"
                   data-testid="nc-geo-data-latitude"
                   type="number"
@@ -176,6 +199,7 @@ onMounted(() => {
 
               <a-form-item :label="$t('labels.longitude')">
                 <a-input
+                  :id="identifier.longitude"
                   v-model:value="formState.longitude"
                   class="nc-input-shadow !w-50"
                   data-testid="nc-geo-data-longitude"
@@ -194,12 +218,14 @@ onMounted(() => {
 
             <div class="flex px-3 mt-2 flex-col gap-2">
               <div class="flex">
-                <NcButton size="small" type="secondary" @click="onClickSetCurrentLocation">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="currentLocation" />
-                    {{ $t('labels.currentLocation') }}
-                  </div>
-                </NcButton>
+                <div class="flex gap-2">
+                  <NcButton size="small" type="secondary" @click="onClickSetCurrentLocation">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="currentLocation" />
+                      {{ $t('labels.currentLocation') }}
+                    </div>
+                  </NcButton>
+                </div>
                 <div class="flex-1" />
                 <div v-if="vModel" class="flex gap-2">
                   <NcButton type="secondary" size="small" @click="openInGoogleMaps">

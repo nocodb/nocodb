@@ -818,7 +818,3 @@ export const parsePlainCellValue = (
 
   return value as unknown as string
 }
-
-export function toSafeInteger(value: number) {
-  return Math.max(Number.MIN_SAFE_INTEGER, Math.min(value, Number.MAX_SAFE_INTEGER))
-}

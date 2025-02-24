@@ -636,7 +636,6 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                           </div>
                         </div>
                         <NcDropdown
-                          v-if="!isLocked"
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-white !rounded-lg"
@@ -654,7 +653,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                           <template #overlay>
                             <NcMenu variant="small">
                               <NcMenuItem
-                                v-if="hasEditPermission && !isPublic && !isLocked"
+                                v-if="hasEditPermission && !isPublic"
                                 v-e="['c:kanban:add-new-record']"
                                 data-testid="nc-kanban-context-menu-add-new-record"
                                 @click="
@@ -715,7 +714,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
-                              <template v-if="stack.title !== null && !isPublic && hasEditPermission">
+                              <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"

@@ -44,7 +44,7 @@ export default function convertCellData(
           throw new SilentTypeConversionError()
         }
       }
-      return parsedNumber
+      return toSafeInteger(parsedNumber)
     }
     case UITypes.Currency:
     case UITypes.Percent:

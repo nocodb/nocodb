@@ -320,7 +320,11 @@ export function extractDBError(error): {
           const detailMatch = error.detail
             ? error.detail.match(/Column (\w+)/)
             : null;
-          const columnName = detailMatch ? detailMatch[1] : 'unknown';
+
+          const columnName =
+            detailMatch?.[1] ??
+            error.message.match(/ set\s+"([^"]+)"/)?.[1] ??
+            'unknown';
           message = `Invalid data type or value for column '${columnName}'.`;
           _type = DBError.DATA_TYPE_MISMATCH;
           _extra = { column: columnName };

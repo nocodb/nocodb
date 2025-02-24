@@ -1,9 +1,9 @@
 import { ColumnType } from '~/lib/Api';
-import { AbstractColumn } from '..';
+import { AbstractColumnHelper } from '..';
 import { parseIntValue } from '../utils/parser';
 import { serializeIntValue } from '../utils/serializer';
 
-export class NumberColumn extends AbstractColumn {
+export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     isLocaleString: false,
   };

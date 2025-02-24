@@ -354,7 +354,7 @@ export function getInitialSizeHeightOfWidget(type: PageDesignerWidgetType, field
     }
   } else if (type === PageDesignerWidgetType.DIVIDER) {
     width = 500
-    height = 5
+    height = 2
   } else if (type === PageDesignerWidgetType.IMAGE) {
     width = 200
     height = 200

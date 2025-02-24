@@ -80,7 +80,7 @@ const editor = useEditor({
           'span',
           {
             'class': `prompt-field-tag ${isAttachment ? '!bg-green-200' : ''} ${props.promptFieldTagClassName}`,
-            'style': 'max-width: 100px; white-space: nowrap; overflow: hidden; display: inline-block; text-overflow: ellipsis;', // Enforces truncation
+            'style': 'max-width: 200px; white-space: nowrap; overflow: hidden; display: inline-block; text-overflow: ellipsis;', // Enforces truncation
             'data-tooltip': node.attrs.id, // Tooltip content
           },
           `${node.attrs.id}`,

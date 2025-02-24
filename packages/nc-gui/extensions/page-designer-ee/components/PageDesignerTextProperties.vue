@@ -28,7 +28,6 @@ const fieldsToIgnore = new Set([
   UITypes.JSON,
   UITypes.QrCode,
   UITypes.Barcode,
-  UITypes.CreatedBy,
 ])
 const columns = computed(() =>
   (meta?.value?.columns ?? []).filter(

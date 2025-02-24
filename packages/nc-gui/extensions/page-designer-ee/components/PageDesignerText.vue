@@ -2,8 +2,8 @@
 import Moveable from 'vue3-moveable'
 import { ref } from 'vue'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
-import { type ColumnType, UITypes, dateFormats, roundUpToPrecision, timeFormats } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
+
 import { type PageDesignerTextWidget, type PageDesignerWidgetComponentProps, horizontalAlignTotextAlignMap } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { Removable } from '../lib/removable'
@@ -13,6 +13,14 @@ defineEmits(['deleteCurrentWidget'])
 
 const payload = inject(PageDesignerPayloadInj)!
 const meta = inject(PageDesignerTableTypeInj)
+const { t } = useI18n()
+const { metas } = useMetas()
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const { isXcdbBase, isMssql, isMysql } = useBase()
+
 const widget = ref() as Ref<PageDesignerTextWidget>
 watch(
   () => props.id,
@@ -84,65 +92,38 @@ const unsupportedTypes = [
   UITypes.Lookup,
   UITypes.Links,
   UITypes.Button,
-  UITypes.CreatedBy,
 ]
 
-const dateTimeTypes = [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.LastModifiedBy]
-const timeTypes = [UITypes.Time]
-
-const getDateTimeFormat = (colMeta: any) => {
-  const dateFormat = colMeta?.date_format ?? dateFormats[0]
-  const timeFormat = colMeta?.time_format ?? timeFormats[0]
-  return `${dateFormat} ${timeFormat}`
-}
-
-const getDecimal = (value: any, colMeta: any) => {
-  if (value === null) return null
-
-  if (isNaN(Number(value))) return null
-
-  if (colMeta.isLocaleString) {
-    return Number(roundUpToPrecision(Number(value), colMeta.precision ?? 1)).toLocaleString(undefined, {
-      minimumFractionDigits: colMeta.precision ?? 1,
-      maximumFractionDigits: colMeta.precision ?? 1,
-    })
-  }
-
-  return roundUpToPrecision(Number(value), colMeta.precision ?? 1)
-}
+const { sqlUis } = storeToRefs(useBase())
 
 function getTextualRepresentationForColumn(column: string, record: Record<string, unknown>) {
   const raw = `{${column}}`
   const colType = columnByTitle.value[column]
-  if (!colType) return raw
+  if (!colType || !meta?.value) return raw
+
+  const sqlUi = ref(
+    colType?.source_id && sqlUis.value[colType?.source_id] ? sqlUis.value[colType?.source_id] : Object.values(sqlUis.value)[0],
+  )
+  const abstractType = colType && sqlUi.value.getAbstractType(colType)
 
   const colMeta = parseProp(colType.meta)
   const uidt = colType.uidt as UITypes
-  const value = record[column]
+
   const isRichTextLongText = uidt === UITypes.LongText && colMeta.richMode
   if (isRichTextLongText || unsupportedTypes.includes(uidt)) return raw
-  else if (uidt === UITypes.Currency) {
-    return new Intl.NumberFormat(colMeta.currency_locale || 'en-US', {
-      style: 'currency',
-      currency: colMeta.currency_code || 'USD',
-    }).format(value as number)
-  } else if (uidt === UITypes.Checkbox) return !!value
-  else if (uidt === UITypes.Percent) return value && !isNaN(Number(value)) ? `${value}%` : value ?? raw
-  else if (dateTimeTypes.includes(uidt)) {
-    const dateObj = dayjs(value as string)
-    if (!dateObj.isValid()) return raw
-    return dateObj.utc().local().format(getDateTimeFormat(colMeta))
-  } else if (timeTypes.includes(uidt)) {
-    const dateObj = dayjs(value as string)
-    if (!dateObj.isValid()) return raw
-    return dateObj.format(colMeta.is12hrFormat ? 'hh:mm A' : 'HH:mm')
-  } else if (uidt === UITypes.Duration) {
-    return convertMS2Duration(value, colMeta?.duration || 0) ?? raw
-  } else if (uidt === UITypes.Decimal) {
-    return getDecimal(value, colMeta) ?? raw
-  } else if (Array.isArray(value)) return value.join(', ')
-  else if (typeof value === 'object' || value == null) return raw
-  return value
+
+  const value = record[column]
+  return parsePlainCellValue(value, {
+    col: colType,
+    abstractType: abstractType.value,
+    meta: meta.value,
+    metas: metas.value,
+    baseUsers: basesUser.value,
+    isMssql,
+    isMysql,
+    isXcdbBase,
+    t,
+  })
 }
 
 const replacedText = computed(() => {

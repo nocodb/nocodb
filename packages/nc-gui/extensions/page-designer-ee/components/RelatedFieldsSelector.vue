@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { type ColumnType, type TableType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import FieldElement from './FieldElement.vue'
+import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import FieldElement from './FieldElement.vue'
 
 const props = defineProps<{
   relatedTableMeta?: TableType
@@ -177,9 +177,6 @@ whenever(
   }
   :deep(.nc-field-elements-search input) {
     @apply !rounded-none caret-nc-fill-primary;
-  }
-  :deep(.field-element .truncate) {
-    font-weight: 700;
   }
 }
 </style>

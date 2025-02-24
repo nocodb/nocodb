@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import { isLinksOrLTAR, isSystemColumn, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
   LinkedFieldListType,
@@ -82,11 +82,7 @@ const column = computed(() => widget.value!.field as Required<ColumnType>)
 
 const isNew = ref(false)
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink, loadChildrenList } = useProvideLTARStore(
-  column,
-  row,
-  isNew,
-)
+const { relatedTableMeta, relatedTableDisplayValueProp, loadChildrenList } = useProvideLTARStore(column, row, isNew)
 
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
@@ -115,7 +111,7 @@ const tableColumns = computed(() =>
     .filter(Boolean),
 )
 async function loadRelatedRows() {
-  if (!row.value) return
+  if (!row.value || !row.value.row[column.value.title]) return
   relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
 }
 
@@ -133,13 +129,13 @@ const borderProps = computed(() => {
 })
 
 const tableRowHeight = computed(() => {
-  const height = +widget.value.cssStyle.match(/height:\s*(\d+)px/)[1]
-  return (height - widget.value.borderTop - widget.value.borderBottom) / ((relatedRows.value ?? []).length + 1)
+  const height = +(widget.value.cssStyle.match(/height:\s*(\d+)px/)?.[1] ?? 0)
+  return (height - +widget.value.borderTop - +widget.value.borderBottom) / ((relatedRows.value ?? []).length + 1)
 })
 </script>
 
 <template>
-  <div v-if="widget && !isRowEmpty(row!, widget.field)" class="field-widget">
+  <div v-if="widget && !isRowEmpty(row!, widget.field) && row.row[column.title]" class="field-widget">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
@@ -164,11 +160,12 @@ const tableRowHeight = computed(() => {
           <component
             :is="isNumberedList ? 'ol' : 'ul'"
             v-if="widget.displayAs === LinkedFieldDisplayAs.LIST"
-            :class="['list-inside m-0 p-0', isNumberedList ? 'list-decimal' : 'list-disc']"
+            class="list-inside m-0 p-0"
+            :class="[isNumberedList ? 'list-decimal' : 'list-disc']"
           >
-            <li v-for="row in relatedRows">
+            <li v-for="relatedRow in relatedRows" :key="relatedRow.Id">
               <span :class="{ 'relative left-[-8px]': !isNumberedList }" :style="{ fontFamily: widget.fontFamily }">
-                {{ row[relatedTableDisplayValueProp] }}
+                {{ relatedRow[relatedTableDisplayValueProp] }}
               </span>
             </li>
           </component>
@@ -177,8 +174,8 @@ const tableRowHeight = computed(() => {
           </span>
           <table
             v-else
+            class="w-full"
             :class="[
-              'w-full',
               {
                 'default-text-color': widget.textColor === defaultBlackColor,
                 'default-border-color': widget.borderColor === defaultBlackColor,

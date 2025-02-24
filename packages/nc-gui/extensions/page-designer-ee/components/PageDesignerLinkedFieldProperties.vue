@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
-import { LinkedFieldDisplayAs, type PageDesignerLinkedFieldWidget, LinkedFieldListType } from '../lib/widgets'
+import {
+  LinkedFieldDisplayAs,
+  LinkedFieldListType,
+  type PageDesignerLinkedFieldWidget,
+  fontWeightToLabel,
+  fontWeights,
+  fonts,
+} from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import TabbedSelect from './TabbedSelect.vue'
-import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
 import BorderSettings from './BorderSettings.vue'
-import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
@@ -96,7 +102,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
           {{ fieldWidget.field.title }}
         </div>
         <div class="flex-1"></div>
-        <span class="text-[13px] -mt-1 font-medium text-nc-content-gray-subtle2">
+        <span class="text-[13px] -mt-0.5 font-medium text-nc-content-gray-subtle2">
           Display Linked fields Inline, as a list or in a tabular format.
         </span>
       </h1>

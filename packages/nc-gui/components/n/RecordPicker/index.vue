@@ -137,7 +137,7 @@ whenever(isOpen, () => {
     >
       <span class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
       <template #icon>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center" />
       </template>
     </NcButton>
 

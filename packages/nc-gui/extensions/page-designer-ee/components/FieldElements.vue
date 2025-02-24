@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { type ColumnType, UITypes, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
-import FieldElement from './FieldElement.vue'
 import { isLinkedField } from '../lib/utils'
 import { PageDesignerWidgetFactory } from '../lib/widgets'
+import FieldElement from './FieldElement.vue'
 
 const meta = inject(PageDesignerTableTypeInj)
 const row = inject(PageDesignerRowInj)!

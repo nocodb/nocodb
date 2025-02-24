@@ -22,3 +22,4 @@ export * from './CreatedTime';
 export * from './LastModifiedTime';
 export * from './SingleLineText';
 export * from './MultiSelect';
+export * from './User';

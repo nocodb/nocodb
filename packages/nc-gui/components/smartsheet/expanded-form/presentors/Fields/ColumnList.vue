@@ -96,7 +96,11 @@ const showCol = (col: ColumnType) => {
             :active="true"
             :column="col"
             :edit-enabled="true"
-            :read-only="readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))"
+            :read-only="
+              ncIsPlaywright()
+                ? readOnly
+                : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
+            "
             @update:model-value="changedColumns.add(col.title)"
           />
         </SmartsheetDivDataCell>

@@ -1,6 +1,8 @@
-import { AbstractColumnHelper } from '..';
-import { parsePercentValue } from '../utils/parser';
-import { serializePercentValue } from '../utils/serializer';
+import {
+  AbstractColumnHelper,
+  parsePercentValue,
+  serializePercentValue,
+} from '..';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

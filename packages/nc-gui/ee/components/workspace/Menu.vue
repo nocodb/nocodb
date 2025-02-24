@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { UseVirtualList } from '@vueuse/components'
 import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
@@ -181,39 +182,41 @@ const onWorkspaceCreateClick = () => {
 
             <NcDivider v-if="!isMobileMode" class="!mb-0" />
 
-            <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
-              <NcMenuItem
-                v-for="workspace of otherWorkspaces"
-                :key="workspace.id!"
-                class="!h-10"
-                @click="switchWorkspace(workspace.id!)"
-              >
-                <div
-                  class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex items-center"
-                  data-testid="nc-workspace-list"
-                  :style="`width: ${leftSidebarWidth + 26}px`"
-                >
-                  <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
-                    <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
-                    <span class="capitalize mb-0 nc-workspace-title truncate min-w-10">
-                      {{ workspace?.title }}
-                    </span>
-                  </div>
-
-                  <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
-                    <template #title>
-                      {{ $t('objects.roleType.owner') }}
-                    </template>
-                    <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
-                      <GeneralIcon
-                        icon="role_owner"
-                        class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700"
-                      />
+            <UseVirtualList
+              :list="otherWorkspaces"
+              height="auto"
+              :options="{ itemHeight: 40 }"
+              class="mt-1 max-h-300px nc-scrollbar-md"
+            >
+              <template #default="{ data: workspace }">
+                <NcMenuItem :key="workspace.id!" class="!h-[40px]" @click="switchWorkspace(workspace.id!)">
+                  <div
+                    class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex items-center"
+                    data-testid="nc-workspace-list"
+                    :style="`width: ${leftSidebarWidth + 26}px`"
+                  >
+                    <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
+                      <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
+                      <span class="capitalize mb-0 nc-workspace-title truncate min-w-10">
+                        {{ workspace?.title }}
+                      </span>
                     </div>
-                  </NcTooltip>
-                </div>
-              </NcMenuItem>
-            </div>
+
+                    <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
+                      <template #title>
+                        {{ $t('objects.roleType.owner') }}
+                      </template>
+                      <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                        <GeneralIcon
+                          icon="role_owner"
+                          class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700"
+                        />
+                      </div>
+                    </NcTooltip>
+                  </div>
+                </NcMenuItem>
+              </template>
+            </UseVirtualList>
             <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
             <NcMenuItem v-if="!isMobileMode" @click="onWorkspaceCreateClick">
               <div v-e="['c:workspace:create']" class="nc-workspace-menu-item group">

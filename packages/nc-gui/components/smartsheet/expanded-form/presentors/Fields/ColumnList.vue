@@ -69,7 +69,7 @@ const showCol = (col: ColumnType) => {
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
         placement="right"
-        :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col)"
+        :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col) || isLinksOrLTAR(col)"
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
         <SmartsheetDivDataCell
@@ -78,7 +78,7 @@ const showCol = (col: ColumnType) => {
           :class="{
             'w-full': props.forceVerticalMode,
             '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
-              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col),
+              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
             '!select-text nc-readonly-div-data-cell': readOnly,
           }"
         >
@@ -96,7 +96,11 @@ const showCol = (col: ColumnType) => {
             :active="true"
             :column="col"
             :edit-enabled="true"
-            :read-only="readOnly"
+            :read-only="
+              ncIsPlaywright()
+                ? readOnly
+                : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
+            "
             @update:model-value="changedColumns.add(col.title)"
           />
         </SmartsheetDivDataCell>

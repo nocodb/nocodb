@@ -88,8 +88,12 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
 
   const columnMeta = parseProp(col.meta);
 
-  return new Intl.NumberFormat(columnMeta.currency_locale || 'en-US', {
-    style: 'currency',
-    currency: columnMeta.currency_code || 'USD',
-  }).format(+value);
+  try {
+    return new Intl.NumberFormat(columnMeta.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: columnMeta.currency_code || 'USD',
+    }).format(+value);
+  } catch {
+    return value;
+  }
 };

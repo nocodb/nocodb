@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import {type ColumnType, extractFilterFromXwhere, type TableType} from 'nocodb-sdk'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -9,6 +9,25 @@ const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
 )
+
+
+const router = useRouter()
+const route = router.currentRoute
+const meta = inject(MetaInj, ref())
+
+const aliasColObjMap = computed(() => {
+  const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
+    acc[col.title] = col;
+    return acc;
+  }, {});
+  return colObj;
+})
+
+const filtersFromUrlParams = computed(() => {
+  if (route.value.query.where) {
+    return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.filters
+  }
+})
 
 const { isMobileMode } = useGlobal()
 
@@ -96,6 +115,7 @@ eventBus.on(async (event, column: ColumnType) => {
     </NcTooltip>
 
     <template #overlay>
+      <div>
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         v-model:draft-filter="draftFilter"
@@ -107,6 +127,17 @@ eventBus.on(async (event, column: ColumnType) => {
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>
+        <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model="filtersFromUrlParams"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="false"
+            data-testid="nc-filter-menu"
+            :is-view-filter="false"
+        >
+        </SmartsheetToolbarColumnFilter>
+      </div>
     </template>
   </NcDropdown>
 </template>

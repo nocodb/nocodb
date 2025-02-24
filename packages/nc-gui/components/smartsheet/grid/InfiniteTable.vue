@@ -2905,7 +2905,7 @@ const cellAlignClass = computed(() => {
                   {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
-              <NcDivider v-if="contextMenuTarget"/>
+              <NcDivider v-if="contextMenuTarget" />
             </template>
 
             <NcTooltip

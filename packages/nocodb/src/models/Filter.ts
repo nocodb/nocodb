@@ -421,7 +421,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<Filter[]> {
     if (this.children) return this.children;
-    if (!this.is_group) return null;
+    if (!this.is_group || !this.id) return null;
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
       [this.id],

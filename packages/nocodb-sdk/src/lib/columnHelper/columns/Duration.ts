@@ -1,5 +1,6 @@
 import { ColumnType } from '~/lib/Api';
-import { AbstractColumnHelper, parseDurationValue, serializeDurationValue } from '..';
+import { parseDurationValue, serializeDurationValue } from '..';
+import AbstractColumnHelper from '../column.interface';
 
 export class DurationHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

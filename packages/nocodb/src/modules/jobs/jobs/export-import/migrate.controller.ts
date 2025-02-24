@@ -18,6 +18,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import NocoCache from '~/cache/NocoCache';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -101,40 +102,47 @@ export class MigrateController {
 
     const bases = await Base.list(context.workspace_id);
 
-    const responses = [];
-
     const workspaceProgress = {
       total: bases.length,
       current: 0,
     };
 
-    for (const base of bases) {
-      const source = (await base.getSources())[0];
+    (async () => {
+      for (const base of bases) {
+        const source = (await base.getSources())[0];
 
-      if (!source) {
-        continue;
-      }
+        if (!source) {
+          continue;
+        }
 
-      workspaceProgress.current++;
+        workspaceProgress.current++;
 
-      context = {
-        workspace_id: base.fk_workspace_id,
-        base_id: base.id,
-      };
+        const baseContext = {
+          workspace_id: base.fk_workspace_id,
+          base_id: base.id,
+        };
 
-      responses.push(
+        console.log(`Migrating base ${base.title} (${base.id})`);
+
         await this.migrateService.migrateBase({
-          context,
+          context: baseContext,
           base,
           source,
           secret: secret,
           instanceUrl: instanceUrl,
           req,
           workspaceProgress,
-        }),
-      );
-    }
+        });
 
-    return responses;
+        await NocoCache.destroy();
+
+        console.log(`Migrated ${workspaceProgress.current} of ${bases.length}`);
+      }
+    })();
+
+    return {
+      message: 'Migration started',
+      total: bases.length,
+    };
   }
 }

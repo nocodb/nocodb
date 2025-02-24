@@ -21,7 +21,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
-    if (readonly && !formula && !renderAsTag) return
+    if (readonly && !formula && !renderAsTag && !checked) return
 
     if (renderAsTag) {
       const tagWidth = 14 + tagPaddingX * 2

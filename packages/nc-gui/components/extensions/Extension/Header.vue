@@ -81,7 +81,7 @@ const toggleFullScreen = () => {
     class="extension-header flex items-center"
     :class="{
       'border-b-1 border-nc-border-gray-medium h-[49px]': !collapsed && !isFullscreen,
-      'collapsed border-transparent h-[48px]': collapsed && !isFullscreen,
+      'collapsed border-transparent h-[48px] cursor-pointer': collapsed && !isFullscreen,
       'px-3 py-2 gap-1': !isFullscreen,
       'gap-3 px-4 pt-3 pb-[11px] border-b-1 border-nc-border-gray-medium': isFullscreen,
     }"
@@ -163,7 +163,11 @@ const toggleFullScreen = () => {
         <GeneralIcon icon="ncMaximize2" class="h-3.5 w-3.5" />
       </NcButton>
       <NcButton size="xs" type="text" class="!px-1" @click.stop="collapsed = !collapsed">
-        <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
+        <GeneralIcon
+          icon="arrowDown"
+          class="flex-none transform !transition-transform duration-200 rotate-270"
+          :class="{ '!rotate-360': !collapsed }"
+        />
       </NcButton>
     </template>
     <NcButton v-else :size="isFullscreen ? 'small' : 'xs'" type="text" class="flex-none !px-1" @click="fullscreen = false">

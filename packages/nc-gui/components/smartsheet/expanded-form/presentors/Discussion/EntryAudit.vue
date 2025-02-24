@@ -97,7 +97,7 @@ const createdBy = computed(() => {
           icon="ncNode"
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
+        <div class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
           <span class="text-[13px] text-gray-600 font-weight-500"> changed </span>
           <span class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
             <SmartsheetHeaderVirtualCellIcon
@@ -140,7 +140,7 @@ const createdBy = computed(() => {
               </span>
             </span>
           </div>
-        </p>
+        </div>
       </div>
     </template>
   </div>

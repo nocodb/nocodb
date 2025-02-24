@@ -330,7 +330,13 @@ const totalHeight = computed(() => {
 
 const isContextMenuOpen = computed({
   get: () => {
-    if ((selectedRows.value.length && isDataReadOnly.value) || isDropdownVisible.value) return false
+    if (
+      (selectedRows.value.length && isDataReadOnly.value) ||
+      isDropdownVisible.value ||
+      (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
+    ) {
+      return false
+    }
     return _isContextMenuOpen.value
   },
   set: (val) => {
@@ -1727,7 +1733,6 @@ defineExpose({
         </Teleport>
         <NcDropdown
           v-model:visible="isContextMenuOpen"
-          :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
           :trigger="['contextmenu']"
           overlay-class-name="nc-dropdown-grid-context-menu"
         >

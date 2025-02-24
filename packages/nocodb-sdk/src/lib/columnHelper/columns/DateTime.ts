@@ -3,6 +3,7 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseDateTimeValue, serializeDateOrDateTimeValue } from '../utils';
+import { SilentTypeConversionError } from '~/lib/error';
 
 export class DateTimeHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -15,7 +16,17 @@ export class DateTimeHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    return serializeDateOrDateTimeValue(value, params.col);
+    value = serializeDateOrDateTimeValue(value, params.col);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(

@@ -1,8 +1,8 @@
-import UITypes from '~/lib/UITypes';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseUserValue } from '../utils';
+import { SilentTypeConversionError } from '~/lib/error';
 
 export class UserHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -11,20 +11,21 @@ export class UserHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    if (
-      !value ||
-      [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-        params.col?.uidt as UITypes
-      )
-    ) {
-      return null;
+    try {
+      value = typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      value = value;
     }
 
-    try {
-      return typeof value === 'string' ? JSON.parse(value) : value;
-    } catch {
-      return value;
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
     }
+
+    return value;
   }
 
   parseValue(value: any): string | null {

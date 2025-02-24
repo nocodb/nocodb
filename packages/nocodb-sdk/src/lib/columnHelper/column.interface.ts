@@ -30,5 +30,6 @@ export interface SerializerOrParserFnProps {
     isPg?: (sourceId?: string) => boolean;
     isUnderLookup?: boolean;
     rowId?: string | null;
+    isMultipleCellPaste?: boolean
   };
 }

@@ -1,4 +1,5 @@
-import AbstractColumnHelper from '../column.interface';
+import { ComputedTypePasteError } from '~/lib/error';
+import AbstractColumnHelper, { SerializerOrParserFnProps } from '../column.interface';
 import { supportedBarcodeFormats } from '../utils';
 
 export class BarcodeHelper extends AbstractColumnHelper {
@@ -6,8 +7,15 @@ export class BarcodeHelper extends AbstractColumnHelper {
     barcodeFormat: supportedBarcodeFormats[0].value,
   };
 
-  serializeValue(_value: any): null {
-    return null;
+  serializeValue(
+    _value: any,
+    params: SerializerOrParserFnProps['params']
+  ): null {
+    if (params.isMultipleCellPaste) {
+      return undefined;
+    } else {
+      throw new ComputedTypePasteError();
+    }
   }
 
   parseValue(value: any): string | null {

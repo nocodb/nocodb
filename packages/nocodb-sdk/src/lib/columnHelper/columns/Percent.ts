@@ -1,13 +1,29 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parsePercentValue, serializePercentValue } from '..';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     is_progress: false,
   };
 
-  serializeValue(value: any): number | null {
-    return serializePercentValue(value);
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): number | null {
+    value = serializePercentValue(value);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(value: any): string | number | null {

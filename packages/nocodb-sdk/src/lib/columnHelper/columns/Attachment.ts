@@ -1,13 +1,15 @@
 import { parseProp } from '~/lib/helperFunctions';
 import { parseDefault } from '..';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 import { ncIsArray, ncIsEmptyObject, ncIsObject } from '~/lib/is';
+import { SilentTypeConversionError } from '~/lib/error';
 
 export class AttachmentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  // Incomplete
-  serializeValue(value: any) {
+  serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
     if (!value) return null;
 
     let parsedVal = [];
@@ -22,8 +24,12 @@ export class AttachmentHelper extends AbstractColumnHelper {
       } else {
         parsedVal = [];
       }
-    } catch (e) {
-      return null;
+    } catch {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
     }
 
     if (parsedVal.some((v: any) => !v || (v && !(v.url || v.data || v.path)))) {

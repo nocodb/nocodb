@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -6,8 +7,21 @@ import AbstractColumnHelper, {
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(value: any): number | null {
-    return serializeIntValue(value);
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): number | null {
+    value = serializeIntValue(value);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(

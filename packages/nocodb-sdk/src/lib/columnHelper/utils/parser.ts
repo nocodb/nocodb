@@ -1,7 +1,19 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp, roundUpToPrecision } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNaN, ncIsString } from '~/lib/is';
+import { ncIsBoolean, ncIsNaN, ncIsObject, ncIsString } from '~/lib/is';
+
+export const parseDefault = (value: any) => {
+  try {
+    if (ncIsObject(value)) {
+      return JSON.stringify(value);
+    } else {
+      return value?.toString() ?? null;
+    }
+  } catch {
+    return null;
+  }
+};
 
 export const parseIntValue = (
   value: string | null | number,

@@ -2,6 +2,7 @@ import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
 import AbstractColumnHelper from './column.interface';
 import {
+  BarcodeHelper,
   CheckboxHelper,
   CurrencyHelper,
   DecimalHelper,
@@ -13,6 +14,7 @@ import {
   NumberHelper,
   PercentHelper,
   PhoneNumberHelper,
+  QrCodeHelper,
   RatingHelper,
   SingleLineTextHelper,
   UrlHelper,
@@ -36,6 +38,8 @@ export class ColumnHelperClass {
     [UITypes.JSON]: JsonHelper,
     [UITypes.GeoData]: GeoDataHelper,
     [UITypes.Year]: YearHelper,
+    [UITypes.Barcode]: BarcodeHelper,
+    [UITypes.QrCode]: QrCodeHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

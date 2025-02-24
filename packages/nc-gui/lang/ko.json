@@ -675,7 +675,8 @@
     "yourBaseRole": "당신의 프로젝트 규칙",
     "lockedByUser": "{user}에 의해 잠김",
     "thisPageDoesNotExist": "이 페이지는 존재하지 않습니다.",
-    "customUrl": "사용자 정의 URL"
+    "customUrl": "사용자 정의 URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "위도",

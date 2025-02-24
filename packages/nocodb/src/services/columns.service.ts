@@ -19,7 +19,6 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import hash from 'object-hash';
 import rfdc from 'rfdc';
 import { parseMetaProp } from 'src/utils/modelUtils';
 import { NcApiVersion } from 'nocodb-sdk';

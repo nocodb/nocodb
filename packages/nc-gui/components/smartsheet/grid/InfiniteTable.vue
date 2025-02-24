@@ -402,19 +402,23 @@ const _contextMenu = ref(false)
 
 const selectedRows = toRef(props, 'selectedRows')
 
+const contextMenuClosing = ref(false)
+
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+
 const contextMenu = computed({
   get: () => {
-    if (selectedRows.value.length && isDataReadOnly.value) return false
+    if (
+      (selectedRows.value.length && isDataReadOnly.value) ||
+      (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
+    )
+      return false
     return _contextMenu.value
   },
   set: (val) => {
     _contextMenu.value = val
   },
 })
-
-const contextMenuClosing = ref(false)
-
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
@@ -2211,7 +2215,6 @@ const cellAlignClass = computed(() => {
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
-        :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -2902,7 +2905,7 @@ const cellAlignClass = computed(() => {
                   {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
-              <NcDivider />
+              <NcDivider v-if="contextMenuTarget" />
             </template>
 
             <NcTooltip

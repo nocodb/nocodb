@@ -1,5 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { MigrateController } from 'src/modules/jobs/jobs/export-import/migrate.controller';
+import { MigrateService } from 'src/modules/jobs/jobs/export-import/migrate.service';
 import { NocoModule } from '~/modules/noco.module';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
@@ -10,8 +12,6 @@ import { AtImportController } from '~/modules/jobs/jobs/at-import/at-import.cont
 import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
 import { DuplicateController } from '~/modules/jobs/jobs/export-import/duplicate.controller';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
-import { MigrateController } from 'src/modules/jobs/jobs/export-import/migrate.controller';
-import { MigrateService } from 'src/modules/jobs/jobs/export-import/migrate.service';
 import { MetaSyncController } from '~/modules/jobs/jobs/meta-sync/meta-sync.controller';
 import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
 import { SourceCreateController } from '~/modules/jobs/jobs/source-create/source-create.controller';

@@ -105,6 +105,7 @@ defineExpose({
   onReady: () => {
     isReady.value = true
   },
+  isReady,
 })
 
 watch(isPanelExpanded, (newValue) => {

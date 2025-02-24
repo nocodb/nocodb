@@ -265,7 +265,7 @@ export function useCanvasTable({
         }
       })
       .filter((c) => !!c)
-      .sort((c) => (c?.fixed ? -1 : 1))
+      .sort((a, b) => !!b.fixed - !!a.fixed)
 
     fetchMetaIds.value.push(...fetchMetaIdsLocal)
 

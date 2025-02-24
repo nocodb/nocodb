@@ -251,8 +251,8 @@ const onFilterLabelClick = () => {
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item :label="$t('labels.relationType')" v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="linkType" name="type" v-bind="validateInfos.type" :disabled="isEdit">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
+        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
           <a-radio value="mm" data-testid="Many to Many">
             <span class="nc-ltar-icon nc-mm-icon">
               <GeneralIcon icon="mm_solid" />

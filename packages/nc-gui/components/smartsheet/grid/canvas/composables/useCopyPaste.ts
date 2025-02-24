@@ -158,7 +158,13 @@ export function useCopyPaste({
     }
     if (!meta.value?.id) return
 
-    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist() || isViewSearchActive()) {
+    if (
+      isDrawerOrModalExist() ||
+      isExpandedCellInputExist() ||
+      isLinkDropdownExist() ||
+      isViewSearchActive() ||
+      isSidebarNodeRenameActive()
+    ) {
       return
     }
     if (isNcDropdownOpen()) return

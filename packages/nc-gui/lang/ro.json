@@ -675,7 +675,8 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
-    "customUrl": "Custom URL"
+    "customUrl": "Custom URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "Latitude",

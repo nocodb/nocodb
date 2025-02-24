@@ -675,7 +675,8 @@
     "yourBaseRole": "Ihre Projektrolle",
     "lockedByUser": "Gesperrt durch {user}",
     "thisPageDoesNotExist": "Diese Seite existiert nicht",
-    "customUrl": "Eigene URL"
+    "customUrl": "Eigene URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "Latitude",

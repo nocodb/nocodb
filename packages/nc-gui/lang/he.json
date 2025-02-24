@@ -675,7 +675,8 @@
     "yourBaseRole": "תפקידך בבסיס זה",
     "lockedByUser": "נעול על ידי {user}",
     "thisPageDoesNotExist": "עמוד זה לא קיים",
-    "customUrl": "כתובת URL מותאמת אישית"
+    "customUrl": "כתובת URL מותאמת אישית",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "Latitude",

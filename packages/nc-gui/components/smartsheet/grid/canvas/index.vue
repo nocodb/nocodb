@@ -924,7 +924,11 @@ async function handleMouseUp(e: MouseEvent) {
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
-  if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
+  if (
+    rowIndex === totalRows.value &&
+    clickType === MouseClickType.SINGLE_CLICK &&
+    x < totalColumnsWidth.value - scrollLeft.value
+  ) {
     if (isAddingEmptyRowAllowed.value) {
       await addEmptyRow()
     }
@@ -1254,7 +1258,11 @@ const handleMouseMove = (e: MouseEvent) => {
     const row = cachedRows.value.get(rowIndex)
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
-      if (rowIndex === totalRows.value && isAddingEmptyRowAllowed.value) {
+      if (
+        rowIndex === totalRows.value &&
+        isAddingEmptyRowAllowed.value &&
+        mousePosition.x < totalColumnsWidth.value - scrollLeft.value
+      ) {
         setCursor('pointer')
       } else {
         setCursor('auto')

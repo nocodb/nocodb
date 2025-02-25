@@ -7,4 +7,5 @@ foreground { mkdir -p /var/lib/minio/data }
 foreground { chown -R minio:minio /var/lib/minio }
 
 fdmove -c 2 1
-exec s6-setuidgid minio minio server --address $IMPORTAS_MINIO_LISTEN_ADDRESS /var/lib/minio/data
+
+s6-setuidgid minio minio server --address $IMPORTAS_MINIO_LISTEN_ADDRESS /var/lib/minio/data

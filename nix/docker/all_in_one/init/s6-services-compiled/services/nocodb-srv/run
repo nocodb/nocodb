@@ -2,7 +2,7 @@
 
 envfile /etc/s6-confs/nocodb.conf
 # setup by ../../../env-processor
-envfile /run/nocodb.env
+envfile /run/nocodb.dynamic.env
 
 foreground { mkdir -p /var/lib/nocodb }
 foreground { chown -R nocodb:nocodb /var/lib/nocodb }

@@ -1,7 +1,7 @@
-import { ViewLockType, ViewTypes } from 'nocodb-sdk'
-import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import type { SmartsheetStoreEvents } from '#imports'
+import {ViewLockType, ViewTypes, extractFilterFromXwhere} from 'nocodb-sdk'
+import type {FilterType, KanbanType, SortType, TableType, ViewType} from 'nocodb-sdk'
+import type {Ref} from 'vue'
+import type {SmartsheetStoreEvents} from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -12,24 +12,24 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const { $api } = useNuxtApp()
+    const {$api} = useNuxtApp()
 
     const router = useRouter()
     const route = router.currentRoute
 
-    const { user } = useGlobal()
+    const {user} = useGlobal()
 
-    const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
+    const {activeView: view, activeNestedFilters, activeSorts} = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
-    const { sqlUis } = storeToRefs(baseStore)
+    const {sqlUis} = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
-    const { search } = useFieldQuery()
+    const {search} = useFieldQuery()
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
@@ -57,16 +57,16 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const whereQueryFromUrlError = computed(() => {
-      if(route.value.query.where) {
-        return computedWhereFilter(route.value.query.where, aliasColObjMap.value, false)?.errors;
+      if (route.value.query.where) {
+        return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.errors
       }
     })
     const whereQueryFromUrl = computed(() => {
-if(whereQueryFromUrlError.value) {
-        return null;
-}
+      if (whereQueryFromUrlError.value?.length) {
+        return;
+      }
 
-return route.value.query.where;
+      return route.value.query.where;
     });
 
     const xWhere = computed(() => {
@@ -78,7 +78,7 @@ return route.value.query.where;
       }
 
       const col =
-        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
+        (meta.value as TableType)?.columns?.find(({id}) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
       if (!col) return where
 
@@ -152,7 +152,7 @@ return route.value.query.where;
   'smartsheet-store',
 )
 
-export { useProvideSmartsheetStore }
+export {useProvideSmartsheetStore}
 
 export function useSmartsheetStoreOrThrow() {
   const state = useSmartsheetStore()

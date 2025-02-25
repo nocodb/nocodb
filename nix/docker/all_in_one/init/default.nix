@@ -48,10 +48,17 @@ writeShellApplication {
 
     # setup users & groups
     ${dockerTools.shadowSetup}
-    for ident in s6log postgresql nocodb; do
+    for ident in s6log postgres nocodb; do
       groupadd -r "$ident"
       useradd -r -g "$ident" "$ident"
     done
+
+    # required for s6-envuidgid
+    cat <<- EOF > /etc/nsswitch.conf
+      passwd:    files
+      group:     files
+      shadow:    files
+    EOF
 
     # exec into s6-linux-init
     exec ${basedir}/bin/init

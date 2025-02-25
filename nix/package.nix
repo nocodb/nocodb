@@ -18,7 +18,18 @@ stdenv.mkDerivation (finalAttrs: {
   inherit version;
 
   pname = "nocodb";
-  src = ../.;
+
+  src = lib.cleanSourceWith {
+    filter =
+      name: type:
+      lib.cleanSourceFilter name type
+      && !(builtins.elem (baseNameOf name) [
+        "nix"
+        "flake.nix"
+      ]);
+
+    src = ../.;
+  };
 
   buildPhase = ''
     export NODE_OPTIONS="--max_old_space_size=16384"
@@ -56,7 +67,12 @@ stdenv.mkDerivation (finalAttrs: {
 
     makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
       --set NODE_ENV production \
-      --set PATH ${lib.makeBinPath [ coreutils nettools ]} \
+      --set PATH ${
+        lib.makeBinPath [
+          coreutils
+          nettools
+        ]
+      } \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
 

@@ -114,7 +114,7 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <a-form-item class="flex-1 !my-0">
+            <a-form-item class="flex-1 !my-0 min-w-0">
               <NcSelect
                 v-model:value="vFkIntegrationId"
                 class="w-full nc-select-shadow nc-ai-input"
@@ -154,7 +154,7 @@ onMounted(async () => {
               </NcTooltip>
             </div>
 
-            <a-form-item class="flex-1 !my-0">
+            <a-form-item class="flex-1 !my-0 min-w-0">
               <NcSelect
                 v-model:value="vModel"
                 class="w-full nc-select-shadow nc-ai-input"

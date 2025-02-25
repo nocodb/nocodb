@@ -63,14 +63,13 @@ writeTextDir "etc/nginx.sed.conf" ''
           # https://www.nginx.com/blog/avoiding-top-10-nginx-configuration-mistakes/#no-keepalives
           proxy_set_header        "Connection" "";
 
-          client_max_body_size 10m;
+          client_max_body_size 0;
           server_tokens off;
 
           server {
                   listen 0.0.0.0:80 ;
                   listen [::0]:80 ;
                   server_name __nocodb_domain__ ;
-                  proxy_buffering off;
 
                   location / {
                           return 301 https://$host$request_uri;
@@ -89,6 +88,7 @@ writeTextDir "etc/nginx.sed.conf" ''
                   server_name __nocodb_domain__ ;
                   http2 on;
                   proxy_buffering off;
+                  proxy_request_buffering off;
 
                   ssl_certificate /var/lib/acme/__nocodb_domain__/fullchain.pem;
                   ssl_certificate_key /var/lib/acme/__nocodb_domain__/key.pem;
@@ -98,6 +98,18 @@ writeTextDir "etc/nginx.sed.conf" ''
                           root /var/lib/acme/_acme-challenge;
                           auth_basic off;
                           auth_request off;
+                  }
+
+                  location /aiominionocodb {
+                          proxy_pass http://127.0.0.1:9000;
+
+                          # recommended proxy headers
+                          proxy_set_header        Host $host;
+                          proxy_set_header        X-Real-IP $remote_addr;
+                          proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                          proxy_set_header        X-Forwarded-Proto $scheme;
+                          proxy_set_header        X-Forwarded-Host $host;
+                          proxy_set_header        X-Forwarded-Server $host;
                   }
 
                   location / {

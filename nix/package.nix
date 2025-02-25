@@ -11,11 +11,13 @@
   coreutils,
   nettools,
   vips,
+  version,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
+  inherit version;
+
   pname = "nocodb";
-  version = "0.260.2";
   src = ../.;
 
   buildPhase = ''

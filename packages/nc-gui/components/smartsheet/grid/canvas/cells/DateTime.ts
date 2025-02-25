@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { type TimeZone } from '@vvo/tzdb'
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 
@@ -14,11 +15,16 @@ export const DateTimeCellRenderer: CellRenderer = {
     const columnMeta = parseProp(column?.meta)
     const dateFormat = columnMeta?.date_format ?? 'YYYY-MM-DD'
     const timeFormat = columnMeta?.time_format ?? 'HH:mm'
+    const timezone = column.extra.timezone as TimeZone
+
     const is12hrFormat = columnMeta?.is12hrFormat
+    const isValueValid = value && dayjs(value).isValid()
+    const timezoneWidth = isValueValid && timezone ? ctx.measureText(timezone.abbreviation).width + 8 : 0
 
     const totalAvailableWidth = width - padding * 3
-    const dateWidth = Math.min(width * 0.6, 110)
-    const timeWidth = Math.min(timeCellMaxWidthMap[timeFormat]?.[is12hrFormat ? 12 : 24] ?? 80, totalAvailableWidth - dateWidth)
+    const dateTimeWidth = totalAvailableWidth - timezoneWidth
+    const dateWidth = Math.min(dateTimeWidth * 0.6, 110)
+    const timeWidth = Math.min(timeCellMaxWidthMap[timeFormat]?.[is12hrFormat ? 12 : 24] ?? 80, dateTimeWidth - dateWidth)
     const textY = y + 16
 
     if (!value && selected && !readonly) {
@@ -35,8 +41,12 @@ export const DateTimeCellRenderer: CellRenderer = {
     }
 
     let dateTimeValue
-    if (value && dayjs(value).isValid()) {
-      dateTimeValue = dayjs(value).utc().local()
+    if (isValueValid) {
+      if (timezone) {
+        dateTimeValue = dayjs(value).tz(timezone.name)
+      } else {
+        dateTimeValue = dayjs(value).utc().local()
+      }
     }
 
     const dateStr = dateTimeValue?.format(dateFormat) ?? ''
@@ -48,6 +58,13 @@ export const DateTimeCellRenderer: CellRenderer = {
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)
     ctx.fillText(truncatedTime, x + dateWidth + padding, textY)
+    if (timezoneWidth && timezoneWidth > 0) {
+      const gray400 = '#9ca3af'
+      const oldFillStyle = ctx.fillStyle
+      ctx.fillStyle = gray400
+      ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding, textY)
+      ctx.fillStyle = oldFillStyle
+    }
   },
 
   async handleClick(ctx) {

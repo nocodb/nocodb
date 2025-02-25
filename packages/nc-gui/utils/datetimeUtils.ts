@@ -1,3 +1,4 @@
+import { getTimeZones } from '@vvo/tzdb'
 import dayjs from 'dayjs'
 import { type ColumnType, dateFormats, timeFormats } from 'nocodb-sdk'
 
@@ -68,4 +69,44 @@ export function constructDateFormat(column: ColumnType) {
 
 export function constructTimeFormat(column: ColumnType) {
   return parseProp(column?.meta)?.time_format ?? timeFormats[0]
+}
+
+const timezones = getTimeZones({ includeUtc: true })
+export function getTimeZoneFromName(name: string) {
+  return timezones.find((k) => k.name === name)
+}
+
+export function withTimezone(timezone?: string) {
+  return {
+    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+      if (!isEeUI) {
+        return dayjs(value, format)
+      }
+      if (typeof value === 'object') {
+        return value
+      }
+      if (timezone) {
+        if (!format) {
+          return dayjs.tz(value, timezone)
+        } else {
+          return dayjs.tz(value, format, timezone)
+        }
+      } else {
+        return dayjs(value, format)
+      }
+    },
+    timezonize(value?: dayjs.Dayjs) {
+      if (!value) {
+        return undefined
+      }
+      if (!isEeUI) {
+        return value.local()
+      }
+      if (timezone) {
+        return value.tz(timezone)
+      } else {
+        return value.local()
+      }
+    },
+  }
 }

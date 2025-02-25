@@ -676,6 +676,7 @@
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
+    "selectTimezone": "Display timezone",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
   },
   "labels": {
@@ -1125,8 +1126,9 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show json payload",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "displayTimezone": "Display time zone"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

@@ -2,7 +2,16 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
-import { SqlUiFactory, UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, parseStringDate } from 'nocodb-sdk'
+import {
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { NcCheckbox } from '#components'
@@ -38,7 +47,9 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
+const columns = computed(
+  () => meta.value?.columns?.filter((col) => !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)) || [],
+)
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 

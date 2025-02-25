@@ -676,7 +676,7 @@
     "lockedByUser": "Travado por {user}",
     "thisPageDoesNotExist": "Esta página não existe",
     "customUrl": "URL Personalizada",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
   },
   "labels": {
     "latitude": "Latitude",

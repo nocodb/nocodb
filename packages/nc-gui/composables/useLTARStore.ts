@@ -174,6 +174,83 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
+    const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
+      const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
+
+      await getMeta(currColOptions.fk_related_model_id as string)
+
+      const currColRelatedTableMeta = metas.value?.[currColOptions?.fk_related_model_id as string] as TableType
+
+      if (!currColRelatedTableMeta) return
+
+      const primaryCols = (currColRelatedTableMeta?.columns || []).filter((c) => c.pv || c.pk)
+
+      const extractValues = (value: any, primaryCols: ColumnType[]): any => {
+        if (ncIsArray(value)) {
+          return value.map((val) => extractValues(val, primaryCols)).filter(Boolean)
+        }
+
+        if (!ncIsObject(value)) return null
+
+        const extractedValues: Record<string, any> = {}
+
+        for (const c of primaryCols) {
+          const val = value[c.title]
+
+          if (ncIsUndefined(val) || ncIsNull(val)) continue
+
+          extractedValues[c.title] = val
+        }
+
+        return extractedValues
+      }
+
+      return extractValues(value, primaryCols)
+    }
+
+    const sanitizeRowData = async (row: Record<string, any> = {}) => {
+      const sanitizedRow: Record<string, any> = {}
+      console.log(
+        row,
+        meta.value?.columns.map((col) => ({ title: col.title, column_name: col.column_name })),
+      )
+
+      /**
+       * Note: No need to send row data if `Limit record selection to filters` is not enabled
+       */
+      if (!ncIsObject(row) || !parseProp(column.value?.meta).enableConditions) return {}
+
+      for (const col of meta.value.columns) {
+        let value = row[col.title]
+
+        if (ncIsUndefined(value) || ncIsNull(value)) continue
+
+        switch (col.uidt) {
+          case UITypes.Attachment: {
+            // Extract only title
+            if (ncIsArray(value)) {
+              sanitizedRow[col.title] = value.map((item) => (item?.title ? { title: item?.title } : null)).filter(Boolean)
+            }
+            break
+          }
+          case UITypes.Links:
+          case UITypes.LinkToAnotherRecord: {
+            const res = await extractOnlyPrimaryValues(value, col)
+            if (res) {
+              sanitizedRow[col.title] = res
+            }
+            break
+          }
+
+          default: {
+            sanitizedRow[col.title] = value
+          }
+        }
+      }
+
+      return sanitizedRow
+    }
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
@@ -195,7 +272,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // if shared form extract the current form state
           if (isForm.value) {
             const { formState } = useSharedFormStoreOrThrow()
-            row = formState?.value
+
+            row = await sanitizeRowData(formState?.value)
           }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
@@ -222,6 +300,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           /** if new row load all records */
         } else if (isNewRow?.value) {
+          const linkRowData = await sanitizeRowData(row.value.row)
+
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
             baseId,
@@ -236,7 +316,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
-              linkRowData: JSON.stringify(row.value.row),
+              linkRowData: JSON.stringify(linkRowData),
             } as any,
           )
           const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])

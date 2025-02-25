@@ -64,8 +64,13 @@ dockerTools.buildLayeredImage {
     WorkingDir = "/var/lib";
 
     ExposedPorts = {
+      # proxy bypass
+      "8080/tcp" = { };
+      # ssl redirect & acme-challenge
       "80/tcp" = { };
+      # ssl
       "443/tcp" = { };
+      # minio
       "9000/tcp" = { };
     };
 

@@ -37,7 +37,6 @@ writeTextDir "etc/postgresql/postgresql.conf" (
         listen_addresses = "localhost";
         log_destination = "stderr";
         log_line_prefix = "[%p] ";
-        log_timezone = "Asia/Kolkata";
         port = 5432;
       }
     )

@@ -54,6 +54,9 @@ writeShellApplication {
       groupadd -r "$ident"
       useradd -r -g "$ident" "$ident"
     done
+    # nginx
+    groupadd -r nogroup
+    useradd -r -g nogroup nobody
 
     # required for s6-envuidgid
     cat <<- EOF > /etc/nsswitch.conf

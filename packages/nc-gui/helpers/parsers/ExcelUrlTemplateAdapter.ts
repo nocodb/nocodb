@@ -1,4 +1,4 @@
-import type { Api } from 'nocodb-sdk'
+import type { Api, ColumnType } from 'nocodb-sdk'
 import ExcelTemplateAdapter from './ExcelTemplateAdapter'
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {

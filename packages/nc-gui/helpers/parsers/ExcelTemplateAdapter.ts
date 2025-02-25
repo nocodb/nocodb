@@ -1,4 +1,4 @@
-import { UITypes, getDateFormat } from 'nocodb-sdk'
+import { UITypes, getDateFormat, type ColumnType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import TemplateGenerator from './TemplateGenerator'
 import {

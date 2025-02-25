@@ -340,9 +340,9 @@ function getAdapter(val: any) {
     }
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {
-      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, columns)
+      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
     } else {
-      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
   } else if (isImportTypeJson.value) {
     if (isPreImportFileFilled.value) {

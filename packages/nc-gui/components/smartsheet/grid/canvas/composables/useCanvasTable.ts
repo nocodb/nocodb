@@ -236,6 +236,27 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
+        if ([UITypes.DateTime].includes(f.uidt)) {
+          f.extra.timezone =
+            isEeUI && (f.meta as any)?.isDisplayTimezone ? getTimeZoneFromName((f.meta as any)?.timezone) : undefined
+        }
+        if ([UITypes.Formula].includes(f.uidt)) {
+          if ([UITypes.DateTime].includes((f.meta as any)?.display_type)) {
+            const displayColumnConfig = (f.meta as any)?.display_column_meta as any
+            if (displayColumnConfig.meta) {
+              const displayColumnConfigMeta = displayColumnConfig.meta
+
+              const extra = {
+                timezone:
+                  isEeUI && displayColumnConfigMeta.isDisplayTimezone
+                    ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
+                    : undefined,
+              }
+              displayColumnConfig.extra = extra
+            }
+          }
+        }
+
         const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
 
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]

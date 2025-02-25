@@ -4,6 +4,8 @@ definePageMeta({
   hasSidebar: true,
 })
 
+const { isSharedBase, isSharedErd } = storeToRefs(useBase())
+
 const basesStore = useBases()
 
 const { populateWorkspace } = useWorkspace()
@@ -48,6 +50,7 @@ const { sharedBaseId } = useCopySharedBase()
 const isDuplicateDlgOpen = ref(false)
 
 async function handleRouteTypeIdChange() {
+  console.log('shared view', isSharedFormView.value, isSharedView.value)
   // avoid loading bases for shared views
   if (isSharedView.value) {
     return
@@ -93,6 +96,16 @@ onMounted(() => {
     }
   })
 })
+
+watch(
+  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
+  (arr) => {
+    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

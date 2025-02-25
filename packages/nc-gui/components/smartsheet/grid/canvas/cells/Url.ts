@@ -136,7 +136,7 @@ export const UrlCellRenderer: CellRenderer = {
     })
 
     if (isBoxHovered({ x, y, width: xOffset - x, height: yOffset - y }, mousePosition)) {
-      window.open(/^https?:\/\//.test(text) ? text : `https://${text}`, '_blank')
+      confirmPageLeavingRedirect(text, '_blank')
       return true
     }
     return false

@@ -100,11 +100,7 @@ onMounted(() => {
 watch(
   [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
   (arr) => {
-    if (arr.some((item) => !!item === true)) {
-      addConfirmPageLeavingRedirectToWindow()
-    } else {
-      addConfirmPageLeavingRedirectToWindow(true)
-    }
+    addConfirmPageLeavingRedirectToWindow(arr.some(Boolean))
   },
   {
     immediate: true,

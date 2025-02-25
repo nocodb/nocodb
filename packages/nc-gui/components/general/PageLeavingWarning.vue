@@ -7,13 +7,24 @@ const redirectUrl = computed(() => {
   return (route.query.ncRedirectUrl as string) ?? ''
 })
 
-if (!redirectUrl.value) {
+const backUrl = computed(() => {
+  return (route.query.ncBackUrl as string) ?? ''
+})
+
+if (!redirectUrl.value || !backUrl.value) {
   router.replace('/error/404')
 }
 
-const handleRedirect = () => {
-  window.open(redirectUrl.value, '_blank')
-  router.back()
+const handleRedirect = (proceedToLink = false) => {
+  if (proceedToLink) {
+    window.location.href = redirectUrl.value
+    navigateTo(redirectUrl.value, {
+      external: true,
+      open: { windowFeatures: { noopener: true, noreferrer: true, noprefetch: true } },
+    })
+  } else {
+    navigateTo(backUrl.value)
+  }
 }
 </script>
 
@@ -22,14 +33,14 @@ const handleRedirect = () => {
     <div>
       <img class="dark:hidden" width="56px" height="56px" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
     </div>
-    <div class="text-base font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
+    <div class="text-xl font-bold text-nc-content-gray">{{ $t('title.youAreLeavingNocoDB') }}</div>
     <div class="text-sm font-weight-500 text-nc-content-gray-subtle2">{{ $t('title.onlyProceedIfYouTrustThisLink') }}</div>
-    <div class="text-sm font-weight-500 text-nc-content-gray-subtle underline">{{ redirectUrl }}</div>
+    <a class="text-sm font-weight-500 text-nc-content-gray-subtle" :href="redirectUrl">{{ redirectUrl }}</a>
     <div class="flex items-center gap-3 mt-3">
-      <NcButton type="secondary" size="small" @click="router.back">
+      <NcButton type="secondary" size="small" @click="handleRedirect(false)">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton size="small" @click="handleRedirect">
+      <NcButton size="small" @click="handleRedirect(true)">
         {{ $t('labels.proceedToLink') }}
       </NcButton>
     </div>

@@ -676,7 +676,7 @@
     "lockedByUser": "{user}에 의해 잠김",
     "thisPageDoesNotExist": "이 페이지는 존재하지 않습니다.",
     "customUrl": "사용자 정의 URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "보기가 {type} 때는 보기 설정을 변경할 수 없습니다."
   },
   "labels": {
     "latitude": "위도",
@@ -1348,8 +1348,8 @@
     "linkRecord": "레코드에 링크",
     "addNewRecord": "새 레코드 추가",
     "newRecord": "새 레코드",
-    "tableNameCreateNewRecord": "{tableName}: 새 레코드가 생성되었습니다.",
-    "gotSavedLinkedSuccessfully": "{tableName} '{recordTitle}' 저장 및 연결에 성공했습니다.",
+    "tableNameCreateNewRecord": "{tableName}: 새 레코드가 생성되었습니다",
+    "gotSavedLinkedSuccessfully": "{tableName} '{recordTitle}' 저장 및 연결에 성공했습니다",
     "recordCreatedLinked": "레코드 생성 및 연결",
     "useConnectionUrl": "연결 URL 사용",
     "toggleCommentsDraw": "댓글 바 토글",
@@ -1550,7 +1550,7 @@
     "successfullySubmittedFormData": "양식 데이터가 성공적으로 제출되었습니다.",
     "formViewNotSupportedOnMobile": "모바일에서는 폼 뷰가 지원되지 않습니다.",
     "calendarViewNotSupportedOnMobile": "캘린더 뷰는 모바일에서 지원되지 않습니다",
-    "newFormWillBeLoaded": "{seconds}초 후에 새 양식이 로드됩니다.",
+    "newFormWillBeLoaded": "{seconds}초 후에 새 양식이 로드됩니다",
     "optimizedQueryDisabled": "최적화된 쿼리가 비활성화되었습니다",
     "optimizedQueryEnabled": "최적화된 쿼리가 활성화되었습니다",
     "lookupNonBtWarning": "Lookup 필드는 Belongs To 관계에서만 사용할 수 있습니다.",
@@ -1656,11 +1656,11 @@
       "mapNoFields": "지도 보기를 사용하려면 지리 데이터 필드를 설정해야 합니다. 지리 데이터 필드를 추가한 후 지도 보기를 설정해 보세요!",
       "dbValid": "스키마 손실을 방지하기 위해 데이터베이스의 유효성을 확인하세요",
       "barcode": {
-        "renderError": "바코드를 렌더링하는 동안 오류가 발생했습니다."
+        "renderError": "바코드를 렌더링하는 동안 오류가 발생했습니다"
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "경고: 계산 필드 - 텍스트를 지울 수 없음",
-        "qrFieldsCannotBeDirectlyChanged": "경고: QR 필드 - 직접 변경할 수 없음",
+        "qrFieldsCannotBeDirectlyChanged": "경고: QR 필드는 직접 변경할 수 없습니다.",
         "barcodeFieldsCannotBeDirectlyChanged": "경고: 바코드 필드는 직접 변경할 수 없습니다."
       },
       "duplicateProject": "프로젝트를 복제하려고 합니다. 계속하시겠습니까?",
@@ -1729,7 +1729,7 @@
       "beforeEnablePwd": "비밀번호로 액세스 제한",
       "afterEnablePwd": "엑세스 비밀번호 제한",
       "privateLink": "비공개 링크로 현재 뷰 공유",
-      "privateLinkAdditionalInfo": "비공개 링크가 있는 사용자는 현재 보기에서 표시되는 셀만 볼 수 있습니다.",
+      "privateLinkAdditionalInfo": "비공개 링크가 있는 사용자는 현재 보기에서 표시되는 셀만 볼 수 있습니다",
       "postFormSubmissionSettings": "게시물 양식 제출 설정",
       "apiOptions": "API 옵션",
       "submitAnotherForm": "다른 양식 제출",
@@ -1756,7 +1756,7 @@
       "exportZip": "프로젝트 메타를 zip 파일로 내보내고 다운로드하십시오.",
       "importZip": "프로젝트 메타 zip 파일을 가져와서 다시 시작하십시오.",
       "importText": "메타 데이터 zip 파일을 업로드하여 NocoDB 프로젝트를 가져옵니다",
-      "metaNoChange": "변경된 사항이 없습니다. ",
+      "metaNoChange": "변경된 사항이 없습니다",
       "sqlMigration": "스키마 마이그레이션이 자동으로 생성됩니다. 테이블을 만들고이 페이지를 새로 고칩니다.",
       "dbConnectionStatus": "환경 검증",
       "dbConnected": "연결 되었습니다.",
@@ -1862,7 +1862,7 @@
       "yourCurrentRoleIs": "현재 귀하의 역할은",
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/프로젝트 소유자/작업공간 소유자에게 상위 권한을 요청하세요.",
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
-      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다."
+      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다"
     },
     "error": {
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",

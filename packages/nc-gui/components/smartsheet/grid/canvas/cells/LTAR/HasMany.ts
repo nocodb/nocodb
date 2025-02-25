@@ -21,6 +21,7 @@ export const HasManyCellRenderer: CellRenderer = {
       readonly,
       setCursor,
       cellRenderStore,
+      selected,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -99,6 +100,7 @@ export const HasManyCellRenderer: CellRenderer = {
         })
 
         if (
+          selected &&
           isBoxHovered(
             { x: currentX, y: currentY, width: point.x - currentX, height: point.y ? point.y - currentY : 24 },
             mousePosition,
@@ -133,7 +135,10 @@ export const HasManyCellRenderer: CellRenderer = {
           value: cell.item,
         })
 
-        if (isBoxHovered({ x: currentX, y: currentY, width: currentX + currentWidth, height: currentY + 24 }, mousePosition)) {
+        if (
+          selected &&
+          isBoxHovered({ x: currentX, y: currentY, width: currentX + currentWidth, height: currentY + 24 }, mousePosition)
+        ) {
           setCursor('pointer')
         }
 
@@ -203,11 +208,20 @@ export const HasManyCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected, isPublic }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width } = getCellPosition(column, rowIndex)
     const buttonSize = 24
-    if (ncIsArray(cellRenderStore?.ltar)) {
+
+    if (
+      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
+      isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
+    ) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+
+    if (selected && ncIsArray(cellRenderStore?.ltar)) {
       for (const cellItem of cellRenderStore.ltar) {
         if (
           ncIsObject(cellItem.value) &&
@@ -235,20 +249,13 @@ export const HasManyCellRenderer: CellRenderer = {
               rowId,
               useMetaFields: true,
               maintainDefaultViewOrder: true,
-              loadRow: true,
+              loadRow: !isPublic,
             })
           }
         }
       }
     }
 
-    if (
-      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
-      isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
-    ) {
-      makeCellEditable(rowIndex, column)
-      return true
-    }
     return false
   },
 }

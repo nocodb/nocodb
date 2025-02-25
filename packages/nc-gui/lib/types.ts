@@ -421,6 +421,7 @@ interface CellRendererOptions {
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   formula?: boolean
+  isPublic?: boolean
 }
 
 interface CellRenderStore {
@@ -464,6 +465,7 @@ interface CellRenderer {
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
+    isPublic?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent

@@ -63,8 +63,8 @@ const onClickSetCurrentLocation = () => {
   isLoading.value = true
   const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
-    formState.latitude = `${crd.latitude}`
-    formState.longitude = `${crd.longitude}`
+    formState.latitude = `${convertGeoNumberToString(crd.latitude)}`
+    formState.longitude = `${convertGeoNumberToString(crd.longitude)}`
     isLoading.value = false
   }
 
@@ -132,6 +132,20 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
+const handleBlur = (e: Event) => {
+  let value = (e.target as any).value as string
+  const numberBehindDecimal = value.match(/[\.]\d+$/)?.[0]
+  if (!numberBehindDecimal || numberBehindDecimal.length <= 10) {
+    return
+  }
+  value = convertGeoNumberToString(Number(value))
+  if ((e.target as any)!.id === identifier.value.latitude) {
+    formState.latitude = value
+  } else if ((e.target as any)!.id === identifier.value.longitude) {
+    formState.longitude = value
+  }
+}
+
 onMounted(() => {
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
     forcedNextTick(() => {
@@ -191,6 +205,7 @@ watch(
                   :min="-90"
                   required
                   :max="90"
+                  @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
                   @mousedown.stop
@@ -208,6 +223,7 @@ watch(
                   required
                   :min="-180"
                   :max="180"
+                  @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
                   @mousedown.stop

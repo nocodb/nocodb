@@ -20,6 +20,7 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
+import { useInfiniteGroups } from './useInfiniteGroups'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -107,7 +108,7 @@ export function useCanvasTable({
   getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { metas, getMeta } = useMetas()
-
+  const groupSlice = ref({ start: 0, end: 100 })
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref({ row: -1, column: -1 })
@@ -140,7 +141,18 @@ export function useCanvasTable({
     isPkAvail: isPrimaryKeyAvailable,
     view,
     isSqlView,
+    xWhere,
   } = useSmartsheetStoreOrThrow()
+  const {
+    cachedGroups,
+    groupByColumns,
+    isGroupBy,
+    syncCount: syncGroupCount,
+    totalGroups,
+    fetchMissingGroupChunks,
+    toggleExpand,
+    chunkStates: groupChunkStates,
+  } = useInfiniteGroups(view, meta, xWhere)
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
@@ -363,11 +375,30 @@ export function useCanvasTable({
   )
 
   const totalWidth = computed(() => {
+    let xOffSet = 0
+
+    if (groupByColumns.value.length) {
+      xOffSet += groupByColumns.value.length * 9
+    }
+
     return (
       columns.value.reduce((acc, col) => {
         return acc + parseCellWidth(col.width)
-      }, 0) + 256
+      }, xOffSet) + 256
     )
+  })
+
+  const baseColor = computed(() => {
+    switch (groupByColumns.value.length) {
+      case 1:
+        return '#F9F9FA'
+      case 2:
+        return '#F4F4F5'
+      case 3:
+        return '#E7E7E9'
+      default:
+        return '#F9F9FA'
+    }
   })
 
   const findColumnIndex = (target: number, _start = 0, end = columnWidths.value.length) => {
@@ -386,6 +417,11 @@ export function useCanvasTable({
   function findClickedColumn(x: number, scrollLeft = 0): { column: CanvasGridColumn; xOffset: number } {
     // First check fixed columns
     let xOffset = 0
+
+    if (groupByColumns.value.length) {
+      xOffset += groupByColumns.value.length * 9
+    }
+
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     for (const column of fixedCols) {
@@ -541,8 +577,13 @@ export function useCanvasTable({
     height,
     columns,
     colSlice,
+    groupByColumns,
+    groupSlice,
+    cachedGroups,
     scrollLeft,
+    baseColor,
     scrollTop,
+    totalGroups,
     cachedRows,
     rowSlice,
     rowHeight,
@@ -578,6 +619,7 @@ export function useCanvasTable({
     isFieldEditAllowed,
     isPublicView,
     setCursor,
+    isGroupBy,
     totalColumnsWidth,
   })
 
@@ -1052,6 +1094,16 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     startDrag,
     findClickedColumn,
+
+    // GroupBy Related
+    syncGroupCount,
+    totalGroups,
+    isGroupBy,
+    fetchMissingGroupChunks,
+    groupSlice,
+    groupByColumns,
+    groupChunkStates,
+    cachedGroups,
 
     makeCellEditable,
     // Handler

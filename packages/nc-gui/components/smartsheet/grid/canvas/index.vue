@@ -20,7 +20,15 @@ import Tooltip from './components/Tooltip.vue'
 import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from './utils/constants'
+import {
+  ADD_NEW_COLUMN_WIDTH,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  GROUP_CHUNK_SIZE,
+  GROUP_HEADER_HEIGHT,
+  GROUP_PADDING,
+  MAX_SELECTED_ROWS,
+  ROW_META_COLUMN_WIDTH,
+} from './utils/constants'
 
 const props = defineProps<{
   totalRows: number
@@ -178,6 +186,15 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
 const {
+  fetchMissingGroupChunks,
+  groupSlice,
+  syncGroupCount,
+  cachedGroups,
+  groupChunkStates,
+  totalGroups,
+  isGroupBy,
+  groupByColumns,
+
   rowSlice,
   colSlice,
   editEnabled,
@@ -354,10 +371,84 @@ const isClamped = computed(() => {
   return verticalStuck || horizontalStuck
 })
 
+const calculateGroupSlices = () => {
+  if (!containerRef.value?.clientWidth || !containerRef.value?.clientHeight) {
+    setTimeout(calculateGroupSlices, 50)
+    return
+  }
+
+  const viewportHeight = containerRef.value.clientHeight
+  const _scrollTop = Math.max(0, scrollTop.value)
+
+  // Calculate estimated start index based on scroll position
+  const itemHeight = GROUP_HEADER_HEIGHT + GROUP_PADDING
+  const startIndex = Math.max(0, Math.floor(_scrollTop / itemHeight))
+
+  // Calculate how many items can fit in viewport plus buffer
+  const visibleCount = Math.ceil(viewportHeight / itemHeight)
+  const bufferSize = GROUP_CHUNK_SIZE
+
+  // Calculate end index with buffer
+  const endIndex = Math.min(totalGroups.value - 1, startIndex + visibleCount + bufferSize)
+
+  // Update group slice if changed
+  if (startIndex !== groupSlice.value.start || endIndex !== groupSlice.value.end) {
+    groupSlice.value = {
+      start: Math.max(0, startIndex - bufferSize),
+      end: endIndex,
+    }
+  }
+
+  // Handle column virtualization
+  const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
+  const endColIndex = Math.min(
+    columnWidths.value.length,
+    findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
+  )
+
+  // Update column slice if changed
+  if (startColIndex !== colSlice.value.start || endColIndex !== colSlice.value.end) {
+    colSlice.value = { start: startColIndex, end: endColIndex }
+  }
+
+  // Only trigger update if any slices changed
+  if (
+    startIndex !== groupSlice.value.start ||
+    endIndex !== groupSlice.value.end ||
+    startColIndex !== colSlice.value.start ||
+    endColIndex !== colSlice.value.end
+  ) {
+    fetchMissingGroupChunks(startIndex, endIndex)
+  }
+}
+
 const totalHeight = computed(() => {
-  const rowsHeight = totalRows.value * rowHeight.value
-  const headerHeight = 32
-  return rowsHeight + headerHeight + 256
+  // For non-grouped view, use original calculation
+  if (!isGroupBy.value) {
+    const rowsHeight = totalRows.value * rowHeight.value
+    const headerHeight = 32
+    return rowsHeight + headerHeight + 256
+  }
+
+  // For grouped view
+  let height = 32
+
+  // Add height for all top-level groups
+  height += totalGroups.value * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+
+  // Add height for each expanded group's contents
+  for (const [_, group] of cachedGroups.value) {
+    if (group.isExpanded) {
+      // For leaf groups (with rows)
+      if (group.infiniteData) {
+        height += group.count * rowHeight.value
+      } else {
+        // Do nested groups check
+      }
+    }
+  }
+
+  return height + 256 // Additional padding
 })
 
 const isContextMenuOpen = computed({
@@ -389,6 +480,12 @@ const calculateSlices = () => {
     setTimeout(calculateSlices, 50)
     return
   }
+
+  if (isGroupBy.value) {
+    calculateGroupSlices()
+    return
+  }
+
   const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
   const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
   const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
@@ -1100,6 +1197,10 @@ const getHeaderTooltipRegions = (
   }[] = []
   let xOffset = initialOffset + 1
 
+  if (groupByColumns.value.length) {
+    xOffset += groupByColumns.value.length * 9
+  }
+
   const ctx = defaultOffscreen2DContext
   ctx.save()
   ctx.font = '550 12px Manrope'
@@ -1612,6 +1713,12 @@ watch(rowHeight, () => {
   requestAnimationFrame(triggerRefreshCanvas)
 })
 
+watch(groupByColumns, async () => {
+  await syncGroupCount()
+  calculateSlices()
+  requestAnimationFrame(triggerRefreshCanvas)
+})
+
 // watch for column hide and re-render canvas
 watch(
   () => [columns.value?.length, totalRows.value],
@@ -1657,9 +1764,15 @@ watch(
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
         clearTextCache()
-        await syncCount()
-        calculateSlices()
-        await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
+
+        if (isGroupBy.value) {
+          await syncGroupCount()
+        } else {
+          await syncCount()
+          calculateSlices()
+          updateVisibleRows()
+        }
+        await loadViewAggregate()
       }
     } catch (e) {
       if (!axios.isCancel(e)) {

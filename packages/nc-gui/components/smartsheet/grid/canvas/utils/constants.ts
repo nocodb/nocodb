@@ -8,3 +8,7 @@ export const EDIT_INTERACTABLE = [UITypes.SingleSelect, UITypes.MultiSelect, UIT
 export const ROW_META_COLUMN_WIDTH = 80
 
 export const CHUNK_SIZE = 50
+
+export const GROUP_CHUNK_SIZE = 5
+export const GROUP_HEADER_HEIGHT = 42
+export const GROUP_PADDING = 8

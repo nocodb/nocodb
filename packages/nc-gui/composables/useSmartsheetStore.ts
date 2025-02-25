@@ -1,3 +1,4 @@
+import type {FilterType, KanbanType, SortType, TableType, ViewType} from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -52,10 +53,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const aliasColObjMap = computed(() => {
       const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
-        acc[col.title] = col;
-        return acc;
-      }, {});
-      return colObj;
+        acc[col.title] = col
+        return acc
+      }, {})
+      return colObj
     })
 
     const whereQueryFromUrlError = computed(() => {
@@ -65,11 +66,11 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
     const whereQueryFromUrl = computed(() => {
       if (whereQueryFromUrlError.value?.length) {
-        return;
+        return
       }
 
-      return route.value.query.where;
-    });
+      return route.value.query.where
+    })
 
     const xWhere = computed(() => {
       let where

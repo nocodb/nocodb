@@ -81,6 +81,9 @@ export default async function ({
         UITypes.LastModifiedBy,
       ].includes(rollupColumn.uidt)
     ) {
+      // since all field are virtual field,
+      // we use formula to generate query that can represent the column
+      // to prevent duplicate logic
       const formulaQb = await formulaQueryBuilderv2(
         baseModelSqlv2,
         '{{' + rollupColumn.id + '}}',

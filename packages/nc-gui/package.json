@@ -92,6 +92,7 @@
     "@vueuse/core": "^10.11.1",
     "@vueuse/integrations": "^10.11.1",
     "@vueuse/motion": "^2.2.6",
+    "@vvo/tzdb": "^6.161.0",
     "acorn": "^8.14.0",
     "acorn-loose": "^8.4.0",
     "acorn-walk": "^8.3.4",

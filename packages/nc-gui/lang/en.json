@@ -788,6 +788,7 @@
     "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "Loyalty pays off — enjoy capped pricing!",
     "loyaltyBannerSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "selectTimezone": "Display timezone",
     "currentPlan": "Current Plan",
     "seatMonth": "/seat/month",
     "mostPopular": "Most Popular",
@@ -1277,6 +1278,7 @@
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
     "airtableBase": "Airtable base",
+    "displayTimezone": "Display time zone"
     "upgradePlan": "Upgrade Plan",
     "viewAllPlanDetails": "View all plan details",
     "contactSales": "Contact Sales",

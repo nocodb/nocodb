@@ -193,6 +193,9 @@ importers:
       '@vueuse/motion':
         specifier: ^2.2.6
         version: 2.2.6(magicast@0.3.5)(rollup@4.28.0)(vue@3.5.13)
+      '@vvo/tzdb':
+        specifier: ^6.161.0
+        version: 6.161.0
       acorn:
         specifier: ^8.14.0
         version: 8.14.0
@@ -8259,6 +8262,9 @@ packages:
         optional: true
       vue:
         optional: true
+
+  '@vvo/tzdb@6.161.0':
+    resolution: {integrity: sha512-rvk2x77vnY87Tu1d8QuJk300WWzk8OP9/cDw2KgxEdjlYpLarJx82j2sPUpiy1wnjSuTTnYwpjBgZnNS5Iyb+w==}
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -29533,6 +29539,8 @@ snapshots:
       vue-demi: 0.14.10(vue@3.5.13)
     optionalDependencies:
       vue: 3.5.13
+
+  '@vvo/tzdb@6.161.0': {}
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:

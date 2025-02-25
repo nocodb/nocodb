@@ -88,6 +88,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
+    const { getViewColumns } = useSmartsheetStoreOrThrow()
+
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
@@ -106,9 +108,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
+
+      if (isPublic.value) return
+
       const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
       if (!viewId) return
-      targetViewColumns.value = (await $api.dbViewColumn.list(viewId))?.list ?? []
+      targetViewColumns.value = (await getViewColumns(viewId)) ?? []
     }
 
     const relatedTableDisplayValueProp = computed(() => {

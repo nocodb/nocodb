@@ -108,6 +108,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
+
+      if (isPublic.value) return
+
       const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
       if (!viewId) return
       targetViewColumns.value = (await getViewColumns(viewId)) ?? []

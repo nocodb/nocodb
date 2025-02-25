@@ -7,7 +7,6 @@ import {
   UITypes,
   getDateFormat,
   getDateTimeFormat,
-  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   parseStringDate,

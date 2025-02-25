@@ -60,6 +60,9 @@ writeShellApplication {
       shadow:    files
     EOF
 
+    # stateful logs
+    mkdir -p /var/log/
+
     # exec into s6-linux-init
     exec ${basedir}/bin/init
   '';

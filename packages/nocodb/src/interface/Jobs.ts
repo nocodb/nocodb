@@ -16,6 +16,7 @@ export enum MigrationJobTypes {
   OrderColumnCreation = 'order-column-creation',
   NoOpMigration = 'no-op-migration',
   RecoverOrderColumnMigration = 'recover-order-column-migration',
+  RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
 }
 
 export enum JobTypes {

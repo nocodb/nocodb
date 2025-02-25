@@ -2,11 +2,17 @@
   lib,
   dockerTools,
   nocodb,
-  bash,
   coreutils,
+  callPackage,
+  s6-rc,
+  s6-linux-init,
+  util-linux,
 }:
 let
   port = 80;
+
+  init = callPackage ./init { };
+  pgconf = callPackage ./pgconf.nix { };
 in
 dockerTools.buildLayeredImage {
   name = "nocodb_aio";
@@ -15,6 +21,11 @@ dockerTools.buildLayeredImage {
     dockerTools.binSh
     nocodb
     coreutils
+    util-linux
+
+    pgconf
+    s6-rc
+    s6-linux-init
   ];
 
   config = {
@@ -28,7 +39,7 @@ dockerTools.buildLayeredImage {
     };
 
     Entrypoint = [
-      (lib.getExe bash)
+      (lib.getExe init)
     ];
   };
 }

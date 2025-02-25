@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
@@ -20,6 +20,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       padding,
       renderCell,
       setCursor,
+      cellRenderStore,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -39,7 +40,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       acc.push({ value, item: curr })
 
       return acc
-    }, []) as { value: any; items: Record<string, any> }[]
+    }, []) as { value: any; item: Record<string, any> }[]
 
     const initialX = x + 4
     const initialWidth = width - 8
@@ -47,6 +48,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     let currentX = initialX
     let currentY = y + (rowHeightInPx['1'] === height ? 0 : 2)
     let currentWidth = initialWidth
+    let returnData: CellRenderStore['ltar'] = []
 
     const renderProps: CellRendererOptions = {
       ...props,
@@ -86,6 +88,25 @@ export const ManyToManyCellRenderer: CellRenderer = {
       })
 
       if (point?.x) {
+        returnData.push({
+          oldX: currentX + 4,
+          oldY: currentY + 4,
+          x: point.x,
+          y: point.y,
+          width: point.x - (currentX + 4),
+          height: point.y ? point.y - (currentY + 4) : 24,
+          value: cell.item,
+        })
+
+        if (
+          isBoxHovered(
+            { x: currentX, y: currentY, width: point.x - currentX, height: point.y ? point.y - currentY : 24 },
+            mousePosition,
+          )
+        ) {
+          setCursor('pointer')
+        }
+
         if (point?.x >= x + initialWidth - padding * 2 - (count < cells.length ? 50 - ellipsisWidth : 0)) {
           if (line + 1 > maxLines) {
             currentX = point?.x
@@ -102,6 +123,20 @@ export const ManyToManyCellRenderer: CellRenderer = {
           currentX = point?.x
         }
       } else {
+        returnData.push({
+          oldX: currentX,
+          oldY: currentY,
+          x: currentX + currentWidth,
+          y: currentY + 24,
+          width: currentWidth,
+          height: 24,
+          value: cell.item,
+        })
+
+        if (isBoxHovered({ x: currentX, y: currentY, width: currentX + currentWidth, height: currentY + 24 }, mousePosition)) {
+          setCursor('pointer')
+        }
+
         if (line + 1 > maxLines) {
           break
         }
@@ -127,6 +162,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
         height,
       })
     }
+
+    Object.assign(cellRenderStore, { ltar: returnData })
 
     if (isBoxHovered({ x, y, width, height }, mousePosition)) {
       const buttonSize = 24
@@ -162,10 +199,46 @@ export const ManyToManyCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width } = getCellPosition(column, rowIndex)
     const buttonSize = 24
+
+    if (ncIsArray(cellRenderStore?.ltar)) {
+      for (const cellItem of cellRenderStore.ltar) {
+        if (
+          ncIsObject(cellItem.value) &&
+          cellItem.width &&
+          cellItem.height &&
+          isBoxHovered(
+            {
+              x: cellItem.oldX!,
+              y: cellItem.oldY!,
+              height: cellItem.height,
+              width: cellItem.width,
+            },
+            mousePosition,
+          )
+        ) {
+          const { open } = useExpandedFormDetached()
+
+          const rowId = extractPkFromRow(cellItem.value, (column.relatedTableMeta?.columns || []) as ColumnType[])
+
+          if (rowId) {
+            open({
+              isOpen: true,
+              row: { row: cellItem.value, rowMeta: {}, oldRow: { ...cellItem.value } },
+              meta: column.relatedTableMeta || ({} as TableType),
+              rowId,
+              useMetaFields: true,
+              maintainDefaultViewOrder: true,
+              loadRow: true,
+            })
+          }
+        }
+      }
+    }
+
     if (
       isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
       isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)

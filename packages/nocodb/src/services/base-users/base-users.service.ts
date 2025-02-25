@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
+  OrderedProjectRoles,
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
@@ -322,6 +323,15 @@ export class BaseUsersService {
           .length === 1
       )
         NcError.badRequest('At least one owner is required');
+    }
+    const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+    const newRolePower = reverseOrderedProjectRoles.indexOf(
+      param.baseUser.roles as ProjectRoles,
+    );
+
+    // Check if current user has sufficient privilege to assign this role
+    if (newRolePower > getProjectRolePower(param.req.user)) {
+      NcError.badRequest(`Insufficient privilege to assign this role`);
     }
 
     if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {

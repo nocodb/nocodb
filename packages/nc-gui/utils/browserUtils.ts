@@ -12,7 +12,7 @@ export const isSelectActive = () => document.querySelector('.ant-select-dropdown
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
 export const isActiveElementInsideExtension = () =>
-  ['.extension-modal', '.nc-extension-pane'].some((selector) =>
+  ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
 

@@ -149,9 +149,18 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
   }
 }
 
+const isWindows = ref(false)
+
 const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
-  updateScroll(scrollTop.value + e.deltaY, scrollLeft.value + e.deltaX)
+
+  if (isWindows.value && e.shiftKey) {
+    // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll
+    updateScroll(scrollTop.value, scrollLeft.value + e.deltaY)
+  } else {
+    // Normal behavior for all other platforms or when shift is not pressed
+    updateScroll(scrollTop.value + e.deltaY, scrollLeft.value + e.deltaX)
+  }
 }
 
 const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent) => {
@@ -372,6 +381,7 @@ const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
 
 onMounted(() => {
   showScrollbars()
+  isWindows.value = navigator.userAgent.toLowerCase().includes('windows')
 })
 
 onUnmounted(() => {

@@ -28,4 +28,7 @@ foreground {
 }
 
 fdmove -c 2 1
-exec s6-setuidgid postgres postgres -D $PGDATA $PGOPTS
+
+s6-notifyoncheck
+s6-setuidgid postgres
+postgres -D $PGDATA $PGOPTS

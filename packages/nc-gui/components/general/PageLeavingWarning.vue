@@ -37,7 +37,7 @@ const handleRedirect = (proceedToLink = false) => {
     <a class="text-sm font-weight-500 text-nc-content-gray-subtle" :href="redirectUrl">{{ redirectUrl }}</a>
     <div class="flex items-center gap-3 mt-3">
       <NcButton type="secondary" size="small" @click="handleRedirect(false)">
-        {{ $t('general.cancel') }}
+        {{ $t('general.back') }}
       </NcButton>
       <NcButton size="small" @click="handleRedirect(true)">
         {{ $t('labels.proceedToLink') }}

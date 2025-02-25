@@ -9,7 +9,8 @@ import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
-
+  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, groupKey?: string) => void
   loadGroups: (
     params?: any,
     group?: Group,
@@ -37,7 +38,6 @@ const props = defineProps<{
   maxDepth?: number
 
   rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -388,6 +388,13 @@ const bgColor = computed(() => {
 
   return '#F9F9FA'
 })
+async function openNewRecordHandler() {
+  if (_depth !== 0) return
+  // Add an empty row
+  const newRow = await props.callAddEmptyRow()
+  // Expand the form
+  if (newRow) props.expandForm?.(newRow, undefined, true)
+}
 </script>
 
 <template>
@@ -623,6 +630,22 @@ const bgColor = computed(() => {
     }`"
     :fixed-size="undefined"
   ></LazySmartsheetPagination>
+
+  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
+    <NcButton
+      v-e="['c:row:add:grid']"
+      class="nc-group-grid-add-new-row"
+      size="small"
+      type="secondary"
+      :shadow="false"
+      @click.stop="openNewRecordHandler"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="plus" />
+        New Record
+      </div>
+    </NcButton>
+  </div>
 </template>
 
 <style scoped lang="scss">

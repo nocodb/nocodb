@@ -164,7 +164,9 @@ export function useCopyPaste({
       isLinkDropdownExist() ||
       isViewSearchActive() ||
       isSidebarNodeRenameActive() ||
-      isActiveElementInsideExtension()
+      isActiveElementInsideExtension() ||
+      isCmdJActive() ||
+      cmdKActive()
     ) {
       return
     }

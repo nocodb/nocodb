@@ -357,7 +357,7 @@ export function extractCondition(
           throwErrorIfInvalid
         );
       } else {
-        const error = { message: 'INVALID_FILTER' };
+        const error = { message: alias ? `Column alias '${alias}' not found.` : 'Invalid filter format.' };
         if (throwErrorIfInvalid) throw new NcSDKError(error.message);
         errors.push(error);
         return null;
@@ -385,5 +385,9 @@ export function extractCondition(
     })
     .filter(Boolean);
 
-  return { filters: parsedFilters, errors };
+  if (errors.length > 0) {
+    return { errors };
+  }
+
+  return { filters: parsedFilters };
 }

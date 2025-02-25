@@ -25,7 +25,7 @@ const aliasColObjMap = computed(() => {
 
 const filtersFromUrlParams = computed(() => {
   if (route.value.query.where) {
-    return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.filters
+    return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)
   }
 })
 
@@ -127,16 +127,37 @@ eventBus.on(async (event, column: ColumnType) => {
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>
+        <template v-if="filtersFromUrlParams">
+        <a-divider class="!my-1"/>
+<div class="px-2 pb-2">
+          <div class="p-2 leading-5 font-semibold mb-3 inline-flex gap-2">
+            {{ $t('title.urlFilters') }} <div class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5" v-if="filtersFromUrlParams?.filters?.length">{{filtersFromUrlParams.filters.length}}</div>
+          </div>
+
         <SmartsheetToolbarColumnFilter
+            class="px-2 pb-2"
+            :key="route.query?.where"
+            v-if="filtersFromUrlParams.filters"
             ref="filterComp"
-            v-model="filtersFromUrlParams"
+            v-model="filtersFromUrlParams.filters"
             v-model:is-open="open"
-            class="nc-table-toolbar-menu"
             :auto-save="false"
-            data-testid="nc-filter-menu"
             :is-view-filter="false"
+            read-only
+            query-filter
         >
         </SmartsheetToolbarColumnFilter>
+
+        <a-alert v-else-if="filtersFromUrlParams.errors?.length" type="warning !mx-2 !mb-2">
+          <template #message>
+            <div class="flex flex-row items-center gap-3">
+              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-6 h-6" />
+              <span class="font-weight-bold">{{filtersFromUrlParams.errors?.[0]?.message}}</span>
+            </div>
+          </template>
+        </a-alert>
+</div>
+    </template>
       </div>
     </template>
   </NcDropdown>

@@ -5,6 +5,7 @@ import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
+import type { ColumnType } from 'ant-design-vue/lib/table'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
@@ -25,6 +26,10 @@ const { $api } = useNuxtApp()
 const { appInfo } = useGlobal()
 
 const config = useRuntimeConfig()
+
+const meta = inject(MetaInj, ref())
+
+const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
 
 const isWorkerSupport = typeof Worker !== 'undefined'
 
@@ -335,7 +340,7 @@ function getAdapter(val: any) {
     }
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {
-      return new ExcelTemplateAdapter(val, importState.parserConfig)
+      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, columns)
     } else {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
     }
@@ -401,7 +406,23 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
     config: {
       ...toRaw(importState.parserConfig),
       importFromURL: importSource === ImportSource.URL,
+      matchColumnDateFormat: true,
     },
+    existingColumns: JSON.parse(
+      JSON.stringify(
+        unref(existingColumns).map(
+          (k) =>
+            ({
+              ...k,
+              // id: k.id,
+              // column_name: k.column_name,
+              // title: k.title,
+              // uidt: k.uidt,
+              // meta: k.meta,
+            } as ColumnType),
+        ),
+      ),
+    ),
     value,
     importType,
     importSource,

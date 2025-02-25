@@ -1,0 +1,14 @@
+#!/bin/execlineb -P
+
+envfile /etc/s6-confs/minio.conf
+
+importas -sCuD "n3 s2000000 T" DIRECTIVES DIRECTIVES
+
+ifelse { test -w /var/log } {
+	foreground { install -d -o s6log -g s6log /var/log/minio }
+	s6-setuidgid s6log exec -c s6-log -d3 -b -- ${DIRECTIVES} /var/log/minio
+}
+
+foreground { install -d -o s6log -g s6log /run/log/minio }
+
+s6-setuidgid s6log exec -c s6-log -d3 -b -- ${DIRECTIVES} /run/log/minio

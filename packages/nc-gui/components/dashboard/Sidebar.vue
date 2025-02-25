@@ -31,10 +31,6 @@ onMounted(() => {
 onUnmounted(() => {
   treeViewDom.value?.removeEventListener('scroll', checkScrollTopMoreThanZero)
 })
-
-if (isSharedBase.value) {
-  addConfirmPageLeavingRedirectToWindow()
-}
 </script>
 
 <template>

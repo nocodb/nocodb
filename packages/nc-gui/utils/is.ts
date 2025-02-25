@@ -17,8 +17,8 @@ const ncIsPlaywright = () => {
   return !!(window as any)?.isPlaywright
 }
 
-const ncIsSharedView = () => {
-  return !!(window as any)?.isSharedView
+const ncIsSharedViewOrBase = () => {
+  return localStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {
@@ -35,5 +35,5 @@ export {
   ncIsPromise,
   ncIsArrayIncludes,
   ncIsPlaywright,
-  ncIsSharedView,
+  ncIsSharedViewOrBase,
 }

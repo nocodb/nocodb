@@ -17,6 +17,10 @@ const ncIsPlaywright = () => {
   return !!(window as any)?.isPlaywright
 }
 
+const ncIsSharedView = () => {
+  return !!(window as any)?.isSharedView
+}
+
 export {
   ncIsObject,
   ncIsEmptyObject,
@@ -31,4 +35,5 @@ export {
   ncIsPromise,
   ncIsArrayIncludes,
   ncIsPlaywright,
+  ncIsSharedView,
 }

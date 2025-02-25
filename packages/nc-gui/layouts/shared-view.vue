@@ -43,6 +43,10 @@ onMounted(() => {
   } else {
     document.title = 'NocoDB'
   }
+
+  if (typeof window !== 'undefined') {
+    window.isSharedView = true
+  }
 })
 </script>
 

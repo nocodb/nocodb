@@ -16,6 +16,7 @@ _aio_postgres_enable_default=true
 _aio_minio_enable_default=false
 _aio_ssl_domain_default="localhost"
 _aio_ssl_enable_default=false
+_aio_valkey_enable_default=true
 
 log() {
 	echo env processor: "$@"
@@ -56,6 +57,7 @@ env_aio_set() {
 		aio_ssl_enable) aio_ssl_enable="$value" ;;
 		aio_ssl_domain) aio_ssl_domain="$value" ;;
 		aio_ssl_email) aio_ssl_email="$value" ;;
+		aio_valkey_enable) aio_valkey_enable="$value" ;;
 		*) log ignoring unknown aio env "$key=$value"
 		esac
 	done
@@ -71,6 +73,9 @@ env_aio_set() {
 	fi
 	if [ "${aio_ssl_domain+set}" != set ]; then
 		aio_ssl_domain="$_aio_ssl_domain_default"
+	fi
+	if [ "${aio_valkey_enable+set}" != set ]; then
+		aio_valkey_enable="$_aio_valkey_enable_default"
 	fi
 }
 
@@ -131,6 +136,16 @@ env_aio_act() {
 	cat <<- EOF >> "$acme_env_path"
 		aio_ssl_domain="$aio_ssl_domain"
 	EOF
+
+	if "$aio_valkey_enable"; then
+		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/valkey
+
+		cat <<- EOF >> "$nocodb_env_path"
+			NC_REDIS_URL="redis-socket:///run/valkey/valkey.sock?database=nocodb"
+		EOF
+
+		log enabled valkey
+	fi
 }
 
 ##########

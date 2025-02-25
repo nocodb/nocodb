@@ -22,7 +22,9 @@
       packages = forAllSystems (
         { system, pkgs }:
         {
-          docker = pkgs.callPackage ./nix/docker.nix { };
+          docker_sa = pkgs.callPackage ./nix/docker/stand_alone { };
+          docker_aio = pkgs.callPackage ./nix/docker/all_in_one { };
+
           nocodb = pkgs.callPackage ./nix/package.nix { };
           bumper = pkgs.callPackage ./nix/bumper { };
 

@@ -640,7 +640,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.title === col.column_name)
+        const tableColumn = columns.value.find((c) => c.title === col.column_name || c.column_name === col.column_name)
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {

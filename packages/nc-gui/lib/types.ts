@@ -206,6 +206,7 @@ interface ImportWorkerPayload {
   importSource: ImportSource
   value: any
   config: Record<string, any>
+  existingColumns?: ColumnType[]
 }
 
 interface Group {

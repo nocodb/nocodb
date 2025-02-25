@@ -100,6 +100,10 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
     .sort((a, b) => {
+      if (isPublic.value) {
+        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      }
+
       return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)

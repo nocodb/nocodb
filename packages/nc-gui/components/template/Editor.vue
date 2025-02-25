@@ -48,7 +48,7 @@ const { getMeta } = useMetas()
 const meta = inject(MetaInj, ref())
 
 const columns = computed(
-  () => meta.value?.columns?.filter((col) => !col.system && !isVirtualCol(col) && !isAttachment(col)) || [],
+  () => meta.value?.columns?.filter((col) => !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)) || [],
 )
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())

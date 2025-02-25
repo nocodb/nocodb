@@ -7,12 +7,11 @@ nocodb_env_path='/run/nocodb.dynamic.env'
 acme_env_path='/run/acme.dynamic.env'
 minio_env_path='/run/minio.dynamic.env'
 
-aio_pass="TODO:gennnnnnnnnnnnnnnpass"
+aio_pass_dynamic="$({ tr -dc A-Za-z < /dev/urandom | head -c 16 ; : ; })"
 kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 
 _aio_postgres_enable_default=true
-# TODO: acme for minio, no support for proxy schema ;(
 _aio_minio_enable_default=true
 _aio_ssl_domain_default="localhost"
 _aio_ssl_enable_default=false
@@ -96,8 +95,8 @@ env_aio_act() {
 		cat <<- EOF >> "$nocodb_env_path"
 			NC_S3_BUCKET_NAME="aiominionocodb"
 			NC_S3_REGION="us-east-1"
-			NC_S3_ACCESS_KEY="$aio_pass"
-			NC_S3_ACCESS_SECRET="$aio_pass"
+			NC_S3_ACCESS_KEY="$aio_pass_dynamic"
+			NC_S3_ACCESS_SECRET="$aio_pass_dynamic"
 			NC_S3_FORCE_PATH_STYLE="true"
 		EOF
 
@@ -112,8 +111,8 @@ env_aio_act() {
 		fi
 
 		cat <<- EOF >> "$minio_env_path"
-			MINIO_ROOT_USER="$aio_pass"
-			MINIO_ROOT_PASSWORD="$aio_pass"
+			MINIO_ROOT_USER="$aio_pass_dynamic"
+			MINIO_ROOT_PASSWORD="$aio_pass_dynamic"
 		EOF
 
 		log enabled minio

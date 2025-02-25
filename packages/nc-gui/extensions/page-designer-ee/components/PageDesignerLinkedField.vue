@@ -132,6 +132,10 @@ const tableRowHeight = computed(() => {
   const height = +(widget.value.cssStyle.match(/height:\s*(\d+)px/)?.[1] ?? 0)
   return (height - +widget.value.borderTop - +widget.value.borderBottom) / ((relatedRows.value ?? []).length + 1)
 })
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(value?.[0])?.[0]
 </script>
 
 <template>
@@ -187,8 +191,8 @@ const tableRowHeight = computed(() => {
             <thead>
               <tr>
                 <th
-                  v-for="column in tableColumns"
-                  :key="column.id"
+                  v-for="relatedColumn in tableColumns"
+                  :key="relatedColumn.id"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableFontSettings.header.textColor,
@@ -199,15 +203,15 @@ const tableRowHeight = computed(() => {
                     height: `${tableRowHeight}px`,
                   }"
                 >
-                  {{ column.title }}
+                  {{ relatedColumn.title }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in relatedRows" :key="row.Id">
+              <tr v-for="relatedRow in relatedRows" :key="relatedRow.Id">
                 <td
-                  v-for="column in tableColumns"
-                  :key="column.id"
+                  v-for="relatedColumn in tableColumns"
+                  :key="relatedColumn.id"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableFontSettings.row.textColor,
@@ -218,7 +222,12 @@ const tableRowHeight = computed(() => {
                     height: `${tableRowHeight}px`,
                   }"
                 >
-                  <PlainCell :column="column" :model-value="row[column?.title ?? '']" />
+                  <img
+                    v-if="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
+                    :src="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
+                    class="h-full w-auto object-contain"
+                  />
+                  <PlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn?.title ?? '']" />
                 </td>
               </tr>
             </tbody>

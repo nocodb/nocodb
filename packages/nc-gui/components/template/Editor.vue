@@ -38,7 +38,24 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
+const blacklistedUidtTargetColumn = [
+  UITypes.Attachment,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.Links,
+  UITypes.LinkToAnotherRecord,
+  UITypes.CreatedBy,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedBy,
+  UITypes.LastModifiedTime,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.QrCode,
+]
+const columns = computed(
+  () => meta.value?.columns?.filter((col) => !col.system && !blacklistedUidtTargetColumn.includes(col.uidt as UITypes)) || [],
+)
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 

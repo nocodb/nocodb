@@ -53,7 +53,7 @@ writeShellApplication {
 
     # setup users & groups
     ${dockerTools.shadowSetup}
-    for ident in s6log postgres nocodb minio; do
+    for ident in s6log postgres nocodb minio valkey; do
       groupadd -r "$ident"
       useradd -r -g "$ident" "$ident"
     done

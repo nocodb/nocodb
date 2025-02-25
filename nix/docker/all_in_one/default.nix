@@ -21,6 +21,7 @@
   nginxModules,
   lego,
   snooze,
+  valkey,
 }:
 let
   nginxCustom = nginx.override {
@@ -28,9 +29,11 @@ let
   };
 
   init = callPackage ./init { };
+  s6-services = callPackage ./init/s6-services { };
+
   pgconf = callPackage ./confs/postgres.nix { };
   nginxconf = callPackage ./confs/nginx.nix { };
-  s6-services = callPackage ./init/s6-services { };
+  valkeyconf = callPackage ./confs/valkey.nix { };
 in
 dockerTools.buildLayeredImage {
   name = "nocodb_aio";
@@ -41,6 +44,8 @@ dockerTools.buildLayeredImage {
 
     nocodb
     postgresql
+    snooze
+    valkey
     execline.bin
     minio
     nginxCustom
@@ -55,10 +60,10 @@ dockerTools.buildLayeredImage {
 
     htop
     vim
-    snooze
 
     pgconf
     nginxconf
+    valkeyconf
     s6-services
 
     s6

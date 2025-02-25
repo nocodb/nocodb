@@ -6,6 +6,7 @@
   mount,
   shadow,
   dockerTools,
+  lib,
 }:
 let
   base_dir = "/run/s6-init";
@@ -16,6 +17,7 @@ let
     inherit base_dir kernal_env_store_dir;
   };
   s6-service-compiled = callPackage ./s6-services-compiled { };
+  env-processor = callPackage ./env-processor { };
 in
 writeShellApplication {
   name = "init";
@@ -66,6 +68,9 @@ writeShellApplication {
 
     # stateful logs
     mkdir -p /var/log/
+
+    # setup envs
+    ${lib.getExe env-processor}
 
     # exec into s6-linux-init
     exec ${base_dir}/bin/init

@@ -42,11 +42,11 @@ writeShellApplication {
     cpio --extract -d < ${s6-linux-init}
     cd -
 
-    # setup compiled services
-    mkdir -p ${srv_compile_dir}
-    cd ${srv_compile_dir}/
-    cpio --extract -d < ${s6-service-compiled}/share/s6-service-compiled/archive.cpio
-    cd -
+    # setup envs
+    ${lib.getExe env-processor}
+
+    # compile services
+    s6-rc-compile ${srv_compile_dir} ${s6-service-compiled}/share/s6/services
 
     # setup users & groups
     ${dockerTools.shadowSetup}
@@ -64,9 +64,6 @@ writeShellApplication {
 
     # stateful logs
     mkdir -p /var/log/
-
-    # setup envs
-    ${lib.getExe env-processor}
 
     # exec into s6-linux-init
     exec ${base_dir}/bin/init

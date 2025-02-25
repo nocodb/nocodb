@@ -86,8 +86,8 @@ export const OneToOneCellRenderer: CellRenderer = {
           {
             x: x + 4,
             y: y + (rowHeightInPx['1'] === height ? 0 : 2),
-            height: cellRenderStore.height,
-            width: cellRenderStore.width,
+            height: cellRenderStore.height!,
+            width: cellRenderStore.width!,
           },
           mousePosition,
         )

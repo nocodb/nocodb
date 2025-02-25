@@ -12,6 +12,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
+    const isPublic = inject(IsPublicInj, ref(false))
+
     const { $api } = useNuxtApp()
 
     const router = useRouter()
@@ -106,6 +108,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const pendingRequests = new Map()
 
     const getViewColumns = async (viewId: string) => {
+      if (isPublic.value) return []
+
       if (viewColumnsMap[viewId]) return viewColumnsMap[viewId]
 
       if (pendingRequests.has(viewId)) {

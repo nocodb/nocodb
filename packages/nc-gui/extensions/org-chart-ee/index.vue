@@ -333,176 +333,181 @@ if (savedData) {
 <template>
   <ExtensionsExtensionWrapper>
     <div class="flex w-full h-full relative">
-      <div v-if="fullscreen" class="h-full w-80 flex flex-col gap-6 nc-scrollbar-thin p-4 bg-zinc-50 border-r justify-between">
-        <div class="flex flex-col space-y-4">
-          <div class="flex flex-col space-y-3">
-            <div class="text-sm text-nc-content-gray mb-2">Table</div>
-            <a-form-item class="!my-0 w-full">
-              <NcSelect
-                v-model:value="tableId"
-                class="w-full nc-select-shadow"
-                placeholder="-select table-"
-                :filter-option="filterOption"
-                :show-search="tables?.length > 6"
-                @change="onTableSelect"
-              >
-                <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
-                  <div class="w-full flex items-center gap-2">
-                    <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                    <NcTooltip show-on-truncate-only class="flex-1 truncate">
-                      <template #title>
-                        {{ table.title }}
-                      </template>
-                      {{ table.title }}
-                    </NcTooltip>
-
-                    <component
-                      :is="iconMap.check"
-                      v-if="tableId === table.id"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
-          </div>
-          <div class="flex flex-col space-y-3">
-            <div class="text-sm text-nc-content-gray mb-2">View</div>
-            <a-form-item class="!my-0 w-full">
-              <NcSelect
-                v-model:value="viewId"
-                placeholder="-select view-"
-                class="w-full nc-select-shadow"
-                :filter-option="filterOption"
-                show-search
-                placement="bottomRight"
-              >
-                <a-select-option v-for="view of viewList" :key="view.title" :value="view.id">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralViewIcon :meta="view" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ view.title }}</template>
-                      <span>{{ view.title }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="viewId === view.id"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
-          </div>
-          <div class="flex flex-col space-y-3">
-            <div class="text-sm text-nc-content-gray mb-2">
-              Relationship field <span class="text-sm font-bold text-red-500">*</span>
-            </div>
-            <a-form-item class="!my-0 w-full">
-              <NcSelect
-                v-model:value="relationFieldId"
-                placeholder="-select a link field-"
-                class="w-full nc-select-shadow"
-                :filter-option="filterOption"
-                show-search
-                placement="bottomRight"
-              >
-                <a-select-option v-for="relationField of relationFields" :key="relationField.id" :value="relationField.id">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralIcon :icon="getRelationFieldIcon(relationField)!.icon as keyof typeof iconMap" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ relationField.title }}</template>
-                      <span>{{ relationField.title }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="relationFieldId === relationField.id"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
-          </div>
-          <div class="flex flex-col">
-            <div class="text-sm text-nc-content-gray mb-2">Relationship Type</div>
-            <a-radio-group v-model:value="relationshipType" class="nc-field-layout-list" @click.stop>
-              <a-radio
-                v-for="op of relationshipTypeOptions"
-                :key="op.id"
-                :value="op.id"
-                class="border"
-                :data-testid="`select-option-${op.id}`"
-                >{{ op.title }}
-              </a-radio>
-            </a-radio-group>
-          </div>
-          <div class="flex flex-col space-y-3">
-            <div class="text-sm text-nc-content-gray mb-2">Cover Image</div>
-            <a-form-item class="!my-0 w-full">
-              <NcSelect
-                v-model:value="coverImageFieldId"
-                placeholder="-select an attachment field-"
-                class="w-full nc-select-shadow"
-                :filter-option="filterOption"
-                show-search
-                placement="bottomRight"
-              >
-                <a-select-option :value="undefined">
-                  <div class="w-full flex items-center gap-2">
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>No Image</template>
-                      <span>No Cover Image</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="!coverImageFieldId"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-                <a-select-option
-                  v-for="coverImageField of coverImageFields"
-                  :key="coverImageField.id"
-                  :value="coverImageField.id"
+      <div v-if="fullscreen" class="h-full w-80 flex flex-col gap-6 nc-scrollbar-thin border-r justify-between">
+        <div class="flex flex-col space-y-4 h-full">
+          <section>
+            <h1>Table and View</h1>
+            <div class="flex">
+              <a-form-item class="!my-0 w-full table-select">
+                <NcSelect
+                  v-model:value="tableId"
+                  class="w-full nc-select-shadow"
+                  placeholder="-select table-"
+                  :filter-option="filterOption"
+                  :show-search="tables?.length > 6"
+                  @change="onTableSelect"
                 >
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralIcon icon="cellAttachment" class="flex-none text-gray-500 w-4 h-4" />
+                  <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
+                    <div class="w-full flex items-center gap-2">
+                      <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                      <NcTooltip show-on-truncate-only class="flex-1 truncate">
+                        <template #title>
+                          {{ table.title }}
+                        </template>
+                        {{ table.title }}
+                      </NcTooltip>
+
+                      <component
+                        :is="iconMap.check"
+                        v-if="tableId === table.id"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
                     </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ coverImageField.title }}</template>
-                      <span>{{ coverImageField.title }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="coverImageFieldId === coverImageField.id"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+              <a-form-item class="!my-0 w-full view-select">
+                <NcSelect
+                  v-model:value="viewId"
+                  placeholder="-select view-"
+                  class="w-full nc-select-shadow"
+                  :filter-option="filterOption"
+                  show-search
+                  placement="bottomRight"
+                >
+                  <a-select-option v-for="view of viewList" :key="view.title" :value="view.id">
+                    <div class="w-full flex items-center gap-2">
+                      <div class="min-w-5 flex items-center justify-center">
+                        <GeneralViewIcon :meta="view" />
+                      </div>
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ view.title }}</template>
+                        <span>{{ view.title }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="viewId === view.id"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+          </section>
+          <section>
+            <h1>Settings</h1>
+            <div class="flex flex-col">
+              <div class="text-sm text-nc-content-gray mb-2">
+                Relationship field <span class="text-sm font-bold text-red-500">*</span>
+              </div>
+              <a-form-item class="!my-0 w-full">
+                <NcSelect
+                  v-model:value="relationFieldId"
+                  placeholder="-select a link field-"
+                  class="w-full nc-select-shadow"
+                  :filter-option="filterOption"
+                  show-search
+                  placement="bottomRight"
+                >
+                  <a-select-option v-for="relationField of relationFields" :key="relationField.id" :value="relationField.id">
+                    <div class="w-full flex items-center gap-2">
+                      <div class="min-w-5 flex items-center justify-center">
+                        <GeneralIcon :icon="getRelationFieldIcon(relationField)!.icon as keyof typeof iconMap" />
+                      </div>
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ relationField.title }}</template>
+                        <span>{{ relationField.title }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="relationFieldId === relationField.id"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+            <div class="flex flex-col">
+              <div class="text-sm text-nc-content-gray mb-2">Relationship Type</div>
+              <a-radio-group v-model:value="relationshipType" class="relationship-type" @click.stop>
+                <a-radio
+                  v-for="op of relationshipTypeOptions"
+                  :key="op.id"
+                  :value="op.id"
+                  class="border"
+                  :data-testid="`select-option-${op.id}`"
+                  >{{ op.title }}
+                </a-radio>
+              </a-radio-group>
+            </div>
+            <div class="flex flex-col space-y-3">
+              <div class="text-sm text-nc-content-gray mb-2">Cover Image</div>
+              <a-form-item class="!my-0 w-full">
+                <NcSelect
+                  v-model:value="coverImageFieldId"
+                  placeholder="-select an attachment field-"
+                  class="w-full nc-select-shadow"
+                  :filter-option="filterOption"
+                  show-search
+                  placement="bottomRight"
+                >
+                  <a-select-option :value="undefined">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>No Image</template>
+                        <span>No Cover Image</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="!coverImageFieldId"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                  <a-select-option
+                    v-for="coverImageField of coverImageFields"
+                    :key="coverImageField.id"
+                    :value="coverImageField.id"
+                  >
+                    <div class="w-full flex items-center gap-2">
+                      <div class="min-w-5 flex items-center justify-center">
+                        <GeneralIcon icon="cellAttachment" class="flex-none text-gray-500 w-4 h-4" />
+                      </div>
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ coverImageField.title }}</template>
+                        <span>{{ coverImageField.title }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="coverImageFieldId === coverImageField.id"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+          </section>
+          <div class="flex-1"></div>
+          <div class="px-6 py-4 flex flex-col">
+            <a-button
+              size="small"
+              class="!rounded-md !h-[2rem]"
+              type="primary"
+              :disabled="!isDirty || !relationFieldId"
+              @click.prevent="applyChanges"
+            >
+              <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
+            </a-button>
           </div>
         </div>
-        <a-button
-          size="small"
-          class="!rounded-md !h-[2rem]"
-          type="primary"
-          :disabled="!isDirty || !relationFieldId"
-          @click.prevent="applyChanges"
-        >
-          <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
-        </a-button>
       </div>
       <Graph
         v-if="isReady"
@@ -561,5 +566,56 @@ if (savedData) {
 <style lang="scss">
 .vue-flow__node {
   @apply border-1 border-zinc-300 rounded-md p-0;
+}
+</style>
+
+<style lang="scss" scoped>
+.table-select :deep(.ant-select-selector) {
+  &:not(:focus-within) {
+    border-right: 0;
+  }
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.view-select :deep(.ant-select-selector) {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+section {
+  @apply flex flex-col px-6 py-4 gap-4 border-b border-nc-border-gray-medium !m-0;
+  h1 {
+    font-size: 16px;
+    font-weight: 700;
+    @apply text-nc-content-gray-emphasis;
+  }
+}
+
+.relationship-type {
+  :deep(.ant-radio-input:focus + .ant-radio-inner) {
+    box-shadow: none !important;
+  }
+  :deep(.ant-radio-wrapper) {
+    @apply flex px-3 py-2 border-1 border-nc-gray-medium m-0;
+    .ant-radio-checked .ant-radio-inner {
+      @apply !bg-nc-fill-primary !border-nc-fill-primary;
+      &::after {
+        @apply bg-nc-bg-default;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        margin-left: -6px;
+      }
+    }
+    &:first-child {
+      @apply rounded-tl-lg rounded-tr-lg;
+    }
+    &:last-child {
+      @apply border-t-0 rounded-bl-lg rounded-br-lg;
+    }
+    span:last-child {
+      padding-left: 12px;
+      font-weight: 500;
+    }
+  }
 }
 </style>

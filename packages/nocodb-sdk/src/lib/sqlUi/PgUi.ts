@@ -2174,6 +2174,10 @@ export class PgUi implements SqlUi {
   isEqual(dataType1: string, dataType2: string): boolean {
     return PgUi.isEqual(dataType1, dataType2);
   }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
   //#endregion methods
 }
 

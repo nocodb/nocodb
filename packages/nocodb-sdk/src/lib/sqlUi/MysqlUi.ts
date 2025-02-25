@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { ColumnType, IDType } from '~/lib';
 import { SqlUi } from './SqlUI.types';
+import { numberize } from '../numberUtils';
 
 const dbTypes = [
   'int',
@@ -1483,6 +1484,34 @@ export class MysqlUi implements SqlUi {
   }
   isEqual(dataType1: string, dataType2: string): boolean {
     return MysqlUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(newColumn: Partial<ColumnType>, oldColumn?: ColumnType) {
+    if (newColumn.dt === 'decimal') {
+      // get old column length and default length
+      const defaultDtxp: number = numberize(
+        this.getDefaultLengthForDatatype(newColumn.dt)
+      );
+      let lastDtxp = defaultDtxp;
+      if (oldColumn) {
+        lastDtxp = numberize(oldColumn.dtxp) ?? lastDtxp;
+      }
+      // get default and new column scale
+      const defaultDtxs = numberize(
+        this.getDefaultScaleForDatatype(newColumn.dt)
+      );
+      const newDtxs = numberize(newColumn.dtxs) ?? defaultDtxs;
+
+      // get new column length based on scale and old length
+      // get whichever is the highest, old column length,
+      // default column length or default + precision - default if precision > default
+      const newDtxp = Math.max(
+        defaultDtxp,
+        lastDtxp,
+        defaultDtxp + Math.max(newDtxs - defaultDtxs, 0)
+      );
+      newColumn.dtxp = newDtxp;
+      newColumn.dtxs = newDtxs;
+    }
   }
   //#endregion methods
 }

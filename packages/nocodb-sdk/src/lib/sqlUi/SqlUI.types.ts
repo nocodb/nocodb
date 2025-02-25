@@ -57,4 +57,8 @@ export interface SqlUi {
   getUnsupportedFnList(): string[];
   getCurrentDateDefault(_col: Partial<ColumnType>): string | any;
   isEqual(dataType1: string, dataType2: string): boolean;
+  adjustLengthAndScale(
+    newColumn: Partial<ColumnType>,
+    oldColumn?: ColumnType
+  ): void;
 }

@@ -39,6 +39,7 @@ export default async function getColumnPropsFromUIDT(
   newColumn.altered = column.altered || 2;
 
   const finalColumnMeta = { ...newColumn, ...column };
+  sqlUi.adjustLengthAndScale(finalColumnMeta);
 
   if (
     finalColumnMeta.uidt === UITypes.CreatedTime &&

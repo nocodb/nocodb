@@ -110,6 +110,13 @@ eventBus.on(async (event, column: ColumnType) => {
             }}</span>
           </div>
           <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
+
+          <!--    show a warning icon with tooltip if query filter error is there -->
+          <template v-if="filtersFromUrlParams.errors?.length">
+            <NcTooltip :title="filtersFromUrlParams.errors?.[0]?.message" placement="top">
+              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-3.5" />
+            </NcTooltip>
+          </template>
         </div>
       </NcButton>
     </NcTooltip>
@@ -158,7 +165,10 @@ eventBus.on(async (event, column: ColumnType) => {
         </a-alert>
 </div>
     </template>
+
       </div>
     </template>
+
+
   </NcDropdown>
 </template>
